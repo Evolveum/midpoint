@@ -97,7 +97,9 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() == null) {
                 Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
                 moduleAuthentication.setAuthentication(authentication);
-                mpAuthentication.setPrincipal(authentication.getPrincipal());
+                if (!mpAuthentication.hasSucceededAuthentication()) {
+                    mpAuthentication.setPrincipal(authentication.getPrincipal());
+                }
             }
         }
     }

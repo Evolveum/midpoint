@@ -84,7 +84,7 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
             OperationResult result) throws SchemaException {
 
         // TODO op subresult
-        return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
+        return changesSorter.getChangesByStateForRoot(rootCase, result);
     }
 
     @Override
@@ -96,6 +96,6 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
             OperationResult result) throws SchemaException {
 
         // TODO op subresult
-        return changesSorter.getChangesByStateForChild(approvalCase, rootCase, prismContext, result);
+        return changesSorter.getChangesByStateForChild(approvalCase, rootCase, result);
     }
 }

@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getExpressionProfile;
@@ -20,8 +25,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,12 +53,11 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.CheckedRunnable;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Tests selected methods in MidpointFunctions + parts of "function libraries" feature.
@@ -106,6 +111,16 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         }
     }
 
+    private <T> T execute(Task task, OperationResult result, CheckedProducer<T> producer) throws Exception {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ExpressionEnvironment(task, result));
+        try {
+            return producer.get();
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
     /**
      * MID-6133
      */
@@ -141,8 +156,9 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> administrator = getUser(USER_ADMINISTRATOR_OID);
 
         when();
-        execute(task, result, () -> libraryMidpointFunctions.addRecomputeTrigger(administrator, null,
-                trigger -> trigger.setOriginDescription("test120")));
+        execute(task, result, () ->
+                libraryMidpointFunctions.addRecomputeTrigger(
+                        administrator, null, trigger -> trigger.setOriginDescription("test120")));
 
         then();
         assertSuccess(result);
@@ -335,5 +351,93 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         CheckedRunnable action =
                 () -> cacheDispatcher.dispatchInvalidation(FunctionLibraryType.class, null, false, null);
         executeWithActionInBetween(duration, invalidationInterval, minInvalidationCount, action, task, result);
+    }
+
+    /** Checks {@link MidpointFunctions#describeResourceObjectSetShort(ResourceObjectSetType)} and siblings. MID-8484. */
+    @Test
+    public void test300DescribeResourceObjectSet() throws Exception {
+
+        when("kind is present");
+        ResourceObjectSetType set1 = new ResourceObjectSetType()
+                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                .kind(ShadowKindType.ACCOUNT);
+        var short1 = describeShort(set1);
+        var long1 = describeLong(set1);
+
+        then("descriptions are OK");
+        displayValue("short", short1);
+        assertThat(short1).isEqualTo("Dummy Resource: Default Account");
+        displayValue("long", long1);
+        assertThat(long1).isEqualTo("Dummy Resource: Default Account (Account/default as the default intent)");
+
+        when("kind+intent are present");
+        ResourceObjectSetType set2 = new ResourceObjectSetType()
+                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("default");
+        var short2 = describeShort(set2);
+        var long2 = describeLong(set2);
+
+        then("descriptions are OK");
+        displayValue("short", short2);
+        assertThat(short2).isEqualTo("Dummy Resource: Default Account");
+        displayValue("long", long2);
+        assertThat(long2).isEqualTo("Dummy Resource: Default Account (Account/default)");
+
+        when("kind+intent+OC are present");
+        ResourceObjectSetType set3 = new ResourceObjectSetType()
+                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("default")
+                .objectclass(RI_ACCOUNT_OBJECT_CLASS);
+        var short3 = describeShort(set3);
+        var long3 = describeLong(set3);
+
+        then("descriptions are OK");
+        displayValue("short", short3);
+        assertThat(short3).isEqualTo("Dummy Resource: Default Account");
+        displayValue("long", long3);
+        assertThat(long3).isEqualTo("Dummy Resource: Default Account (Account/default) [AccountObjectClass]");
+
+        when("kind+OC are present (no display name)");
+        ResourceObjectSetType set4 = new ResourceObjectSetType()
+                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                .kind(ShadowKindType.ENTITLEMENT)
+                .objectclass(RI_GROUP_OBJECT_CLASS);
+        var short4 = describeShort(set4);
+        var long4 = describeLong(set4);
+
+        then("descriptions are OK");
+        displayValue("short", short4);
+        assertThat(short4).isEqualTo("Dummy Resource: Entitlement/group");
+        displayValue("long", long4);
+        assertThat(long4).isEqualTo("Dummy Resource: Entitlement/group as the default intent [GroupObjectClass]");
+
+        when("OC is present only");
+        ResourceObjectSetType set5 = new ResourceObjectSetType()
+                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                .objectclass(new QName(NS_RI, "CustomprivilegeObjectClass"));
+        var short5 = describeShort(set5);
+        var long5 = describeLong(set5);
+
+        then("descriptions are OK");
+        displayValue("short", short5);
+        assertThat(short5).isEqualTo("Dummy Resource [CustomprivilegeObjectClass]");
+        displayValue("long", long5);
+        assertThat(long5).isEqualTo("Dummy Resource [CustomprivilegeObjectClass]");
+    }
+
+    private String describeShort(ResourceObjectSetType set) throws Exception {
+        return execute(
+                getTestTask(),
+                getTestOperationResult(),
+                () -> libraryMidpointFunctions.describeResourceObjectSetShort(set));
+    }
+
+    private String describeLong(ResourceObjectSetType set) throws Exception {
+        return execute(
+                getTestTask(),
+                getTestOperationResult(),
+                () -> libraryMidpointFunctions.describeResourceObjectSetLong(set));
     }
 }

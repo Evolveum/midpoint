@@ -1,15 +1,15 @@
+/*
+ * Copyright (C) 2021-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.component.data.column.ReportExpressionColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-
-import com.evolveum.midpoint.prism.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -18,14 +18,23 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.ReportExpressionColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -35,8 +44,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.ObjectListStorage;
@@ -234,7 +241,7 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
                 if (entry.getValue() == null) {
                     variablesMap.put(entry.getKey(), null, String.class);
                 } else if (entry.getValue() instanceof Item) {
-                    variablesMap.put(entry.getKey(), (Item) entry.getValue(), ((Item) entry.getValue()).getDefinition());
+                    variablesMap.put(entry.getKey(), entry.getValue(), ((Item) entry.getValue()).getDefinition());
                 } else {
                     variablesMap.put(entry.getKey(), entry.getValue(), entry.getValue().getClass());
                 }
@@ -245,6 +252,7 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
 
     @Override
     protected SearchPanel initSearch(String headerId) {
+        getSearchModel().getObject().setAllowedModeList(List.of(SearchBoxModeType.BASIC));
         return new SearchPanel<>(headerId, getSearchModel()) {
             private static final long serialVersionUID = 1L;
 
@@ -313,7 +321,7 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
 
     @Override
     protected IColumn<SelectableBean<C>, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ReportExpressionColumn<>(columnDisplayModel, null, customColumn, expression, getPageBase()) {
+        return new ReportExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
 
             @Override
             protected void processReportSpecificVariables(VariablesMap variablesMap) {

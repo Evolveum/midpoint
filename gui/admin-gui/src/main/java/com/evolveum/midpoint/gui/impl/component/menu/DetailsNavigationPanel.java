@@ -8,11 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -24,8 +21,9 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.web.application.SimpleCounter;
@@ -93,7 +91,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private IModel<String> createNavigationDetailsStyleModel(ListItem<ContainerPanelConfigurationType> item) {
-        return new ReadOnlyModel<>(() -> {
+        return () -> {
             ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
             ContainerPanelConfigurationType itemModelObject = item.getModelObject();
             if (isMenuActive(storageConfig, itemModelObject)) {
@@ -103,7 +101,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 return "open";
             }
             return "";
-        });
+        };
     }
 
     private ContainerPanelConfigurationType getConfigurationFromStorage() {
@@ -182,6 +180,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
         return !config.getPanel().isEmpty();
     }
+
     private DetailsNavigationPanel<O> createDetailsSubNavigationPanel(ListItem<ContainerPanelConfigurationType> item) {
         DetailsNavigationPanel<O> subPanel = new DetailsNavigationPanel<>(ID_SUB_NAVIGATION, objectDetailsModel, new PropertyModel<>(item.getModel(), ContainerPanelConfigurationType.F_PANEL.getLocalPart())) {
 
@@ -199,14 +198,14 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {
-        return new ReadOnlyModel<>( () -> {
+        return () -> {
             SimpleCounter<ObjectDetailsModels<O>, O> counter = getCounterProvider(panelModel);
             if (counter == null) {
                 return null;
             }
             int count = counter.count(objectDetailsModel, getPageBase());
             return String.valueOf(count);
-        });
+        };
     }
 
     private SimpleCounter<ObjectDetailsModels<O>, O> getCounterProvider(IModel<ContainerPanelConfigurationType> panelModel) {
@@ -224,8 +223,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         if (config == null) {
             return true;
         }
-
-
 
         return WebComponentUtil.getElementVisibility(config.getVisibility()) && isVisibleForAddApply(config);
     }
@@ -249,7 +246,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private IModel<String> createButtonLabel(IModel<ContainerPanelConfigurationType> model) {
 
-        return new ReadOnlyModel<>(() -> {
+        return () -> {
             ContainerPanelConfigurationType config = model.getObject();
 
             if (config.getDisplay() == null) {
@@ -260,20 +257,18 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 return "N/A";
             }
 
-            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
-        });
+            return LocalizationUtil.translatePolyString(config.getDisplay().getLabel());
+        };
     }
 
     private IModel<String> getMenuItemIconClass(IModel<ContainerPanelConfigurationType> item) {
-        return new ReadOnlyModel<>(() -> {
+        return () -> {
             ContainerPanelConfigurationType config = item.getObject();
             if (config == null || config.getDisplay() == null) {
                 return GuiStyleConstants.CLASS_CIRCLE_FULL;
             }
             String iconCss = GuiDisplayTypeUtil.getIconCssClass(config.getDisplay());
             return StringUtils.isNoneEmpty(iconCss) ? iconCss : GuiStyleConstants.CLASS_CIRCLE_FULL;
-        });
-
+        };
     }
-
 }

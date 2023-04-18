@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -52,7 +53,12 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
                     }
                     return "";
                 }));
-                formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+                String event = "blur";
+                if (formComponent instanceof AutoCompleteTextField) {
+                    event = "change";
+                }
+                formComponent.add(new AjaxFormComponentUpdatingBehavior(event) {
 
                     private boolean lastValidationWasError = false;
 
@@ -71,6 +77,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
                         if (lastValidationWasError) {
                             lastValidationWasError = false;
                             target.add(getComponent());
+                            target.focusComponent(null);
                         }
                     }
 

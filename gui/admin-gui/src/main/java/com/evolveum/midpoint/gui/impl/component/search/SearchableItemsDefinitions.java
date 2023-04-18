@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -264,11 +265,11 @@ public class SearchableItemsDefinitions {
         return SearchableItemsDefinitions.SEARCHABLE_OBJECTS.get(typeClass);
     }
 
-    @NotNull public Map<ItemPath, ItemDefinition<?>> createAvailableSearchItems() {
+    @NotNull public PathKeyedMap<ItemDefinition<?>> createAvailableSearchItems() {
 
         Collection<ItemPath> extensionPaths = createExtensionPaths();
 
-        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
+        PathKeyedMap<ItemDefinition<?>> searchableDefinitions = new PathKeyedMap<>();
 
         ItemDefinition<?> containerDef = getDefinition();
         collectExtensionDefinitions(containerDef, extensionPaths, searchableDefinitions);
@@ -306,9 +307,18 @@ public class SearchableItemsDefinitions {
         List<ItemPath> extensionPaths = new ArrayList<>();
         extensionPaths.add(ObjectType.F_EXTENSION);
         if (AssignmentType.class.equals(type)) {
-            extensionPaths.add(ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(assignmentTargetType), ObjectType.F_EXTENSION));
+            if (assignmentTargetType == null || isAssignmentTargetTypeObjectable()) {
+                extensionPaths.add(ItemPath.create(AssignmentType.F_TARGET_REF,
+                        new ObjectReferencePathSegment(assignmentTargetType), ObjectType.F_EXTENSION));
+            }
         }
         return extensionPaths;
+    }
+
+    private boolean isAssignmentTargetTypeObjectable() {
+        TypeDefinition targetRefTypeDef = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(assignmentTargetType);
+        return targetRefTypeDef != null && targetRefTypeDef.getCompileTimeClass() != null
+                && ObjectType.class.isAssignableFrom(targetRefTypeDef.getCompileTimeClass());
     }
 
     private PrismObjectDefinition findObjectDefinition() {

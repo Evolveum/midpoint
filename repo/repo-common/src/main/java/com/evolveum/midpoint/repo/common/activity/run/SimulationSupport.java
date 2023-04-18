@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
@@ -53,7 +53,8 @@ class SimulationSupport {
 
     /** Creates the simulation result for the current activity. Assumed to be called once per realization. */
     void getOrCreateSimulationResult(OperationResult result) throws ActivityRunException {
-        if (!activityRun.getExecutionModeDefinition().shouldCreateSimulationResult()) {
+        ActivityReportingDefinition reportingDefinition = activityRun.getReportingDefinition();
+        if (!reportingDefinition.shouldCreateSimulationResult()) {
             return;
         }
         if (simulationResult != null) {
@@ -86,8 +87,8 @@ class SimulationSupport {
             try {
                 ActivityExecutionModeDefinition execModeDef = activityRun.getActivityDefinition().getExecutionModeDefinition();
                 simulationResult = advancedActivityRunSupport.createSimulationResult(
-                        execModeDef.getSimulationDefinition(),
-                        activityRun.getRunningTask().getRootTaskOid(),
+                        reportingDefinition.getSimulationDefinition(),
+                        activityRun.getRunningTask().getRootTask(),
                         execModeDef.getConfigurationSpecification(),
                         result);
                 simResultOid = simulationResult.getResultOid();
@@ -109,7 +110,7 @@ class SimulationSupport {
         if (simulationResult != null) {
             return;
         }
-        ActivityExecutionModeDefinition modeDef = activityRun.getExecutionModeDefinition();
+        ActivityReportingDefinition modeDef = activityRun.getReportingDefinition();
         if (!modeDef.shouldCreateSimulationResult()) {
             LOGGER.trace("Skipping initialization of simulation result context; mode definition = {}", modeDef);
             return;
@@ -157,10 +158,11 @@ class SimulationSupport {
         return activityRun.getActivityPath() + "#" + getBucketSequentialNumber();
     }
 
-    void openSimulationTransaction(OperationResult result) {
+    SimulationTransaction openSimulationTransaction(OperationResult result) {
         if (simulationResult != null) {
             simulationTransaction = simulationResult.openTransaction(getSimulationResultTxId(), result);
         }
+        return simulationTransaction;
     }
 
     void commitSimulationTransaction(OperationResult result) {

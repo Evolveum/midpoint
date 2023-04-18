@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -21,7 +22,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 public class AuthModuleImpl implements AuthModule {
 
-    private AuthModuleImpl(){
+    @VisibleForTesting
+    public AuthModuleImpl(){
 
     }
 
@@ -57,8 +59,8 @@ public class AuthModuleImpl implements AuthModule {
     }
 
     @Override
-    public String getNameOfModule() {
-        return configuration.getNameOfModule();
+    public String getModuleIdentifier() {
+        return configuration.getModuleIdentifier();
     }
 
     private void setBaseModuleAuthentication(ModuleAuthenticationImpl baseModuleAuthentication) {

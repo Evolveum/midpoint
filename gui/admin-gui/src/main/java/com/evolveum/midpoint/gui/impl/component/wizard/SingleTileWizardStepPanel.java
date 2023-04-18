@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
@@ -125,6 +126,12 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                     @Override
                     protected List<IColumn<SelectableBean<O>, String>> createColumns() {
                         return SingleTileWizardStepPanel.this.createColumns();
+                    }
+
+                    @Override
+                    public void refresh(AjaxRequestTarget target) {
+                        super.refresh(target);
+                        refreshSubmitAndNextButton(target);
                     }
                 };
         add(tilesTable);

@@ -186,7 +186,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         TaskExecutionMode executionMode = task.getExecutionMode();
         if (executionMode.isFullyPersistent()) {
-            LOGGER.warn("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
+            LOGGER.debug("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
                     task.getName());
 
             task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
@@ -840,7 +840,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
             addIgnoreNull(primaryDeltas, primaryDelta);
 
-            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+            ObjectDelta executable = CloneUtil.clone(projCtx.getExecutableDelta());
+            if (executable != null && !isEquivalentWithoutOperationAttr(primaryDelta, executable)) {
                 projectionContexts.add(projCtx);
             }
         }
@@ -1466,8 +1467,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @NotNull
     @Override
-    public List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assigneeRef, QName limitationItemName, Task task,
-            OperationResult parentResult) throws SchemaException {
+    public List<ObjectReferenceType> getDeputyAssignees(
+            ObjectReferenceType assigneeRef, QName limitationItemName, Task task, OperationResult parentResult)
+            throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
@@ -1485,11 +1487,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    private void getDeputyAssignees(List<ObjectReferenceType> deputies, AbstractWorkItemType workItem, Set<String> oidsToSkip,
+    private void getDeputyAssignees(
+            List<ObjectReferenceType> deputies, AbstractWorkItemType workItem, Set<String> oidsToSkip,
             Task task, OperationResult result) throws SchemaException {
         List<PrismReferenceValue> assigneeReferencesToQuery = workItem.getAssigneeRef().stream()
                 .map(assigneeRef -> assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue())
                 .collect(Collectors.toList());
+        if (assigneeReferencesToQuery.isEmpty()) {
+            return;
+        }
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_DELEGATED_REF).ref(assigneeReferencesToQuery)
                 .build();
@@ -1499,14 +1505,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
-            if (determineDeputyValidity(potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, task, result)) {
+            if (determineDeputyValidity(
+                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS,
+                    task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
     }
 
-    private void getDeputyAssigneesNoWorkItem(List<ObjectReferenceType> deputies, ObjectReferenceType assigneeRef,
+    private void getDeputyAssigneesNoWorkItem(
+            List<ObjectReferenceType> deputies, ObjectReferenceType assigneeRef,
             QName limitationItemName, Set<String> oidsToSkip,
             Task task, OperationResult result) throws SchemaException {
         PrismReferenceValue assigneeReferenceToQuery = assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue();
@@ -1681,7 +1690,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throw new SchemaException(localizableMessage);
         }
 
-        if (!resetMethod.equals(resetPolicyType.getName())) {
+        if (!credentialsResetPolicyMatch(resetPolicyType, resetMethod)) {
             LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad method.").key("execute.reset.credential.bad.method").build();
             response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
             throw new SchemaException(localizableMessage);
@@ -1739,6 +1748,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 
         return response;
+    }
+
+    private boolean credentialsResetPolicyMatch(CredentialsResetPolicyType policy, String identifier) {
+        return StringUtils.equals(policy.getIdentifier(), identifier) || StringUtils.equals(policy.getName(), identifier);
     }
 
     @Override

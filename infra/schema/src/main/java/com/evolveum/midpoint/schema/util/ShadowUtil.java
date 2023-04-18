@@ -383,9 +383,11 @@ public class ShadowUtil {
         attributesContainer.applyDefinition((PrismContainerDefinition) racDef, true);
     }
 
-    public static PrismObjectDefinition<ShadowType> applyObjectDefinition(PrismObjectDefinition<ShadowType> shadowDefinition,
+    public static PrismObjectDefinition<ShadowType> applyObjectDefinition(
+            PrismObjectDefinition<ShadowType> shadowDefinition,
             ResourceObjectDefinition objectClassDefinition) throws SchemaException {
-        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+        return shadowDefinition.cloneWithReplacedDefinition(
+                ShadowType.F_ATTRIBUTES,
                 objectClassDefinition.toResourceAttributeContainerDefinition());
     }
 
@@ -1079,7 +1081,7 @@ public class ShadowUtil {
                 .collect(Collectors.toList());
     }
 
-    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
+    public static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
     }
@@ -1093,5 +1095,11 @@ public class ShadowUtil {
                 || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
                 || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
                 || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+    }
+
+    public static @Nullable SynchronizationSituationDescriptionType getLastSyncSituationDescription(@NotNull ShadowType shadow) {
+        return shadow.getSynchronizationSituationDescription().stream()
+                .max(Comparator.comparing(desc -> XmlTypeConverter.toMillis(desc.getTimestamp())))
+                .orElse(null);
     }
 }

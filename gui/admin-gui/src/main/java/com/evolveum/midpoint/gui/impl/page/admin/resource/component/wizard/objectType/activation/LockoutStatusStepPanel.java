@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 @Experimental
 @PanelInstance(identifier = "rw-activation-lockoutStatus",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.activation.lockoutStatus", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class LockoutStatusStepPanel extends ActivationMappingStepPanel {

@@ -21,23 +21,23 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "roleWizard-construction-mapping")
-@PanelInstance(identifier = "roleWizard-construction-mapping",
-        applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+@PanelType(name = "arw-construction-mappings")
+@PanelInstance(identifier = "arw-construction-mappings",
+        applicableForType = AbstractRoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.mapping", icon = "fa fa-arrow-right-from-bracket"),
         containerPath = "empty")
-public class ConstructionOutboundMappingsStepPanel
-        extends AbstractWizardStepPanel<FocusDetailsModels<RoleType>> {
+public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
+        extends AbstractWizardStepPanel<FocusDetailsModels<AR>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionOutboundMappingsStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-mapping";
+    public static final String PANEL_TYPE = "arw-construction-mappings";
 
     protected static final String ID_PANEL = "panel";
     private final IModel<PrismContainerValueWrapper<ConstructionType>> constructionModel;
 
-    public ConstructionOutboundMappingsStepPanel(FocusDetailsModels<RoleType> model,
+    public ConstructionOutboundMappingsStepPanel(FocusDetailsModels<AR> model,
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(model);
         this.constructionModel = createValueModel(assignmentModel);
@@ -50,13 +50,15 @@ public class ConstructionOutboundMappingsStepPanel
     }
 
     private void initLayout() {
-        add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel()) {
+        add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
                 @Override
                 protected void editItemPerformed(
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                         List<PrismContainerValueWrapper<MappingType>> listItems) {
-                    inEditOutboundValue(rowModel, target);
+                    if (isValidFormComponentsOfRow(rowModel, target)) {
+                        inEditOutboundValue(rowModel, target);
+                    }
                 }
             }
         );
@@ -135,6 +137,10 @@ public class ConstructionOutboundMappingsStepPanel
         } catch (SchemaException e) {
             LOGGER.error("Couldn't apply delta from attribute value container.");
         }
+    }
 
+    @Override
+    public String appendCssToWizard() {
+        return "mt-5 mx-auto col-11";
     }
 }

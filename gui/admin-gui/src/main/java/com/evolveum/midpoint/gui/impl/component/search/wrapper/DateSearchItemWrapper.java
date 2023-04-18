@@ -9,13 +9,13 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.panel.DateSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 
 public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregorianCalendar> {
 
@@ -31,6 +31,7 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
     public DateSearchItemWrapper(ItemPath path) {
         super(path);
     }
+
     public XMLGregorianCalendar getSingleDate() {
         return singleDate;
     }
@@ -65,13 +66,28 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
         isInterval = interval;
     }
 
-
     @Override
     public DisplayableValue<XMLGregorianCalendar> getValue() {
         if (!isInterval && singleDate != null) {
             return new SearchValue<>(singleDate);
         }
         return super.getValue();
+    }
+
+    @Override
+    public void setValue(DisplayableValue<XMLGregorianCalendar> value) {
+        if (!isInterval && singleDate != null) {
+            singleDate = null;
+            return;
+        }
+
+        super.setValue(value);
+    }
+
+    @Override
+    public void clearValue() {
+        singleDate = getDefaultValue() != null ? getDefaultValue().getValue() : null;
+        intervalSecondDate = null;
     }
 
     @Override
@@ -99,5 +115,4 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
         }
         return null;
     }
-
 }

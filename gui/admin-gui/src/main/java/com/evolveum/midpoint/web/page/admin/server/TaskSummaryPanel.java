@@ -7,44 +7,37 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
-import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
-
-import com.evolveum.midpoint.schema.util.task.LegacyTaskInformation;
-import com.evolveum.midpoint.schema.util.task.TaskInformation;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.LegacyTaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private static final long serialVersionUID = -5077637168906420769L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
 
     /** Keeps the pre-processed task information. */
     @NotNull private final NonEmptyLoadableModel<TaskInformation> taskInformationModel;
@@ -68,6 +61,30 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private NonEmptyLoadableModel<TaskInformation> createFallbackTaskInformationModel(@NotNull IModel<TaskType> model) {
         return NonEmptyLoadableModel.create(
                 () -> LegacyTaskInformation.fromLegacyTaskOrNoTask(model.getObject()), false);
+    }
+
+    @Override
+    protected IModel<List<Badge>> createBadgesModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<Badge> load() {
+                TaskType task = getModelObject();
+                ActivityDefinitionType def = task.getActivity();
+
+                if (def == null || def.getExecution() == null) {
+                    return Collections.emptyList();
+                }
+
+                ActivityExecutionModeDefinitionType executionDef = def.getExecution();
+                ExecutionModeType mode = executionDef.getMode();
+                if (mode == null) {
+                    return Collections.emptyList();
+                }
+
+                return List.of(new Badge(Badge.State.INFO.getCss(), LocalizationUtil.translateEnum(mode)));
+            }
+        };
     }
 
     @Override
@@ -151,16 +168,16 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 break;
             case SUSPENDED:
             case SUSPENDING:
-                css =  GuiStyleConstants.ICON_FA_BED;
+                css = GuiStyleConstants.ICON_FA_BED;
                 break;
             case WAITING:
                 css = GuiStyleConstants.ICON_FAR_CLOCK;
                 break;
             case CLOSED:
-                css =  GuiStyleConstants.ICON_FA_POWER_OFF;
+                css = GuiStyleConstants.ICON_FA_POWER_OFF;
                 break;
             default:
-                css =  "";
+                css = "";
         }
 
         return StringUtils.isNotEmpty(css) ? css + " fa-fw" : "";
@@ -205,23 +222,23 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
             String rv = WebComponentUtil.getTaskProgressDescription(taskInformation, true, getPageBase());
             if (taskType.getExecutionState() != null) {
-                    switch (taskType.getExecutionState()) {
-                        case SUSPENDED:
-                            rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
-                            break;
-                        case CLOSED:
-                            rv += " " + getString("TaskSummaryPanel.progressIfClosed");
-                            break;
-                        case WAITING:
-                            rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
-                            break;
-                    }
+                switch (taskType.getExecutionState()) {
+                    case SUSPENDED:
+                        rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
+                        break;
+                    case CLOSED:
+                        rv += " " + getString("TaskSummaryPanel.progressIfClosed");
+                        break;
+                    case WAITING:
+                        rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+                        break;
                 }
-                Long stalledSince = WebComponentUtil.xgc2long(taskType.getStalledSince());
-                if (stalledSince != null) {
-                    rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(stalledSince)));
-                }
-                return rv;
+            }
+            Long stalledSince = WebComponentUtil.xgc2long(taskType.getStalledSince());
+            if (stalledSince != null) {
+                rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(stalledSince)));
+            }
+            return rv;
         };
     }
 
@@ -262,7 +279,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     private String getTaskExecutionLabel(TaskType task) {
         TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionState(task.getExecutionState(), task.getNodeAsObserved() != null);
-        if (status != null){
+        if (status != null) {
             return PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString();
         }
         return "";
@@ -284,7 +301,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getLiveSyncTokenIcon() {
-        return "fa fa-hand-o-right";
+        return "fa-regular fa-hand-point-right fa-fw";
     }
 
     private String getLiveSyncToken(TaskType taskType) {
@@ -295,7 +312,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return token != null ? token.toString() : null;
     }
 
-    public NonEmptyLoadableModel<TaskInformation> getTaskInfoModel(){
+    public NonEmptyLoadableModel<TaskInformation> getTaskInfoModel() {
         return taskInformationModel;
     }
 }

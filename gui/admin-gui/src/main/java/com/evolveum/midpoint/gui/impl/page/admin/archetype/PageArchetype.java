@@ -6,9 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -38,7 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
                         label = "PageArchetype.auth.user.label",
                         description = "PageArchetype.auth.archetype.description")
         })
-public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
+public class PageArchetype extends PageAbstractRole<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -61,7 +71,23 @@ public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsM
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<ArchetypeType> summaryModel) {
-        return new ArchetypeSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
+        return new ArchetypeSummaryPanel(id, getModelObjectWithApplicableDelta(), summaryModel, getSummaryPanelSpecification());
     }
 
+    private IModel<ArchetypeType> getModelObjectWithApplicableDelta() {
+        return () -> {
+            PrismObject<ArchetypeType> object = getObjectForResolvingArchetypePolicyDisplayType();
+            return object != null ? object.asObjectable() : null;
+        };
+    }
+
+    @Override
+    protected PrismObject<ArchetypeType> getObjectForResolvingArchetypePolicyDisplayType() {
+        try {
+            return getModelWrapperObject().getObjectApplyDelta();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't apply deltas for archetypes " + getModelWrapperObject().getObject(), e);
+        }
+        return null;
+    }
 }

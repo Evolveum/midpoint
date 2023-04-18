@@ -44,6 +44,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     private static final String ID_ASSOCIATIONS = "associations";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_PASSWORD = "password";
+    private static final String ID_POLICY_STATEMENT = "policyStatement";
 
     private ContainerPanelConfigurationType config;
     private IModel<ResourceType> resourceModel;
@@ -132,6 +133,14 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
                     passwordSettingsBuilder.build());
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
             add(passwordPanel);
+
+            ItemPanelSettingsBuilder markSettingsBuilder = new ItemPanelSettingsBuilder()
+                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+            Panel markPanel = getPageBase().initItemPanel(ID_POLICY_STATEMENT, PolicyStatementType.COMPLEX_TYPE,
+                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_POLICY_STATEMENT)),
+                    markSettingsBuilder.build());
+            markPanel.add(new VisibleBehaviour(() -> isPolicyStatementSupported()));
+            add(markPanel);
         } catch (SchemaException e) {
             getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
             LOGGER.trace("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
@@ -161,5 +170,9 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     private boolean isCredentialsSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
         return WebComponentUtil.isPasswordSupported(shadowType, resourceModel);
+    }
+
+    private boolean isPolicyStatementSupported() {
+        return getPageBase().getRepositoryService().supportsMarks();
     }
 }

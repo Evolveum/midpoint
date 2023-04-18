@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -44,10 +43,9 @@ public interface SimulationPage extends IRequestablePage {
         PageParameters params = getPageParameters();
         String id = params.get(PAGE_PARAMETER_CONTAINER_ID).toString();
 
-        if (!id.matches("[0-9]+")) {
+        if (!StringUtils.isNumeric(id)) {
             return null;
         }
-        StringUtils.isNumeric(id);
 
         return Long.parseLong(id);
     }

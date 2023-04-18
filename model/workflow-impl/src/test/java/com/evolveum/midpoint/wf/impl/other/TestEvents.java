@@ -58,8 +58,8 @@ public class TestEvents extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        assignRole(userJackOid, roleNoApproversOid, task, result);                // should start approval process
-        assertNotAssignedRole(userJackOid, roleNoApproversOid, result);
+        assignRole(USER_JACK.oid, roleNoApproversOid, task, result);                // should start approval process
+        assertNotAssignedRole(USER_JACK.oid, roleNoApproversOid, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         workItemId = WorkItemId.of(workItem);

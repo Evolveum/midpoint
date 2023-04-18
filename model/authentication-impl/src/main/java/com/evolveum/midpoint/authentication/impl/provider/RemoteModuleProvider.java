@@ -64,9 +64,9 @@ public abstract class RemoteModuleProvider extends MidPointAbstractAuthenticatio
         moduleAuthentication.setAuthentication(token);
     }
 
-    protected PreAuthenticatedAuthenticationToken getPreAuthenticationToken(String enteredUsername, Class<? extends FocusType> focusType,
+    protected PreAuthenticatedAuthenticationToken getPreAuthenticationToken(Authentication authentication, String enteredUsername, Class<? extends FocusType> focusType,
             List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel){
-        ConnectionEnvironment connEnv = createEnvironment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
         PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment);
         if (channel != null) {
             authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());

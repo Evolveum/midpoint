@@ -14,11 +14,11 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -72,11 +72,30 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     }
 
     public AssignmentAsserter<R> assertResource(String expectedOid) {
+        ObjectReferenceType resourceRef = getConstructionRequired().getResourceRef();
+        assertThat(resourceRef).as("resourceRef in construction in " + desc()).isNotNull();
+        assertThat(resourceRef.getOid()).as("resource OID in construction in " + desc()).isEqualTo(expectedOid);
+        return this;
+    }
+
+    private @NotNull ConstructionType getConstructionRequired() {
         ConstructionType construction = assignment.getConstruction();
         assertThat(construction).as("construction in " + desc()).isNotNull();
-        assertThat(construction.getResourceRef()).as("resourceRef in construction in " + desc()).isNotNull();
-        assertThat(construction.getResourceRef().getOid()).as("resource OID in construction in " + desc())
-                .isEqualTo(expectedOid);
+        return construction;
+    }
+
+    /** Checks the kind exactly (no defaults are assumed). */
+    public AssignmentAsserter<R> assertKind(ShadowKindType expected) {
+        assertThat(getConstructionRequired().getKind())
+                .as("kind in construction in " + desc())
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertIntent(String expected) {
+        assertThat(getConstructionRequired().getIntent())
+                .as("intent in construction in " + desc())
+                .isEqualTo(expected);
         return this;
     }
 
@@ -145,5 +164,16 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
                 new ValueMetadataValueAsserter<>(valueMetadata.getValue(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public AssignmentAsserter<R> assertExclusionViolationSituation() {
+        return assertPolicySituation(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION);
+    }
+
+    public AssignmentAsserter<R> assertPolicySituation(String... expected) {
+        assertThat(assignment.getPolicySituation())
+                .as("policy situation in " + assignment)
+                .containsExactlyInAnyOrder(expected);
+        return this;
     }
 }

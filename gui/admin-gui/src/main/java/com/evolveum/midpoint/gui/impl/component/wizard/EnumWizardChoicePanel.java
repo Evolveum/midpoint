@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -92,8 +93,12 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     protected abstract void onTileClickPerformed(T value, AjaxRequestTarget target);
 
     private Tile<T> createDefaultTile(QName type) {
+        String icon = WebComponentUtil.createDefaultBlackIcon(type);
+        if (StringUtils.isEmpty(icon)) {
+            icon = "fa fa-server";
+        }
         return new Tile<>(
-                "fa fa-server",
+                icon,
                 getPageBase().createStringResource(
                         "WizardChoicePanel.toObject" ,
                         WebComponentUtil.translateMessage(

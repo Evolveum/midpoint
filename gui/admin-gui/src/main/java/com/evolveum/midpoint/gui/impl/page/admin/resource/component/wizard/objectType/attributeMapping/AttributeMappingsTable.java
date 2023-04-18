@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -25,14 +26,19 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,8 +53,8 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
     public AttributeMappingsTable(
             String id,
-            IModel<PrismContainerValueWrapper<P>> valueModel) {
-        super(id, valueModel, MappingType.class);
+            IModel<PrismContainerValueWrapper<P>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, MappingType.class);
     }
 
     protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
@@ -203,6 +209,11 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
     }
 
     @Override
+    protected String getInlineMenuCssClass() {
+        return "";
+    }
+
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<MappingType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
@@ -229,12 +240,15 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 MappingType.F_ENABLED,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()) {
-
             @Override
-            public String getCssClass() {
-                return "col-md-2";
+            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                Component header = super.createHeader(componentId, mainModel);
+                header.add(AttributeAppender.append("class", "d-table-row"));
+                return header;
             }
         });
+
+        columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }
@@ -248,5 +262,28 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(MappingType.class);
             }
         };
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        List<Component> buttons = new ArrayList<>();
+        AjaxIconButton newObjectSimpleButton = new AjaxIconButton(
+                idButton,
+                new Model<>("fa fa-circle-plus"),
+                createStringResource(getKeyOfTitleForNewObjectButton())) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                newItemPerformed(target, null);
+            }
+        };
+        newObjectSimpleButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
+        newObjectSimpleButton.add(new VisibleBehaviour(this::isCreateNewObjectSimpleVisible));
+        newObjectSimpleButton.showTitleAsLabel(true);
+        buttons.add(newObjectSimpleButton);
+
+        return buttons;
     }
 }

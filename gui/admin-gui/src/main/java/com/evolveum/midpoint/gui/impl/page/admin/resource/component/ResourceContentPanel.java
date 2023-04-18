@@ -7,30 +7,13 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.*;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -47,19 +30,41 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentRepositoryPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
+import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katkav
@@ -75,6 +80,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     }
 
     private static final String DOT_CLASS = ResourceContentPanel.class.getName() + ".";
+
+    protected static final String OPERATION_RECLASSIFY_SHADOWS = DOT_CLASS + "reclassifyShadows";
 
     private static final String ID_TOP_TABLE_BUTTONS_CONTAINER = "topButtonsContainer";
     private static final String ID_TOP_TABLE_BUTTONS = "topButtons";
@@ -122,7 +129,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 isRepoSearch = isRepoSearch();
                 ResourceContentSearchDto contentSearch = getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                         SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).getContentSearch();
-                if (contentSearch.isUseObjectClass() && contentSearch.getObjectClass() == null){
+                if (contentSearch.isUseObjectClass() && contentSearch.getObjectClass() == null) {
                     List<QName> choices = createObjectClassChoices(getObjectWrapperModel());
                     if (choices.size() == 1) {
                         contentSearch.setObjectClass(choices.iterator().next());
@@ -162,6 +169,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         RepeatingView topButtons = new RepeatingView(ID_TOP_TABLE_BUTTONS);
         topButtons.setOutputMarkupId(true);
 
+        initBasicConfigButton(topButtons);
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
@@ -284,7 +292,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
         WebMarkupContainer resourceChoiceContainer = new WebMarkupContainer(ID_RESOURCE_CHOICE_CONTAINER_SEARCH);
         resourceChoiceContainer.setOutputMarkupId(true);
-        resourceChoiceContainer.add(new VisibleBehaviour( () -> isSourceChoiceVisible()));
+        resourceChoiceContainer.add(new VisibleBehaviour(() -> isSourceChoiceVisible()));
         add(resourceChoiceContainer);
 
         AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
@@ -318,13 +326,12 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     }
 
     private void updateSearchButtons(boolean repoSearch) {
-        getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(!repoSearch);
+        getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(repoSearch);
         getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(!repoSearch);
 
         resourceContentSearch.getObject().setResourceSearch(!repoSearch);
         this.isRepoSearch = repoSearch;
         updateResourceContentSearch();
-
     }
 
     private void replaceContentPanel(AjaxRequestTarget target, Panel newPanel) {
@@ -351,18 +358,39 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showAttributeMappingWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         attrMappingButton.setOutputMarkupId(true);
         attrMappingButton.showTitleAsLabel(true);
-        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         attrMappingButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(attrMappingButton);
+    }
+
+    private void initBasicConfigButton(RepeatingView topButtons) {
+        AjaxIconButton synchConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.BASIC.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.BASIC)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null && valueModel.getObject() != null) {
+                    getObjectDetailsModels().getPageResource().showResourceObjectTypeBasicWizard(
+                            target,
+                            valueModel.getObject().getPath());
+                }
+            }
+        };
+        synchConfButton.setOutputMarkupId(true);
+        synchConfButton.showTitleAsLabel(true);
+        synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        topButtons.add(synchConfButton);
     }
 
     private void initSychronizationButton(RepeatingView topButtons) {
@@ -374,16 +402,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showSynchronizationWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         synchConfButton.setOutputMarkupId(true);
         synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(synchConfButton);
     }
@@ -397,16 +424,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCorrelationWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         correlationConfButton.setOutputMarkupId(true);
         correlationConfButton.showTitleAsLabel(true);
-        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         correlationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(correlationConfButton);
     }
@@ -420,16 +446,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCapabilitiesWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         capabilitiesConfButton.setOutputMarkupId(true);
         capabilitiesConfButton.showTitleAsLabel(true);
-        capabilitiesConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         capabilitiesConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(capabilitiesConfButton);
     }
@@ -443,16 +468,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCredentialsWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         credentialsConfButton.setOutputMarkupId(true);
         credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         credentialsConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(credentialsConfButton);
     }
@@ -466,16 +490,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showActivationsWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         activationButton.setOutputMarkupId(true);
         activationButton.showTitleAsLabel(true);
-        activationButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         activationButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(activationButton);
     }
@@ -489,16 +512,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
-                if (valueModel != null) {
+                if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showAssociationsWizard(
                             target,
-                            valueModel);
+                            valueModel.getObject().getPath());
                 }
             }
         };
         associationConfButton.setOutputMarkupId(true);
         associationConfButton.showTitleAsLabel(true);
-        associationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
         associationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(associationConfButton);
     }
@@ -534,7 +556,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                             && searchIntent.equals(objectTypeDefinition.getIntent())) {
                         foundValue = value;
                     }
-                    if (Boolean.TRUE.equals(objectTypeDefinition.isDefaultForKind())){
+                    if (Boolean.TRUE.equals(objectTypeDefinition.isDefaultForKind())) {
                         defaultValue = value;
                     }
                 }
@@ -573,7 +595,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private List<QName> createObjectClassChoices(IModel<PrismObjectWrapper<ResourceType>> model) {
         ResourceSchema refinedSchema;
         try {
-            refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject().getObject());
+            refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject().getObjectApplyDelta());
         } catch (SchemaException | ConfigurationException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
@@ -594,7 +616,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
+                getObjectClassFromSearch(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
             @Override
             protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
@@ -608,10 +630,30 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             protected boolean isTaskButtonsContainerVisible() {
                 return ResourceContentPanel.this.isTaskButtonsContainerVisible();
             }
+
+            protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
+                ResourceContentPanel.this.customizeProvider(provider);
+            }
+
+            protected Collection<? extends Component> createToolbarButtonsList(String buttonId) {
+                return ResourceContentPanel.this.createToolbarButtonsList(buttonId);
+            }
+
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+                return ResourceContentPanel.this.isShadowDetailsEnabled(rowModel);
+            }
         };
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
+    }
+
+    protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+        return true;
+    }
+
+    protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
     }
 
     protected boolean isTaskButtonsContainerVisible() {
@@ -622,7 +664,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
+                getObjectClassFromSearch(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
             @Override
             protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
@@ -635,6 +677,14 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             @Override
             protected boolean isTaskButtonsContainerVisible() {
                 return ResourceContentPanel.this.isTaskButtonsContainerVisible();
+            }
+
+            protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
+                ResourceContentPanel.this.customizeProvider(provider);
+            }
+
+            protected Collection<? extends Component> createToolbarButtonsList(String buttonId) {
+                return ResourceContentPanel.this.createToolbarButtonsList(buttonId);
             }
         };
         repositoryContent.setOutputMarkupId(true);
@@ -659,8 +709,48 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         return resourceContentSearch.getObject().getIntent();
     }
 
-    protected QName getObjectClass() {
+    protected QName getObjectClassFromSearch() {
         return resourceContentSearch.getObject().getObjectClass();
+    }
+
+    protected QName getObjectClass() {
+        QName objectClass = null;
+        IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = getResourceObjectTypeValue(null);
+        if (model != null) {
+            ResourceObjectTypeDefinitionType objectType = model.getObject().getRealValue();
+            if (objectType.getDelineation() != null) {
+                objectClass = objectType.getDelineation().getObjectClass();
+            }
+            if (objectClass == null) {
+                objectClass = objectType.getObjectClass();
+            }
+        }
+        if (objectClass == null) {
+            objectClass = getObjectClassFromSearch();
+        }
+
+        if (objectClass == null) {
+            ResourceSchema refinedSchema = null;
+            try {
+                refinedSchema = ResourceSchemaFactory.getCompleteSchema(getObjectWrapper().getObject());
+            } catch (SchemaException | ConfigurationException e) {
+                // ignore it
+            }
+            if (refinedSchema == null) {
+                return null;
+            }
+            String intent = getIntent();
+            ResourceObjectDefinition ocDef;
+            if (ShadowUtil.isKnown(getIntent())) {
+                ocDef = refinedSchema.findObjectDefinition(getKind(), intent);
+            } else {
+                ocDef = refinedSchema.findDefaultDefinitionForKind(getKind());
+            }
+            if (ocDef != null) {
+                objectClass = ocDef.getObjectClassName();
+            }
+        }
+        return objectClass;
     }
 
     protected boolean isResourceSearch() {
@@ -680,16 +770,104 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     }
 
     public BoxedTablePanel getTable() {
+        ShadowTablePanel table = getShadowTable();
+        if (table == null) {
+            return null;
+        }
+        return table.getTable();
+    }
+
+    protected ShadowTablePanel getShadowTable() {
         com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel panel =
                 (com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel) get(getPageBase().createComponentPath(ID_MAIN_FORM, ID_TABLE));
         if (panel == null) {
             return null;
         }
-        ShadowTablePanel table = panel.getTable();
-        if (table == null) {
-            return null;
+        return panel.getTable();
+    }
+
+    private Collection<? extends Component> createToolbarButtonsList(String buttonId) {
+        List<Component> buttonsList = new ArrayList<>();
+
+        AjaxIconButton reclassify = new AjaxIconButton(buttonId, Model.of("fa fa-rotate-right"),
+                createStringResource("ResourceCategorizedPanel.button.reclassify")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<String> confirmModel;
+
+                confirmModel = getPageBase().createStringResource(
+                        "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
+                        getObjectClass().getLocalPart());
+
+                ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        createReclassifyTask(target);
+                        getShadowTable().startRefreshing(target);
+                        target.add(getShadowTable());
+                    }
+                };
+                getPageBase().showMainPopup(confirmationPanel, target);
+            }
+        };
+        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        reclassify.setOutputMarkupId(true);
+        reclassify.showTitleAsLabel(true);
+        reclassify.add(new VisibleBehaviour(() -> getObjectClass() != null && isReclassifyButtonVisible()));
+        buttonsList.add(reclassify);
+
+        return buttonsList;
+    }
+
+    protected boolean isReclassifyButtonVisible() {
+        return true;
+    }
+
+    private void createReclassifyTask(AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_RECLASSIFY_SHADOWS);
+        OperationResult reclassifyResult = task.getResult();
+
+        try {
+            List<ObjectReferenceType> archetypeRef = Arrays.asList(
+                    new ObjectReferenceType()
+                            .oid(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value())
+                            .type(ArchetypeType.COMPLEX_TYPE));
+
+            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getObjectWrapperObject(), archetypeRef);
+
+            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+
+            task.getUpdatedTaskObject().getRealValue()
+                    .activity(newTask.getActivity())
+                    .cleanupAfterCompletion(DatatypeFactory.newInstance().newDuration("PT1S"))
+                    .getActivity()
+                    .beginExecution()
+                    .mode(ExecutionModeType.PREVIEW)
+                    .beginConfigurationToUse()
+                    .predefined(PredefinedConfigurationType.DEVELOPMENT);
+
+            task.getUpdatedTaskObject().getRealValue()
+                    .getActivity()
+                    .getWork()
+                    .getImport()
+                    .getResourceObjects()
+                    .objectclass(getObjectClass())
+                    .intent(null)
+                    .kind(null);
+
+            task.makeSingle();
+
+            getPageBase().getTaskManager().switchToBackground(task, reclassifyResult);
+        } catch (Exception ex) {
+            reclassifyResult.recordFatalError(ex);
+        } finally {
+            reclassifyResult.computeStatusIfUnknown();
+            reclassifyResult.setBackgroundTaskOid(task.getOid());
+            getPageBase().showResult(reclassifyResult);
+            target.add(getPageBase().getFeedbackPanel());
         }
-        return table.getTable();
     }
 
 }

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -53,11 +54,15 @@ class ShadowDeltaComputerRelative {
     private final Collection<? extends ItemDelta<?, ?>> allModifications;
     private final Protector protector;
 
+    // Needed only for computation of effectiveMarkRefs
+    private ShadowType repoShadow;
+
     ShadowDeltaComputerRelative(
-            ProvisioningContext ctx, Collection<? extends ItemDelta<?, ?>> allModifications, Protector protector) {
+            ProvisioningContext ctx, ShadowType repoShadow, Collection<? extends ItemDelta<?, ?>> allModifications, Protector protector) {
         this.ctx = ctx;
         this.allModifications = allModifications;
         this.protector = protector;
+        this.repoShadow = repoShadow;
     }
 
     Collection<ItemDelta<?, ?>> computeShadowModifications() throws SchemaException, ConfigurationException {
@@ -116,6 +121,12 @@ class ShadowDeltaComputerRelative {
                 addPasswordDelta(resultingRepoModifications, modification, objectDefinition);
             } else if (ShadowType.F_NAME.equivalent(modification.getPath())) {
                 explicitNameChange = modification;
+            } else if (ShadowType.F_POLICY_STATEMENT.equivalent(modification.getPath())) {
+                resultingRepoModifications.add(modification);
+                ItemDelta<?, ?> effectiveMarkDelta = computeEffectiveMarkDelta(modification);
+                if (effectiveMarkDelta != null) {
+                    resultingRepoModifications.add(effectiveMarkDelta);
+                }
             } else {
                 resultingRepoModifications.add(modification);
             }
@@ -128,6 +139,10 @@ class ShadowDeltaComputerRelative {
         }
 
         return resultingRepoModifications;
+    }
+
+    private ItemDelta<?, ?> computeEffectiveMarkDelta(ItemDelta<?, ?> modification) throws SchemaException {
+        return ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow, modification);
     }
 
     // Quite a hack.

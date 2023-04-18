@@ -23,7 +23,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,25 +36,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestGenericSynchronization extends AbstractModelIntegrationTest {
+public class TestGenericSynchronization extends AbstractLongTest {
 
-    private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-
-    private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
     private static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
-    private static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-
-    private static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     private static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-generic-sync.xml");
-    private static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000030";
     private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
-    public static final File OBJECT_TEMPLATE_ORG_FILE = new File(COMMON_DIR, "object-template-org.xml");
-    public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
+    private static final File OBJECT_TEMPLATE_ORG_FILE = new File(COMMON_DIR, "object-template-org.xml");
+    private static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 
     //222 org. units, 2160 users
 //    private static final int[] TREE_LEVELS = {2, 5, 7, 2};
@@ -77,17 +67,13 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private int ldapdUserCount = 4;
     private int ldapOrgCount = 0;
 
-    private PrismObject<ResourceType> resourceOpenDj;
-
-    private boolean logCreateEntry = true;
-
     @Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -97,21 +83,12 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
         loadOpenDJWithData();
 
-        // System Configuration and administrator
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-
-        modelService.postInit(initResult);
-
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-        login(userAdministrator);
-
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
         setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID,
-                initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(
+                ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -125,6 +102,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         IntegrationTestTools.display("Loaded " + count + " LDAP entries in " + ((ldapPopEnd - ldapPopStart) / 1000) + " seconds");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private int loadOpenDJ(int[] TREE_SIZE, int[] USER_COUNT, String dnSuffix, int count)
             throws IOException, LDIFException {
 
@@ -162,6 +140,8 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     }
 
     private void logCreateEntry(Entry entry) {
+        boolean logCreateEntry = true;
+        //noinspection ConstantValue
         if (logCreateEntry) {
             System.out.println("Creating LDAP entry: " + entry.getDN());
             logger.trace("Creating LDAP entry: {}", entry.getDN());
@@ -178,8 +158,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
                 + "sn: " + sn + '\n';
         LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb, StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
-        Entry ldifEntry = ldifReader.readEntry();
-        return ldifEntry;
+        return ldifReader.readEntry();
     }
 
     private Entry createOrgEntry(String ou, String suffix) throws IOException, LDIFException {
@@ -190,8 +169,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
                 + "description: " + "This is sparta! ...or " + ou + "\n";
         LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb, StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
-        Entry ldifEntry = ldifReader.readEntry();
-        return ldifEntry;
+        return ldifReader.readEntry();
     }
 
     @Test

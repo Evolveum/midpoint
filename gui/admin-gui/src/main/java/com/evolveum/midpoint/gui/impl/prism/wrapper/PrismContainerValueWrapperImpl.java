@@ -128,7 +128,14 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     @Override
     public String getHelpText() {
-        return WebPrismUtil.getHelpText(getContainerDefinition());
+        Class<?> containerClass = null;
+        if (getParent() != null
+                && getParent().getParent() != null
+                && getParent().getParent().getParent() != null) {
+            containerClass = getParent().getParent().getParent().getTypeClass();
+        }
+
+        return WebPrismUtil.getHelpText(getContainerDefinition(), containerClass);
     }
 
     @Override

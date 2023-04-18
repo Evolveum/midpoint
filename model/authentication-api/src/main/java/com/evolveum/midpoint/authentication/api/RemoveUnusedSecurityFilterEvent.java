@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-
 import org.springframework.context.ApplicationEvent;
+
+import java.util.List;
 
 /**
  * @author skublik
@@ -19,5 +19,5 @@ public abstract class RemoveUnusedSecurityFilterEvent extends ApplicationEvent{
         super(source);
     }
 
-    public abstract MidpointAuthentication getMpAuthentication();
+    public abstract List<AuthModule> getAuthModules();
 }

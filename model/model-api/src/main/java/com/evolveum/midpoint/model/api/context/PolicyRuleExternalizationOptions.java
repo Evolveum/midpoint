@@ -11,24 +11,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRules
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 public class PolicyRuleExternalizationOptions implements Serializable {
 
-    @NotNull private TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy;
-    private boolean includeAssignmentsContent;
-    private boolean respectFinalFlag;
+    @NotNull private final TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy;
+    private final boolean includeAssignmentsContent;
 
     public PolicyRuleExternalizationOptions() {
-        this(FULL, false, true);
+        this(FULL, false);
     }
 
-    public PolicyRuleExternalizationOptions(TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy,
-            boolean includeAssignmentsContent, boolean respectFinalFlag) {
-        this.triggeredRulesStorageStrategy = triggeredRulesStorageStrategy != null ? triggeredRulesStorageStrategy : FULL;
+    public PolicyRuleExternalizationOptions(
+            TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy, boolean includeAssignmentsContent) {
+        this.triggeredRulesStorageStrategy = Objects.requireNonNullElse(triggeredRulesStorageStrategy, FULL);
         this.includeAssignmentsContent = includeAssignmentsContent;
-        this.respectFinalFlag = respectFinalFlag;
     }
 
     @NotNull
@@ -40,7 +39,7 @@ public class PolicyRuleExternalizationOptions implements Serializable {
         return includeAssignmentsContent;
     }
 
-    public boolean isRespectFinalFlag() {
-        return respectFinalFlag;
+    public boolean isFullStorageStrategy() {
+        return triggeredRulesStorageStrategy == FULL;
     }
 }

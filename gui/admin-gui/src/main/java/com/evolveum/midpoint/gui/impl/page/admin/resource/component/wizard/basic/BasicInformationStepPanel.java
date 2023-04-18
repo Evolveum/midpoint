@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 @PanelType(name = "rw-basic")
 @PanelInstance(identifier = "rw-basic",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<ResourceDetailsModel> {
@@ -78,7 +78,10 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Resou
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)) {
+            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)
+                    || wrapper.getItemName().equals(ResourceType.F_TEMPLATE)
+                    || wrapper.getItemName().equals(ResourceType.F_ABSTRACT)
+                    || wrapper.getItemName().equals(ResourceType.F_LIFECYCLE_STATE)){
                 return ItemVisibility.HIDDEN;
             }
             return ItemVisibility.AUTO;

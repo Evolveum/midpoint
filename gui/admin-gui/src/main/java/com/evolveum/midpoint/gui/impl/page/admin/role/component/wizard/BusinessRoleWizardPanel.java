@@ -10,25 +10,15 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.BasicConstructionStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionOutboundMappingsStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionResourceStepPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,13 +42,28 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()));
+        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()){
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                BusinessRoleWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
         steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 super.onSubmitPerformed(target);
                 BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                BusinessRoleWizardPanel.this.onExitPerformed(target);
             }
         });
 
@@ -68,7 +73,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSavePerformed(target);
         if (!result.isError()) {
-            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
+//            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
             exitToPreview(target);
         }
     }

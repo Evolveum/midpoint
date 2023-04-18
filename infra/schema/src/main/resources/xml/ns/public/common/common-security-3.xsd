@@ -154,6 +154,9 @@
             <xsd:element name="securityQuestionsForm" type="tns:SecurityQuestionsFormAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="httpSecQ" type="tns:HttpSecQAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ldap" type="tns:LdapAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="focusIdentification" type="tns:FocusIdentificationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="hint" type="tns:HintAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -170,14 +173,31 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" >
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique name of the authentication module. This name is fact a short identifier.
                         It is supposed to give some idea about nature of the module to system administrator.
                         But it is not supposed to be used as a user-friendly label for the module.
                         Module name must be unique.
+                        <p>
+                            Deprecated, use identifier instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifier" type="xsd:string" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique module identifier. Can be used to reference the module.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0">
@@ -428,6 +448,117 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeVerificationAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The module can be used as an additional verification of the already authenticated user.
+                Intended for interactive user verification by comparing the specified attribute with the value provided by the user.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The path to the user attribute which should be verified.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeVerificationAuthenticationModuleType.path</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="HintAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FocusIdentificationAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="item" type="tns:ModuleItemConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The path to the user attribute which should be verified.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeVerificationAuthenticationModuleType.path</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ModuleItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The path to the user attribute which should be verified.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ModuleItemConfigurationType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="matchingRule" type="xsd:QName" a:maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Matching rule which should be used for this item while filtering or comparing
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ModuleItemConfigurationType.matchingRule</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later maybe we will need priority, mandatory, ... -->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="LdapSearchAuthenticationModuleType">
@@ -1315,14 +1446,31 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="1">
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique name of the authentication sequence. This name is fact a short identifier.
                         It is supposed to give some idea about purpose of the sequence to system administrator.
                         But it is not supposed to be used as a user-friendly label.
                         Sequence name must be unique.
+                        <p>
+                            Deprecated, use identifier instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique sequence identifier. Can be used to reference the sequence.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="displayName" type="xsd:string" minOccurs="0">
@@ -1513,14 +1661,33 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="1">
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the authentication module name. Value of this element must match name of
                         existing authentication module.
+                        <p>
+                            Deprecated, use identifier instead.
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="identifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique module identifier. Can be used to reference the module.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1542,6 +1709,21 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Necessity, i.e. the level of requirement, whether the module is mandatory or optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="acceptEmpty" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Some modules might be automatically skipped if the concrete type of credentials is not defined. E.g.
+                            if there is no "hint" defined for the user, we can skip evaluation of the hint module. The same can
+                            apply for example for security questions.
+                        </p>
+                        <p>
+                            In case the module can be skipped, accept empty must be set to 'true'. After module is set, it is
+                            marked as CALLED_OFF in the sequence.
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1574,7 +1756,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- We support only "sufficient" modules in 4.1. Full support for "necessity" is planned for later.
             <xsd:enumeration value="required">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1585,6 +1766,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="REQUIRED"/>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1598,6 +1780,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="REQUISITE"/>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1613,11 +1796,11 @@
                         The result of the sequence is a failure only if this is the only module in the sequence and it fails.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUFFICIENT"/>
+                        <jaxb:typesafeEnumMember name="OPTIONAL"/>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            -->
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -1663,6 +1846,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0" />
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -1734,9 +1918,24 @@
                     <xsd:documentation>
                         Name of the password reset scheme. This is a short name that acts both as an
                         identifier of the scheme and also as a short name used for diagnostics.
+
+                        DEPRECATED: use identifier attribute instead of name
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.7.1</a:since>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique credentials reset identifier. Can be used for overriding credentials reset in different security
+                        policies. Can be also used as a short name used for diagnostics (instead of name attribute).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1754,7 +1953,10 @@
             <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defined authentication sequence, which will be use for reset credential.
+                        Defines authentication sequence, which will be use for reset credential.
+                        Since 4.7: it's better to specify sequence identifier here instead of sequence name
+                        as name attribute becomes deprecated in some objects which are used for
+                        authentication configuration starting from 4.7 version (e.g. in AuthenticationSequenceType)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
@@ -2455,6 +2657,13 @@
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeVerificationCredentialsPolicyType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:CredentialPolicyType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

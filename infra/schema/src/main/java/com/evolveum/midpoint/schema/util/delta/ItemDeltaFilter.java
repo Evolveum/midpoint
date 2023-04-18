@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -22,7 +24,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Filters item deltas according to specified criteria.
  *
  * Currently in `schema` module (not in `prism` one), because I am not sure if it will be midPoint-specific or not.
+ *
+ * LIMITED FUNCTIONALITY. We are not able to see inside deltas. So, for example, when looking for
+ * `activation/administrativeStatus` property, and the whole `activation` container is added, the delta is not shown.
  */
+@Experimental
 public class ItemDeltaFilter {
 
     @NotNull private final PathSet pathsToInclude = new PathSet();
@@ -64,7 +70,22 @@ public class ItemDeltaFilter {
     }
 
     /**
-     * TODO describe the algorithm
+     * Algorithm:
+     *
+     * . The changed item path is stripped off the container identifiers, e.g. `assignment/[123]/description` becomes `assignment/description`.
+     * . The simplified path is compared with {@link #pathsToInclude} and {@link #pathsToExclude}.
+     * If it matches the former, the change is included.
+     * If it matches the latter, the change is excluded.
+     * . Otherwise, the last segment of the path is removed, e.g. `assignment/description` becomes `assignment`.
+     * The process continues at previous point.
+     * . If nothing matches, then
+     * .. if there were any {@link #pathsToInclude}, the item will be excluded,
+     * .. if there were no {@link #pathsToInclude}, the item will be included.
+     * . Non-operational items are handled like this:
+     * They are excluded, unless {@link #includeOperationalItems} is `true` _or_ they are explicitly and fully mentioned in {@link #pathsToInclude}.
+     *
+     * Limitations: this algorithm does not "see" inside container deltas. They are treated atomically - purely formally
+     * according to their path.
      */
     public boolean matches(ItemDelta<?, ?> itemDelta) {
         ItemPath path = itemDelta.getPath().namedSegmentsOnly();

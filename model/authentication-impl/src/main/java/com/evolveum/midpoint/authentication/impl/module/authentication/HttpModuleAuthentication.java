@@ -9,8 +9,6 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +44,7 @@ public class HttpModuleAuthentication extends CredentialModuleAuthenticationImpl
     }
 
     public ModuleAuthenticationImpl clone() {
-        HttpModuleAuthentication module = new HttpModuleAuthentication(this.getNameOfModuleType(), this.getSequenceModule());
+        HttpModuleAuthentication module = new HttpModuleAuthentication(this.getModuleTypeName(), this.getSequenceModule());
         clone(module);
         return module;
     }
@@ -63,6 +61,6 @@ public class HttpModuleAuthentication extends CredentialModuleAuthenticationImpl
 
     public String getRealmFroHeader(AuthenticationException authException) {
         String realm = StringUtils.isNotBlank(getRealm()) ? getRealm() : HttpAuthenticationEntryPoint.DEFAULT_REALM;
-        return AuthUtil.resolveTokenTypeByModuleType(getNameOfModuleType()) +" realm=\"" + realm + "\"";
+        return AuthUtil.resolveTokenTypeByModuleType(getModuleTypeName()) +" realm=\"" + realm + "\"";
     }
 }

@@ -252,7 +252,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             additionalAttributes.add(new Label(ID_CUSTOM_FORM));
         }
 
-        Form evidenceForm = new Form(ID_CASE_WORK_ITEM_EVIDENCE_FORM);
+        Form<?> evidenceForm = new Form<>(ID_CASE_WORK_ITEM_EVIDENCE_FORM);
         evidenceForm.add(new VisibleBehaviour(() -> CaseTypeUtil.isManualProvisioningCase(parentCase) &&
                 (!isParentCaseClosed() || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
         evidenceForm.setMultiPart(true);
@@ -295,21 +295,30 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
         WebMarkupContainer commentContainer = new WebMarkupContainer(ID_APPROVER_CONTAINER);
         commentContainer.setOutputMarkupId(true);
-        commentContainer.add(new VisibleBehaviour(() -> isAuthorizedForActions()));
+        commentContainer.add(new VisibleBehaviour(this::isAuthorizedForActions));
         add(commentContainer);
 
         String key = CaseTypeUtil.isCorrelationCase(caseModel.getObject().asObjectable()) ? "PageCaseWorkItem.caseWorkItem.comment" : "workItemPanel.approverComment";
         Label commentLabel = new Label(ID_COMMENT_LABEL, createStringResource(key));
+        commentLabel.setOutputMarkupId(true);
+        commentLabel.add(new VisibleBehaviour(this::isApproveCommentVisible));
         commentContainer.add(commentLabel);
 
         TextArea<String> approverComment = new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
         approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
+        approverComment.add(new VisibleBehaviour(this::isApproveCommentVisible));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         commentContainer.add(approverComment);
 
     }
 
+    private boolean isApproveCommentVisible() {
+        return CaseTypeUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                !CaseTypeUtil.isWorkItemClaimable(getModelObject()) &&
+                getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()) &&
+                !isParentCaseClosed();
+    }
     private boolean isAuthorizedForActions() {
         Task task = getPageBase().createSimpleTask(OPERATION_CHECK_ACTIONS_AUTHORIZATION);
         OperationResult result = task.getResult();

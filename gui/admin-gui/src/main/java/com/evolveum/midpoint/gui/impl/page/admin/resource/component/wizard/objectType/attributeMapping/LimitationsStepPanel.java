@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -22,7 +23,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelInstance(identifier = "rw-attribute-limitations",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
         expanded = true)
 public class LimitationsStepPanel extends
@@ -77,11 +78,27 @@ public class LimitationsStepPanel extends
 
     @Override
     protected boolean isSubmitVisible() {
+        return true;
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
         return false;
     }
 
     @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        onExitPerformed(target);
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("OnePanelPopupPanel.button.done");
+    }
+
+    @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleBehaviour(() -> false);
+        return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
 }

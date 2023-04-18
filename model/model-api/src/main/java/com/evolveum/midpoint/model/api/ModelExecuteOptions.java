@@ -444,6 +444,21 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         content.setSimulation(options);
         return this;
     }
+
+    @SuppressWarnings("WeakerAccess")
+    public ModelExecuteOptions ignoreAssignmentPruning(Boolean value) {
+        content.setIgnoreAssignmentPruning(value);
+        return this;
+    }
+
+    public ModelExecuteOptions ignoreAssignmentPruning() {
+        return ignoreAssignmentPruning(true);
+    }
+
+    public static boolean isIgnoreAssignmentPruning(ModelExecuteOptions options) {
+        return is(options, F_IGNORE_ASSIGNMENT_PRUNING);
+    }
+
     //endregion
 
     public static ModelExecuteOptionsType toModelExecutionOptionsBean(ModelExecuteOptions options) {

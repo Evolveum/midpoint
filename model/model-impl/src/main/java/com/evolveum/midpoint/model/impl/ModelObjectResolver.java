@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
+
+import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,9 +43,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.model.impl.controller.ModelController.*;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
@@ -56,7 +56,7 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Override
     public <O extends ObjectType> O resolve(
-            ObjectReferenceType ref,
+            Referencable ref,
             Class<O> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options,
             String contextDescription,

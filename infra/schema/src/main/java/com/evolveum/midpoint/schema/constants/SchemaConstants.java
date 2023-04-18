@@ -457,7 +457,8 @@ public abstract class SchemaConstants {
     //GUI constants which are also used in the notifiers
     public static final String WORK_ITEM_URL_PREFIX = "/admin/workItem?pathParameter=";
     public static final String CASE_URL_PREFIX = "/admin/caseNew/";
-    public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";
+    public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";  //todo remove in the future, seems to be an old implementation for self registration
+    public static final String REGISTRATION_PREFIX = "/registration";
     public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
     public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";
     public static final String AUTH_MODULE_PREFIX = "/auth";
@@ -668,4 +669,25 @@ public abstract class SchemaConstants {
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_DEFAULT_AUTHORITATIVE_SOURCE);
 
     public static final String SIMULATION_RESULT_DEFAULT_TRANSACTION_ID = "default";
+
+    public static final @NotNull ItemPath CORRELATION_SITUATION_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION);
+    public static final @NotNull ItemPath CORRELATION_RESULTING_OWNER_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER);
+    public static final @NotNull ItemPath CORRELATION_OWNER_OPTIONS_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS);
+    public static final @NotNull ItemPath CORRELATION_START_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_END_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_CASE_OPEN_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_CASE_CLOSE_TIMESTAMP_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP);
+    public static final @NotNull ItemPath CORRELATION_PERFORMER_REF_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_REF);
+    public static final @NotNull ItemPath CORRELATION_PERFORMER_COMMENT_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT);
+    public static final @NotNull ItemPath CORRELATION_CORRELATOR_STATE_PATH =
+            ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATOR_STATE);
 }

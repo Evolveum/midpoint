@@ -23,15 +23,16 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.*;
 
-@PanelType(name = "roleWizard-access-application-role")
-@PanelInstance(identifier = "roleWizard-access-application-role",
+@PanelType(name = "brw-access")
+@PanelInstance(identifier = "brw-access",
         applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.applicationRole", icon = "fa fa-list"),
         containerPath = "empty")
 public class AccessApplicationRoleStepPanel
@@ -39,7 +40,7 @@ public class AccessApplicationRoleStepPanel
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessApplicationRoleStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-access-application-role";
+    public static final String PANEL_TYPE = "brw-access";
 
     private IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems = Model.ofList(new ArrayList<>());
 
@@ -76,7 +77,9 @@ public class AccessApplicationRoleStepPanel
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value) {
+    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value, AjaxRequestTarget target) {
+        refreshSubmitAndNextButton(target);
+
         RoleType applicationRole = value.getValue();
         if (value.isSelected()) {
             selectedItems.getObject().add(
@@ -86,6 +89,11 @@ public class AccessApplicationRoleStepPanel
         } else {
             removeSelectedItem(applicationRole.getOid());
         }
+    }
+
+    @Override
+    protected boolean isMandatory() {
+        return true;
     }
 
     @Override
@@ -186,8 +194,4 @@ public class AccessApplicationRoleStepPanel
         return createStringResource("PageRole.wizard.step.access.applicationRole.subText");
     }
 
-    @Override
-    public VisibleEnableBehaviour getBackBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-    }
 }

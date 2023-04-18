@@ -14,7 +14,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -176,6 +179,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
+
+    @SpringBean(name = "objectOperationPolicyHelper")
+    private ObjectOperationPolicyHelper objectOperationPolicyHelper;
 
     @SpringBean(name = "auditController")
     private ModelAuditService modelAuditService;
@@ -438,6 +444,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return taskManager;
     }
 
+    public ObjectOperationPolicyHelper getObjectOperationPolicyHelper() {
+        return objectOperationPolicyHelper;
+    }
+
     public CaseService getCaseService() {
         return caseService;
     }
@@ -694,6 +704,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
 
+    @NotNull
+    public static StringResourceModel createStringResourceStatic(String resourceKey, String defaultValue, Object... objects) {
+        return new StringResourceModel(resourceKey).setModel(new Model<String>())
+                .setDefaultValue(defaultValue).setParameters(objects);
+    }
+
     public StringResourceModel createStringResourceDefault(String defaultKey, PolyStringType polystringKey, Object... objects) {
         if (polystringKey == null) {
             return createStringResource(defaultKey);
@@ -840,7 +856,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         result = scriptResult;
 
-        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        OpResult opResult = OpResult.getOpResult((PageAdminLTE) getPage(), result);
         opResult.determineObjectsVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
@@ -968,6 +984,18 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         throw new RestartResponseException(notFound);
     }
 
+    public GuiProfiledPrincipal getPrincipal() {
+        return AuthUtil.getPrincipalUser();
+    }
+
+    public FocusType getPrincipalFocus() {
+        MidPointPrincipal principal = getPrincipal();
+        if (principal == null) {
+            return null;
+        }
+        return principal.getFocus();
+    }
+
     //Used by subclasses
     public void addFeedbackPanel() {
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
@@ -981,8 +1009,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         feedbackContainer.add(feedbackList);
     }
 
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
+    public Component getFeedbackPanel() {
+        return get(ID_FEEDBACK_CONTAINER);
     }
 
     public SessionStorage getSessionStorage() {

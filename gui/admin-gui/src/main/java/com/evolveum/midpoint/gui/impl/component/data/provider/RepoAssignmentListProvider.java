@@ -159,7 +159,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
     @Override
     protected int internalSize() {
         initChangeLists();
-        return newData.size() + super.internalSize();
+        return oid != null ? newData.size() + super.internalSize() : newData.size();
     }
 
     @Override

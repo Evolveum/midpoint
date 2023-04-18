@@ -10,8 +10,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
@@ -22,8 +20,10 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -39,8 +39,6 @@ import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -73,6 +71,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     private static final String ID_RELATIONS = "relations";
     private static final String ID_RELATION = "relation";
     private static final String ID_NEW_MEMBER_TILE = "newMemberTile";
+    private static final String ID_NEW_MEMBER_TILE_LABEL = "newMemberTileLabel";
 
     private IModel<Search> searchModel;
 
@@ -96,10 +95,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private void initSearchModel() {
         searchModel = new LoadableDetachableModel<>() {
+
             @Override
             protected Search load() {
-
-                SearchBuilder searchBuilder = new SearchBuilder(FocusType.class)
+                SearchBuilder searchBuilder = new SearchBuilder(getSearchableType())
                         .collectionView(getObjectCollectionView())
                         .additionalSearchContext(createAdditionalSearchContext())
                         .modelServiceLocator(getPageBase());
@@ -112,13 +111,17 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         };
     }
 
+    protected Class<? extends FocusType> getSearchableType() {
+        return FocusType.class;
+    }
+
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(CollectionPanelType.CARDS_GOVERNANCE);
         return ctx;
     }
 
-    private CompiledObjectCollectionView getObjectCollectionView() {
+    protected CompiledObjectCollectionView getObjectCollectionView() {
         ContainerPanelConfigurationType config = getPanelConfiguration();
         if (config == null) {
             return null;
@@ -283,11 +286,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected String getTilesHeaderCssClasses() {
-                        return getTilesFooterCssClasses();
-                    }
-
-                    @Override
                     protected IModel<Search> createSearchModel() {
                         return (IModel) searchModel;
                     }
@@ -306,9 +304,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
         SelectableBean<FocusType> object = defaultTile.getValue();
         List<AssignmentType> memberships = object.getValue().getAssignment().stream()
-                .filter(assignment -> assignment.getTargetRef() != null
-                        && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
-                        && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE))
+                .filter(this::isMember)
                 .collect(Collectors.toList());
         if (memberships.size() == 1) {
             defaultTile.getValue().setCustomData(memberships.get(0).getTargetRef().getRelation());
@@ -317,7 +313,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             for (AssignmentType assignmentType : memberships) {
                 TemplateTile<SelectableBean<FocusType>> newTile = defaultTile.clone();
                 SelectableBeanImpl newBean = new SelectableBeanImpl<>(
-                        ((SelectableBeanImpl)defaultTile.getValue()).getModel());
+                        ((SelectableBeanImpl) defaultTile.getValue()).getModel());
                 newBean.setCustomData(assignmentType.getTargetRef().getRelation());
                 newTile.setValue(newBean);
                 ret.add(newTile);
@@ -326,13 +322,21 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         ret.stream().filter(tile -> tile.getValue().getCustomData() != null)
                 .forEach(tile -> tile.addTag(
                         WebComponentUtil.getRelationDefinition(
-                                (QName)tile.getValue().getCustomData()).getDisplay()));
+                                (QName) tile.getValue().getCustomData()).getDisplay()));
 
         return ret;
     }
 
+    private boolean isMember(AssignmentType assignment) {
+        return assignment.getTargetRef() != null
+                && getObjectWrapper().getOid() != null
+                && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
+                && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE);
+    }
+
     private WebMarkupContainer createBaseTileForAssignMembers() {
         WebMarkupContainer newMemberTile = new WebMarkupContainer(ID_NEW_MEMBER_TILE);
+
         newMemberTile.add(new AjaxEventBehavior("click") {
 
             @Override
@@ -357,7 +361,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                             tp.add(AttributeAppender.append("style", "min-width:200px"));
                         }
                     };
-                    ((ChooseRelationPopup)choose).setOutputMarkupId(true);
+                    ((ChooseRelationPopup) choose).setOutputMarkupId(true);
                 } else {
                     choose = createAssignPopup(null);
                 }
@@ -365,6 +369,13 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             }
         });
         newMemberTile.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().size() > 0));
+
+        Label label =  new Label(
+                ID_NEW_MEMBER_TILE_LABEL,
+                createStringResource(getButtonTranslationPrefix() + ".addMembers"));
+        label.setOutputMarkupId(true);
+        newMemberTile.add(label);
+
         return newMemberTile;
     }
 
@@ -412,7 +423,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                 Object data = model.getObject().getValue().getCustomData();
                 unassignMembersPerformed(
                         new PropertyModel<>(model, "value"),
-                        data instanceof QName ? (QName)data : null,
+                        data instanceof QName ? (QName) data : null,
                         target);
             }
 
@@ -547,5 +558,20 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     protected void executeSimpleUnassignedOperation(IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
         super.executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
         unselectAllPerformed(target);
+    }
+
+    @Override
+    protected List<QName> getSupportedRelations() {
+        List<QName> relations = super.getSupportedRelations();
+
+        Optional<QName> approver = relations.stream()
+                .filter(relation -> QNameUtil.match(relation, RelationTypes.APPROVER.getRelation()))
+                .findFirst();
+
+        if (approver.isPresent()) {
+            relations.remove(approver.get());
+            relations.add(approver.get());
+        }
+        return relations;
     }
 }

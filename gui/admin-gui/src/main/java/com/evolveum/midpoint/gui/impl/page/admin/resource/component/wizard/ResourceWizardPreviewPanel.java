@@ -60,8 +60,4 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
         return getPageBase().createStringResource("ResourceWizardPreviewPanel.text");
     }
 
-    @Override
-    protected void onExitPerformed(AjaxRequestTarget target) {
-        getPageBase().navigateToNext(PageResources.class);
-    }
 }

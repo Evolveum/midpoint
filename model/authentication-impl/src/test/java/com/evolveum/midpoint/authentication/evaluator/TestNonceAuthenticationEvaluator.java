@@ -72,6 +72,16 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
         return user.getCredentials().getNonce();
     }
 
+    @Override
+    public String getModuleIdentifier() {
+        return "MailNonce";
+    }
+
+    @Override
+    public String getSequenceIdentifier() {
+        return "default-nonce";
+    }
+
     private ProtectedStringType getGuybrushNonce() {
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setClearValue(USER_GUYBRUSH_NONCE);

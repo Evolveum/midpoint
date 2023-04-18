@@ -390,7 +390,9 @@ public class SchemaTransformer {
         }
     }
 
-    private void applySecurityConstraints(PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
+    /** The variant of `applySecurityConstraints` for a {@link PrismContainerValue}. */
+    private void applySecurityConstraints(
+            PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
             AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
             AuthorizationDecisionType defaultModifyDecision, boolean applyToDefinitions) {
         LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
@@ -402,10 +404,6 @@ public class SchemaTransformer {
         for (Item<?, ?> item : pcv.getItems()) {
             ItemPath itemPath = item.getPath();
             ItemDefinition<?> itemDef = item.getDefinition();
-            if (itemDef != null && itemDef.isElaborate()) {
-                LOGGER.trace("applySecurityConstraints(item): {}: skip (elaborate)", itemPath);
-                continue;
-            }
             ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
             AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
             AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
@@ -428,6 +426,15 @@ public class SchemaTransformer {
                 if (itemReadDecision == AuthorizationDecisionType.DENY) {
                     // Explicitly denied access to the entire container
                     itemsToRemove.add(item);
+                } else if (itemDef != null && itemDef.isElaborate()) {
+                    LOGGER.trace("applySecurityConstraints(item): {}: skipping deeper dive, applying decision '{}' (elaborate)",
+                            itemPath, itemReadDecision);
+                    if (itemReadDecision == null) {
+                        // "default" (null) means we do not analyze things further, and simply deny the access completely
+                        itemsToRemove.add(item);
+                    } else {
+                        // ALLOW means we do not analyze things further, and simply allow the access completely
+                    }
                 } else {
                     // No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
                     AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
@@ -477,8 +484,11 @@ public class SchemaTransformer {
         return itemDef.toMutable();
     }
 
-    private <O extends ObjectType> void applySecurityConstraints(ObjectDelta<O> objectDelta, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
-            AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision) {
+    /** The variant of `applySecurityConstraints` for an {@link ObjectDelta}. */
+    private <O extends ObjectType> void applySecurityConstraints(
+            ObjectDelta<O> objectDelta, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
+            AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
+            AuthorizationDecisionType defaultModifyDecision) {
         LOGGER.trace("applySecurityConstraints(objectDelta): items={}, phase={}, defaults R={}, A={}, M={}",
                 objectDelta, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
         if (objectDelta == null) {
@@ -503,10 +513,6 @@ public class SchemaTransformer {
         for (ItemDelta<?, ?> modification : modifications) {
             ItemPath itemPath = modification.getPath();
             ItemDefinition<?> itemDef = modification.getDefinition();
-            if (itemDef != null && itemDef.isElaborate()) {
-                LOGGER.trace("applySecurityConstraints(item): {}: skip (elaborate)", itemPath);
-                continue;
-            }
             ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
             AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
             AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
@@ -517,6 +523,13 @@ public class SchemaTransformer {
                 if (itemReadDecision == AuthorizationDecisionType.DENY) {
                     // Explicitly denied access to the entire container
                     itemsToRemove.add(modification);
+                } else if (itemDef != null && itemDef.isElaborate()) {
+                    LOGGER.trace("applySecurityConstraints(item): {}: skipping deeper dive, applying decision '{}' (elaborate)",
+                            itemPath, itemReadDecision);
+                    // See comments in the "PCV" version of this method (above)
+                    if (itemReadDecision == null) {
+                        itemsToRemove.add(modification);
+                    }
                 } else {
                     // No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
                     AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
@@ -574,8 +587,9 @@ public class SchemaTransformer {
         return removedSomething;
     }
 
-    public <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ObjectSecurityConstraints securityConstraints,
-            AuthorizationPhaseType phase) {
+    /** The variant of `applySecurityConstraints` for a {@link ItemDefinition}. */
+    public <D extends ItemDefinition> void applySecurityConstraints(
+            D itemDefinition, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase) {
         if (phase == null) {
             applySecurityConstraintsPhase(itemDefinition, securityConstraints, AuthorizationPhaseType.REQUEST);
             applySecurityConstraintsPhase(itemDefinition, securityConstraints, AuthorizationPhaseType.EXECUTION);
@@ -611,7 +625,7 @@ public class SchemaTransformer {
         boolean anySubElementModify = false;
         if (itemDefinition instanceof PrismContainerDefinition<?> && !thisWasSeen) {
             PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-            List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
+            List<? extends ItemDefinition> subDefinitions = containerDefinition.getDefinitions();
             for (ItemDefinition subDef: subDefinitions) {
                 ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getItemName());
                 if (subDef.isElaborate()) {

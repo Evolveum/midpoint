@@ -7,22 +7,22 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
  * Evaluates assignment-related policy rules.
@@ -58,13 +58,11 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
         collector.collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
-            RulesEvaluationContext globalCtx = new RulesEvaluationContext();
-
-            collector.resolveConstraintReferences(
-                    evaluatedAssignment.getAllTargetsPolicyRules());
+            Collection<EvaluatedPolicyRuleImpl> policyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+            collector.resolveConstraintReferences(policyRules);
 
             List<AssignmentPolicyRuleEvaluationContext<F>> contextsToEvaluate = new ArrayList<>();
-            for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+            for (EvaluatedPolicyRuleImpl policyRule : policyRules) {
                 if (policyRule.isApplicableToAssignment()) {
                     contextsToEvaluate.add(
                             new AssignmentPolicyRuleEvaluationContext<>(
@@ -72,22 +70,22 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
                                     evaluatedAssignment,
                                     focusContext,
                                     evaluatedAssignmentTriple,
-                                    task,
-                                    globalCtx));
+                                    task));
                 } else {
                     LOGGER.trace("Skipping rule {} because it is not applicable to assignment: {}",
                             policyRule.getName(), policyRule);
                 }
             }
             evaluateRules(contextsToEvaluate, result);
-            // a bit of hack, but hopefully it will work
-            PlusMinusZero mode =
-                    evaluatedAssignment.getOrigin().isBeingDeleted() ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
+        }
+    }
 
-            // FIXME: What if the assignments are reevaluated because of pruning? The state changes are already recorded
-            //  into the focus context. See MID-7123.
+    void record(OperationResult result) throws SchemaException {
+        for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             new PolicyStateRecorder().applyAssignmentState(
-                    context, evaluatedAssignment, mode, globalCtx.rulesToRecord);
+                    context,
+                    evaluatedAssignment,
+                    selectRulesToRecord(evaluatedAssignment.getAllAssociatedPolicyRules()));
         }
     }
 }

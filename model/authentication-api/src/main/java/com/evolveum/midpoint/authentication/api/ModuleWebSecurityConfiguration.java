@@ -36,9 +36,9 @@ public interface ModuleWebSecurityConfiguration {
 
     void setSequenceSuffix(String sequenceSuffix);
 
-    String getNameOfModule();
+    String getModuleIdentifier();
 
-    void setNameOfModule(String nameOfModule);
+    void setModuleIdentifier(String moduleIdentifier);
 
     String getPrefixOfModule();
 

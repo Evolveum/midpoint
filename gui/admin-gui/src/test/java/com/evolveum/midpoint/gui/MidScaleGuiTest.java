@@ -10,6 +10,10 @@ import java.io.File;
 
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 
+import com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials;
+
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
@@ -40,8 +44,6 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
-import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

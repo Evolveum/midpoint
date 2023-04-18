@@ -13,7 +13,7 @@
     <parent>
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.7-SNAPSHOT</version>
+        <version>4.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>javadoc</artifactId>
@@ -116,4 +116,20 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+        Fixes MID-8486 invalid "undefined" link in Javadoc search on JDK 11.
+        See also discussion under this answer: https://stackoverflow.com/a/52603413
+        -->
+        <profile>
+            <id>active-on-jdk-11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <javadoc.options>--no-module-directories</javadoc.options>
+            </properties>
+        </profile>
+    </profiles>
 </project>

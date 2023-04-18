@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,18 +15,18 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.query.ObjectQueryImpl;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.impl.query.PagingConvertor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -80,8 +80,7 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) {
-        PolyStringNormalizer normalizer = new AlphanumericPolyStringNormalizer();
-        name.recompute(normalizer);
+        name.recompute();
         return prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_NAME).eq(name).matchingNorm()
                 .build();
@@ -727,5 +726,17 @@ public class ObjectQueryUtil {
 
     public static ObjectPaging convertToObjectPaging(PagingType pagingType, PrismContext prismContext) {
         return PagingConvertor.createObjectPaging(pagingType, prismContext);
+    }
+
+    public static @NotNull ObjectQuery openItemsQuery() {
+        return PrismContext.get().queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                .build();
+    }
+
+    public static @NotNull ObjectQuery createQuery(@Nullable ObjectFilter filter) {
+        var query = ObjectQueryImpl.createObjectQuery();
+        query.setFilter(filter);
+        return query;
     }
 }

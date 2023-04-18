@@ -21,11 +21,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -39,12 +42,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -63,6 +64,8 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
     private static final String DOT_CLASS = CaseWorkItemsPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_POWER_DONOR_OBJECT = DOT_CLASS + "loadPowerDonorObject";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
+    private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseWorkItem";
+
 
     public CaseWorkItemsPanel(String id) {
         super(id, CaseWorkItemType.class);
@@ -101,7 +104,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
     @Override
     public List<CaseWorkItemType> getSelectedRealObjects() {
-        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+        return getSelectedObjects().stream().map(PrismValueWrapper::getRealValue).collect(Collectors.toList());
     }
 
     @Override
@@ -172,7 +175,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
     }
 
     private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createNameColumn() {
-        return new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")) {
+        return new LinkColumn<>(createStringResource("PolicyRulesPanel.nameColumn")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -300,6 +303,53 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
             }
         });
 
+        menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItems.button.reconsider")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        workItemActionReleasePerformed(getRowModel(),  target);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_RELEASE);
+            }
+
+            @Override
+            public IModel<Boolean> getEnabled() {
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
+                    CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                    return Model.of(isReleasable(workItem));
+                } else {
+                    return super.getEnabled();
+                }
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel() {
+                return createStringResource("CaseWorkItemsPanel.confirmWorkItemsReleaseAction");
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
+                    CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                    return Model.of(isReleasable(workItem));
+                } else {
+                    return super.getVisible();
+                }
+            }
+        });
+
         return menu;
     }
 
@@ -323,10 +373,45 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
                 WebModelServiceUtils.loadObject(UserType.class, getPowerDonorOidParameterValue(),
                         CaseWorkItemsPanel.this.getPageBase(), task, result) : null;
         OperationResult completeWorkItemResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
-        selectedWorkItems.forEach(workItemToReject -> {
-            WebComponentUtil.workItemApproveActionPerformed(target, workItemToReject.getRealValue(),
-                    null, powerDonor, approved, completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
-        });
+        selectedWorkItems.forEach(workItemToReject -> WebComponentUtil.workItemApproveActionPerformed(target,
+                workItemToReject.getRealValue(), null, powerDonor, approved, completeWorkItemResult,
+                CaseWorkItemsPanel.this.getPageBase()));
+
+        WebComponentUtil.clearProviderCache(getTable().getDataTable().getDataProvider());
+
+        target.add(getPageBase().getFeedbackPanel());
+        target.add(CaseWorkItemsPanel.this);
+
+    }
+
+    private boolean isReleasable(CaseWorkItemType workItem) {
+        return CaseTypeUtil.isCaseWorkItemNotClosed(workItem) &&
+                CaseTypeUtil.isWorkItemReleasable(workItem) &&
+                getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(workItem);
+    }
+
+
+    private void workItemActionReleasePerformed(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel,
+            AjaxRequestTarget target) {
+        List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
+        if (rowModel == null) {
+            selectedWorkItems.addAll(getSelectedObjects());
+        } else {
+            selectedWorkItems.addAll(Collections.singletonList(rowModel.getObject()));
+        }
+
+        if (selectedWorkItems.size() == 0) {
+            warn(getString("CaseWorkItemsPanel.noWorkItemIsSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (PrismContainerValueWrapper<CaseWorkItemType> workItemToReject : selectedWorkItems) {
+            if(isReleasable(workItemToReject.getRealValue())) {
+                WebComponentUtil.releaseWorkItemActionPerformed(workItemToReject.getRealValue(), OPERATION_RELEASE_ITEMS,
+                        target, CaseWorkItemsPanel.this.getPageBase());
+            }
+        }
 
         WebComponentUtil.clearProviderCache(getTable().getDataTable().getDataProvider());
 

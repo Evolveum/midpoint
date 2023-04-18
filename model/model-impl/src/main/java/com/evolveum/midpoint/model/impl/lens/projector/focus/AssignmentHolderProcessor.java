@@ -200,7 +200,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
                 medic.partialExecute(
                         Components.FOCUS_POLICY_RULES, policyRuleProcessor,
-                        policyRuleProcessor::evaluateFocusPolicyRules,
+                        policyRuleProcessor::evaluateAndRecordFocusPolicyRules,
                         partialProcessingOptions::getFocusPolicyRules,
                         Projector.class, context, now, task, result);
 

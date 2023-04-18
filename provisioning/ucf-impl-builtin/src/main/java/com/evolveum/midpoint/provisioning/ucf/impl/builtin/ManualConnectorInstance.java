@@ -8,7 +8,10 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;

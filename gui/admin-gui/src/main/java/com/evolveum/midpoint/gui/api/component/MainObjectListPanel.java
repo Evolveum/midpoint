@@ -17,7 +17,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
@@ -26,7 +25,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -65,7 +63,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -242,7 +239,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 getPageBase().showMainPopup(buttonsPanel, target);
             }
         };
-        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
+        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return createNewObjectButton;
     }
@@ -338,7 +335,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return importObject;
     }
 
-    private boolean isImportObjectButtonVisible() {
+    protected boolean isImportObjectButtonVisible() {
         try {
             return ((PageBase) getPage()).isAuthorized(ModelAuthorizationAction.IMPORT_OBJECTS.getUrl())
                     && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,
@@ -398,13 +395,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                clearCache();
-                setManualRefreshEnabled(!isRefreshEnabled());
-                target.add(getTable());
+                onClickPlayPauseButton(target, !isRefreshEnabled());
             }
         };
         playPauseIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return playPauseIcon;
+    }
+
+    private void onClickPlayPauseButton(AjaxRequestTarget target, boolean refreshEnabled) {
+        clearCache();
+        setManualRefreshEnabled(refreshEnabled);
+        target.add(getTable());
+    }
+
+    public void startRefreshing(AjaxRequestTarget target) {
+        onClickPlayPauseButton(target, true);
     }
 
     private IModel<String> getRefreshPausePlayButtonModel() {
@@ -425,8 +430,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return createStringResource("MainObjectListPanel.refresh.start").getString();
         };
     }
-    protected boolean isCreateNewObjectEnabled() {
-        return !isCollectionViewPanel() || !getNewObjectInfluencesList().isEmpty();
+    protected boolean isCreateNewObjectVisible() {
+        return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD) ||
+                CollectionUtils.isNotEmpty(getNewObjectInfluencesList());
     }
 
     @NotNull

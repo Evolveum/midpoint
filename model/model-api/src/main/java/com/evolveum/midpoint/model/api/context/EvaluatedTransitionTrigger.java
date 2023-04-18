@@ -11,6 +11,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -20,8 +21,10 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
-    public EvaluatedTransitionTrigger(@NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+    public EvaluatedTransitionTrigger(
+            @NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage,
+            @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
         super(kind, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
@@ -63,11 +66,16 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
     }
 
     @Override
-    public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedTransitionTriggerType rv = new EvaluatedTransitionTriggerType();
         fillCommonContent(rv);
-        if (!options.isRespectFinalFlag() || !isFinal()) {
-            innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerBean(options)));
+        if (!isFinal()) {
+            innerTriggers.stream()
+                    .filter(t -> t.isRelevantForNewOwner(newOwner))
+                    .forEach(t ->
+                            rv.getEmbedded().add(
+                                    t.toEvaluatedPolicyRuleTriggerBean(options, newOwner)));
         }
         return rv;
     }

@@ -96,6 +96,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'DELEGATED',
     'INCLUDE',
     'OBJECT_CREATE_APPROVER',
+    'OBJECT_EFFECTIVE_MARK',
     'OBJECT_MODIFY_APPROVER',
     'OBJECT_PARENT_ORG',
     'PERSONA',
@@ -400,8 +401,23 @@ CREATE TABLE m_ref_object_create_approver (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_object_create_approverTargetOidRelationId_idx
+CREATE INDEX m_ref_object_create_approver_targetOidRelationId_idx
     ON m_ref_object_create_approver (targetOid, relationId);
+
+
+-- stores ObjectType/effectiveMarkRef
+CREATE TABLE m_ref_object_effective_mark (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_EFFECTIVE_MARK') STORED
+        CHECK (referenceType = 'OBJECT_EFFECTIVE_MARK'),
+
+    PRIMARY KEY (ownerOid, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_object_effective_mark_targetOidRelationId_idx
+    ON m_ref_object_effective_mark (targetOid, relationId);
+
 
 -- stores ObjectType/metadata/modifyApproverRef
 CREATE TABLE m_ref_object_modify_approver (
@@ -413,7 +429,7 @@ CREATE TABLE m_ref_object_modify_approver (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_object_modify_approverTargetOidRelationId_idx
+CREATE INDEX m_ref_object_modify_approver_targetOidRelationId_idx
     ON m_ref_object_modify_approver (targetOid, relationId);
 
 -- stores AssignmentHolderType/roleMembershipRef
@@ -856,7 +872,8 @@ CREATE TABLE m_resource (
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id),
-    template BOOLEAN
+    template BOOLEAN,
+    abstract BOOLEAN
 )
     INHERITS (m_assignment_holder);
 
@@ -1726,7 +1743,7 @@ CREATE TABLE m_assignment (
     containerType ContainerType NOT NULL CHECK (containerType IN ('ASSIGNMENT', 'INDUCEMENT')),
     ownerType ObjectType NOT NULL,
     lifecycleState TEXT,
-    orderValue INTEGER,
+    orderValue INTEGER, -- item "order"
     orgRefTargetOid UUID,
     orgRefTargetType ObjectType,
     orgRefRelationId INTEGER REFERENCES m_uri(id),
@@ -2061,11 +2078,11 @@ BEGIN
         END IF;
         COMMIT;
     ELSE
-        RAISE NOTICE 'Change #% skipped, last change #% is newer!', changeNumber, lastChange;
+        RAISE NOTICE 'Change #% skipped - not newer than the last change #%!', changeNumber, lastChange;
     END IF;
 END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_change(11, $$ SELECT 1 $$, true);
+call apply_change(15, $$ SELECT 1 $$, true);

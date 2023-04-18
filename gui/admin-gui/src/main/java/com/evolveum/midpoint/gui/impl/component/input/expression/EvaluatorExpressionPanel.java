@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -57,6 +58,7 @@ public abstract class EvaluatorExpressionPanel extends BasePanel<ExpressionType>
         valueContainer.add(new Label(ID_VALUE_CONTAINER_LABEL, getValueContainerLabelModel()));
 
         FeedbackLabels feedback = new FeedbackLabels(ID_FEEDBACK);
+        feedback.setFilter(new ContainerFeedbackMessageFilter(valueContainer));
         feedback.setOutputMarkupPlaceholderTag(true);
         valueContainer.add(feedback);
 

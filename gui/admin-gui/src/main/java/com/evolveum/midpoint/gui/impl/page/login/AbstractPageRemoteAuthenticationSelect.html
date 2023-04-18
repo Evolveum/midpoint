@@ -11,9 +11,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <h4><wicket:child/></h4>
+    <h4 class="text-bold text-center pb-3"><wicket:child/></h4>
     <div wicket:id="providers" class="col-md-12">
-        <a wicket:id="provider"/>
+        <a wicket:id="provider" class="p-3 mb-2 card tile-panel selectable btn text-left"/>
     </div>
     <div class="pull-right">
         <form method="post" wicket:id="logoutForm">

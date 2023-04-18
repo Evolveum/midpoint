@@ -324,6 +324,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     protected abstract TransformableItemDefinition<I,D> copy();
 
+    // FIXME we should display overridden values here (e.g. RAM access flags)
     @Override
     public String toString() {
         return "Transformable:" + delegate().toString();

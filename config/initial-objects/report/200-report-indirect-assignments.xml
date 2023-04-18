@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-b8249b79d2b5">
+    <name>Indirect assignment report</name>
+    <description>Shows information stored in roleMembershipRef value metadata.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+            <filter>
+                <q:and>
+                    <q:ownedBy>
+                        <q:type>UserType</q:type>
+                        <q:path>roleMembershipRef</q:path>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                                    <path>$userName</path>
+                                </expression>
+                            </q:equal>
+                        </q:filter>
+                    </q:ownedBy>
+                    <q:ref>
+                        <q:path/>
+                        <expression>
+                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                            <path>$roleRef</path>
+                        </expression>
+                    </q:ref>
+                </q:and>
+            </filter>
+        </collection>
+        <parameter>
+            <name>userName</name>
+            <type>string</type>
+        </parameter>
+        <parameter>
+            <name>roleRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:AbstractRoleType</targetType>
+        </parameter>
+
+        <subreport>
+            <!--
+            This subreport generates additional lines per each metadata value,
+            in case there are multiple distinct assignment paths.
+            -->
+            <name>data</name>
+            <order>1</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+            <expression>
+                <script>
+                    <objectVariableMode>prismReference</objectVariableMode>
+                    <code>report.generateAssignmentPathRows(object)</code>
+                </script>
+            </expression>
+        </subreport>
+        <view>
+            <type>c:ObjectReferenceType</type>
+            <paging>
+                <q:orderBy>../name</q:orderBy>
+            </paging>
+            <!--
+            IMPORTANT:
+            All the scripts must use objectVariableMode=prismReference for the case the target does not exist.
+            -->
+            <column>
+                <name>user</name>
+                <display>
+                    <label>User</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.owner?.name?.orig ?: 'Unknown owner'</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>nameColumn</name>
+                <display>
+                    <label>Name</label>
+                </display>
+                <previousColumn>user</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.role?.name?.orig</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>archetypeName</name>
+                <display>
+                    <label>Type</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.roleArchetype?.name?.orig</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relation</name>
+                <display>
+                    <label>Relation</label>
+                </display>
+                <previousColumn>archetypeName</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>object?.relation</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>allPath</name>
+                <display>
+                    <label>Path</label>
+                </display>
+                <previousColumn>relation</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                return data?.segmentTargets?.collect(o -> o?.name?.orig)?.join(' -> ') ?: '?'
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <!-- This is probably not important column, everything is in the path column anyway. -->
+                <name>parent</name>
+                <display>
+                    <label>Parent</label>
+                </display>
+                <previousColumn>allPath</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                if (!data?.segmentTargets) {
+                                    return "?"
+                                }
+
+                                def segLen = data.segmentTargets.size()
+                                if (segLen == 1) {
+                                    return 'Direct'
+                                } else {
+                                    return data.segmentTargets[segLen - 2]?.name?.orig
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <!-- We don't store refs/metadata for disabled assignments, so this is always Enabled. -->
+                <name>activation</name>
+                <display>
+                    <label>Activation</label>
+                </display>
+                <previousColumn>parent</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.assignment?.activation?.effectiveStatus</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>validTo</name>
+                <display>
+                    <label>Valid to</label>
+                </display>
+                <previousColumn>activation</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.assignment?.activation?.validTo</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>since</name>
+                <display>
+                    <label>Since</label>
+                </display>
+                <previousColumn>validTo</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.createTimestamp</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>createChannel</name>
+                <display>
+                    <label>Source</label>
+                </display>
+                <previousColumn>since</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                // Explicit String to use the right split() and not random Groovy default method.
+                                String channel = data?.assignment?.metadata?.createChannel
+                                return channel?.split('#')?.last()?.with(s -> midpoint.translate('Channel.' + s))
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+        </view>
+    </objectCollection>
+</report>

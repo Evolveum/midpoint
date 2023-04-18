@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,15 +9,6 @@ package com.evolveum.midpoint.model.impl.sync;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.test.DummyTestResource;
-
-import com.evolveum.midpoint.test.TestTask;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +20,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.util.DiagnosticContextManager;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -36,23 +28,26 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSynchronizationService extends AbstractInternalModelIntegrationTest {
 
@@ -69,12 +64,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
     private static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
 
-
-    private static final File ACCOUNT_SHADOW_MANCOMB_DUMMY_FILE = new File(TEST_DIR, "account-shadow-mancomb-dummy.xml");
-    private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
-    private static final File SHADOW_MARK_CUSTOM_PROTECTED_ACCOUNT_DUMMY_FILE = new File(TEST_DIR, "shadow-mark-custom-protected-account.xml");
-
-
     private static final String INTENT_GROUP = "group";
 
     private static final DummyTestResource RESOURCE_DUMMY_BROKEN =
@@ -90,11 +79,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     private String accountShadowJackDummyOid = null;
     private String accountShadowJackDummyLimitedOid;
     private String accountShadowCalypsoDummyOid = null;
-    private String accountShadowMancombDummyOid = null;
 
     private MockLensDebugListener mockListener;
-
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -146,7 +132,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey rsd = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(rsd);
-        assertNotNull("No projection context for "+rsd, accCtx);
+        assertNotNull("No projection context for " + rsd, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
@@ -198,7 +184,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey rat = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(rat);
-        assertNotNull("No account sync context for "+rat, accCtx);
+        assertNotNull("No account sync context for " + rat, accCtx);
 
         PrismAsserts.assertNoDelta("account primary delta", accCtx.getPrimaryDelta());
         PrismAsserts.assertNoDelta("account secondary delta", accCtx.getSecondaryDelta());
@@ -254,7 +240,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey rat = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(rat);
-        assertNotNull("No account sync context for "+rat, accCtx);
+        assertNotNull("No account sync context for " + rat, accCtx);
 
         PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
         PrismAsserts.assertNoDelta("Unexpected account secondary delta", accCtx.getSecondaryDelta());
@@ -303,7 +289,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey rat = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(rat);
-        assertNotNull("No account sync context for "+rat, accCtx);
+        assertNotNull("No account sync context for " + rat, accCtx);
 
         PrismAsserts.assertNoDelta("account primary delta", accCtx.getPrimaryDelta());
         PrismAsserts.assertNoDelta("account secondary delta", accCtx.getSecondaryDelta());
@@ -327,10 +313,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow before")
-            .assertLive()
-            .assertIteration(0)
-            .assertIterationToken("")
-            .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
+                .assertLive()
+                .assertIteration(0)
+                .assertIterationToken("")
+                .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
         setDebugListener();
 
@@ -340,11 +326,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow after noFetch")
-            // This is noFetch. Provisioning won't figure out that the shadow is dead (yet).
-            .assertLive()
-            .assertIteration(0)
-            .assertIterationToken("")
-            .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
+                // This is noFetch. Provisioning won't figure out that the shadow is dead (yet).
+                .assertLive()
+                .assertIteration(0)
+                .assertIterationToken("")
+                .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
         // In fact, it is responsibility of provisioning to mark shadow dead before invoking sync
         // service. This is unit test, therefore we have to simulate behavior of provisioning here.
@@ -352,18 +338,18 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow before synchronization")
-            .assertTombstone()
-            .assertIteration(0)
-            .assertIterationToken("")
-            .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
+                .assertTombstone()
+                .assertIteration(0)
+                .assertIterationToken("")
+                .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
         // Once again, to have fresh data
         shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow before synchronization (noFetch)")
-            .assertTombstone()
-            .assertIteration(0)
-            .assertIterationToken("")
-            .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
+                .assertTombstone()
+                .assertIteration(0)
+                .assertIterationToken("")
+                .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setShadowedResourceObject(shadow);
@@ -390,24 +376,24 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getAccountGoneKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.DELETED, accCtx.getSynchronizationSituationDetected());
 
         PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 
         UserAsserter.forUser(context.getFocusContext().getObjectOld(), "old focus in lens context)")
-            .assertLinked(accountShadowJackDummyOid);
+                .assertLinked(accountShadowJackDummyOid);
 
         assertUserAfter(USER_JACK_OID)
-            .links()
+                .links()
                 .singleAny()
-                    .assertOid(accountShadowJackDummyOid);
+                .assertOid(accountShadowJackDummyOid);
 
         assertRepoShadow(accountShadowJackDummyOid)
-            .assertTombstone()
-            .assertIteration(0)
-            .assertIterationToken("")
-            .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+                .assertTombstone()
+                .assertIteration(0)
+                .assertIterationToken("")
+                .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
         // Cleanup
         unlinkUser(USER_JACK_OID, accountShadowJackDummyOid);
@@ -466,7 +452,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected lens context", context);
 
         PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
-        assertNull("Unexpected user "+userCalypso, userCalypso);
+        assertNull("Unexpected user " + userCalypso, userCalypso);
 
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         assertSituation(shadow, null);
@@ -484,7 +470,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
         setDebugListener();
 
-        // Lets make this a bit more interesting by setting up a fake situation in the shadow
+        // Let's make this a bit more interesting by setting up a fake situation in the shadow
         ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountShadowCalypsoDummyOid,
                 getDummyResourceObject(), ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
         repositoryService.modifyObject(ShadowType.class, accountShadowCalypsoDummyOid, objectDelta.getModifications(), result);
@@ -512,7 +498,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected lens context", context);
 
         PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
-        assertNull("Unexpected user "+userCalypso, userCalypso);
+        assertNull("Unexpected user " + userCalypso, userCalypso);
 
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         assertSituation(shadow, SynchronizationSituationType.DISPUTED);
@@ -569,7 +555,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
@@ -638,13 +624,13 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getAccountGoneKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.DELETED, accCtx.getSynchronizationSituationDetected());
 
         PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 
         assertUserAfter(USER_JACK_OID)
-            .assertLiveLinks(0);
+                .assertLiveLinks(0);
 
         assertNoObject(ShadowType.class, accountShadowJackDummyOid, task, result);
     }
@@ -705,7 +691,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
@@ -767,7 +753,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
@@ -816,7 +802,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertNull("Wrong detected situation in context", accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
@@ -862,7 +848,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey key = getDefaultAccountKey();
         LensProjectionContext accCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No account sync context for "+key, accCtx);
+        assertNotNull("No account sync context for " + key, accCtx);
         assertNull("Wrong detected situation in context", accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
@@ -940,7 +926,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey keyDummy = getDefaultAccountKey();
         LensProjectionContext accCtxDummy = context.findProjectionContextByKeyExact(keyDummy);
-        assertNotNull("No account sync context for "+keyDummy, accCtxDummy);
+        assertNotNull("No account sync context for " + keyDummy, accCtxDummy);
         PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtxDummy.getPrimaryDelta());
         assertFalse("Wrong fullShadow for " + keyDummy, accCtxDummy.isFullShadow());
         assertFalse("Wrong canProject for " + keyDummy, accCtxDummy.isCanProject());
@@ -949,7 +935,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                 ProjectionContextKey.classified(
                         RESOURCE_DUMMY_LIMITED.oid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, null);
         LensProjectionContext accCtxDummyLimited = context.findProjectionContextByKeyExact(keyDummyLimited);
-        assertNotNull("No account sync context for "+keyDummyLimited, accCtxDummyLimited);
+        assertNotNull("No account sync context for " + keyDummyLimited, accCtxDummyLimited);
         assertTrue("Wrong fullShadow for " + keyDummyLimited, accCtxDummyLimited.isFullShadow());
         assertTrue("Wrong canProject for " + keyDummyLimited, accCtxDummyLimited.isCanProject());
 
@@ -1020,7 +1006,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                 ProjectionContextKey.classified(
                         getDummyResourceObject().getOid(), ShadowKindType.ENTITLEMENT, INTENT_GROUP, null);
         LensProjectionContext projCtx = context.findProjectionContextByKeyExact(key);
-        assertNotNull("No projection sync context for "+key, projCtx);
+        assertNotNull("No projection sync context for " + key, projCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNMATCHED, projCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, projCtx.getSynchronizationSituationResolved());
 
@@ -1054,13 +1040,13 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         TASK_IMPORT_DUMMY_BROKEN.assertAfter()
                 .rootActivityState()
-                    .progress()
-                        .assertCommitted(0, 1, 0)
-                    .end()
-                    .itemProcessingStatistics()
-                        .assertTotalCounts(0, 1, 0)
-                        .assertLastFailureObjectName(accountName)
-                        .assertLastFailureMessage(expectedMessage);
+                .progress()
+                .assertCommitted(0, 1, 0)
+                .end()
+                .itemProcessingStatistics()
+                .assertTotalCounts(0, 1, 0)
+                .assertLastFailureObjectName(accountName)
+                .assertLastFailureMessage(expectedMessage);
 
         PrismObject<ShadowType> shadow = findShadowByPrismName(accountName, RESOURCE_DUMMY_BROKEN.get(), result);
         assertShadowAfter(shadow)
@@ -1094,12 +1080,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         var userOid = assertUserAfterByUsername(accountName)
                 .assertLiveLinks(1)
                 .singleLink()
-                    .resolveTarget()
-                        .display()
-                        .assertValues(
-                                ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION),
-                                CorrelationSituationType.NO_OWNER)
-                    .end()
+                .resolveTarget()
+                .display()
+                .assertValues(
+                        SchemaConstants.CORRELATION_SITUATION_PATH,
+                        CorrelationSituationType.NO_OWNER)
+                .end()
                 .end()
                 .getObjectable().getOid();
         // @formatter:off
@@ -1133,12 +1119,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertUser(userOid, "after reimport")
                 .assertLiveLinks(1)
                 .singleLink()
-                    .resolveTarget()
-                        .display()
-                        .assertValues(
-                                ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION),
-                                CorrelationSituationType.EXISTING_OWNER)
-                    .end()
+                .resolveTarget()
+                .display()
+                .assertValues(
+                        SchemaConstants.CORRELATION_SITUATION_PATH,
+                        CorrelationSituationType.EXISTING_OWNER)
+                .end()
                 .end();
         // @formatter:off
     }

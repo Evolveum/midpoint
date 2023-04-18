@@ -17,6 +17,8 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -56,16 +58,37 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             }
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (mpAuthentication.getAuthenticationChannel() != null) {
-                if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
+                if (mpAuthentication.isLast(moduleAuthentication)){     //&& mpAuthentication.getAuthenticationChannel().isDefault()) { todo check this comment
                     urlSuffix = getPathAfterUnsuccessfulAuthentication(mpAuthentication.getAuthenticationChannel());
                 } else {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }
+                if (!mpAuthentication.isLast(moduleAuthentication)) {
+                    moduleAuthentication.recordFailure(exception);
+                }
             }
-            moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
-        }
 
-        saveException(request, exception);
+            moduleAuthentication.recordFailure(exception);
+
+            //abort the authentication in case of requisite module fail
+            if (!mpAuthentication.isLast(moduleAuthentication) &&
+                    AuthenticationSequenceModuleNecessityType.REQUISITE.equals(moduleAuthentication.getNecessity())) {
+                saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+                getRedirectStrategy().sendRedirect(request, response,
+                        mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication());
+                return;
+            }
+
+            if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
+                saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+
+            }
+
+            if (!mpAuthentication.isOverLockoutMaxAttempts()) {
+                getRedirectStrategy().sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathDuringProccessing());
+                return;
+            }
+        }
 
         SavedRequest savedRequest = getRequestCache().getRequest(request, response);
 

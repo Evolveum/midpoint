@@ -8,7 +8,13 @@ package com.evolveum.midpoint.model.intest;
 
 import java.io.File;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties;
+
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,11 +28,8 @@ import com.evolveum.midpoint.model.intest.rbac.TestRbac;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 /**
  * Tests various aspects of assignments processing.
@@ -42,8 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Content:
  *
  * - tests 100-130 check working with aggressively idempotent roles (MID-7382)
+ * - test 200 deals with "projection legalization" feature (MID-8562)
  *
- * NOTE: At the model level, see also TestPolicyRules, TestPolicyRules2, TestAssignmentEvaluator
+ * NOTE: In `model-impl`, see also `TestPolicyRules`, `TestPolicyRules2`, `TestAssignmentEvaluator`.
  *
  * @see TestRbac
  * @see TestSegregationOfDuties
@@ -54,18 +58,30 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
 
     public static final File TEST_DIR = new File("src/test/resources/assignments");
 
-    private static final TestResource<RoleType> ROLE_IDEMPOTENT =
-            new TestResource<>(TEST_DIR, "role-idempotent.xml", "c7697df9-b873-4ae3-9854-7d01dd6f0c27");
-    private static final TestResource<RoleType> ROLE_INDUCING_IDEMPOTENT =
-            new TestResource<>(TEST_DIR, "role-inducing-idempotent.xml", "7e2e721c-6f9e-4013-be4d-bbe32ea64238");
+    private static final String ATTR_TYPE = "type";
+    private static final String TYPE_EMPLOYEE = "employee";
+    private static final String TYPE_CONTRACTOR = "contractor";
+    private static final String TYPE_GUEST = "guest";
+
+    private static final DummyTestResource RESOURCE_DUMMY_LEGALIZING =
+            new DummyTestResource(TEST_DIR, "resource-dummy-legalizing.xml", "d3995d45-2d51-4f1a-b9c0-4bb74d4e8231",
+                    "legalizing",
+                    c -> c.addAttrDef(c.getAccountObjectClass(), ATTR_TYPE, String.class, false, false));
+
+    private static final TestObject<RoleType> ROLE_IDEMPOTENT =
+            TestObject.file(TEST_DIR, "role-idempotent.xml", "c7697df9-b873-4ae3-9854-7d01dd6f0c27");
+    private static final TestObject<RoleType> ROLE_INDUCING_IDEMPOTENT =
+            TestObject.file(TEST_DIR, "role-inducing-idempotent.xml", "7e2e721c-6f9e-4013-be4d-bbe32ea64238");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
 
-        addObject(ROLE_IDEMPOTENT, initTask, initResult);
-        addObject(ROLE_INDUCING_IDEMPOTENT, initTask, initResult);
+        RESOURCE_DUMMY_LEGALIZING.initAndTest(this, initTask, initResult);
+        initTestObjects(initTask, initResult,
+                ROLE_IDEMPOTENT,
+                ROLE_INDUCING_IDEMPOTENT);
     }
 
     /**
@@ -271,5 +287,51 @@ public class TestAssignmentsProcessing extends AbstractEmptyModelIntegrationTest
     private ActivationType disabled() {
         return new ActivationType()
                 .administrativeStatus(ActivationStatusType.DISABLED);
+    }
+
+    /** Checks legalization of three accounts of different intents. MID-8562. */
+    @Test
+    public void test200LegalizeAccounts() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("three accounts");
+        DummyAccount ethan = new DummyAccount("ethan");
+        ethan.addAttributeValue(ATTR_TYPE, TYPE_EMPLOYEE);
+        DummyAccount charlie = new DummyAccount("charlie");
+        charlie.addAttributeValue(ATTR_TYPE, TYPE_CONTRACTOR);
+        DummyAccount gustav = new DummyAccount("gustav");
+        gustav.addAttributeValue(ATTR_TYPE, TYPE_GUEST);
+
+        RESOURCE_DUMMY_LEGALIZING.getDummyResource().addAccount(ethan);
+        RESOURCE_DUMMY_LEGALIZING.getDummyResource().addAccount(charlie);
+        RESOURCE_DUMMY_LEGALIZING.getDummyResource().addAccount(gustav);
+
+        when("accounts are imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_LEGALIZING.oid)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .withProcessingAllAccounts()
+                .execute(result);
+
+        then("the employee has account legalized");
+        assertUserAfterByUsername("ethan")
+                .assignments()
+                .single()
+                .assertResource(RESOURCE_DUMMY_LEGALIZING.oid)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(TYPE_EMPLOYEE);
+
+        and("the contractor has account legalized");
+        assertUserAfterByUsername("charlie")
+                .assignments()
+                .single()
+                .assertResource(RESOURCE_DUMMY_LEGALIZING.oid)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(TYPE_CONTRACTOR);
+
+        and("the guest has account not legalized");
+        assertUserAfterByUsername("gustav")
+                .assertAssignments(0);
     }
 }

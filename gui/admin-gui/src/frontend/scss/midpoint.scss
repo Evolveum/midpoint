@@ -516,6 +516,10 @@ li.dropdown.user.user-menu {
 }
 
 .info-box {
+  & .info-box-icon {
+    color: $white;
+  }
+
   &.info-box-link {
     cursor: pointer;
   }
@@ -591,7 +595,7 @@ li.dropdown.user.user-menu {
 }
 
 .summary-tag-box {
-  max-width: 220px;
+  max-width: 250px;
 }
 
 .summary-tag-box-wide {
@@ -600,19 +604,11 @@ li.dropdown.user.user-menu {
 }
 
 .summary-tag {
-	display: block;
-	padding-left: 10px;
-	padding-right: 10px;
-	margin: 3px;
-	border: 1px solid #e0e0e0;
-	border-radius: 3px;
-	background-color: #fbfbfb;
-	margin-right: 0px;
+
 }
 
 .summary-tag-icon {
 	width: 20px;
-	margin-right: 2px;
 }
 
 // form input for binary data upload (used e.g. for photo)
@@ -1728,6 +1724,19 @@ span.yui-skin-sam {
   font-size: 13px;
 }
 
+.login-panel-control {
+  width: 100% !important;
+}
+
+.login-panel-description {
+  color: $text-muted;
+  font-size: 14px;
+}
+
+.login-panel-title {
+  font-weight: bold;
+}
+
 .info-box.activity-item-processing > .info-box-content > .progress-description {
   overflow-wrap: break-word;
   word-break: break-word;
@@ -1819,21 +1828,19 @@ th.debug-list-buttons {
   }
 }
 
-.assignmentPath {
+.assignment-path > ul {
   list-style: none;
-  margin-bottom: 0px;
+  margin-bottom: 0;
+  padding-left: 0.5rem;
 
   & > li {
 
-    & + li {
-      margin-left: 10px;
-
-      &::before {
-        color: $text-muted;
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
-        content: "\f061";
-      }
+    &::before {
+      color: $secondary;
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      content: "\f061";
+      margin-right: .25rem;
     }
   }
 }
@@ -1859,5 +1866,15 @@ th.debug-list-buttons {
       font-weight: 400;
       margin-bottom: 0.25rem;
     }
+  }
+}
+
+.metric-widget {
+  background-color: $white;
+}
+
+@include dark-mode() {
+  .metric-widget {
+    background-color: $dark;
   }
 }

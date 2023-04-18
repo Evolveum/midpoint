@@ -195,7 +195,7 @@ import java.util.List;
         identifier = "eventMarkInformationPanel",
         applicableForType = MarkType.class,
         display = @PanelDisplay(
-                label = " MarkType.eventMark",
+                label = "MarkType.eventMark",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 30
         ),

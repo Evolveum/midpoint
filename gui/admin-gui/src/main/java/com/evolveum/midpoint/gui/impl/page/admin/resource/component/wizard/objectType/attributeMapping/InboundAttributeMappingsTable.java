@@ -15,10 +15,10 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -32,8 +32,10 @@ import java.util.List;
  * @author lskublik
  */
 public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P>{
-    public InboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
-        super(id, valueModel);
+    public InboundAttributeMappingsTable(
+            String id, IModel<PrismContainerValueWrapper<P>> valueModel,
+            ContainerPanelConfigurationType config) {
+        super(id, valueModel, config);
     }
 
     @Override
@@ -73,7 +75,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "";
+                return "px-0";
             }
         });
 
@@ -81,14 +83,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 getMappingTypeDefinition(),
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
-
-            @Override
-            public String getCssClass() {
-                return "col-xl-2 col-lg-2 col-md-3";
-            }
-
-        });
+                getPageBase()));
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override
@@ -98,7 +93,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "";
+                return "px-0";
             }
         });
 

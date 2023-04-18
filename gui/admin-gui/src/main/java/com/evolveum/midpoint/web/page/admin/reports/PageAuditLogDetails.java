@@ -40,7 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperation
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -61,9 +60,9 @@ import java.util.*;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                         label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL,
                         description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_VIEWER_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_DETAILS_URL,
                         label = "PageAuditLogViewer.auth.auditLogViewer.label",
-                        description = "PageAuditLogViewer.auth.auditLogViewer.description") })
+                        description = "PageAuditLogViewer.auth.auditLogViewer.description")})
 public class PageAuditLogDetails extends PageBase {
     private static final long serialVersionUID = 1L;
 
@@ -406,9 +405,7 @@ public class PageAuditLogDetails extends PageBase {
 
             @Override
             protected void populateItem(ListItem<ObjectDeltaOperationType> item) {
-                AuditChangesPanel deltaPanel = new AuditChangesPanel(ID_DELTA_PANEL, item.getModel(), PageAuditLogDetails.this);
-                item.add(new VisibleBehaviour(() -> item.getModelObject() != null));
-                item.add(deltaPanel);
+                item.add(new AuditChangesPanel(ID_DELTA_PANEL, item.getModel(), PageAuditLogDetails.this));
             }
         };
         eventPanel.add(deltaListPanel);

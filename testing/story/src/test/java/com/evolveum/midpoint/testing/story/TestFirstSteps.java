@@ -6,19 +6,22 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType.UNMODIFIED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.POLICY_SITUATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
+import static com.evolveum.midpoint.schema.TaskExecutionMode.SIMULATED_DEVELOPMENT;
+import static com.evolveum.midpoint.schema.TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType.UNMODIFIED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,21 +30,12 @@ import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.model.test.TestSimulationResult;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
+import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.util.LDIFException;
@@ -53,20 +47,34 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.ObjectsCounter;
+import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationRequestBuilder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AnyTestResource;
 import com.evolveum.midpoint.test.CsvTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -112,8 +120,8 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     private static final String RESOURCE_OPENDJ_OID = "0934922f-0f63-4768-b1b1-eab4275b31d1";
 
-    private static final TestResource<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
-            new TestResource<>(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
+    private static final TestObject<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
+            TestObject.file(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
 
     private static final AnyTestResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
     private static final AnyTestResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
@@ -174,14 +182,6 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Override
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
-    }
-
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-        if (repositoryService.supportsMarks()) {
-            CommonInitialObjects.addMarks(this, initTask, initResult);
-        }
     }
 
     /**
@@ -412,16 +412,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertLastFailureObjectName("5");
         // @formatter:on
 
-        if (isNativeRepository()) {
-            then("processed objects info is OK");
-            // @formatter:off
-            assertProcessedObjects(taskOid, "")
-                    .display()
-                    .assertSize((INITIAL_HR_ACCOUNTS - 1) * 2 + 1) // N user ADD, N shadow MODIFY, 1 shadow unmodified
-                    .by().state(UNMODIFIED).find()
-                        .assertName("5"); // User does not exist, shadow is not modified because of the exception
-            // @formatter:on
-        }
+        then("processed objects info is OK");
+        // @formatter:off
+        assertProcessedObjects(taskOid, "")
+                .display()
+                .assertSize((INITIAL_HR_ACCOUNTS - 1) * 2 + 1) // N user ADD, N shadow MODIFY, 1 shadow unmodified
+                .by().state(UNMODIFIED).find()
+                    .assertName("5"); // User does not exist, shadow is not modified because of the exception
+        // @formatter:on
 
         and("no new focus objects are there");
         focusCounter.assertNoNewObjects(result);
@@ -627,14 +625,15 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertRepoShadow(shadowOid999, "test account after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
-                .assertSynchronizationSituation(null); // Not updated because of the simulated execution.
+                .assertSynchronizationSituation(UNMATCHED)
+                .assertSynchronizationSituationDescriptionUpdatedButNotFull();
 
         when("existing employee 4 is imported (on foreground, simulated development execution)");
         TestSimulationResult simResult4 = importHrAccountRequest("4")
                 .simulatedDevelopment()
                 .executeOnForegroundSimulated(defaultSimulationDefinition(), task, result);
 
-        then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
+        then("there is a single user MODIFY delta");
         // @formatter:off
         assertProcessedObjects(simResult4, "simulated production execution")
                 .display()
@@ -666,7 +665,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .synchronizationStatistics()
                         .display()
                         .assertTransition(LINKED, LINKED, LINKED, null, INITIAL_HR_ACCOUNTS, 0, 0)
-                        .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, LINKED, null, 1, 0, 0)
                         .assertTransitions(2)
                     .end()
                 .end()
@@ -766,9 +765,9 @@ public class TestFirstSteps extends AbstractStoryTest {
         given("improved definition is imported and tested");
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_210, task, result);
 
-        when("the reconciliation is run in simulated development mode");
+        when("the reconciliation is run in shadow-simulated development mode");
         String taskOid = reconcileAllOpenDjAccountsRequest()
-                .simulatedDevelopment()
+                .withTaskExecutionMode(SIMULATED_SHADOWS_DEVELOPMENT)
                 .execute(result);
 
         then("task is OK");
@@ -796,11 +795,71 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .progress()
                         .display()
-                        .assertCommitted(0, 0, REGULAR_INITIAL_OPENDJ_ACCOUNTS + PROTECTED_OPENDJ_ACCOUNTS) // FIXME do we really want to cover all accounts in 3rd stage when simulated?
+                        .assertCommitted(0, 0, 0)
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        // TODO
+                    .end()
+                .end()
+                .assertClockworkRunCount(0); // no reactions are there
+        // @formatter:on
+
+        and("there are 'classification' processed objects");
+        Function<ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>, ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>> noOwner = po ->
+                po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+                        .assertSynchronizationSituationChangedTo(UNMATCHED)
+                        .assertCorrelationSituationChangedTo(CorrelationSituationType.NO_OWNER);
+
+        assertProcessedObjects(taskOid, "")
+                .display()
+                .by().objectOid(getJSmith1OpenDjShadow().getOid()).find(po ->
+                        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+                                .assertSynchronizationSituationChangedTo(UNLINKED)
+                                .assertCorrelationSituationChangedTo(CorrelationSituationType.EXISTING_OWNER)
+                                .assertResultingOwnerChangedTo(getUserRef("empNo:1")))
+                .by().objectOid(getJSmith2OpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getAGreenOpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getRBlackOpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getBobOpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getTeslaOpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getHackerOpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getAdminOpenDjShadow().getOid()).find(noOwner)
+                .by().objectOid(getJunior1OpenDjShadow().getOid()).find(noOwner);
+
+        when("the reconciliation is run in simulated development mode");
+        String taskOid2 = reconcileAllOpenDjAccountsRequest()
+                .withTaskExecutionMode(SIMULATED_DEVELOPMENT)
+                .execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(taskOid2, "simulated task after")
+                .display()
+                .activityState(RECONCILIATION_OPERATION_COMPLETION_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .progress()
+                        .display()
+                        .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(null, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, REGULAR_INITIAL_OPENDJ_ACCOUNTS - 1, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransitions(3)
+                    .end()
+                .end()
+                .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .progress()
+                        .display()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
                     .end()
                 .end()
                 .assertClockworkRunCount(0); // no reactions are there
@@ -809,14 +868,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertShadow(getJSmith1OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
-                .assertSynchronizationSituation(null); // no real execution was there
+                .assertSynchronizationSituation(UNLINKED);
 
-        if (isNativeRepository()) {
-            and("there are no processed objects");
-            assertProcessedObjects(taskOid, "")
-                    .display()
-                    .assertSize(0);
-        }
+        and("there are no processed objects");
+        assertProcessedObjects(taskOid2, "")
+                .display()
+                .assertSize(0);
     }
 
     /**
@@ -831,9 +888,9 @@ public class TestFirstSteps extends AbstractStoryTest {
         OperationResult result = task.getResult();
         focusCounter.remember(result);
 
-        when("the import is run in simulated development mode");
+        when("the import is run in shadow-simulated development mode");
         String taskOid = importAllOpenDjAccountsRequest()
-                .simulatedDevelopment()
+                .withTaskExecutionMode(SIMULATED_SHADOWS_DEVELOPMENT)
                 .execute(result);
 
         then("task is OK");
@@ -847,8 +904,37 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        .assertTransition(null, UNLINKED, UNLINKED, null, 1, 0, 0)
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, REGULAR_INITIAL_OPENDJ_ACCOUNTS - 1, 0, 0)
+                        .assertTransition(UNLINKED, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, REGULAR_INITIAL_OPENDJ_ACCOUNTS - 1, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransitions(3)
+                    .end()
+                .end()
+                .assertClockworkRunCount(0); // no reactions are there
+        // @formatter:on
+
+        assertProcessedObjects(taskOid, "")
+                .display();
+        // TODO check that only timestamps are to be changed
+
+        when("the import is run in simulated development mode");
+        String taskOid2 = importAllOpenDjAccountsRequest()
+                .simulatedDevelopment()
+                .execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(taskOid2, "simulated task after")
+                .display()
+                .rootActivityState()
+                    .progress()
+                        .display()
+                        .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(UNLINKED, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, REGULAR_INITIAL_OPENDJ_ACCOUNTS - 1, 0, 0)
                         .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
                         .assertTransitions(3)
                     .end()
@@ -859,14 +945,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertShadow(getJSmith1OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
-                .assertSynchronizationSituation(null); // no real execution was there
+                .assertSynchronizationSituation(UNLINKED);
 
-        if (isNativeRepository()) {
-            and("there are no simulation deltas");
-            assertProcessedObjects(taskOid, "")
-                    .display()
-                    .assertSize(0);
-        }
+        and("there are no simulation deltas");
+        assertProcessedObjects(taskOid2, "")
+                .display()
+                .assertSize(0);
     }
 
     /**
@@ -883,9 +967,9 @@ public class TestFirstSteps extends AbstractStoryTest {
         given("improved definition is imported and tested");
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_220, task, result);
 
-        when("the reconciliation is run in simulated development mode");
+        when("the reconciliation is run in shadow-simulated development mode");
         String taskOid = reconcileAllOpenDjAccountsRequest()
-                .simulatedDevelopment()
+                .withTaskExecutionMode(SIMULATED_SHADOWS_DEVELOPMENT)
                 .execute(result);
 
         then("task is OK");
@@ -898,11 +982,43 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        .assertTransition(null, UNLINKED, UNLINKED, null, 2, 0, 0)
-                        .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 5, 0, 0)
+                        .assertTransition(UNLINKED, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 5, 0, 0)
                         .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
-                        .assertTransitions(4)
+                        .assertTransitions(5)
+                    .end()
+                .end()
+                .assertClockworkRunCount(0); // still no reactions
+        // @formatter:on
+
+        and("there are some processed objects");
+        assertProcessedObjects(taskOid, "")
+                .display();
+        // TODO
+
+        when("the reconciliation is run in simulated development mode");
+        String taskOid2 = reconcileAllOpenDjAccountsRequest()
+                .simulatedDevelopment()
+                .execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(taskOid2, "simulated task after")
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .progress()
+                        .display()
+                        .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(UNLINKED, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, UNLINKED, UNLINKED, null, 1, 0, 0)
+                        .assertTransition(UNMATCHED, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 5, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransitions(5)
                     .end()
                 .end()
                 .assertClockworkRunCount(0); // still no reactions
@@ -917,7 +1033,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertPotentialOwnerOptions(1)
                 .assertCandidateOwners(oidUser1)
                 .assertResultingOwner(oidUser1)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNLINKED);
 
         String oidUser2 = assertUserByUsername("empNo:2", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no execution)
@@ -928,7 +1044,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertPotentialOwnerOptions(1)
                 .assertCandidateOwners(oidUser2)
                 .assertResultingOwner(oidUser2)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNLINKED);
 
         String oidUser3 = assertUserByUsername("empNo:3", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
@@ -939,7 +1055,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertPotentialOwnerOptions(2)
                 .assertCandidateOwners(oidUser3)
                 .assertResultingOwner(null)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(DISPUTED);
 
         String oidUser4 = assertUserByUsername("empNo:4", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
@@ -953,41 +1069,39 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertPotentialOwnerOptions(3)
                 .assertCandidateOwners(oidUser4, oidUser5)
                 .assertResultingOwner(null)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(DISPUTED);
 
         assertShadow(getBobOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER) // alternate name -> no candidates found
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNMATCHED);
 
         assertShadow(getTeslaOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNMATCHED);
 
         assertShadow(getHackerOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNMATCHED);
 
         assertShadow(getAdminOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNMATCHED);
 
         assertShadow(getJunior1OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(UNMATCHED);
 
         focusCounter.assertNoNewObjects(result);
 
-        if (isNativeRepository()) {
-            and("there are no simulation deltas");
-            assertProcessedObjects(taskOid, "")
-                    .display()
-                    .assertSize(0);
-        }
+        and("there are no simulation deltas");
+        assertProcessedObjects(taskOid2, "")
+                .display()
+                .assertSize(0);
     }
 
     /**
@@ -995,12 +1109,10 @@ public class TestFirstSteps extends AbstractStoryTest {
      *
      * We review and mark unmatched shadows:
      *
-     * - `tesla`: as "keep but do not touch" (legacy)
-     * - `hacker`: as "investigate and delete" (illegal)
+     * - `tesla`: as "do not touch"
+     * - `hacker`: as "decommission later"
      * - `admin`: as protected
-     * - `junior1`: as "please add to HR" (pending)
-     *
-     * *HIGHLY EXPERIMENTAL* Just to implement "Account marking phase" in the First Steps Solution Notes document.
+     * - `junior1`: as "correlate later"
      */
     @Test
     public void test230MarkUnmatchedAccounts() throws CommonException, IOException {
@@ -1008,23 +1120,11 @@ public class TestFirstSteps extends AbstractStoryTest {
         OperationResult result = task.getResult();
         focusCounter.remember(result);
 
-        when("marking shadows with respective policy situations");
-        addShadowPolicySituation(
-                getTeslaOpenDjShadow().getOid(),
-                TEST_POLICY_SITUATION_LEGACY,
-                result);
-        addShadowPolicySituation(
-                getHackerOpenDjShadow().getOid(),
-                TEST_POLICY_SITUATION_ILLEGAL,
-                result);
-        addShadowPolicySituation(
-                getAdminOpenDjShadow().getOid(),
-                MODEL_POLICY_SITUATION_PROTECTED_SHADOW,
-                result);
-        addShadowPolicySituation(
-                getJunior1OpenDjShadow().getOid(),
-                TEST_POLICY_SITUATION_PENDING,
-                result);
+        when("marking shadows");
+        markShadow(getTeslaOpenDjShadow().getOid(), MARK_DO_NOT_TOUCH.oid, task, result);
+        markShadow(getHackerOpenDjShadow().getOid(), MARK_DECOMMISSION_LATER.oid, task, result);
+        markShadow(getAdminOpenDjShadow().getOid(), MARK_PROTECTED.oid, task, result);
+        markShadow(getJunior1OpenDjShadow().getOid(), MARK_CORRELATE_LATER.oid, task, result);
 
         when("the reconciliation is run in simulated development mode");
         String taskOid = reconcileAllOpenDjAccountsRequest()
@@ -1041,11 +1141,11 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        .assertTransition(null, UNLINKED, UNLINKED, null, 2, 0, 0)
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
-                        .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
-                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
+                        .assertTransition(UNLINKED, UNLINKED, UNLINKED, null, 2, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 1, 0, 0)
+                        .assertTransition(DISPUTED, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
+                        .assertTransition(UNMATCHED, null, null, PROTECTED, 0, 0, 4)
                         .assertTransitions(5)
                     .end();
         // @formatter:on
@@ -1076,7 +1176,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         then("task is OK");
         // @formatter:off
-        assertTask(taskOid, "simulated task after")
+        assertTask(taskOid, "after")
                 .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .progress()
                         .display()
@@ -1084,11 +1184,11 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        .assertTransition(null, UNLINKED, LINKED, null, 2, 0, 0)
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
-                        .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
-                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
+                        .assertTransition(UNLINKED, UNLINKED, LINKED, null, 2, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 1, 0, 0)
+                        .assertTransition(DISPUTED, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(UNMATCHED, null, null, PROTECTED, 0, 0, 4)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
                         .assertTransitions(5)
                     .end()
                 .end()
@@ -1189,8 +1289,8 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .synchronizationStatistics()
                         .display()
                         .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
-                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
+                        .assertTransition(UNMATCHED, null, null, PROTECTED, 0, 0, 4)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
                         .assertTransitions(3)
                     .end()
                 .end()
@@ -1319,12 +1419,10 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertTask(simTaskOid, "simulated task after")
                 .assertClockworkRunCount(5);
 
-        if (isNativeRepository()) {
-            and("there should be no processed objects, as all the DN match");
-            assertProcessedObjects(simTaskOid, "")
-                    .display()
-                    .assertSize(3 * 5); // TODO
-        }
+        and("there should be no processed objects, as all the DN match");
+        assertProcessedObjects(simTaskOid, "")
+                .display()
+                .assertSize(3 * 5); // TODO
 
         when("trying to create the account for John Johnson");
         TestSimulationResult simResult2 =
@@ -1429,104 +1527,102 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertTask(simTaskOid, "simulated task after")
                 .assertClockworkRunCount(5);
 
-        if (isNativeRepository()) {
-            and("task processed objects are OK");
-            // @formatter:off
-            assertProcessedObjects(simTaskOid, "import")
-                    .display()
-                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).find()
-                        .assertName(NAME_JSMITH1)
-                        .assertState(UNMODIFIED) // all is set
-                    .end()
-                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("1")).find()
-                        .assertName("1")
-                        .assertState(UNMODIFIED)
-                    .end()
-                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).find()
-                        .assertName(DN_JSMITH1)
-                        .assertState(UNMODIFIED) // all is set
-                    .end()
+        and("task processed objects are OK");
+        // @formatter:off
+        assertProcessedObjects(simTaskOid, "import")
+                .display()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).find()
+                    .assertName(NAME_JSMITH1)
+                    .assertState(UNMODIFIED) // all is set
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getHrShadowOid("1")).find()
+                    .assertName("1")
+                    .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).find()
+                    .assertName(DN_JSMITH1)
+                    .assertState(UNMODIFIED) // all is set
+                .end()
 
-                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
-                        .assertName(NAME_JSMITH2)
-                        .delta()
-                            .assertModifiedExclusive(UserType.F_METADATA)
-                        .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
+                    .assertName(NAME_JSMITH2)
+                    .delta()
+                        .assertModifiedExclusive(UserType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("2")).find()
-                        .assertName("2")
-                        .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getHrShadowOid("2")).find()
+                    .assertName("2")
+                    .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH2)).find()
+                    .assertName(DN_JSMITH2)
+                    .delta()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH2)).find()
-                        .assertName(DN_JSMITH2)
-                        .delta()
-                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
-                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
-                        .end()
-                    .end()
+                .end()
 
-                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
-                        .assertName(NAME_AGREEN3)
-                        .delta()
-                            .assertModifiedExclusive(UserType.F_METADATA)
-                        .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
+                    .assertName(NAME_AGREEN3)
+                    .delta()
+                        .assertModifiedExclusive(UserType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("3")).find()
-                        .assertName("3")
-                        .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getHrShadowOid("3")).find()
+                    .assertName("3")
+                    .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_AGREEN3)).find()
+                    .assertName(DN_AGREEN3)
+                    .delta()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
+                        .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_AGREEN3)).find()
-                        .assertName(DN_AGREEN3)
-                        .delta()
-                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
-                            .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
-                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
-                        .end()
-                    .end()
+                .end()
 
-                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
-                        .assertName(NAME_RBLACK)
-                        .delta()
-                            .assertModifiedExclusive(UserType.F_METADATA)
-                        .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
+                    .assertName(NAME_RBLACK)
+                    .delta()
+                        .assertModifiedExclusive(UserType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("4")).find()
-                        .assertName("4")
-                        .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getHrShadowOid("4")).find()
+                    .assertName("4")
+                    .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_RBLACK)).find()
+                    .assertName(DN_RBLACK)
+                    .delta()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
+                        .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_RBLACK)).find()
-                        .assertName(DN_RBLACK)
-                        .delta()
-                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
-                            .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
-                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
-                        .end()
-                    .end()
+                .end()
 
-                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
-                        .assertName(NAME_BOB)
-                        .delta()
-                            .assertModifiedExclusive(UserType.F_METADATA)
-                        .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
+                    .assertName(NAME_BOB)
+                    .delta()
+                        .assertModifiedExclusive(UserType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("5")).find()
-                        .assertName("5")
-                        .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getHrShadowOid("5")).find()
+                    .assertName("5")
+                    .assertState(UNMODIFIED)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_BOB)).find()
+                    .assertName(DN_BOB)
+                    .delta()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
+                        .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
+                        .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
+                        .assertModification(PATH_CN, "Bob Black", "Robert Black")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
                     .end()
-                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_BOB)).find()
-                        .assertName(DN_BOB)
-                        .delta()
-                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
-                            .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
-                            .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
-                            .assertModification(PATH_CN, "Bob Black", "Robert Black")
-                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
-                        .end()
-                    .end()
+                .end()
 
-                    .assertSize(15);
-            // @formatter:on
-        }
+                .assertSize(15);
+        // @formatter:on
 
         // TODO report the following
         //  - How many accounts would be created, changed, deleted -- can be seen from the deltas
@@ -1656,8 +1752,16 @@ public class TestFirstSteps extends AbstractStoryTest {
         return findOpenDjShadowRequired(dn).getOid();
     }
 
-    private String getUserOid(String name) throws CommonException {
-        return findUserRequired(name).getOid();
+    private String getUserOid(String name) {
+        try {
+            return findUserRequired(name).getOid();
+        } catch (CommonException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private ObjectReferenceType getUserRef(String name) {
+        return ObjectTypeUtil.createObjectRef(getUserOid(name), ObjectTypes.USER);
     }
 
     private PrismObject<UserType> findUserRequired(String userName) throws CommonException {

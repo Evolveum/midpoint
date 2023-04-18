@@ -1,6 +1,15 @@
+/*
+ * Copyright (C) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -12,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -22,8 +32,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -38,27 +50,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@PanelType(name = "roleWizard-construction-objectType")
-@PanelInstance(identifier = "roleWizard-construction-objectType",
-        applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+@PanelType(name = "arw-construction-objectType")
+@PanelInstance(identifier = "arw-construction-objectType",
+        applicableForType = AbstractRoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.objectType", icon = "fa fa-database"),
         containerPath = "empty")
-public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepPanel<FocusDetailsModels<RoleType>> {
+public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType>
+        extends AbstractWizardStepPanel<FocusDetailsModels<AR>> implements WizardListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceObjectTypeStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-objectType";
+    public static final String PANEL_TYPE = "arw-construction-objectType";
 
     private static final String ID_TILES_CONTAINER = "tilesContainer";
     private static final String ID_TILES = "tiles";
     private static final String ID_TILE = "tile";
 
+    private String oldOidResource;
+
     private final IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
-    private IModel<List<Tile<ResourceObjectTypeWrapper>>> tilesModel;
+    private LoadableModel<List<Tile<ResourceObjectTypeWrapper>>> tilesModel;
 
     public ConstructionResourceObjectTypeStepPanel(
-            FocusDetailsModels<RoleType> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
+            FocusDetailsModels<AR> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         super(model);
         this.valueModel = new LoadableDetachableModel<>() {
             @Override
@@ -73,6 +88,15 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
                 return null;
             }
         };
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        if (tilesModel == null || tilesModel.getObject().isEmpty()) {
+            getPageBase().info(getPageBase().createStringResource("ConstructionResourceObjectTypeStepPanel.emptyList").getString());
+            getFeedback();
+        }
+        super.onBeforeRender();
     }
 
     @Override
@@ -100,8 +124,13 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
 
                     try {
                         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-                        ResourceObjectTypeDefinition actualOc =
-                                (ResourceObjectTypeDefinition) WebComponentUtil.getResourceObjectDefinition(construction, getPageBase());
+                        if (schema == null) {
+                            return list;
+                        }
+                        ResourceObjectDefinition resourceObjectDefinition = WebComponentUtil.getResourceObjectDefinition(construction, getPageBase());
+                        ResourceObjectTypeDefinition actualOc = resourceObjectDefinition instanceof ResourceObjectTypeDefinition
+                                ? (ResourceObjectTypeDefinition) resourceObjectDefinition
+                                : null;
                         schema.getObjectTypeDefinitions().forEach(oc -> {
                             String icon = WebComponentUtil.createShadowIcon(oc.getKind());
 
@@ -131,6 +160,12 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
                 }
             };
         }
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+        wizard.addWizardListener(ConstructionResourceObjectTypeStepPanel.this);
     }
 
     private boolean matchResourceObjectTypes(ResourceObjectTypeDefinition actualOc, ResourceObjectTypeDefinition oc) {
@@ -186,6 +221,8 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
                 getModelObject().setSelected(!oldState);
 
                 target.add(ConstructionResourceObjectTypeStepPanel.this.get(ID_TILES_CONTAINER));
+
+                target.add(getNext());
             }
         };
     }
@@ -268,6 +305,13 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
         return selectedTile.isEmpty();
     }
 
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(
+                () -> !isSubmitVisible(),
+                () -> !isNotSelected());
+    }
+
     class ResourceObjectTypeWrapper implements Serializable {
 
         private final ShadowKindType kind;
@@ -276,6 +320,28 @@ public class ConstructionResourceObjectTypeStepPanel extends AbstractWizardStepP
         private ResourceObjectTypeWrapper(ResourceObjectTypeDefinition oc) {
             this.kind = oc.getKind();
             this.intent = oc.getIntent();
+        }
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        if (!ConstructionResourceObjectTypeStepPanel.this.equals(newStep)) {
+            return;
+        }
+
+        ConstructionType construction = valueModel.getObject().getRealValue();
+        if (construction == null) {
+            return;
+        }
+
+        ObjectReferenceType resourceRef = construction.getResourceRef();
+        String resourceOid = resourceRef != null ? resourceRef.getOid() : null;
+
+        if (StringUtils.isNotEmpty(resourceOid)) {
+            if (!resourceOid.equals(oldOidResource)) {
+                tilesModel.reset();
+            }
+            oldOidResource = resourceOid;
         }
     }
 }

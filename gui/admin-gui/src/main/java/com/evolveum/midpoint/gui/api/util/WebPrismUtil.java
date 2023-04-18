@@ -10,15 +10,13 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
-import com.evolveum.midpoint.gui.impl.factory.panel.AttributeMappingItemPathPanelFactory;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -53,19 +51,47 @@ public class WebPrismUtil {
     private static final String DOT_CLASS = WebPrismUtil.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
-    public static <ID extends ItemDefinition<I>, I extends Item<?, ?>> String getHelpText(ID def) {
+    public static <ID extends ItemDefinition<I>, I extends Item<?, ?>> String getHelpText(ID def, Class<?> containerClass) {
         if (def == null) {
             return null;
         }
-        String doc = def.getHelp();
-        if (StringUtils.isEmpty(doc)) {
-            doc = def.getDocumentation();
-            if (StringUtils.isEmpty(doc)) {
-                return null;
+
+        String help = def.getHelp();
+        if (StringUtils.isNotEmpty(help)) {
+            String defaultValue = help.replaceAll("\\s{2,}", " ").trim();
+            return PageBase.createStringResourceStatic(help, defaultValue).getString();
+        }
+
+        QName name = def.getItemName();
+
+        if (name != null && containerClass != null) {
+            String localizedHelp = getLocalizedHelpWithContainerClass(name, containerClass);
+            if (StringUtils.isNotEmpty(localizedHelp)) {
+                return localizedHelp;
             }
         }
 
+        String doc = def.getDocumentation();
+        if (StringUtils.isEmpty(doc)) {
+            return null;
+        }
+
         return doc.replaceAll("\\s{2,}", " ").trim();
+    }
+
+    private static String getLocalizedHelpWithContainerClass(@NotNull QName name, @NotNull Class<?> containerClass) {
+        String displayName = name.getLocalPart();
+        String containerName = containerClass.getSimpleName();
+
+        String helpKey = containerName + "." + displayName + ".help";
+        String localizedHelp = PageBase.createStringResourceStatic(helpKey).getString();
+        if (!localizedHelp.equals(helpKey)) {
+            return localizedHelp;
+        }
+        if (containerClass.getSuperclass() != null) {
+            return getLocalizedHelpWithContainerClass(name, containerClass.getSuperclass());
+        }
+        return null;
     }
 
     public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, PageBase pageBase, AjaxRequestTarget target) {
@@ -129,7 +155,6 @@ public class WebPrismUtil {
             context.setShowEmpty(true);
             context.setCreateIfEmpty(true);
         }
-
 
         VW newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newValue, status, context);
         result.recordSuccess();
@@ -200,7 +225,7 @@ public class WebPrismUtil {
     }
 
     //TODO quick hack ... use for it wrappers
-    private static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
+    public static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
         return valueAfter != null && isUseAsEmptyValue(valueAfter.getRealClass());
     }
 
@@ -209,7 +234,8 @@ public class WebPrismUtil {
     }
 
     private static <C extends Containerable> boolean isUseAsEmptyValue(Class<?> typeClass) {
-        return typeClass != null && AbstractSynchronizationActionType.class.isAssignableFrom(typeClass);
+        return typeClass != null &&
+                (AbstractSynchronizationActionType.class.isAssignableFrom(typeClass));
     }
 
     public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
@@ -249,7 +275,15 @@ public class WebPrismUtil {
             Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
             while (iterator.hasNext()) {
                 PrismPropertyValue<T> pVal = iterator.next();
-                if (pVal == null || pVal.isEmpty() || pVal.getRealValue() == null) {
+                if (pVal == null) {
+                    iterator.remove();
+                    continue;
+                }
+                if (pVal.getRealValue() instanceof ExpressionType && ExpressionUtil.isEmpty((ExpressionType) pVal.getRealValue())) {
+                    iterator.remove();
+                    continue;
+                }
+                if (pVal.isEmpty() || pVal.getRealValue() == null) {
                     iterator.remove();
                 }
             }
@@ -301,13 +335,13 @@ public class WebPrismUtil {
             return false;
         }
 
-        if (hasValueMetadata(valueFromDelta)) {
+        if (hasValueTemplateMetadata(valueFromDelta)) {
             return true;
         }
         Item<PrismValue, ItemDefinition<?>> item = parent.findItem(valueFromDelta.getParent().getPath());
         PrismContainerValue<?> value = item.getParent();
         while (!(value instanceof PrismObjectValue)) {
-            if (hasValueMetadata(value)) {
+            if (hasValueTemplateMetadata(value)) {
                 return true;
             }
             value = value.getParentContainerValue();
@@ -315,7 +349,7 @@ public class WebPrismUtil {
         return false;
     }
 
-    private static boolean hasValueMetadata(PrismValue value) {
+    public static boolean hasValueTemplateMetadata(PrismValue value) {
         if (value == null) {
             return false;
         }

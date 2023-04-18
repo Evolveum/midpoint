@@ -187,7 +187,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
                 "key=" + targetKey +
                 ", construction=" + construction +
                 ", projectionContext='" + projectionContext +
-                ')';
+                "')";
     }
     //endregion
 
@@ -249,6 +249,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
                 result.recordNotApplicable();
                 return null;
             } else {
+                LOGGER.trace("Starting evaluation of {}", this);
                 evaluation = new ConstructionEvaluation<>(this, task, result);
                 evaluation.evaluate();
                 return evaluation.getNextRecompute();
@@ -263,6 +264,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
 
     /**
      * Sets up the projection context. The implementation differs for assigned and plain constructions.
+     *
+     * It is sometimes possible that the projection context does not exist yet.
      */
     protected abstract void initializeProjectionContext();
 
@@ -287,22 +290,36 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
      */
     String getFullShadowLoadReason(MappingType outboundMappingBean) {
         if (projectionContext == null) {
+            LOGGER.trace("We will not load full shadow, because we have no projection context");
             return null;
         }
         if (projectionContext.isFullShadow()) {
+            LOGGER.trace("We will not load full shadow, because we already have one");
             return null;
         }
         if (projectionContext.isDelete()) {
+            LOGGER.trace("We will not load full shadow, because the context is being deleted");
+            return null;
+        }
+        if (projectionContext.getOid() == null) {
+            // Normally, this is checked in the context loader along with "isAdd" condition.
+            // However, in some situations (before the projection activation is run), we don't have enough information
+            // to evaluate "isAdd" condition. This approach is the most safe.
+            LOGGER.trace("We will not load full shadow, because we don't have shadow OID (yet?)");
             return null;
         }
         MappingStrengthType strength = outboundMappingBean.getStrength();
         if (strength == MappingStrengthType.STRONG) {
+            LOGGER.trace("We will load full shadow, because of strong outbound mapping");
             return "strong outbound mapping";
         } else if (strength == MappingStrengthType.WEAK) {
+            LOGGER.trace("We will load full shadow, because of weak outbound mapping");
             return "weak outbound mapping";
         } else if (outboundMappingBean.getTarget() != null && outboundMappingBean.getTarget().getSet() != null) {
+            LOGGER.trace("We will load full shadow, because of outbound mapping with target set specified");
             return "outbound mapping target set specified";
         } else {
+            LOGGER.trace("We will not load full shadow, because we don't have any specific reason to do so now");
             return null;
         }
     }

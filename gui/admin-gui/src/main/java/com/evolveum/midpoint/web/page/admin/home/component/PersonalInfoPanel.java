@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -16,7 +15,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
-import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -24,25 +22,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author lazyman
  */
-public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
+public class PersonalInfoPanel extends BasePanel<List<PersonalInfoDto>> {
 
-    private static final String ID_LAST_LOGIN_DATE = "lastLoginDate";
-    private static final String ID_LAST_LOGIN_FROM = "lastLoginFrom";
-    private static final String ID_LAST_FAIL_DATE = "lastFailDate";
-    private static final String ID_LAST_FAIL_FROM = "lastFailFrom";
-    private static final String ID_PASSWORD_EXP = "passwordExp";
-
-    private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
+    private static final String ID_AUTHENTICATION_BEHAVIORS = "authenticationBehaviors";
+    private static final String ID_AUTHENTICATION_BEHAVIOR = "authenticationBehavior";
+    private static final String DOT_CLASS = PersonalInfoPanel.class.getName() + ".";
     private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
     public PersonalInfoPanel(String id) {
@@ -56,21 +55,29 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     @Override
-    public IModel<PersonalInfoDto> createModel() {
+    public IModel<List<PersonalInfoDto>> createModel() {
         return new LoadableDetachableModel<>() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected PersonalInfoDto load() {
+            protected List<PersonalInfoDto> load() {
                 return loadPersonalInfo();
             }
         };
     }
 
-    private PersonalInfoDto loadPersonalInfo() {
+    private List<PersonalInfoDto> loadPersonalInfo() {
         FocusType focus = AuthUtil.getPrincipalUser().getFocus();
-        AuthenticationBehavioralDataType behaviour = focus.getBehavior() != null ? focus.getBehavior().getAuthentication() : null;
+        if (focus.getBehavior() == null) {
+            return Collections.emptyList();
+        }
+        return focus.getBehavior().getAuthentication().stream()
+                .map(auth -> createPersonalInfo(auth, focus))
+                .collect(Collectors.toList());
+    }
+
+    private PersonalInfoDto createPersonalInfo(AuthenticationBehavioralDataType behaviour, FocusType focus) {
         PersonalInfoDto dto = new PersonalInfoDto();
         if (behaviour != null) {
             if (behaviour.getPreviousSuccessfulLogin() != null) {
@@ -82,6 +89,8 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
                 dto.setLastFailDate(MiscUtil.asDate(behaviour.getLastFailedLogin().getTimestamp()));
                 dto.setLastFailFrom(behaviour.getLastFailedLogin().getFrom());
             }
+
+            dto.setSequenceIdentifier(behaviour.getSequenceIdentifier());
         }
         Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
         CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(focus.asPrismContainer(), getPageBase(), task);
@@ -100,87 +109,12 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     protected void initLayout() {
-        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<>() {
-
-            private static final long serialVersionUID = 1L;
-
+        ListView<PersonalInfoDto> authenticationInfos = new ListView<PersonalInfoDto>(ID_AUTHENTICATION_BEHAVIORS, createModel()) {
             @Override
-            public Date getObject() {
-
-                if (getModel() == null) {
-                    return null;
-                }
-                PersonalInfoDto dto = getModel().getObject();
-                return dto == null ? null : dto.getLastLoginDate();
+            protected void populateItem(ListItem<PersonalInfoDto> listItem) {
+                listItem.add(new AuthenticationInfoPanel(ID_AUTHENTICATION_BEHAVIOR, listItem.getModel()));
             }
-        }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
-        lastLoginDate.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
-        add(lastLoginDate);
-
-        Label lastLoginFrom = new Label(ID_LAST_LOGIN_FROM, new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (getModel() == null) {
-                    return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-                }
-                PersonalInfoDto dto = getModel().getObject();
-
-                return StringUtils.isNotEmpty(dto.getLastLoginFrom()) ? dto.getLastLoginFrom() :
-                        PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-            }
-        });
-        add(lastLoginFrom);
-
-        DateLabelComponent lastFailDate = new DateLabelComponent(ID_LAST_FAIL_DATE, new IModel<Date>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Date getObject() {
-                if (getModel() == null) {
-                    return null;
-                }
-                PersonalInfoDto dto = getModel().getObject();
-                return dto == null ? null : dto.getLastFailDate();
-            }
-        }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
-        lastFailDate.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
-        add(lastFailDate);
-
-        Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (getModel() == null) {
-                    return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-                }
-                PersonalInfoDto dto = getModel().getObject();
-
-                return StringUtils.isNotEmpty(dto.getLastFailFrom()) ? dto.getLastFailFrom() :
-                        PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-            }
-        });
-        add(lastFailFrom);
-
-        DateLabelComponent passwordExp = new DateLabelComponent(ID_PASSWORD_EXP, new IModel<Date>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Date getObject() {
-
-                if (getModel() == null) {
-                    return null;
-                }
-                PersonalInfoDto dto = getModel().getObject();
-                return dto == null ? null : dto.getPasswordExp();
-            }
-        }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
-        passwordExp.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
-        add(passwordExp);
+        };
+        add(authenticationInfos);
     }
 }

@@ -56,6 +56,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Provides rich information about an operation being executed; mainly for the sake of error reporting and functional/performance troubleshooting.
  *
@@ -523,6 +525,8 @@ public class OperationResult
      * identifier of a ticket in ITSM system or anything else. The exact
      * format of this reference depends on the operation which is being
      * executed.
+     *
+     * Looks only in the current result. See {@link #findAsynchronousOperationReference()} for the recursive version.
      */
     public String getAsynchronousOperationReference() {
         return asynchronousOperationReference;
@@ -532,6 +536,12 @@ public class OperationResult
         this.asynchronousOperationReference = asynchronousOperationReference;
     }
 
+    @VisibleForTesting
+    public void clearAsynchronousOperationReferencesDeeply() {
+        setAsynchronousOperationReference(null);
+        getSubresults().forEach(OperationResult::clearAsynchronousOperationReferencesDeeply);
+    }
+
     /**
      * This method partially duplicates functionality of computeStatus. However, computeStatus
      * currently does not propagate taskOid from tasks switched to background, because switchToBackground
@@ -539,7 +549,7 @@ public class OperationResult
      * until this is fixed somehow, this is a bit of hack to fetch asynchronous operation reference
      * even in such cases.
      */
-    public String findAsynchronousOperationReference() {
+    public @Nullable String findAsynchronousOperationReference() {
         if (asynchronousOperationReference != null) {
             return asynchronousOperationReference;
         }
@@ -550,6 +560,18 @@ public class OperationResult
             }
         }
         return null;
+    }
+
+    /** A convenience method. (Assumes we have only a single asynchronous operation reference in the tree.) */
+    public @Nullable String findTaskOid() {
+        return referenceToTaskOid(
+                findAsynchronousOperationReference());
+    }
+
+    /** A convenience method. (Assumes we have only a single asynchronous operation reference in the tree.) */
+    public @Nullable String findCaseOid() {
+        return referenceToCaseOid(
+                findAsynchronousOperationReference());
     }
 
     public static boolean isTaskOid(String ref) {
@@ -1186,6 +1208,13 @@ public class OperationResult
 
     public void close() {
         computeStatusIfUnknown();
+    }
+
+    public boolean isClosed() {
+        return status != OperationResultStatus.UNKNOWN
+                && status != null
+                && end != null
+                && invocationRecord == null;
     }
 
     public void computeStatusIfUnknown() {
@@ -1983,7 +2012,13 @@ public class OperationResult
      * the size of e.g. {@link ShadowType} objects with fetchResult that includes full traced clockwork processing.
      */
     public OperationResultType createBeanReduced() {
-        return createOperationResultBean(this, null, true);
+        return createOperationResultBean(this, null, BeanContent.REDUCED);
+    }
+    /**
+     * As {@link #createOperationResultType()} but exports only the root result.
+     */
+    public OperationResultType createBeanRootOnly() {
+        return createOperationResultBean(this, null, BeanContent.ROOT_ONLY);
     }
 
     public @NotNull OperationResultType createOperationResultType() {
@@ -1991,13 +2026,13 @@ public class OperationResult
     }
 
     public @NotNull OperationResultType createOperationResultType(Function<LocalizableMessage, String> resolveKeys) {
-        return createOperationResultBean(this, resolveKeys, false);
+        return createOperationResultBean(this, resolveKeys, BeanContent.FULL);
     }
 
     private static @NotNull OperationResultType createOperationResultBean(
             @NotNull OperationResult opResult,
-            Function<LocalizableMessage, String> resolveKeys,
-            boolean reduce) {
+            @Nullable Function<LocalizableMessage, String> resolveKeys,
+            @NotNull BeanContent beanContent) {
         OperationResultType bean = new OperationResultType();
         bean.setOperationKind(opResult.getOperationKind());
         bean.setToken(opResult.getToken());
@@ -2053,12 +2088,14 @@ public class OperationResult
         bean.setContext(opResult.getContextBean());
         bean.setReturns(opResult.getReturnsBean());
 
-        for (OperationResult subResult : opResult.getSubresults()) {
-            if (reduce && subResult.isMinor() && subResult.isSuccess()) {
-                continue;
+        if (beanContent != BeanContent.ROOT_ONLY) {
+            for (OperationResult subResult : opResult.getSubresults()) {
+                if (beanContent == BeanContent.REDUCED && subResult.isMinor() && subResult.isSuccess()) {
+                    continue;
+                }
+                bean.getPartialResults().add(
+                        createOperationResultBean(subResult, resolveKeys, beanContent));
             }
-            bean.getPartialResults().add(
-                    createOperationResultBean(subResult, resolveKeys, reduce));
         }
 
         bean.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
@@ -2793,5 +2830,18 @@ public class OperationResult
 
     public void setExtractedDictionary(TraceDictionaryType extractedDictionary) {
         this.extractedDictionary = extractedDictionary;
+    }
+
+    /** What should be serialized into {@link OperationResultType} bean? */
+    private enum BeanContent {
+
+        /** Everything. */
+        FULL,
+
+        /** Everything except for minor success children. */
+        REDUCED,
+
+        /** No children. */
+        ROOT_ONLY
     }
 }

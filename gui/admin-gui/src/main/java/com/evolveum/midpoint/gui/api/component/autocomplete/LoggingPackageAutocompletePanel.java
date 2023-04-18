@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.api.component.autocomplete;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.wicket.model.IModel;
 
@@ -26,6 +28,12 @@ public class LoggingPackageAutocompletePanel extends AutoCompleteTextPanel<Strin
 
     public LoggingPackageAutocompletePanel(String id, IModel<String> model) {
         super(id, model, String.class, false);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
     }
 
     @Override

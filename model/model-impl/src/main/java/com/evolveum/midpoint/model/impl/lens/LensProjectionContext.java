@@ -82,7 +82,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
      * reality it is not always present.)
      *
-     * This information was once used for operation execution recording, but is not used now.
+     * This information was once used for operation execution recording. It is no longer the case.
+     * But since 4.7 we use it for recording result and result status during simulations.
      */
     private boolean synchronizationSource;
 
@@ -672,6 +673,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isDelete() {
         // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
+                || (synchronizationPolicyDecision == null && synchronizationIntent == SynchronizationIntent.DELETE) // MID-8608
                 || ObjectDelta.isDelete(syncDelta)
                 || ObjectDelta.isDelete(state.getPrimaryDelta());
     }
@@ -1101,26 +1103,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isLegalize() throws SchemaException, ConfigurationException {
+        ProjectionPolicyType objectClassPolicy = determineObjectClassProjectionPolicy();
+        if (objectClassPolicy != null) {
+            return BooleanUtils.isTrue(objectClassPolicy.isLegalize());
+        }
+
         ResourceType resource = getResource();
-
-        ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
-        if (objectClassProjectionPolicy != null) {
-            return BooleanUtils.isTrue(objectClassProjectionPolicy.isLegalize());
-        }
-        ProjectionPolicyType globalAccountSynchronizationSettings = null;
-        if (resource != null){
-            globalAccountSynchronizationSettings = resource.getProjection();
+        if (resource != null) {
+            ProjectionPolicyType resourcePolicy = resource.getProjection();
+            if (resourcePolicy != null) {
+                return BooleanUtils.isTrue(resourcePolicy.isLegalize());
+            }
         }
 
-        if (globalAccountSynchronizationSettings == null) {
-            globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
-        }
-
-        if (globalAccountSynchronizationSettings == null) {
-            return false;
-        }
-
-        return BooleanUtils.isTrue(globalAccountSynchronizationSettings.isLegalize());
+        ProjectionPolicyType globalPolicy = getLensContext().getAccountSynchronizationSettings();
+        return globalPolicy != null
+                && BooleanUtils.isTrue(globalPolicy.isLegalize());
     }
 
     private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException, ConfigurationException {
@@ -1688,6 +1686,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return resource != null ? resource.getOid() : key.getResourceOid();
     }
 
+    public @NotNull String getResourceOidRequired() {
+        return Objects.requireNonNull(getResourceOid(), () -> "No resource OID in " + this);
+    }
+
     ResourceObjectVolatilityType getVolatility() throws SchemaException, ConfigurationException {
         ResourceObjectDefinition structuralObjectClassDefinition = getStructuralObjectDefinition();
         return structuralObjectClassDefinition != null ? structuralObjectClassDefinition.getVolatility() : null;
@@ -1731,6 +1733,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setSynchronizationSource(boolean synchronizationSource) {
         this.synchronizationSource = synchronizationSource;
+    }
+
+    public boolean isSynchronizationSource() {
+        return synchronizationSource;
     }
 
     public String getDescription() {
@@ -1819,6 +1825,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean isBroken() {
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN;
+    }
+
+    public boolean isIgnored() {
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE;
     }
 
     /**
@@ -1926,6 +1936,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             throw new IllegalStateException("No resource"); // temporary
         }
         return SimulationUtil.isVisible(resource, getStructuralObjectDefinition(), getTaskExecutionMode());
+    }
+
+    public boolean hasResourceAndIsVisible() throws SchemaException, ConfigurationException {
+        return resource != null
+                && SimulationUtil.isVisible(resource, getStructuralObjectDefinition(), getTaskExecutionMode());
     }
 
     private @NotNull TaskExecutionMode getTaskExecutionMode() {

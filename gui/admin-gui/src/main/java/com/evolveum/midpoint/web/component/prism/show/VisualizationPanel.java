@@ -19,14 +19,18 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -59,6 +63,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private static final String ID_BODY = "body";
     private static final String ID_WARNING = "warning";
     private static final String ID_VISUALIZATION = "visualization";
+    private static final String ID_METADATA = "metadata";
 
     private final boolean advanced;
 
@@ -93,7 +98,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private void initModels() {
         overviewModel = () -> {
             Visualization visualization = getModelObject().getVisualization();
-            if (visualization == null || visualization.getName() == null) {
+            if (visualization.getName() == null) {
                 return null;
             }
 
@@ -144,11 +149,11 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         IModel<String> iconModel = () -> {
             Visualization visualization = getModelObject().getVisualization();
-            if (visualization == null || visualization.getSourceValue() == null) {
+            if (visualization.getSourceValue() == null) {
                 return null;
             }
 
-            PrismContainerValue value = visualization.getSourceValue();
+            PrismContainerValue<?> value = visualization.getSourceValue();
             QName type = value.getTypeName();
             String icon = WebComponentUtil.createDefaultBlackIcon(type);
 
@@ -215,6 +220,23 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         description.add(visibleIfNotWrapper);
         fullDescription.add(description);
 
+        IModel<ValueMetadataWrapperImpl> metadataModel = createMetadataModel();
+        AjaxIconButton metadata = new AjaxIconButton(ID_METADATA, Model.of("fa fa-sm fa-tag"),
+                createStringResource("VisualizationItemLinePanel.metadata")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showMetadata(target, metadataModel);
+            }
+        };
+        // todo MID-8658 not finished yet, hidden for 4.7 release
+        metadata.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+//        metadata.add(new VisibleBehaviour(() -> {
+//            VisualizationDto val = model.getObject();
+//            return val != null && val.getVisualization().getSourceValue() != null && metadataModel.getObject() != null;
+//        }));
+        headerPanel.add(metadata);
+
         final Label warning = new Label(ID_WARNING);
         warning.add(new VisibleBehaviour(() -> getModelObject().getVisualization().isBroken()));
         warning.add(new TooltipBehavior());
@@ -236,18 +258,48 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 headerOnClickPerformed(target, VisualizationPanel.this.getModel());
             }
         };
-        minimize.add(new VisibleBehaviour(() -> !getModelObject().getVisualization().isEmpty()));
+        minimize.add(new VisibleBehaviour(this::hasBodyContent));
         headerPanel.add(minimize);
 
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
             VisualizationDto dto = getModelObject();
-            return !dto.isMinimized() && (!dto.getItems().isEmpty() || !dto.getPartialVisualizations().isEmpty());
+            if (dto.isMinimized()) {
+                return false;
+            }
+
+            return hasBodyContent();
         }));
         add(body);
 
         final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems, advanced);
         body.add(visualization);
+    }
+
+    private void showMetadata(AjaxRequestTarget target, IModel<ValueMetadataWrapperImpl> model) {
+        PageBase page = getPageBase();
+        page.showMainPopup(new MetadataPopup(page.getMainPopupBodyId(), model), target);
+    }
+
+    private IModel<ValueMetadataWrapperImpl> createMetadataModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected ValueMetadataWrapperImpl load() {
+                Visualization visualization = getModelObject().getVisualization();
+
+                return VisualizationUtil.createValueMetadataWrapper(visualization.getSourceValue(), getPageBase());
+            }
+        };
+    }
+
+    private boolean hasBodyContent() {
+        VisualizationDto dto = getModelObject();
+        if (dto.hasNonOperationalContent()) {
+            return true;
+        }
+
+        return advanced && showOperationalItems && dto.hasOperationalContent();
     }
 
     protected boolean isExistingViewableObject() {
@@ -258,7 +310,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             return false;
         }
 
-        PrismObject obj = (PrismObject) value.getParent();
+        PrismObject<?> obj = (PrismObject<?>) value.getParent();
 
         return WebComponentUtil.hasDetailsPage(obj) &&
                 obj.getOid() != null && (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
@@ -292,7 +344,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
     private static class ChangeTypeModel implements IModel<String> {
 
-        private IModel<VisualizationDto> visualization;
+        private final IModel<VisualizationDto> visualization;
 
         public ChangeTypeModel(@NotNull IModel<VisualizationDto> visualization) {
             this.visualization = visualization;
@@ -305,13 +357,13 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 return null;
             }
 
-            return LocalizationUtil.translate(WebComponentUtil.createEnumResourceKey(changeType));
+            return LocalizationUtil.translate(LocalizationUtil.createKeyForEnum(changeType));
         }
     }
 
     private static class ObjectTypeModel implements IModel<String> {
 
-        private IModel<VisualizationDto> visualization;
+        private final IModel<VisualizationDto> visualization;
 
         public ObjectTypeModel(@NotNull IModel<VisualizationDto> visualization) {
             this.visualization = visualization;

@@ -154,11 +154,6 @@ public class LocalizationUtil {
         return rv;
     }
 
-    // migration-related method: if localizable message is present, defaultValue is ignored (i.e. it is not the same as fallbackMessage in LocalizableMessageType)
-    public static LocalizableMessageType getLocalizableMessageOrDefault(LocalizableMessageType localizableMessage, String defaultValue) {
-        return localizableMessage != null ? localizableMessage : new SingleLocalizableMessageType().fallbackMessage(defaultValue);
-    }
-
     /**
      * Returns locale object for provided string using {@link LocaleUtils#toLocale(String)}.
      * If the input string is null, or the conversion fails, null is returned.

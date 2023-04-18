@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,7 +127,9 @@ class ResourceObjectReferenceResolver {
         subCtx.assertDefinition();
 
         ObjectQuery refQuery =
-                prismContext.getQueryConverter().createObjectQuery(ShadowType.class, resourceObjectReference.getFilter());
+                ObjectQueryUtil.createQuery(
+                        QueryConversionUtil.parseFilter(
+                                resourceObjectReference.getFilter(), subCtx.getObjectDefinitionRequired()));
         // No variables. At least not now. We expect that mostly constants will be used here.
         VariablesMap variables = new VariablesMap();
         ObjectQuery evaluatedRefQuery =

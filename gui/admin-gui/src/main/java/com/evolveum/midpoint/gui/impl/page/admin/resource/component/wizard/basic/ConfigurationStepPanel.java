@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @PanelType(name = "rw-connectorConfiguration")
 @PanelInstance(identifier = "rw-connectorConfiguration",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(
                 label = "PageResource.wizard.step.configuration",
                 icon = "fa fa-cog"),

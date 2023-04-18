@@ -109,6 +109,11 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
                 .find();
     }
 
+    public AssignmentsAsserter<AH, AHA, RA> assertRolePresence(String roleOid, boolean expected)
+            throws ObjectNotFoundException, SchemaException {
+        return expected ? assertRole(roleOid) : assertNoRole(roleOid);
+    }
+
     public AssignmentsAsserter<AH, AHA, RA> assertRole(String roleOid) throws ObjectNotFoundException, SchemaException {
         by()
                 .targetOid(roleOid)

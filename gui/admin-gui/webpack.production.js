@@ -11,7 +11,6 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
     mode: 'production',
     plugins: [
-        // Extracts CSS into separate files
         new MiniCssExtractPlugin({
             filename: '[name].css',
             chunkFilename: '[id].css',
@@ -20,9 +19,6 @@ module.exports = {
     optimization: {
         minimize: true,
         minimizer: [new CssMinimizerPlugin(), '...'],
-        // runtimeChunk: {
-        //     name: 'runtime',
-        // },
     },
     performance: {
         hints: false,

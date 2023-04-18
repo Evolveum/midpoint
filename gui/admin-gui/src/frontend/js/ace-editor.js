@@ -15,6 +15,12 @@ export default class MidPointAceEditor {
         var jqTextArea = '#' + textAreaId;
         var editorId = textAreaId + ACE_EDITOR_POSTFIX;
         var jqEditor = '#' + editorId;
+
+        if ($("#" + editorId).length > 0){
+            $(jqTextArea).hide();
+            return;
+        }
+
         //
         var newHeight = height;
         if (resize) {

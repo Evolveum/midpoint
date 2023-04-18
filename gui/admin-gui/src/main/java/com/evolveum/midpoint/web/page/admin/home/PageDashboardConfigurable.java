@@ -163,15 +163,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private Component populateMetricWidget(String id, IModel<DashboardWidgetType> model) {
-        MetricWidgetPanel widget = new MetricWidgetPanel(id, model) {
-
-            @Override
-            protected void onMoreInfoPerformed(AjaxRequestTarget target) {
-                // todo implement
-            }
-        };
-
-        return widget;
+        return new MetricWidgetPanel(id, model);
     }
 
     private Component populateDashboardWidget(String id, IModel<DashboardWidgetType> model) {

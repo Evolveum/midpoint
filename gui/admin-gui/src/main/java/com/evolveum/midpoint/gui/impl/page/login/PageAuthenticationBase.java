@@ -8,7 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -38,7 +41,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -114,15 +116,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         dynamicLayout.setOutputMarkupId(true);
         mainForm.add(dynamicLayout);
 
-        dynamicLayout.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isDynamicForm();
-            }
-        });
+        dynamicLayout.add(new VisibleBehaviour(this::isDynamicFormVisible));
 
         DynamicFormPanel<FocusType> searchAttributesForm = runPrivileged(
                 () -> {
@@ -140,6 +134,10 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         }
     }
 
+    protected boolean isDynamicFormVisible() {
+        return isDynamicForm();
+    }
+
     protected boolean isDynamicForm() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {
@@ -149,10 +147,6 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             }
         }
         return getFormRef() != null;
-    }
-
-    protected void cancelPerformed() {
-        setResponsePage(getMidpointApplication().getHomePage());
     }
 
     protected AjaxButton createBackButton(String id){
@@ -165,6 +159,13 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
     }
 
     protected UserType searchUser() {
+
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal != null) {
+            FocusType focus = principal.getFocus();
+            return (UserType) focus;
+         }
+
         ObjectQuery query;
 
         if (isDynamicForm()) {
@@ -199,7 +200,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             }
 
             if ((users == null) || (users.isEmpty())) {
-                LOGGER.trace("Empty user list in ForgetPassword");
+                LOGGER.trace("Empty user list while user authentication");
                 return null;
             }
 
@@ -209,7 +210,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             }
 
             UserType user = users.iterator().next().asObjectable();
-            LOGGER.trace("User found for ForgetPassword: {}", user);
+            LOGGER.trace("User found for authentication: {}", user);
 
             return user;
         });

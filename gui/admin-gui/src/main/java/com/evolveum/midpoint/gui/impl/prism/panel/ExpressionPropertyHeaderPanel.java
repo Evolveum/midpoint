@@ -45,7 +45,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
 
     @Override
     protected void initButtons() {
-        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+        AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -56,7 +56,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
         addButton.add(new VisibleBehaviour(this::isExpressionValueEmpty));
         add(addButton);
 
-        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override

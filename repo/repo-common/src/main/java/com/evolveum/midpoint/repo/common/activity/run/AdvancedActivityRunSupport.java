@@ -86,7 +86,7 @@ public interface AdvancedActivityRunSupport {
      */
     @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @NotNull String rootTaskOid,
+            @NotNull Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             OperationResult result)
             throws ConfigurationException;

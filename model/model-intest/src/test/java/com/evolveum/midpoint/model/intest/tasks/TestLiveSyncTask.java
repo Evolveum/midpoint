@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -22,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+
+import com.evolveum.midpoint.test.TestTask;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -53,7 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Tests various aspects of live sync task:
  *
  * 1. interruption of live sync task in various scenarios (see MID-5353, MID-5513),
- * 2. statistics (MID-5999, MID-5920).
+ * 2. statistics (MID-5999, MID-5920),
+ * 3. multiple intents (MID-8537).
  *
  * TODO other aspects
  */
@@ -118,6 +125,20 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     private static final int USERS = 100;
 
     private static final int XFER_ACCOUNTS = 10;
+
+    private static final String ATTR_TYPE = "type";
+    private static final DummyTestResource RESOURCE_DUMMY_MULTI_TYPE_SOURCE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-multi-type-source.xml", "1731de0c-b333-4f8e-abb1-eada3d38943d",
+            "multi-type-source",
+            c -> {
+                c.addAttrDef(c.getAccountObjectClass(), ATTR_TYPE, String.class, false, false);
+                c.setSyncStyle(DummySyncStyle.DUMB);
+            });
+
+    private static final TestTask TASK_MULTI_TYPE_LIVE_SYNC_TYPE_1 = new TestTask(
+            TEST_DIR, "task-multi-type-live-sync-type-1.xml", "9ca22b74-bde8-45ca-be4e-cc77d95924c9");
+    private static final TestTask TASK_MULTI_TYPE_LIVE_SYNC_TYPE_2 = new TestTask(
+            TEST_DIR, "task-multi-type-live-sync-type-2.xml", "e77ef192-0c87-4d76-9424-a93b730c3e22");
 
     /**
      * Checked on "errors" resources/roles.
@@ -189,6 +210,15 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
             interruptedSyncResource.getController().addAccount(getUserName(i, true));
             interruptedSyncImpreciseResource.getController().addAccount(getUserName(i, false));
         }
+
+        RESOURCE_DUMMY_MULTI_TYPE_SOURCE.initAndTest(this, initTask, initResult);
+        initTestObjects(initTask, initResult,
+                TASK_MULTI_TYPE_LIVE_SYNC_TYPE_1,
+                TASK_MULTI_TYPE_LIVE_SYNC_TYPE_2);
+
+        // Set the sync tokens
+        TASK_MULTI_TYPE_LIVE_SYNC_TYPE_1.rerun(initResult);
+        TASK_MULTI_TYPE_LIVE_SYNC_TYPE_2.rerun(initResult);
 
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
@@ -1296,6 +1326,65 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
 
         assertNoShadow("e-000009", targetResource, result);
+    }
+
+    /**
+     * MID-8537
+     */
+    @Test
+    public void test400SyncIndividualIntents() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("some accounts on test resource");
+        // Created this way to provide a single ADD operation, not ADD+MODIFY
+        DummyAccount firstAccount = new DummyAccount("first");
+        firstAccount.addAttributeValue(ATTR_TYPE, "type1");
+        DummyAccount secondAccount = new DummyAccount("second");
+        secondAccount.addAttributeValue(ATTR_TYPE, "type2");
+        RESOURCE_DUMMY_MULTI_TYPE_SOURCE.getDummyResource().addAccount(firstAccount);
+        RESOURCE_DUMMY_MULTI_TYPE_SOURCE.getDummyResource().addAccount(secondAccount);
+
+        when("first LS task is run");
+        TASK_MULTI_TYPE_LIVE_SYNC_TYPE_1.rerun(result);
+
+        then("single object processed, single user created");
+        TASK_MULTI_TYPE_LIVE_SYNC_TYPE_1.assertAfter()
+                .rootActivityState()
+                .progress()
+                .assertCommitted(1, 0, 1)
+                .end()
+                .synchronizationStatistics()
+                .display()
+                .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0)
+                .assertTransition(null, null, null, NOT_APPLICABLE_FOR_TASK, 0, 0, 1);
+
+        UserType firstUserAfter = assertUserByUsername("first", "after")
+                .display()
+                .getObjectable();
+        assertNoUserByUsername("second");
+
+        when("first user and his shadow is deleted and the second task is run");
+        // doing via repository, to keep the resource object intact
+        repositoryService.deleteObject(ShadowType.class, firstUserAfter.getLinkRef().iterator().next().getOid(), result);
+        repositoryService.deleteObject(UserType.class, firstUserAfter.getOid(), result);
+        TASK_MULTI_TYPE_LIVE_SYNC_TYPE_2.rerun(result);
+
+        then("single object processed, single user created");
+        TASK_MULTI_TYPE_LIVE_SYNC_TYPE_1.assertAfter()
+                .rootActivityState()
+                .progress()
+                .assertCommitted(1, 0, 1)
+                .end()
+                .synchronizationStatistics()
+                .display()
+                .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0)
+                .assertTransition(null, null, null, NOT_APPLICABLE_FOR_TASK, 0, 0, 1);
+
+        assertUserByUsername("second", "after")
+                .display()
+                .getOid();
+        assertNoUserByUsername("first");
     }
 
     @SuppressWarnings("SameParameterValue")

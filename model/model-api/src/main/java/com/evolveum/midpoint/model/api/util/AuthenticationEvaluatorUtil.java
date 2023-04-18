@@ -12,13 +12,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BehaviorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -61,14 +59,18 @@ public class AuthenticationEvaluatorUtil {
                                 && PrismContext.get().relationMatches(requiredRelation, ref.getRelation()));
     }
 
-    public static AuthenticationBehavioralDataType getBehavior(FocusType focus) {
 
-        if (focus.getBehavior() == null){
-            focus.setBehavior(new BehaviorType());
-        }
-        if (focus.getBehavior().getAuthentication() == null){
-            focus.getBehavior().setAuthentication(new AuthenticationBehavioralDataType());
-        }
-        return focus.getBehavior().getAuthentication();
-    }
+//    @Deprecated
+//    public static AuthenticationBehavioralDataType getBehavior(FocusType focus) {
+//
+//        if (focus.getBehavior() == null){
+//            focus.setBehavior(new BehaviorType());
+//        }
+////        if (focus.getBehavior().getAuthentication() == null){
+////            focus.getBehavior().setAuthentication(new AuthenticationBehavioralDataType());
+////        }
+////        return focus.getBehavior().getAuthentication();
+//        return new AuthenticationBehavioralDataType();
+//    }
+
 }

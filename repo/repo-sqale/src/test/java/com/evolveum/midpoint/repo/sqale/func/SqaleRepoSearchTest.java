@@ -12,7 +12,7 @@ import static org.testng.Assert.*;
 import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.STRICT_IGNORE_CASE;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -96,11 +97,19 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final String resourceOid = UUID.randomUUID().toString();
     private final String connectorHostOid = UUID.randomUUID().toString();
 
+    private String markProtectedOid;
+
     private ItemDefinition<?> shadowAttributeStringMvDefinition;
 
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
+
+        markProtectedOid = repositoryService.addObject(
+                new MarkType().name("protected").asPrismObject(), null, result);
+
+        repositoryService.addObject(
+                new MarkType().name("do-not-touch").asPrismObject(), null, result);
 
         roleAvIOid = repositoryService.addObject(
                 new RoleType()
@@ -164,6 +173,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         // shadow, owned by user-3
         ShadowType shadow1 = new ShadowType().name("shadow-1")
+                .effectiveMarkRef(markProtectedOid, MarkType.COMPLEX_TYPE)
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
                 .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
@@ -734,6 +744,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user4Oid);
     }
 
+    @Test(description = "MID-8595")
+    public void test154SearchByPolystringInJsonbWithNormAndUppercaseInputString() throws Exception {
+        searchUsersTest("having organizationUnit (polys in JSONB) contains value (non-eq operation)",
+                f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).contains("OU").matchingNorm(),
+                user4Oid);
+    }
+
     @Test
     public void test160SearchRoleByAssignment() throws SchemaException {
         searchObjectTest("having assignment with specified lifecycle", RoleType.class,
@@ -794,6 +811,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .extracting(o -> o.asObjectable())
                 .isInstanceOf(UserType.class)
                 .matches(u -> u.getOid().equals(user3Oid));
+    }
+
+    @Test
+    public void test173SearchShadowByEffectiveMarkOid() throws SchemaException {
+        when("searching for shadow owner by shadow OID");
+        searchObjectTest("having specified effective mark", ShadowType.class,
+                f -> f.item(ShadowType.F_EFFECTIVE_MARK_REF).ref(markProtectedOid),
+                shadow1Oid);
+    }
+
+    @Test
+    public void test174SearchShadowByEffectiveMarkName() throws SchemaException {
+        when("searching for shadow owner by shadow OID");
+        searchObjectTest("having specified effective mark", ShadowType.class,
+                f -> f.item(
+                                ItemPath.create(ShadowType.F_EFFECTIVE_MARK_REF, new ObjectReferencePathSegment(), MarkType.F_NAME))
+                        .eq("protected"), shadow1Oid);
     }
 
     /**
@@ -1983,6 +2017,25 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test572SearchObjectWithExtensionMultiValuePolyStringNormWithStringInput()
+            throws SchemaException {
+        searchUsersTest("with extension poly-string multi-value item matching norm",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        // orig of provided value doesn't match, but norm should
+                        .startsWith("POLY--VAL").matchingNorm(),
+                user2Oid);
+    }
+
+    @Test
+    public void test573SearchObjectWithExtensionMultiValuePolyStringNormWithStringInput()
+            throws SchemaException {
+        searchUsersTest("with extension poly-string multi-value item matching norm",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        .startsWith("poly-value2").matchingOrig(),
+                user2Oid);
+    }
+
+    @Test
     public void test580SearchObjectWithExtensionRef() throws SchemaException {
         searchUsersTest("with extension ref item matching",
                 f -> f.item(UserType.F_EXTENSION, new QName("ref"))
@@ -2411,20 +2464,20 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test702SearchShadowsByCorrelationItems() throws SchemaException {
         searchObjectTest("using all correlation items", ShadowType.class,
-                f -> f.item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP)
+                f -> f.item(CORRELATION_START_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(1L))
                         .and()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                        .item(CORRELATION_END_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(2L))
                         .and()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
+                        .item(CORRELATION_CASE_OPEN_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(3L))
                         .and()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
+                        .item(CORRELATION_CASE_CLOSE_TIMESTAMP_PATH)
                         .gt(asXMLGregorianCalendar(4L))
                         .and()
                         .not()
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
+                        .item(CORRELATION_SITUATION_PATH)
                         .eq(CorrelationSituationType.ERROR));
     }
 
@@ -2878,6 +2931,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result).hasSize((int) count(QFocus.CLASS));
         // without additional objects the test would be meaningless
         assertThat(result).hasSizeLessThan((int) count(QAssignmentHolder.CLASS));
+    }
+
+    @Test
+    public void test930ResourceQuery() throws SchemaException {
+        expect("resource query with abstract and template conditions works");
+        searchObjectTest("by abstract and template items", ResourceType.class,
+                f -> f.item(ResourceType.F_ABSTRACT).eq(true)
+                        .and().item(ResourceType.F_TEMPLATE).eq(true));
     }
 
     @Test

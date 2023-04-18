@@ -61,6 +61,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private String displayName;
 
+    private String helpText;
+
     private boolean column;
 
 //    private boolean stripe;
@@ -104,7 +106,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         for (VW value : values) {
-            value.addToDelta(delta);
+            addValueToDelta(value, delta);
         }
 
         if (delta.isEmpty()) {
@@ -114,6 +116,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
         LOGGER.trace("Returning delta {}", delta);
         return MiscUtil.createCollection(delta);
+    }
+
+    protected  <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void addValueToDelta(VW value, D delta)
+            throws SchemaException {
+        value.addToDelta(delta);
     }
 
     @Override
@@ -127,7 +134,22 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public String getHelp() {
-        return WebPrismUtil.getHelpText(getItemDefinition());
+        if (helpText == null) {
+            helpText = getLocalizedHelpText();
+        }
+        return helpText;
+    }
+
+    private String getLocalizedHelpText() {
+        Class<?> containerClass = null;
+        PrismContainerValue<?> val = newItem.getParent();
+        if (val != null && val.getDefinition() != null
+                && !val.getDefinition().isRuntimeSchema()
+                && val.getRealClass() != null) {
+            containerClass = val.getRealClass();
+        }
+
+        return WebPrismUtil.getHelpText(getItemDefinition(), containerClass);
     }
 
     @Override

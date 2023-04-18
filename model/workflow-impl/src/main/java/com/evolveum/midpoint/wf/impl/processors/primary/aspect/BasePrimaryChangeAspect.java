@@ -7,22 +7,35 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.ObjectSet;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -39,16 +52,6 @@ import com.evolveum.midpoint.wf.impl.processors.ModelHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, BeanNameAware {
 
@@ -84,7 +87,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return beanName;
     }
 
-    public void setBeanName(String name) {
+    public void setBeanName(@NotNull String name) {
         this.beanName = name;
     }
 
@@ -98,12 +101,8 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     }
 
     @Override
-    public boolean isEnabled(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
-        return primaryChangeAspectHelper.isEnabled(processorConfigurationType, this);
-    }
-
-    public RelationResolver createRelationResolver(ObjectType object, OperationResult result) {
-        return createRelationResolver(object != null ? object.asPrismObject() : null, result);
+    public boolean isEnabled(PrimaryChangeProcessorConfigurationType processorConfiguration) {
+        return primaryChangeAspectHelper.isEnabled(processorConfiguration, this);
     }
 
     private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(
@@ -142,7 +141,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, prismContext.queryFactory().createQuery(evaluatedFilter), null, result);
 
             return targets.stream()
-                    .map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))
+                    .map(object -> ObjectTypeUtil.createObjectRef(object))
                     .collect(Collectors.toList());
 
         } finally {
@@ -158,7 +157,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return focus != null ? (FocusType) focus.asObjectable() : null;
     }
 
-    public ReferenceResolver createReferenceResolver(ModelContext modelContext, Task taskFromModel, OperationResult result) {
+    public ReferenceResolver createReferenceResolver(LensContext<?> modelContext, Task taskFromModel, OperationResult result) {
         return (ref, sourceDescription) -> {
             if (ref == null) {
                 return Collections.emptyList();
@@ -169,46 +168,50 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
                 if (ref.getType() != null) {
                     clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(ref.getType());
                     if (clazz == null) {
-                        throw new SchemaException("Cannot determine type from " + ref.getType() + " in approver reference in " + sourceDescription);
+                        throw new SchemaException(
+                                "Cannot determine type from " + ref.getType() + " in approver reference in " + sourceDescription);
                     }
                 } else {
                     throw new SchemaException("Missing type in target reference in " + sourceDescription);
                 }
-                return resolveReferenceFromFilter(clazz, ref.getFilter(), sourceDescription, (LensContext) modelContext, taskFromModel, result);
+                return resolveReferenceFromFilter(clazz, ref.getFilter(), sourceDescription, modelContext, taskFromModel, result);
             }
         };
     }
 
     public RelationResolver createRelationResolver(PrismObject<?> object, OperationResult result) {
         return relations -> {
-            if (object == null || object.getOid() == null || relations.isEmpty()) {
-                return Collections.emptyList();
+            if (object == null
+                    || object.getOid() == null
+                    || relations.isEmpty()) {
+                return List.of();
             }
-            S_FilterExit q = prismContext.queryFor(FocusType.class).none();
-            for (QName approverRelation : relations) {
-                PrismReferenceValue approverReference = prismContext.itemFactory().createReferenceValue(object.getOid());
-                approverReference.setRelation(relationRegistry.normalizeRelation(approverRelation));
-                q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
+            ObjectSet<ObjectType> approvers = new ObjectSet<>();
+            for (QName relation : relations) {
+                approvers.addAll(
+                        findApproversByRelation(object, relation, result));
             }
-            ObjectQuery query = q.build();
-            LOGGER.trace("Looking for approvers for {} using query:\n{}", object, DebugUtil.debugDumpLazily(query));
-            List<PrismObject<FocusType>> objects;
-            try {
-                objects = repositoryService.searchObjects(FocusType.class, query, null, result);
-            } catch (SchemaException e) {
-                throw new SystemException("Couldn't retrieve approvers for " + object + ": " + e.getMessage(), e);
-            }
-            List<PrismObject<FocusType>> distinctObjects = ObjectTypeUtil.keepDistinctObjects(objects);
-            LOGGER.trace("Query evaluation resulted in {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
-            return distinctObjects.stream()
-                    .map(object1 -> ObjectTypeUtil.createObjectRef(object1, prismContext))
+            LOGGER.trace("Query evaluation resulted in {} approver(s): {}", approvers.size(), DebugUtil.toStringLazily(approvers));
+            return approvers.stream()
+                    .map(o -> ObjectTypeUtil.createObjectRef(o))
                     .collect(Collectors.toList());
         };
     }
 
-    protected List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
-                                                                 OperationResult result) throws SchemaException {
-        return createRelationResolver(target, result)
-                .getApprovers(action.getApproverRelation());
+    private @NotNull List<FocusType> findApproversByRelation(
+            PrismObject<?> object, QName relation, OperationResult result) {
+
+        PrismReferenceValue approverReference = prismContext.itemFactory().createReferenceValue(object.getOid());
+        approverReference.setRelation(relationRegistry.normalizeRelation(relation));
+        var query = prismContext.queryFor(FocusType.class)
+                .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference)
+                .build();
+        LOGGER.trace("Looking for approvers for {} using query:\n{}", object, DebugUtil.debugDumpLazily(query));
+        try {
+            return asObjectableList(
+                    repositoryService.searchObjects(FocusType.class, query, null, result));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't retrieve approvers for " + object + ": " + e.getMessage(), e);
+        }
     }
 }

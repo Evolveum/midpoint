@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -113,8 +114,8 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
                     .body(text)
                     .show(target);
 
-            getPageBase().error(text);
-            target.add(getFeedback());
+//            getPageBase().error(text);
+//            target.add(getFeedback());
             return false;
         }
         return true;
@@ -148,6 +149,18 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
         }
     }
 
+    @Override
+    protected boolean isSubmitEnable() {
+        return !isMandatory() || !isNotSelected();
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(
+                () -> !isSubmitVisible(),
+                () -> isSubmitEnable());
+    }
+
     private boolean isNotSelected() {
         Optional<TemplateTile<SelectableBean<O>>> selectedTile =
                 getTable().getTilesModel().getObject().stream().filter(tile -> tile.isSelected()).findFirst();
@@ -172,5 +185,10 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
 
     protected List<IColumn<SelectableBean<O>, String>> createColumns() {
         return List.of();
+    }
+
+    protected void refreshSubmitAndNextButton(AjaxRequestTarget target) {
+        target.add(getNext());
+        target.add(getSubmit());
     }
 }

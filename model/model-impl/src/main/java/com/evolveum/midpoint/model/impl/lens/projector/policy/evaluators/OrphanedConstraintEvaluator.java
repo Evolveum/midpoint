@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ORPHANED;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
@@ -38,7 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @Component
 @Experimental
-public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<OrphanedPolicyConstraintType> {
+public class OrphanedConstraintEvaluator
+        implements PolicyConstraintEvaluator<OrphanedPolicyConstraintType, EvaluatedOrphanedTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrphanedConstraintEvaluator.class);
 
@@ -54,7 +56,7 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
     @Autowired protected TaskManager taskManager;
 
     @Override
-    public <O extends ObjectType> EvaluatedOrphanedTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedOrphanedTrigger> evaluate(
             @NotNull JAXBElement<OrphanedPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -67,7 +69,7 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
             if (rctx instanceof ObjectPolicyRuleEvaluationContext<?>) {
                 return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<O>) rctx, result);
             } else {
-                return null;
+                return List.of();
             }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
@@ -77,7 +79,7 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
         }
     }
 
-    private EvaluatedOrphanedTrigger evaluateForObject(
+    private @NotNull Collection<EvaluatedOrphanedTrigger> evaluateForObject(
             @NotNull JAXBElement<OrphanedPolicyConstraintType> constraintElement,
             ObjectPolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -85,7 +87,7 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
 
         PrismObject<?> object = ctx.getObject();
         if (object == null || !(object.asObjectable() instanceof TaskType)) {
-            return null;
+            return List.of();
         }
 
         //noinspection unchecked
@@ -93,11 +95,12 @@ public class OrphanedConstraintEvaluator implements PolicyConstraintEvaluator<Or
         LOGGER.debug("Orphaned status for {} is {}", object, orphaned);
 
         if (orphaned) {
-            return new EvaluatedOrphanedTrigger(ORPHANED, constraintElement.getValue(),
+            return List.of(new EvaluatedOrphanedTrigger(
+                    ORPHANED, constraintElement.getValue(),
                     createMessage(constraintElement, ctx, result),
-                    createShortMessage(constraintElement, ctx, result));
+                    createShortMessage(constraintElement, ctx, result)));
         } else {
-            return null;
+            return List.of();
         }
     }
 

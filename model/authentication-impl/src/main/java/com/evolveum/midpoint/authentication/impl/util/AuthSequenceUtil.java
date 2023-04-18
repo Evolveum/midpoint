@@ -31,7 +31,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -89,7 +92,7 @@ public class AuthSequenceUtil {
         }
         String[] partsOfLocalPath = AuthUtil.stripStartingSlashes(localePath).split("/");
 
-        if (isSpecificSequence(httpRequest)) {
+        if (isClusterSequence(httpRequest)) {
             return getSpecificSequence(httpRequest);
         }
 
@@ -205,7 +208,7 @@ public class AuthSequenceUtil {
                 String type = header.split(" ")[0];
                 if (AuthenticationModuleNameConstants.CLUSTER.equalsIgnoreCase(type)) {
                     AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-                    sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
+                    sequence.setIdentifier(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
                     seqChannel.setUrlSuffix(AuthenticationModuleNameConstants.CLUSTER.toLowerCase());
                     seqChannel.setChannelId(SchemaConstants.CHANNEL_REST_URI);
@@ -217,7 +220,7 @@ public class AuthSequenceUtil {
         return null;
     }
 
-    public static boolean isSpecificSequence(HttpServletRequest httpRequest) {
+    public static boolean isClusterSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
         if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
@@ -282,19 +285,22 @@ public class AuthSequenceUtil {
             AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
 
-        if (isSpecificSequence(request)) {
+        if (isClusterSequence(request)) {
             return getSpecificModuleFilter(authRegistry, sequence.getChannel().getUrlSuffix(), request,
                     sharedObjects, authenticationModulesType, credentialPolicy);
         }
 
-        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
+        Validate.notEmpty(sequence.getModule(), "Sequence " +
+                (getAuthSequenceIdentifier(sequence)) + " don't contains authentication modules");
 
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<>();
         sequenceModules.forEach(sequenceModule -> {
             try {
-                AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
-                AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module, authenticationChannel);
+                String sequenceModuleIdentifier = StringUtils.isNotEmpty(sequenceModule.getIdentifier()) ?
+                        sequenceModule.getIdentifier() : sequenceModule.getName();
+                AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
+                AbstractModuleFactory moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
                         sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
                 authModules.add(authModule);
@@ -321,7 +327,7 @@ public class AuthSequenceUtil {
                     HttpClusterModuleFactory factory = authRegistry.findModelFactoryByClass(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                     };
-                    module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
+                    module.setIdentifier(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
                     try {
                         authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
                                 sharedObjects, authenticationModulesType, credentialPolicy, null,
@@ -340,6 +346,13 @@ public class AuthSequenceUtil {
         return null;
     }
 
+    /**
+     * starting from 4.7 identifier should be used instead of name
+     * leaving this method just to support old config working (until deprecated name attribute is removed at all)
+     * @param name
+     * @param authenticationModulesType
+     * @return
+     */
     private static AbstractAuthenticationModuleType getModuleByName(
             String name, AuthenticationModulesType authenticationModulesType) {
         PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
@@ -358,7 +371,32 @@ public class AuthSequenceUtil {
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
-            if (module.getName().equals(name)) {
+            if (module.getName() != null && module.getName().equals(name)) {
+                return module;
+            }
+        }
+        return null;
+    }
+
+    private static AbstractAuthenticationModuleType getModuleByIdentifier(String identifier, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer)) {
+                return;
+            }
+
+            PrismContainer<?> c = (PrismContainer<?>) v;
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
+        });
+
+        for (AbstractAuthenticationModuleType module : modules) {
+            String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
+            if (moduleIdentifier != null && StringUtils.equals(moduleIdentifier, identifier)) {
                 return module;
             }
         }
@@ -415,7 +453,7 @@ public class AuthSequenceUtil {
     }
 
     public static Map<String, String> obtainAnswers(String answers, String idParameter, String answerParameter) {
-        if (answers == null) {
+        if (StringUtils.isEmpty(answers)) {
             return null;
         }
 
@@ -507,19 +545,19 @@ public class AuthSequenceUtil {
         });
     }
 
-    public static boolean isIgnoredLocalPath(AuthenticationsPolicyType authenticationsPolicy, HttpServletRequest httpRequest) {
-        if (authenticationsPolicy != null && authenticationsPolicy.getIgnoredLocalPath() != null
-                && !authenticationsPolicy.getIgnoredLocalPath().isEmpty()) {
-            List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
-            for (String ignoredPath : ignoredPaths) {
-                AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
-                if (matcher.matches(httpRequest)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+//    public static boolean isIgnoredLocalPath(AuthenticationsPolicyType authenticationsPolicy, HttpServletRequest httpRequest) {
+//        if (authenticationsPolicy != null && authenticationsPolicy.getIgnoredLocalPath() != null
+//                && !authenticationsPolicy.getIgnoredLocalPath().isEmpty()) {
+//            List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
+//            for (String ignoredPath : ignoredPaths) {
+//                AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
+//                if (matcher.matches(httpRequest)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     public static boolean isBasePathForSequence(HttpServletRequest httpRequest, AuthenticationSequenceType sequence) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
@@ -535,7 +573,7 @@ public class AuthSequenceUtil {
 
     public static boolean isRecordSessionLessAccessChannel(HttpServletRequest httpRequest) {
         if (httpRequest != null) {
-            if (isSpecificSequence(httpRequest)) {
+            if (isClusterSequence(httpRequest)) {
                 return true;
             }
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
@@ -550,13 +588,13 @@ public class AuthSequenceUtil {
         if (authModule == null) {
             return false;
         }
-        String moduleType = authModule.getNameOfModuleType();
+        String moduleType = authModule.getModuleTypeName();
         return DescriptorLoaderImpl.existPageUrlByAuthName(moduleType);
     }
 
     public static boolean isLoginPageForActualAuthModule(String url) {
         ModuleAuthentication authModule = AuthUtil.getProcessingModule();
-        String moduleType = authModule.getNameOfModuleType();
+        String moduleType = authModule.getModuleTypeName();
         return DescriptorLoaderImpl.getPageUrlsByAuthName(moduleType).contains(url);
     }
 
@@ -583,8 +621,12 @@ public class AuthSequenceUtil {
 
     public static boolean isAllowUpdatingAuthBehavior(boolean isUpdatingDuringUnsuccessfulLogin) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication && ((MidpointAuthentication) authentication).getSequence() != null) {
-            FocusBehaviorUpdateType actualOption = ((MidpointAuthentication) authentication).getSequence().getFocusBehaviorUpdate();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            return true;
+        }
+        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        if (mpAuthentication.getSequence() != null) {
+            FocusBehaviorUpdateType actualOption = mpAuthentication.getSequence().getFocusBehaviorUpdate();
             if (actualOption == null && FocusBehaviorUpdateType.ENABLED.equals(actualOption)) {
                 return true;
             } else if (FocusBehaviorUpdateType.DISABLED.equals(actualOption)) {
@@ -594,5 +636,14 @@ public class AuthSequenceUtil {
             }
         }
         return true;
+    }
+
+    public static String getAuthSequenceIdentifier(@NotNull AuthenticationSequenceType seq) {
+        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
+    }
+
+    public static boolean isUrlForAuthProcessing(HttpServletRequest httpRequest) {
+        String localPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        return localPath != null && !localPath.isEmpty() && localPath.startsWith(SchemaConstants.AUTH_MODULE_PREFIX);
     }
 }

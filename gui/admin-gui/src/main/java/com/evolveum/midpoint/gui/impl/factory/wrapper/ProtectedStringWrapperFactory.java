@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
+import com.evolveum.midpoint.gui.api.component.password.ProtectedStringPropertyPanel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -50,7 +50,6 @@ public class ProtectedStringWrapperFactory extends PrismPropertyWrapperFactoryIm
 
     @Override
     public void registerWrapperPanel(PrismPropertyWrapper<ProtectedStringType> wrapper) {
-        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PasswordPropertyPanel.class);
-
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), ProtectedStringPropertyPanel.class);
     }
 }

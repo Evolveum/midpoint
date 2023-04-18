@@ -53,7 +53,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 import static java.util.Collections.emptyList;
 
 @Component
-public class StateConstraintEvaluator implements PolicyConstraintEvaluator<StatePolicyConstraintType> {
+public class StateConstraintEvaluator implements PolicyConstraintEvaluator<StatePolicyConstraintType, EvaluatedStateTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(StateConstraintEvaluator.class);
 
@@ -71,7 +71,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
-    public <O extends ObjectType> EvaluatedStateTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedStateTrigger> evaluate(
             @NotNull JAXBElement<StatePolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -83,7 +83,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         try {
             if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
                 if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
-                    return null; // assignment state can be evaluated only in the context of an assignment
+                    return List.of(); // assignment state can be evaluated only in the context of an assignment
                 } else {
                     return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<?>) rctx, result);
                 }
@@ -100,7 +100,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
     }
 
-    private EvaluatedStateTrigger evaluateForObject(
+    private @NotNull Collection<EvaluatedStateTrigger> evaluateForObject(
             JAXBElement<StatePolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
@@ -120,13 +120,13 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
         PrismObject<?> object = ctx.getObject();
         if (object == null) {
-            return null;
+            return List.of();
         }
         if (constraint.getFilter() != null) {
             ObjectFilter filter =
                     prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.asObjectable().getClass());
             if (!filter.match(object.getValue(), matchingRuleRegistry)) {
-                return null;
+                return List.of();
             }
         }
         if (constraint.getExecuteScript() != null) {
@@ -139,14 +139,14 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                         scriptingExpressionEvaluator.evaluateExpressionPrivileged(
                                 constraint.getExecuteScript(), variables, ctx.task, result);
             } catch (ScriptExecutionException e) {
-                throw new SystemException(e);       // TODO
+                throw new SystemException(e); // TODO
             }
             PipelineData output = resultingContext.getFinalOutput();
             LOGGER.trace("Scripting expression returned {} item(s); console output is:\n{}",
                     output != null ? output.getData().size() : null, resultingContext.getConsoleOutput());
             List<PipelineItem> items = output != null ? output.getData() : emptyList();
             if (items.isEmpty()) {
-                return null;
+                return List.of();
             }
             // TODO retrieve localization messages from output
         }
@@ -161,10 +161,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                             ctx,
                             result);
             if (messageBean == null) {
-                return null;
+                return List.of();
             } else {
                 LocalizableMessage message = LocalizationUtil.toLocalizableMessage(messageBean);
-                return new EvaluatedStateTrigger(OBJECT_STATE, constraint, message, message);
+                return List.of(new EvaluatedStateTrigger(OBJECT_STATE, constraint, message, message));
             }
         }
 
@@ -175,16 +175,17 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                     String.format(
                             "expression in object state constraint %s (%s)", constraint.getName(), ctx.state),
                     ctx, result)) {
-                return null;
+                return List.of();
             }
         }
 
-        return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
-                    createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result),
-                    createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result));
+        return List.of(new EvaluatedStateTrigger(
+                OBJECT_STATE, constraint,
+                createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result),
+                createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result)));
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedStateTrigger evaluateForAssignment(
+    private <AH extends AssignmentHolderType> @NotNull Collection<EvaluatedStateTrigger> evaluateForAssignment(
             JAXBElement<StatePolicyConstraintType> constraintElement,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
@@ -194,10 +195,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             throw new UnsupportedOperationException("Filter is not supported for assignment state constraints yet.");
         }
         if (constraint.getExpression() == null) {
-            return null;        // shouldn't occur
+            return List.of(); // shouldn't occur
         }
         if (!ctx.isApplicableToState()) {
-            return null;
+            return List.of();
         }
         boolean match =
                 evaluatorHelper.evaluateBoolean(
@@ -206,11 +207,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                         String.format("expression in assignment state constraint %s (%s)", constraint.getName(), ctx.state),
                         ctx, result);
         if (match) {
-            return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,
+            return List.of(new EvaluatedStateTrigger(
+                    ASSIGNMENT_STATE, constraint,
                     createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result),
-                    createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result));
+                    createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result)));
         }
-        return null;
+        return List.of();
     }
 
     private @NotNull LocalizableMessage createMessage(

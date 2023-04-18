@@ -8,8 +8,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="paths">
-        <ul class="assignmentPath" wicket:id="path"/>
+    <div class="assignment-path" wicket:id="paths">
+        <div class="d-flex flex-wrap gap-2">
+            <div wicket:id="firstSegment"/>
+            <a wicket:id="open"/>
+        </div>
+        <ul wicket:id="body">
+            <wicket:container wicket:id="segments">
+                <li wicket:id="segment"/>
+            </wicket:container>
+        </ul>
     </div>
 </wicket:panel>
 </html>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="16">
+        <name>roy.hudson</name>
+        <behavior>
+        <authentication>
+            <lastSuccessfulLogin>
+                <timestamp>2023-03-13T15:05:46.483+01:00</timestamp>
+                <from>127.0.0.1</from>
+            </lastSuccessfulLogin>
+            <authenticationAttempt>
+                <sequenceIdentifier>userPasswordResetAuth</sequenceIdentifier>
+                <moduleIdentifier>focusId</moduleIdentifier>
+                <lastSuccessfulAuthentication>
+                    <timestamp>2023-03-13T15:05:25.710+01:00</timestamp>
+                    <from>127.0.0.1</from>
+                </lastSuccessfulAuthentication>
+            </authenticationAttempt>
+            <sequenceIdentifier>userPasswordResetAuth</sequenceIdentifier>
+        </authentication>
+    </behavior>
+</user>

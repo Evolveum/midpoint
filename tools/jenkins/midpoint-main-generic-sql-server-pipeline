@@ -16,6 +16,7 @@ def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://localhost:1433\\;d
     ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 10,
         // No need for secret volume, no mvn deploy done here.
@@ -125,7 +126,7 @@ EOF
                             df -h
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing ${dbprops} \
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
                             -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
                         if [ "${verbose}" -ge 1 ]
@@ -142,7 +143,8 @@ EOF
 
                     step([
                             $class: 'Publisher',
-                            reportFilenamePattern: '**/testng-results.xml'
+                            reportFilenamePattern: '**/testng-results.xml',
+                            failureOnFailedTestConfig: true
                     ])
 
                     if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {

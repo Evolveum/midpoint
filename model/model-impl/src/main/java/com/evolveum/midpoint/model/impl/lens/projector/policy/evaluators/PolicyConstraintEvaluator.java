@@ -23,14 +23,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
+import java.util.Collection;
 
 /**
  * Evaluates given policy constraint within specific context.
  */
-public interface PolicyConstraintEvaluator<T extends AbstractPolicyConstraintType> {
+public interface PolicyConstraintEvaluator<C extends AbstractPolicyConstraintType, T extends EvaluatedPolicyRuleTrigger<C>> {
 
-    <O extends ObjectType> EvaluatedPolicyRuleTrigger<?> evaluate(
-            @NotNull JAXBElement<T> constraint,
+    <O extends ObjectType> @NotNull Collection<T> evaluate(
+            @NotNull JAXBElement<C> constraint,
             @NotNull PolicyRuleEvaluationContext<O> ctx,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,

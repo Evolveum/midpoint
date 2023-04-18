@@ -89,14 +89,14 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             // Object type and synchronization policy are determined here. Sorter is evaluated, if present.
             SynchronizationContext<?> syncCtx = syncContextCreator.createSynchronizationContext(change, task, result);
 
+            syncCtx.getUpdater().updateCoordinates();
+
             if (shouldSkipSynchronization(syncCtx, result)) {
                 // sync metadata updates are prepared by the above method
                 syncCtx.getUpdater().commit(result);
                 return;
             }
             // FIXME: Somewhere here we should validate preFocus
-
-
 
             SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
             setupLinkedOwnerAndSituation(completeCtx, change, result);
@@ -107,11 +107,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .commit(result);
 
             boolean synchronizationFailure;
-            if (completeCtx.shouldExecuteSynchronizationActions()) {
+            if (completeCtx.isNotDryRunLikeMode()) {
                 synchronizationFailure =
                         new SynchronizationActionExecutor<>(completeCtx)
                                 .react(result);
-                // Note that exceptions from action execution are not propagated here.
+                // Note that standard exceptions from action execution are not re-thrown to here; in such cases,
+                // the processing continues normally here, with synchronizationFailure set to true.
             } else {
                 synchronizationFailure = false;
             }
@@ -186,6 +187,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      * - no applicable synchronization policy (~ incomplete context),
      * - synchronization disabled,
      * - protected resource object.
+     *
+     * TODO open question: should we record skipped objects as "fully synchronized"? (currently in all cases except for !visible)
+     *  Why not: technically, this is NOT a full synchronization
+     *  Why yes: we want to avoid re-processing of these objects in 3rd stage of reconciliation (that looks after full sync ts)
+     *  For the time being, let us keep this. But should decide on it some day.
      */
     private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
             throws SchemaException {
@@ -199,7 +205,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION the synchronization policy for %s (%s) on %s is not visible, ignoring change from channel %s",
                     shadow, objectClass, resource, channel);
             LOGGER.debug(message);
-            syncCtx.getUpdater().updateAllSyncMetadataRespectingMode();
+            syncCtx.getUpdater().updateBasicSyncTimestamp();
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
             return true;
@@ -212,7 +218,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION no applicable synchronization policy and/or type definition for %s (%s) on %s, "
                             + "ignoring change from channel %s", shadow, objectClass, resource, channel);
             LOGGER.debug(message);
-            syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO should we really record this as full synchronization?
+            syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY);
             return true;
@@ -222,48 +228,19 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             String message = String.format(
                     "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s", resource, channel);
             LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
-                    .updateCoordinatesIfMissing();
+            syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(SYNCHRONIZATION_DISABLED);
             return true;
         }
 
-        if (syncCtx.isMarkedSkipSynchronization()) {
+        if (syncCtx.isMarkedSkipSynchronization(result) || syncCtx.isProtected()) {
             String message = String.format(
-                    "SYNCHRONIZATION is skipped for marked shadow %s, ignoring change from channel %s", shadow, channel);
+                    "SYNCHRONIZATION is skipped for marked/protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
-                    .updateCoordinatesIfMissing();
+            syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
-            return true;
-        }
-
-
-        if (syncCtx.isProtected()) {
-            String message = String.format(
-                    "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);
-            LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
-                    .updateCoordinatesIfMissing();
-            result.recordNotApplicable(message);
-            syncCtx.recordSyncExclusionInTask(PROTECTED);
-            return true;
-        }
-
-        if (syncCtx.isSynchronizationPreventedByShadowPolicySituation()) {
-            String message = String.format(
-                    "SYNCHRONIZATION is skipped for %s because of the policy situation %s, ignoring change from channel %s",
-                    shadow, shadow.getPolicySituation(), channel);
-            LOGGER.debug(message);
-            syncCtx.getUpdater()
-                    .updateAllSyncMetadataRespectingMode();
-            result.recordNotApplicable(message);
-            syncCtx.recordSyncExclusionInTask(POLICY_SITUATION);
             return true;
         }
 

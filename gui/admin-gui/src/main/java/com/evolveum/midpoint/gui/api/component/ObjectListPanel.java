@@ -147,8 +147,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        ItemPath itemPath = WebComponentUtil.getPath(customColumn);
-
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 customColumn, expression, getPageBase()) {
             private static final long serialVersionUID = 1L;

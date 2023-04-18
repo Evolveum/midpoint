@@ -123,7 +123,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(MARK_PROJECTION_DEACTIVATED);
+                        .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
     }
 
     /**
@@ -153,7 +153,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(MARK_PROJECTION_ACTIVATED);
+                        .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
         // @formatter:on
     }
 
@@ -197,7 +197,10 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED);
+                        .assertEventMarks(
+                                MARK_PROJECTION_RENAMED,
+                                MARK_PROJECTION_IDENTIFIER_CHANGED,
+                                MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
         // @formatter:on
     }
 
@@ -228,7 +231,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(MARK_PROJECTION_IDENTIFIER_CHANGED);
+                        .assertEventMarks(MARK_PROJECTION_IDENTIFIER_CHANGED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
         // @formatter:on
     }
 
@@ -263,7 +266,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(MARK_PROJECTION_ENTITLEMENT_CHANGED);
+                        .assertEventMarks(MARK_PROJECTION_ENTITLEMENT_CHANGED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
         // @formatter:on
     }
 
@@ -299,7 +302,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(); // "org" is not an entitlement
+                        .assertEventMarks(MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED); // "org" is not an entitlement
         // @formatter:on
     }
 
@@ -330,8 +333,34 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                 .end()
                 .projectionContexts()
                     .single()
-                        .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED);
+                        .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED);
         // @formatter:on
+    }
+
+    /** Executes `deleteResourceObject` action and checks that it is correctly marked. MID-8608. */
+    @Test
+    public void test200DeleteAccountOnImport() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("sensitive account on the resource");
+        String name = "sensitive";
+        RESOURCE_DUMMY_EVENT_MARKS.addAccount(name);
+
+        when("account is imported");
+        var taskOid = importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_EVENT_MARKS.oid)
+                .withNameValue(name)
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                .execute(result);
+
+        then("simulation result is OK");
+        assertProcessedObjects(taskOid, "after")
+                .display()
+                .single()
+                .assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
+                .delta()
+                .assertDelete();
     }
 
     /** Switching task to a simulation mode. Otherwise, event marks would not be applied. */

@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author Radovan Semancik
@@ -149,6 +150,27 @@ public class SecurityUtil {
         }
         copyDefaults(creds.getDefault(), securityQuestionsPolicy);
         return securityQuestionsPolicy;
+    }
+
+    public static AttributeVerificationCredentialsPolicyType getEffectiveAttributeVerificationCredentialsPolicy(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType creds = securityPolicy.getCredentials();
+        if (creds == null) {
+            return null;
+        }
+        if (creds.getDefault() == null) {
+            return creds.getAttributeVerification();
+        }
+        AttributeVerificationCredentialsPolicyType attrVerificationPolicy = creds.getAttributeVerification();
+        if (attrVerificationPolicy == null) {
+            attrVerificationPolicy = new AttributeVerificationCredentialsPolicyType();
+        } else {
+            attrVerificationPolicy = attrVerificationPolicy.clone();
+        }
+        copyDefaults(creds.getDefault(), attrVerificationPolicy);
+        return attrVerificationPolicy;
     }
 
 
@@ -416,5 +438,10 @@ public class SecurityUtil {
             return true;
         }
         return isAudited;
+    }
+
+    public static boolean isOverFailedLockoutAttempts(int failedLogins, CredentialPolicyType credentialsPolicy) {
+        return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
+                credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
     }
 }

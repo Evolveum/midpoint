@@ -13,6 +13,13 @@ spring:
       file-size-threshold: 256KB
   thymeleaf:
     cache: false
+  web:
+    resources:
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
 
 server:
   tomcat:

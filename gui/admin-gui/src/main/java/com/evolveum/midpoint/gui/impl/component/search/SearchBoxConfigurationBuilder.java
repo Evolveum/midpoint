@@ -73,6 +73,9 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(ShadowType.F_RESOURCE_REF),
                 ItemPath.create(ShadowType.F_OBJECT_CLASS)
         ));
+        FIXED_SEARCH_ITEMS.put(SimulationResultProcessedObjectType.class, Arrays.asList(
+                SimulationResultProcessedObjectType.F_STATE
+        ));
     }
 
     private Class<?> type;
@@ -117,8 +120,16 @@ public class SearchBoxConfigurationBuilder {
 
     private SearchBoxConfigurationType createDefaultSearchBoxConfig() {
         SearchBoxConfigurationType searchBoxConfig = new SearchBoxConfigurationType();
-        searchBoxConfig.getAllowedMode().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
-        searchBoxConfig.setDefaultMode(SearchBoxModeType.BASIC);
+        if (additionalSearchContext != null && additionalSearchContext.getAvailableSearchBoxModes() != null) {
+            searchBoxConfig.getAllowedMode().addAll(additionalSearchContext.getAvailableSearchBoxModes());
+        } else {
+            searchBoxConfig.getAllowedMode().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
+        }
+        if (searchBoxConfig.getAllowedMode().size() == 1) {
+            searchBoxConfig.setDefaultMode(searchBoxConfig.getAllowedMode().iterator().next());
+        } else {
+            searchBoxConfig.setDefaultMode(SearchBoxModeType.BASIC);
+        }
         return searchBoxConfig;
     }
 
@@ -173,7 +184,7 @@ public class SearchBoxConfigurationBuilder {
             SearchFilterType filter = reportCollection.getCollection().getFilter();
             if (filter != null) {
                 try {
-                    ObjectFilter parsedFilter = null;//PrismContext.get().getQueryConverter().parseFilter(filter, type);
+                    ObjectFilter parsedFilter = PrismContext.get().getQueryConverter().parseFilter(filter, type);
                     if (parsedFilter instanceof AndFilter) {
                         List<ObjectFilter> conditions = ((AndFilter) parsedFilter).getConditions();
                         conditions.forEach(condition -> processFilterToSearchItem(searchItems, condition));

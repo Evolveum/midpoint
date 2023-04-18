@@ -34,6 +34,9 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,10 +89,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.messaging.MessageWrapper;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -234,6 +233,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private void takePasswordsFromItemDelta(List<ProtectedStringType> passwords, ItemDelta itemDelta) {
         if (itemDelta.isDelete()) {
             return;
@@ -589,7 +589,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             if (target == null) {
                 continue;
             }
-            //noinspection unchecked
+            //noinspection unchecked,rawtypes
             Collection<String> targetSubtypes = FocusTypeUtil.determineSubTypes((PrismObject) target);
             if (targetSubtypes.contains(roleSubtype)) {
                 return true;
@@ -815,7 +815,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         };
 
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, task, result);
 
         return conflictingObjects;
@@ -1311,8 +1311,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         List<ObjectDelta<ShadowType>> deltas = new ArrayList<>();
         for (Object modelProjectionContextObject : context.getProjectionContexts()) {
             LensProjectionContext lensProjectionContext = (LensProjectionContext) modelProjectionContextObject;
-            if (lensProjectionContext.getKey() != null &&
-                    resourceOid.equals(lensProjectionContext.getKey().getResourceOid())) {
+            if (resourceOid.equals(lensProjectionContext.getKey().getResourceOid())) {
                 deltas.add(lensProjectionContext.getSummaryDelta());   // union of primary and secondary deltas
             }
         }
@@ -1621,7 +1620,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 }
             }
         }
-        return createTokenConfirmationLink(SchemaConstants.REGISTRATION_CONFIRMATION_PREFIX, userType);
+        return createTokenConfirmationLink(SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.REGISTRATION_PREFIX, userType);
     }
 
     @Override
@@ -1672,7 +1671,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         AuthenticationSequenceType sequenceByName = null;
         AuthenticationSequenceType defaultSequence = null;
         for (AuthenticationSequenceType sequenceType : sequences) {
-            if (sequenceType.getName().equals(nameOfSequence)) {
+            String sequenceIdentifier = StringUtils.isNotEmpty(sequenceType.getIdentifier()) ? sequenceType.getIdentifier() : sequenceType.getName();
+            if (StringUtils.equals(sequenceIdentifier, nameOfSequence)) {
                 sequenceByName = sequenceType;
                 break;
             } else if (sequenceType.getChannel().getChannelId().equals(channel)
@@ -1734,7 +1734,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
-            LOGGER.error("No pattern defined. It can break link generation.");
+            LOGGER.error("No public HTTP URL pattern defined. It can break link generation.");
         }
 
         return publicHttpUrlPattern;
@@ -2068,13 +2068,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     // MID-5243
 
     /**
-     * DEPRECATED use getArchetypes(object)
+     * DEPRECATED use getArchetypes(object) or getStructuralArchetype(object)
      */
     @Override
     @Deprecated
     public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException {
         return ArchetypeTypeUtil.getStructuralArchetype(
                 archetypeManager.determineArchetypes(object, getCurrentResult()));
+    }
+
+    @Override
+    public @Nullable <O extends AssignmentHolderType> ArchetypeType getStructuralArchetype(O object)
+            throws SchemaException {
+        return archetypeManager.determineStructuralArchetype(object, getCurrentResult());
     }
 
     @NotNull
@@ -2308,8 +2314,22 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public String describeResourceObjectSet(ResourceObjectSetType set)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    public String describeResourceObjectSetLong(ResourceObjectSetType set)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return describeResourceObjectSet(set, true);
+    }
+
+    @Override
+    public String describeResourceObjectSetShort(ResourceObjectSetType set)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return describeResourceObjectSet(set, false);
+    }
+
+    private String describeResourceObjectSet(ResourceObjectSetType set, boolean longVersion)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
 
         if (set == null) {
             return null;
@@ -2320,29 +2340,99 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
 
-        ObjectType resource = resolveReferenceInternal(ref, true);
-        if (resource == null) {
+        ObjectType object = resolveReferenceInternal(ref, true);
+        if (!(object instanceof ResourceType)) {
             return null;
         }
+
+        ResourceType resource = (ResourceType) object;
 
         StringBuilder sb = new StringBuilder();
         sb.append(resource.getName().getOrig());
 
-        if (set.getObjectclass() != null) {
-            sb.append(" for ");
-            sb.append(set.getObjectclass().getLocalPart());
+        ShadowKindType kind = set.getKind();
+        String intent = set.getIntent();
+        QName objectclass = set.getObjectclass();
+
+        if (kind != null) {
+
+            sb.append(": ");
+
+            var definition = getResourceObjectDefinition(resource, kind, intent, objectclass);
+            ResourceObjectTypeIdentification typeIdentification = definition != null ? definition.getTypeIdentification() : null;
+
+            String typeDisplayName = definition != null ? definition.getDisplayName() : null;
+            if (typeDisplayName != null) {
+                sb.append(typeDisplayName);
+                if (longVersion) {
+                    sb.append(" (");
+                    sb.append(getTypeIdDescription(kind, intent, typeIdentification, true));
+                    sb.append(")");
+                }
+            } else {
+                sb.append(getTypeIdDescription(kind, intent, typeIdentification, longVersion));
+            }
         }
 
-        ShadowKindType kind = set.getKind();
-        if (kind != null || set.getIntent() != null) {
-            sb.append(" (");
-            sb.append(kind != null ? kind.value() : "");
-            sb.append("/");
-            sb.append(set.getIntent());
-            sb.append(")");
+        // Actually, kind/intent + object class should not be used both
+        if (objectclass != null && (longVersion || kind == null)) {
+            sb.append(" [").append(objectclass.getLocalPart()).append("]");
         }
 
         return sb.toString();
+    }
+
+    private @NotNull String getTypeIdDescription(
+            ShadowKindType origKind, String origIntent, ResourceObjectTypeIdentification resolvedTypeId, boolean longVersion) {
+        if (origIntent != null) {
+            return localizedTypeId(origKind, origIntent);
+        } else {
+            if (resolvedTypeId != null) {
+                if (longVersion) {
+                    return localizationService.translate(
+                            "TypeIdDescription.asTheDefaultIntent",
+                            new Object[] { localizedTypeId(resolvedTypeId.getKind(), resolvedTypeId.getIntent()) },
+                            localizationService.getDefaultLocale());
+                } else {
+                    return localizedTypeId(resolvedTypeId.getKind(), resolvedTypeId.getIntent());
+                }
+            } else {
+                return localizationService.translate(
+                        "TypeIdDescription.defaultIntentFor",
+                        new Object[] { SingleLocalizableMessage.forEnum(origKind) },
+                        localizationService.getDefaultLocale());
+            }
+        }
+    }
+
+    private String localizedTypeId(@NotNull ShadowKindType kind, @NotNull String intent) {
+        return localizationService.translate(
+                "TypeIdDescription.typeId",
+                new Object[] { SingleLocalizableMessage.forEnum(kind), intent },
+                localizationService.getDefaultLocale());
+    }
+
+    private ResourceObjectDefinition getResourceObjectDefinition(
+            ResourceType resource, ShadowKindType kind, String intent, QName objectclass) {
+        ResourceSchema completeSchema;
+        try {
+            completeSchema = Resource.of(resource).getCompleteSchema();
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get schema for {}", e, resource);
+            return null;
+        }
+        if (completeSchema == null) {
+            return null;
+        }
+
+        try {
+            // This is the same method that is currently used when doing the processing in import/recon tasks.
+            return ResourceSchemaUtil.findDefinitionForBulkOperation(resource, kind, intent, objectclass);
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get definition for {}/{}/{} in {}",
+                    e, kind, intent, objectclass, resource);
+            return null;
+        }
     }
 
     @Override

@@ -6,19 +6,28 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.repo.sqale.delta.item.SinglePathItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.TypeQNameItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.querydsl.core.types.dsl.EnumPath;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType.*;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 public class QProcessedObjectMapping extends QContainerMapping<SimulationResultProcessedObjectType, QProcessedObject, MProcessedObject, MSimulationResult> {
 
     public static final String DEFAULT_ALIAS_NAME = "po";
+
+    public static final String PARTITION_PREFIX = "m_sr_processed_object_";
 
     private static QProcessedObjectMapping instance;
 
@@ -51,7 +60,13 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         addItemMapping(F_OID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
                 q -> q.nameOrig, q -> q.nameNorm));
-        // addItemMapping(F_OBJECT_TYPE, ));
+        //addItemMapping(F_TYPE, ));
+        Function<QProcessedObject, EnumPath<MObjectType>>  objectTypePath = q -> q.objectType;
+        addItemMapping(F_TYPE, new SqaleItemSqlMapper<>(
+                ctx -> new TypeQNameItemFilterProcessor(ctx, objectTypePath),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, objectTypePath),
+                objectTypePath
+                ));
         addItemMapping(F_TRANSACTION_ID, stringMapper(q -> q.transactionId));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
         addRefMapping(F_EVENT_MARK_REF, QProcessedObjectEventMarkReferenceMapping.init(repositoryContext));
@@ -107,6 +122,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         }
         row.state = object.getState();
 
+        if (object.getType() != null) {
+            row.objectType = MObjectType.fromTypeQName(object.getType());
+        }
         row.fullObject = createFullObject(object);
         row.transactionId = object.getTransactionId();
         row.focusRecordId = object.getFocusRecordId();
@@ -115,5 +133,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         // We store event marks
         storeRefs(row, object.getEventMarkRef(), QProcessedObjectEventMarkReferenceMapping.getInstance(), jdbcSession);
         return row;
+    }
+
+    public static String partitionName(String oid) {
+        return PARTITION_PREFIX + oid.replace('-', '_');
     }
 }

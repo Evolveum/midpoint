@@ -77,7 +77,7 @@ public class SelfRegistrationDto implements Serializable {
         if (authentication instanceof MidpointAuthentication) {
             ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
             if (moduleAuthentication instanceof CredentialModuleAuthentication
-                    && AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getNameOfModuleType())) {
+                    && AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getModuleTypeName())) {
                 mailModuleAuthentication = (CredentialModuleAuthentication) moduleAuthentication;
             }
         }

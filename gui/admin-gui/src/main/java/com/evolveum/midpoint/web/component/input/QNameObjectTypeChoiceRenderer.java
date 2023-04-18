@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.component.input;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -26,9 +28,14 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
         if (qname == null) {
             return null;
         }
-
-        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(qname);
-        String key = WebComponentUtil.createEnumResourceKey(ot);
+        String key = null;
+        try {
+            ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(qname);
+            key = WebComponentUtil.createEnumResourceKey(ot);
+        } catch (Exception e) {
+            key = ObjectType.class.getSimpleName() + "." + qname.getLocalPart();   //HACK exception occurs during the attempt to find ObjectTypes value for
+                                                                                    // containerable (not objectable) type. therefore generate key in this way
+        }
         return new StringResourceModel(key).setDefaultValue(key).getString();
     }
 

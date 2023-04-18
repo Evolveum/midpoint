@@ -14,9 +14,10 @@
         </div>
         <div class="info-box-content d-flex flex-row">
             <div class="flex-grow-1">
-                <div class="info-box-number" style="padding: 0px;">
+                <div class="info-box-number d-flex gap-2" style="padding: 0px;">
                     <span class="summary-panel-display-name" wicket:id="summaryDisplayName" style="padding: 0px;"/>
                     <span class="summary-panel-identifier" wicket:id="summaryIdentifierPanel" style="padding: 0px;">(<span wicket:id="summaryIdentifier"/>)</span>
+                    <span wicket:id="badges"/>
                     <a wicket:id="navigateToObject" class="summary-panel-navigation-button">
                         <i class="fa fa-share"/>
                     </a>
@@ -27,9 +28,9 @@
                 <span wicket:id="summaryOrganization" class="summary-panel-organization"/>
             </div>
             <div class="summary-tag-box">
-                    <span wicket:id="summaryTagBox">
-                        <span wicket:id="summaryTag"/>
-                    </span>
+                <wicket:container wicket:id="summaryTagBox">
+                    <span wicket:id="summaryTag"/>
+                </wicket:container>
                 <wicket:child/>
             </div>
         </div>

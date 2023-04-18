@@ -103,6 +103,7 @@ public class PageCreatedReports extends PageAdmin {
     private static final String OPERATION_DOWNLOAD_REPORT = DOT_CLASS + "downloadReport";
     private static final String OPERATION_GET_REPORT_FILENAME = DOT_CLASS + "getReportFilename";
     private static final String OPERATION_LOAD_REPORTS = DOT_CLASS + "loadReports";
+    private static final String OPERATION_LOAD_REPORT_TYPE_NAME = DOT_CLASS + "loadReportTypeName";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -206,7 +207,7 @@ public class PageCreatedReports extends PageAdmin {
             }
 
             @Override
-            protected boolean isCreateNewObjectEnabled() {
+            protected boolean isCreateNewObjectVisible() {
                 return false;
             }
 
@@ -318,12 +319,23 @@ public class PageCreatedReports extends PageAdmin {
             @Override
             public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ReportDataType>> rowModel) {
                 SelectableBean<ReportDataType> bean = rowModel.getObject();
-                return Model.ofList(Collections.singletonList(bean.getValue().getReportRef()));
+                ObjectReferenceType reportRef = bean.getValue().getReportRef();
+                resolveReportTypeName(reportRef);
+                return Model.ofList(Collections.singletonList(reportRef));
             }
         };
         columns.add(column);
 
         return columns;
+    }
+
+    private void resolveReportTypeName(ObjectReferenceType reportRef) {
+        if (reportRef.getTargetName() != null && StringUtils.isNotEmpty(reportRef.getTargetName().getOrig())) {
+            return;
+        }
+        Task task = createSimpleTask(OPERATION_LOAD_REPORT_TYPE_NAME);
+        OperationResult result = task.getResult();
+        WebModelServiceUtils.resolveReferenceName(reportRef, PageCreatedReports.this, task, result);
     }
 
     private List<InlineMenuItem> initInlineMenu() {

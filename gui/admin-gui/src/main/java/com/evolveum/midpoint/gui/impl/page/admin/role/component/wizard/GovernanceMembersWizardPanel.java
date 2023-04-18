@@ -13,14 +13,15 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,9 +34,15 @@ import java.util.List;
 /**
  * @author lskublik
  */
+
+@PanelType(name = "arw-governance")
+@PanelInstance(identifier = "arw-governance",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "GovernanceMembersWizardPanel.title", icon = "fa fa-users"))
 public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    public static final String PANEL_TYPE = "roleWizard-governance";
+    public static final String PANEL_TYPE = "arw-governance";
     private static final String ID_TABLE = "table";
 
     public GovernanceMembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {
@@ -52,6 +59,11 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
         GovernanceCardsPanel table = new GovernanceCardsPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()){
             protected String getStorageKeyTabSuffix() {
                 return getConfiguration()  == null ? PANEL_TYPE : super.getStorageKeyTabSuffix();
+            }
+
+            @Override
+            protected Class<? extends FocusType> getSearchableType() {
+                return UserType.class;
             }
 
             @Override
@@ -82,6 +94,40 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
             @Override
             protected WebMarkupContainer getFeedback() {
                 return GovernanceMembersWizardPanel.this.getFeedback();
+            }
+
+            protected CompiledObjectCollectionView getObjectCollectionView() {
+                ContainerPanelConfigurationType config = getPanelConfiguration();
+                if (config == null) {
+                    return null;
+                }
+                GuiObjectListViewType listViewType = config.getListView();
+                if (listViewType == null) {
+                    listViewType = config.beginListView();
+                }
+
+                if (listViewType.getSearchBoxConfiguration() == null) {
+                    listViewType.beginSearchBoxConfiguration();
+                }
+
+                if (listViewType.getSearchBoxConfiguration().getObjectTypeConfiguration() == null) {
+                    listViewType.getSearchBoxConfiguration().beginObjectTypeConfiguration();
+                }
+
+                if (listViewType.getSearchBoxConfiguration().getObjectTypeConfiguration().getSupportedTypes().isEmpty()) {
+                    listViewType
+                            .getSearchBoxConfiguration()
+                            .getObjectTypeConfiguration()
+                            .getSupportedTypes()
+                            .add(UserType.COMPLEX_TYPE);
+                }
+
+                return WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
+            }
+
+            @Override
+            protected String getButtonTranslationPrefix() {
+                return "MembersWizardPanel.button";
             }
         };
         table.setOutputMarkupId(true);

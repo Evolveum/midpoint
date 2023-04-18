@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -394,13 +396,13 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
-                return new PasswordPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false);
+                return new PasswordPropertyPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false);
             }
 
             @Override
             protected Component createInputPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
                 MailServerConfigurationType mailServer = rowModel.getObject().getValue();
-                return new PasswordPanel(componentId, new PropertyModel<>(mailServer, "password"), false, true);
+                return new PasswordPropertyPanel(componentId, new PropertyModel<>(mailServer, "password"), false, true);
             }
         });
 

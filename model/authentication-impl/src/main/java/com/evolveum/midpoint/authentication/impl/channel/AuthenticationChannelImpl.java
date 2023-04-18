@@ -73,7 +73,7 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     }
 
     public String getPathAfterUnsuccessfulAuthentication() {
-        return getPathAfterSuccessfulAuthentication();
+        return AuthConstants.DEFAULT_PATH_AFTER_LOGOUT;
     }
 
     @Override

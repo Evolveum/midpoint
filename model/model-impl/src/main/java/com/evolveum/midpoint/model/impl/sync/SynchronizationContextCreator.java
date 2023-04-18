@@ -227,15 +227,18 @@ class SynchronizationContextCreator {
                     schema != null ? schema.findObjectDefinition(knownKind, knownIntent) : null);
         }
 
+        /**
+         * Creates type spec based on object class name only (if present).
+         *
+         * We intentionally do not use "account/default" hack based on
+         * {@link ResourceObjectClassDefinition#isDefaultAccountDefinition()} here, as it gives wrong results for accounts
+         * that are intentionally excluded from `account/default` type (if such type is defined). After all, if we have
+         * no `schemaHandling` present, there is no synchronization to be done. See MID-8516.
+         */
         public static @NotNull TypeAndDefinition of(ResourceSchema schema, QName objectClassName) {
             if (schema != null && objectClassName != null) {
-                ResourceObjectDefinition definition = schema.findDefinitionForObjectClass(objectClassName);
-                if (definition != null && definition.getObjectClassDefinition().isDefaultAccountDefinition()) {
-                    // A kind of "emergency classification" - we hope it will not cause any problems.
-                    return new TypeAndDefinition(ResourceObjectTypeIdentification.defaultAccount(), definition);
-                } else {
-                    return new TypeAndDefinition(null, definition);
-                }
+                @Nullable ResourceObjectDefinition definition = schema.findDefinitionForObjectClass(objectClassName);
+                return new TypeAndDefinition(null, definition);
             } else {
                 return new TypeAndDefinition(null, null);
             }

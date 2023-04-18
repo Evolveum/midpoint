@@ -80,7 +80,6 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -101,7 +100,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
 
-    private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_BUTTON = "button";
@@ -447,7 +445,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
                     @Override
                     public String getCssClass() {
-                        return "inline-menu-column ";
+                        return getInlineMenuCssClass();
                     }
 
                     @Override
@@ -459,6 +457,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
         return columns;
+    }
+
+    protected String getInlineMenuCssClass() {
+        return "inline-menu-column ";
     }
 
     protected boolean isMenuItemVisible(IModel<PO> rowModel) {
@@ -590,7 +592,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase());
     }
 
-    private String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
+    protected String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
         String sortProperty = customColumn.getSortProperty();
         if (sortProperty != null) {
             return sortProperty;
@@ -776,15 +778,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
         };
-        exportDataLink.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
-            }
-        });
+        exportDataLink.add(new VisibleBehaviour(this::isExportDataLinkVisible));
         return exportDataLink;
+    }
+
+    private boolean isExportDataLinkVisible() {
+        return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
+                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
     }
 
     private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -976,10 +976,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         table.addOrReplace(initSearch("header"));
         resetSearchModel();
         table.setCurrentPage(null);
-    }
-
-    public Component getFeedbackPanel() {
-        return getPageBase().getFeedbackPanel();
     }
 
     public void resetSearchModel() {
@@ -1177,28 +1173,42 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     public boolean isValidFormComponents(AjaxRequestTarget target) {
         AtomicReference<Boolean> valid = new AtomicReference<>(true);
         getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
-            ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
-                if (!baseFormComponent.hasErrorMessage()) {
-                    baseFormComponent.getBehaviors().stream()
-                            .filter(behaviour -> behaviour instanceof ValidatorAdapter
-                                    && ((ValidatorAdapter) behaviour).getValidator() instanceof NotNullValidator)
-                            .map(adapter -> ((ValidatorAdapter) adapter).getValidator())
-                            .forEach(validator -> ((NotNullValidator) validator).setUseModel(true));
-                    ((FormComponent) baseFormComponent).validate();
-                }
-                if (baseFormComponent.hasErrorMessage()) {
-                    valid.set(false);
-                    if (target != null) {
-                        target.add(baseFormComponent);
-                        InputPanel inputParent = baseFormComponent.findParent(InputPanel.class);
-                        if (inputParent != null && inputParent.getParent() != null) {
-                            target.addChildren(inputParent.getParent(), FeedbackLabels.class);
-                        }
-                    }
-                }
-            });
+            validateRow((SelectableDataTable.SelectableRowItem) row, valid, target);
         });
         return valid.get();
+    }
+
+    public boolean isValidFormComponentsOfRow(IModel<PO> rowModel, AjaxRequestTarget target) {
+        AtomicReference<Boolean> valid = new AtomicReference<>(true);
+        getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
+            if (((SelectableDataTable.SelectableRowItem) row).getModel().equals(rowModel)) {
+                validateRow((SelectableDataTable.SelectableRowItem) row, valid, target);
+            }
+        });
+        return valid.get();
+    }
+
+    private void validateRow(SelectableDataTable.SelectableRowItem row, AtomicReference<Boolean> valid, AjaxRequestTarget target) {
+        row.visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
+            if (!baseFormComponent.hasErrorMessage()) {
+                baseFormComponent.getBehaviors().stream()
+                        .filter(behaviour -> behaviour instanceof ValidatorAdapter
+                                && ((ValidatorAdapter) behaviour).getValidator() instanceof NotNullValidator)
+                        .map(adapter -> ((ValidatorAdapter) adapter).getValidator())
+                        .forEach(validator -> ((NotNullValidator) validator).setUseModel(true));
+                ((FormComponent) baseFormComponent).validate();
+            }
+            if (baseFormComponent.hasErrorMessage()) {
+                valid.set(false);
+                if (target != null) {
+                    target.add(baseFormComponent);
+                    InputPanel inputParent = baseFormComponent.findParent(InputPanel.class);
+                    if (inputParent != null && inputParent.getParent() != null) {
+                        target.addChildren(inputParent.getParent(), FeedbackLabels.class);
+                    }
+                }
+            }
+        });
     }
 
     public boolean isValidFormComponents() {

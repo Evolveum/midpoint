@@ -93,7 +93,7 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
         });
         add(addFirstContainer);
 
-        AjaxLink<Void> addFirst = new AjaxLink<Void>(ID_ADD_FIRST) {
+        AjaxLink<Void> addFirst = new AjaxLink<>(ID_ADD_FIRST) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -103,7 +103,7 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
         };
         addFirstContainer.add(addFirst);
 
-        ListView repeater = new ListView<T>(ID_REPEATER, getModel()) {
+        ListView repeater = new ListView<>(ID_REPEATER, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -107,8 +107,8 @@ public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLive
                     .end()
                     .synchronizationStatistics()
                         // See the above method
-                        .assertTransition(null, UNMATCHED, LINKED, null, 4, 0, 0)
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 0, 1, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, LINKED, null, 4, 0, 0)
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 0, 1, 0)
                         .assertTransitions(2);
         // @formatter:on
     }

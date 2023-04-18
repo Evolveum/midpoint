@@ -14,12 +14,16 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -56,6 +60,8 @@ import java.util.stream.Collectors;
  */
 @Component
 public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingItemPathPanelFactory.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -99,54 +105,56 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
             IModel<List<DisplayableValue<ItemPathType>>> values = getChoices(panelCtx.getValueWrapperModel(), panelCtx.getPageBase());
 
-            if (!values.getObject().isEmpty()) {
+            if (CollectionUtils.isNotEmpty(values.getObject())) {
 
-                if (CollectionUtils.isNotEmpty(values.getObject())) {
+                IAutoCompleteRenderer<ItemPathType> renderer = new AbstractAutoCompleteRenderer<>() {
+                    @Override
+                    protected void renderChoice(ItemPathType itemPathType, Response response, String s) {
+                        response.write(getTextValue(itemPathType));
+                    }
 
-                    IAutoCompleteRenderer<ItemPathType> renderer = new AbstractAutoCompleteRenderer<>() {
-                        @Override
-                        protected void renderChoice(ItemPathType itemPathType, Response response, String s) {
-                            response.write(getTextValue(itemPathType));
+                    @Override
+                    protected String getTextValue(ItemPathType itemPathType) {
+                        return values.getObject().stream()
+                                .filter(attr -> attr.getValue().equivalent(itemPathType))
+                                .findFirst()
+                                .get().getLabel();
+                    }
+                };
+
+                AutoCompleteTextPanel panel = new AutoCompleteTextPanel<>(
+                        panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), renderer) {
+                    @Override
+                    public Iterator<ItemPathType> getIterator(String input) {
+                        List<DisplayableValue<ItemPathType>> choices = new ArrayList<>(values.getObject());
+                        if (StringUtils.isNotEmpty(input)) {
+                            choices = choices.stream()
+                                    .filter(v -> v.getLabel().toLowerCase().contains(input.toLowerCase()))
+                                    .collect(Collectors.toList());
                         }
-
-                        @Override
-                        protected String getTextValue(ItemPathType itemPathType) {
-                            return values.getObject().stream()
-                                    .filter(attr -> attr.getValue().equivalent(itemPathType))
-                                    .findFirst()
-                                    .get().getLabel();
+                        if (skipUsedAttributes(panelCtx)) {
+                            choices = choices.stream()
+                                    .filter(v -> notEquivalentWithValues(panelCtx, v))
+                                    .collect(Collectors.toList());
                         }
-                    };
+                        return choices.stream()
+                                .map(v -> v.getValue())
+                                .collect(Collectors.toList())
+                                .iterator();
+                    }
 
-                    AutoCompleteTextPanel panel = new AutoCompleteTextPanel<>(
-                            panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), renderer) {
-                        @Override
-                        public Iterator<ItemPathType> getIterator(String input) {
-                            List<DisplayableValue<ItemPathType>> choices = new ArrayList<>(values.getObject());
-                            if (StringUtils.isNotEmpty(input)) {
-                                choices = choices.stream()
-                                        .filter(v -> v.getLabel().contains(input))
-                                        .collect(Collectors.toList());
+                    @Override
+                    protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
+                        return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values) {
+                            @Override
+                            protected boolean matchValues(ItemPathType key, ItemPathType value) {
+                                return value.equivalent(key);
                             }
-                            if (skipUsedAttributes(panelCtx)) {
-                                choices = choices.stream()
-                                        .filter(v -> notEquivalentWithValues(panelCtx, v))
-                                        .collect(Collectors.toList());
-                            }
-                            return choices.stream()
-                                    .map(v -> v.getValue())
-                                    .collect(Collectors.toList())
-                                    .iterator();
-                        }
-
-                        @Override
-                        protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                            return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values);
-                        }
-                    };
-                    panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                    return panel;
-                }
+                        };
+                    }
+                };
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                return panel;
             }
         }
 
@@ -201,15 +209,28 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                 List<DisplayableValue<ItemPathType>> choices = getAllAttributes(propertyWrapper, pageBase);
                 if (!choices.isEmpty()) {
                     PrismValueWrapper<ItemPathType> wrapper = propertyWrapper.getObject();
-                    if (wrapper.getParent().getParent().getParent().isSingleValue()) {
+                    ItemWrapper parent = wrapper.getParent().getParent().getParent();
+                    if (parent.isSingleValue()) {
                         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper.getObject());
                         if (objectType != null) {
                             List<ItemPathType> existingPaths = new ArrayList<>();
                             objectType.getAttribute().forEach(attributeMapping -> {
-                                if (attributeMapping.getRef() != null
-                                        && !attributeMapping.getRef().equivalent(wrapper.getRealValue())) {
-                                    existingPaths.add(attributeMapping.getRef());
+
+                                if (attributeMapping.getRef() == null
+                                        || attributeMapping.getRef().equivalent(wrapper.getRealValue())) {
+                                    return;
                                 }
+
+                                PrismContainer container =
+                                        attributeMapping.asPrismContainerValue().findContainer(parent.getItemName());
+                                container = container != null ? container.clone() : null;
+                                WebPrismUtil.cleanupEmptyContainers(container);
+
+                                if (container != null && container.isEmpty()) {
+                                    return;
+                                }
+
+                                existingPaths.add(attributeMapping.getRef());
                             });
                             choices.removeIf(value -> {
                                 for (ItemPathType existingPath : existingPaths) {
@@ -234,8 +255,18 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
         PrismValueWrapper<ItemPathType> propertyWrapper = propertyWrapperModel.getObject();
 
-        ResourceSchema schema = ResourceDetailsModel.getResourceSchema(
-                propertyWrapper.getParent().findObjectWrapper(), pageBase);
+        ResourceSchema schema = null;
+        try {
+            schema = ResourceSchemaFactory.getCompleteSchema(
+                    (ResourceType) propertyWrapper.getParent().findObjectWrapper().getObjectOld().asObjectable());
+        } catch (Exception e) {
+            LOGGER.debug("Couldn't get complete resource schema", e);
+        }
+
+        if (schema == null) {
+            schema = ResourceDetailsModel.getResourceSchema(
+                    propertyWrapper.getParent().findObjectWrapper(), pageBase);
+        }
 
         if (schema == null) {
             return allAttributes;

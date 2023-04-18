@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 
     private static final String DOT_CLASS = Search.class.getName() + ".";
     private static final String OPERATION_EVALUATE_COLLECTION_FILTER = DOT_CLASS + "evaluateCollectionFilter";
+    private static final String OPERATION_LOAD_PRINCIPAL = DOT_CLASS + "loadPrincipalObject";
     public static final String F_FULL_TEXT = "fullText";
     public static final String F_TYPE = "type";
 
@@ -222,6 +224,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             LOGGER.trace("Cannot create query, not supported search box mode: {}", getSearchMode());
             return PrismContext.get().queryFactory().createQuery();
         }
+        queryWrapper.setAdvancedError(null);
 
         ObjectQuery query = null;
         try {
@@ -346,14 +349,14 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         return null;
     }
 
-    private CompiledObjectCollectionView determineObjectCollectionView(PageBase pageBase) {
+    private CompiledObjectCollectionView determineObjectCollectionView(PageAdminLTE parentPage) {
         ObjectCollectionSearchItemWrapper objectCollectionSearchItemWrapper = findObjectCollectionSearchItemWrapper();
         if (objectCollectionSearchItemWrapper != null && objectCollectionSearchItemWrapper.getObjectCollectionView() != null) {
             return objectCollectionSearchItemWrapper.getObjectCollectionView();
         }
         if (StringUtils.isNotEmpty(getCollectionViewName())) {
-            return pageBase.getCompiledGuiProfile()
-                    .findObjectCollectionView(WebComponentUtil.anyClassToQName(pageBase.getPrismContext(), getTypeClass()),
+            return parentPage.getCompiledGuiProfile()
+                    .findObjectCollectionView(WebComponentUtil.anyClassToQName(parentPage.getPrismContext(), getTypeClass()),
                             getCollectionViewName());
         }
         return null;
@@ -518,5 +521,30 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 
     public List<AvailableFilterType> getAvailableFilterTypes() {
         return availableFilterTypes;
+    }
+
+    /** todo review
+     *  temporary decision to fix MID-8734, should be discussed later
+     *  saved filters cannot be reloaded from the compiledGuiProfile at the moment, because
+     *  GuiProfileCompiler.compileFocusProfile doesn't get the new filter changes while its saving
+     * @param parentPage
+     */
+    public void reloadSavedFilters(PageAdminLTE parentPage) {
+        CompiledObjectCollectionView view = determineObjectCollectionView(parentPage);
+        if (view == null) {
+            return;
+        }
+        String principalOid = parentPage.getPrincipalFocus().getOid();
+        Task task = parentPage.createSimpleTask(OPERATION_LOAD_PRINCIPAL);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> loggedUser = WebModelServiceUtils.loadObject(UserType.class, principalOid, parentPage, task, result);
+        GuiObjectListViewType userView = WebComponentUtil.getPrincipalUserObjectListView(parentPage, loggedUser.asObjectable(),
+                (Class<? extends Containerable>) getTypeClass(), false, view.getViewIdentifier());
+        if (userView != null) {
+            SearchBoxConfigurationType config = userView.getSearchBoxConfiguration();
+            if (config != null) {
+                availableFilterTypes = config.getAvailableFilter();
+            }
+        }
     }
 }

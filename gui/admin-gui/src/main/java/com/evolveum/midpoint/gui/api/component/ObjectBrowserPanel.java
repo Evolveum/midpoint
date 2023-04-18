@@ -113,6 +113,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         this.multiselect = multiselect;
     }
 
+    @Override
     protected void onInitialize(){
         super.onInitialize();
         initLayout();
@@ -163,8 +164,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         ObjectListPanel<O> listPanel = createObjectListPanel(objType, multiselect);
         add(listPanel);
 
-        AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
-                createStringResource("userBrowserDialog.button.addButton")) {
+        AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD, getAddButtonTitle()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -287,5 +287,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     @Override
     public StringResourceModel getTitle() {
         return parentPage.createStringResource("ObjectBrowserPanel.chooseObject");
+    }
+
+    protected StringResourceModel getAddButtonTitle() {
+        return createStringResource("userBrowserDialog.button.addButton");
     }
 }

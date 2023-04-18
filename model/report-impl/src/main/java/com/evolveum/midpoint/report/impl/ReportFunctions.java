@@ -1,19 +1,46 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl;
 
+import static com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder.getCurrentResult;
+import static com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder.getCurrentTask;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,31 +49,11 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
+@Component
 @SuppressWarnings({ "WeakerAccess", "unused" }) // methods here are called from scripts
 public class ReportFunctions {
 
@@ -57,14 +64,19 @@ public class ReportFunctions {
     private final ModelService model;
     private final TaskManager taskManager;
     private final ModelAuditService modelAuditService;
+    private final RepositoryService repositoryService;
+    private final MidpointFunctions midpointFunctions;
 
     public ReportFunctions(PrismContext prismContext, SchemaService schemaService,
-            ModelService modelService, TaskManager taskManager, ModelAuditService modelAuditService) {
+            ModelService modelService, TaskManager taskManager, ModelAuditService modelAuditService,
+            RepositoryService repositoryService, MidpointFunctions midpointFunctions) {
         this.prismContext = prismContext;
         this.schemaService = schemaService;
         this.model = modelService;
         this.taskManager = taskManager;
         this.modelAuditService = modelAuditService;
+        this.repositoryService = repositoryService;
+        this.midpointFunctions = midpointFunctions;
     }
 
     public <O extends ObjectType> O resolveObject(ObjectReferenceType ref) {
@@ -219,8 +231,7 @@ public class ReportFunctions {
 
     public List<AuditEventRecordType> searchAuditRecords(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option,
             Task task, OperationResult result) throws CommonException {
-        List<AuditEventRecordType> records = modelAuditService.searchObjects(query, option, task, result);
-        return records;
+        return modelAuditService.searchObjects(query, option, task, result);
     }
 
     public List<AuditEventRecordType> searchAuditRecordsAsWorkflows(
@@ -558,9 +569,13 @@ public class ReportFunctions {
 
     public @NotNull <O extends ObjectType> ProcessedObject<O> getProcessedObject(
             @NotNull SimulationResultProcessedObjectType objectBean) throws SchemaException {
-        return model.parseProcessedObject(objectBean);
+        return model.parseProcessedObject(
+                objectBean,
+                Objects.requireNonNull(getCurrentTask(), "no current task"),
+                Objects.requireNonNull(getCurrentResult(), "no current operation result"));
     }
 
+    /** Returns the collection of (augmented) item deltas related to given "processed object" bean. */
     public Collection<ProcessedObject.ProcessedObjectItemDelta<?, ?>> getProcessedObjectItemDeltas(
             @NotNull SimulationResultProcessedObjectType objectBean,
             @Nullable Object pathsToInclude,
@@ -568,6 +583,22 @@ public class ReportFunctions {
             @Nullable Boolean includeOperationalItems) throws SchemaException {
         return getProcessedObject(objectBean)
                 .getItemDeltas(pathsToInclude, pathsToExclude, includeOperationalItems);
+    }
+
+    /** Returns the collection of metrics related to given "processed object" bean. */
+    public Collection<ProcessedObject.Metric> getProcessedObjectMetrics(
+            @NotNull SimulationResultProcessedObjectType objectBean,
+            @Nullable Boolean showEventMarks,
+            @Nullable Boolean showExplicitMetrics) throws SchemaException {
+        return getProcessedObject(objectBean)
+                .getMetrics(showEventMarks, showExplicitMetrics);
+    }
+
+    /** Returns the object marks related to object represented by "processed object" bean. */
+    public Collection<ObjectReferenceType> getObjectMarks(
+            @NotNull SimulationResultProcessedObjectType objectBean) throws SchemaException {
+        return getProcessedObject(objectBean)
+                .getEffectiveObjectMarksRefs();
     }
 
     public AssignmentType getRelatedAssignment(ProcessedObject.ProcessedObjectItemDelta<?, ?> itemDelta) {
@@ -586,5 +617,118 @@ public class ReportFunctions {
         }
 
         return null;
+    }
+
+    /**
+     * Takes the role membership reference and returns the list of assignment path structures.
+     *
+     * @since 4.7
+     */
+    public List<AssignmentPathRowStructure> generateAssignmentPathRows(Referencable ref) throws CommonException {
+        // ref is Referencable (can be ObjectReferenceType, but also DefaultReferencableImpl).
+        PrismReferenceValue prismRefValue = ref.asReferenceValue();
+        // If parent is available, it's better to use it, we'll save resolutions in the loop.
+        PrismObject<?> parentPrismObject = PrismValueUtil.getParentObject(prismRefValue);
+        Objectable parentObject = parentPrismObject != null ? parentPrismObject.getRealValue() : null;
+
+        ValueMetadata valueMetadataPrism = prismRefValue.getValueMetadata();
+        if (valueMetadataPrism.isEmpty()) {
+            return List.of();
+        }
+
+        List<AssignmentPathRowStructure> list = new ArrayList<>();
+        for (Containerable valueMetadataUntyped : valueMetadataPrism.getRealValues()) {
+            ValueMetadataType valueMetadata = (ValueMetadataType) valueMetadataUntyped;
+            ProvenanceMetadataType p = valueMetadata.getProvenance();
+            if (p != null) {
+                AssignmentPathMetadataType ap = p.getAssignmentPath();
+                if (ap != null) {
+                    AssignmentPathRowStructure row = generateAssignmentPathRow(ap, (AssignmentHolderType) parentObject);
+                    // Some fields are more convenient to fill here:
+                    PrismObject<Objectable> targetObject = prismRefValue.getObject();
+                    AbstractRoleType role = targetObject != null // can be null, e.g deleted
+                            ? targetObject.getRealValue(AbstractRoleType.class)
+                            : null;
+                    row.role = role;
+                    row.roleArchetype = midpointFunctions.getStructuralArchetype(role);
+                    StorageMetadataType storageMetadata = valueMetadata.getStorage();
+                    row.createTimestamp = storageMetadata != null ? storageMetadata.getCreateTimestamp() : null;
+                    row.valueMetadata = valueMetadata;
+                    list.add(row);
+                }
+            }
+        }
+        return list;
+    }
+
+    private AssignmentPathRowStructure generateAssignmentPathRow(
+            AssignmentPathMetadataType assignmentPath, AssignmentHolderType owner) throws CommonException {
+        List<AssignmentPathSegmentMetadataType> segments = assignmentPath.getSegment();
+        Long directAssignmentId = segments.get(0).getAssignmentId();
+        ObjectReferenceType ownerRef = assignmentPath.getSourceRef();
+        if (owner == null) {
+            owner = (AssignmentHolderType) resolveWithRepositoryIfExists(ownerRef);
+        }
+        AssignmentType directAssignment = owner == null ? null
+                : owner.getAssignment().stream()
+                .filter(a -> Objects.equals(a.getId(), directAssignmentId))
+                .findFirst()
+                .orElse(null);
+
+        List<ObjectType> segmentTargets = new ArrayList<>();
+        for (AssignmentPathSegmentMetadataType segment : assignmentPath.getSegment()) {
+            segmentTargets.add(resolveWithRepositoryIfExists(segment.getTargetRef()));
+        }
+
+        // This one should be available (resolved) by the code calling the expression.
+        AssignmentPathRowStructure row = new AssignmentPathRowStructure();
+        row.assignmentPath = assignmentPath;
+        row.segmentTargets = segmentTargets;
+        row.owner = owner;
+        row.assignment = directAssignment;
+        return row;
+    }
+
+    // Must be Serializable to be acceptable return value from the subreport.
+    static class AssignmentPathRowStructure implements Serializable {
+        public AssignmentPathMetadataType assignmentPath;
+        public AssignmentHolderType owner;
+        public List<ObjectType> segmentTargets;
+        public AbstractRoleType role;
+        public ArchetypeType roleArchetype;
+        public XMLGregorianCalendar createTimestamp;
+        public AssignmentType assignment;
+        public ValueMetadataType valueMetadata; // for general purpose if fields above are not sufficient
+
+        // Minimal toString for debugging, only owner+valueMetadata to identify the data.
+        @Override
+        public String toString() {
+            return "AssignmentPathRowStructure{" +
+                    "owner=" + owner +
+                    ", valueMetadata=" + valueMetadata +
+                    '}';
+        }
+    }
+
+    /**
+     * Low-level faster version of {@link MidpointFunctions#resolveReferenceIfExists(ObjectReferenceType)}.
+     * This one does not use the model reference resolution and goes around the security checks.
+     * Use with care, when SchemaTransformer cost is too much.
+     */
+    private @Nullable ObjectType resolveWithRepositoryIfExists(@Nullable ObjectReferenceType ref) throws CommonException {
+        if (ref == null) {
+            return null;
+        }
+        try {
+            PrismObjectDefinition<? extends ObjectType> typeDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByType(ref.getType());
+            Class<? extends ObjectType> compileTimeClass = typeDef.getCompileTimeClass();
+            return repositoryService.getObject(compileTimeClass, ref.getOid(),
+                            SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+                            getCurrentResult())
+                    .asObjectable();
+        } catch (ObjectNotFoundException ignored) {
+            return null;
+        }
     }
 }

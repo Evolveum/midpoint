@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="8da65c58-063c-45be-9b97-3af9be1530b3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>sport</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="9437c94e-af47-4976-bbfc-cc7a59538ddf"/>
+            <kind>entitlement</kind>
+            <intent>sport</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="9437c94e-af47-4976-bbfc-cc7a59538ddf"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:interest</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>sport</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>

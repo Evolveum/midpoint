@@ -218,10 +218,6 @@ public class TestOrgSync extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        if (isNativeRepository()) {
-            CommonInitialObjects.addMarks(this, initTask, initResult);
-        }
-
         reconciliationTaskResultListener = new DebugReconciliationResultListener();
         reconciliationActivityHandler.setReconciliationResultListener(reconciliationTaskResultListener);
 
@@ -1076,8 +1072,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        // expected shadow recon of idm (originally it was not, maybe because of non-matching intent?)
-        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 1);
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recon", users);
@@ -1114,7 +1109,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 1);
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
         assertUsers(18);
 

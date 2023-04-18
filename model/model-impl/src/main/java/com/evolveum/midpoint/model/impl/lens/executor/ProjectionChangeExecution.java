@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil.findIte
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -89,13 +91,6 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
         try {
             LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
 
-            // We want to execute the changes for no-resource contexts e.g. to remove dead links
-            if (projCtx.hasResource() && !projCtx.isVisible()) {
-                LOGGER.trace("Resource object definition is not visible; skipping change execution (if there's any)");
-                result.recordNotApplicable("Not visible");
-                return;
-            }
-
             context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), ENTERING));
 
             ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
@@ -103,7 +98,22 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
 
             projectionDelta = projCtx.getExecutableDelta();
 
-            emptyToDeleteDeltaIfNeeded();
+            if (projCtx.hasResourceAndIsVisible()) {
+                emptyToDeleteDeltaIfNeeded();
+            } else if (projectionDelta != null) {
+                if (projectionDelta.isAdd() || projectionDelta.isDelete()) {
+                    LOGGER.trace("Resource object definition is not visible -> skipping application of ADD/DELETE deltas");
+                    projectionDelta = null;
+                } else {
+                    assert projectionDelta.isModify();
+                    if (ShadowUtil.hasResourceModifications(projectionDelta.getModifications())) {
+                        LOGGER.trace("Resource object definition is not visible -> deleting on-resource modifications from it");
+                        projectionDelta = projectionDelta.clone();
+                        projectionDelta.getModifications().removeIf( // not very nice -> TODO add support for such op into delta
+                                mod -> ShadowUtil.isResourceModification(mod));
+                    }
+                }
+            }
 
             if (deletingHigherOrderContextWithLowerAlreadyDeleted()) {
                 result.recordNotApplicable();
@@ -113,7 +123,7 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
             boolean skipDeltaExecution;
             if (projCtx.isBroken() && !ObjectDelta.isDelete(projectionDelta)) {
                 LOGGER.trace("Ignoring non-delete delta for broken context {}", projCtx.getKey());
-                skipDeltaExecution = true;
+                skipDeltaExecution = true; // TODO what about repo-only deltas (e.g. setting policy statements)?
             } else {
                 skipDeltaExecution = ObjectDelta.isEmpty(projectionDelta);
             }
@@ -316,7 +326,7 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
     /**
      * Make sure that the account is linked (or unlinked) as needed.
      */
-    private void updateLinks(OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void updateLinks(OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext == null || !focusContext.represents(FocusType.class)) {
             LOGGER.trace("Missing or non-FocusType focus context, not updating the links");

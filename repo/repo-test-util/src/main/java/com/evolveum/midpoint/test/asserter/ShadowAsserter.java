@@ -162,6 +162,26 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertSynchronizationSituationDescriptionUpdatedButNotFull() {
+        return assertSynchronizationSituationDescriptionUpdated(false);
+    }
+
+    private ShadowAsserter<RA> assertSynchronizationSituationDescriptionUpdated(boolean full) {
+        ShadowType shadow = getObjectable();
+        SynchronizationSituationDescriptionType desc = ShadowUtil.getLastSyncSituationDescription(shadow);
+        assertThat(desc).as("synchronization situation description").isNotNull();
+        assertThat(desc.getSituation())
+                .withFailMessage("situation in description differs from the one in shadow")
+                .isEqualTo(shadow.getSynchronizationSituation());
+        assertThat(desc.getTimestamp())
+                .withFailMessage("timestamp in description differs from the one in shadow")
+                .isEqualTo(full ? shadow.getFullSynchronizationTimestamp() : shadow.getSynchronizationTimestamp());
+        assertThat(desc.isFull())
+                .as("'full' flag in situation description")
+                .isEqualTo(full);
+        return this;
+    }
+
     public ShadowAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
         ActivationType activation = getActivation();
         if (activation == null) {

@@ -67,6 +67,7 @@ public class Clockwork {
     private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 
     private static final String OP_RUN = Clockwork.class.getName() + ".run";
+    private static final String OP_RUN_WITH_CONFLICT_DETECTION = Clockwork.class.getName() + ".runWithConflictDetection";
     private static final String OP_WRITE_SIMULATION_DATA = Clockwork.class.getName() + ".writeSimulationData";
 
     @Autowired private Projector projector;
@@ -125,19 +126,20 @@ public class Clockwork {
      * It reports such states via the conflictResolutionContext parameter.
      */
     <F extends ObjectType> HookOperationMode runWithConflictDetection(LensContext<F> context,
-            ClockworkConflictResolver.Context conflictResolutionContext, Task task, OperationResult result)
+            ClockworkConflictResolver.Context conflictResolutionContext, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        context.setStartedIfNotYet();
-        context.updateSystemConfiguration(result);
-
-        LOGGER.trace("Running clockwork for context {}", context);
-        context.checkConsistenceIfNeeded();
-
-        context.resetClickCounter();
-
+        OperationResult result = parentResult.createSubresult(OP_RUN_WITH_CONFLICT_DETECTION);
         try {
+            context.setStartedIfNotYet();
+            context.updateSystemConfiguration(result);
+
+            LOGGER.trace("Running clockwork for context {}", context);
+            context.checkConsistenceIfNeeded();
+
+            context.resetClickCounter();
+
             context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
             clockworkConflictResolver.createConflictWatcherOnStart(context);
             enterCaches();
@@ -171,19 +173,25 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
-            writeFullSimulationData(context, task, result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
+
+            result.close();
+            writeFullSimulationData(context, task, result, parentResult);
         }
     }
 
-    private void writeFullSimulationData(LensContext<?> context, Task task, OperationResult parentResult) {
+    private void writeFullSimulationData(
+            LensContext<?> context, Task task, OperationResult resultToRecord, OperationResult parentResult) {
+        assert resultToRecord.isClosed();
         SimulationTransaction transactionContext = task.getSimulationTransaction();
         if (!task.isExecutionFullyPersistent() && transactionContext != null) {
             OperationResult result = parentResult.createMinorSubresult(OP_WRITE_SIMULATION_DATA);
             try {
-                transactionContext.writeSimulationData(FullOperationSimulationDataImpl.with(context), task, result);
+                transactionContext.writeSimulationData(
+                        FullOperationSimulationDataImpl.with(context, resultToRecord),
+                        task, result);
             } catch (Throwable t) {
                 result.recordException(t);
                 throw t;

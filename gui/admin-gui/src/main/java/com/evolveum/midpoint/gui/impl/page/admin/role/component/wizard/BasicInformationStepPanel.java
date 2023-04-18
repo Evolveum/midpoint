@@ -27,15 +27,15 @@ import org.apache.wicket.util.visit.ClassVisitFilter;
 /**
  * @author lskublik
  */
-@PanelType(name = "roleWizard-basic")
-@PanelInstance(identifier = "roleWizard-basic",
+@PanelType(name = "arw-basic")
+@PanelInstance(identifier = "arw-basic",
         applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<FocusDetailsModels<RoleType>> {
 
-    public static final String PANEL_TYPE = "roleWizard-basic";
+    public static final String PANEL_TYPE = "arw-basic";
 
     public BasicInformationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);
@@ -91,5 +91,10 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Focus
             return true;
         }
         return itemWrapper.isMandatory();
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
     }
 }

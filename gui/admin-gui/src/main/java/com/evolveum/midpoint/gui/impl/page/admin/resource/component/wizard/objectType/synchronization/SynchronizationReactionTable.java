@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -37,8 +39,9 @@ public abstract class SynchronizationReactionTable extends AbstractResourceWizar
 
     public SynchronizationReactionTable(
             String id,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, valueModel, SynchronizationReactionType.class);
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            ContainerPanelConfigurationType config) {
+        super(id, valueModel, config, SynchronizationReactionType.class);
     }
 
     @Override
@@ -87,6 +90,8 @@ public abstract class SynchronizationReactionTable extends AbstractResourceWizar
                 return panel;
             }
         });
+
+        columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }

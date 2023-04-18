@@ -11,17 +11,23 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -82,14 +88,14 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private static final String ID_IMPORT = "import";
     private static final String ID_RECONCILIATION = "reconciliation";
     private static final String ID_LIVE_SYNC = "liveSync";
+    private static final String ID_SIMULATION = "simulation";
     private static final String ID_TOTALS = "totals";
 
-    private final ShadowKindType kind;
-    private final String intent;
-    private final QName objectClass;
+    private static ShadowKindType kind;
+    private static String intent;
+    private static QName objectClass;
 
     private String searchMode;
-//    private SelectableBeanObjectDataProvider<ShadowType> provider;
 
     IModel<PrismObject<ResourceType>> resourceModel;
 
@@ -98,11 +104,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel, QName objectClass,
             ShadowKindType kind, String intent, String searchMode, ContainerPanelConfigurationType config) {
         super(id);
-        this.kind = kind;
+        ResourceContentPanel.kind = kind;
         this.searchMode = searchMode;
         this.resourceModel = resourceModel;
-        this.intent = intent;
-        this.objectClass = objectClass;
+        ResourceContentPanel.intent = intent;
+        ResourceContentPanel.objectClass = objectClass;
         this.config = config;
     }
 
@@ -116,20 +122,20 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         initLayout();
     }
 
-    public ShadowKindType getKind() {
-        return kind;
-    }
-
-    public String getIntent() {
-        return intent;
-    }
-
     public IModel<PrismObject<ResourceType>> getResourceModel() {
         return resourceModel;
     }
 
-    public QName getObjectClass() {
+    public static QName getObjectClass() {
         return objectClass;
+    }
+
+    public static ShadowKindType getKind() {
+        return kind;
+    }
+
+    public static String getIntent() {
+        return intent;
     }
 
     ResourceObjectDefinition createAttributeSearchItemWrappers() {
@@ -151,7 +157,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ResourceObjectDefinition getDefinitionByKind() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
-            warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            if (WebComponentUtil.isTemplateCategory(resourceModel.getObject().asObjectable())) {
+                warn("No schema found in resource.");
+            } else {
+                warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            }
             return null;
         }
         String intent = getIntent();
@@ -166,7 +176,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ResourceObjectDefinition getDefinitionByObjectClass() throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = getRefinedSchema();
         if (refinedSchema == null) {
-            warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            if (WebComponentUtil.isTemplateCategory(resourceModel.getObject().asObjectable())) {
+                warn("No schema found in resource.");
+            } else {
+                warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+            }
             return null;
         }
         return refinedSchema.findDefinitionForObjectClass(getObjectClass());
@@ -239,6 +253,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                customizeProvider(provider);
                 return provider;
             }
 
@@ -268,6 +283,18 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 return createModelOptions();
             }
 
+            @Override
+            protected List<Component> createToolbarButtonsList(String buttonId) {
+                List<Component> buttonsList = new ArrayList<>();
+                buttonsList.addAll(ResourceContentPanel.this.createToolbarButtonsList(buttonId));
+                buttonsList.addAll(super.createToolbarButtonsList(buttonId));
+                return buttonsList;
+            }
+
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+                return ResourceContentPanel.this.isShadowDetailsEnabled(rowModel);
+            }
         };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {
@@ -281,7 +308,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         shadowListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES);
         add(shadowListPanel);
 
-        Label label = new Label(ID_LABEL, "Nothing to show. Select intent to search");
+        Label label = new Label(ID_LABEL, createStringResource("ResourceContentPanel.message.nothingToShow"));
         add(label);
         label.setOutputMarkupId(true);
         label.add(new VisibleEnableBehaviour() {
@@ -295,29 +322,139 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         WebMarkupContainer taskButtonsContainer = new WebMarkupContainer(ID_TASK_BUTTONS_CONTAINER);
         taskButtonsContainer.setOutputMarkupId(true);
-        taskButtonsContainer.add(new VisibleBehaviour(() -> isTaskButtonsContainerVisible()));
+        taskButtonsContainer.add(new VisibleBehaviour(this::isTaskButtonsContainerVisible));
         add(taskButtonsContainer);
 
         initButton(
                 ID_IMPORT,
-                "Import",
+                "ResourceContentPanel.button.import",
                 " fa-download",
                 SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
                 taskButtonsContainer);
         initButton(
                 ID_RECONCILIATION,
-                "Reconciliation",
+                "ResourceContentPanel.button.reconciliation",
                 " fa-link",
                 SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
                 taskButtonsContainer);
         initButton(
                 ID_LIVE_SYNC,
-                "Live Sync",
+                "ResourceContentPanel.button.liveSync",
                 " fa-sync-alt",
                 SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
                 taskButtonsContainer);
 
+        initSimulationButton(
+                ID_SIMULATION,
+                "ResourceContentPanel.button.simulation",
+                " fa-flask",
+                taskButtonsContainer);
+
         initCustomLayout();
+    }
+
+    protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+        return true;
+    }
+
+    private void initSimulationButton(String id, String label, String icon, WebMarkupContainer taskButtonsContainer) {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        ObjectQuery existingTasksQuery = getExistingTasksQuery(
+                SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+                SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
+                SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
+        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+        List<PrismObject<TaskType>> tasksList = WebModelServiceUtils.searchObjects(TaskType.class, existingTasksQuery,
+                result, getPageBase());
+
+        List<PrismObject<TaskType>> simulatedTasks = getSimulatedTasks(tasksList);
+
+        InlineMenuItem item = new InlineMenuItem(
+                getPageBase().createStringResource("ResourceContentResourcePanel.showExisting")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        List<TaskType> filteredByKindIntentTasks = getTasksForKind(simulatedTasks);
+                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), null);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.import")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(), true);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.reconciliation")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(), true);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentPanel.button.simulation.liveSync")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(), true);
+                    }
+                };
+            }
+        };
+        items.add(item);
+
+        DropdownButtonPanel button = new DropdownButtonPanel(id,
+                new DropdownButtonDto(String.valueOf(simulatedTasks.size()), icon, getString(label), items)) {
+            @Override
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-left";
+            }
+        };
+        taskButtonsContainer.add(button);
+    }
+
+    protected Collection<? extends Component> createToolbarButtonsList(String buttonId) {
+        return new ArrayList<>();
+    }
+
+    protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
     }
 
     protected boolean isTaskButtonsContainerVisible() {
@@ -377,7 +514,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, archetypeOid);
+                        newTaskPerformed(target, archetypeOid, false);
                     }
                 };
             }
@@ -385,7 +522,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         items.add(item);
 
         DropdownButtonPanel button = new DropdownButtonPanel(id,
-                new DropdownButtonDto(String.valueOf(tasksList.size()), icon, label, items)) {
+                new DropdownButtonDto(String.valueOf(tasksList.size()), icon, getString(label), items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-left";
@@ -395,13 +532,29 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid) {
-        List<ObjectReferenceType> archetypeRef = Arrays.asList(
+    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid, boolean isSimulation) {
+        List<ObjectReferenceType> archetypeRef = List.of(
                 new ObjectReferenceType()
                         .oid(archetypeOid)
                         .type(ArchetypeType.COMPLEX_TYPE));
         try {
+
+            if (Objects.isNull(getObjectClass())) {
+                updateDefinitions();
+            }
+
             TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getResourceModel().getObject(), archetypeRef);
+
+            if (isSimulation) {
+                newTask.getActivity().beginExecution()
+                        .mode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                        .beginConfigurationToUse().predefined(PredefinedConfigurationType.DEVELOPMENT);
+                newTask.getActivity()
+                        .beginReporting()
+                        .beginSimulationResult()
+                        .beginDefinition()
+                        .useOwnPartitionForProcessedObjects(false);
+            }
 
             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
         } catch (SchemaException ex) {
@@ -424,15 +577,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid) {
         String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
         PageParameters pageParameters = new PageParameters();
+
         if (StringUtils.isNotEmpty(taskCollectionViewName)) {
             pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
-            PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
-            getPageBase().setResponsePage(pageTasks);
-        } else {
-            PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
-            getPageBase().setResponsePage(pageTasks);
         }
 
+        PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
+        getPageBase().setResponsePage(pageTasks);
     }
 
     private String getTaskCollectionViewNameByArchetypeOid(String archetypeOid) {
@@ -500,6 +651,22 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return tasksForKind;
     }
 
+    private List<PrismObject<TaskType>> getSimulatedTasks(List<PrismObject<TaskType>> tasks) {
+        List<PrismObject<TaskType>> simulatedTasks = new ArrayList<>();
+        for (PrismObject<TaskType> task : tasks) {
+            if (task == null) {
+                continue;
+            }
+            @NotNull TaskType bean = task.asObjectable();
+            if (bean.getActivity() != null
+                    && bean.getActivity().getReporting() != null
+                    && bean.getActivity().getReporting().getSimulationResult() != null) {
+                simulatedTasks.add(task);
+            }
+        }
+        return simulatedTasks;
+    }
+
     protected void initCustomLayout() {
         // Nothing to do, for subclass extension
     }
@@ -536,11 +703,10 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     protected abstract ModelExecuteOptions createModelOptions();
 
-    private ObjectQuery getExistingTasksQuery(String archetypeRefOid) {
+    private ObjectQuery getExistingTasksQuery(String... archetypeRefOids) {
         return getPageBase().getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
-                .and()
-                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOid)
+                .and().item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOids)
                 .build();
     }
 
@@ -551,4 +717,26 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     public ShadowTablePanel getTable() {
         return (ShadowTablePanel) get(ID_TABLE);
     }
+
+    protected void updateDefinitions() {
+        LOGGER.trace("Trying to update definitions for kind: {}, intent: {}", getKind(), getIntent());
+        ResourceObjectDefinition objectClassDef = null;
+        try {
+            objectClassDef = getDefinitionByKind();
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
+        }
+        if (objectClassDef == null) {
+            LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
+        } else {
+            objectClass = objectClassDef.getTypeName();
+            if (getIntent() == null) {
+                ResourceObjectTypeDefinition typeDefinition = objectClassDef.getTypeDefinition();
+                if (typeDefinition != null) {
+                    intent = typeDefinition.getIntent();
+                }
+            }
+        }
+    }
+
 }

@@ -4,11 +4,11 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<role oid="12345111-1111-2222-1111-121212111111"
+<role oid="528f5ebb-5182-4f30-a975-d3531112ed4a"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Judge</name>
     <description>Role with role exclusions</description>
     <assignment>
-        <targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/>         <!-- metarole-criminal-exclusion -->
+        <targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/> <!-- metarole-criminal-exclusion -->
     </assignment>
 </role>

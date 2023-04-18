@@ -53,7 +53,11 @@
                     </code>
                 </script>
             </expression>
-            <use>innerJoin</use>
+            <resultHandling>
+                <!-- "inner join" -->
+                <multipleValues>splitParentRow</multipleValues>
+                <noValues>removeParentRow</noValues>
+            </resultHandling>
         </subreport>
     </objectCollection>
 </report>

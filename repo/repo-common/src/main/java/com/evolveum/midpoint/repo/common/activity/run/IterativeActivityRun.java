@@ -447,11 +447,13 @@ public abstract class IterativeActivityRun<
         BucketProcessingRecord record = new BucketProcessingRecord(getLiveItemProcessing());
 
         beforeBucketProcessing(result);
-        simulationSupport.openSimulationTransaction(result);
 
         setExpectedInCurrentBucket(result);
 
         coordinator = setupCoordinatorAndWorkerThreads();
+
+        var oldTx = getRunningTask().setSimulationTransaction(
+                simulationSupport.openSimulationTransaction(result));
         try {
             iterateOverItemsInBucket(result);
         } finally {
@@ -460,6 +462,7 @@ public abstract class IterativeActivityRun<
             //
             // But overall, it is necessary to do this here in order to avoid endless waiting if any exception occurs.
             coordinator.finishProcessing(result);
+            getRunningTask().setSimulationTransaction(oldTx);
         }
 
         afterBucketProcessing(result);

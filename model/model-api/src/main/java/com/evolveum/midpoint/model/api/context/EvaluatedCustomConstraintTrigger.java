@@ -11,6 +11,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EvaluatedCustomConstraintTrigger extends EvaluatedPolicyRuleTrigger<CustomPolicyConstraintType> {
 
@@ -23,7 +24,8 @@ public class EvaluatedCustomConstraintTrigger extends EvaluatedPolicyRuleTrigger
     }
 
     @Override
-    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
+    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(
+            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
         EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
         fillCommonContent(rv);
         return rv;

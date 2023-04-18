@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Portions Copyright (C) 2017-2022 Evolveum and contributors
+# Portions Copyright (C) 2017-2023 Evolveum and contributors
 #
 # This work is dual-licensed under the Apache License 2.0
 # and European Union Public License. See LICENSE file for details.
@@ -166,6 +166,7 @@ if [ "${1}" = "init-native" ]; then
   fi
   exit 0
 fi
+# end of init-native
 
 mkdir -p "${MIDPOINT_HOME}/log"
 

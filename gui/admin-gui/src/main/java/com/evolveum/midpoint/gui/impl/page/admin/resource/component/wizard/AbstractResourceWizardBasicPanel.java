@@ -14,8 +14,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -35,13 +37,8 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
     }
 
     protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-        if (!isSavedAfterWizard()) {
-            onExitPerformedAfterValidate(target);
-            return;
-        }
         OperationResult result = superHelper.onSaveObjectPerformed(target);
         if (result != null && !result.isError()) {
-            WebComponentUtil.createToastForUpdateObject(target, ResourceType.COMPLEX_TYPE);
             onExitPerformedAfterValidate(target);
         } else {
             target.add(getFeedback());
@@ -64,24 +61,9 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
         superHelper.onExitPerformed(target);
     }
 
-    private boolean isSavedAfterWizard() {
-        return superHelper.isSavedAfterWizard();
-    }
-
     @Override
     protected IModel<String> getSubmitLabelModel() {
-        if (isSavedAfterWizard()) {
-            return getPageBase().createStringResource(getSaveLabelKey());
-        }
-        return getPageBase().createStringResource("WizardPanel.confirm");
-    }
-
-    @Override
-    protected String getSubmitIcon() {
-        if (isSavedAfterWizard()) {
-            return super.getSubmitIcon();
-        }
-        return "fa fa-check";
+        return getPageBase().createStringResource(getSaveLabelKey());
     }
 
     @Override
@@ -107,5 +89,18 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-8";
+    }
+
+    protected ContainerPanelConfigurationType getConfiguration(){
+        if (StringUtils.isEmpty(getPanelType())) {
+            return null;
+        }
+        return WebComponentUtil.getContainerConfiguration(
+                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
+                getPanelType());
+    }
+
+    protected String getPanelType() {
+        return null;
     }
 }

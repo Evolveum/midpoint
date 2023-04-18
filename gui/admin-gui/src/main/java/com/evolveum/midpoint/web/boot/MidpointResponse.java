@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import org.apache.catalina.connector.OutputBuffer;
 import org.apache.catalina.connector.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,24 +70,38 @@ public class MidpointResponse extends Response {
                 } else if (StringUtils.isBlank(contextPath)) {
                     if (value.startsWith("/")) {
                         value = publicUrlPrefix + value;
-                    } else {
+                    } else if (isUrlThisApplication(value)){
                         String partAfterSchema = value.substring(value.indexOf("://") + 3);
                         value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
                     }
                 } else if (value.contains(contextPath + "/")) {
                     if (value.startsWith(contextPath)) {
                         value = publicUrlPrefix + value.substring(contextPath.length());
-                    } else if (value.startsWith("/")){
+                    } else if (value.startsWith("/")) {
                         value = publicUrlPrefix + value;
-                    } else {
+                    } else if (isUrlThisApplication(value)) {
                         String partAfterHostname = value.substring(value.indexOf("://") + 3);
                         partAfterHostname = partAfterHostname.substring(partAfterHostname.indexOf("/"));
-                        value = publicUrlPrefix + partAfterHostname.substring(partAfterHostname.indexOf(contextPath) + contextPath.length());
+                        value = publicUrlPrefix +
+                                partAfterHostname.substring(
+                                        partAfterHostname.indexOf(contextPath) + contextPath.length());
                     }
                 }
             }
         }
         super.setHeader(name, value);
+    }
+
+    private boolean isUrlThisApplication(String url) {
+        if (StringUtils.isEmpty(url)) {
+            return true;
+        }
+
+        String applicationUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        if (StringUtils.isEmpty(applicationUrl)) {
+            return true;
+        }
+        return url.startsWith(applicationUrl);
     }
 
     private String getPublicUrlPrefix() {

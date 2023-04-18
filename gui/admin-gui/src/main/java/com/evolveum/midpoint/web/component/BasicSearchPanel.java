@@ -83,10 +83,6 @@ public class BasicSearchPanel<T extends Serializable> extends BasePanel<T> {
         add(searchText);
     }
 
-    private Component getFeedbackPanel() {
-        return getPageBase().getFeedbackPanel();
-    }
-
     protected IModel<String> createSearchTextModel() {
         return (IModel) getModel();
     }

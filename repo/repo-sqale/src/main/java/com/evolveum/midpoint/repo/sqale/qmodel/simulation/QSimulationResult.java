@@ -53,7 +53,7 @@ public class QSimulationResult extends QAssignmentHolder<MSimulationResult> {
     public final DateTimePath<Instant> endTimestamp = createInstant("endTimestamp", END_TIMESTAMP);
 
     public final UuidPath rootTaskRefTargetOid =
-            createUuid("rootTaskTargetOid", ROOT_TASK_REF_TARGET_OID);
+            createUuid("rootTaskRefTargetOid", ROOT_TASK_REF_TARGET_OID);
     public final EnumPath<MObjectType> rootTaskRefTargetType =
             createEnum("rootTaskRefTargetType", MObjectType.class, ROOT_TASK_REF_TARGET_TYPE);
     public final NumberPath<Integer> rootTaskRefRelationId =

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.util.List;
+
 /**
  * @author skublik
  */
@@ -29,9 +31,9 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     private static RemoveUnusedSecurityFilterPublisher instance;
 
-    public void publishCustomEvent(final MidpointAuthentication mpAuthentication) {
-        LOGGER.trace("Publishing RemoveUnusedSecurityFilterEvent event. With authentication: " + mpAuthentication);
-        RemoveUnusedSecurityFilterEventImpl customSpringEvent = new RemoveUnusedSecurityFilterEventImpl(this, mpAuthentication);
+    public void publishCustomEvent(final List<AuthModule> modules) {
+        LOGGER.trace("Publishing RemoveUnusedSecurityFilterEvent event. With authentication modules: " + modules);
+        RemoveUnusedSecurityFilterEventImpl customSpringEvent = new RemoveUnusedSecurityFilterEventImpl(this, modules);
         applicationEventPublisher.publishEvent(customSpringEvent);
     }
 
@@ -46,16 +48,16 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     private static class RemoveUnusedSecurityFilterEventImpl extends RemoveUnusedSecurityFilterEvent {
 
-        private final MidpointAuthentication mpAuthentication;
+        private final List<AuthModule> modules;
 
-        RemoveUnusedSecurityFilterEventImpl(Object source, MidpointAuthentication mpAuthentication) {
+        RemoveUnusedSecurityFilterEventImpl(Object source, List<AuthModule> modules) {
             super(source);
-            this.mpAuthentication = mpAuthentication;
+            this.modules = modules;
         }
 
         @Override
-        public MidpointAuthentication getMpAuthentication() {
-            return mpAuthentication;
+        public List<AuthModule> getAuthModules() {
+            return modules;
         }
     }
 }

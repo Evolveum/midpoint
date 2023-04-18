@@ -130,8 +130,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_NOT_SHOW_EMPTY_FIELDS = "fa fa-square";
     public static final String CLASS_ICON_SHOW_METADATA = "fa fa-asterisk";
     public static final String CLASS_ICON_SUPERUSER = "fa fa-shield-alt";
-    public static final String CLASS_ICON_NO_OBJECTS = "fa fa-times";
-    public static final String CLASS_ICON_ACTIVATION_ACTIVE = "fa fa-check";
+    public static final String CLASS_ICON_NO_OBJECTS = "fa fa-fw fa-times";
+    public static final String CLASS_ICON_ACTIVATION_ACTIVE = "fa fa-fw fa-check";
     public static final String CLASS_ICON_ACTIVATION_INACTIVE = "fa fa-times";
     public static final String CLASS_ICON_RESOURCE_BROKEN = "fa fa-exclamation";
     public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
@@ -143,6 +143,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer-alt";
     public static final String CLASS_ICON_COLLAPSE_CONTAINER = "fa fa-caret-down fa-lg";
     public static final String CLASS_ICON_EXPAND_CONTAINER = "fa fa-caret-right fa-lg";
+    public static final String CLASS_ICON_TOOGLE = "fa fa-solid fa-toggle-off";
 
     public static final String CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED = "fa fa-check-circle text-success";
@@ -245,6 +246,7 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_SIGN_OUT = "fa fa-sign-out-alt";
     public static final String CLASS_ICON_CLAIM = "far fa-paper-plane";
+    public static final String CLASS_ICON_RELEASE = "fa fa-fw fa-repeat";
     public static final String CLASS_ICON_TEXT = "fa fa-text-width";
 
     public static final String CLASS_ICON_TRASH = "far fa-trash-alt";
@@ -267,6 +269,7 @@ public class GuiStyleConstants {
     public static final String CLASS_TASK_STATISTICS_ICON = "fa fa-chart-line";
     public static final String CLASS_TASK_ERRORS_ICON = "fa fa-exclamation-circle";
     public static final String CLASS_TASK_ACTIVITY_ICON = "fa fa-cog";
+    public static final String CLASS_TASK_EXECUTION_ICON = "fa fa-gears";
 
     public static final String CLASS_GROUP_ICON = "fa fa-users";
     public static final String CLASS_APPLICABLE_POLICY_ICON = "fa fa-share-alt";

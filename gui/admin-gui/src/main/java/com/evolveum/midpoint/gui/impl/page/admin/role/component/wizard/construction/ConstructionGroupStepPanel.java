@@ -11,12 +11,14 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,7 +26,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -65,18 +66,18 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@PanelType(name = "roleWizard-construction-group")
-@PanelInstance(identifier = "roleWizard-construction-group",
-        applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+@PanelType(name = "arw-construction-associations")
+@PanelInstance(identifier = "arw-construction-associations",
+        applicableForType = AbstractRoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
-public class ConstructionGroupStepPanel
-        extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel.AssociationWrapper, ShadowType, FocusDetailsModels<RoleType>, ConstructionType> {
+public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
+        extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel<AR>.AssociationWrapper, ShadowType, FocusDetailsModels<AR>, ConstructionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-group";
+    public static final String PANEL_TYPE = "arw-construction-associations";
 
     private static final String ID_FOOTER_FRAGMENT = "footerFragment";
     private static final String ID_SEARCH_ON_RESOURCE_BUTTON = "searchOnResourceButton";
@@ -84,7 +85,7 @@ public class ConstructionGroupStepPanel
     private final IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
     private IModel<PrismContainerValueWrapper<ConstructionType>> valueModel;
 
-    public ConstructionGroupStepPanel(FocusDetailsModels<RoleType> model,
+    public ConstructionGroupStepPanel(FocusDetailsModels<AR> model,
             IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(model);
         this.assignmentModel = assignmentModel;
@@ -92,7 +93,7 @@ public class ConstructionGroupStepPanel
 
     @Override
     protected void onBeforeRender() {
-        if (isSkipInfoVisible()) {
+        if (nonExistAssociations()) {
             getPageBase().info(getPageBase().createStringResource("ConstructionGroupStepPanel.skipStep").getString());
         }
         super.onBeforeRender();
@@ -105,7 +106,7 @@ public class ConstructionGroupStepPanel
         return valueModel;
     }
 
-    private boolean isSkipInfoVisible() {
+    private boolean nonExistAssociations() {
         List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
@@ -149,10 +150,12 @@ public class ConstructionGroupStepPanel
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value) {
+    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value, AjaxRequestTarget target) {
         if (getAssociationRef() == null || getAssociationRef().getValue() == null) {
             return;
         }
+
+        refreshSubmitAndNextButton(target);
 
         ShadowType shadow = value.getValue();
         if (value.isSelected()) {
@@ -311,6 +314,11 @@ public class ConstructionGroupStepPanel
         });
     }
 
+    @Override
+    protected boolean skipSearch() {
+        return nonExistAssociations();
+    }
+
     public class AssociationWrapper implements Serializable {
 
         private final String oid;
@@ -328,7 +336,7 @@ public class ConstructionGroupStepPanel
 
         @Override
         public boolean equals(Object obj) {
-            if (!(obj instanceof AssociationWrapper)) {
+            if (!(obj instanceof ConstructionGroupStepPanel.AssociationWrapper)) {
                 return false;
             }
             AssociationWrapper associationWrapper = (AssociationWrapper) obj;
@@ -375,7 +383,7 @@ public class ConstructionGroupStepPanel
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
         Fragment fragment = new Fragment(id, ID_FOOTER_FRAGMENT, ConstructionGroupStepPanel.this);
-        fragment.add(new AjaxLink<>(ID_SEARCH_ON_RESOURCE_BUTTON) {
+        AjaxLink button = new AjaxLink<>(ID_SEARCH_ON_RESOURCE_BUTTON) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -401,7 +409,9 @@ public class ConstructionGroupStepPanel
                     target.add(getFeedback());
                 }
             }
-        });
+        };
+        button.add(new VisibleEnableBehaviour(() -> true, () -> !nonExistAssociations()));
+        fragment.add(button);
         return fragment;
     }
 }

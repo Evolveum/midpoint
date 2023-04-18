@@ -721,26 +721,6 @@ public class LensUtil {
         return objectDeltaOp;
     }
 
-    public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        String ruleName = rule.getName();
-        LOGGER.debug("Policy rule {} triggered: {}", ruleName, triggers);
-        LOGGER.trace("Policy rule {} triggered:\n{}", ruleName, DebugUtil.debugDumpLazily(triggers, 1));
-
-        ((EvaluatedPolicyRuleImpl) rule).addTriggers(triggers);
-    }
-
-    public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
-             PolicyExceptionType policyException) {
-
-        LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering", rule.getName());
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTriggers:\n{}\nException:\n{}",
-                    rule.getName(), DebugUtil.debugDump(triggers, 1), policyException);
-        }
-        ((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
-    }
-
-
     public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, String humanReadableName)
             throws ObjectAlreadyExistsException {
         if (iteration > maxIterations) {

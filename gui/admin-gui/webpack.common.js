@@ -42,7 +42,14 @@ module.exports = {
                         },
                     },
                     './node_modules/postcss-loader',
-                    './node_modules/sass-loader',
+                    {
+                        loader: "./node_modules/sass-loader",
+                        options: {
+                            sassOptions: {
+                                outputStyle: "expanded",
+                            }
+                        },
+                    },
                 ],
             },
             {

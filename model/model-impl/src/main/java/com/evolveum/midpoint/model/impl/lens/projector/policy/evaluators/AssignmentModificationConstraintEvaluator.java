@@ -7,7 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.Collection;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger.EvaluatedAssignmentModificationTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -17,34 +31,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
-import static java.util.Collections.singletonList;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 @Component
 public class AssignmentModificationConstraintEvaluator
-        extends ModificationConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
+        extends ModificationConstraintEvaluator
+        <AssignmentModificationPolicyConstraintType, EvaluatedAssignmentModificationTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentModificationConstraintEvaluator.class);
 
@@ -53,7 +50,7 @@ public class AssignmentModificationConstraintEvaluator
     private static final String OP_EVALUATE = AssignmentModificationConstraintEvaluator.class.getName() + ".evaluate";
 
     @Override
-    public <O extends ObjectType> EvaluatedModificationTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedAssignmentModificationTrigger> evaluate(
             @NotNull JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -65,12 +62,12 @@ public class AssignmentModificationConstraintEvaluator
         try {
             if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
                 LOGGER.trace("Not an AssignmentPolicyRuleEvaluationContext: {}", rctx.getClass());
-                return null;
+                return List.of();
             }
             AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             if (!ctx.isDirect()) {
                 LOGGER.trace("Assignment is indirect => not triggering");
-                return null;
+                return List.of();
             }
             AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
             if (!operationMatches(constraint, ctx.isAdded, ctx.isKept, ctx.isDeleted) ||
@@ -78,16 +75,17 @@ public class AssignmentModificationConstraintEvaluator
                     !pathsMatch(constraint, ctx) ||
                     !expressionPasses(constraintElement, ctx, result)) {
                 // Logging is done inside matcher methods
-                return null;
+                return List.of();
             }
 
             // TODO check modifications
-            EvaluatedModificationTrigger rv = new EvaluatedModificationTrigger(PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
+            EvaluatedAssignmentModificationTrigger rv = new EvaluatedAssignmentModificationTrigger(
+                    PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
                     constraint, ctx.evaluatedAssignment.getTarget(),
                     createMessage(constraintElement, ctx, result),
                     createShortMessage(constraintElement, ctx, result));
             result.addReturn("trigger", rv.toDiagShortcut());
-            return rv;
+            return List.of(rv);
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;
@@ -136,7 +134,7 @@ public class AssignmentModificationConstraintEvaluator
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage builtInMessage;
 
-        if (relation == null || relation == prismContext.getDefaultRelation()) {
+        if (prismContext.isDefaultRelation(relation)) {
             builtInMessage = new LocalizableMessageBuilder()
                     .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
                     .arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))

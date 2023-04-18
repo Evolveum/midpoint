@@ -79,6 +79,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
     private static final String I_DEFAULT = "default";
     private static final String I_MAIL_GROUP = "mail-group";
     private static final String I_SECURITY_GROUP = "security-group";
+    private static final String I_NONSENSE = "nonsense"; // does not exist in the definition
 
     /**
      * Checks if the classification is executed according to the specification
@@ -136,6 +137,59 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 I_EMPLOYEE,
                 I_DEMO,
                 false); // reclassification is disabled because of the production config
+
+        // In all the following cases, the reclassification from I_NONSENSE must occur, because nonsense type should
+        // be considered as unclassified.
+
+        // The production object type with production task
+        checkClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                PRODUCTION,
+                ACCOUNT,
+                "e_test100_11",
+                I_EMPLOYEE,
+                I_NONSENSE,
+                I_EMPLOYEE);
+
+        // The production object type with "simulated production" task
+        checkClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_PRODUCTION,
+                ACCOUNT,
+                "e_test100_12",
+                I_EMPLOYEE,
+                I_NONSENSE,
+                I_EMPLOYEE);
+
+        // The production object type with "simulated development" task
+        checkClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_DEVELOPMENT,
+                ACCOUNT,
+                "e_test100_13",
+                I_EMPLOYEE,
+                I_NONSENSE,
+                I_EMPLOYEE);
+
+        // The production object type with "shadow-simulated production" task
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_SHADOWS_PRODUCTION,
+                ACCOUNT,
+                "e_test100_14",
+                I_EMPLOYEE,
+                I_NONSENSE,
+                true);
+
+        // The production object type with "shadow-simulated development" task
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_SHADOWS_DEVELOPMENT,
+                ACCOUNT,
+                "e_test100_15",
+                I_EMPLOYEE,
+                I_NONSENSE,
+                true);
     }
 
     /**
@@ -411,10 +465,15 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
         try {
             task.setSimulationTransaction(simulationTransactionMock);
 
-            changeIntentAndCheck(account, resource, null, null, task, result);
+            // When doing shadow management simulation, the would-be changes are returned in the shadow itself.
+            // Hence expected1 and expected2. See also 64bd2f31b421367f7e1610187e779c17ae1a228a/MID-8613.
+            String expected1 = taskExecutionMode.areShadowChangesSimulated() ? intentAfterCreation : null;
+            changeIntentAndCheck(account, resource, null, expected1, task, result);
             assertSimulatedIntentChange(simulationTransactionMock, null, intentAfterCreation);
 
-            changeIntentAndCheck(account, resource, changeTo, changeTo, task, result);
+            String expected2 = reclassificationExpected && taskExecutionMode.areShadowChangesSimulated() ?
+                    intentAfterCreation : changeTo;
+            changeIntentAndCheck(account, resource, changeTo, expected2, task, result);
             if (reclassificationExpected) {
                 assertSimulatedIntentChange(simulationTransactionMock, changeTo, intentAfterCreation);
             } else {

@@ -55,7 +55,7 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter<St
     }
 
     @Override
-    protected @NotNull String getNameOfModule() {
+    protected @NotNull String getModuleIdentifier() {
         return AuthenticationModuleNameConstants.CLUSTER;
     }
 

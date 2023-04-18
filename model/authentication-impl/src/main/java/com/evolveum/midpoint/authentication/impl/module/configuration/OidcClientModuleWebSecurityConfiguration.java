@@ -58,12 +58,12 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
         return configuration;
     }
 
-    private static OidcClientModuleWebSecurityConfiguration buildInternal(OidcAuthenticationModuleType modelType, String prefixOfSequence,
+    private static OidcClientModuleWebSecurityConfiguration buildInternal(OidcAuthenticationModuleType oidcModule, String prefixOfSequence,
                                                                     String publicHttpUrlPattern, ServletRequest request) {
         OidcClientModuleWebSecurityConfiguration configuration = new OidcClientModuleWebSecurityConfiguration();
-        build(configuration, modelType, prefixOfSequence);
+        build(configuration, oidcModule, prefixOfSequence);
 
-        List<OidcClientAuthenticationModuleType> clients = modelType.getClient();
+        List<OidcClientAuthenticationModuleType> clients = oidcModule.getClient();
         List<ClientRegistration> registrations = new ArrayList<>();
         clients.forEach(client -> {
 
@@ -89,7 +89,7 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
             redirectUri.pathSegment(
                     DEFAULT_PREFIX_OF_MODULE,
                     AuthUtil.stripSlashes(prefixOfSequence),
-                    AuthUtil.stripSlashes(modelType.getName()),
+                    AuthUtil.stripSlashes(getAuthenticationModuleIdentifier(oidcModule)),
                     AuthUtil.stripSlashes(RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX),
                     client.getRegistrationId());
             builder.redirectUri(redirectUri.toUriString());

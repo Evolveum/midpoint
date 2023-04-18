@@ -81,13 +81,18 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LOGGER.trace("Evaluating {} applicable rules", applicableRules.size());
-        RulesEvaluationContext globalCtx = new RulesEvaluationContext();
         List<ObjectPolicyRuleEvaluationContext<O>> contextsToEvaluate =
                 applicableRules.stream()
-                        .map(rule -> new ObjectPolicyRuleEvaluationContext<>(rule, globalCtx, elementContext, task))
+                        .map(rule -> new ObjectPolicyRuleEvaluationContext<>(rule, elementContext, task))
                         .collect(Collectors.toList());
         evaluateRules(contextsToEvaluate, result);
-        new PolicyStateRecorder().applyObjectState(elementContext, globalCtx.rulesToRecord);
+    }
+
+    @Override
+    void record(OperationResult result) throws SchemaException {
+        new PolicyStateRecorder().applyObjectState(
+                elementContext,
+                selectRulesToRecord(elementContext.getObjectPolicyRules()));
     }
 
     /** Evaluates object policy rules attached to the focus. */

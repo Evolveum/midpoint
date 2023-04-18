@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.certification.test;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
@@ -15,6 +17,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -102,6 +105,54 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner-manual.xml");
     protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
+
+    // report columns: certification definitions
+    static final int C_DEF_NAME = 0;
+    static final int C_DEF_OWNER = 1;
+    static final int C_DEF_CAMPAIGNS = 2;
+    static final int C_DEF_OPEN_CAMPAIGNS = 3;
+    static final int C_DEF_LAST_STARTED = 4;
+    static final int C_DEF_LAST_CLOSED = 5;
+
+    // report columns: certification campaigns
+    static final int C_CMP_NAME = 0;
+    static final int C_CMP_OWNER = 1;
+    static final int C_CMP_START = 2;
+    static final int C_CMP_FINISH = 3;
+    static final int C_CMP_CASES = 4;
+    static final int C_CMP_STATE = 5;
+    static final int C_CMP_ACTUAL_STAGE = 6;
+    static final int C_CMP_STAGE_CASES = 7;
+    static final int C_CMP_PERCENT_COMPLETE = 8;
+
+    // report columns: certification cases
+    static final int C_CASES_OBJECT = 0;
+    static final int C_CASES_TARGET = 1;
+    static final int C_CASES_CAMPAIGN = 2;
+    static final int C_CASES_REVIEWERS = 3;
+    static final int C_CASES_LAST_REVIEWED_ON = 4;
+    static final int C_CASES_REVIEWED_BY = 5;
+    static final int C_CASES_ITERATION = 6;
+    static final int C_CASES_IN_STAGE = 7;
+    static final int C_CASES_OUTCOME = 8;
+    static final int C_CASES_COMMENTS = 9;
+    static final int C_CASES_REMEDIED_ON = 10;
+
+    // report columns: certification decisions (work items)
+    static final int C_WI_OBJECT = 0;
+    static final int C_WI_TARGET = 1;
+    static final int C_WI_CAMPAIGN = 2;
+    static final int C_WI_ITERATION = 3;
+    static final int C_WI_STAGE_NUMBER = 4;
+    static final int C_WI_ORIGINAL_ASSIGNEE = 5;
+    static final int C_WI_DEADLINE = 6;
+    static final int C_WI_CURRENT_ASSIGNEES = 7;
+    static final int C_WI_ESCALATION = 8;
+    static final int C_WI_PERFORMER = 9;
+    static final int C_WI_OUTCOME = 10;
+    static final int C_WI_COMMENT = 11;
+    static final int C_WI_LAST_CHANGED = 12;
+    static final int C_WI_CLOSED = 13;
 
     protected DummyResource dummyResource;
     protected DummyResourceContoller dummyResourceCtl;
@@ -192,6 +243,15 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         recomputeFocus(RoleType.class, ROLE_REVIEWER_OID, initTask, initResult);
         recomputeFocus(RoleType.class, ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_OID, initTask, initResult);
         recomputeFocus(OrgType.class, ORG_SECURITY_TEAM_OID, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                OBJECT_COLLECTION_CERTIFICATION_CAMPAIGNS_ALL,
+                ARCHETYPE_REPORT,
+                ARCHETYPE_COLLECTION_REPORT,
+                REPORT_CERTIFICATION_DEFINITIONS,
+                REPORT_CERTIFICATION_CAMPAIGNS,
+                REPORT_CERTIFICATION_CASES,
+                REPORT_CERTIFICATION_WORK_ITEMS);
     }
 
     @NotNull
@@ -731,5 +791,11 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     @NotNull
     protected SearchResultList<PrismObject<AccessCertificationCampaignType>> getAllCampaigns(OperationResult result) throws SchemaException {
         return repositoryService.searchObjects(AccessCertificationCampaignType.class, null, null, result);
+    }
+
+    String currentYearFragment() {
+        // In some environments, the date format does not contain "2023" but only "23".
+        return String.valueOf(
+                (Year.now().getValue() % 100));
     }
 }

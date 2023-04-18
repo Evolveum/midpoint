@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,7 +32,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -322,14 +320,8 @@ public class TestPolicyRules extends AbstractLensTest {
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
-        List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedTargetPolicyRules(context, 7);
+        assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context,  null, 0);
-
-        EvaluatedPolicyRule evaluatedPolicyRule = evaluatedRules.get(0);
-        Collection<PolicyExceptionType> exceptions = evaluatedPolicyRule.getPolicyExceptions();
-        assertEquals("Wrong number of exceptions", 1, exceptions.size());
-        PolicyExceptionType policyException = exceptions.iterator().next();
-        assertEquals("Wrong rule name in policy exception", ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME, policyException.getRuleName());
 
         assertSerializable(context);
     }
@@ -658,7 +650,7 @@ public class TestPolicyRules extends AbstractLensTest {
         String messageSk = localizationService.translate(message, SLOVAK);
         System.out.println("Trigger message translated (US): " + messageUs);
         System.out.println("Trigger message translated (SK): " + messageSk);
-        assertEquals("Wrong US message", "Assignment of role \"Localized role\" (relation member) is to be added", messageUs);
+        assertEquals("Wrong US message", "Assignment of role \"Localized role\" (relation default) is to be added", messageUs);
         assertEquals("Wrong SK message", "Priradenie pre rola \"Lokalizovana rola\" (vztah predvolené) ma byt pridane", messageSk);
 
         assertSerializable(context);

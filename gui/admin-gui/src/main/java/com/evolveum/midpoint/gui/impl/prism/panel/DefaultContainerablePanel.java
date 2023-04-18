@@ -114,7 +114,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     protected IModel<List<PrismContainerWrapper<? extends Containerable>>> createContainersModel() {
         return new ReadOnlyModel<>(() -> {
             PrismContainerValueWrapper<C> modelObject = getModelObject();
-            return modelObject.getContainers(getPanelConfiguration(), getPageBase());
+            return modelObject.getContainers(getPanelConfiguration(), getParentPage());
         });
     }
 
@@ -128,7 +128,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             }
 
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-            Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), settings);
+            Panel panel = getParentPage().initItemPanel("property", typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
             item.add(new VisibleBehaviour(() -> itemWrapper.isVisible(getModelObject(), getVisibilityHandler())));
             panel.add(AttributeAppender.replace("style", () -> getModelObject().isExpanded() ? "" : "display:none"));
@@ -147,7 +147,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
+            Panel panel = getParentPage().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.add(AttributeAppender.replace("style", () -> getModelObject().isExpanded() ? "" : "display:none"));
             panel.setOutputMarkupId(true);
             container.add(new VisibleEnableBehaviour() {
@@ -169,7 +169,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     private StringResourceModel getNameOfShowEmptyButton() {
-        return getPageBase().createStringResource("ShowEmptyButton.showMore.${showEmpty}", getModel());
+        return getParentPage().createStringResource("ShowEmptyButton.showMore.${showEmpty}", getModel());
     }
 
     private void onShowEmptyClick(AjaxRequestTarget target) {

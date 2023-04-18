@@ -24,6 +24,6 @@ public class ObjectCollectionListSearchItemPanel extends SingleSearchItemPanel<O
     protected Component initSearchItemField(String id) {
         return WebComponentUtil.createDropDownChoices(
                 id, new PropertyModel(getModel(), "value"),
-                Model.ofList(getModelObject().getViewNameList()), true, getPageBase());
+                Model.ofList(getModelObject().getViewNameList()), true);
     }
 }

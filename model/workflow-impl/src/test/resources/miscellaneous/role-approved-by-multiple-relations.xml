@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="62d7fcdf-92b0-4c49-ae40-33b0a814ed56">
+    <name>approved-by-multiple-relations</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRelation>org:approver</approverRelation>
+                    <approverRelation>org:owner</approverRelation>
+                    <approverRelation>org:test</approverRelation>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

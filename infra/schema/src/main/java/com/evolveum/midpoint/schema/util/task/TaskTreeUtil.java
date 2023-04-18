@@ -78,8 +78,8 @@ public class TaskTreeUtil {
     /**
      * Adds a subtask to parent children list.
      */
-    public static void addSubtask(TaskType parent, TaskType child, PrismContext prismContext) {
-        parent.getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(child, prismContext));
+    public static void addSubtask(TaskType parent, TaskType child) {
+        parent.getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(child));
     }
 
     public static TaskType findChild(TaskType parent, String childOid) {

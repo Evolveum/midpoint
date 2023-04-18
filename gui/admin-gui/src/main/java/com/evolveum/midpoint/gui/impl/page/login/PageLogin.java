@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
@@ -37,6 +37,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.stream.Collectors;
+
 /**
  * @author mserbak
  * @author lskublik
@@ -49,7 +51,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
-    private static final String ID_FORGET_PASSWORD = "forgotPassword";
+    private static final String ID_RESET_PASSWORD = "resetPassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
     private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_FORM = "form";
@@ -94,26 +96,31 @@ public class PageLogin extends AbstractPageLogin {
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
         String urlResetPass = getPasswordResetUrl(securityPolicy);
-        ExternalLink link = new ExternalLink(ID_FORGET_PASSWORD, urlResetPass);
+        ExternalLink link = new ExternalLink(ID_RESET_PASSWORD, urlResetPass);
 
         link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(urlResetPass)));
         add(link);
     }
 
     private String getPasswordResetUrl(SecurityPolicyType securityPolicy) {
-        String sequenceName = getResetPasswordAuthenticationSequenceName(securityPolicy);
-
-        if (StringUtils.isBlank(sequenceName)) {
+        String resetSequenceIdOrName = getResetPasswordAuthenticationSequenceName(securityPolicy);
+        if (StringUtils.isBlank(resetSequenceIdOrName)) {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        AuthenticationsPolicyType authenticationPolicy = securityPolicy.getAuthentication();
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(resetSequenceIdOrName, authenticationPolicy);
         if (sequence == null) {
+            // this lookup by name will be (probably) eventually removed
+            sequence = SecurityUtils.getSequenceByName(resetSequenceIdOrName, authenticationPolicy);
+        }
+        if (sequence == null) {
+            LOGGER.warn("Password reset authentication sequence '{}' does not exist", resetSequenceIdOrName);
             return "";
         }
 
         if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
-            String message = "Sequence with name " + sequenceName + " doesn't contain urlSuffix";
+            String message = "Sequence with name " + resetSequenceIdOrName + " doesn't contain urlSuffix";
             LOGGER.error(message, new IllegalArgumentException(message));
             error(message);
             return "";
@@ -157,8 +164,11 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
-                securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
+                    securityPolicy.getAuthentication());
+        }
         if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null) {
             return "";
         }
@@ -183,8 +193,8 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     private boolean isModuleApplicable(ModuleAuthentication moduleAuthentication) {
-        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getNameOfModuleType())
-                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getNameOfModuleType()));
+        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getModuleTypeName())
+                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getModuleTypeName()));
     }
 
     @Override
@@ -193,5 +203,38 @@ public class PageLogin extends AbstractPageLogin {
         super.onDetach();
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageLogin.loginToYourAccount");
+    }
 
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return severalLoginFormModulesExist() ?
+                createStringResource("PageLogin.panelDescriptionWithModuleName", getProcessingModuleName())
+                : createStringResource("PageLogin.enterAccountDetails");
+    }
+
+    private boolean severalLoginFormModulesExist() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            int loginFormModulesCount = (int) mpAuthentication.getAuthModules()
+                    .stream()
+                    .filter(module -> isModuleApplicable(module.getBaseModuleAuthentication()))
+                    .count();
+            return loginFormModulesCount > 1;
+        }
+        return false;
+    }
+
+    private String getProcessingModuleName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication module = mpAuthentication.getProcessingModuleAuthentication();
+            return module != null ? module.getModuleIdentifier() : "";
+        }
+        return "";
+    }
 }

@@ -10,9 +10,9 @@ package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -62,16 +62,23 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     @NotNull
     @Override
-    public List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas objectTreeDeltas,
-            @NotNull ModelInvocationContext ctx, @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(
+            @NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+            @NotNull ModelInvocationContext<T> ctx,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
 
         OperationResult result = parentResult.subresult(OP_GET_START_INSTRUCTIONS)
                 .setMinor()
                 .build();
         try {
             List<Request> approvalRequestList =
-                    getApprovalRequests(ctx.modelContext, configurationHelper.getPcpConfiguration(ctx.wfConfiguration),
-                            objectTreeDeltas, ctx.task, result);
+                    getApprovalRequests(
+                            ctx.modelContext,
+                            configurationHelper.getPcpConfiguration(ctx.wfConfiguration),
+                            objectTreeDeltas,
+                            ctx.task,
+                            result);
             if (!approvalRequestList.isEmpty()) {
                 return prepareJobCreateInstructions(ctx, result, approvalRequestList);
             } else {
@@ -85,22 +92,26 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    private List<Request> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType,
-            ObjectTreeDeltas changes, Task taskFromModel, OperationResult result) {
+    private List<Request> getApprovalRequests(
+            LensContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfiguration,
+            ObjectTreeDeltas<?> changes, Task taskFromModel, OperationResult result) {
 
         List<Request> requests = new ArrayList<>();
 
-        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
-        //noinspection unchecked
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfiguration, this);
         Set<Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>>> entries = changes.getProjectionChangeMapEntries();
         for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : entries) {
             ObjectDelta<ShadowType> delta = entry.getValue();
             if (delta.isAdd()) {
-                requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
+                requests.addAll(
+                        getApprovalRequestsFromShadowAdd(
+                                config, entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
             } else if (delta.isModify()) {
                 ModelProjectionContext projectionContext = modelContext.findProjectionContextByKeyExact(entry.getKey());
-                requests.addAll(getApprovalRequestsFromShadowModify(
-                        config, projectionContext.getObjectOld(), entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
+                requests.addAll(
+                        getApprovalRequestsFromShadowModify(
+                                config, projectionContext.getObjectOld(), entry.getValue(), entry.getKey(), modelContext,
+                                taskFromModel, result));
             } else {
                 // no-op
             }
@@ -112,7 +123,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             PcpAspectConfigurationType config,
             ObjectDelta<ShadowType> change,
             ProjectionContextKey projectionContextKey,
-            ModelContext<?> modelContext,
+            LensContext<?> modelContext,
             Task taskFromModel,
             OperationResult result) {
         LOGGER.trace("Relevant associations in shadow add delta:");
@@ -161,23 +172,24 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             PrismObject<ShadowType> shadowOld,
             ObjectDelta<ShadowType> change,
             ProjectionContextKey key,
-            ModelContext<?> modelContext,
+            LensContext<?> modelContext,
             Task taskFromModel,
             OperationResult result) {
         LOGGER.trace("Relevant associations in shadow modify delta:");
 
         List<Request> approvalRequestList = new ArrayList<>();
-        Iterator<? extends ItemDelta> deltaIterator = change.getModifications().iterator();
+        Iterator<? extends ItemDelta<?, ?>> deltaIterator = change.getModifications().iterator();
 
         while (deltaIterator.hasNext()) {
-            ItemDelta delta = deltaIterator.next();
+            ItemDelta<?, ?> delta = deltaIterator.next();
             if (!ShadowType.F_ASSOCIATION.equivalent(delta.getPath())) {
                 continue;
             }
 
             if (delta.getValuesToAdd() != null && !delta.getValuesToAdd().isEmpty()) {
                 //noinspection unchecked
-                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToAdd().iterator();
+                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator =
+                        (Iterator<PrismContainerValue<ShadowAssociationType>>) delta.getValuesToAdd().iterator();
                 while (valueIterator.hasNext()) {
                     PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
                     Request req = processAssociationToAdd(config, association, key, modelContext, taskFromModel, result);
@@ -189,7 +201,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             }
             if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
                 //noinspection unchecked
-                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToReplace().iterator();
+                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator =
+                        (Iterator<PrismContainerValue<ShadowAssociationType>>) delta.getValuesToReplace().iterator();
                 while (valueIterator.hasNext()) {
                     PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
                     if (existsEquivalentValue(shadowOld, association)) {
@@ -227,7 +240,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             PcpAspectConfigurationType config,
             PrismContainerValue<ShadowAssociationType> associationCval,
             ProjectionContextKey key,
-            ModelContext<?> modelContext,
+            LensContext<?> modelContext,
             Task taskFromModel,
             OperationResult result) {
         ShadowAssociationType association = associationCval.asContainerable();
@@ -267,7 +280,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.prepareCommonAttributes(this, ctx.modelContext, requester);
 
             // prepare and set the delta that has to be approved
-            ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(ctx.modelContext, associationAddition);
+            ObjectTreeDeltas<?> objectTreeDeltas = associationAdditionToDelta(ctx.modelContext, associationAddition);
             instruction.setDeltasToApprove(objectTreeDeltas);
 
             instruction.setObjectRef(ctx);     // TODO - or should we take shadow as an object?
@@ -284,9 +297,9 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     // creates an ObjectTreeDeltas that will be executed after successful approval of the given assignment
-    private ObjectTreeDeltas associationAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition)
+    private ObjectTreeDeltas<?> associationAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition)
             throws SchemaException {
-        ObjectTreeDeltas changes = new ObjectTreeDeltas(prismContext);
+        ObjectTreeDeltas<?> changes = new ObjectTreeDeltas<>();
         ProjectionContextKey projectionContextKey =
                 ProjectionContextKey.fromBean(addition.getResourceShadowDiscriminator());
         String projectionOid = modelContext.findProjectionContextByKeyExact(projectionContextKey).getOid();
@@ -322,13 +335,14 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    private Request createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove, ModelContext<?> modelContext,
+    private Request createApprovalRequest(
+            PcpAspectConfigurationType config, AssociationAdditionType itemToApprove, LensContext<?> modelContext,
             Task taskFromModel, OperationResult result) {
         Request request = new Request();
         request.addition = itemToApprove;
-        request.schema = getSchemaFromConfig(config, prismContext);
+        request.schema = getSchemaFromConfig(config);
         approvalSchemaHelper.prepareSchema(request.schema,
-                createRelationResolver((PrismObject<?>) null, result),        // TODO rel resolver
+                createRelationResolver(null, result),
                 createReferenceResolver(modelContext, taskFromModel, result));
         return request;
     }
@@ -354,27 +368,27 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
 
     @NotNull
-    private ApprovalSchemaType getSchemaFromConfig(PcpAspectConfigurationType config, @NotNull PrismContext prismContext) {
+    private ApprovalSchemaType getSchemaFromConfig(PcpAspectConfigurationType config) {
         if (config == null) {
             return new ApprovalSchemaType();
         } else {
-            return getSchema(config.getApprovalSchema(), config.getApproverRef(), config.getApproverExpression(), prismContext);
+            return getSchema(config.getApprovalSchema(), config.getApproverRef(), config.getApproverExpression());
         }
     }
 
     @NotNull
-    private ApprovalSchemaType getSchema(ApprovalSchemaType schema, List<ObjectReferenceType> approverRef,
-            List<ExpressionType> approverExpression, @NotNull PrismContext prismContext) {
+    private ApprovalSchemaType getSchema(
+            ApprovalSchemaType schema,
+            List<ObjectReferenceType> approverRef,
+            List<ExpressionType> approverExpression) {
         if (schema != null) {
             return schema;
-        } else {
-            schema = new ApprovalSchemaType(prismContext);
-            ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType(prismContext);
-            stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRef));
-            stageDef.getApproverExpression().addAll(approverExpression);
-            schema.getStage().add(stageDef);
-            return schema;
         }
+        var newSchema = new ApprovalSchemaType();
+        ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType();
+        stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRef));
+        stageDef.getApproverExpression().addAll(approverExpression);
+        newSchema.getStage().add(stageDef);
+        return newSchema;
     }
-
 }

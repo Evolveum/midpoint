@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.input.ReaderInputStream;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +33,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Representation of any prism object-based test "resource" (file, class path resource, ...) in tests.
@@ -73,6 +71,10 @@ public class TestObject<T extends ObjectType> {
         return new TestObject<>(
                 new FileBasedTestObjectSource(dir, name),
                 oid);
+    }
+
+    public static <T extends ObjectType> TestObject<T> of(@NotNull T object) {
+        return new TestObject<>(new InMemoryTestObjectSource(object), object.getOid());
     }
 
     public @NotNull PrismObject<T> parse() {
@@ -132,8 +134,26 @@ public class TestObject<T extends ObjectType> {
         return get().asObjectable();
     }
 
+    public @NotNull String getNameOrig() {
+        return getObjectable().getName().getOrig();
+    }
+
     public ObjectReferenceType ref() {
         return ObjectTypeUtil.createObjectRef(get(), SchemaConstants.ORG_DEFAULT);
+    }
+
+    /** Assumes the object can be assigned via `targetRef`. */
+    public AssignmentType assignmentTo() {
+        return new AssignmentType().targetRef(ref());
+    }
+
+    /** Assumes the object is a resource. */
+    public AssignmentType assignmentWithConstructionOf(ShadowKindType kind, String intent) {
+        return new AssignmentType()
+                .construction(new ConstructionType()
+                        .resourceRef(ref())
+                        .kind(kind)
+                        .intent(intent));
     }
 
     public Class<T> getType() {
@@ -200,7 +220,16 @@ public class TestObject<T extends ObjectType> {
         return source + " (" + oid + ")";
     }
 
+    /**
+     * Normally we should throw {@link CommonException} only. But {@link DummyTestResource} throws
+     * all kinds of exceptions, hence {@link Exception} is declared here.
+     */
     public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        commonInit(test, task, result);
+    }
+
+    void commonInit(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
+        test.registerTestObjectUsed(this);
         importObject(task, result);
     }
 

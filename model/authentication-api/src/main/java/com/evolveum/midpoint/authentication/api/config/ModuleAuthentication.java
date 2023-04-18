@@ -7,11 +7,13 @@
 package com.evolveum.midpoint.authentication.api.config;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 
 import javax.xml.namespace.QName;
 
@@ -24,14 +26,14 @@ import javax.xml.namespace.QName;
 public interface ModuleAuthentication {
 
     /**
-     * @return name of authentication module, get from configuration
+     * @return identifier of the authentication module, get from configuration
      */
-    String getNameOfModule();
+    String getModuleIdentifier();
 
     /**
      * @return type of authentication module
      */
-    String getNameOfModuleType();
+    String getModuleTypeName();
 
     /**
      * @return state of module
@@ -67,4 +69,40 @@ public interface ModuleAuthentication {
      * @return order for this module
      */
     Integer getOrder();
+
+    /**
+     * Decide if the module should be evaluated during sequence evaluation.
+     * Module can be skipped, e.g. when acceptEmpty is set to true and
+     * credential type doesn't exist.
+     *
+     * Example usage: Hint might be configured for some users but not fo all.
+     * We want to show hint when it is set, but not, if it's not. Therefore,
+     * hint module should user acceptEmpty = true and this module will be
+     * automatically skipped when no hint is set.
+     */
+    boolean applicable();
+
+    /**
+     * Very bad name :)
+     *
+     * Specify is the module on its own is considered as sufficient for the
+     * authentication to succeed. For example, password authenticated is
+     * sufficient, therefore user should be authenticated and allowed to
+     * work with midPoint. But focusIdentification cannot be considered
+     * as sufficient, as it might be of a great risk to allow user to authenticate
+     * only with using primary identifier.
+     *
+     * Insufficient modules are: focusIdentification, attributeVerification, hint
+     * If only those modules are in sequence, sequence cannot be evaluated as successuly
+     * authenticated
+     */
+    boolean isSufficient();
+
+    void setSufficient(boolean sufficient);
+
+    void setFailureData(AutheticationFailedData autheticationFailedData);
+
+    AutheticationFailedData getFailureData();
+
+    void recordFailure(AuthenticationException exception);
 }

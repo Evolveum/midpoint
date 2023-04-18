@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionReportEngineConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 public class SearchContext {
 
@@ -31,6 +31,10 @@ public class SearchContext {
     private List<DisplayableValue<String>> availableEventMarks;
 
     private String selectedEventMark;
+
+    private ObjectProcessingStateType objectProcessingState;
+
+    private List<SearchBoxModeType> availableSearchBoxModes;
 
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
@@ -89,5 +93,21 @@ public class SearchContext {
 
     public void setSelectedEventMark(String selectedEventMark) {
         this.selectedEventMark = selectedEventMark;
+    }
+
+    public ObjectProcessingStateType getObjectProcessingState() {
+        return objectProcessingState;
+    }
+
+    public void setObjectProcessingState(ObjectProcessingStateType objectProcessingState) {
+        this.objectProcessingState = objectProcessingState;
+    }
+
+    public List<SearchBoxModeType> getAvailableSearchBoxModes() {
+        return availableSearchBoxModes;
+    }
+
+    public void setAvailableSearchBoxModes(List<SearchBoxModeType> availableSearchBoxModes) {
+        this.availableSearchBoxModes = availableSearchBoxModes;
     }
 }

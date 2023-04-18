@@ -13,15 +13,18 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -41,6 +44,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -92,10 +96,32 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             @Override
             protected List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> createDefaultColumns() {
                 List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> columns = new ArrayList<>();
-                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_KIND, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_INTENT, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DEFAULT, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DESCRIPTION, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+                columns.add(new PrismPropertyWrapperColumn<>(
+                        getContainerModel(),
+                        ResourceObjectTypeDefinitionType.F_KIND,
+                        AbstractItemWrapperColumn.ColumnType.STRING,
+                        getPageBase()));
+
+                columns.add(new PrismPropertyWrapperColumn<>(
+                        getContainerModel(),
+                        ResourceObjectTypeDefinitionType.F_INTENT,
+                        AbstractItemWrapperColumn.ColumnType.STRING,
+                        getPageBase()));
+
+                columns.add(new PrismPropertyWrapperColumn<>(
+                        getContainerModel(),
+                        ResourceObjectTypeDefinitionType.F_DEFAULT,
+                        AbstractItemWrapperColumn.ColumnType.STRING,
+                        getPageBase()));
+
+                columns.add(new PrismPropertyWrapperColumn<>(
+                        getContainerModel(),
+                        ResourceObjectTypeDefinitionType.F_DESCRIPTION,
+                        AbstractItemWrapperColumn.ColumnType.STRING,
+                        getPageBase()));
+
+                columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
+
                 List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
                 columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
 
@@ -169,15 +195,25 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
                     target.add(getPageBase().getFeedbackPanel());
                 }
             }
+
+            @Override
+            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+                onNewValue(getContainerModel(), target);
+            }
         };
         form.add(objectTypesPanel);
     }
 
+    protected void onNewValue(
+            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+        getObjectDetailsModels().getPageResource().showObjectTypeWizard(target, newWrapperModel.getObject().getPath());
+    }
+
     protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
         if (valueModel != null) {
-            getObjectDetailsModels().getPageResource().showObjectTypeWizard(
+            getObjectDetailsModels().getPageResource().showResourceObjectTypePreviewWizard(
                     target,
-                    valueModel);
+                    valueModel.getObject().getPath());
         }
     }
 

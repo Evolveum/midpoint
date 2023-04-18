@@ -7,18 +7,21 @@
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -42,7 +45,7 @@ import java.util.List;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
                         label = "PageSelfCredentials.auth.credentials.label",
                         description = "PageSelfCredentials.auth.credentials.description")})
-public class PageSelfCredentials extends PageBase {
+public class PageSelfCredentials extends PageSelf {
 
     private static final long serialVersionUID = 1L;
 
@@ -62,8 +65,7 @@ public class PageSelfCredentials extends PageBase {
     private void initLayout() {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
 
-        List<ITab> tabs = new ArrayList<>();
-        tabs.addAll(createTabs());
+        List<ITab> tabs = new ArrayList<>(createTabs());
 
         TabbedPanel<ITab> credentialsTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
         credentialsTabPanel.setOutputMarkupId(true);
@@ -81,7 +83,7 @@ public class PageSelfCredentials extends PageBase {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new PropagatePasswordPanel(panelId, new LoadableDetachableModel<FocusType>() {
+                return new PropagatePasswordPanel<>(panelId, new LoadableDetachableModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -91,7 +93,37 @@ public class PageSelfCredentials extends PageBase {
                 });
             }
         });
+
+        tabs.add(new PanelTab(createStringResource("PageSelfCredentials.tabs.securityQuestion"),
+                new VisibleBehaviour(this::showQuestions)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new SecurityQuestionsPanel(panelId, Model.of());
+            }
+        });
+
         return tabs;
+    }
+
+    private boolean showQuestions() {
+        GuiProfiledPrincipal principal = getPrincipal();
+        if (principal == null) {
+            return false;
+        }
+
+        CredentialsPolicyType credentialsPolicyType = principal.getApplicableSecurityPolicy().getCredentials();
+        if (credentialsPolicyType == null) {
+            return false;
+        }
+        SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = credentialsPolicyType.getSecurityQuestions();
+        if (securityQuestionsPolicy == null) {
+            return false;
+        }
+
+        List<SecurityQuestionDefinitionType> secQuestAnsList = securityQuestionsPolicy.getQuestion();
+        return secQuestAnsList != null && !secQuestAnsList.isEmpty();
     }
 
 }

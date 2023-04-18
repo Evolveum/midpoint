@@ -72,7 +72,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
     }
 
     @Override
-    protected @NotNull String getNameOfModule() {
+    protected @NotNull String getModuleIdentifier() {
         return AuthenticationModuleNameConstants.SECURITY_QUESTIONS;
     }
 

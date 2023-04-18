@@ -6,15 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.component.password.*;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -23,9 +19,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,13 +39,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessages;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.*;
 
@@ -64,17 +60,21 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String ID_PASSWORD_PANEL = "passwordPanel";
     private static final String ID_CURRENT_PASSWORD_FIELD = "currentPassword";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
+    private static final String ID_PASSWORD_HINT_PANEL = "passwordHintPanel";
     private static final String ID_CHANGE_PASSWORD = "changePassword";
     private static final String ID_PASSWORD_VALIDATION_PANEL = "passwordValidationPanel";
+    private static final String CHANGE_PASSWORD_BUTTON_STYLE = "btn btn-success";
 
     private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
     private static final String OPERATION_LOAD_CREDENTIALS_POLICY = DOT_CLASS + "loadCredentialsPolicy";
     protected static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
+    private static final String OPERATION_LOAD_PASSWORD_VALUE_POLICY = DOT_CLASS + "loadPasswordValuePolicy";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
 
    protected String currentPasswordValue = null;
    protected ProtectedStringType newPasswordValue = new ProtectedStringType();
+   private String hintValue = null;
    protected LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
     protected boolean savedPassword = false;
     protected ProgressDto progress = null;
@@ -94,8 +94,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             private static final long serialVersionUID = 1L;
             @Override
             protected CredentialsPolicyType load() {
-                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CREDENTIALS_POLICY);
-                return WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getPageBase(), task);
+                Task task = getParentPage().createSimpleTask(OPERATION_LOAD_CREDENTIALS_POLICY);
+                return WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getParentPage(), task);
             }
         };
     }
@@ -120,7 +120,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
             @Override
             public boolean isVisible() {
-                return isCheckOldPassword();
+                return shouldCheckOldPassword();
             }
 
             @Override
@@ -139,10 +139,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, Model.of(newPasswordValue), false, true, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
-//            @Override
-//            protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
-//                return null;//getModelObject().getFocusPolicy();
-//            }
 
             @Override
             protected void updatePasswordValidation(AjaxRequestTarget target) {
@@ -151,8 +147,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
 
             @Override
-            protected boolean isPasswordLimitationPanelVisible() {
-                return false;
+            protected boolean isPasswordLimitationPopupVisible() {
+                return ChangePasswordPanel.this.isPasswordLimitationPopupVisible();
             }
 
             @Override
@@ -160,10 +156,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return !savedPassword;
             }
 
-            @Override
-            protected boolean isRemovePasswordVisible() {
-                return false;
-            }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
@@ -177,8 +169,23 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         };
 
         PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
+        passwordLimitationsPanel.add(new VisibleBehaviour(() -> !isPasswordLimitationPopupVisible()));
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
+
+        PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL,
+                new PropertyModel<>(getModel(), FocusType.F_CREDENTIALS + "." + CredentialsType.F_PASSWORD + "." + PasswordType.F_HINT),
+                Model.of(newPasswordValue), false) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean hideHintValue() {
+                return true;
+            }
+        };
+        hint.setOutputMarkupId(true);
+        hint.add(new EnableBehaviour(() -> !savedPassword));
+        add(hint);
 
         AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD,
                 createStringResource("ChangePasswordPanel.changePasswordButton")) {
@@ -188,6 +195,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             public void onError(AjaxRequestTarget target) {
                 List<FeedbackMessage> feedbackMessages = passwordPanel.collectPasswordFieldsFeedbackMessages();
+                feedbackMessages.addAll(hint.collectHintFeedbackMessages());
                 if (CollectionUtils.isNotEmpty(feedbackMessages)) {
                     StringBuilder sb = new StringBuilder();
                     feedbackMessages.forEach(m -> sb.append(m.getMessage()).append("\n"));
@@ -206,21 +214,27 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         };
         changePasswordButton.add(new VisibleBehaviour(() -> !savedPassword));
+        changePasswordButton.add(AttributeAppender.append("class", getChangePasswordButtonStyle()));
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
     }
 
-    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
+    protected String getChangePasswordButtonStyle() {
+        return CHANGE_PASSWORD_BUTTON_STYLE;
+    }
+
+    private void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
         target.add(get(ID_PASSWORD_VALIDATION_PANEL));
     }
 
     private List<StringLimitationResult> getLimitationsForActualPassword(ProtectedStringType passwordValue) {
-        ValuePolicyType valuePolicy = getValuePolicy();
+        ValuePolicyType valuePolicy = WebComponentUtil.getPasswordValuePolicy(credentialsPolicyModel.getObject(),
+                OPERATION_LOAD_PASSWORD_VALUE_POLICY, getParentPage());
         if (valuePolicy != null) {
-            Task task = getPageBase().createAnonymousTask(OPERATION_VALIDATE_PASSWORD);
+            Task task = getParentPage().createAnonymousTask(OPERATION_VALIDATE_PASSWORD);
             try {
-                return getPageBase().getModelInteractionService().validateValue(passwordValue == null ? new ProtectedStringType() : passwordValue,
+                return getParentPage().getModelInteractionService().validateValue(passwordValue == null ? new ProtectedStringType() : passwordValue,
                         valuePolicy, getModelObject().asPrismObject(), task, task.getResult());
             } catch (Exception e) {
                 LOGGER.error("Couldn't validate password security policy", e);
@@ -229,46 +243,12 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return new ArrayList<>();
     }
 
-    protected boolean isCheckOldPassword() {
+    protected boolean shouldCheckOldPassword() {
         return (getPasswordChangeSecurity() == null) ||
                 (getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD) ||
                         (getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD_IF_EXISTS) &&
                                 getModelObject().asPrismObject()
                                 .findProperty(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)) != null));
-    }
-
-    protected <F extends FocusType> ValuePolicyType getValuePolicy() {
-        ValuePolicyType valuePolicyType = null;
-        try {
-            MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (getPageBase() != null) {
-                if (user != null) {
-                    Task task = getPageBase().createSimpleTask("load value policy");
-                    valuePolicyType = getSearchValuePolicy(task);
-                } else {
-                    valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
-                        Task task = getPageBase().createAnonymousTask("load value policy");
-                        return getSearchValuePolicy(task);
-                    });
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Couldn't load security policy for focus " + getModelObject().asPrismObject(), e);
-        }
-        return valuePolicyType;
-    }
-
-    private ValuePolicyType getSearchValuePolicy(Task task) {
-        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
-        if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
-                && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
-            PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                    credentialsPolicy.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
-            if (valuePolicy != null) {
-                return valuePolicy.asObjectable();
-            }
-        }
-        return null;
     }
 
     private PasswordChangeSecurityType getPasswordChangeSecurity() {
@@ -280,7 +260,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private void changePasswordPerformed(AjaxRequestTarget target) {
         ProtectedStringType currentPassword = null;
-        if (isCheckOldPassword()) {
+        if (shouldCheckOldPassword()) {
             LOGGER.debug("Check old password");
             if (currentPasswordValue == null || currentPasswordValue.trim().equals("")) {
                 new Toast()
@@ -292,11 +272,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return;
             } else {
                 OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
-                Task checkPasswordTask = getPageBase().createSimpleTask(OPERATION_CHECK_PASSWORD);
+                Task checkPasswordTask = getParentPage().createSimpleTask(OPERATION_CHECK_PASSWORD);
                 try {
                     currentPassword = new ProtectedStringType();
                     currentPassword.setClearValue(currentPasswordValue);
-                    boolean isCorrectPassword = getPageBase().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
+                    boolean isCorrectPassword = getParentPage().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
                             checkPasswordTask, checkPasswordResult);
                     if (!isCorrectPassword) {
                         new Toast()
@@ -343,14 +323,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         boolean showFeedback = true;
         try {
             if (!newPasswordValue.isEncrypted()) {
-                WebComponentUtil.encryptProtectedString(newPasswordValue, true, getPageBase().getMidpointApplication());
+                WebComponentUtil.encryptProtectedString(newPasswordValue, true, getParentPage().getMidpointApplication());
             }
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             collectDeltas(deltas, newPasswordValue, valuePath);
-            getPageBase().getModelService().executeChanges(
-                    deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
+            getParentPage().getModelService().executeChanges(
+                    deltas, null, getParentPage().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
                     Collections.singleton(reporter), result);
             result.computeStatus();
         } catch (Exception ex) {
@@ -375,13 +355,31 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
 
         PrismObjectDefinition<UserType> objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        List<PropertyDelta<?>> modifications = new ArrayList<>();
 
-        PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+        PropertyDelta<ProtectedStringType> passwordDelta = getPrismContext().deltaFactory().property()
                 .createModificationReplaceProperty(valuePath, objDef, newPasswordValue);
+        modifications.add(passwordDelta);
         if (currentPassword != null) {
-            delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
+            passwordDelta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
         }
-        deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), delta, UserType.class));
+
+        String newHintValue = getHintValue();
+        if (StringUtils.isNotEmpty(newHintValue)) {
+            ItemPath hintPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
+                    CredentialsType.F_PASSWORD, PasswordType.F_HINT);
+            PropertyDelta<String> hintDelta = getPrismContext().deltaFactory().property()
+                    .createModificationReplaceProperty(hintPath, objDef, newHintValue);
+
+            modifications.add(hintDelta);
+        }
+
+        deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), modifications, UserType.class));
+    }
+
+    private String getHintValue() {
+        return getModelObject().getCredentials() != null && getModelObject().getCredentials().getPassword() != null ?
+                getModelObject().getCredentials().getPassword().getHint() : null;
     }
 
     protected void setNullEncryptedPasswordData() {
@@ -409,6 +407,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     .body(getString(result.getStatus()))
                     .show(target);
         }
+    }
+
+    protected boolean isPasswordLimitationPopupVisible() {
+        return false;
     }
 
 }

@@ -25,13 +25,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-public class ChangesPanel extends BasePanel<Void> {
+public class ChangesPanel extends BasePanel<List<VisualizationDto>> {
 
     public enum ChangesView {
 
@@ -44,6 +41,7 @@ public class ChangesPanel extends BasePanel<Void> {
     private static final String ID_TITLE = "title";
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_BODY = "body";
+    private static final String ID_NO_CHANGES = "noChanges";
     private static final String ID_VISUALIZATIONS = "visualizations";
     private static final String ID_VISUALIZATION = "visualization";
 
@@ -51,14 +49,11 @@ public class ChangesPanel extends BasePanel<Void> {
 
     private VisibleEnableBehaviour changesViewVisible = VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
 
-    private IModel<List<VisualizationDto>> changesModel;
-
     private boolean showOperationalItems;
 
-    public ChangesPanel(String id, IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
-        super(id);
+    public ChangesPanel(String id, IModel<List<VisualizationDto>> model) {
+        super(id, model);
 
-        initModels(deltaModel, visualizationModel);
         initLayout();
     }
 
@@ -76,23 +71,6 @@ public class ChangesPanel extends BasePanel<Void> {
 
     public void setChangesViewVisible(@NotNull VisibleEnableBehaviour changesViewVisible) {
         this.changesViewVisible = changesViewVisible;
-    }
-
-    private void initModels(IModel<List<ObjectDeltaType>> deltaModel, IModel<List<VisualizationDto>> visualizationModel) {
-        changesModel = visualizationModel != null ? visualizationModel : new LoadableModel<>(false) {
-
-            @Override
-            protected List<VisualizationDto> load() {
-                List<VisualizationDto> result = new ArrayList<>();
-
-                for (ObjectDeltaType delta : deltaModel.getObject()) {
-                    Visualization visualization = SimulationsGuiUtil.createVisualization(delta, getPageBase());
-                    result.add(new VisualizationDto(visualization));
-                }
-
-                return result;
-            }
-        };
     }
 
     protected IModel<String> createTitle() {
@@ -141,12 +119,16 @@ public class ChangesPanel extends BasePanel<Void> {
         body.setOutputMarkupId(true);
         add(body);
 
+        WebMarkupContainer noChanges = new WebMarkupContainer(ID_NO_CHANGES);
+        noChanges.add(new VisibleBehaviour(() -> getModelObject().isEmpty()));
+        body.add(noChanges);
+
         Component visualizations = createVisualizations();
         body.add(visualizations);
     }
 
     private ListView<VisualizationDto> createVisualizations() {
-        return new ListView<>(ID_VISUALIZATIONS, changesModel) {
+        return new ListView<>(ID_VISUALIZATIONS, getModel()) {
 
             @Override
             protected void populateItem(ListItem<VisualizationDto> item) {

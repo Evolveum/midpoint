@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,10 +56,12 @@ class ShadowUpdater {
     @NotNull private final SynchronizationContext<?> syncCtx;
     @NotNull private final ModelBeans beans;
     @NotNull private final List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+    @NotNull private final ShadowType shadowBefore;
 
     ShadowUpdater(@NotNull SynchronizationContext<?> syncCtx, @NotNull ModelBeans beans) {
         this.syncCtx = syncCtx;
         this.beans = beans;
+        this.shadowBefore = syncCtx.getShadowedResourceObjectBefore();
     }
 
     ShadowUpdater updateAllSyncMetadataRespectingMode() throws SchemaException {
@@ -65,26 +69,26 @@ class ShadowUpdater {
 
         XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();
 
-        if (syncCtx.isExecutionFullyPersistent()) {
-            updateSyncSituation();
-            updateSyncSituationDescription(now);
-            updateBasicSyncTimestamp(now); // this is questionable, but the same behavior is in LinkUpdater class
+        if (shadowBefore.getSynchronizationSituation() != syncCtx.getSituation()) {
+            updateSyncSituation(syncCtx.getSituation());
+            updateSyncSituationDescription(syncCtx.getSituation(), now);
         }
-        updateCoordinatesIfUnknown();
+
+        updateBasicSyncTimestamp(now); // needed e.g. for 3rd part of reconciliation
 
         return this;
     }
 
-    private void updateSyncSituation() throws SchemaException {
+    private void updateSyncSituation(SynchronizationSituationType situation) throws SchemaException {
         applyShadowDelta(
-                createSynchronizationSituationDelta(syncCtx.getSituation()));
+                createSynchronizationSituationDelta(shadowBefore, situation));
     }
 
-    private void updateSyncSituationDescription(XMLGregorianCalendar now) throws SchemaException {
+    private void updateSyncSituationDescription(SynchronizationSituationType situation, XMLGregorianCalendar now) throws SchemaException {
         applyShadowDelta(
                 createSynchronizationSituationDescriptionDelta(
                         syncCtx.getShadowedResourceObject(),
-                        syncCtx.getSituation(),
+                        situation,
                         now,
                         syncCtx.getChannel(),
                         syncCtx.isFullMode()));
@@ -92,43 +96,33 @@ class ShadowUpdater {
 
     ShadowUpdater updateFullSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
         applyShadowDelta(
-                SynchronizationUtils.createFullSynchronizationTimestampDelta(now));
+                SynchronizationUtils.createFullSynchronizationTimestampDelta(shadowBefore, now));
         return this;
     }
 
     private void updateBasicSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
         applyShadowDelta(
-                SynchronizationUtils.createSynchronizationTimestampDelta(now));
+                SynchronizationUtils.createSynchronizationTimestampDelta(shadowBefore, now));
     }
 
-    ShadowUpdater updateBothSyncTimestamps() throws SchemaException {
+    void updateBasicSyncTimestamp() throws SchemaException {
+        updateBasicSyncTimestamp(
+                beans.clock.currentTimeXMLGregorianCalendar());
+    }
+
+    void updateBothSyncTimestamps() throws SchemaException {
         XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();
         updateBasicSyncTimestamp(now);
         updateFullSyncTimestamp(now);
-        return this;
     }
 
     /**
-     * Updates kind/intent if some of them are null/empty. This is used if synchronization is skipped.
+     * Updates kind/intent if some of them are null/empty/unknown.
      */
-    ShadowUpdater updateCoordinatesIfMissing() throws SchemaException {
-        assert syncCtx.isComplete();
-        return updateCoordinates(false);
-    }
-
-    /**
-     * Updates kind/intent if some of them are null/empty/unknown. This is used if synchronization is NOT skipped.
-     *
-     * TODO why the difference from {@link #updateCoordinatesIfMissing()}? Is there any reason for it?
-     * TODO this behavior should be made configurable
-     */
-    private void updateCoordinatesIfUnknown() throws SchemaException {
-        assert syncCtx.isComplete();
-        updateCoordinates(true);
-    }
-
-    private ShadowUpdater updateCoordinates(boolean overwriteUnknownValues) throws SchemaException {
-        assert syncCtx.isComplete();
+    void updateCoordinates() throws SchemaException {
+        if (!syncCtx.isComplete()) {
+            return;
+        }
         SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
 
         ShadowType shadow = completeCtx.getShadowedResourceObject();
@@ -139,40 +133,29 @@ class ShadowUpdater {
         String ctxIntent = completeCtx.getTypeIdentification().getIntent();
         String ctxTag = completeCtx.getTag();
 
-        boolean typeEmpty = shadowKind == null || StringUtils.isBlank(shadowIntent);
-        boolean typeNotKnown = ShadowUtil.isNotKnown(shadowKind) || ShadowUtil.isNotKnown(shadowIntent);
-
         // Are we going to update the kind/intent?
         boolean updateType =
                 syncCtx.isForceClassificationUpdate() // typically when sorter is used
-                        || typeEmpty
-                        || typeNotKnown && overwriteUnknownValues;
+                        || !ShadowUtil.isClassified(shadowKind, shadowIntent);
 
         if (updateType) {
             // Before 4.6, the kind was updated unconditionally, only intent was driven by "force intent change" flag.
             // This is now changed to treat kind+intent as a single data item.
-            if (ctxKind != shadowKind) {
-                deltas.add(
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_KIND).replace(ctxKind)
-                                .asItemDelta());
-            }
-            if (!ctxIntent.equals(shadowIntent)) {
-                deltas.add(
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_INTENT).replace(ctxIntent)
-                                .asItemDelta());
-            }
+            deltas.addAll(
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .optimizing()
+                            .item(ShadowType.F_KIND).old(shadowKind).replace(ctxKind)
+                            .item(ShadowType.F_INTENT).old(shadowIntent).replace(ctxIntent)
+                            .asItemDeltas());
         }
 
         if (StringUtils.isNotBlank(ctxTag) && !ctxTag.equals(shadowTag)) {
             deltas.add(
                     PrismContext.get().deltaFor(ShadowType.class)
-                            .item(ShadowType.F_TAG).replace(ctxTag)
+                            .item(ShadowType.F_TAG).old(shadowTag).replace(ctxTag)
                             .asItemDelta());
         }
 
-        return this;
     }
 
     @NotNull List<ItemDelta<?, ?>> getDeltas() {
@@ -195,11 +178,11 @@ class ShadowUpdater {
             return;
         }
         try {
-            if (syncCtx.getTask().areShadowChangesSimulated()) {
+            if (isShadowSimulation()) {
                 commitToSimulation(result);
-            } else {
-                commitToRepository(result);
+                keepOnlySynchronizationTimestampDelta();
             }
+            commitToRepository(result);
             recordModificationExecuted(null);
         } catch (Throwable t) {
             recordModificationExecuted(t);
@@ -208,19 +191,31 @@ class ShadowUpdater {
         deltas.clear();
     }
 
+    /** Even in low-level simulations, we want to record synchronization timestamp because of 3rd stage of reconciliation. */
+    private void keepOnlySynchronizationTimestampDelta() {
+        deltas.removeIf(
+                delta -> !ShadowType.F_SYNCHRONIZATION_TIMESTAMP.equivalent(delta.getPath()));
+    }
+
+    private boolean isShadowSimulation() {
+        return syncCtx.getTask().areShadowChangesSimulated();
+    }
+
     private void commitToSimulation(OperationResult result) {
         Task task = syncCtx.getTask();
-        ShadowType shadow = syncCtx.getShadowedResourceObject();
         SimulationTransaction simulationTransaction = task.getSimulationTransaction();
         if (simulationTransaction == null) {
-            LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadow, deltas);
+            LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadowBefore, deltas);
         } else {
             simulationTransaction.writeSimulationData(
-                    ShadowSimulationData.of(shadow, deltas), task, result);
+                    ShadowSimulationData.of(shadowBefore, deltas), task, result);
         }
     }
 
     private void commitToRepository(OperationResult result) {
+        if (deltas.isEmpty()) {
+            return; // Could be in the low-level simulation mode
+        }
         try {
             beans.cacheRepositoryService.modifyObject(ShadowType.class, syncCtx.getShadowOid(), deltas, result);
         } catch (ObjectNotFoundException ex) {

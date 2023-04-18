@@ -333,6 +333,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_AUDIT_LOG_VIEWER_QNAME = new QName(NS_AUTHORIZATION_UI, "auditLogViewer");
     public static final String AUTZ_UI_AUDIT_LOG_VIEWER_URL = NS_AUTHORIZATION_UI + "#auditLogViewer";
 
+    public static final QName AUTZ_UI_AUDIT_LOG_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "auditLogDetails");
+    public static final String AUTZ_UI_AUDIT_LOG_DETAILS_URL = NS_AUTHORIZATION_UI + "#auditLogDetails";
+
     public static final QName AUTZ_UI_REPORTS_REPORT_CREATE_QNAME = new QName(NS_AUTHORIZATION_UI, "reportCreate");
     public static final String AUTZ_UI_REPORTS_REPORT_CREATE_URL = NS_AUTHORIZATION_UI + "#reportCreate";
 
@@ -397,6 +400,7 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
     public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
+    public static final String AUTZ_UI_RESET_PASSWORD_URL = NS_AUTHORIZATION_UI + "#resetPassword";
 
     public static final QName AUTZ_UI_SELF_CONSENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfConsents");
     public static final String AUTZ_UI_SELF_CONSENTS_URL = NS_AUTHORIZATION_UI + "#selfConsents";

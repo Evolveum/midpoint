@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -74,6 +73,12 @@ public abstract class SynchronizationContext<F extends FocusType>
      * See {@link ResourceObjectShadowChangeDescription#getShadowedResourceObject()}.
      */
     @NotNull private final ShadowType shadowedResourceObject;
+
+    /**
+     * The (cloned) state of {@link #shadowedResourceObject} at the moment when this context is created.
+     * To be independent of any deltas applied to the object during processing.
+     */
+    @NotNull private final ShadowType shadowedResourceObjectBefore;
 
     /** Original delta that triggered this synchronization. (If known.) */
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
@@ -163,6 +168,7 @@ public abstract class SynchronizationContext<F extends FocusType>
             @Nullable String tag) {
         this.change = change;
         this.shadowedResourceObject = processingContext.getShadowedResourceObject();
+        this.shadowedResourceObjectBefore = this.shadowedResourceObject.clone();
         this.resourceObjectDelta = processingContext.getResourceObjectDelta();
         this.resource = processingContext.getResource();
         this.channel = processingContext.getChannel();
@@ -194,12 +200,12 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
-    public boolean isMarkedSkipSynchronization() {
+    boolean isMarkedSkipSynchronization(OperationResult result) {
         var policy = shadowedResourceObject.getEffectiveOperationPolicy();
         // Policy should not be null if was provided by provisioning-impl, but sometimes in tests
         // provisioning is skipped, so we need to ensure policy is computed.
         if (policy == null) {
-            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, new OperationResult("markedSkipSynchronization"));
+            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
         }
         return !policy.getSynchronize().getInbound().isEnabled();
     }
@@ -277,6 +283,10 @@ public abstract class SynchronizationContext<F extends FocusType>
     @Override
     public @NotNull ShadowType getShadowedResourceObject() {
         return shadowedResourceObject;
+    }
+
+    @NotNull ShadowType getShadowedResourceObjectBefore() {
+        return shadowedResourceObjectBefore;
     }
 
     /** Normally should be non-null, but we are not sure enough to mark as NotNull. */
@@ -482,13 +492,13 @@ public abstract class SynchronizationContext<F extends FocusType>
         return executionMode == ExecutionModeType.DRY_RUN;
     }
 
-    // TEMPORARY
-    boolean shouldExecuteSynchronizationActions() {
+    boolean isNotDryRunLikeMode() {
         return !isDryRun() && !task.areShadowChangesSimulated();
     }
 
     boolean isFullMode() {
-        return executionMode == ExecutionModeType.FULL;
+        return executionMode == ExecutionModeType.FULL
+                && task.isExecutionFullyPersistent();
     }
 
     public @NotNull ResourceObjectShadowChangeDescription getChange() {
@@ -513,17 +523,13 @@ public abstract class SynchronizationContext<F extends FocusType>
         return task.isExecutionFullyPersistent();
     }
 
-    public boolean isVisible() {
-        return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
+    /** I.e. we are either in full persistence or at least in shadow persistence mode. */
+    boolean areShadowChangesPersistent() {
+        return !task.areShadowChangesSimulated();
     }
 
-    /**
-     * TEMPORARY IMPLEMENTATION
-     *
-     * Later, we will have a dictionary of those situations with the information how they affect the synchronization process.
-     */
-    boolean isSynchronizationPreventedByShadowPolicySituation() {
-        return !shadowedResourceObject.getPolicySituation().isEmpty();
+    public boolean isVisible() {
+        return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
     }
 
     /**

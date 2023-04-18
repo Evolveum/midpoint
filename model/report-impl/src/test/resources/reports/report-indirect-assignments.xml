@@ -5,27 +5,78 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
+
+<!--
+NOTE: This is the test version of 200-report-indirect-assignments.xml.
+If enhanced, add the features into 200-report-indirect-assignments.xml as well.
+-->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="7f1695f2-d826-4d78-a046-b8249b79d2b5">
     <name>Indirect assignment report</name>
     <description>Shows information stored in roleMembershipRef value metadata.</description>
-    <!--
-    Serious test would have this archetype, but it's not available for test.
-    <assignment>
-        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
-    </assignment>
-    -->
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:text>
-                    . ownedBy (@type = UserType and @path = roleMembershipRef)
-                </q:text>
+                <q:and>
+                    <q:ownedBy>
+                        <q:type>UserType</q:type>
+                        <q:path>roleMembershipRef</q:path>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                                    <path>$userName</path>
+                                </expression>
+                            </q:equal>
+                        </q:filter>
+                    </q:ownedBy>
+                    <q:ref>
+                        <q:path/> <!-- . would also work here, but empty string is "righter" -->
+                        <expression>
+                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                            <path>$roleRef</path>
+                        </expression>
+                    </q:ref>
+                    <!--
+                    TODO: this does not work yet, expression is not allowed for collection (multi-value)
+                    <q:ref>
+                        <q:path/>
+                        <q:filter>
+                            <q:ref>
+                                <q:path>archetypeRef</q:path>
+                                <expression>
+                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                                    <path>$roleArchetypeRef</path>
+                                </expression>
+                            </q:ref>
+                        </q:filter>
+                    </q:ref>
+                    -->
+                </q:and>
             </filter>
         </collection>
+        <parameter>
+            <name>userName</name>
+            <type>string</type>
+        </parameter>
+        <parameter>
+            <name>roleRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:AbstractRoleType</targetType>
+        </parameter>
+        <!--
+        TODO: not supported yet, see above
+        <parameter>
+            <name>roleArchetypeRef</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:ArchetypeRef</targetType>
+        </parameter>
+        -->
+
         <subreport>
             <!--
             This subreport generates additional lines per each metadata value,
@@ -33,73 +84,13 @@
             -->
             <name>data</name>
             <order>1</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
             <expression>
                 <script>
                     <objectVariableMode>prismReference</objectVariableMode>
-                    <code>
-
-
-                        import com.evolveum.midpoint.prism.PrismValueUtil
-                        import com.evolveum.midpoint.schema.GetOperationOptions
-                        import com.evolveum.midpoint.schema.SelectorOptions
-                        import com.evolveum.midpoint.schema.result.OperationResult
-                        import com.evolveum.midpoint.util.exception.ObjectNotFoundException
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType
-
-                        // object is Referencable (can be ObjectReferenceType, but also DefaultReferencableImpl).
-                        def prismRefValue = object?.asReferenceValue()
-                        // If parent is available, it's better to use it, we'll save resolutions in the collect loop.
-                        def parentObject = PrismValueUtil.getParentObject(prismRefValue)?.realValue
-
-                        return prismRefValue?.valueMetadata?.realValues?.findAll {
-                            m -> m.provenance.assignmentPath != null
-                        }?.collect { m ->
-                            def assignmentPath = m.provenance.assignmentPath
-                            def directAssignmentId = assignmentPath.segment[0].assignmentId
-                            def ownerRef = m.provenance.assignmentPath.sourceRef
-//                            def owner = parentObject ?: midpoint.resolveReferenceIfExists(ownerRef) // uses model and is very slow in 4.7
-                            def owner = parentObject ?: resolveWithRepo(ownerRef) // with parent, no resolution is used here
-                            def directAssignment = null
-                            if (owner != null) {
-                                for (def assignment : owner.assignment) {
-                                    if (assignment?.id == directAssignmentId) {
-                                        directAssignment = assignment
-                                        break
-                                    }
-                                }
-                            }
-                            def segmentTargets = assignmentPath.segment
-//                                    .collect(s -> midpoint.resolveReferenceIfExists(s?.targetRef)) // slow
-                                    .collect(s -> resolveWithRepo(s?.targetRef))
-
-                            // we'll return object/hashmap for each assignment path metadata value
-                            return [
-                                    assignmentPath: m.provenance.assignmentPath,
-                                    segmentTargets: segmentTargets,
-                                    createTimestamp: m.storage?.createTimestamp,
-                                    owner: owner,
-                                    targetName: prismRefValue?.object?.name?.orig,
-                                    assignment: directAssignment
-                            ]
-                        }
-
-                        private ObjectType resolveWithRepo(ObjectReferenceType ref) {
-                            try {
-                                var typeDef = prismContext.schemaRegistry.findObjectDefinitionByType(ref.type)
-                                // We're creating ignored operation result as we don't want to contaminate the master
-                                // result with false errors (partial or not). Not found is perfectly fine here.
-                                return midpoint.repositoryService
-                                        .getObject(typeDef.compileTimeClass, ref.oid,
-                                                SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
-                                                new OperationResult('ignored'))
-                                        .asObjectable()
-                            } catch (ObjectNotFoundException ignored) {
-                                return null
-                            }
-                        }
-                    </code>
+                    <code>report.generateAssignmentPathRows(object)</code>
                 </script>
             </expression>
         </subreport>
@@ -108,6 +99,10 @@
             <paging>
                 <q:orderBy>../name</q:orderBy>
             </paging>
+            <!--
+            IMPORTANT:
+            All the scripts must use objectVariableMode=prismReference for the case the target does not exist.
+            -->
             <column>
                 <name>user</name>
                 <display>
@@ -117,9 +112,7 @@
                     <expression>
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                return data?.owner?.name?.orig ?: 'Unknown owner'
-                            </code>
+                            <code>data?.owner?.name?.orig ?: 'Unknown owner'</code>
                         </script>
                     </expression>
                 </export>
@@ -127,16 +120,44 @@
             <column>
                 <name>nameColumn</name>
                 <display>
-                    <label>Access</label>
+                    <label>Name</label>
                 </display>
                 <previousColumn>user</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                return data?.targetName
-                            </code>
+                            <code>data?.role?.name?.orig</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>archetypeName</name>
+                <display>
+                    <label>Type</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>data?.roleArchetype?.name?.orig</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>relation</name>
+                <display>
+                    <label>Relation</label>
+                </display>
+                <previousColumn>archetypeName</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>object?.relation</code>
                         </script>
                     </expression>
                 </export>
@@ -146,7 +167,7 @@
                 <display>
                     <label>Path</label>
                 </display>
-                <previousColumn>nameColumn</previousColumn>
+                <previousColumn>relation</previousColumn>
                 <export>
                     <expression>
                         <script>
@@ -168,6 +189,7 @@
                 <export>
                     <expression>
                         <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
                             <code>
                                 if (!data?.segmentTargets) {
                                     return "?"
@@ -194,6 +216,7 @@
                 <export>
                     <expression>
                         <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
                             <code>data?.assignment?.activation?.effectiveStatus</code>
                         </script>
                     </expression>
@@ -208,6 +231,7 @@
                 <export>
                     <expression>
                         <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
                             <code>data?.assignment?.activation?.validTo</code>
                         </script>
                     </expression>
@@ -222,6 +246,7 @@
                 <export>
                     <expression>
                         <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
                             <code>data?.createTimestamp</code>
                         </script>
                     </expression>
@@ -236,6 +261,7 @@
                 <export>
                     <expression>
                         <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
                             <code>
                                 // Explicit String to use the right split() and not random Groovy default method.
                                 String channel = data?.assignment?.metadata?.createChannel

@@ -3791,10 +3791,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta with email change for user 1 using property add modification");
+        given("delta with widget addition for user 1 using container add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_BEHAVIOR, BehaviorType.F_AUTHENTICATION,
-                        AuthenticationBehavioralDataType.F_FAILED_LOGINS).replace(5)
+                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_USER_DASHBOARD,
+                        DashboardLayoutType.F_WIDGET).add(new DashboardWidgetType())
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -3807,7 +3807,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(userObject.getBehavior().getAuthentication().getFailedLogins()).isEqualTo(5);
+        assertThat(userObject.getAdminGuiConfiguration().getUserDashboard().getWidget()).isNotEmpty();
 
         and("externalized version is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);

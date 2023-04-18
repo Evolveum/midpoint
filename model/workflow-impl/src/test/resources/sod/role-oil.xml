@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="01f2d6d8-2a62-47c2-bcd9-a485dfc47708"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>oil</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef type="RoleType">
+                        <filter>
+                            <q:substring>
+                                <q:path>name</q:path>
+                                <q:value>ate</q:value>
+                            </q:substring>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </targetRef>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRef type="UserType">
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <q:value>sod-approver</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </approverRef>
+                </approval>
+                <record/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

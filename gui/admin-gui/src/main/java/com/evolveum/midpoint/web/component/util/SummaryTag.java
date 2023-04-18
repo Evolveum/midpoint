@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.web.component.util;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+// todo cleanup needed
 /**
  * @author semancik
  */
@@ -31,6 +33,8 @@ public abstract class SummaryTag<C extends Containerable> extends Panel {
     public SummaryTag(String id, final IModel<C> model) {
         super(id, model);
 
+        add(AttributeAppender.append("class", "summary-tag d-flex gap-1 border rounded bg-light px-2 m-1"));
+
         Label tagIcon = new Label(ID_TAG_ICON, "");
         tagIcon.add(new AttributeModifier("class", new SummaryTagModel<String>(model) {
             @Override
@@ -40,12 +44,15 @@ public abstract class SummaryTag<C extends Containerable> extends Panel {
         }));
         add(tagIcon);
 
-        add(new Label(ID_TAG_LABEL, new SummaryTagModel<String>(model) {
+        IModel<String> labelModel = new SummaryTagModel<String>(model) {
             @Override
             protected String getValue() {
                 return getLabel();
             }
-        }));
+        };
+        Label tagLabel = new Label(ID_TAG_LABEL, labelModel);
+        tagLabel.add(AttributeAppender.append("title", labelModel));
+        add(tagLabel);
 
         add(new AttributeModifier("style", new SummaryTagModel<String>(model) {
             @Override
@@ -53,26 +60,23 @@ public abstract class SummaryTag<C extends Containerable> extends Panel {
                 if (getColor() == null) {
                     return null;
                 }
-                return "color: " + getColor();
+                return "color: " + getColor() + " !important;";
             }
         }));
 
-        add(new AttributeModifier("class", new SummaryTagModel<String>(model) {
+        add(AttributeAppender.append("class", new SummaryTagModel<String>(model) {
             @Override
             protected String getValue() {
                 return getCssClass();
             }
         }));
 
-        add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible(){
-                if (!initialized) {
-                    initialize(model.getObject());
-                }
-                return !isHideTag();
+        add(new VisibleBehaviour(() -> {
+            if (!initialized) {
+                initialize(model.getObject());
             }
-        });
+            return !isHideTag();
+        }));
     }
 
     public String getCssClass() {

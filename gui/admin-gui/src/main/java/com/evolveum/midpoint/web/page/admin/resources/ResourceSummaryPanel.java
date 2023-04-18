@@ -9,10 +9,12 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -32,7 +34,8 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
     @Override
     protected List<SummaryTag<ResourceType>> getSummaryTagComponentList(){
         AvailabilityStatusType availability = ResourceTypeUtil.getLastAvailabilityStatus(getModelObject());
-        AdministrativeAvailabilityStatusType administrativeAvailability = ResourceTypeUtil.getAdministrativeAvailabilityStatus(getModelObject());
+        IModel<AdministrativeAvailabilityStatusType> administrativeAvailability =
+                () -> ResourceTypeUtil.getAdministrativeAvailabilityStatus(getModelObject());
 
         List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
 
@@ -41,9 +44,9 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
             @Override
             protected void initialize(ResourceType object) {
-                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability) {
+                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability.getObject()) {
                     setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE);
-                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability));
+                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability.getObject()));
                     return;
                 }
 
@@ -69,6 +72,31 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
             }
         };
         summaryTagList.add(summaryTag);
+
+        SummaryTag<ResourceType> modeTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void initialize(ResourceType object) {
+                String lifecycleState = getModelObject().getLifecycleState();
+                if (StringUtils.isEmpty(lifecycleState)) {
+                    lifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
+                }
+
+                if (!SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)
+                        && !SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycleState)) {
+                    setHideTag(true);
+                    return;
+                } else {
+                    setHideTag(false);
+                }
+
+                String mode = ResourceSummaryPanel.this.getString("SimulationMode." + lifecycleState);
+                setLabel(ResourceSummaryPanel.this.getString("ObjectSummaryPanel.mode", mode));
+                setIconCssClass("fa fa-dna");
+            }
+        };
+        summaryTagList.add(modeTag);
         return summaryTagList;
     }
 

@@ -103,7 +103,6 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             getPageBase().showResult(result);
-            throw new RestartResponseException(PageError.class);
         }
 
         LOGGER.trace("end::iterator()");

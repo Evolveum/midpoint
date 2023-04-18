@@ -13,8 +13,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +39,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -247,7 +246,7 @@ public class ExpressionUtil {
         TypedValue<?> convertedTypedValue = originalTypedValue.shallowClone();
         convertedTypedValue.setPrismContext(prismContext);
 
-        if (convertedTypedValue.getValue() instanceof ObjectReferenceType) {
+        if (convertedTypedValue.getValue() instanceof Referencable) {
             convertedTypedValue = resolveReference(convertedTypedValue,
                     variableName, objectResolver, contextDescription, objectVariableMode,
                     task, result);
@@ -398,9 +397,9 @@ public class ExpressionUtil {
             CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         TypedValue<?> resolvedTypedValue;
-        ObjectReferenceType originalReference = (ObjectReferenceType) referenceTypedValue.getValue();
+        Referencable originalReference = (Referencable) referenceTypedValue.getValue();
         Itemable originalParent = originalReference.asReferenceValue().getParent();
-        ObjectReferenceType reference = originalReference.clone();
+        Referencable reference = originalReference.clone();
         OperationResult subResult = result.createMinorSubresult(OP_RESOLVE_REFERENCE);
         try {
             GetOperationOptionsBuilder builder = GetOperationOptionsBuilder.create().allowNotFound();
@@ -450,7 +449,7 @@ public class ExpressionUtil {
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
+        Referencable ref = (Referencable) refAndDef.getValue();
         if (ref.getOid() == null) {
             throw new SchemaException(
                     "Null OID in reference in variable " + varDesc + " in " + contextDescription);

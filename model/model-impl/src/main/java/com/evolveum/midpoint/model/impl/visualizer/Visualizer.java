@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -109,7 +110,7 @@ public class Visualizer {
         return visualization;
     }
 
-    public List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public List<Visualization> visualizeDeltas(@NotNull List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDeltas");
         try {
             resolver.resolve(deltas, task, result);
@@ -122,7 +123,7 @@ public class Visualizer {
         }
     }
 
-    public List<Visualization> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
+    public List<Visualization> visualizeProjectionContexts(@NotNull List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         final List<Visualization> visualizations = new ArrayList<>();
@@ -146,25 +147,26 @@ public class Visualizer {
     }
 
     @NotNull
-    public VisualizationImpl visualizeProjectionContext(ModelProjectionContext context, Task task, OperationResult result)
+    public VisualizationImpl visualizeProjectionContext(@NotNull ModelProjectionContext context, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         ObjectDelta<ShadowType> executable = context.getExecutableDelta();
+        if (executable != null) {
+            SynchronizationPolicyDecision decision = context.getSynchronizationPolicyDecision();
+            if (decision != SynchronizationPolicyDecision.BROKEN) {
+                return visualizeDelta(executable, task, result);
+            }
 
-        SynchronizationPolicyDecision decision = context.getSynchronizationPolicyDecision();
-        if (decision != SynchronizationPolicyDecision.BROKEN) {
-            return visualizeDelta(executable, task, result);
+            if (!executable.isModify()) {
+                return visualizeDelta(executable, task, result);
+            }
+
+            if (context.getObjectOld() != null || context.getObjectNew() == null) {
+                return visualizeDelta(executable, task, result);
+            }
         }
 
-        if (executable == null || !executable.isModify()) {
-            return visualizeDelta(executable, task, result);
-        }
-
-        if (context.getObjectOld() != null || context.getObjectNew() == null) {
-            return visualizeDelta(executable, task, result);
-        }
-
-        // Looks like, it should be an ADD not MODIFY delta (just a guess work since status is BROKEN
+        // Looks like, it should be an ADD not MODIFY delta (just a guess work since status is BROKEN)
         ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(context.getObjectTypeClass(), ChangeType.ADD);
         ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinition();
 
@@ -211,17 +213,17 @@ public class Visualizer {
     }
 
     @NotNull
-    public VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public VisualizationImpl visualizeDelta(@NotNull ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         return visualizeDelta(objectDelta, null, task, parentResult);
     }
 
     @NotNull
-    public VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public VisualizationImpl visualizeDelta(@NotNull ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         return visualizeDelta(objectDelta, objectRef, false, true, task, parentResult);
     }
 
     @NotNull
-    public VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
+    public VisualizationImpl visualizeDelta(@NotNull ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
             boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
         try {
@@ -888,30 +890,36 @@ public class Visualizer {
     }
 
     private List<VisualizationItemValueImpl> toVisualizationItemValuesRef(Collection<PrismReferenceValue> refValues, VisualizationContext context, Task task, OperationResult result) {
+        if (refValues == null) {
+            return new ArrayList<>();
+        }
+
         List<VisualizationItemValueImpl> rv = new ArrayList<>();
-        if (refValues != null) {
-            for (PrismReferenceValue refValue : refValues) {
-                if (refValue != null) {
-                    refValue = createRefValueWithObject(refValue, context, task, result);
-                    String name;
-                    if (refValue.getObject() != null) {
-                        name = PolyString.getOrig(refValue.getObject().getName());
-                    } else if (refValue.getTargetName() != null) {
-                        name = refValue.getTargetName().getOrig();
-                    } else {
-                        name = refValue.getOid();
-                    }
-                    String relation;
-                    if (refValue.getRelation() != null) {
-                        relation = "[" + refValue.getRelation().getLocalPart() + "]";
-                    } else {
-                        relation = null;
-                    }
-                    VisualizationItemValueImpl itemValue = new VisualizationItemValueImpl(name, relation);
-                    itemValue.setSourceValue(refValue);
-                    rv.add(itemValue);
-                }
+        for (PrismReferenceValue refValue : refValues) {
+            if (refValue == null) {
+                continue;
             }
+
+            refValue = createRefValueWithObject(refValue, context, task, result);
+            String name;
+            if (refValue.getObject() != null) {
+                name = PolyString.getOrig(refValue.getObject().getName());
+            } else if (refValue.getTargetName() != null) {
+                name = refValue.getTargetName().getOrig();
+            } else {
+                name = refValue.getOid();
+            }
+
+            String relation;
+            if (refValue.getRelation() != null) {
+                relation = "[" + refValue.getRelation().getLocalPart() + "]";
+            } else {
+                relation = null;
+            }
+
+            VisualizationItemValueImpl itemValue = new VisualizationItemValueImpl(name, relation);
+            itemValue.setSourceValue(refValue);
+            rv.add(itemValue);
         }
         return rv;
     }

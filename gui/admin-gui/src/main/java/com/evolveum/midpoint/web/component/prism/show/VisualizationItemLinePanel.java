@@ -9,15 +9,20 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineDto> {
@@ -32,6 +37,8 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
     private static final String ID_NEW_VALUE_CONTAINER = "newValueContainer";
     private static final String ID_NEW_VALUE_IMAGE = "newValueImage";
     private static final String ID_NEW_VALUE = "newValue";
+    private static final String ID_OLD_METADATA = "oldMetadata";
+    private static final String ID_NEW_METADATA = "newMetadata";
 
     public VisualizationItemLinePanel(String id, IModel<VisualizationItemLineDto> model) {
         super(id, model);
@@ -123,5 +130,62 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         newValueCell.add(newValueImagePanel);
 
         add(newValueCell);
+
+        initMetadataButton(oldValueCell, ID_OLD_METADATA, () -> getModelObject().getOldValue());
+        initMetadataButton(newValueCell, ID_NEW_METADATA, () -> getModelObject().getNewValue());
     }
+
+    private void initMetadataButton(WebMarkupContainer parent, String id, IModel<VisualizationItemValue> model) {
+        IModel<ValueMetadataWrapperImpl> metadataModel = createMetadataModel(model);
+
+        AjaxIconButton metadata = new AjaxIconButton(id, Model.of("fa fa-sm fa-tag"),
+                createStringResource("VisualizationItemLinePanel.metadata")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showMetadata(target, metadataModel);
+            }
+        };
+        // todo MID-8658 not finished yet, hidden for 4.7 release
+        metadata.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+//        metadata.add(new VisibleBehaviour(() -> {
+//            VisualizationItemValue val = model.getObject();
+//            return val != null && val.getSourceValue() != null && !getModelObject().isNullEstimatedOldValues() && metadataModel.getObject() != null;
+//        }));
+        parent.add(metadata);
+    }
+
+    private IModel<ValueMetadataWrapperImpl> createMetadataModel(IModel<VisualizationItemValue> model) {
+        return new LoadableDetachableModel() {
+            @Override
+            protected Object load() {
+                VisualizationItemValue item = model.getObject();
+                if (item == null) {
+                    return null;
+                }
+
+                return VisualizationUtil.createValueMetadataWrapper(item.getSourceValue(), getPageBase());
+            }
+        };
+    }
+
+    private void showMetadata(AjaxRequestTarget target, IModel<ValueMetadataWrapperImpl> model) {
+        PageBase page = getPageBase();
+        page.showMainPopup(new MetadataPopup(page.getMainPopupBodyId(), model), target);
+    }
+
+//    private ItemPanelSettings createMetadataPanelSettings() {
+//        return new ItemPanelSettingsBuilder()
+//                .editabilityHandler(wrapper -> true)
+//                .headerVisibility(false)
+//                .visibilityHandler(w -> createItemVisibilityBehavior(w))
+//                .build();
+//    }
+//
+//    private ItemVisibility createItemVisibilityBehavior(ItemWrapper<?, ?> w) {
+//        if (getModelObject().isShowMetadataDetails()) {
+//            return w instanceof PrismContainerWrapper ? ItemVisibility.HIDDEN : ItemVisibility.AUTO;
+//        }
+//        return w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
+//    }
 }

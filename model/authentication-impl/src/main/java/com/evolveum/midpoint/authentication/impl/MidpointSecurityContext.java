@@ -34,7 +34,8 @@ public class MidpointSecurityContext implements SecurityContext {
     public void setAuthentication(Authentication authentication) {
         if (getAuthentication() instanceof MidpointAuthentication
                 && !getAuthentication().equals(authentication)) {
-            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent((MidpointAuthentication) getAuthentication());
+            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(
+                    ((MidpointAuthentication) getAuthentication()).getAuthModules());
         }
         securityContext.setAuthentication(authentication);
     }

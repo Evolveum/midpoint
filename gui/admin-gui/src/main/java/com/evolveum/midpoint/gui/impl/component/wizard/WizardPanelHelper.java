@@ -30,7 +30,7 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
 
     public WizardPanelHelper(
             @NotNull AHD resourceModel,
-            @NotNull IModel<PrismContainerValueWrapper<C>> valueModel) {
+            IModel<PrismContainerValueWrapper<C>> valueModel) {
         this.detailsModel = resourceModel;
         this.valueModel = valueModel;
     }
@@ -44,10 +44,6 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
     }
 
     public abstract void onExitPerformed(AjaxRequestTarget target);
-
-    public boolean isSavedAfterWizard() {
-        return true;
-    }
 
     public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
         return null;

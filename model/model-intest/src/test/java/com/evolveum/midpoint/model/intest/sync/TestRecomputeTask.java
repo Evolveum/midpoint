@@ -13,8 +13,6 @@ import java.io.File;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -76,7 +74,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         if (areMarksSupported()) {
             repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
         }
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);

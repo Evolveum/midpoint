@@ -95,7 +95,9 @@
                 </script>
             </expression>
             <order>10</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
         <subreport>
             <name>objectDelta</name>
@@ -113,7 +115,9 @@
                 </script>
             </expression>
             <order>20</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
         <subreport>
             <name>assignment</name>
@@ -160,7 +164,9 @@
                 </script>
             </expression>
             <order>30</order>
-            <use>leftJoin</use>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
         </subreport>
     </objectCollection>
 </report>

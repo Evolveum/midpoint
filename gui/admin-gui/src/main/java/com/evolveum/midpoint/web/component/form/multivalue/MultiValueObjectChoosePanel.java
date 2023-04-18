@@ -67,12 +67,7 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
         emptyModelContainer.add(new VisibleBehaviour(() -> isEmptyModel() || emptyObjectPanelDisplay));
         add(emptyModelContainer);
 
-        ValueChoosePanel<R> emptyModelPanel = new ValueChoosePanel<R>(ID_EMPTY_MODEL_INPUT, new IModel<R>() {
-            @Override
-            public R getObject() {
-                return null;
-            }
-        }) {
+        ValueChoosePanel<R> emptyModelPanel = new ValueChoosePanel<>(ID_EMPTY_MODEL_INPUT, () -> null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -125,12 +120,12 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
     }
 
     private void initMultiValuesListPanel() {
-        ListView<R> multiValuesPanel = new ListView<R>(ID_MULTI_SHADOW_REF_VALUE, MultiValueObjectChoosePanel.this.getModel()) {
+        ListView<R> multiValuesPanel = new ListView<>(ID_MULTI_SHADOW_REF_VALUE, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<R> item) {
-                ValueChoosePanel<R> valueChoosePanel = new ValueChoosePanel<R>(ID_REFERENCE_VALUE_INPUT, item.getModel()) {
+                ValueChoosePanel<R> valueChoosePanel = new ValueChoosePanel<>(ID_REFERENCE_VALUE_INPUT, item.getModel()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -145,6 +140,7 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
 
                     @Override
                     protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
+                        removeObjectPerformed(item.getModelObject());
                         chooseObjectPerformed(target, object);
                     }
                 };
@@ -169,12 +165,12 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
                 addButton.add(new EnableBehaviour(() -> item.getModelObject() != null));
                 buttonsContainer.add(addButton);
 
-                AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+                AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        MultiValueObjectChoosePanel.this.getModelObject().remove(item.getModelObject());
+                        removeObjectPerformed(item.getModelObject());
                         target.add(MultiValueObjectChoosePanel.this);
 
                     }
@@ -187,6 +183,10 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
         multiValuesPanel.add(new VisibleBehaviour(() -> !isEmptyModel()));
         multiValuesPanel.setOutputMarkupId(true);
         add(multiValuesPanel);
+    }
+
+    protected void removeObjectPerformed(R object) {
+        MultiValueObjectChoosePanel.this.getModelObject().remove(object);
     }
 
     private boolean isEmptyModel() {

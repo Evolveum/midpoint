@@ -17,7 +17,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
 import org.apache.commons.lang3.Validate;
@@ -1192,7 +1191,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
                 throw e;
             } finally {
-                exitModelMethod();
+                exitModelMethodNoRepoCache();
             }
 
             return metadata;
@@ -2535,7 +2534,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public <O extends ObjectType> ProcessedObjectImpl<O> parseProcessedObject(@NotNull SimulationResultProcessedObjectType bean)
+    public <O extends ObjectType> ProcessedObjectImpl<O> parseProcessedObject(
+            @NotNull SimulationResultProcessedObjectType bean, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException {
         //noinspection unchecked
         PrismContainerValue<SimulationResultProcessedObjectType> pcv = bean.asPrismContainerValue();
@@ -2546,6 +2546,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
 
         ProcessedObjectImpl<O> parsed = ProcessedObjectImpl.parse(bean);
+        try {
+            parsed.applyDefinitions(task, result);
+        } catch (CommonException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't apply definitions on {}", e, parsed);
+        }
         pcv.setUserData(ProcessedObjectImpl.KEY_PARSED, parsed);
         return parsed;
     }

@@ -15,10 +15,20 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
+import com.evolveum.midpoint.authentication.impl.channel.GuiAuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationEvaluatorImpl;
 
+import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 
@@ -97,8 +107,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Autowired private LocalizationMessageSource messageSource;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
+    @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
     private MessageSourceAccessor messages;
+
+    private SequenceAuditFilter auditFilter;
 
     public abstract T getAuthenticationEvaluator();
     public abstract AC getAuthenticationContext(String username, V value, List<ObjectReferenceType> requiredAssignments);
@@ -114,7 +127,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract V get103EmptyPasswordJack();
     public abstract String getEmptyPasswordExceptionMessageKey();
 
+    @Deprecated
     public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
+
+    public abstract String getModuleIdentifier();
+    public abstract String getSequenceIdentifier();
     public abstract QName getCredentialType();
 
     public abstract void modifyUserCredential(Task task, OperationResult result)
@@ -190,6 +207,13 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             }
 
             @Override
+            public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(query, clazz);
+                addFakeAuthorization(principal);
+                return principal;
+            }
+
+            @Override
             public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 GuiProfiledPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz);
                 addFakeAuthorization(principal);
@@ -212,6 +236,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
                 return guiProfiledPrincipal.getCompiledGuiProfile();
             }
         });
+
+        auditFilter = new SequenceAuditFilter(authenticationRecorder);
     }
 
     @Test
@@ -229,7 +255,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         // WHEN
         when();
-        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        Authentication authentication = getAuthenticationEvaluator().authenticate(
+                connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        writeGlobalBehaviour(authentication);
 
         // THEN
         then();
@@ -238,8 +266,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -259,6 +287,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertBadPasswordException(e);
@@ -267,8 +297,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 1);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
         assertLastFailedLogin(userAfter, startTs, endTs);
     }
@@ -288,6 +318,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
             then();
             displayExpectedException(e);
             assertEmptyPasswordException(e);
@@ -295,8 +326,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 2);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 2);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
@@ -310,11 +341,14 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             // WHEN
             when();
 
-            getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, get103EmptyPasswordJack()));
+            getAuthenticationEvaluator().authenticate(
+                    connEnv, getAuthenticationContext(USER_JACK_USERNAME, get103EmptyPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertEmptyPasswordException(e);
@@ -322,8 +356,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 3);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 3);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
@@ -342,6 +376,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
+            writeGlobalBehaviour(e.getMessage(), null);
+
             then();
             displayExpectedException(e);
             assertNoUserException(e);
@@ -368,6 +404,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
+            writeGlobalBehaviour(e.getMessage(), "");
+
             then();
             displayExpectedException(e);
             assertNoUserException(e);
@@ -389,6 +427,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
+            writeGlobalBehaviour(e.getMessage(), "NoSuchUser");
+
             then();
             displayExpectedException(e);
             assertNoUserException(e);
@@ -417,6 +457,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
             // This is expected
 
             // THEN
@@ -428,10 +469,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 4);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 4);
         assertLastFailedLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
+        clock.resetOverride();
     }
 
     @Test
@@ -448,14 +490,16 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             displayExpectedException(e);
             assertBadPasswordException(e);
         }
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 2);
-        assertFailedLoginsForBehavior(userBetween, 5);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 2);
+        assertFailedLoginsForFocusBehavior(userBetween, 5);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         try {
@@ -464,6 +508,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             displayExpectedException(e);
             assertBadPasswordException(e);
         }
@@ -475,8 +521,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 6);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 3);
+        assertFailedLoginsForFocusBehavior(userAfter, 6);
         assertLastFailedLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
@@ -494,6 +540,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertLockedException(e);
@@ -501,8 +549,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 7);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 4);
+        assertFailedLoginsForFocusBehavior(userAfter, 7);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
 
@@ -519,6 +567,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
 
@@ -529,8 +579,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 8);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 5);
+        assertFailedLoginsForFocusBehavior(userAfter, 8);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
 
@@ -544,7 +594,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         // WHEN
         when();
-        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        Authentication authentication = getAuthenticationEvaluator().authenticate(
+                connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        writeGlobalBehaviour(authentication);
 
         // THEN
         then();
@@ -553,10 +605,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
+        clock.resetOverride();
     }
 
     @Test
@@ -573,6 +626,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertBadPasswordException(e);
@@ -580,8 +635,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 1);
-        assertFailedLoginsForBehavior(userBetween, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 1);
+        assertFailedLoginsForFocusBehavior(userBetween, 1);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         try {
@@ -590,6 +645,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertBadPasswordException(e);
@@ -597,8 +654,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 2);
-        assertFailedLoginsForBehavior(userBetween, 2);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 2);
+        assertFailedLoginsForFocusBehavior(userBetween, 2);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         try {
@@ -607,6 +664,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertBadPasswordException(e);
@@ -616,8 +675,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 3);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 3);
+        assertFailedLoginsForFocusBehavior(userAfter, 3);
         assertLastFailedLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
@@ -635,6 +694,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
             assertLockedException(e);
@@ -642,8 +703,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 3);
-        assertFailedLoginsForBehavior(userAfter, 4);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 4);
+        assertFailedLoginsForFocusBehavior(userAfter, 4);
         assertUserLockout(userAfter, LockoutStatusType.LOCKED);
     }
 
@@ -659,14 +720,15 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TASK_TRIGGER_SCANNER_ON_DEMAND.rerun(result);
         clock.resetOverride();
 
+
         then("user is unlocked");
 
         TASK_TRIGGER_SCANNER_ON_DEMAND.assertAfter(); // just show the task
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
-        assertFailedLoginsForCredentials(userBetween, 0);
-        assertFailedLoginsForBehavior(userBetween, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userBetween, 0);
+        assertFailedLoginsForFocusBehavior(userBetween, 0);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
         given("preparing for new login");
@@ -676,6 +738,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         Authentication authentication =
                 getAuthenticationEvaluator()
                         .authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        writeGlobalBehaviour(authentication);
 
         then("everything is OK");
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -683,8 +746,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
@@ -712,8 +775,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
@@ -860,8 +923,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 //        assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
         assertPasswordMetadata(userAfter, getCredentialType(), false, startTs, endTs, null, SchemaConstants.CHANNEL_USER_URI);
 
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
     }
 
     @Test
@@ -872,7 +935,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         // WHEN
         when();
-        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
+        Authentication authentication = getAuthenticationEvaluator().authenticate(
+                connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
+        writeGlobalBehaviour(authentication);
 
         // THEN
         then();
@@ -881,8 +946,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -897,11 +962,14 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             // WHEN
             when();
 
-            getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getBadPasswordGuybrush()));
+            getAuthenticationEvaluator().authenticate(
+                    connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getBadPasswordGuybrush()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_GUYBRUSH_USERNAME);
+
             then();
             displayExpectedException(e);
             assertBadPasswordException(e);
@@ -910,8 +978,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 1);
-        assertFailedLoginsForBehavior(userAfter, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 1);
         assertLastFailedLogin(userAfter, startTs, endTs);
     }
 
@@ -925,7 +993,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         // WHEN
         when();
-        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
+        Authentication authentication = getAuthenticationEvaluator().authenticate(
+                connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
+        writeGlobalBehaviour(authentication);
 
         // THEN
         then();
@@ -934,8 +1004,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -951,11 +1021,14 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             // WHEN
             when();
 
-            getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
+            getAuthenticationEvaluator().authenticate(
+                    connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (CredentialsExpiredException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_GUYBRUSH_USERNAME);
+
             then();
             displayExpectedException(e);
             assertExpiredException(e);
@@ -963,8 +1036,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 1);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 1);
+        assertFailedLoginsForFocusBehavior(userAfter, 1);
     }
 
     /**
@@ -983,6 +1056,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         when("authentication is attempted");
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, context);
+        writeGlobalBehaviour(authentication);
 
         then("authentication is successful");
         assertGoodPasswordAuthentication(authentication, USER_PAINTER_NAME);
@@ -1004,6 +1078,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         when("authentication is attempted");
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, context);
+        writeGlobalBehaviour(authentication);
 
         then("authentication is successful");
         assertGoodPasswordAuthentication(authentication, USER_PAINTER_NAME);
@@ -1025,8 +1100,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         when("authentication is attempted");
         try {
             getAuthenticationEvaluator().authenticate(connEnv, context);
+
             fail("unexpected success");
-        } catch (InternalAuthenticationServiceException e) {
+        } catch (DisabledException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_PAINTER_NAME);
+
             then("an exception is raised");
             displayExpectedException(e);
             assertMissingAssignment(e);
@@ -1068,24 +1146,28 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
     }
 
-    private void assertMissingAssignment(InternalAuthenticationServiceException e) {
+    private void assertMissingAssignment(DisabledException e) {
         assertEquals("Wrong exception message (key)", messages.getMessage("web.security.flexAuth.invalid.required.assignment"), getTranslatedMessage(e));
     }
 
     private ConnectionEnvironment createConnectionEnvironment() {
         HttpConnectionInformation connInfo = new HttpConnectionInformation();
         connInfo.setRemoteHostAddress("remote.example.com");
-        return new ConnectionEnvironment(null, connInfo);
+        ConnectionEnvironment connectionEnvironment = new ConnectionEnvironment(null, connInfo);
+        connectionEnvironment.setModuleIdentifier(getModuleIdentifier());
+        connectionEnvironment.setSequenceIdentifier(getSequenceIdentifier());
+        return connectionEnvironment;
     }
 
-    private void assertFailedLoginsForCredentials(PrismObject<UserType> user, int expected) {
-        if (expected == 0 && getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins() == null) {
+    private void assertFailedLoginsForModuleAttemptBehaviour(PrismObject<UserType> user, int expected) {
+        Integer failedModuleAttempts = getAuthenticationForModule(user.asObjectable()).getFailedAttempts();
+        if (expected == 0 && failedModuleAttempts == null) {
             return;
         }
-        assertEquals("Wrong failed logins in " + user, (Integer) expected, getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins());
+        assertEquals("Wrong failed logins in " + user, (Integer) expected, failedModuleAttempts);
     }
 
-    private void assertFailedLoginsForBehavior(PrismObject<UserType> user, int expected) {
+    private void assertFailedLoginsForFocusBehavior(PrismObject<UserType> user, int expected) {
         if (expected == 0 && getAuthenticationBehavior(user.asObjectable()).getFailedLogins() == null) {
             return;
         }
@@ -1094,10 +1176,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private void assertLastSuccessfulLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) {
-        LoginEventType lastSuccessfulLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastSuccessfulLogin();
-        assertNotNull("no last successful login in " + user, lastSuccessfulLogin);
+        LoginEventType lastSuccessfulLogin = getAuthenticationForModule(user.asObjectable()).getLastSuccessfulAuthentication();
+        assertNotNull("no last successful module login attempt in " + user, lastSuccessfulLogin);
         XMLGregorianCalendar successfulLoginTs = lastSuccessfulLogin.getTimestamp();
-        TestUtil.assertBetween("last successful login timestamp", startTs, endTs, successfulLoginTs);
+        TestUtil.assertBetween("last successful module login attempt timestamp", startTs, endTs, successfulLoginTs);
 
         LoginEventType lastSuccessfulLoginFromBehavior = getAuthenticationBehavior(user.asObjectable()).getLastSuccessfulLogin();
         assertNotNull("no last successful login in " + user, lastSuccessfulLoginFromBehavior);
@@ -1107,10 +1189,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private void assertLastFailedLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) {
-        LoginEventType lastFailedLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastFailedLogin();
-        assertNotNull("no last failed login in " + user, lastFailedLogin);
+        LoginEventType lastFailedLogin = getAuthenticationForModule(user.asObjectable()).getLastFailedAuthentication();
+        assertNotNull("no last failed module login attempt in " + user, lastFailedLogin);
         XMLGregorianCalendar failedLoginTs = lastFailedLogin.getTimestamp();
-        TestUtil.assertBetween("last failed login timestamp", startTs, endTs, failedLoginTs);
+        TestUtil.assertBetween("last failed module login attempt timestamp", startTs, endTs, failedLoginTs);
 
         LoginEventType lastFailedLoginFromBehavior = getAuthenticationBehavior(user.asObjectable()).getLastFailedLogin();
         assertNotNull("no last failed login in " + user, lastFailedLoginFromBehavior);
@@ -1147,7 +1229,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         // WHEN
         when();
-        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        Authentication authentication = getAuthenticationEvaluator().authenticate(
+                connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        writeGlobalBehaviour(authentication);
 
         // THEN
         then();
@@ -1156,8 +1240,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, 0);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, 0);
+        assertFailedLoginsForFocusBehavior(userAfter, 0);
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
@@ -1179,6 +1263,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (DisabledException e) {
+            writeGlobalBehaviour(e.getMessage(), USER_JACK_USERNAME);
+
             then();
             displayExpectedException(e);
 
@@ -1189,14 +1275,59 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
-        assertFailedLoginsForCredentials(userAfter, 0);
-        assertFailedLoginsForBehavior(userAfter, expectedFailInBehavior);
+        assertFailedLoginsForModuleAttemptBehaviour(userAfter, expectedFailInBehavior);
+        assertFailedLoginsForFocusBehavior(userAfter, expectedFailInBehavior);
     }
 
     private AuthenticationBehavioralDataType getAuthenticationBehavior(UserType user) {
-        if (user.getBehavior() == null || user.getBehavior().getAuthentication() == null) {
-            return new AuthenticationBehavioralDataType();
-        }
-        return user.getBehavior().getAuthentication();
+        return AuthUtil.getBehavioralDataForSequence(user, getSequenceIdentifier());
     }
+
+    private AuthenticationAttemptDataType getAuthenticationForModule(UserType user) {
+        return AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(createConnectionEnvironment(), user);
+    }
+
+    private void writeGlobalBehaviour(String message, String username) {
+        MidpointAuthentication mpAuthentication = createFakeGlobalAuth(AuthenticationModuleState.FAILURE);
+        AutheticationFailedData failedData = new AutheticationFailedData(message, username);
+        mpAuthentication.getFirstFailedAuthenticationModule().setFailureData(failedData);
+
+        auditFilter.writeRecord(null, mpAuthentication);
+    }
+
+    private void writeGlobalBehaviour(Authentication authentication) {
+        AuthenticationModuleState state = authentication.isAuthenticated() ? AuthenticationModuleState.SUCCESSFULLY : AuthenticationModuleState.FAILURE;
+        MidpointAuthentication mpAuthentication = createFakeGlobalAuth(state);
+        mpAuthentication.setPrincipal(authentication.getPrincipal());
+
+        auditFilter.writeRecord(null, mpAuthentication);
+
+    }
+
+    private MidpointAuthentication createFakeGlobalAuth(AuthenticationModuleState status) {
+        AuthenticationSequenceModuleType moduleType = new AuthenticationSequenceModuleType()
+                .necessity(AuthenticationSequenceModuleNecessityType.REQUIRED)
+                .order(10)
+                .identifier(getModuleIdentifier());
+
+        AuthenticationSequenceType sequence = new AuthenticationSequenceType()
+                .identifier(getSequenceIdentifier())
+                .module(moduleType);
+
+        MidpointAuthentication mPAuthentication = new MidpointAuthentication(sequence);
+
+        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType()
+                .channelId(SchemaConstants.CHANNEL_USER_URI);
+        mPAuthentication.setAuthenticationChannel(new GuiAuthenticationChannel(channel, taskManager, modelInteractionService));
+
+        mPAuthentication.setAuthModules(List.of(new AuthModuleImpl()));
+
+        ModuleAuthenticationImpl module = new ModuleAuthenticationImpl(getModuleIdentifier(), moduleType);
+        module.setState(status);
+        module.setNameOfModule(getModuleIdentifier());
+
+        mPAuthentication.addAuthentications(module);
+        return mPAuthentication;
+    }
+
 }

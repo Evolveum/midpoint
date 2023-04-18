@@ -85,12 +85,12 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
                     if (credentialName.equals(processedPolicy.getName())) {
                         usedPolicy = processedPolicy;
                     }
-                } else if (processedPolicy.getClass().isAssignableFrom(supportedClass())) {
+                } else if (supportedClass() != null && processedPolicy.getClass().isAssignableFrom(supportedClass())) {
                     usedPolicy = processedPolicy;
                 }
             }
         }
-        if (usedPolicy == null && PasswordCredentialsPolicyType.class.equals(supportedClass())) {
+        if (usedPolicy == null && (PasswordCredentialsPolicyType.class.equals(supportedClass()) || supportedClass() == null)) {
             return getObjectObjectPostProcessor().postProcess(createProvider(null));
         }
         if (usedPolicy == null) {
@@ -103,13 +103,18 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         if (!usedPolicy.getClass().equals(supportedClass())) {
-            String message = "Module " + moduleType.getName() + "support only " + supportedClass() + " type of credential";
+            String moduleIdentifier = StringUtils.isNotEmpty(moduleType.getIdentifier()) ? moduleType.getIdentifier() : moduleType.getName();
+            String message = "Module " + moduleIdentifier + "support only " + supportedClass() + " type of credential";
             IllegalArgumentException e = new IllegalArgumentException(message);
             LOGGER.error(message);
             throw e;
         }
 
         return getObjectObjectPostProcessor().postProcess(createProvider(usedPolicy));
+    }
+
+    private String getCredentialAuthModuleIdentifier(AbstractCredentialAuthenticationModuleType module) {
+        return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
     }
 
     protected abstract ModuleAuthenticationImpl createEmptyModuleAuthentication(

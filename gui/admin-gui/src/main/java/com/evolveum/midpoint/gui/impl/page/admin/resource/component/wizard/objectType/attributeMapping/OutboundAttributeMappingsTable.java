@@ -46,8 +46,9 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
     private static final Trace LOGGER = TraceManager.getTrace(OutboundAttributeMappingsTable.class);
 
-    public OutboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
-        super(id, valueModel);
+    public OutboundAttributeMappingsTable(
+            String id, IModel<PrismContainerValueWrapper<P>> valueModel, ContainerPanelConfigurationType config) {
+        super(id, valueModel, config);
     }
 
     @Override
@@ -152,7 +153,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "col-xl-4 col-lg-4 col-md-4";
+                return "col-xl-2 col-lg-2 col-md-2";
             }
         });
 
@@ -164,7 +165,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "";
+                return "px-0";
             }
         });
 
@@ -172,14 +173,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
                 mappingTypeDef,
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
-
-            @Override
-            public String getCssClass() {
-                return "col-xl-2 col-lg-2 col-md-3";
-            }
-
-        });
+                getPageBase()));
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override
@@ -189,7 +183,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
             @Override
             public String getCssClass() {
-                return "";
+                return "px-0";
             }
         });
 

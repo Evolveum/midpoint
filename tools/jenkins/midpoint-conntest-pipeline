@@ -6,14 +6,10 @@
  */
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
-        yaml:'''
-spec:
-  securityContext:
-    fsGroup: 1000
-''',
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.10-3-alpine',
@@ -69,9 +65,12 @@ spec:
                     """
                     currentBuild.result = 'SUCCESS'
 
-                    step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                    step([$class: 'Publisher',
+                        reportFilenamePattern: '**/testng-results.xml',
+                        failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
+                    ])
 
-                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                    if (currentBuild.result == 'UNSTABLE' || currentBuild.result == 'FAILURE' || params.ARCHIVE_LOGS) {
                         sh "tar --transform \"s-.*/--g\" -cvzf conntest-log.tgz testing/conntest/target/test.log"
 	                    archiveArtifacts allowEmptyArchive: true, artifacts: "conntest-log.tgz", followSymlinks: false
                     }

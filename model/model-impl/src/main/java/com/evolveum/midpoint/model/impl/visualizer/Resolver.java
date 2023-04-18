@@ -13,13 +13,18 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -28,11 +33,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 
 /**
  * Resolves definitions and old values.
@@ -71,7 +76,7 @@ public class Resolver {
                 if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
                     try {
                         provisioningService.applyDefinition(object, task, result);
-                    } catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+                    } catch (ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
                                 ObjectTypeUtil.toShortString(object));
                     }
@@ -85,7 +90,8 @@ public class Resolver {
                         object.asObjectable().setName(new PolyStringType(originalObject.getName()));
                     } catch (ObjectNotFoundException e) {
                         //ignore when object doesn't exist
-                    } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
+                    } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
+                            SecurityViolationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                         warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                     }
@@ -97,6 +103,10 @@ public class Resolver {
     }
 
     public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        if (objectDelta == null) {
+            return;
+        }
+
         if (objectDelta.isAdd()) {
             resolve(objectDelta.getObjectToAdd(), task, result);
         } else if (objectDelta.isDelete()) {
@@ -133,14 +143,15 @@ public class Resolver {
                         } catch (ObjectNotFoundException e) {
                             result.recordHandledError(e);
                             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
-                        } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
+                        } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
+                                SecurityViolationException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                             warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                         }
                         originalObjectFetched = true;
                     }
                     if (originalObject != null) {
-                        Item<?,?> originalItem = originalObject.findItem(itemDelta.getPath());
+                        Item<?, ?> originalItem = originalObject.findItem(itemDelta.getPath());
                         if (originalItem != null) {
                             itemDelta.setEstimatedOldValues(CloneUtil.cloneCollectionMembers(originalItem.getValues()));
                         }
@@ -170,5 +181,85 @@ public class Resolver {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             resolve(delta, true, task, result);
         }
+    }
+
+    public String resolveReferenceDisplayName(ObjectReferenceType ref, boolean returnOidIfReferenceUnknown, Task task, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+
+        PrismObject<?> object = ref.asReferenceValue().getObject();
+        if (object == null) {
+            object = getObject(ref, task, result);
+
+            ref.asReferenceValue().setObject(object);
+        }
+
+        if (object == null) {
+            return resolveReferenceName(ref, returnOidIfReferenceUnknown, task, result);
+        }
+
+        if (ShadowType.class.equals(object.getCompileTimeClass())) {
+            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) object.asObjectable());
+            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+            if (realName != null) {
+                return realName.toString();
+            }
+
+            return resolveReferenceName(ref, returnOidIfReferenceUnknown, task, result);
+        }
+
+        PolyStringType displayName = ObjectTypeUtil.getDisplayName(object);
+        if (displayName != null) {
+            return displayName.getOrig();
+        }
+
+        return resolveReferenceName(ref, returnOidIfReferenceUnknown, task, result);
+    }
+
+    public String resolveReferenceName(ObjectReferenceType ref, boolean returnOidIfReferenceUnknown, Task task, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+
+        if (ref.getTargetName() != null) {
+            return ref.getTargetName().getOrig();
+        }
+
+        if (ref.getObject() != null) {
+            PrismObject<?> object = ref.getObject();
+            if (object.getName() == null) {
+                return returnOidIfReferenceUnknown ? ref.getOid() : null;
+            }
+
+            return object.getName().getOrig();
+        }
+
+        String oid = ref.getOid();
+        if (oid == null) {
+            return null;
+        }
+
+        PrismObject<?> object = getObject(ref, task, result);
+        if (object != null) {
+            return object.getName().getOrig();
+        }
+
+        return returnOidIfReferenceUnknown ? ref.getOid() : null;
+    }
+
+    private PrismObject<?> getObject(ObjectReferenceType ref, Task task, OperationResult result) {
+        try {
+            ObjectTypes type = getTypeFromReference(ref);
+
+            return modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private ObjectTypes getTypeFromReference(ObjectReferenceType ref) {
+        QName typeName = ref.getType() != null ? ref.getType() : ObjectType.COMPLEX_TYPE;
+        return ObjectTypes.getObjectTypeFromTypeQName(typeName);
     }
 }

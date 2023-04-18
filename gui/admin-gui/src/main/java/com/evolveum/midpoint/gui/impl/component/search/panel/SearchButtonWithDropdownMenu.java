@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -22,7 +19,9 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BasePanel<List<E>> {
     private static final long serialVersionUID = 1L;
@@ -31,10 +30,11 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
     private static final String ID_SEARCH_BUTTON_LABEL = "searchButtonLabel";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_DROPDOWN_BUTTON = "dropdownButton";
 
 //    E selectedValue = null;
 
-    private IModel<E> mode;
+    private final IModel<E> mode;
 
     public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel, IModel<E> defaultValue) {
         super(id, menuItemsModel);
@@ -54,7 +54,7 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
 
             @Override
             protected void onError(AjaxRequestTarget target) {
-                Form form = SearchButtonWithDropdownMenu.this.findParent(Form.class);
+                Form<?> form = SearchButtonWithDropdownMenu.this.findParent(Form.class);
                 if (form != null) {
                     target.add(form);
                 } else {
@@ -79,13 +79,22 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
         searchButton.add(buttonLabel);
         add(searchButton);
 
+        AjaxButton dropdownButton = new AjaxButton(ID_DROPDOWN_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+            }
+        };
+        dropdownButton.setOutputMarkupId(true);
+        dropdownButton.add(new VisibleEnableBehaviour(() -> true, () -> getModelObject().size() > 1));
+        add(dropdownButton);
         ListView<E> menuItems = new ListView<E>(ID_MENU_ITEMS, getModel()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<E> item) {
-                AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_MENU_ITEM, createStringResource(item.getModelObject())) {
+                AjaxButton ajaxLinkPanel = new AjaxButton(ID_MENU_ITEM, createStringResource(item.getModelObject())) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -97,40 +106,6 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
                 };
 
                 item.add(ajaxLinkPanel);
-
-//                InlineMenuItem searchItem = new InlineMenuItem(createStringResource(item.getModelObject())) {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public InlineMenuItemAction initAction() {
-//                        return new InlineMenuItemAction() {
-//
-//                            private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            public void onClick(AjaxRequestTarget target) {
-//                                target.add(getSearchButton());
-//                                mode = item;
-//                                menuItemSelected(target, item);
-//                            }
-//                        };
-//                    }
-//
-//                    @Override
-//                    public IModel<Boolean> getVisible() {
-//                        return isMenuItemVisible(item);
-//                    }
-//                }
-//
-//                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM, searchItem);
-//                menuItemBody.setRenderBodyOnly(true);
-//                item.add(menuItemBody);
-//                menuItemBody.add(new VisibleEnableBehaviour() {
-//                    @Override
-//                    public boolean isVisible() {
-//                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
-//                    }
-//                });
             }
         };
         menuItems.setOutputMarkupId(true);
@@ -138,44 +113,9 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
 
     }
 
-//    public void setSelectedValue(E newValue) {
-//        selectedValue = newValue;
-//    }
-
     protected VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
         return new VisibleEnableBehaviour();
     }
-
-//    private IModel<List<InlineMenuItem>> createMenuItemsModel() {
-//        List<InlineMenuItem> menuItems = new ArrayList<>();
-//        getModelObject().forEach(item -> {
-//            InlineMenuItem searchItem = new InlineMenuItem(createStringResource(item)) {
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public InlineMenuItemAction initAction() {
-//                    return new InlineMenuItemAction() {
-//
-//                        private static final long serialVersionUID = 1L;
-//
-//                        @Override
-//                        public void onClick(AjaxRequestTarget target) {
-//                            target.add(getSearchButton());
-//                            mode = item;
-//                            menuItemSelected(target, item);
-//                        }
-//                    };
-//                }
-//
-//                @Override
-//                public IModel<Boolean> getVisible() {
-//                    return isMenuItemVisible(item);
-//                }
-//            };
-//            menuItems.add(searchItem);
-//        });
-//        return Model.ofList(menuItems);
-//    }
 
     public AjaxSubmitLink getSearchButton() {
         return (AjaxSubmitLink) get(ID_SEARCH_BUTTON);

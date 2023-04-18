@@ -406,9 +406,45 @@
 
             <xsd:element ref="tns:lifecycleState" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Lifecycle state of the object. This property defines whether the
+                            object represents a draft, proposed definition, whether it is active,
+                            deprecated, and so on.
+                        </p>
+                        <p>
+                            There are few pre-defined lifecycle states. But custom lifecycle states
+                            may also be defined. Pre-defined lifecycle states are:
+                        </p>
+                        <ul>
+                            <li>draft: Definition of the new object in progress. The object is
+                                NOT active. The definition may change at any moment. It is
+                                not ready yet.</li>
+                            <li>proposed: Definition of a new object is ready for use, but there
+                                is still a review process to be applied (e.g. approval).
+                                The object is NOT active. However the definition should
+                                not change in this state.</li>
+                            <li>active: Active and working definition. Ready to be used without
+                                any unusual limitations.</li>
+                            <li>deprecated: Active definition which is being phased out. The
+                                definition is still fully operational. But it should not
+                                be used for new assignments. E.g. it should not be requested,
+                                it should not be approved, etc.</li>
+                            <li>archived: Inactive historical definition. It is no longer used.
+                                It is maintained only for historical, auditing and
+                                sentimental reasons.</li>
+                            <li>failed: Unexpected error has occurred during object lifecycle. Result
+                                of that event is that the object is rendered inactive.
+                                The situation cannot be automatically remedied. Manual action
+                                is needed.</li>
+                        </ul>
+
+                        TODO adapt this definition regarding the "simulations" feature.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:displayOrder>20</a:displayOrder>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -510,11 +546,11 @@
             <xsd:element name="effectiveMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                       Tags and Shadow marks assigned to the shadow.
+                       Object marks assigned to the shadow.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                        <a:experimental />
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
@@ -807,6 +843,16 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                An order in which this mark should be displayed relative to other marks within the same context.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MarkType.displayOrder</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -844,7 +890,7 @@
                        <xsd:annotation>
                             <xsd:documentation>
                                 Provisioning policy, which is applied to shadows, which have this tag assigned.
-                                
+
                                 If shadow have multiple tags with provisioning policy applied, the strongest effect is applied.
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -2374,6 +2420,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsType" minOccurs="0" />
             <!-- More credential types may be here, such as OTP seeds, X.509 credentials, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2394,7 +2441,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0">
+            <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:appinfo>
+                   <a:alwaysUseForEquals>tns:sequenceIdentifier</a:alwaysUseForEquals>
+                </xsd:appinfo>
+              </xsd:annotation>
             </xsd:element>
             <!-- More data may be added here in the future, e.g. last self-service access, last role request, etc.
                  Even compiled data may appear here, e.g. last access of user to any of his accounts.
@@ -2452,7 +2504,30 @@
             <xsd:element name="lastFailedLogin" type="tns:LoginEventType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The date and time of last successful login attempt.
+                        The date and time of last failed login attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authenticationAttempt" type="tns:AuthenticationAttemptDataType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The information about authentication attempt, in most cases describing authentication modules failures.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sequenceIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the authentication sequence within which current authentication attempt was processed.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
@@ -2541,6 +2616,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="hint" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <xsd:documentation>
+                                    Helps the user to remind his password.
+                                </xsd:documentation>
+                                <a:displayName>PasswordType.hint</a:displayName>
+                                <a:help>PasswordType.value.help</a:help>
+                                <a:since>4.7</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2620,6 +2707,18 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="AttributeVerificationCredentialsType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="SecurityQuestionAnswerType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2678,6 +2777,121 @@
                         The source from where the login came. It is supposed to be human-readable,
                         e.g. a hostname, IP address, etc.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationAttemptDataType">
+        <xsd:sequence>
+            <xsd:element name="sequenceIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the authentication sequence within which current authentication attempt was processed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="moduleIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the authentication module which produces the current authentication attempt
+                            data type. This means that current authentication attempt data log describes the results of that
+                            module authentication which has the specified module identifier.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of the authentication channel used for the current authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastSuccessfulAuthentication" type="tns:LoginEventType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of last successful authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastFailedAuthentication" type="tns:LoginEventType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of last failed authentication attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="failedAttempts" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of failed attempts within the appropriate
+                        module authentication. It should be
+                        increased after every unsuccessful use of
+                        the credential. It may be reset after
+                        successful login or a time-out or may not.
+                        It depends on the policy setting. If
+                        not present, value of zero (0) is assumed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lockoutTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of a moment when authentication module state was changed to lockout.
+                        Lockout state can be set to the authentication module in case when the user reached maximum number
+                        of the failed authentication attempts (this maximum number is set within security policies for the
+                        appropriate type of the authentication module).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lockoutExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of a moment when authentication module lockout expires and the module can
+                        be normally usable again.
+
+                        This is only an informational value. It should be considered as read-only
+                        for most cases. It only makes sense if the lockoutStatus is not in the "normal" state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lockoutStatus" type="tns:LockoutStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This defines the state of the authentication module lock-out. Lock-out means that the module
+                        was temporarily disabled due to failed authentication attempts.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -3861,15 +4075,25 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                        <a:displayName>ShadowDiscriminatorType.resourceRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ShadowDiscriminatorType.kind</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="intent" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of projection that is the target of reference. E.g "default", "admin", "testing"
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ShadowDiscriminatorType.intent</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tag" type="xsd:string" minOccurs="0">
@@ -3878,6 +4102,7 @@
                         Tag tha distinguished shadows that have the same combination of resource+kind+intent.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:displayName>ShadowDiscriminatorType.tag</a:displayName>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -4007,6 +4232,7 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.7</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -4947,11 +5173,12 @@
                     <xsd:documentation>
                         Lifecycle state of the mapping. Production configuration consists (by default) of `active`
                         and `deprecated` ones. Development configuration consists (by default) of `active` and
-                        `proposed` ones. (The role of `deprecated` mappings in development configuration is unclear.)
+                        `proposed` ones.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.7</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6080,6 +6307,11 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!--
+                    TODO: Consider renaming, because returnTypeof type QName is used also in expression, which is a mere level above and can be confusing.
+                     Also - this seems to do nothing at the moment, it probably ends in ScriptExpressionEvaluationContext#suggestedReturnType and is not used further.
+                     Related Jira: MID-8552
+                    -->
                     <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6089,10 +6321,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- TODO: Consider renaming to referenceVariableMode. -->
                     <xsd:element name="objectVariableMode" type="tns:ObjectVariableModeType" minOccurs="0" default="object">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Type of object variables that appear in the script.
+                                Specifies how reference variables should be provided for the script.
+                                By default, they are resolved to objects.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
@@ -6179,7 +6413,8 @@
     <xsd:simpleType name="ObjectVariableModeType">
         <xsd:annotation>
             <xsd:documentation>
-                Type of object variables that appear in the script.
+                Specifies how reference variables should be provided for the script.
+                By default, they are resolved to objects.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -7747,8 +7982,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Top node of an organizational hierarchy. This node and all of its subnodes
-                            (transitively, unlimited depth) are considered selected.
+                            Top node of an organizational hierarchy. All the subnodes (transitively, unlimited depth,
+                            excluding the top node) are considered selected.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -9102,9 +9337,9 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    The content of this property specifies an order in which the organization
-                                    should be displayed relative to other organizations at the same level.
-                                    Organizations will be displayed by sorting them by the values of displayOrder
+                                    The content of this property specifies an order in which the service
+                                    should be displayed relative to other services at the same level.
+                                    Services will be displayed by sorting them by the values of displayOrder
                                     property (ascending). These that do not have any displayOrder annotation
                                     will be displayed last. Services with the same displayOrder
                                     are displayed in alphabetic order.
@@ -9192,7 +9427,22 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
+                    <xsd:element name="securityPolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Reference to the security policy settings which will be applied to the objects
+                                    with this archetype assigned. For now only structural archetypes can have a link to
+                                    the security policy.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
+                                <a:displayName>ArchetypeType.securityPolicy</a:displayName>
+                                <a:since>4.7</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -14867,15 +15117,12 @@
                         triggered. If the situation is not explicitly stated then
                         default situation will be selected instead. The situation
                         is determined by the constraint that triggered the rule.
-                        DEPRECATED. Use markRef instead.
 
-                        TODO specify the time of planned removal
+                        Will be eventually replaced by markRef.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyRuleType.policySituation</a:displayName>
                         <a:help>PolicyRuleType.policySituation.help</a:help>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15624,6 +15871,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000172">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000600">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -15645,14 +15899,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000702">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_MARK"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <!-- Do we want also these tags? -->
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -15758,6 +16004,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000738">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000800">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -15765,10 +16018,31 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000001005">
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000801">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="STANDARD_FUNCTIONS"/>
+                        <jaxb:typesafeEnumMember name="MARK_DECOMMISSION_LATER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000802">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_CORRELATE_LATER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000803">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_DO_NOT_TOUCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000804">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_INVALID_DATA"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -16596,6 +16870,22 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Container for options that control behaviour of different parts of clockwork during simulation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ignoreAssignmentPruning" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, assignments are not pruned even if "prune" policy action is triggered.
+                        To be used when previewing changes only! Main reason is the shopping cart, when we are interested
+                        in assignments conflicts - and if the assignments are pruned, the conflicts disappear.
+                        See e.g. MID-8243.
+
+                        Experimental. Only for midPoint internal use.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.7</a:since>
@@ -17998,14 +18288,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="use" type="tns:SubreportUseType" minOccurs="0" default="embedded">
+                    <xsd:element name="resultHandling" type="tns:SubreportResultHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                How should be the values of subreport used with regard to the parent report row:
-                                embedded to it or joined with it. Mostly useful for subreports that produce more values.
+                                How should we handle the situations when the sub-report produces either multiple values,
+                                or no values at all?
+
+                                BEWARE: This item is currently not supported when previewing reports in GUI. Attempts to
+                                preview reports with this feature may fail.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>SubreportParameterType.asRow</a:displayName>
+                                <a:displayName>SubreportParameterType.resultHandling</a:displayName>
                                 <a:since>4.7</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -18015,48 +18308,103 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:simpleType name="SubreportUseType">
+    <xsd:complexType name="SubreportResultHandlingType">
         <xsd:annotation>
             <xsd:documentation>
-                How is the result of a sub-report used.
+                How should we handle the situations when a sub-report produces either either multiple values, or no values at all?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="multipleValues" type="tns:MultipleSubreportResultValuesHandlingType" minOccurs="0"
+                    default="embedInParentRow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should we handle the situations when a sub-report produces multiple values?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SubreportResultHandlingType.multipleValues</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="noValues" type="tns:NoSubreportResultValuesHandlingType" minOccurs="0" default="keepParentRow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should we handle the situations when a sub-report produces no values?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SubreportResultHandlingType.noValues</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MultipleSubreportResultValuesHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should we handle the situations when a sub-report produces multiple values?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="embedded">
+            <xsd:enumeration value="embedInParentRow">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The value(s) of the sub-report are used within the parent result row.
+                        The values of the sub-report are used within the parent row. No row manipulation is done.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EMBEDDED"/>
+                        <jaxb:typesafeEnumMember name="EMBED_IN_PARENT_ROW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="leftJoin">
+            <xsd:enumeration value="splitParentRow">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The N value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
-                        producing N rows (if N > 0) or 1 row (if N = 0).
+                        The N > 1 value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
+                        producing N rows. In each of these rows the value of the respective element is provided as a variable
+                        named as specified in this subreport.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SPLIT_PARENT_ROW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
-                        In each generated row the value of the respective element is provided as a variable named
-                        as specified in this subreport. If N = 0, the value of this variable is null.
+    <xsd:simpleType name="NoSubreportResultValuesHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should we handle the situations when a sub-report produces no values?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="keepParentRow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The parent row is kept intact. The respective variable (named after the subreport) is null.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="LEFT_JOIN"/>
+                        <jaxb:typesafeEnumMember name="KEEP_PARENT_ROW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="innerJoin">
+            <xsd:enumeration value="removeParentRow">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The N value(s) of the sub-report are "joined" (in the relational terms) with the parent row,
-                        producing N rows. If N = 0, the parent row is eliminated.
+                        The parent row is removed. No further evaluation of subreports nor columns is done.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INNER_JOIN"/>
+                        <jaxb:typesafeEnumMember name="REMOVE_PARENT_ROW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -19857,12 +20205,58 @@
     </xsd:complexType>
 
     <xsd:complexType name="OperationPolicyConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+                <!-- not a container by mistake, will be fixed in the future -->
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true" />
-            <xsd:element name="severity" minOccurs="0" type="tns:ValidationIssueSeverityType" />
+            <xsd:element name="severity" minOccurs="0" type="tns:OperationPolicyViolationSeverityType" default="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How severe is the policy violation? I.e. how "loudly" is a policy enforced - if the given
+                        operation would occur, what should be signalled to the upper layers?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- TODO find a better name; maybe the values are not ideal either -->
+    <xsd:simpleType name="OperationPolicyViolationSeverityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Severity level of operation policy violation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If a given operation would occur, a (fatal) error should be signalled.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="info">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The operation should be skipped silently.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INFO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="SynchronizeOperationPolicyConfigurationType">
         <xsd:sequence>
@@ -19883,9 +20277,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- 
+            <!--
                  If false: (like protected)
-                 Inbound / outbound mapping changes are disabled 
+                 Inbound / outbound mapping changes are disabled
                  do not run clockwork (SynchronizationServiceImpl)
                  do not run inbounds
                  do not run outbounds
@@ -19897,5 +20291,5 @@
             <xsd:element name="delete" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
-    
+
 </xsd:schema>

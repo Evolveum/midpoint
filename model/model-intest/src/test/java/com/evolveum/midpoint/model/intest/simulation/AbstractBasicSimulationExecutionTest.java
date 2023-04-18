@@ -16,11 +16,17 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.TestSimulationResult;
+import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
+import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 
 import org.testng.annotations.Test;
@@ -114,15 +120,20 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertNoNewObjects(result);
 
         and("simulation result is OK");
-        SimulationResultType resultBean = assertSimulationResultAfter(simResult) // TODO some asserts here
+        SimulationResultType resultBean = assertSimulationResultAfter(simResult)
                 .assertMetricValueByEventMark(MARK_USER_ADD.oid, BigDecimal.ONE)
+                .assertObjectsAdded(1)
+                .assertObjectsModified(0)
+                .assertObjectsDeleted(0)
+                .assertObjectsUnchanged(0)
+                .assertObjectsProcessed(1)
                 .getObjectable();
 
         // TODO write an asserter for this
         SimulationMetricValuesType mv =
-                SimulationResultTypeUtil.getAggregatedMetricValuesByEventMarkOid(resultBean, MARK_USER_ADD.oid);
+                SimulationResultTypeUtil.getMetricValuesBeanByMarkOid(resultBean, MARK_USER_ADD.oid);
         displayDumpable("metric value", mv);
-        List<SimulationMetricPartitionType> partitions = mv.getPartition();
+        List<SimulationMetricPartitionType> partitions = Objects.requireNonNull(mv).getPartition();
         assertThat(partitions).as("metric partitions").hasSize(1);
         SimulationMetricPartitionScopeType scope = partitions.get(0).getScope();
         assertThat(scope.getTypeName()).as("type name").isEqualTo(UserType.COMPLEX_TYPE);
@@ -552,7 +563,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             String name, DummyTestResource target, Collection<? extends ProcessedObject<?>> processedObjects) {
         assertProcessedObjects(processedObjects, "objects")
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
-                    .assertEventMarks(MARK_PROJECTION_ACTIVATED)
+                    .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                     .delta()
                     .objectToAdd()
                         .assertNoName() // currently, there is no object name there
@@ -604,7 +615,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertNoNewObjects(result);
 
         and("simulation result is OK");
-        assertSimulationResultAfter(simResult);
+        assertSimulationResultAfter(simResult)
+                .assertObjectsAdded(0)
+                .assertObjectsModified(1)
+                .assertObjectsDeleted(0)
+                .assertObjectsProcessed(1);
+
         // @formatter:off
         assertProcessedObjects(simResult)
                 .display()
@@ -745,7 +761,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
                 .assertIsExists()
-                .assertSynchronizationSituation(null);
+                .assertSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
+                .assertSynchronizationSituationDescriptionUpdatedButNotFull();
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -790,7 +807,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         given("an account on production source");
         resource.controller.addAccount(accountName);
 
-        // STEP 1: low-level "shadow-simulated" import -> produces classification simulation result
+        // STEP 1: low-level "shadow-simulated" import -> produces classification/correlation simulation result
 
         when("the account is imported with shadow-simulation (on background)");
         objectsCounter.remember(result);
@@ -804,20 +821,23 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         then("no new objects are created (except for one shadow)");
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
-        and("there is only a single simulation delta - and is about the classification");
+        and("there are two simulation deltas (for now) - about classification and correlation");
+        // This is a known limitation: two ProcessedObject records for a single shadow are distinct, although they shouldn't be
         TestSimulationResult simResult1 = getTaskSimResult(taskOid1, result);
         // @formatter:off
-        assertProcessedObjects(simResult1)
+        var second = assertProcessedObjects(simResult1)
                 .display()
-                .assertSize(1)
-                .single()
-                    .assertEventMarks(MARK_SHADOW_CLASSIFICATION_CHANGED)
-                    .delta()
-                        .assertModify()
-                        .assertModification(ShadowType.F_KIND, null, ShadowKindType.ACCOUNT)
-                        .assertModification(ShadowType.F_INTENT, null, "default")
-                        .assertModifications(2);
+                .assertSize(2)
+                .by().eventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid).find(
+                        po -> assertClassificationAs(po, "default"))
+                .by().withoutEventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid).find();
         // @formatter:on
+
+        if (isProductionResource || isDevelopmentConfigurationSeen()) {
+            assertCorrelationAsNoOwner(second);
+        } else {
+            assertNoCorrelationChange(second); // Synchronization configuration is invisible here
+        }
 
         // STEP 2: high-level "normally simulated" import -> classifies the shadow + produces clockwork simulation result
 
@@ -914,14 +934,17 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             // @formatter:on
         } else if (!isDevelopmentConfigurationSeen()) {
             // The resource is development mode only and task sees only the production configuration set:
-            // so, no classification, no correlation, no synchronization.
-            and("there are no classification nor correlation deltas (as the task uses the production configuration)");
+            // so, no classification, no correlation, no synchronization. Except for sync timestamp.
+            and("there are no real classification nor correlation deltas (as the task uses the production configuration)");
             assertProcessedObjects(simResult3)
                     .display()
-                    .assertSize(0);
+                    .assertSize(1)
+                    .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find(
+                            po -> po.assertEventMarks()
+                                    .delta(d -> d.assertModifiedExclusive(ShadowType.F_SYNCHRONIZATION_TIMESTAMP)));
         } else {
             // Resource is development mode, task sees the development configuration.
-            // Hence, both re-classification and re-correlation occurs (the latter because the
+            // Hence, both re-classification and re-correlation occurs.
             and("there is a re-classification delta");
             // @formatter:off
             assertProcessedObjects(simResult3)
@@ -943,6 +966,227 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                     .assertSize(2); // temporarily
             // @formatter:on
+
+            assertSimulationResult(simResult3, "after")
+                    .display()
+                    .assertMetricValueByEventMark(MARK_SHADOW_CLASSIFICATION_CHANGED.oid, BigDecimal.ONE);
+
+            REPORT_SIMULATION_VALUES_CHANGED.export()
+                    .withDefaultParametersValues(simResult3.getSimulationResultRef())
+                    .execute(result);
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> assertClassificationAs(
+            ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po, String intent) {
+        return po.assertEventMarks(MARK_SHADOW_CLASSIFICATION_CHANGED)
+                .delta()
+                .assertModify()
+                .assertModification(ShadowType.F_KIND, null, ShadowKindType.ACCOUNT)
+                .assertModification(ShadowType.F_INTENT, null, intent)
+                .assertModifications(2)
+                .end();
+    }
+
+    private void assertCorrelationAsNoOwner(ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po) {
+        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+                .delta()
+                .assertModify()
+                .assertModified(CORRELATION_START_TIMESTAMP_PATH)
+                .assertModified(CORRELATION_END_TIMESTAMP_PATH)
+                .assertModification(CORRELATION_SITUATION_PATH, CorrelationSituationType.NO_OWNER)
+                .assertModification(ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.UNMATCHED)
+                .assertModified(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION)
+                .assertModified(ShadowType.F_SYNCHRONIZATION_TIMESTAMP);
+    }
+
+    private void assertNoCorrelationChange(ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po) {
+        po.assertEventMarks()
+                .delta()
+                .assertModify()
+                .assertNotModified(
+                        CORRELATION_START_TIMESTAMP_PATH,
+                        CORRELATION_END_TIMESTAMP_PATH,
+                        CORRELATION_SITUATION_PATH,
+                        ShadowType.F_SYNCHRONIZATION_SITUATION,
+                        ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION)
+                .assertModified(ShadowType.F_SYNCHRONIZATION_TIMESTAMP);
+    }
+
+    /**
+     * Simulated foreground re-classification (production resource).
+     *
+     * MID-8613
+     */
+    @Test
+    public void test220SimulatedForegroundReclassificationOnProductionResource() throws Exception {
+        executeSimulatedForegroundReclassification(
+                RESOURCE_SIMPLE_PRODUCTION_SOURCE,
+                "test220",
+                true);
+    }
+
+    /**
+     * As {@link #test220SimulatedForegroundReclassificationOnProductionResource()} but on development resource.
+     */
+    @Test
+    public void test225SimulatedForegroundReclassificationOnDevelopmentResource() throws Exception {
+        executeSimulatedForegroundReclassification(
+                RESOURCE_SIMPLE_DEVELOPMENT_SOURCE,
+                "test225",
+                false);
+    }
+
+    private void executeSimulatedForegroundReclassification(
+            DummyTestResource resource, String accountName, boolean isProductionResource) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("an account on production source, classified by regular search");
+        resource.controller.addAccount(accountName);
+        var objectsBefore = modelService.searchObjects(
+                ShadowType.class,
+                Resource.of(resource.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH).eq(accountName)
+                        .build(),
+                null, task, result);
+        assertThat(objectsBefore).as("matching shadows").hasSize(1);
+        assertShadow(objectsBefore.get(0), "before")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(INTENT_DEFAULT);
+
+        when("shadow is changed so it will belong to 'person' type");
+        resource.controller.getDummyResource().getAccountByUsername(accountName)
+                .addAttributeValue(ATTR_TYPE, "person");
+
+        and("shadow is retrieved in development-low-level-simulation mode");
+        task.setExecutionMode(getExecutionMode(true));
+        var objectsAfter = modelService.searchObjects(
+                ShadowType.class,
+                Resource.of(resource.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH).eq(accountName)
+                        .build(),
+                null, task, result);
+        assertThat(objectsAfter).as("matching shadows").hasSize(1);
+
+        if (!isProductionResource && isDevelopmentConfigurationSeen()) {
+            then("the retrieved shadow has new intent");
+            assertShadow(objectsAfter.get(0), "after")
+                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertIntent("person");
+        } else {
+            then("the retrieved shadow has still old intent");
+            assertShadow(objectsAfter.get(0), "after")
+                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertIntent(INTENT_DEFAULT);
+        }
+    }
+
+    /**
+     * Import from production resource that ends in error.
+     *
+     * MID-8622
+     */
+    @Test
+    public void test230ImportWithError() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String name = "test230";
+
+        given("an account on production source");
+        var account = RESOURCE_SIMPLE_PRODUCTION_SOURCE.addAccount(name);
+        account.addAttributeValue(ATTR_TYPE, "employee");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "12345");
+
+        and("user with conflicting name exists");
+        UserType conflicting = new UserType()
+                .name(name)
+                .employeeNumber("999999"); // intentionally different
+        addObject(conflicting, task, result);
+
+        when("account is imported in simulation mode");
+        var simResult = importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "employee"))
+                .withNameValue(name)
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                .withNotAssertingSuccess()
+                .executeOnForegroundSimulated(null, task, result);
+
+        then("result is fatal error");
+        assertThatOperationResult(result)
+                .isFatalError();
+
+        and("result contains information about the error");
+        var processedObject = assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .assertType(ShadowType.class)
+                .assertState(ObjectProcessingStateType.UNMODIFIED)
+                .assertResultStatus(OperationResultStatus.FATAL_ERROR)
+                .assertResult(r ->
+                        r.isFatalError()
+                                .hasMessageContaining("Found conflicting existing object"))
+                .getProcessedObject();
+
+        displayValueAsXml("processed object", processedObject.toBean());
+    }
+
+    /**
+     * There is a synchronization reaction in `proposed` state.
+     * It should be ignored in production mode.
+     *
+     * MID-8671
+     */
+    @Test
+    public void test240ExecutingDevelopmentModeSyncReaction() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String name = "test240";
+        ResourceObjectTypeIdentification employeeTypeId =
+                ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "employee");
+
+        given("an account on production source with an imported user");
+        var account = RESOURCE_SIMPLE_PRODUCTION_SOURCE.addAccount(name);
+        account.addAttributeValue(ATTR_TYPE, "employee");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "11111");
+
+        and("its imported owner");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTypeIdentification(employeeTypeId)
+                .withNameValue(name)
+                .executeOnForeground(result);
+        assertUserBeforeByUsername(name);
+
+        when("the account is deleted and the simulated reconciliation is run");
+        RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.deleteAccount(name);
+        var taskOid = reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withTaskExecutionMode(getExecutionMode())
+                .withTypeIdentification(employeeTypeId)
+                .withNameValue(name)
+                .withNotAssertingSuccess()
+                .execute(result);
+
+        then("the user still exists");
+        assertUserAfterByUsername(name);
+
+        boolean actionVisible = isDevelopmentConfigurationSeen();
+        and(actionVisible ? "simulation result contains user deletion" : "simulation result does NOT contain user deletion");
+        var a = assertProcessedObjects(taskOid, "after")
+                .display();
+        if (actionVisible) {
+            a.by().objectType(ShadowType.class).state(ObjectProcessingStateType.UNMODIFIED).find().end()
+                    .by().objectType(UserType.class).state(ObjectProcessingStateType.DELETED).find().end()
+                    .assertSize(2);
+        } else {
+            a.assertSize(0); // Even the shadow is not visible, because the clockwork was not executed
         }
     }
 
@@ -1025,6 +1269,52 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     "role:person-dev");
         } else {
             assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person (active)");
+        }
+    }
+
+    /**
+     * Creates a user of archetype {@link #ARCHETYPE_PERSON_DEV_TEMPLATE} that is a production archetype pointing
+     * to a development-mode object template.
+     */
+    @Test
+    public void test310CreatePersonWithDevelopmentTemplate() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        objectsCounter.remember(result);
+
+        given("a user");
+        UserType user = new UserType()
+                .name("test310")
+                .assignment(
+                        new AssignmentType()
+                                .targetRef(ARCHETYPE_PERSON_DEV_TEMPLATE.ref()));
+
+        when("user is created in simulation");
+        TestSimulationResult simResult =
+                executeWithSimulationResult(
+                        List.of(user.asPrismObject().createAddDelta()),
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
+
+        then("everything is OK");
+        assertSuccess(result);
+
+        and("no new objects should be created, no deltas really executed");
+        objectsCounter.assertNoNewObjects(result);
+
+        and("simulation result is OK");
+        UserType userAfter = (UserType) assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .delta().objectToAdd().getObjectable();
+
+        Set<String> orgs = userAfter.getOrganization().stream()
+                .map(PolyStringType::getOrig)
+                .collect(Collectors.toSet());
+        if (isDevelopmentConfigurationSeen()) {
+            assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person-dev-template");
+        } else {
+            assertThat(orgs).as("user orgs").isEmpty();
         }
     }
 

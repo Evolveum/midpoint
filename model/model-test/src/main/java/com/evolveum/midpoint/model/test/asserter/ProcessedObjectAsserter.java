@@ -6,12 +6,21 @@
  */
 package com.evolveum.midpoint.model.test.asserter;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.TestObject;
+
+import com.evolveum.midpoint.test.util.OperationResultAssert;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,9 +32,9 @@ import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Asserts prepositions about {@link ProcessedObject} instances.
@@ -49,6 +58,11 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
         return this;
     }
 
+    public ProcessedObjectAsserter<O, RA> assertResultStatus(OperationResultStatus expected) {
+        assertThat(processedObject.getResultStatus()).as("result status").isEqualTo(expected);
+        return this;
+    }
+
     public ProcessedObjectAsserter<O, RA> assertName(String expectedOrig) {
         assertThat(getOrig(processedObject.getName())).as("object name (orig)").isEqualTo(expectedOrig);
         return this;
@@ -61,7 +75,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
 
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventMarks(TestObject<MarkType>... expected) {
-        assertEventMarks(expected, processedObject.getMatchingEventMarks());
+        assertEventMarks(expected, processedObject.getMatchingEventMarksOids());
         return this;
     }
 
@@ -72,6 +86,12 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
                 new ObjectDeltaAsserter<>(delta, this, "delta in " + desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    @Experimental
+    public ProcessedObjectAsserter<O, RA> delta(
+            Function<ObjectDeltaAsserter<O, ProcessedObjectAsserter<O, RA>>, ObjectDeltaAsserter<O, ProcessedObjectAsserter<O, RA>>> function) {
+        return function.apply(delta()).end();
     }
 
     public PrismObjectAsserter<O, ProcessedObjectAsserter<O, RA>> objectBefore() {
@@ -90,6 +110,34 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
                 new PrismObjectAsserter<>(object, this, "object after in " + desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertSynchronizationSituationChangedTo(SynchronizationSituationType expected) {
+        return delta()
+                .assertModification(ShadowType.F_SYNCHRONIZATION_SITUATION, expected)
+                .end();
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertCorrelationSituationChangedTo(CorrelationSituationType expected) {
+        return delta()
+                .assertModification(CORRELATION_SITUATION_PATH, expected)
+                .end();
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertResultingOwnerChangedTo(ObjectReferenceType ref) {
+        return delta()
+                .assertModification(CORRELATION_RESULTING_OWNER_PATH, ref)
+                .end();
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertResult(Consumer<OperationResultAssert> resultAsserter) {
+        resultAsserter.accept(
+                new OperationResultAssert(processedObject.getResult()));
+        return this;
+    }
+
+    public ProcessedObject<O> getProcessedObject() {
+        return processedObject;
     }
 
     protected String desc() {

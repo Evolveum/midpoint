@@ -109,16 +109,7 @@ public class TestSimulationResult {
     private void applyAttributesDefinitions(List<? extends ProcessedObject<?>> objects, OperationResult result)
             throws CommonException {
         for (ProcessedObject<?> object : objects) {
-            if (object.getDelta() == null
-                    || !ShadowType.class.equals(object.getType())) {
-                continue;
-            }
-            ShadowType shadow = (ShadowType) object.getAfterOrBefore();
-            if (shadow == null) {
-                throw new IllegalStateException("No object? In: " + object);
-            }
-            TestSpringBeans.getBean(ProvisioningService.class)
-                    .applyDefinition(object.getDelta(), MidpointTestContextWithTask.get().getTask(), result);
+            object.applyDefinitions(MidpointTestContextWithTask.get().getTask(), result);
         }
     }
 

@@ -463,7 +463,8 @@ class ShadowGetOperation {
             if (classification.isKnown()) {
                 // TODO deduplicate this code somehow
                 LOGGER.debug("Classified {} as {}", repositoryShadow, classification.getDefinition());
-                repositoryShadow = localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repositoryShadow, result);
+                repositoryShadow = localBeans.shadowUpdater.normalizeShadowAttributesInRepository(
+                        ctx, repositoryShadow, classification, result);
                 updateShadowState();
                 ProvisioningContext tempCtx = ctx.spawnForShadow(repositoryShadow);
                 tempCtx.applyAttributesDefinition(repositoryShadow);

@@ -8,8 +8,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-wrap" wicket:id="topButtonsContainer">
-        <div wicket:id="topButtons"/>
+    <div class="d-flex flex-wrap gap-3 mt-3" wicket:id="topButtonsContainer">
+        <a class="btn btn-primary p-3 flex-basis-0 flex-fill" wicket:id="topButtons"/>
     </div>
     <div class="d-flex flex-wrap justify-content-between pl-4">
         <div class="d-flex flex-wrap gap-2">
@@ -34,7 +34,7 @@
             </wicket:enclosure>
         </div>
 
-        <div class="d-flex flex-wrap gap-2" wicket:id="resourceChoiceContainer">
+        <div class="d-flex flex-wrap gap-2 align-items-center" wicket:id="resourceChoiceContainer">
             <label class="col-form-label-sm mb-0">
                 <wicket:message key="ResourceContentTabPanel.searchType"/>
             </label>

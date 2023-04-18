@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
@@ -57,8 +58,6 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                         SynchronizationReactionType.F_NAME))
                 .put(AbstractSynchronizationActionType.class, Arrays.asList(
                         AbstractSynchronizationActionType.F_NAME))
-                .put(ResourceAttributeDefinitionType.class, Arrays.asList(
-                        ResourceAttributeDefinitionType.F_REF))
                 .build();
     }
 
@@ -124,6 +123,11 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
     private Collection<ItemDelta<PrismValue, ItemDefinition<?>>> processModifyDeltas(
             Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas) throws SchemaException {
 
+        PrismReferenceWrapper superRef = findReference(ItemPath.create(ResourceType.F_SUPER, SuperResourceDeclarationType.F_RESOURCE_REF));
+        if (superRef != null && superRef.isEmpty()) {
+            return deltas;
+        }
+
         Collection<ItemDelta<PrismValue, ItemDefinition<?>>> processedDeltas = new ArrayList<>();
 
         for (ItemDelta<PrismValue, ItemDefinition<?>> delta : deltas) {
@@ -164,6 +168,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             PrismContainerValue<?> parentContainerValue = parentItem.getParent();
 
             if (!WebPrismUtil.isValueFromResourceTemplate(parentContainerValue, getItem())) {
+                    if (isDeltaWithTemplateValues(delta)) {
+                        changeReplaceDeltaToAdd(delta);
+                    }
                 processedDeltas.add(delta);
                 continue;
             }
@@ -188,6 +195,29 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         }
         return processedDeltas;
     }
+
+    private void changeReplaceDeltaToAdd(ItemDelta<PrismValue, ItemDefinition<?>> delta) {
+        List<PrismValue> values = new ArrayList<>();
+        values.addAll(delta.getValuesToReplace());
+        values.forEach(this::removeIdFromContainerValue);
+        removingMetadataFromValues(values);
+        delta.clear();
+        delta.addValuesToAdd(values);
+    }
+
+    private boolean isDeltaWithTemplateValues(ItemDelta<PrismValue, ItemDefinition<?>> delta) {
+        if (delta.isAdd()) {
+            return false;
+        }
+
+        for (PrismValue value : delta.getValuesToReplace()) {
+            if (WebPrismUtil.hasValueTemplateMetadata(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private ItemDelta<PrismValue, ItemDefinition<?>> processAddOrModifyDelta(
             PrismContainerValue<?> parentContainerValue, Collection<PrismValue> processedValues, PrismContainerValue<?> valueOfExistingDelta) throws SchemaException {
@@ -221,26 +251,32 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             if (subPath.startsWithId()) {
                 subPath = subPath.subPath(1, subPath.size());
             }
-            if (valueOfExistingDelta.find(subPath) != null) {
+
+            if (!subPath.isEmpty() && ItemPath.isId(subPath.last())) {
+                subPath = subPath.allExceptLast();
+            }
+            if (subPath.isEmpty()) {
+                newValue = valueOfExistingDelta;
+            } else if (valueOfExistingDelta.find(subPath) != null) {
                 isItemFound = true;
                 newContainer = (PrismContainer) valueOfExistingDelta.find(subPath);
                 newValue = newContainer.getValue(origParentValue.getId());
             }
         }
 
-        if (newContainer == null) {
-            newContainer = origParentValue.getDefinition().instantiate();
-        }
-
         if (newValue == null) {
+            if (newContainer == null) {
+                newContainer = origParentValue.getDefinition().instantiate();
+            }
             newValue = newContainer.createNewValue();
             newValue.setId(origParentValue.getId());
             Class<?> typeClass = newValue.getComplexTypeDefinition().getTypeClass();
             if (typeClass == null) {
                 typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), newValue.getComplexTypeDefinition().getTypeName());
             }
-            if (MERGE_IDENTIFIERS.containsKey(typeClass)) {
-                for (ItemName path : MERGE_IDENTIFIERS.get(typeClass)) {
+            Class<?> key = getClassKeyForMergedClass(typeClass);
+            if (key != null) {
+                for (ItemName path : MERGE_IDENTIFIERS.get(key)) {
                     Item<PrismValue, ItemDefinition<?>> item = origParentValue.findItem(path);
                     if (item != null && !item.isEmpty() && item.valuesStream().anyMatch(v -> !v.isEmpty())) {
                         Item newItem = newValue.findOrCreateItem(path);
@@ -264,12 +300,23 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             return valueOfExistingDelta;
         }
 
-        if (WebPrismUtil.isValueFromResourceTemplate(parentValue, getItem())) {
-            return createParentValueForAddDelta(parentValue, newContainer, valueOfExistingDelta);
-        }
+        if (newContainer != null) {
+            if (WebPrismUtil.isValueFromResourceTemplate(parentValue, getItem())) {
+                return createParentValueForAddDelta(parentValue, newContainer, valueOfExistingDelta);
+            }
 
-        newContainer.setParent(parentValue);
+            newContainer.setParent(parentValue);
+        }
         return newValue;
+    }
+
+    private Class<?> getClassKeyForMergedClass(Class<?> typeClass) {
+        for (Class<?> key : MERGE_IDENTIFIERS.keySet()) {
+            if (key.isAssignableFrom(typeClass)) {
+                return key;
+            }
+        }
+        return null;
     }
 
     private void removingMetadataForSuperOrigin(Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas) {

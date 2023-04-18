@@ -226,7 +226,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         if (areMarksSupported()) {
             repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
         }
 
         reconciliationResultListener = new DebugReconciliationResultListener();
@@ -985,22 +985,22 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .itemProcessingStatistics()
                         .display()
-                        .assertTotalCounts(0, 0, 2)
+                        .assertTotalCounts(0, 0, 0)
                     .end()
                     .progress()
                         .display()
-                        .assertCommitted(0, 0, 2)
+                        .assertNoCommitted()
                         .assertNoUncommitted()
                     .end()
                 .end()
-                .assertProgress(9);
+                .assertProgress(7);
         // @formatter:on
 
         and("given number of fetch operations should be there");
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
 
         and("reconciliation result listener should contain correct counters");
-        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
 
         and("users should be as expected");
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -1165,9 +1165,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dumpStatistics(taskAfter);
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
 
-        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1274,7 +1274,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource account)", users);
 
-        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 0);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1346,9 +1346,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dumpStatistics(taskAfter);
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
 
-        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1464,27 +1464,26 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                         // for ht (old name for htm)
                         .assertTransition(LINKED, DELETED, DELETED, null, 1, 0, 0)
                         // two protected accounts (daviejones, calypso)
-                        .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
-                        .assertTransitions(2)
+                        .assertTransitions(1)
                     .end()
                     .itemProcessingStatistics()
                         .display()
-                        .assertTotalCounts(1, 0, 2) // 1 renamed, 2 protected
+                        .assertTotalCounts(1, 0, 0) // 1 renamed
                     .end()
                     .progress()
                         .display()
-                        .assertCommitted(1, 0, 2)
+                        .assertCommitted(1, 0, 0)
                         .assertNoUncommitted()
                     .end()
                 .end()
-                .assertProgress(10);
+                .assertProgress(8);
         // @formatter:on
 
         dumpShadowSituations(RESOURCE_DUMMY_OID, result);
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
 
-        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 3);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1730,6 +1729,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         then();
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        assertTask(taskAfter, "after")
+                .assertSuccess();
 
         dumpStatistics(taskAfter);
 

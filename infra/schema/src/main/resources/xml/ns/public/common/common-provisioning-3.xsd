@@ -631,13 +631,11 @@
                         as "non-matching" at a given level, all lower levels are ignored. For example, if an object class
                         has a "proposed" lifecycle state, all its object types are considered to be in non-production
                         development state, regardless of their own lifecycle state values.
-
-                        See https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/ for more
-                        information.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.7</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1035,14 +1033,14 @@
                 <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Kind of the parent type. If not specified, the kind of the referencing child is used.
+                            Kind of the parent type. Must be specified.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="intent" type="xsd:string" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Intent of the parent type. Should be specified.
+                            Intent of the parent type. Must be specified.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -3457,17 +3455,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="policySituation">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Resource object was excluded from synchronization because of a (unspecified) policy situation.
-                        <!-- We may add more specific reasons here later. Or will we report that in a different way? -->
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="POLICY_SITUATION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="noSynchronizationPolicy">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5171,6 +5158,7 @@
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
             <xsd:element name="order" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

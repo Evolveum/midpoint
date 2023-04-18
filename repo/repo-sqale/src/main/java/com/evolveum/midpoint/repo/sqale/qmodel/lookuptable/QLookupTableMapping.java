@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,10 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
-import java.util.*;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.path.PathSet;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
@@ -24,7 +24,9 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -131,6 +133,11 @@ public class QLookupTableMapping
 
             List<MLookupTableRow> result = query.fetch();
 
+            // Should we remove incomplete only if all rows are present?
+            var rowContainer = base.asPrismContainer().findContainer(F_ROW);
+            if (rowContainer != null) {
+                rowContainer.setIncomplete(false);
+            }
             for (MLookupTableRow r : result) {
                 LookupTableRowType lookupRow = new LookupTableRowType().key(r.key);
                 if (r.labelOrig != null || r.labelNorm != null) {
@@ -159,9 +166,7 @@ public class QLookupTableMapping
         BooleanExpression right;
         if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
             path = alias.labelNorm;
-            var poly = new PolyString(value);
-            poly.recompute(prismContext().getDefaultPolyStringNormalizer());
-            value = poly.getNorm();
+            value = prismContext().getDefaultPolyStringNormalizer().normalize(value);
         }
 
         switch (queryDef.getSearchType()) {

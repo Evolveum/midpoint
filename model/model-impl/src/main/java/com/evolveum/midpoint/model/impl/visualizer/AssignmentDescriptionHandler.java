@@ -14,20 +14,15 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -36,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class AssignmentDescriptionHandler implements VisualizationDescriptionHandler {
 
     @Autowired
-    private ModelService modelService;
+    private Resolver resolver;
 
     @Override
     public boolean match(VisualizationImpl visualization) {
@@ -51,62 +46,60 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     @Override
     public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
         PrismContainerValue<?> value = visualization.getSourceValue();
-        ChangeType changeType = visualization.getChangeType();
 
         AssignmentType a = (AssignmentType) value.asContainerable();
-        ObjectReferenceType targetRef = a.getTargetRef();
-        if (targetRef == null) {
-            return;
+        if (a.getConstruction() != null) {
+            handleConstruction(visualization, a.getConstruction(), task, result);
+        } else if (a.getTargetRef() != null) {
+            handleTargetRef(visualization, a.getTargetRef(), task, result);
+        }
+    }
+
+    private void handleConstruction(VisualizationImpl visualization, ConstructionType construction, Task task, OperationResult result) {
+        ChangeType change = visualization.getChangeType();
+
+        ShadowKindType kind = construction.getKind() != null ? construction.getKind() : ShadowKindType.UNKNOWN;
+        String intent = construction.getIntent() != null ? "(" + construction.getIntent() + ")" : "";
+
+        ObjectReferenceType resourceRef = construction.getResourceRef();
+        Object resourceName = null;
+        if (resourceRef != null) {
+            resourceName = resolver.resolveReferenceName(resourceRef, false, task, result);
         }
 
+        if (resourceName == null) {
+            resourceName = new SingleLocalizableMessage("ShadowDescriptionHandler.unknownResource",
+                    new Object[] { resourceRef != null ? resourceRef.getOid() : null });
+        }
+
+        visualization.getName().setOverview(
+                new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment.construction", new Object[] {
+                        new SingleLocalizableMessage("ShadowKindType." + kind),
+                        intent,
+                        resourceName,
+                        createAssignedMessage(change == ADD)
+                })
+        );
+    }
+
+    private LocalizableMessage createAssignedMessage(boolean assigned) {
+        String key = assigned ? "AssignmentDescriptionHandler.assigned" : "AssignmentDescriptionHandler.unassigned";
+        return new SingleLocalizableMessage(key);
+    }
+
+    private void handleTargetRef(VisualizationImpl visualization, ObjectReferenceType targetRef, Task task, OperationResult result) {
         QName type = targetRef.getType() != null ? targetRef.getType() : ObjectType.COMPLEX_TYPE;
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
-        String targetName = resolveReferenceName(targetRef, task, result);
+        String targetName = resolver.resolveReferenceDisplayName(targetRef, true, task, result);
+
+        ChangeType change = visualization.getChangeType();
 
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
                         new SingleLocalizableMessage("ObjectTypes." + ot.name()),
                         targetName,
-                        changeType == ADD ? "assigned" : "unassigned"
+                        createAssignedMessage(change == ADD)
                 }, (String) null));
-    }
-
-    private String resolveReferenceName(ObjectReferenceType ref, Task task, OperationResult result) {
-        if (ref == null) {
-            return null;
-        }
-
-        if (ref.getTargetName() != null) {
-            return ref.getTargetName().getOrig();
-        }
-
-        if (ref.getObject() != null) {
-            PrismObject<?> object = ref.getObject();
-            if (object.getName() == null) {
-                return ref.getOid();
-            }
-
-            return object.getName().getOrig();
-        }
-
-        String oid = ref.getOid();
-        if (oid == null) {
-            return null;
-        }
-
-        try {
-            ObjectTypes type = getTypeFromReference(ref);
-
-            PrismObject<?> object = modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
-            return object.getName().getOrig();
-        } catch (Exception ex) {
-            return ref.getOid();
-        }
-    }
-
-    private ObjectTypes getTypeFromReference(ObjectReferenceType ref) {
-        QName typeName = ref.getType() != null ? ref.getType() : ObjectType.COMPLEX_TYPE;
-        return ObjectTypes.getObjectTypeFromTypeQName(typeName);
     }
 }

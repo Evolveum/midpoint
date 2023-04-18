@@ -39,20 +39,21 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-@PanelType(name = "roleWizard-construction-resource")
-@PanelInstance(identifier = "roleWizard-construction-resource",
-        applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+@PanelType(name = "arw-construction-resource")
+@PanelInstance(identifier = "arw-construction-resource",
+        applicableForType = AbstractRoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.resource", icon = "fa fa-database"),
         containerPath = "empty")
-public class ConstructionResourceStepPanel extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<RoleType>, AssignmentType> {
+public class ConstructionResourceStepPanel<AR extends AbstractRoleType>
+        extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<AR>, AssignmentType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceStepPanel.class);
 
-    public static final String PANEL_TYPE = "roleWizard-construction-resource";
+    public static final String PANEL_TYPE = "arw-construction-resource";
 
     public ConstructionResourceStepPanel(
-            FocusDetailsModels<RoleType> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
+            FocusDetailsModels<AR> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         super(model, valueModel);
     }
 

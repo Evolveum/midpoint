@@ -8,6 +8,7 @@
 def verbose = params.VERBOSE ?: '0'
 
 podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 1,
         // Secret volume with maven settings.xml for deploy, see also sim-link in "build" stage.
@@ -88,10 +89,10 @@ podTemplate(
                     // Using this step in each phase produces multiple graphs, but all have the same results from the last run.
                     step([$class: 'Publisher',
                         reportFilenamePattern: '**/testng-results.xml',
-                        // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
+                        failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
                     ])
 
-                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                    if (currentBuild.result == 'UNSTABLE' || currentBuild.result == 'FAILURE' || params.ARCHIVE_LOGS) {
                         sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
 	                    archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
                     }

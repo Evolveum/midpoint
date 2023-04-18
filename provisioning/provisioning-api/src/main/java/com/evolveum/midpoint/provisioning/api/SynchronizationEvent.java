@@ -15,6 +15,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+
 /**
  * Represents a synchronization change event (obtained typically by live synchronization or asynchronous update)
  * that needs to be processed.
@@ -86,7 +90,13 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
     /**
      * The resulting combination of resource object and its repo shadow.
      *
+     * TODO declare as non-null
+     *
      * TODO clarify this description; see `ShadowedChange.shadowedObject`
      */
     PrismObject<ShadowType> getShadowedObject();
+
+    default @NotNull PrismObject<ShadowType> getShadowedObjectRequired() {
+        return Objects.requireNonNull(getShadowedObject(), "no shadowed object");
+    }
 }

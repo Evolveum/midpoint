@@ -37,7 +37,7 @@ public interface SimulationResultManager {
      */
     @NotNull SimulationResult createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @Nullable String rootTaskOid,
+            @Nullable Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             @NotNull OperationResult result)
             throws ConfigurationException;
@@ -54,6 +54,8 @@ public interface SimulationResultManager {
 
     /**
      * Returns the default simulation definition: either from the system configuration (if present there), or a new one.
+     *
+     * Returned value is freely modifiable by client.
      */
     @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException;
 

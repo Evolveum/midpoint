@@ -31,6 +31,9 @@ import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStrea
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
+import org.apache.wicket.markup.MarkupFactory;
+import org.apache.wicket.markup.MarkupParser;
+import org.apache.wicket.markup.MarkupResourceStream;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
@@ -58,6 +61,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -84,11 +88,11 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -163,6 +167,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
 
+    @Autowired private ResourceUrlProvider resourceUrlProvider;
     @Autowired private ModelService model;
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private RelationRegistry relationRegistry;
@@ -250,6 +255,18 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
         getMarkupSettings().setStripComments(true);
+
+        MarkupFactory factory = new MarkupFactory() {
+
+            public MarkupParser newMarkupParser(final MarkupResourceStream resource) {
+                MarkupParser parser = super.newMarkupParser(resource);
+                parser.add(new StaticSpringResourcesMarkupFilter(resource, resourceUrlProvider));
+                return parser;
+            }
+        };
+        getMarkupSettings().setMarkupFactory(factory);
+
+//        getPageSettings().getComponentResolvers().add(0, new SpringStaticVersionedComponentResolver());
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);

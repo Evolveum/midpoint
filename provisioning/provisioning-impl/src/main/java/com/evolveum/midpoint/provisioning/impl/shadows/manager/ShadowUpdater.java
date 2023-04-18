@@ -20,6 +20,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.common.Clock;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +114,7 @@ public class ShadowUpdater {
             ObjectNotFoundException, ConfigurationException {
 
         Collection<? extends ItemDelta<?, ?>> repoModifications =
-                new ShadowDeltaComputerRelative(ctx, modifications, protector)
+                new ShadowDeltaComputerRelative(ctx, repoShadow, modifications, protector)
                         .computeShadowModifications();
 
         executeRepoShadowModifications(ctx, repoShadow, repoModifications, result);
@@ -457,10 +459,18 @@ public class ShadowUpdater {
     public @NotNull ShadowType normalizeShadowAttributesInRepository(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType origRepoShadow,
+            @Nullable ResourceObjectClassification newClassification,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         PrismObject<ShadowType> currentRepoShadow =
                 repositoryService.getObject(ShadowType.class, origRepoShadow.getOid(), null, result);
+        if (newClassification != null && ctx.areShadowChangesSimulated()) {
+            // In shadow simulation, we would lose kind/intent on repository re-read here.
+            // So we have to manually set the new values into the shadow.
+            currentRepoShadow.asObjectable()
+                    .kind(newClassification.getKind())
+                    .intent(newClassification.getIntent());
+        }
         ResourceObjectDefinition objectDef = ctx
                 .spawnForShadow(currentRepoShadow.asObjectable())
                 .getObjectDefinitionRequired();

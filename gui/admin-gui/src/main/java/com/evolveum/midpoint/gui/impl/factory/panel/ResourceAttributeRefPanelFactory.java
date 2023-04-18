@@ -29,6 +29,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
@@ -69,6 +71,8 @@ public class ResourceAttributeRefPanelFactory
                 return getChoicesList(panelCtx);
             }
         };
+
+        autoCompleteTextPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
         return autoCompleteTextPanel;
     }

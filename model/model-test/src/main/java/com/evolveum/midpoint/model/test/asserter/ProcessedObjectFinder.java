@@ -6,23 +6,24 @@
  */
 package com.evolveum.midpoint.model.test.asserter;
 
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ProcessedObjectFinder<RA> {
@@ -33,6 +34,7 @@ public class ProcessedObjectFinder<RA> {
     private ObjectProcessingStateType state;
     private ChangeType changeType;
     private String eventMarkOid;
+    private String withoutEventMarkOid;
     private boolean noEventMarks;
     private String resourceOid;
     private Integer index;
@@ -63,6 +65,11 @@ public class ProcessedObjectFinder<RA> {
 
     public ProcessedObjectFinder<RA> eventMarkOid(String eventMarkOid) {
         this.eventMarkOid = eventMarkOid;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> withoutEventMarkOid(String eventMarkOid) {
+        this.withoutEventMarkOid = eventMarkOid;
         return this;
     }
 
@@ -118,6 +125,9 @@ public class ProcessedObjectFinder<RA> {
             if (eventMarkOid != null && !processedObject.hasEventMark(eventMarkOid)) {
                 continue;
             }
+            if (withoutEventMarkOid != null && processedObject.hasEventMark(withoutEventMarkOid)) {
+                continue;
+            }
             if (noEventMarks && !processedObject.hasNoEventMarks()) {
                 continue;
             }
@@ -146,6 +156,15 @@ public class ProcessedObjectFinder<RA> {
         }
         //noinspection unchecked
         return processedObjectsAsserter.spawn((ProcessedObject<O>) found.get(0), "selected delta");
+    }
+
+    /** Experimental variant of {@link #find()} not requiring turning auto-formatter off.  */
+    @Experimental
+    public <O extends ObjectType> ProcessedObjectsAsserter<RA> find(
+            Function<ProcessedObjectAsserter<O, ProcessedObjectsAsserter<RA>>, ProcessedObjectAsserter<O, ProcessedObjectsAsserter<RA>>> function) {
+        return function
+                .apply(find())
+                .end();
     }
 
     protected void fail(String message) {

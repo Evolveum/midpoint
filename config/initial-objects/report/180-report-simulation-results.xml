@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        oid="00000000-0000-0000-0000-97631b84fde7">
+    <name>Simulation report: Results</name>
+    <description>Individual simulation results, along with respective metric values.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
+    </assignment>
+    <objectCollection>
+        <collection>
+            <!-- Type is declared in the view element. -->
+        </collection>
+        <view>
+            <column>
+                <name>oid</name>
+                <documentation>
+                    OID of the simulation result object.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>OID</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.OID</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>object.oid</code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>name</name>
+                <documentation>
+                    Name of the simulation result object.
+                    Usually contains information about the task that produced the report (if any),
+                    identifier of the simulation result configuration used (if any),
+                    and the timestamp of the simulation report creation.
+                </documentation>
+                <path>name</path>
+                <previousColumn>oid</previousColumn>
+            </column>
+            <column>
+                <name>definitionIdentifier</name>
+                <documentation>
+                    Identifier of the simulation result definition used (if any).
+                </documentation>
+                <path>definition/identifier</path>
+                <display>
+                    <label>
+                        <t:orig>Definition identifier</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.definitionIdentifier</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>name</previousColumn>
+            </column>
+            <column>
+                <name>startTimestamp</name>
+                <path>startTimestamp</path>
+                <previousColumn>definitionIdentifier</previousColumn>
+            </column>
+            <column>
+                <name>endTimestamp</name>
+                <path>endTimestamp</path>
+                <previousColumn>startTimestamp</previousColumn>
+            </column>
+            <column>
+                <name>rootTaskRef</name>
+                <documentation>
+                    Task under which this simulation executes or executed. (Empty for foreground simulations.)
+                </documentation>
+                <path>rootTaskRef</path>
+                <display>
+                    <label>
+                        <t:orig>Task</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.task</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>endTimestamp</previousColumn>
+            </column>
+            <column>
+                <name>configuration</name>
+                <path>configurationUsed/predefined</path>
+                <display>
+                    <label>
+                        <t:orig>Predefined configuration</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.predefinedConfiguration</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>rootTaskRef</previousColumn>
+            </column>
+            <!-- metric -->
+            <column>
+                <name>builtInMetric</name>
+                <documentation>
+                    Built-in metric identifier corresponding to the metric row. (If applicable.)
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Built-in metric</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.builtInMetric</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>configuration</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.ref?.builtIn
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>eventMark</name>
+                <documentation>
+                    Event mark corresponding to the metric row. (If applicable.)
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Event mark</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.eventMark</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>builtInMetric</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.ref?.eventMarkRef
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>explicitMetric</name>
+                <documentation>
+                    Explicit metric identifier corresponding to the metric row. (If applicable.)
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Explicit metric</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.explicitMetric</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>eventMark</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.ref?.identifier
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>aggregationFunction</name>
+                <display>
+                    <label>
+                        <t:orig>Aggregation function</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.aggregationFunction</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>explicitMetric</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                                (metric as SimulationMetricValuesType)?.aggregationFunction
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <!-- partition -->
+            <column>
+                <name>scopeType</name>
+                <documentation>
+                    Type of objects (user, role, org, shadow, ...).
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Scope: type</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeType</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>aggregationFunction</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.typeName
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeArchetype</name>
+                <documentation>
+                    Structural archetype of the objects. Applicable only to focal objects.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Scope: archetype</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeArchetype</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>scopeType</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.ObjectTypes
+                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.structuralArchetypeOid?.with {
+                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.ARCHETYPE)
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeResource</name>
+                <documentation>
+                    Resource on which the projection (shadow) resides. Applicable only to projections.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Scope: resource</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeResource</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>scopeArchetype</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.ObjectTypes
+                                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.resourceOid?.with {
+                                    ObjectTypeUtil.createObjectRef(it, ObjectTypes.RESOURCE)
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeKind</name>
+                <documentation>
+                    Kind of the projection (shadow). Applicable only to projections.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Scope: kind</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeKind</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>scopeResource</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.kind
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>scopeIntent</name>
+                <documentation>
+                    Intent of the projection (shadow). Applicable only to projections.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Scope: intent</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.scopeIntent</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>scopeKind</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.scope?.intent
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>value</name>
+                <documentation>
+                    Aggregated value of the metric for given partition.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Value</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.value</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>scopeIntent</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.value
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>selectionSize</name>
+                <documentation>
+                    Number of objects selected by given metric.
+                    (The meaning of this field is metric-dependent.
+                    The default meaning is "all objects that have metric value greater than zero".)
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Selection size</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.selectionSize</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>value</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.selectionSize
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>selectionTotalValue</name>
+                <documentation>
+                    Sum of metric values for all objects selected by the metric.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Selection total value</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.selectionTotalValue</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>selectionSize</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.selectionTotalValue
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>domainSize</name>
+                <documentation>
+                    Number of objects on which given metric was evaluated.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Domain size</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.domainSize</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>selectionTotalValue</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.domainSize
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>domainTotalValue</name>
+                <documentation>
+                    Sum of metric values for all objects.
+                </documentation>
+                <display>
+                    <label>
+                        <t:orig>Domain total value</t:orig>
+                        <t:translation>
+                            <t:key>SimulationReports.column.domainTotalValue</t:key>
+                        </t:translation>
+                    </label>
+                </display>
+                <previousColumn>domainSize</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricPartitionType
+
+                                (partition as SimulationMetricPartitionType)?.domainTotalValue
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>c:SimulationResultType</type>
+        </view>
+        <subreport>
+            <name>metric</name>
+            <type>SimulationMetricValuesType</type>
+            <expression>
+                <script>
+                    <code>object.metric</code>
+                </script>
+            </expression>
+            <order>10</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+        <subreport>
+            <name>partition</name>
+            <type>SimulationMetricPartitionType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType
+
+                        (metric as SimulationMetricValuesType)?.partition
+                    </code>
+                </script>
+            </expression>
+            <order>20</order>
+            <resultHandling>
+                <multipleValues>splitParentRow</multipleValues>
+            </resultHandling>
+        </subreport>
+    </objectCollection>
+</report>

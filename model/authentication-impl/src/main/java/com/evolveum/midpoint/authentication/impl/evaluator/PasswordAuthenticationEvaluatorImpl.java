@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +32,12 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getUsername())) {
-            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty login provided", authCtx.getPrincipalType(), false);
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty login provided");
+            throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
-            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.invalid.credentials");
+            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
     }
 
@@ -55,7 +58,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
         ProtectedStringType protectedString = credential.getValue();
 
         if (protectedString == null) {
-            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no stored password value", principal.getFocus().getClass(), false);
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no stored password value");
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 

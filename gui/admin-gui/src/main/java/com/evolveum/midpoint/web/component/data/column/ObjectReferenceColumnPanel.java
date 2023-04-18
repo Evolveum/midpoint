@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -11,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -31,16 +34,19 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "d-flex gap-2"));
+
         CompositedIconPanel iconPanel = new CompositedIconPanel(ID_IMAGE, createCompositedIconModel());
         add(iconPanel);
-        LinkPanel label = new LinkPanel(ID_NAME, () -> WebComponentUtil.getDisplayNameOrName(getResolvedTarget())) {
+
+        AjaxButton name = new AjaxButton(ID_NAME, () -> WebComponentUtil.getDisplayNameOrName(getResolvedTarget())) {
+
             @Override
-            public void onClick() {
-                WebComponentUtil.dispatchToObjectDetailsPage(getModelObject(), ObjectReferenceColumnPanel.this, false);
+            public void onClick(AjaxRequestTarget target) {
+                WebComponentUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(), ObjectReferenceColumnPanel.this, false);
             }
         };
-
-        add(label);
+        add(name);
     }
 
     private <R extends AbstractRoleType> PrismObject<R> getResolvedTarget() {

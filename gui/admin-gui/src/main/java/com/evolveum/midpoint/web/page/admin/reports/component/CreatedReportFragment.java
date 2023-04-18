@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
@@ -53,7 +54,7 @@ public class CreatedReportFragment extends Fragment {
     private void initLayout() {
         DropDownChoicePanel<String> reportType = new DropDownChoicePanel<>
                 (ID_REPORT_TYPE, this.reportType,
-                        Model.ofList(values),
+                        Model.ofList(values.stream().sorted().collect(Collectors.toUnmodifiableList())),
                         StringChoiceRenderer.simple(), true);
 
         reportType.getBaseFormComponent().add(new OnChangeAjaxBehavior() {

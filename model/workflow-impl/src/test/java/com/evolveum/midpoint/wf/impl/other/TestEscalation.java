@@ -108,10 +108,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         when();
-        assignRole(userJackOid, ROLE_E1_OID, task, result); // should create approval case
+        assignRole(USER_JACK.oid, ROLE_E1_OID, task, result); // should create approval case
 
         then();
-        assertNotAssignedRole(userJackOid, ROLE_E1_OID, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_E1_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         approvalCaseOid = CaseTypeUtil.getCaseRequired(workItem).getOid();
@@ -268,7 +268,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
         waitForCaseClose(rootCase, 60000);
 
-        assertAssignedRole(userJackOid, ROLE_E1_OID, result);
+        assertAssignedRole(USER_JACK.oid, ROLE_E1_OID, result);
     }
 
     /**
@@ -287,10 +287,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
         reimportWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, task, result);
 
         when();
-        assignRole(userJackOid, ROLE_E2_OID, task, result); // should start approval process
+        assignRole(USER_JACK.oid, ROLE_E2_OID, task, result); // should start approval process
 
         then();
-        assertNotAssignedRole(userJackOid, ROLE_E2_OID, result);
+        assertNotAssignedRole(USER_JACK.oid, ROLE_E2_OID, result);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work items", workItems);
@@ -438,8 +438,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
             assertEquals("Wrong causeDisplayName in " + r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(AuditingConstants.AUDIT_CAUSE_DISPLAY_NAME));
             assertEquals("Wrong result in " + r, "Rejected", r.getResult());
         }
-        displayCollection("notifications - process", dummyTransport.getMessages("dummy:simpleWorkflowNotifier-Processes"));
-        List<Message> notifications = dummyTransport.getMessages("dummy:simpleWorkflowNotifier-WorkItems");
+        displayCollection("notifications - cases", dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_PROCESSES));
+        List<Message> notifications = dummyTransport.getMessages(DUMMY_SIMPLE_WORKFLOW_NOTIFIER_WORK_ITEMS);
         displayCollection("notifications - work items", notifications);
         for (Message notification : notifications) {
             assertContains(notification, "Reason: Automatic rejection at deadline (timed action)");

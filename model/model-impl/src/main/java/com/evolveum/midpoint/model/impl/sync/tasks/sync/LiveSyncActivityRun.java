@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -143,7 +144,9 @@ public final class LiveSyncActivityRun
     }
 
     @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<LiveSyncEvent> request, @NotNull RunningTask workerTask,
+    public boolean processItem(
+            @NotNull ItemProcessingRequest<LiveSyncEvent> request,
+            @NotNull RunningTask workerTask,
             @NotNull OperationResult result)
             throws CommonException, ActivityRunException {
         LiveSyncEvent event = request.getItem();
@@ -151,6 +154,14 @@ public final class LiveSyncActivityRun
         CHANGE_BEING_PROCESSED.set(event.getSequentialNumber());
         try {
             if (event.isComplete()) {
+                PrismObject<ShadowType> shadowedObject = event.getShadowedObjectRequired();
+                if (!processingScope.getPostSearchFilter().matches(shadowedObject)) {
+                    LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowedObject);
+                    workerTask.onSynchronizationExclusion(
+                            request.getIdentifier(), SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
+                    result.setNotApplicable("Skipped because it does not match objectClass/kind/intent");
+                    return true;
+                }
                 ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                 changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
                 getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);

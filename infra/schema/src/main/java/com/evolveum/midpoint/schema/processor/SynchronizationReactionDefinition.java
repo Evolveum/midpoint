@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +31,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
 
     private final Integer order;
     private final String name;
+    @Nullable private final String lifecycleState;
     @NotNull private final Set<SynchronizationSituationType> situations;
     @NotNull private final Collection<String> channels;
     private final ExpressionType condition;
@@ -43,6 +47,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
             throws ConfigurationException {
         this.order = null;
         this.name = legacyBean.getName();
+        this.lifecycleState = null;
         this.situations = Set.of(
                 MiscUtil.requireNonNull(
                         legacyBean.getSituation(),
@@ -84,6 +89,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
             @NotNull SynchronizationReactionType bean, @NotNull ClockworkSettings syncLevelSettings) {
         this.order = bean.getOrder();
         this.name = bean.getName();
+        this.lifecycleState = bean.getLifecycleState();
         this.situations = new HashSet<>(bean.getSituation());
         this.channels = bean.getChannel();
         this.condition = bean.getCondition();
@@ -178,5 +184,9 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
                 ", situations=" + situations +
                 ", # of actions: " + actions.size() +
                 '}';
+    }
+
+    public boolean isVisible(TaskExecutionMode mode) {
+        return SimulationUtil.isVisible(lifecycleState, mode);
     }
 }

@@ -160,6 +160,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
         infoLabel.setOutputMarkupId(true);
+        infoLabel.add(new VisibleBehaviour(() -> !isExpressionEmpty() && isInfoLabelNotEmpty()));
         infoContainer.add(infoLabel);
 
         Label infoIcon = new Label(ID_INFO_ICON);

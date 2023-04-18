@@ -28,6 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 @Component
 public class PasswordDescriptionHandler implements VisualizationDescriptionHandler {
 
+    private static final ItemPath PATH_PASSWORD = ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
+
     @Override
     public boolean match(VisualizationImpl visualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
@@ -35,13 +37,13 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
             return false;
         }
 
-        if (value.asContainerable() instanceof CredentialsType) {
+        if (CredentialsType.class.equals(value.getCompileTimeClass())) {
             // if there's password
             return value.findContainer(CredentialsType.F_PASSWORD) != null;
         }
 
         // we're modifying/deleting password
-        return ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD).equivalent(value.getPath());
+        return PATH_PASSWORD.equivalent(value.getPath());
     }
 
     @Override

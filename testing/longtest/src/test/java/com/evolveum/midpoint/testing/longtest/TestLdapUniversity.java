@@ -29,7 +29,6 @@ import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationLauncher;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -41,29 +40,18 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLdapUniversity extends AbstractModelIntegrationTest {
+public class TestLdapUniversity extends AbstractLongTest {
 
-    public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-
-    protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-
-    protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-
-    protected static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-university.xml");
-    protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-university.xml");
+    private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     // Make it at least 1501 so it will go over the 3000 entries size limit
     private static final int NUM_LDAP_ENTRIES = 3100;
-
-    protected ResourceType resourceOpenDjType;
-    protected PrismObject<ResourceType> resourceOpenDj;
 
     @Autowired private ReconciliationLauncher reconciliationLauncher;
     @Autowired private MidpointConfiguration midpointConfiguration;
@@ -82,28 +70,14 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        // System Configuration
-        PrismObject<SystemConfigurationType> config;
-        try {
-            config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-        } catch (ObjectAlreadyExistsException e) {
-            throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-                    "looks like the previous test haven't cleaned it up", e);
-        }
-        modelService.postInit(initResult);
-
+        var config = getSystemConfiguration();
         LoggingConfigurationManager.configure(
-                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
-                config.asObjectable().getVersion(), midpointConfiguration, initResult);
-
-        // administrator
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-        login(userAdministrator);
+                ProfilingConfigurationManager.checkSystemProfilingConfiguration(
+                        config.asPrismObject()), config.getVersion(), midpointConfiguration, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
-        resourceOpenDjType = resourceOpenDj.asObjectable();
+        PrismObject<ResourceType> resourceOpenDj =
+                importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -199,6 +173,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         assertUser("e1(u1)");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void loadEntries(String prefix) throws LDIFException, IOException {
         long ldapPopStart = System.currentTimeMillis();
 

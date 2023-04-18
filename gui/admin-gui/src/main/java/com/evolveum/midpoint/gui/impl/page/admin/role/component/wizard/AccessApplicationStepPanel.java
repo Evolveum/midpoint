@@ -17,15 +17,15 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "roleWizard-access-application")
-@PanelInstance(identifier = "roleWizard-access-application",
+@PanelType(name = "apprw-access")
+@PanelInstance(identifier = "apprw-access",
         applicableForType = RoleType.class,
-        applicableForOperation = OperationTypeType.ADD,
+        applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.application", icon = "fa fa-list"),
         containerPath = "empty")
 public class AccessApplicationStepPanel extends SingleTileWizardStepPanel<ServiceType, FocusDetailsModels<RoleType>, AssignmentType> {
 
-    public static final String PANEL_TYPE = "roleWizard-access-application";
+    public static final String PANEL_TYPE = "apprw-access";
 
     public AccessApplicationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);

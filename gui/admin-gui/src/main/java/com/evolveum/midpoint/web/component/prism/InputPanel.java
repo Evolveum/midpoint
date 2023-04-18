@@ -7,9 +7,15 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.Validatable;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -17,6 +23,7 @@ import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +69,14 @@ public abstract class InputPanel extends Panel implements Validatable {
 
     public PageBase getPageBase() {
         return (PageBase) getPage();
+    }
+
+    public StringResourceModel createStringResource(String key) {
+        return WebComponentUtil.getPage(InputPanel.this, PageAdminLTE.class).createStringResource(key);
+    }
+
+    public LocalizationService getLocalizationService() {
+        return WebComponentUtil.getPage(InputPanel.this, PageAdminLTE.class).getLocalizationService();
     }
 
 

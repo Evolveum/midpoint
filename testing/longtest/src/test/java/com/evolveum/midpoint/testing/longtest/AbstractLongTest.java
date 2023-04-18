@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.apache.commons.io.IOUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -71,7 +73,7 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         try {
-            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+            repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
         } catch (ObjectAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
@@ -82,6 +84,18 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
+
+        if (areMarksSupported()) {
+            CommonInitialObjects.ARCHETYPE_OBJECT_MARK.init(this, initTask, initResult);
+            CommonInitialObjects.MARK_PROTECTED.init(this, initTask, initResult);
+        }
+
+        CommonInitialObjects.ARCHETYPE_RECONCILIATION_TASK.init(this, initTask, initResult);
+        CommonInitialObjects.ARCHETYPE_IMPORT_TASK.init(this, initTask, initResult);
+    }
+
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
     }
 
     @Override

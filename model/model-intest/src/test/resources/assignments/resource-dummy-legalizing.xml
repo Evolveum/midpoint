@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="d3995d45-2d51-4f1a-b9c0-4bb74d4e8231"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-legalizing</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>legalizing</icfi:instanceId>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>abstract</intent>
+            <abstract>true</abstract>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>employee</intent>
+            <super>
+                <kind>account</kind>
+                <intent>abstract</intent>
+            </super>
+            <delineation>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/ri:type</q:path>
+                        <q:value>employee</q:value>
+                    </q:equal>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>contractor</intent>
+            <super>
+                <kind>account</kind>
+                <intent>abstract</intent>
+            </super>
+            <delineation>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/ri:type</q:path>
+                        <q:value>contractor</q:value>
+                    </q:equal>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>guest</intent>
+            <super>
+                <kind>account</kind>
+                <intent>abstract</intent>
+            </super>
+            <delineation>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/ri:type</q:path>
+                        <q:value>guest</q:value>
+                    </q:equal>
+                </filter>
+            </delineation>
+            <projection>
+                <legalize>false</legalize>
+            </projection>
+        </objectType>
+    </schemaHandling>
+    <projection>
+        <legalize>true</legalize>
+    </projection>
+</resource>

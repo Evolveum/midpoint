@@ -7,22 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
-import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -33,23 +22,65 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AvailableMarkSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.data.column.DeltaProgressBarColumn;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
+public abstract class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<List<MarkType>> availableMarksModel;
+    private static final Trace LOGGER = TraceManager.getTrace(ProcessedObjectsPanel.class);
+    private final IModel<List<MarkType>> availableMarksModel;
+
+    private static final String DOT_CLASS = ProcessedObjectsPanel.class.getName() + ".";
+    private static final String OPERATION_MARK_SHADOW = DOT_CLASS + "markShadow";
 
     public ProcessedObjectsPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -58,14 +89,48 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        Search<SimulationResultProcessedObjectType> search = getSearchModel().getObject();
+        PropertySearchItemWrapper<?> wrapper = search.findPropertySearchItem(SimulationResultProcessedObjectType.F_STATE);
+        if (wrapper instanceof ChoicesSearchItemWrapper) {
+            updateSearchForObjectProcessingState((ChoicesSearchItemWrapper) wrapper);
+        }
+    }
+
+    private void updateSearchForObjectProcessingState(ChoicesSearchItemWrapper<ObjectProcessingStateType> wrapper) {
+        ObjectProcessingStateType state = getPredefinedProcessingState();
+        if (state == null) {
+            wrapper.setValue(null);
+            return;
+        }
+
+        List<DisplayableValue<ObjectProcessingStateType>> availableValues = wrapper.getAvailableValues();
+        DisplayableValue<ObjectProcessingStateType> newValue = availableValues.stream()
+                .filter(d -> Objects.equals(d.getValue(), state))
+                .findFirst().orElse(null);
+
+        wrapper.setValue(newValue);
+    }
+
+    private void updateSearchForAvailableMarks(AvailableMarkSearchItemWrapper wrapper) {
+        List<DisplayableValue<String>> marks = wrapper.getAvailableValues();
+        marks.clear();
+        marks.addAll(createSearchValuesForAvailableMarks());
+
+        String markOid = getPredefinedMarkOid();
+        wrapper.setValue(markOid);
+    }
+
+    @Override
     protected void onConfigure() {
         super.onConfigure();
 
-        String markOid = getMarkOid();
-        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        Search<SimulationResultProcessedObjectType> search = getSearchModel().getObject();
+        PropertySearchItemWrapper<?> wrapper = search.findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
         if (wrapper instanceof AvailableMarkSearchItemWrapper) {
-            AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
-            markWrapper.setValue(markOid);
+            updateSearchForAvailableMarks((AvailableMarkSearchItemWrapper) wrapper);
         }
     }
 
@@ -74,21 +139,30 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
     }
 
-    @Override
-    protected SearchContext createAdditionalSearchContext() {
-        SearchContext ctx = new SearchContext();
-
-        List<DisplayableValue<String>> values = availableMarksModel.getObject().stream()
+    private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
+        return availableMarksModel.getObject().stream()
                 .map(o -> new DisplayableValueImpl<>(
                         o.getOid(),
                         WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
                         o.getDescription()))
-                .sorted(Comparator.comparing(d -> d.getLabel(), Comparator.naturalOrder()))
+                .sorted(Comparator.comparing(DisplayableValueImpl::getLabel, Comparator.naturalOrder()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+
+        List<DisplayableValue<String>> values = createSearchValuesForAvailableMarks();
         ctx.setAvailableEventMarks(values);
-        ctx.setSelectedEventMark(getMarkOid());
+        ctx.setSelectedEventMark(getPredefinedMarkOid());
 
         return ctx;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return createRowMenuItems();
     }
 
     @Override
@@ -110,40 +184,17 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                IModel<String> title = () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null || obj.getName() == null) {
-                        return getString("ProcessedObjectsPanel.unnamed");
+                IModel<ProcessedObject<?>> model = new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected ProcessedObject<?> load() {
+                        return SimulationsGuiUtil.parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
                     }
-
-                    return WebComponentUtil.getTranslatedPolyString(obj.getName());
                 };
-                IModel<String> description = () -> {
-                    SimulationResultProcessedObjectType obj = rowModel.getObject().getValue();
-                    if (obj == null) {
-                        return null;
-                    }
 
-                    List<ObjectReferenceType> eventMarkRefs = obj.getEventMarkRef();
-                    // resolve names from markRefs
-                    List<String> names = eventMarkRefs.stream()
-                            .map(ref -> {
-                                List<MarkType> marks = availableMarksModel.getObject();
-                                MarkType mark = marks.stream()
-                                        .filter(t -> Objects.equals(t.getOid(), ref.getOid()))
-                                        .findFirst().orElse(null);
-                                if (mark == null) {
-                                    return null;
-                                }
-                                return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
-                            })
-                            .filter(name -> name != null)
-                            .collect(Collectors.toList());
-                    names.sort(Comparator.naturalOrder());
-
-                    return StringUtils.joinWith(", ", names.toArray(new String[names.size()]));
-                };
-                item.add(new TitleWithDescriptionPanel(id, title, description) {
+                IModel<String> title = () -> SimulationsGuiUtil.getProcessedObjectName(model.getObject(), getPageBase());
+                IModel<String> realMarksModel = () -> createRealMarksList(model.getObject());
+                item.add(new TitleWithMarks(id, title, realMarksModel) {
 
                     @Override
                     protected boolean isTitleLinkEnabled() {
@@ -154,9 +205,174 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
                     protected void onTitleClicked(AjaxRequestTarget target) {
                         onObjectNameClicked(rowModel.getObject());
                     }
+
+                    @Override
+                    protected void onIconClicked(AjaxRequestTarget target) {
+                        showOperationResult(target, model);
+                    }
+
+                    @Override
+                    protected IModel<String> createIconCssModel() {
+                        return () -> {
+                            OperationResultStatus status = model.getObject().getResultStatus();
+                            if (status == null) {
+                                return null;
+                            }
+
+                            return status.isConsideredSuccess() ? null : GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED;
+                        };
+                    }
+
+                    @Override
+                    protected IModel<String> createIconTitleModel() {
+                        return () -> {
+                            OperationResultStatus status = model.getObject().getResultStatus();
+                            if (status == null) {
+                                return null;
+                            }
+
+                            return getString(LocalizationUtil.createKeyForEnum(status));
+                        };
+                    }
+
+                    @Override
+                    protected IModel<String> createProcessedMarksContainer() {
+                        return () -> createProcessedObjectDescription(model.getObject());
+                    }
                 });
             }
         };
+    }
+
+    private void showOperationResult(AjaxRequestTarget target, IModel<ProcessedObject<?>> model) {
+        PageBase page = getPageBase();
+
+        IModel<OperationResult> result = () -> model.getObject().getResult();
+
+        page.showMainPopup(new OperationResultPopupPanel(page.getMainPopupBodyId(), result), target);
+    }
+
+    private String createRealMarksList(ProcessedObject<?> obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        if (!ShadowType.class.equals(obj.getType())) {
+            // we don't currently support marking other objects - only shadows
+            return null;
+        }
+
+        PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(new ObjectReferenceType()
+                .type(ShadowType.COMPLEX_TYPE)
+                .oid(obj.getOid()), getPageBase());
+        if (shadow == null) {
+            return null;
+        }
+
+        List<ObjectReferenceType> refs = shadow.asObjectable().getEffectiveMarkRef();
+        Object[] marks = refs.stream()
+                .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
+                .filter(mark -> mark != null)
+                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
+                .toArray();
+
+        return StringUtils.joinWith(", ", marks);
+    }
+
+    private String createProcessedObjectDescription(ProcessedObject<?> obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        Collection<String> eventMarkOids = obj.getMatchingEventMarksOids();
+        // resolve names from markRefs
+        Object[] names = eventMarkOids.stream()
+                .map(oid -> {
+                    List<MarkType> marks = availableMarksModel.getObject();
+                    MarkType mark = marks.stream()
+                            .filter(t -> Objects.equals(t.getOid(), oid))
+                            .findFirst().orElse(null);
+                    if (mark == null) {
+                        return null;
+                    }
+                    return WebComponentUtil.getDisplayNameOrName(mark.asPrismObject());
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.naturalOrder())
+                .toArray();
+
+        return StringUtils.joinWith(", ", names);
+    }
+
+    private List<InlineMenuItem> createRowMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.markProtected"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED);
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+                        markObjects(getRowModel(), target);
+                    }
+                };
+            }
+        });
+
+        items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-fw " + GuiStyleConstants.CLASS_MARK);
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
+                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .buildFilter();
+
+                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
+                                getPageBase().getMainPopupBodyId(), MarkType.class,
+                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
+
+                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
+                                LOGGER.debug("Selected marks: {}", selected);
+
+                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
+                                markObjects(getRowModel(), markOids, target);
+                                super.addPerformed(target, type, selected);
+                            }
+
+                            public org.apache.wicket.model.StringResourceModel getTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.select");
+                            }
+                        };
+
+                        getPageBase().showMainPopup(browser, target);
+                    }
+                };
+            }
+        });
+
+        return items;
     }
 
     private void onObjectNameClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
@@ -167,7 +383,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
 
         PageParameters params = new PageParameters();
         params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getSimulationResultOid());
-        String markOid = getMarkOid();
+        String markOid = getPredefinedMarkOid();
         if (markOid != null) {
             params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
         }
@@ -188,17 +404,25 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     @NotNull
-    protected String getSimulationResultOid() {
+    protected abstract String getSimulationResultOid();
+
+    /**
+     * Mark OID that should be used in search filter during first initialization (can be changed by user later)
+     */
+    protected String getPredefinedMarkOid() {
         return null;
     }
 
-    protected String getMarkOid() {
+    /**
+     * Object processing state that should be used in search filter during first initialization (can be changed by user later)
+     */
+    protected ObjectProcessingStateType getPredefinedProcessingState() {
         return null;
     }
 
     @Override
     public List<SimulationResultProcessedObjectType> getSelectedRealObjects() {
-        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
+        return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
 
     @Override
@@ -217,27 +441,40 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         } else if (SimulationResultProcessedObjectType.F_TYPE.equivalent(path)) {
             return createTypeColumn(displayModel);
         } else if (SimulationResultProcessedObjectType.F_DELTA.equivalent(path)) {
-            return createDeltaColumn(displayModel);
+            return createDeltaColumn();
         }
 
         return super.createCustomExportableColumn(displayModel, customColumn, expression);
     }
 
-    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createDeltaColumn(IModel<String> displayModel) {
+    private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createDeltaColumn() {
         return new DeltaProgressBarColumn<>(createStringResource("ProcessedObjectsPanel.deltaColumn")) {
 
             @Override
-            protected @NotNull IModel<ObjectDeltaType> createObjectDeltaModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+            protected @NotNull IModel<ObjectDelta<?>> createObjectDeltaModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
                 return () -> {
                     SimulationResultProcessedObjectType object = rowModel.getObject().getValue();
-                    return object != null ? object.getDelta() : null;
+                    ObjectDeltaType delta = object != null ? object.getDelta() : null;
+                    if (delta == null) {
+                        return null;
+                    }
+
+                    try {
+                        return DeltaConvertor.createObjectDelta(delta);
+                    } catch (SchemaException ex) {
+                        LOGGER.debug("Couldn't parse object delta", ex);
+
+                        getPageBase().error(ex.getMessage());
+
+                        return null;
+                    }
                 };
             }
         };
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createStateColumn(IModel<String> displayModel) {
-        return new AbstractColumn<>(displayModel) {
+        return new AbstractColumn<>(displayModel, SimulationResultProcessedObjectType.F_STATE.getLocalPart()) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> item, String id,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> row) {
@@ -248,7 +485,8 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
     }
 
     private IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createTypeColumn(IModel<String> displayModel) {
-        return new LambdaColumn<>(displayModel, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
+        return new LambdaColumn<>(displayModel, SimulationResultProcessedObjectType.F_TYPE.getLocalPart(),
+                row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue));
     }
 
     @Override
@@ -264,7 +502,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         // Url should be updated if selected mark oid has changed so that navigation works correctly
         // between processed object list and details, same for bookmarking urls.
 
-        PropertySearchItemWrapper wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
+        PropertySearchItemWrapper<?> wrapper = getSearchModel().getObject().findPropertySearchItem(SimulationResultProcessedObjectType.F_EVENT_MARK_REF);
         if (!(wrapper instanceof AvailableMarkSearchItemWrapper)) {
             return;
         }
@@ -272,7 +510,7 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         AvailableMarkSearchItemWrapper markWrapper = (AvailableMarkSearchItemWrapper) wrapper;
         DisplayableValue<String> value = markWrapper.getValue();
         String newMarkOid = value != null ? value.getValue() : null;
-        if (Objects.equals(getMarkOid(), newMarkOid)) {
+        if (Objects.equals(getPredefinedMarkOid(), newMarkOid)) {
             return;
         }
 
@@ -283,5 +521,71 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
         }
 
         throw new RestartResponseException(getPage());
+    }
+
+    private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
+            AjaxRequestTarget target) {
+
+        List<SimulationResultProcessedObjectType> selected;
+        if (rowModel != null) {
+            selected = Collections.singletonList(rowModel.getObject().getValue());
+        } else {
+            selected = getSelectedRealObjects();
+        }
+
+        PageBase page = getPageBase();
+
+        if (selected == null || selected.isEmpty()) {
+            page.warn(getString("ResourceContentPanel.message.markShadowPerformed.warning"));
+            target.add(page.getFeedbackPanel());
+            return;
+        }
+
+        Task task = page.createSimpleTask(OPERATION_MARK_SHADOW);
+        OperationResult result = task.getResult();
+
+        for (var shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            if (ObjectProcessingStateType.ADDED.equals(shadow.getState())) {
+                // skip object, since it is added
+                continue;
+            }
+
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+            }
+            try {
+                @SuppressWarnings("unchecked")
+                var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
+                        .getCompileTimeClassForObjectType(shadow.getType());
+                var delta = page.getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(type,
+                                shadow.getOid(), ShadowType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        page.showResult(result);
+
+        refreshTable(target);
+        target.add(page.getFeedbackPanel());
+    }
+
+    private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> model, AjaxRequestTarget target) {
+        markObjects(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
     }
 }

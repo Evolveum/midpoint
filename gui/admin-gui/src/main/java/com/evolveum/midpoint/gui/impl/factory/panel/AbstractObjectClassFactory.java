@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
@@ -23,7 +24,7 @@ public abstract class AbstractObjectClassFactory extends AbstractInputGuiCompone
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
-        return new AutoCompleteQNamePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
+        AutoCompleteQNamePanel<QName> panel = new AutoCompleteQNamePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
 
             @Override
             public Collection<QName> loadChoices() {
@@ -41,6 +42,7 @@ public abstract class AbstractObjectClassFactory extends AbstractInputGuiCompone
                 return true;
             }
         };
+        return panel;
     }
 
     @Override

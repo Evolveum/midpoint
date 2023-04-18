@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
     private static final String OPERATION_SAVE_QUESTIONS = DOT_CLASS + "saveSecurityQuestions";
     private static final String ID_SECURITY_QUESTIONS_PANEL = "pwdQuestionsPanel";
     private static final String ID_QUESTION_ANSWER_PANEL = "questionAnswerPanel";
+    private static final String ID_SAVE_ANSWERS = "saveAnswers";
 
     public SecurityQuestionsPanel(String id, IModel<PasswordQuestionsDto> model) {
         super(id, model);
@@ -124,7 +126,7 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
                 //rest of the questions
                 int difference = questionSize - userQuestionList.size();
                 dto.getActualQuestionAnswers().addAll(executeAddingQuestions(difference, userQuestionList.size(), questionsDef));
-            } else if (questionSize <= userQuestionList.size()) {
+            } else {
                 //QUESTION NUMBER SMALLER THAN QUESTION LIST OR EQUALS TO QUESTION LIST
                 dto.getActualQuestionAnswers().addAll(executePasswordQuestionsAndAnswers(userQuestionList, questionsDef, 0));
             }
@@ -167,13 +169,25 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
     }
 
     public void initLayout() {
-        add(new ListView<SecurityQuestionAnswerDTO>(ID_SECURITY_QUESTIONS_PANEL, getModelObject().getActualQuestionAnswers()) {
+        add(new ListView<>(ID_SECURITY_QUESTIONS_PANEL, getModelObject().getActualQuestionAnswers()) {
+            private static final long serialVersionUID = 1L;
             @Override
             protected void populateItem(ListItem<SecurityQuestionAnswerDTO> item) {
                 MyPasswordQuestionsPanel panel = new MyPasswordQuestionsPanel(ID_QUESTION_ANSWER_PANEL, Model.of(item.getModelObject()));
                 item.add(panel);
             }
         });
+
+        AjaxSubmitButton saveAnswers = new AjaxSubmitButton(ID_SAVE_ANSWERS,
+                createStringResource("SecurityQuestionsPanel.saveAnswers")) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                onSavePerformed(target);
+            }
+        };
+        saveAnswers.setOutputMarkupId(true);
+        add(saveAnswers);
     }
 
     private List<SecurityQuestionDefinitionType> getEnabledSecurityQuestions(CredentialsPolicyType credPolicy) {
@@ -268,14 +282,11 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
         List<SecurityQuestionAnswerType> answerTypeList = new ArrayList<>();
 
         try {
-            int listnum = 0;
             for (SecurityQuestionAnswerDTO answerDto : getModelObject().getActualQuestionAnswers()) {
                 SecurityQuestionAnswerType answerType = new SecurityQuestionAnswerType();
                 ProtectedStringType answer = new ProtectedStringType();
 
                 if (StringUtils.isEmpty(answerDto.getPwdAnswer())) {
-//                    warn(getString("SecurityQuestionsPanel.emptySecurityQuestionAnswerFiled"));
-//                    target.add(getPageBase().getFeedbackPanel());
                     continue;
                 }
                 answer.setClearValue(answerDto.getPwdAnswer());
@@ -286,8 +297,6 @@ public class SecurityQuestionsPanel extends BasePanel<PasswordQuestionsDto> {
 
                 answerType.setQuestionIdentifier(answerDto.getPwdQuestionIdentifier());
                 answerTypeList.add(answerType);
-                listnum++;
-
             }
 
             // fill in answerType data here

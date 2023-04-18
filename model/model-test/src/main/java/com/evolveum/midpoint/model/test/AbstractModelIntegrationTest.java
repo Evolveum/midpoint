@@ -6,7 +6,12 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -29,6 +34,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +49,7 @@ import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -3715,11 +3723,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 || !lastKnownTimestamp.equals(realTimestamp);
     }
 
+    public void waitForCaseClose(String caseOid) throws CommonException {
+        CaseType aCase = repositoryService
+                .getObject(CaseType.class, caseOid, null, getTestOperationResult())
+                .asObjectable();
+        waitForCaseClose(aCase, 60000);
+    }
+
     public void waitForCaseClose(CaseType aCase) throws Exception {
         waitForCaseClose(aCase, 60000);
     }
 
-    public void waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
+    public void waitForCaseClose(CaseType aCase, final int timeout) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForCaseClose");
         Checker checker = new Checker() {
             @Override
@@ -4183,7 +4198,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void prepareNotifications() {
+    public void prepareNotifications() {
         notificationManager.setDisabled(false);
         dummyTransport.clearMessages();
     }
@@ -4596,12 +4611,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
         ModuleAuthentication moduleAuthentication = new ModuleAuthentication() {
             @Override
-            public String getNameOfModule() {
-                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            public String getModuleIdentifier() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER;
             }
 
             @Override
-            public String getNameOfModuleType() {
+            public String getModuleTypeName() {
                 return AuthenticationModuleNameConstants.LOGIN_FORM;
             }
 
@@ -4624,9 +4639,39 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
+            public boolean applicable() {
+                return true;
+            }
+
+            @Override
+            public boolean isSufficient() {
+                return true;
+            }
+
+            @Override
+            public void setSufficient(boolean sufficient) {
+
+            }
+
+            @Override
+            public void setFailureData(AutheticationFailedData autheticationFailedData) {
+
+            }
+
+            @Override
+            public AutheticationFailedData getFailureData() {
+                return null;
+            }
+
+            @Override
+            public void recordFailure(AuthenticationException exception) {
+
+            }
+
+            @Override
             public String getPrefix() {
                 return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
-                        + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/";
+                        + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER + "/";
             }
 
             @Override
@@ -4652,8 +4697,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
-            public String getNameOfModule() {
-                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            public String getModuleIdentifier() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER;
             }
 
             @Override
@@ -7196,6 +7241,65 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
+    protected WorkItemsAsserter<Void> assertWorkItems(
+            Collection<CaseWorkItemType> workItems, String message) {
+        return initializeAsserter(
+                WorkItemsAsserter.forWorkItems(workItems, message));
+    }
+
+    // TODO will we need this method?
+    // TODO do we need the resolution?
+    protected List<CaseWorkItemType> getOpenWorkItemsResolved(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        final Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                .item(T_PARENT, F_OBJECT_REF).resolve()
+                .item(T_PARENT, F_TARGET_REF).resolve()
+                .item(F_ASSIGNEE_REF).resolve()
+                .item(F_ORIGINAL_ASSIGNEE_REF).resolve()
+                .item(T_PARENT, F_REQUESTOR_REF).resolve()
+                .build();
+
+        return new ArrayList<>( // to assure modifiable result list
+                modelService.searchContainers(CaseWorkItemType.class,
+                        ObjectQueryUtil.openItemsQuery(), options, task, result));
+    }
+
+    // TODO will we need this method?
+    protected WorkItemsAsserter<Void> assertOpenWorkItems(String message)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertWorkItems(
+                getOpenWorkItemsResolved(getTestTask(), getTestOperationResult()),
+                message);
+    }
+
+    // TODO will we need this method?
+    protected WorkItemsAsserter<Void> assertOpenWorkItemsAfter()
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertOpenWorkItems("after")
+                .display();
+    }
+
+    protected CaseAsserter<Void> assertReferencedCase(OperationResult result, String message)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertCase(getReferencedCaseOidRequired(result), message);
+    }
+
+    protected @NotNull String getReferencedCaseOidRequired(OperationResult result) {
+        String caseOid = result.findCaseOid();
+        assertThat(caseOid).as("Case OID referenced by operation result").isNotNull();
+        return caseOid;
+    }
+
+    protected CaseAsserter<Void> assertReferencedCase(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return assertReferencedCase(result, "after"); // intentionally not displaying
+    }
+
     protected SimulationResultAsserter<Void> assertSimulationResultAfter(TestSimulationResult simResult)
             throws SchemaException, ObjectNotFoundException {
         return assertSimulationResult(simResult, "after")
@@ -7276,5 +7380,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected List<String> getLinesOfOutputFile(PrismObject<TaskType> reportTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException, IOException {
         return ReportTestUtil.getLinesOfOutputFile(reportTask, createSimpleModelObjectResolver(), result);
+    }
+
+    protected void markShadow(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        var statement = new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.APPLY);
+        modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
     }
 }

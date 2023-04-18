@@ -22,7 +22,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -76,7 +75,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private ODM objectDetailsModels;
     private final boolean isAdd;
-    private boolean isAddedByWizard = false;
+    private boolean isShowedByWizard;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -94,6 +93,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         super(params);
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -206,7 +210,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         OperationResult result = new OperationResult(OPERATION_SAVE);
 
         try {
-            Collection<ObjectDelta<? extends ObjectType>> deltas = objectDetailsModels.collectDeltas(result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = getObjectDetailsModels().collectDeltas(result);
 
             return !deltas.isEmpty();
         } catch (Throwable ex) {
@@ -240,7 +244,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
-            deltas = objectDetailsModels.collectDeltas(result);
+            if (isShowedByWizard()) {
+                deltas = getObjectDetailsModels().collectDeltaWithoutSavedDeltas(result);
+            } else {
+                deltas = getObjectDetailsModels().collectDeltas(result);
+            }
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
@@ -251,9 +259,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options,
+                task, result, target);
 
-        if (isWizardNotUsedForCreating()) {
+        if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
         } else {
             reloadObject(result, executedDeltas, target);
@@ -271,6 +280,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                     @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
                             getType(),
                             resourceOid,
+                            getOperationOptions(),
                             AbstractPageObjectDetails.this,
                             task,
                             task.getResult());
@@ -287,21 +297,29 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
     }
 
-    protected void postProcessResult(
-            OperationResult result,
+    protected void postProcessResult(OperationResult result,
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
             AjaxRequestTarget target) {
         result.computeStatusIfUnknown();
         if (allowRedirectBack() && !result.isError()) {
-            redirectBack();
+            navigateAction();
         } else {
             target.add(getFeedbackPanel());
         }
     }
 
+    protected void navigateAction() {
+        Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
+        if (!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null) {
+            navigateToNext(objectListPage);
+        } else {
+            redirectBack();
+        }
+    }
+
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
         if (noChangesToExecute(deltas, options)) {
-            if (isWizardNotUsedForCreating()) {
+            if (!isShowedByWizard()) {
                 result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
                 showResult(result);
             } else {
@@ -320,7 +338,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
 
         ObjectChangeExecutor changeExecutor;
-        if (isWizardNotUsedForCreating()) {
+        if (!isShowedByWizard()) {
             changeExecutor = getChangeExecutor();
         } else {
             changeExecutor = getDefaultChangeExecutor();
@@ -334,18 +352,18 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
         if (changeExecutor instanceof ObjectChangesExecutorImpl
-                && (isWizardNotUsedForCreating() || !result.isSuccess())) {
+                && (!isShowedByWizard() || !result.isSuccess())) {
             showResult(result);
         }
     }
 
-    protected boolean isWizardNotUsedForCreating() {
-        return !isAddedByWizard;
+    protected boolean isShowedByWizard() {
+        return isShowedByWizard;
     }
 
-    protected void setUseWizardForCreating() {
-        getFeedbackPanel().setVisible(false);
-        isAddedByWizard = true;
+    protected void setShowedByWizard(boolean state) {
+        getFeedbackPanel().setVisible(!state);
+        isShowedByWizard = state;
     }
 
     protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {

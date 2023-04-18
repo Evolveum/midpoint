@@ -39,7 +39,8 @@ public class ApprovalSchemaHelper {
                 resolvedApprovers.addAll(referenceResolver.resolveReference(ref, "approver ref"));
             }
             // resolves approver relations
-            resolvedApprovers.addAll(relationResolver.getApprovers(stageDef.getApproverRelation()));
+            resolvedApprovers.addAll(
+                    relationResolver.getApprovers(stageDef.getApproverRelation()));
             stageDef.getApproverRef().clear();
             stageDef.getApproverRef().addAll(resolvedApprovers);
             stageDef.getApproverRelation().clear();

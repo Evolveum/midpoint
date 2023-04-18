@@ -129,7 +129,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         if (moduleType.getSearch() != null) {
             moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
         }
-        moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;
     }
 }

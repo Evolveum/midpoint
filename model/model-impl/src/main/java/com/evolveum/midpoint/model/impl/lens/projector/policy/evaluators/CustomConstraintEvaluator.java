@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.CUSTOM;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
@@ -39,7 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * TODO describe
  */
 @Component
-public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<CustomPolicyConstraintType> {
+public class CustomConstraintEvaluator
+        implements PolicyConstraintEvaluator<CustomPolicyConstraintType, EvaluatedCustomConstraintTrigger> {
 
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(CustomConstraintEvaluator.class);
@@ -56,7 +58,7 @@ public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<Cust
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
-    public <O extends ObjectType> EvaluatedCustomConstraintTrigger evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedCustomConstraintTrigger> evaluate(
             @NotNull JAXBElement<CustomPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -79,13 +81,13 @@ public class CustomConstraintEvaluator implements PolicyConstraintEvaluator<Cust
                     rctx, result)) {
                 boolean onAssignment = rctx instanceof AssignmentPolicyRuleEvaluationContext;
                 String keyPrefix = onAssignment ? ASSIGNMENT_CONSTRAINT_KEY_PREFIX : OBJECT_CONSTRAINT_KEY_PREFIX;
-                return new EvaluatedCustomConstraintTrigger(
+                return List.of(new EvaluatedCustomConstraintTrigger(
                         CUSTOM,
                         constraintValue,
                         createMessage(keyPrefix, constraint, rctx, onAssignment, result),
-                        createShortMessage(keyPrefix, constraint, rctx, onAssignment, result));
+                        createShortMessage(keyPrefix, constraint, rctx, onAssignment, result)));
             } else {
-                return null;
+                return List.of();
             }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);

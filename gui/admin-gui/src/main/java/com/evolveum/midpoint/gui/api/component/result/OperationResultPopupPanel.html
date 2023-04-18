@@ -8,7 +8,14 @@
 <body>
 <wicket:panel>
     <div wicket:id="operationResultsPanel" />
-    <a class="btn btn-default btn-sm pull-right" wicket:id="ok" />
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-outline-primary" wicket:id="close">
+                <wicket:message key="Button.close"/>
+            </a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </body>
 </html>

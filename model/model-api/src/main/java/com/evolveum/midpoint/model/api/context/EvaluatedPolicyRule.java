@@ -6,33 +6,27 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author semancik
+ * TODO document this interface and its methods
  *
+ * @author semancik
  */
-public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable {
+public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
 
     @NotNull
     Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
-
-    default boolean isTriggered() {
-        return !getTriggers().isEmpty();
-    }
 
     /**
      * Returns all triggers, even those that were indirectly collected via situation policy rules.
@@ -57,21 +51,15 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     // returns statically defined actions; consider using getEnabledActions() instead
     PolicyActionsType getActions();
 
+    /**
+     * Evaluated assignment that brought this policy rule to the focus or target.
+     * May be missing for artificially-crafted policy rules (to be reviewed!)
+     */
+    @Nullable EvaluatedAssignment getEvaluatedAssignment();
+
     AssignmentPath getAssignmentPath();
 
-    // TODO consider removing
-    String getPolicySituation();
-
-    Collection<PolicyExceptionType> getPolicyExceptions();
-
-    void addToEvaluatedPolicyRuleBeans(
-            Collection<EvaluatedPolicyRuleType> ruleBeans,
-            PolicyRuleExternalizationOptions options,
-            Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector);
-
     boolean isGlobal();
-
-    String toShortString();
 
     List<TreeNode<LocalizableMessage>> extractMessages();
 
@@ -82,19 +70,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     boolean containsEnabledAction();
 
-    boolean containsEnabledAction(Class<? extends PolicyActionType> clazz);
-
     Collection<PolicyActionType> getEnabledActions();
-
-    <T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz);
-
-    <T extends PolicyActionType> T getEnabledAction(Class<T> clazz);
-
-    // use only if you know what you're doing
-    void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
-
-    //experimental
-    String getPolicyRuleIdentifier();
 
     default boolean hasThreshold() {
         return getPolicyRule().getPolicyThreshold() != null; // refine this if needed
@@ -122,6 +98,11 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     /** To which object is the policy rule targeted and how. */
     @NotNull TargetType getTargetType();
+
+    static boolean contains(List<? extends EvaluatedPolicyRule> rules, EvaluatedPolicyRule otherRule) {
+        return rules.stream()
+                .anyMatch(r -> r.getPolicyRuleIdentifier().equals(otherRule.getPolicyRuleIdentifier()));
+    }
 
     /**
      * To which object is the policy rule targeted, from the point of assignment mechanisms - and how?

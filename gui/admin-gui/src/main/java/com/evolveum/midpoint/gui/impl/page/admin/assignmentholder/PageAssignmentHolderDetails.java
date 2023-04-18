@@ -6,14 +6,34 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -30,7 +50,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.CreateTemplatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -39,12 +58,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-
-import org.jetbrains.annotations.NotNull;
 
 public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>>
         extends AbstractPageObjectDetails<AH, AHDM> {
@@ -52,6 +65,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
     protected static final String ID_TEMPLATE_VIEW = "templateView";
     protected static final String ID_TEMPLATE = "template";
+    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
+    private static final String ID_WIZARD = "wizard";
 
     private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
 
@@ -70,7 +85,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     @Override
     protected void initLayout() {
         if (isAdd() && isApplicableTemplate()) {
-            Fragment templateFragment  = createTemplateFragment();
+            Fragment templateFragment = createTemplateFragment();
             add(templateFragment);
         } else {
             if (isAdd()) {
@@ -128,7 +143,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
-                getBreadcrumbs().clear();
+                getWizardBreadcrumbs().clear();
                 applyTemplate(collectionViews);
 
                 Fragment fragment = createDetailsFragment();
@@ -223,7 +238,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             return null;
         }
 
-        PrismObject<AH> assignmentHolderObj = getModelWrapperObject().getObject();
+        PrismObject<AH> assignmentHolderObj = getObjectForResolvingArchetypePolicyDisplayType();
         DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAssignmentHolderDetails.this);
         if (displayType == null || displayType.getLabel() == null) {
             return null;
@@ -238,7 +253,146 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return null;
     }
 
+    protected PrismObject<AH> getObjectForResolvingArchetypePolicyDisplayType() {
+        return getModelWrapperObject().getObject();
+    }
+
     public List<Breadcrumb> getWizardBreadcrumbs() {
         return wizardBreadcrumbs;
+    }
+
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            Class<P> clazz) {
+
+        setShowedByWizard(true);
+        getObjectDetailsModels().saveDeltas();
+        PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
+        getObjectDetailsModels().reset();
+        getObjectDetailsModels().reloadPrismObjectModel(oldObject);
+
+        IModel<PrismContainerValueWrapper<C>> valueModel = null;
+
+        if (pathToValue != null) {
+            valueModel = new LoadableModel<>(false) {
+                @Override
+                protected PrismContainerValueWrapper<C> load() {
+                    try {
+                        if (!ItemPath.isId(pathToValue.last())) {
+                            PrismContainerWrapper<C> container =
+                                    getObjectDetailsModels().getObjectWrapper().findContainer(pathToValue);
+                            if (container.isMultiValue()) {
+                                PrismContainerValue<C> value = container.getItem().createNewValue();
+                                PrismContainerValueWrapper<C> newWrapper = WebPrismUtil.createNewValueWrapper(
+                                        container,
+                                        value,
+                                        PageAssignmentHolderDetails.this,
+                                        getObjectDetailsModels().createWrapperContext());
+                                container.getValues().add(newWrapper);
+                                return newWrapper;
+                            }
+                        }
+                        return getModelWrapperObject().findContainerValue(pathToValue);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't resolve value for path: " + pathToValue);
+                    }
+                    return null;
+                }
+            };
+        }
+
+        getFeedbackPanel().setVisible(false);
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageAssignmentHolderDetails.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+
+        try {
+            Constructor<P> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+            P wizard = constructor.newInstance(ID_WIZARD, createContainerWizardHelper(valueModel));
+            wizard.setOutputMarkupId(true);
+            fragment.add(wizard);
+            target.add(fragment);
+            return wizard;
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
+                    + " with parameters type: String, WizardPanelHelper", e);
+        }
+        return null;
+    }
+
+    private <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
+            IModel<PrismContainerValueWrapper<C>> valueModel) {
+        return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
+
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                setShowedByWizard(false);
+                PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
+                getObjectDetailsModels().reset();
+                getObjectDetailsModels().reloadPrismObjectModel(oldObject);
+                backToDetailsFromWizard(target);
+                getWizardBreadcrumbs().clear();
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                OperationResult result = new OperationResult(OPERATION_SAVE);
+                saveOrPreviewPerformed(target, result, false);
+                if (!result.isError()) {
+                    if (!isEditObject()) {
+                        removeLastBreadcrumb();
+                        String oid = getPrismObject().getOid();
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+                        Class<? extends PageBase> page = WebComponentUtil.getObjectDetailsPage(getType());
+                        navigateToNext(page, parameters);
+                        WebComponentUtil.createToastForCreateObject(target, getType());
+                    } else {
+                        WebComponentUtil.createToastForUpdateObject(target, getType());
+                    }
+                }
+                return result;
+            }
+        };
+    }
+
+    protected WizardPanelHelper<AH, AHDM> createObjectWizardPanelHelper() {
+        return new WizardPanelHelper<>(getObjectDetailsModels()) {
+
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                navigateToNext(WebComponentUtil.getObjectListPage(getType()));
+            }
+
+            @Override
+            public IModel<PrismContainerValueWrapper<AH>> getValueModel() {
+                return new ContainerValueWrapperFromObjectWrapperModel<>(
+                        getDetailsModel().getObjectWrapperModel(), ItemPath.EMPTY_PATH);
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                boolean isCreated = getPrismObject() == null || getPrismObject().getOid() == null;
+                OperationResult result = new OperationResult(OPERATION_SAVE);
+                saveOrPreviewPerformed(target, result, false);
+                if (!result.isError()) {
+                    if (isCreated) {
+                        WebComponentUtil.createToastForCreateObject(target, getType());
+                    } else {
+                        WebComponentUtil.createToastForUpdateObject(target, getType());
+                    }
+                }
+                return result;
+            }
+        };
+    }
+
+    private void backToDetailsFromWizard(AjaxRequestTarget target) {
+        DetailsFragment detailsFragment = createDetailsFragment();
+        PageAssignmentHolderDetails.this.addOrReplace(detailsFragment);
+        target.add(detailsFragment);
+
+        getFeedbackPanel().setVisible(true);
     }
 }

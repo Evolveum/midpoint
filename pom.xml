@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -17,6 +17,8 @@
     - Some JAR modules are pure-test, no main sources - deploy/install is skipped for these, otherwise it fails with:
     "The packaging for this project did not assign a file to the build artifact"
     - Some modules have explicit maven.test.skip=true to disable test plugins coming from parents.
+    Use this only for modules without any test sources!
+    If you need to skip test execution for some profile, use skipTests property instead.
     - Maven's failsafe plugin is declared in build/plugin only in modules that need it.
     This by default uses testng-integration.xml suite file, but see property integrationTestSuite
     for other possibilities (mostly to make build faster by running only most important int-tests).
@@ -44,13 +46,12 @@
     Default build - creates distribution package, runs all tests except "extra" tests ():
     mvn clean install
 
-    Extra test run with custom JVM args (we have 16g on CI server, but it works without args too),
+    Extra test use custom JVM args (mostly more memory) which are set in the "extratest" profile,
     runs just under 900 tests, skips distribution and any common unit/IT tests (~1h50m):
-    mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
-    (Skipping of default tests is managed by "extratest" profile.)
-    WARNING!!! Overriding failsafe/surefire.args when using "sqale" profile (new Native repository)
-    effectively disables another important JVM argument for tests which must be added to mvn
-    command line explicitly: -Dtest.config.file=test-config-new-repo.xml
+    mvn clean install -P extratest,-dist
+    (Skipping of default tests is also managed by "extratest" profile.)
+    To use with Native repository, just add this to the command line:
+    -Dtest.config.file=test-config-new-repo.xml
 
     Extra test run for a single module, -D property matches the module in -pl:
     mvn clean install -DskipConnTests=false -pl testing/conntest
@@ -83,6 +84,9 @@
     to the new Native repository tests (enables tests in repo-sqale module).
     Combine it with "dbtest" profile if additional tests (often taking longer) are desirable.
     Also see the warning about overriding failsafe/surefire.args above.
+    - Note, that both "sqale" and "extratest" profiles specify failsafe/surefire.args, so it's better to use
+    just "extratest" (memory settings, etc.) and specifying the Native test config like so:
+    mvn clean install -P extratest,-dist -Dtest.config.file=test-config-new-repo.xml
     - To run tests against new Native repository in the IDE, just use this VM option
     in the run configuration: -Dtest.config.file=test-config-new-repo.xml
     - Tests using old repository support option -Dconfig=db-specific.properties to override default
@@ -104,7 +108,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.7-SNAPSHOT</version>
+    <version>4.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>
@@ -231,7 +235,7 @@
         <snakeyaml.version>1.33</snakeyaml.version> <!-- fixes CVE-2022-25857 -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>9.12.0</wicket.version>
+        <wicket.version>9.12.0.e1</wicket.version>
         <wicketstuff.version>9.12.0</wicketstuff.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.12 is also default for Spring Boot 2.7.3 -->
@@ -975,7 +979,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.5</version>
+                <version>2.6</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
@@ -994,7 +998,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.5</version>
+                <version>3.6.1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -2053,6 +2057,9 @@
             <id>extratest</id>
             <properties>
                 <skipTests>true</skipTests>
+                <!-- Long/Story tests require more memory: -->
+                <surefire.args>-Xmx8g --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+                <failsafe.args>-Xmx8g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en</failsafe.args>
             </properties>
         </profile>
 
@@ -2077,8 +2084,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
     </profiles>

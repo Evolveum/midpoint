@@ -61,10 +61,10 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
                         LOGGER.error("Username from jwt token don't contains value");
                         throw new AuthenticationServiceException("web.security.provider.invalid");
                     }
-                token = getPreAuthenticationToken(username, focusType, requireAssignment, channel);
+                token = getPreAuthenticationToken(authentication, username, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
-                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage());
+                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage()); // TODO debug?
                 throw e;
             }
         } else {

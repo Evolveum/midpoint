@@ -6,6 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -18,14 +36,22 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceSche
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
  */
+@PanelType(name = "rw-types")
+@PanelInstance(identifier = "rw-types",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "ResourceObjectTypeTableWizardPanel.title", icon = "fa fa-object-group"))
 public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
-    private static final String PANEL_TYPE = "schemaHandling";
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeTableWizardPanel.class);
+
+    private static final String PANEL_TYPE = "rw-types";
     private static final String ID_TABLE = "table";
 
     public ResourceObjectTypeTableWizardPanel(String id, ResourceDetailsModel model) {
@@ -51,6 +77,23 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
 
                 getTable().getTable().setShowAsCard(false);
             }
+
+            @Override
+            protected void onNewValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
+                PageBase pageBase = getPageBase();
+                PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = containerModel.getObject();
+                PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getItem().createNewValue();
+                PrismContainerValueWrapper newWrapper = null;
+                try {
+                    newWrapper = WebPrismUtil.createNewValueWrapper(
+                            container, value, pageBase, getObjectDetailsModels().createWrapperContext());
+                    container.getValues().add(newWrapper);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create new value for container " + container, e);
+                }
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model = Model.of(newWrapper);
+                onCreateValue(model, target);
+            }
         };
         table.setOutputMarkupId(true);
         add(table);
@@ -67,6 +110,8 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     }
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
+
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
 
     @Override
     protected IModel<String> getSubTextModel() {

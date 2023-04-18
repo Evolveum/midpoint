@@ -50,6 +50,7 @@ public class TestSequence extends AbstractWfTestPolicy {
         super.initSystem(initTask, initResult);
         addObject(SEQUENCE_USER_NAME, initTask, initResult);
         addObject(TEMPLATE_USER, initTask, initResult);
+        setDefaultUserTemplate(TEMPLATE_USER.oid);
     }
 
     @Override

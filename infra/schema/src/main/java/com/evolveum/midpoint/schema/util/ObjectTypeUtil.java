@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -270,11 +272,9 @@ public class ObjectTypeUtil {
         return ort;
     }
 
-    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType, PrismContext prismContext) {
-        if (objectType == null) {
-            return null;
-        }
-        return createObjectRefWithFullObject(objectType.asPrismObject());
+    @Deprecated
+    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType object, PrismContext prismContext) {
+        return createObjectRefWithFullObject(object);
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType object) {
@@ -1114,6 +1114,35 @@ public class ObjectTypeUtil {
         return object != null ? object.getOid() : null;
     }
 
+    /**
+     * Converts {@link PrismContainerValue} to {@link PrismObjectValue} based {@link ObjectType} as a workaround for MID-8522.
+     *
+     * TEMPORARY CODE
+     */
+    public static ObjectType fix(ObjectType objectable) {
+        if (objectable == null) {
+            return null;
+        }
+        PrismContainerValue<?> pcv = objectable.asPrismContainerValue();
+        if (pcv instanceof PrismObjectValue) {
+            return objectable;
+        }
+
+        PrismObjectValue<?> pov;
+        try {
+            pov = PrismContext.get().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(objectable.getClass())
+                    .instantiate()
+                    .createNewValue();
+            for (Item<?, ?> item : pcv.getItems()) {
+                pov.add(item.clone());
+            }
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when fixing " + objectable);
+        }
+        return (ObjectType) pov.asObjectable();
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension
@@ -1126,19 +1155,24 @@ public class ObjectTypeUtil {
         Item<?, ?> create(PrismContainerValue<?> extension, List<?> realValues) throws SchemaException;
     }
 
-    public static void setExtensionPropertyRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName propertyName,
-            Object... values) throws SchemaException {
+    public static void setExtensionPropertyRealValues(
+            PrismContext ignored, PrismContainerValue<?> parent, ItemName propertyName, Object... values) throws SchemaException {
+        setExtensionPropertyRealValues(parent, propertyName, values);
+    }
+
+    public static void setExtensionPropertyRealValues(
+            PrismContainerValue<?> parent, ItemName propertyName, Object... values) throws SchemaException {
         setExtensionItemRealValues(parent,
                 extension -> extension.removeProperty(propertyName),
                 (extension, realValues) -> {
-                    PrismProperty<Object> property = findPropertyDefinition(prismContext, extension, propertyName)
+                    PrismProperty<Object> property = findPropertyDefinition(extension, propertyName)
                             .instantiate();
                     realValues.forEach(property::addRealValue);
                     return property;
                 }, values);
     }
 
-    private static @NotNull PrismPropertyDefinition<Object> findPropertyDefinition(PrismContext prismContext,
+    private static @NotNull PrismPropertyDefinition<Object> findPropertyDefinition(
             PrismContainerValue<?> extension, ItemName propertyName) {
         if (extension.getDefinition() != null) {
             PrismPropertyDefinition<Object> definitionInExtension = extension.getDefinition().findPropertyDefinition(propertyName);
@@ -1147,7 +1181,7 @@ public class ObjectTypeUtil {
             }
         }
         //noinspection unchecked
-        PrismPropertyDefinition<Object> globalDefinition = prismContext.getSchemaRegistry()
+        PrismPropertyDefinition<Object> globalDefinition = PrismContext.get().getSchemaRegistry()
                 .findPropertyDefinitionByElementName(propertyName);
         if (globalDefinition != null) {
             return globalDefinition;

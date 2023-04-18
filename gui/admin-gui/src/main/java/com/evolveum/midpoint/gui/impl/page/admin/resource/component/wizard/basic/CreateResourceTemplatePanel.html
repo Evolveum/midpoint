@@ -20,12 +20,6 @@
                 <wicket:message key="PageResource.wizard.step.selection.text"/>
             </h3>
         </div>
-        <wicket:fragment wicket:id="searchFragment">
-            <div class="d-flex mt-3">
-                <div wicket:id="type" style="width: 300px;"/>
-                <div class="my-auto d-flex ml-auto" wicket:id="search"/>
-            </div>
-        </wicket:fragment>
     </div>
 
     <div wicket:id="tileTable"/>
@@ -36,5 +30,11 @@
 <!--        </div>-->
 <!--    </div>-->
 </wicket:panel>
+<wicket:fragment wicket:id="searchFragment">
+    <div class="d-flex mt-3">
+        <div class="mr-auto" wicket:id="type" style="width: 300px;"/>
+        <div class="d-flex ml-auto" wicket:id="search"/>
+    </div>
+</wicket:fragment>
 </body>
 </html>

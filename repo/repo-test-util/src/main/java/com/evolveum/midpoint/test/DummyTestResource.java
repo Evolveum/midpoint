@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,7 +70,18 @@ public class DummyTestResource extends AnyTestResource {
     }
 
     // It's logical for this functionality to be invokable right on the DummyTestResource object. Hence this method.
-    public void init(AbstractIntegrationTest initializer, Task task, OperationResult result) throws Exception {
-        initializer.initDummyResource(this, task, result);
+    public void init(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        test.registerTestObjectUsed(this);
+        test.initDummyResource(this, task, result);
+    }
+
+    public String addAccount(DummyAccount account) throws ConflictException, FileNotFoundException, SchemaViolationException,
+            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+        return getDummyResource().addAccount(account);
+    }
+
+    public DummyAccount addAccount(String name) throws ConflictException, FileNotFoundException, SchemaViolationException,
+            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+        return controller.addAccount(name);
     }
 }

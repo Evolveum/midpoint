@@ -469,7 +469,7 @@
                             // Always process this mapping immediately
                             return basic.longAgo()
                         }
-                        def timestamp = basic.addDuration(funeralTimestamp, "P3M")
+                        def timestamp = basic.addDuration(funeralTimestamp, "P90D")
                         timestamp = basic.roundDownToMidnight(timestamp)
                         return timestamp
                     </code>

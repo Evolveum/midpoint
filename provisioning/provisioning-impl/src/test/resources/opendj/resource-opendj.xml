@@ -62,11 +62,9 @@
             <icfc:schema>-1</icfc:schema>
         </icfc:timeouts>
 
-        <icfc:resultsHandlerConfiguration>
-            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-        </icfc:resultsHandlerConfiguration>
+        <!-- We are NOT disabling ConnId result handlers here.
+             Since midPoint 4.7, the handlers should be disabled by default.
+             MID-7923 -->
 
     </connectorConfiguration>
 
@@ -147,10 +145,7 @@
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
-                        <q:equal>
-                            <q:path>attributes/dn</q:path>
-                            <q:value>ou=groups,dc=example,dc=com</q:value>
-                        </q:equal>
+                        <q:text>attributes/dn = "ou=groups,dc=example,dc=com"</q:text>
                     </filter>
                 </baseContext>
             </delineation>
@@ -180,10 +175,7 @@
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
-                        <q:equal>
-                            <q:path>attributes/dn</q:path>
-                            <q:value>ou=specialgroups,dc=example,dc=com</q:value>
-                        </q:equal>
+                        <q:text>attributes/dn = "ou=specialgroups,dc=example,dc=com"</q:text>
                     </filter>
                 </baseContext>
             </delineation>
@@ -233,10 +225,7 @@
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
-                        <q:equal>
-                            <q:path>attributes/dn</q:path>
-                            <q:value>ou=People,dc=example,dc=com</q:value>
-                        </q:equal>
+                        <q:text>attributes/dn = "ou=People,dc=example,dc=com"</q:text>
                     </filter>
                 </baseContext>
             </delineation>

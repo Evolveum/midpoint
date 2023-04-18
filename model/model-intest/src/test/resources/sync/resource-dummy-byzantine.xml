@@ -6,17 +6,12 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- Byzantine dummy resource. Minimal inbound, no outbound. -->
-
 <resource oid="10000000-0000-0000-0000-00000000f904"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource Byzantine</name>
     <connectorRef type="c:ConnectorType">
@@ -35,14 +30,11 @@
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-
         <icfc:configurationProperties>
             <icfi:instanceId>byzantine</icfi:instanceId>
             <icfi:supportValidity>false</icfi:supportValidity>
         </icfc:configurationProperties>
-
     </connectorConfiguration>
-
     <schemaHandling>
         <objectType>
             <displayName>Default Account</displayName>
@@ -53,58 +45,55 @@
                 <displayName>Username</displayName>
                 <inbound>
                     <target>
-                        <path>$c:user/c:name</path>
+                        <path>$c:user/c:name</path> <!-- intentionally weird (but correct) -->
                     </target>
                 </inbound>
             </attribute>
-
             <activation>
                 <administrativeStatus>
                     <inbound/>
                 </administrativeStatus>
             </activation>
-
-        </objectType>
-
-    </schemaHandling>
-
-    <synchronization>
-        <objectSynchronization>
-            <enabled>true</enabled>
             <correlation>
-                <q:equal>
-                    <q:path>c:name</q:path>
-                    <expression>
-                        <path>$account/attributes/icfs:name</path>
-                    </expression>
-                </q:equal>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
             </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
-
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink>
+                            <objectTemplateRef oid="9384e63f-9a68-4890-ae92-695aed8b4af3"/>
+                        </unlink>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+    <consistency>
+        <deadShadowRetentionPeriod>PT0S</deadShadowRetentionPeriod> <!-- MID-8369 -->
+    </consistency>
 </resource>

@@ -9,7 +9,10 @@ package com.evolveum.midpoint.model.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BuiltInSimulationMetricType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -57,16 +60,52 @@ public class SimulationResultAsserter<RA> extends AbstractAsserter<RA> {
         return XmlTypeConverter.toMillis(simulationResult.getEndTimestamp());
     }
 
-    public SimulationResultAsserter<RA> assertMetricValueByIdentifier(String metricId, BigDecimal expected) {
-        assertThat(SimulationResultTypeUtil.getSummarizedMetricValueByIdentifier(simulationResult, metricId))
-                .as("metric " + metricId + " value")
+    public SimulationResultAsserter<RA> assertMetricValue(SimulationMetricReference ref, BigDecimal expected) {
+        assertThat(SimulationResultTypeUtil.getSummarizedMetricValue(simulationResult, ref))
+                .as("metric " + ref + " value")
                 .isEqualTo(expected);
         return this;
     }
 
     public SimulationResultAsserter<RA> assertMetricValueByEventMark(String oid, BigDecimal expected) {
-        assertThat(SimulationResultTypeUtil.getSummarizedMetricValueByEventMark(simulationResult, oid))
-                .as("metric with event mark " + oid + " value")
+        return assertMetricValue(SimulationMetricReference.forMark(oid), expected);
+    }
+
+    public SimulationResultAsserter<RA> assertMetricValueForBuiltIn(BuiltInSimulationMetricType builtIn, BigDecimal expected) {
+        return assertMetricValue(SimulationMetricReference.forBuiltIn(builtIn), expected);
+    }
+
+    public SimulationResultAsserter<RA> assertObjectsAdded(int expected) {
+        assertThat(SimulationResultTypeUtil.getObjectsAdded(simulationResult))
+                .as("objects added")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public SimulationResultAsserter<RA> assertObjectsModified(int expected) {
+        assertThat(SimulationResultTypeUtil.getObjectsModified(simulationResult))
+                .as("objects modified")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public SimulationResultAsserter<RA> assertObjectsDeleted(int expected) {
+        assertThat(SimulationResultTypeUtil.getObjectsDeleted(simulationResult))
+                .as("objects deleted")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public SimulationResultAsserter<RA> assertObjectsUnchanged(int expected) {
+        assertThat(SimulationResultTypeUtil.getObjectsUnchanged(simulationResult))
+                .as("objects unchanged")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public SimulationResultAsserter<RA> assertObjectsProcessed(int expected) {
+        assertThat(SimulationResultTypeUtil.getObjectsProcessed(simulationResult))
+                .as("objects deleted")
                 .isEqualTo(expected);
         return this;
     }

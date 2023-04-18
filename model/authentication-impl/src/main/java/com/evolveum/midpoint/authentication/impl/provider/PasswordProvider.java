@@ -58,7 +58,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
 
         try {
             Authentication token;
@@ -84,7 +84,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
             return token;
 
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
             throw e;
         }
     }

@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
@@ -50,6 +49,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMap
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -67,7 +68,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -204,22 +204,28 @@ public class AssignmentProcessor implements ProjectorProcessor {
         // PROCESSING POLICIES
 
         policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
-        boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
 
-        if (needToReevaluateAssignments) {
-            LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
+        if (ModelExecuteOptions.isIgnoreAssignmentPruning(context.getOptions())) {
+            LOGGER.debug("Assignment pruning is ignored because of the model execute option");
+        } else {
+            boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
+            if (needToReevaluateAssignments) {
+                LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
 
-            assignmentTripleEvaluator.reset(true);
-            evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-            context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
+                assignmentTripleEvaluator.reset(true);
+                evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+                context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
-            // TODO implement isMemberOf invocation result change check here! MID-5784
-            //  Actually, we should factor out the relevant code to avoid code duplication.
+                // TODO implement isMemberOf invocation result change check here! MID-5784
+                //  Actually, we should factor out the relevant code to avoid code duplication.
 
-            LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
+                LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
-            policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
+                policyRuleProcessor.evaluateAssignmentPolicyRules(focusContext, task, result);
+            }
         }
+
+        policyRuleProcessor.recordAssignmentPolicyRules(focusContext, task, result);
 
         // PROCESSING FOCUS
 
@@ -711,9 +717,16 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 continue;
             }
 
+            boolean legalized;
             if (projectionContext.isLegalize()) {
-                LOGGER.trace("Projection {} legal: legalized", desc);
-                createAssignmentDelta(context, projectionContext);
+                legalized = legalize(context, projectionContext);
+            } else {
+                legalized = false;
+            }
+
+            if (legalized) {
+
+                LOGGER.trace("Projection {} legalized", desc);
                 projectionContext.setAssigned(true);
                 projectionContext.setAssignedOldIfUnknown(false);
                 projectionContext.setLegal(true);
@@ -767,10 +780,11 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Finishing legal decision for {}, gone {}, enforcement mode {}, legalize {}: {} -> {}",
+                LOGGER.trace("Finishing legal decision for {}, gone {}, enforcement mode {}, legalize {} (real: {}): {} -> {}",
                         projectionContext.toHumanReadableString(), projectionContext.isGone(),
                         projectionContext.getAssignmentPolicyEnforcementMode(),
-                        projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal());
+                        projectionContext.isLegalize(), legalized,
+                        projectionContext.isLegalOld(), projectionContext.isLegal());
             }
 
             propagateLegalDecisionToHigherOrders(context, projectionContext);
@@ -790,24 +804,31 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends AssignmentHolderType> void createAssignmentDelta(
-            LensContext<F> context, LensProjectionContext accountContext) throws SchemaException {
-        Class<F> focusClass = context.getFocusClass();
-        ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
-                .createDelta(AssignmentHolderType.F_ASSIGNMENT, focusClass);
-        AssignmentType assignment = new AssignmentType();
-        ConstructionType constructionType = new ConstructionType();
-        constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
-        assignment.setConstruction(constructionType);
-        //noinspection unchecked
-        assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
-        PrismContainerDefinition<AssignmentType> containerDefinition =
-                prismContext.getSchemaRegistry()
-                        .findObjectDefinitionByCompileTimeClass(focusClass)
-                        .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-        assignmentDelta.applyDefinition(containerDefinition);
-        context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
+    private boolean legalize(LensContext<? extends AssignmentHolderType> context, LensProjectionContext projCtx)
+            throws SchemaException {
 
+        LensFocusContext<? extends AssignmentHolderType> focusContext = context.getFocusContextRequired();
+        ProjectionContextKey projKey = projCtx.getKey();
+
+        if (!projKey.isClassified()) {
+            LOGGER.warn("Cannot legalize unclassified projection: {} - no assignment will be created in {}",
+                    projCtx.getHumanReadableName(), focusContext.getObjectAny());
+            return false;
+        }
+
+        AssignmentType assignment = new AssignmentType()
+                .construction(new ConstructionType()
+                        .resourceRef(projCtx.getResourceOidRequired(), ResourceType.COMPLEX_TYPE)
+                        .kind(projKey.getKind())
+                        .intent(projKey.getIntent()));
+
+        focusContext.swallowToSecondaryDelta(
+                prismContext.deltaFor(context.getFocusClass())
+                        .item(AssignmentHolderType.F_ASSIGNMENT)
+                        .add(assignment)
+                        .asItemDelta());
+
+        return true;
     }
 
     @ProcessorMethod
@@ -1000,7 +1021,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
             if (evalAssignment.isValid()) {
                 LOGGER.trace("Adding references from: {}", evalAssignment);
-                addRoleReferences(shouldBeRoleRefs, evalAssignment, operationResult);
+                addRoleReferences(shouldBeRoleRefs, evalAssignment, focusContext, operationResult);
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
                 addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
             } else {
@@ -1018,37 +1039,82 @@ public class AssignmentProcessor implements ProjectorProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
     }
 
-    private void addRoleReferences(Collection<PrismReferenceValue> shouldBeRoleRefs,
-            EvaluatedAssignmentImpl<?> evalAssignment, OperationResult operationResult) throws SchemaException {
-        addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
-
+    private void addRoleReferences(
+            Collection<PrismReferenceValue> shouldBeRoleRefs, EvaluatedAssignmentImpl<?> evaluatedAssignment,
+            LensFocusContext<?> focusContext, OperationResult operationResult) throws SchemaException {
+        Collection<PrismReferenceValue> membershipRefVals = evaluatedAssignment.getMembershipRefVals();
         // If sysconfig enables accesses value metadata, we will add them.
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
-        if (!SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
-            return;
+        if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
+            // Refs can be shared also for archetype refs and we don't want metadata there (MID-8664).
+            membershipRefVals = CloneUtil.cloneCollectionMembers(membershipRefVals);
+            for (PrismReferenceValue roleRef : membershipRefVals) {
+                addAssignmentPathValueMetadataValues(roleRef, evaluatedAssignment, focusContext);
+            }
         }
 
-        for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
-            List<EvaluatedAssignmentTargetImpl> evaluatedAssignmentTargets =
-                    findEvaluatedAssignmentTargets(roleRef, evalAssignment);
-            if (evaluatedAssignmentTargets.isEmpty()) {
-               // LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
-                continue;
-            }
+        addReferences(shouldBeRoleRefs, membershipRefVals);
+    }
 
-            for (EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
+    private void addAssignmentPathValueMetadataValues(PrismReferenceValue roleRef,
+            EvaluatedAssignment evaluatedAssignment, LensFocusContext<?> focusContext)
+            throws SchemaException {
+        List<EvaluatedAssignmentTarget> evaluatedAssignmentTargets =
+                findEvaluatedAssignmentTargets(roleRef, evaluatedAssignment);
+        if (evaluatedAssignmentTargets.isEmpty()) {
+            // Cases like Approver relations, for which EvaluatedAssignment has empty roles DeltaSetTriple.
+            // Sometimes we have target available (e.g. Approver with filter), sometimes not (when targetRef has OID).
+            PrismObject<?> assignmentTarget = evaluatedAssignment.getTarget();
+            ObjectReferenceType assignmentTargetRef = evaluatedAssignment.getAssignment().getTargetRef();
+            String assignmentTargetOid = assignmentTarget != null ? assignmentTarget.getOid() : assignmentTargetRef.getOid();
+            addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment,
+                    new AssignmentPathType()
+                            .segment(new AssignmentPathSegmentType()
+                                    .assignmentId(evaluatedAssignment.getAssignmentId())
+                                    .segmentOrder(1)
+                                    .isAssignment(true)
+                                    .matchingOrder(true)
+                                    .sourceRef(focusContext.getOid(),
+                                            focusContext.getObjectDefinition().getTypeName(),
+                                            SchemaConstants.ORG_DEFAULT)
+                                    .targetRef(assignmentTargetOid, roleRef.getTargetType(), roleRef.getRelation())));
+        } else {
+            for (EvaluatedAssignmentTarget evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
                 AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
                 // There can be some value metadata already created by previous assignment evaluation,
                 // but we will add new metadata container for each assignment path without touching any existing ones.
-                //noinspection unchecked
-                roleRef.getValueMetadataAsContainer().add(new ValueMetadataType()
-                        .provenance(new ProvenanceMetadataType()
-                                .assignmentPath(assignmentPathToMetadata(assignmentPath)))
-                        .storage(new StorageMetadataType()
-                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())))
-                        .asPrismContainerValue());
+                addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment, assignmentPath);
             }
         }
+    }
+
+    private void addAssignmentPathValueMetadataValue(
+            PrismReferenceValue roleRef, EvaluatedAssignment evaluatedAssignment, AssignmentPathType assignmentPath)
+            throws SchemaException {
+        //noinspection unchecked
+        roleRef.getValueMetadataAsContainer().add(new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .assignmentPath(assignmentPathToMetadata(assignmentPath)))
+                .storage(new StorageMetadataType()
+                        .createTimestamp(determineAssignmentSinceTimestamp(evaluatedAssignment)))
+                .asPrismContainerValue());
+    }
+
+    /**
+     * Technically, storage/createTimestamp should be "now", but in this case we use it as "assigned since" date as well.
+     * Normally, it is virtually the same date, but if metadata are created later, we want to "reconstruct" the date.
+     * This also solves the problem for existing deployments.
+     */
+    private static XMLGregorianCalendar determineAssignmentSinceTimestamp(EvaluatedAssignment evalAssignment) {
+        MetadataType assignmentMetadata = evalAssignment.getAssignment().getMetadata();
+        if (assignmentMetadata != null) {
+            XMLGregorianCalendar createTimestamp = assignmentMetadata.getCreateTimestamp();
+            if (createTimestamp != null) {
+                return createTimestamp;
+            }
+        }
+
+        return MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis());
     }
 
     private AssignmentPathMetadataType assignmentPathToMetadata(AssignmentPathType assignmentPath) {
@@ -1066,10 +1132,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
         return metadata;
     }
 
-    private @NotNull List<EvaluatedAssignmentTargetImpl> findEvaluatedAssignmentTargets(
-            PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evalAssignment) {
-        List<EvaluatedAssignmentTargetImpl> result = new ArrayList<>();
-        for (EvaluatedAssignmentTargetImpl eat : evalAssignment.getRoles().getNonNegativeValues()) {
+    private @NotNull List<EvaluatedAssignmentTarget> findEvaluatedAssignmentTargets(
+            PrismReferenceValue roleRef, EvaluatedAssignment evaluatedAssignment) {
+        List<EvaluatedAssignmentTarget> result = new ArrayList<>();
+        for (EvaluatedAssignmentTarget eat : evaluatedAssignment.getRoles().getNonNegativeValues()) {
             ObjectReferenceType evaluatedAssignmentTargetRef = eat.getAssignment().getTargetRef();
             if (MiscUtil.equals(evaluatedAssignmentTargetRef.getOid(), roleRef.getOid())
                     && prismContext.relationsEquivalent(evaluatedAssignmentTargetRef.getRelation(), roleRef.getRelation())) {
@@ -1124,12 +1190,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     (a, b) -> Objects.equals(a.getOid(), b.getOid())
                             && Objects.equals(a.getRelation(), b.getRelation()));
             if (oldRefMatch != null) {
-                mergeAssignmentPathMetadata(ref, oldRefMatch);
+                adoptExistingStorageCreateTimestampValueMetadata(ref, oldRefMatch);
             }
         }
     }
 
-    private void mergeAssignmentPathMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
+    private void adoptExistingStorageCreateTimestampValueMetadata(PrismReferenceValue ref, PrismReferenceValue originalRef) {
         List<PrismContainerValue<Containerable>> originalMetadataValues = originalRef.getValueMetadata().getValues();
         if (originalMetadataValues.isEmpty()) {
             return;
@@ -1165,23 +1231,33 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {
-        for (PrismReferenceValue reference : references) {
-            boolean found = false;
-            for (PrismReferenceValue exVal : extractedReferences) {
+    /**
+     * This adds `newReferences` to the `accumulatedReferences` collection.
+     * If any of the new references is in the accumulator collection already, any value metadata from it
+     * is added to the existing reference (merged).
+     */
+    private void addReferences(
+            Collection<PrismReferenceValue> accumulatedReferences, Collection<PrismReferenceValue> newReferences)
+            throws SchemaException {
+        newRefsLoop:
+        for (PrismReferenceValue reference : newReferences) {
+            for (PrismReferenceValue exVal : accumulatedReferences) {
                 if (MiscUtil.equals(exVal.getOid(), reference.getOid())
                         && prismContext.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
-                    found = true;
-                    break;
+                    ValueMetadata existingRefMetadata = exVal.getValueMetadata();
+                    for (PrismContainerValue<Containerable> metadataValue : reference.getValueMetadata().getValues()) {
+                        existingRefMetadata.add(metadataValue.clone());
+                    }
+                    continue newRefsLoop;
                 }
             }
-            if (!found) {
-                PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);        // clone without full object instead of calling canonicalize()
-                if (ref.getRelation() == null || QNameUtil.isUnqualified(ref.getRelation())) {
-                    ref.setRelation(relationRegistry.normalizeRelation(ref.getRelation()));
-                }
-                extractedReferences.add(ref);
+
+            // clone without full object instead of calling canonicalize()
+            PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);
+            if (ref.getRelation() == null || QNameUtil.isUnqualified(ref.getRelation())) {
+                ref.setRelation(relationRegistry.normalizeRelation(ref.getRelation()));
             }
+            accumulatedReferences.add(ref);
         }
     }
 

@@ -74,17 +74,13 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
 
         and("simulation result is OK");
         assertSimulationResultAfter(simResult);
-        // @formatter:off
         assertProcessedObjects(simResult)
                 .display()
-                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventMarks(MARK_FOCUS_DEACTIVATED)
-                .end()
-                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventMarks(MARK_PROJECTION_DEACTIVATED)
-                .end()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find(
+                        po -> po.assertEventMarks(MARK_FOCUS_DEACTIVATED))
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find(
+                        po -> po.assertEventMarks(MARK_PROJECTION_DEACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED))
                 .assertSize(2);
-        // @formatter:on
     }
 
     private UserType createUserWithAccount(String name, Task task, OperationResult result) throws CommonException {
@@ -138,7 +134,8 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                     .assertEventMarks(MARK_FOCUS_RENAMED)
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventMarks(MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED)
+                    .assertEventMarks(
+                            MARK_PROJECTION_RENAMED, MARK_PROJECTION_IDENTIFIER_CHANGED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                 .end()
                 .assertSize(2);
         // @formatter:on
@@ -185,7 +182,7 @@ public class TestProductionSimulations extends AbstractBasicSimulationExecutionT
                     .assertEventMarks()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                    .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED)
+                    .assertEventMarks(MARK_PROJECTION_PASSWORD_CHANGED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                 .end()
                 .assertSize(2);
         // @formatter:on

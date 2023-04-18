@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -1401,6 +1402,11 @@ public interface MidpointFunctions {
     @Deprecated
     <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException;
 
+    /**
+     * Returns the structural archetype for the object, possibly `null`.
+     */
+    @Nullable <O extends AssignmentHolderType> ArchetypeType getStructuralArchetype(O object) throws SchemaException;
+
     @NotNull <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException;
 
     /**
@@ -1467,7 +1473,38 @@ public interface MidpointFunctions {
         void customize(TriggerType trigger) throws SchemaException;
     }
 
-    String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    /**
+     * Returns longer version of human-readable description of the resource object set:
+     *
+     * . resource name
+     * . object type display name (if known)
+     * . object type ID (kind, intent)
+     * . flag whether we are using default type definition
+     * . object class
+     *
+     * Currently, object types are resolved and named using the
+     * {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)} method
+     * that is used for import and reconciliation activities. Hence, the name should be quite precise in the context
+     * of these activities.
+     */
+    String describeResourceObjectSetLong(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Short version of {@link #describeResourceObjectSetLong(ResourceObjectSetType)}:
+     *
+     * . only one of object type display name and type ID is shown;
+     * . object class is omitted when type is present
+     */
+    String describeResourceObjectSetShort(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /** Synonym for {@link #describeResourceObjectSetShort(ResourceObjectSetType)}, mainly for compatibility reasons. */
+    default String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        return describeResourceObjectSetShort(set);
+    }
+
 
     /**
      * Selects specified values from all relevant identity data.

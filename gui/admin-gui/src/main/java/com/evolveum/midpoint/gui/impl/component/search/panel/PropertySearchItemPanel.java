@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 
 public abstract class PropertySearchItemPanel<P extends PropertySearchItemWrapper> extends SingleSearchItemPanel<P> {
 
@@ -17,15 +18,5 @@ public abstract class PropertySearchItemPanel<P extends PropertySearchItemWrappe
 
     public PropertySearchItemPanel(String id, IModel<P> model) {
         super(id, model);
-    }
-
-    @Override
-    protected void onConfigure() {
-        super.onConfigure();
-        PropertySearchItemWrapper item = getModelObject();
-//        if (!item.isEditWhenVisible()) {
-//            return;
-//        }
-//        item.setEditWhenVisible(false);
     }
 }

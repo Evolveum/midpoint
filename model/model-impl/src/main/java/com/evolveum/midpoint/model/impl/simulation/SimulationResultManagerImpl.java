@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.SIMULATION_RESULT_DEFAULT_TRANSACTION_ID;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.merger.simulation.SimulationDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.SimulationResult;
@@ -52,13 +52,13 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @NotNull private volatile List<SimulationDefinitionType> simulationDefinitions = new ArrayList<>();
 
     /** Global metric definitions provided by the system configuration. Keyed by identifier. Immutable. */
-    @NotNull private volatile Map<String, SimulationMetricDefinitionType> metricDefinitions = new HashMap<>();
+    @NotNull private volatile Map<String, SimulationMetricDefinitionType> explicitMetricDefinitions = new HashMap<>();
 
     @Override
     public @NotNull SimulationDefinitionType defaultDefinition() throws ConfigurationException {
         List<SimulationDefinitionType> allDefinitions = this.simulationDefinitions;
         if (allDefinitions.size() == 1) {
-            return allDefinitions.get(0); // regardless of whether it's marked as default
+            return allDefinitions.get(0).clone(); // regardless of whether it's marked as default
         }
         List<SimulationDefinitionType> defaultOnes = allDefinitions.stream()
                 .filter(SimulationDefinitionType::isDefault)
@@ -67,7 +67,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             throw new ConfigurationException("More than one default simulation definition present: " +
                     getIdentifiers(defaultOnes));
         } else if (defaultOnes.size() == 1) {
-            return defaultOnes.get(0);
+            return defaultOnes.get(0).clone();
         }
         if (!allDefinitions.isEmpty()) {
             throw new ConfigurationException("Multiple simulation definitions present, none marked as default: " +
@@ -85,7 +85,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     @Override
     public @NotNull SimulationResultImpl createSimulationResult(
             @Nullable SimulationDefinitionType definition,
-            @Nullable String rootTaskOid,
+            @Nullable Task rootTask,
             @Nullable ConfigurationSpecificationType configurationSpecification,
             @NotNull OperationResult result)
             throws ConfigurationException {
@@ -95,11 +95,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         SimulationDefinitionType expandedDefinition = expandDefinition(definition, new HashSet<>());
         long now = clock.currentTimeMillis();
         SimulationResultType newResult = new SimulationResultType()
-                .name(getResultName(expandedDefinition, now))
+                .name(getResultName(expandedDefinition, now, rootTask))
                 .definition(expandedDefinition.clone())
                 .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(now))
                 .rootTaskRef(
-                        rootTaskOid != null ? createObjectRef(rootTaskOid, ObjectTypes.TASK) : null)
+                        rootTask != null ? rootTask.getSelfReference() : null)
                 .configurationUsed(
                         configurationSpecification != null ? configurationSpecification.clone() : null);
 
@@ -117,14 +117,19 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TODO improve this method (e.g. by formatting the timestamp? by configuring the name? i18n?) */
-    private String getResultName(SimulationDefinitionType expandedDefinition, long now) {
+    private String getResultName(SimulationDefinitionType expandedDefinition, long now, @Nullable Task rootTask) {
         String identifier = expandedDefinition.getIdentifier();
-        String timeInfo = String.valueOf(now);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Simulation result"); // TODO i18n
         if (identifier != null) {
-            return String.format("Simulation result (%s): %s", identifier, timeInfo);
-        } else {
-            return String.format("Simulation result: %s", timeInfo);
+            sb.append("(").append(identifier).append(") ");
         }
+        sb.append(": ");
+        if (rootTask != null) {
+            sb.append(getOrig(rootTask.getName())).append(", ");
+        }
+        sb.append(XmlTypeConverter.createXMLGregorianCalendar(now));
+        return sb.toString();
     }
 
     private SimulationDefinitionType expandDefinition(
@@ -179,11 +184,14 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         var configuration = value != null ? value.getSimulation() : null;
         if (configuration != null) {
             simulationDefinitions = CloneUtil.cloneCollectionMembers(configuration.getSimulation());
-            metricDefinitions = configuration.getMetric().stream()
+            explicitMetricDefinitions = configuration.getMetric().stream()
                     .map(def -> CloneUtil.toImmutable(def))
                     .collect(Collectors.toMap(
                             def -> def.getIdentifier(),
                             def -> def));
+        } else {
+            simulationDefinitions = List.of();
+            explicitMetricDefinitions = Map.of();
         }
     }
 
@@ -198,6 +206,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
+    @VisibleForTesting
     @Override
     public @NotNull List<ProcessedObjectImpl<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
             throws SchemaException {
@@ -232,8 +241,8 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
                 "Trying to update already closed simulation result %s (%s)", simResult, endTimestamp);
     }
 
-    @NotNull Collection<SimulationMetricDefinitionType> getMetricDefinitions() {
-        return metricDefinitions.values();
+    @NotNull Collection<SimulationMetricDefinitionType> getExplicitMetricDefinitions() {
+        return explicitMetricDefinitions.values();
     }
 
     @Override
@@ -268,7 +277,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
 
     @Override
     public @Nullable SimulationMetricDefinitionType getMetricDefinition(@NotNull String identifier) {
-        return metricDefinitions.get(identifier);
+        return explicitMetricDefinitions.get(identifier);
     }
 
     @NotNull OpenResultTransactionsHolder getOpenResultTransactionsHolder() {

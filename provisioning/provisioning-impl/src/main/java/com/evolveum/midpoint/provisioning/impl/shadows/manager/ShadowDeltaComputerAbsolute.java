@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -137,6 +138,7 @@ class ShadowDeltaComputerAbsolute {
             }
 
             if (fromResource) { // TODO reconsider this
+                updateEffectiveMarks();
                 if (cachingStrategy == CachingStrategyType.NONE) {
                     clearCachingMetadata();
                 } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
@@ -147,6 +149,19 @@ class ShadowDeltaComputerAbsolute {
                 }
             }
             return computedShadowDelta;
+        }
+
+        private void updateEffectiveMarks() throws SchemaException {
+            // protected status of resourceShadow was computed without exclusions present in
+            // original shadow
+            if (!resourceObject.getEffectiveMarkRef().isEmpty()) {
+                // We should check if marks computed on resourceObject without exclusions should
+                // be excluded and not propagated to repository layer.
+                ItemDelta<?, ?> delta = ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow, resourceObject.getEffectiveMarkRef());
+                if (delta != null) {
+                    computedShadowDelta.addModification(delta);
+                }
+            }
         }
 
         private void updateShadowName() throws SchemaException {

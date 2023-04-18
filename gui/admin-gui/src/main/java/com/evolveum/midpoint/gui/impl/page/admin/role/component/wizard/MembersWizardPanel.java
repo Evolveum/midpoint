@@ -12,6 +12,9 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -31,9 +34,15 @@ import java.util.List;
 /**
  * @author lskublik
  */
+
+@PanelType(name = "arw-members")
+@PanelInstance(identifier = "arw-members",
+        applicableForType = RoleType.class,
+        applicableForOperation = OperationTypeType.WIZARD,
+        display = @PanelDisplay(label = "MembersWizardPanel.title", icon = "fa fa-users"))
 public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsModels<RoleType>> {
 
-    public static final String PANEL_TYPE = "roleWizard-members";
+    public static final String PANEL_TYPE = "arw-members";
     private static final String ID_TABLE = "table";
 
     public MembersWizardPanel(String id, FocusDetailsModels<RoleType> model) {
@@ -117,6 +126,11 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
                 super.executeUnassign(object, relation, target);
                 target.add(getFeedback());
+            }
+
+            @Override
+            protected String getButtonTranslationPrefix() {
+                return "MembersWizardPanel.button";
             }
         };
         table.setOutputMarkupId(true);

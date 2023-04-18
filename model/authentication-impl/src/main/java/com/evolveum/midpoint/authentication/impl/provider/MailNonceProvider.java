@@ -72,15 +72,16 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
-                                                    AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
+    protected Authentication internalAuthentication(
+            Authentication authentication, List<ObjectReferenceType> requireAssignment,
+            AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
         try {
             Authentication token;
             if (authentication instanceof MailNonceAuthenticationToken) {
@@ -103,7 +104,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
             return token;
 
         } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
             throw e;
         }
     }

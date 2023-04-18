@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -56,12 +57,14 @@ public class AuditChangesPanel extends ChangesPanel {
     private static final String ID_OBJECT_NAME = "objectName";
     private static final String ID_RESOURCE_NAME = "resourceName";
 
-    private IModel<ObjectDeltaOperationType> deltaOperationModel;
+    private final IModel<ObjectDeltaOperationType> deltaOperationModel;
 
     public AuditChangesPanel(String id, IModel<ObjectDeltaOperationType> deltaOperationModel, PageBase page) {
-        super(id, null, new VisualizationModel(page, deltaOperationModel));
+        super(id, new VisualizationModel(page, deltaOperationModel));
 
         this.deltaOperationModel = deltaOperationModel;
+
+        setShowOperationalItems(true);
 
         initLayout();
     }
@@ -74,7 +77,7 @@ public class AuditChangesPanel extends ChangesPanel {
         Label executionResult = new Label(ID_EXECUTION_RESULT, new PropertyModel<>(deltaOperationModel, "executionResult.status"));
         body.add(executionResult);
 
-        AjaxLink showFullResultsLink = new AjaxLink<>(ID_FULL_RESULT_LINK) {
+        AjaxLink<Void> showFullResultsLink = new AjaxLink<>(ID_FULL_RESULT_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -82,10 +85,11 @@ public class AuditChangesPanel extends ChangesPanel {
                 showFullResultsPerformed(target);
             }
         };
-        showFullResultsLink.add(new VisibleBehaviour(() -> deltaOperationModel.getObject() != null && deltaOperationModel.getObject().getExecutionResult() != null));
+        showFullResultsLink.add(new VisibleBehaviour(this::isShowFullResultVisible));
         body.add(showFullResultsLink);
 
-        Label resourceName = new Label(ID_RESOURCE_NAME, new PropertyModel<>(deltaOperationModel, ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
+        Label resourceName = new Label(ID_RESOURCE_NAME,
+                new PropertyModel<>(deltaOperationModel, ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
         resourceName.add(new VisibleBehaviour(() -> deltaOperationModel.getObject().getResourceName() != null));
         body.add(resourceName);
 
@@ -100,9 +104,18 @@ public class AuditChangesPanel extends ChangesPanel {
         getPageBase().showMainPopup(operationResultPopupPanel, target);
     }
 
+    private boolean isShowFullResultVisible() {
+        return isExecutionEventStage()
+                && !WebComponentUtil.isSuccessOrHandledError(deltaOperationModel.getObject().getExecutionResult());
+    }
+
+    private boolean isExecutionEventStage() {
+        return deltaOperationModel.getObject() != null && deltaOperationModel.getObject().getExecutionResult() != null;
+    }
+
     private IModel<OperationResult> createOperationResultModel() {
         return () -> {
-            if (getModelObject() == null) {
+            if (deltaOperationModel == null) {
                 return null;
             }
             OperationResultType executionResult = deltaOperationModel.getObject().getExecutionResult();
@@ -145,8 +158,8 @@ public class AuditChangesPanel extends ChangesPanel {
 
     private static class VisualizationModel extends LoadableModel<List<VisualizationDto>> {
 
-        private PageBase page;
-        private IModel<ObjectDeltaOperationType> model;
+        private final PageBase page;
+        private final IModel<ObjectDeltaOperationType> model;
 
         public VisualizationModel(PageBase page, IModel<ObjectDeltaOperationType> model) {
             super(false);
@@ -160,7 +173,8 @@ public class AuditChangesPanel extends ChangesPanel {
                 return loadVisualizationForDelta();
             } catch (SchemaException | ExpressionEvaluationException e) {
                 OperationResult result = new OperationResult(AuditChangesPanel.class.getName() + ".loadSceneForDelta");
-                result.recordFatalError(LocalizationUtil.translate("AuditChangesPanel.message.fetchOrVisualize.fatalError", new Object[] { e.getMessage() }), e);
+                result.recordFatalError(LocalizationUtil.translate("AuditChangesPanel.message.fetchOrVisualize.fatalError",
+                        new Object[] { e.getMessage() }), e);
                 page.showResult(result);
                 throw page.redirectBackViaRestartResponseException();
             }
@@ -180,7 +194,8 @@ public class AuditChangesPanel extends ChangesPanel {
 
             try {
                 Task task = page.createSimpleTask("visualized delta");
-                visualization = page.getModelInteractionService().visualizeDelta(delta, true, false, task, task.getResult());
+                visualization = page.getModelInteractionService().visualizeDelta(delta, true,
+                        false, task, task.getResult());
             } catch (SchemaException | ExpressionEvaluationException e) {
                 LoggingUtils.logException(LOGGER, "SchemaException while visualizing delta:\n{}", e, DebugUtil.debugDump(delta));
                 throw e;
