@@ -87,7 +87,12 @@ public class StaticSpringResourcesMarkupFilter extends AbstractMarkupFilter {
             }
 
             String newUrl = resourceUrlProvider.getForLookupPath("/" + url);
-            newUrl = newUrl.substring(1);
+
+            if(newUrl == null){
+                newUrl = url;
+            }else {
+                newUrl = newUrl.substring(1);
+            }
 
             tag.put(attributeName, newUrl);
             tag.setModified(true);
