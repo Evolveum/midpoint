@@ -6,9 +6,7 @@
 :page-wiki-metadata-create-date: 2016-01-15T20:40:02.928+01:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-10-19T16:46:49.426+02:00
-:page-upkeep-status: yellow
 :page-toc: top
-
 
 == Introduction
 
@@ -21,21 +19,44 @@ This page describes how to set up and maintain an _overlay project_ that contain
 
 == How Overlay Works?
 
-Overlay projects takes midPoint binary distribution (`midpoint.war`), extracts it, adds your customization to it and then repackages it again.
+[IMPORTANT]
+====
+MidPoint packaging was migrated from WAR to JAR in 4.6.
+
+Previously it was based on link:https://maven.apache.org/plugins/maven-war-plugin/overlays.html[Maven WAR Overlay]
+mechanism combined with link:https://docs.spring.io/spring-boot/docs/current/maven-plugin/repackage-mojo.html[Spring Boot repackaging].
+Overlay project took the `admin-gui` "Spring-bootified" WAR module (renamed as `midpoint.war`),
+opened it, placed some stuff over it, packaged it as WAR and repackaged it with Spring Boot again.
+
+With JAR packaging, only the Spring Boot repackaging is used.
+
+The following text only covers the JAR overlay mechanism now.
+====
+
+Overlay projects creates a new midPoint binary distribution (`midpoint.jar`) with your customizations added to it.
 The customizations may be configuration files, web resources (HTML, CSS, images) and even Java code.
 The overlay can also override stock midPoint files and classes and replace them with custom versions.
-
-The overlay project is build using Apache Maven.
-As midPoint itself is built using Maven and midPoint development binaries are also distributed in Maven repositories this is a natural choice.
 
 The overlay project contains only the customized files.
 There is no need to copy stock midPoint sources and even binaries.
 The Maven will download everything that it needs directly from Evolveum repositories.
 As the overlay project only contains customizations it can easily be maintained in a version control system.
 
+The overlay project effectively does the same stuff the internal https://github.com/Evolveum/midpoint/tree/master/gui/midpoint-jar[midpoint-jar] module does.
+It takes `admin-gui` and all the other midpoint modules and packages them as Spring Boot JAR.
+The new JAR "overlay" contains only your stuff directly in the JAR (inside its `BOOT-INF/classes` directory).
+Everything else is under `WEB-INF/lib` only as JAR dependencies.
+
 [NOTE]
 ====
-Overlay project is combination of link:https://maven.apache.org/plugins/maven-war-plugin/overlays.html[Maven WAR Overlay] with link:https://docs.spring.io/spring-boot/docs/current/maven-plugin/repackage-mojo.html[Spring Boot repackaging]. Before Spring Boot adoption it was only the first, and in the future, we hope it will be mainly (and only) Spring Boot packaging - in the meantime, both parts are important.
+There is *one* thing you have to take care of that the `midpoint-jar` module does - it provides `banner.txt`.
+This is the ASCII art at the start of the log.
+If you don't need it, it's OK, you don't have to do anything.
+If you want it, either copy it from https://github.com/Evolveum/midpoint/tree/master/gui/midpoint-jar/src/main/resources[here]
+or create your own.
+Name it `banner.txt` and place it under `src/main/resources` of your overlay project.
+
+There you go, banner resurrected!
 ====
 
 == Example Overlay Projects
