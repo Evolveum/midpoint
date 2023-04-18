@@ -589,8 +589,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 DisplayType viewDisplayType = defaultView.getDisplay();
 
                 PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType);
-                if (display != null) {
-                    label = WebComponentUtil.getTranslatedPolyString(display);
+                if (StringUtils.isNotEmpty(getLabelTranslationKey(display))) {
+                    label = getLabelTranslationKey(display);
                 }
 
                 String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
@@ -610,6 +610,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
             createFocusPageNewEditMenu(mainMenuItem, "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".new",
                     "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".edit", getDetailsPage(pageDesc));
         }
+    }
+
+    private String getLabelTranslationKey(PolyStringType label) {
+        if (label == null || label.getTranslation() == null) {
+            return null;
+        }
+        return label.getTranslation().getKey();
     }
 
     private Class<? extends PageBase> getDetailsPage(PageTypes pageDesc) {
