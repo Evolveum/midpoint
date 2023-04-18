@@ -288,7 +288,7 @@ public class ReportServiceImpl implements ReportService {
 
         PrismObject<O> object = null;
         try {
-            object = getModelService().getObject(type, ref.getOid(), null, task, result.createSubresult("get ref object"));
+            object = getModelService().getObject(type, ref.getOid(), null, task, result);
         } catch (Exception e) {
             LOGGER.debug("Couldn't get object from objectRef " + ref, e);
         }
