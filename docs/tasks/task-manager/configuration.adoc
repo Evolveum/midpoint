@@ -58,9 +58,10 @@ See the discussion below.
 | `true` if clustered, `false` otherwise
 
 | `useRepositoryConnectionProvider`
-| Whether JDBC job store should use the same connection provider (data source) as the main repository.
+a| Whether JDBC job store should use the same connection provider (data source) as the main repository.
 
 This is `true` for the new Native repository by default unless `jdbcUrl` is also specified (see lower).
+*It is strongly recommended to leave the default as is.*
 It is easier to match the size of the repository connection pools on the cluster nodes with the
 connection limit of the databese this way.
 The total number of the connections in all the pools should not go above the database limit.
