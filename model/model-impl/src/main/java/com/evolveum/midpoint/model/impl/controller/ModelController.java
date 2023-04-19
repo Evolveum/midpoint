@@ -200,8 +200,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .build();
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            GetOperationOptions rootOptions = parsedOptions.getRootOptions();
 
             if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
@@ -210,12 +210,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
             //noinspection unchecked
             object = (PrismObject<T>) objectResolver
-                    .getObject(clazz, oid, options, task, result)
+                    .getObject(clazz, oid, parsedOptions.getCollection(), task, result)
                     .asPrismObject()
                     .cloneIfImmutable();
 
-            schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
-            executeResolveOptions(object.asObjectable(), options, task, result);
+            object = schemaTransformer.applySchemasAndSecurityToObject(object, parsedOptions, task, result);
+            executeResolveOptions(object.asObjectable(), parsedOptions, task, result);
 
         } catch (Throwable t) {
             OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}",
@@ -236,11 +236,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     private void executeResolveOptions(
             @NotNull Containerable base,
-            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ParsedGetOperationOptions parsedOptions,
             Task task,
             OperationResult result) {
-        if (options != null) {
-            new ResolveOptionExecutor(options, task, objectResolver, schemaTransformer)
+        if (!parsedOptions.isEmpty()) {
+            new ResolveOptionExecutor(parsedOptions, task, objectResolver, schemaTransformer)
                     .execute(base, result);
         }
     }
@@ -509,8 +509,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = parsedOptions.getCollection();
+            GetOperationOptions rootOptions = parsedOptions.getRootOptions();
 
             ObjectManager searchProvider = getObjectManager(type, options);
             result.addArbitraryObjectAsParam("searchProvider", searchProvider);
@@ -557,7 +558,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                             hook.invoke(object, options, task, result);
                         }
                     }
-                    executeResolveOptions(object.asObjectable(), options, task, result);
+                    executeResolveOptions(object.asObjectable(), parsedOptions, task, result);
                 }
 
                 // Post-processing objects that weren't handled by their correct provider (e.g. searching for ObjectType,
@@ -572,12 +573,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                         }
                     }
                 }
-                // TODO Clone objects and the list lazily. Now we do the cloning just to fix MID-6825.
-                if (list.isImmutable()) {
-                    list = list.deepClone();
-                }
                 // better to use cache here (MID-4059)
-                schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
+                list = schemaTransformer.applySchemasAndSecurityToObjects(list, parsedOptions, task, result);
 
             } catch (Throwable e) {
                 result.recordException(e);
@@ -700,8 +697,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         try {
             ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
 
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            var options = parsedOptions.getCollection();
+            GetOperationOptions rootOptions = parsedOptions.getRootOptions();
 
             query = ctx.refinedQuery;
 
@@ -739,15 +737,16 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
                 for (T object : list) {
                     // TODO implement read hook, if necessary
-                    executeResolveOptions(object, options, task, result);
+                    executeResolveOptions(object, parsedOptions, task, result);
                 }
             } finally {
                 exitModelMethod();
             }
 
             if (ctx.isCertCase) {
-                list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
-                        AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
+                list = schemaTransformer.applySchemasAndSecurityToContainers(
+                        list, AccessCertificationCampaignType.class, AccessCertificationCampaignType.F_CASE,
+                        parsedOptions, task, result);
             } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment || ctx.isProcessedObject) {
                 // TODO implement security post processing for CaseWorkItems
             } else {
@@ -775,7 +774,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         try {
             ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            var options = parsedOptions.getCollection();
             query = ctx.refinedQuery;
 
             if (isFilterNone(query, result)) {
@@ -854,8 +854,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            var options = parsedOptions.getCollection();
+            var rootOptions = SelectorOptions.findRootOptions(options);
             ObjectManager searchProvider = getObjectManager(type, options);
             result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
@@ -866,18 +867,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 return null;
             }
 
-            ResultHandler<T> internalHandler = (object, parentResult1) -> {
+            ResultHandler<T> internalHandler = (object, lResult) -> {
                 try {
                     object = object.cloneIfImmutable();
                     if (hookRegistry != null) {
                         for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                            hook.invoke(object, options, task, parentResult1);
+                            hook.invoke(object, options, task, lResult);
                         }
                     }
-                    executeResolveOptions(object.asObjectable(), options, task, parentResult1);
-                    schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
+                    executeResolveOptions(object.asObjectable(), parsedOptions, task, lResult);
+                    schemaTransformer.applySchemasAndSecurityToObject(object, parsedOptions, task, lResult);
                 } catch (CommonException ex) {
-                    parentResult1.recordException(ex); // We should create a subresult for this
+                    lResult.recordException(ex); // We should create a subresult for this
                     throw new SystemException(ex.getMessage(), ex);
                 }
 
@@ -886,7 +887,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     OP_LOGGER.trace("MODEL OP handle searchObjects({},{},{}):\n{}", type.getSimpleName(), query, rawOptions, object.debugDump(1));
                 }
 
-                return handler.handle(object, parentResult1);
+                return handler.handle(object, lResult);
             };
 
             SearchResultMetadata metadata;
@@ -964,8 +965,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Integer count;
         try {
 
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            var rootOptions = parsedOptions.getRootOptions();
+            var options = parsedOptions.getCollection();
 
             ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
             if (isFilterNone(processedQuery, result)) {
@@ -1016,13 +1018,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         result.addParam("shadowOid", shadowOid);
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            var options = parsedOptions.getCollection();
             focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
 
             if (focus != null) {
                 try {
-                    focus = focus.cloneIfImmutable();
-                    schemaTransformer.applySchemasAndSecurity(focus, null, null, null, task, result);
+                    focus = schemaTransformer.applySchemasAndSecurityToObject(
+                            focus, ParsedGetOperationOptions.empty(), task, result);
                 } catch (SchemaException | SecurityViolationException | ConfigurationException
                         | ObjectNotFoundException | CommunicationException ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
@@ -1049,7 +1052,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     // region search-references
     @Override
     public SearchResultList<ObjectReferenceType> searchReferences(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 
@@ -1062,8 +1065,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            options = preProcessOptionsSecurity(options, task, operationResult);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, operationResult);
+            var options = parsedOptions.getCollection();
 
             query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
 
@@ -1095,7 +1098,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public Integer countReferences(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
@@ -1106,7 +1109,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            options = preProcessOptionsSecurity(options, task, operationResult);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, operationResult);
+            var options = parsedOptions.getCollection();
 
             query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
 
@@ -1142,22 +1146,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public SearchResultMetadata searchReferencesIterative(
             @NotNull ObjectQuery query, @NotNull ObjectHandler<ObjectReferenceType> handler,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Validate.notNull(parentResult, "Result type must not be null.");
-        OP_LOGGER.trace("MODEL OP enter searchReferencesIterative({}, {})", query, options);
+        OP_LOGGER.trace("MODEL OP enter searchReferencesIterative({}, {})", query, rawOptions);
 
         ModelImplUtils.validatePaging(query.getPaging());
         OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> processedOptions =
-                    preProcessOptionsSecurity(options, task, operationResult);
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(processedOptions);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, operationResult);
+            var options = parsedOptions.getCollection();
 
             ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
             if (isFilterNone(processedQuery, operationResult)) {
@@ -1186,7 +1189,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 logQuery(processedQuery);
 
                 metadata = cacheRepositoryService.searchReferencesIterative(
-                        processedQuery, internalHandler, processedOptions, operationResult);
+                        processedQuery, internalHandler, options, operationResult);
             } catch (SchemaException | RuntimeException e) {
                 recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
                 throw e;
@@ -1447,19 +1450,17 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
-            throws CommunicationException, SecurityViolationException, SchemaException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            throws CommunicationException, SecurityViolationException {
         enterModelMethod();
         OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
-        Set<ConnectorType> discoverConnectors;
         try {
-            discoverConnectors = provisioning.discoverConnectors(hostType, result);
-
-            List<ConnectorType> connectorList = new ArrayList<>(discoverConnectors);
-            schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null, null, task, result);
-
-            result.computeStatus("Connector discovery failed");
-            return new HashSet<>(connectorList);
+            Set<ConnectorType> discoveredConnectors = provisioning.discoverConnectors(hostType, result);
+            SearchResultList<PrismObject<ConnectorType>> objects = discoveredConnectors.stream()
+                    .map(c -> c.asPrismObject())
+                    .collect(Collectors.toCollection(SearchResultList::new));
+            return schemaTransformer.applySchemasAndSecurityToObjects(objects, null, task, result).stream()
+                    .map(o -> o.asObjectable())
+                    .collect(Collectors.toSet());
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -1531,8 +1532,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         CompareResultType rv = new CompareResultType();
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> readOptions =
-                    preProcessOptionsSecurity(rawReadOptions, task, result);
+            var parsedReadOptions = preProcessOptionsSecurity(rawReadOptions, task, result);
+            var readOptions = parsedReadOptions.getCollection();
 
             boolean c2p = ModelCompareOptions.isComputeCurrentToProvided(compareOptions);
             boolean p2c = ModelCompareOptions.isComputeProvidedToCurrent(compareOptions);
@@ -1629,18 +1630,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(
+    private @NotNull ParsedGetOperationOptions preProcessOptionsSecurity(
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (GetOperationOptions.isAttachDiagData(rootOptions) &&
-                !securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result)) {
+        if (GetOperationOptions.isAttachDiagData(rootOptions)
+                && !securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result)) {
             Collection<SelectorOptions<GetOperationOptions>> reducedOptions = CloneUtil.cloneCollectionMembers(options);
             SelectorOptions.findRootOptions(reducedOptions).setAttachDiagData(false);
-            return reducedOptions;
+            return ParsedGetOperationOptions.of(reducedOptions);
         } else {
-            return options;
+            return ParsedGetOperationOptions.of(options);
         }
     }
 
@@ -1648,15 +1649,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Class<O> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        ObjectFilter origFilter = null;
-        if (origQuery != null) {
-            origFilter = origQuery.getFilter();
-        }
-        AuthorizationPhaseType phase = null;
-        if (GetOperationOptions.isExecutionPhase(rootOptions)) {
-            phase = AuthorizationPhaseType.EXECUTION;
-        }
-        ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType, null, origFilter, null, null, task, result);
+        ObjectFilter origFilter = origQuery != null ? origQuery.getFilter() : null;
+        AuthorizationPhaseType phase =
+                GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
+        ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType, null,
+                origFilter, null, null, task, result);
         return updateObjectQuery(origQuery, secFilter);
     }
 
@@ -1955,12 +1953,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task operationTask, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, CommunicationException {
-        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, operationTask, parentResult);
+        var parsedOptions = preProcessOptionsSecurity(rawOptions, operationTask, parentResult);
+        var options = parsedOptions.getCollection();
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        task = task.cloneIfImmutable();
-        schemaTransformer.applySchemasAndSecurity(task, rootOptions, options, null, null, parentResult);
-        return task;
+        return schemaTransformer.applySchemasAndSecurityToObject(task, parsedOptions, operationTask, parentResult);
     }
 
     @Override
@@ -2271,15 +2267,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             boolean allItems, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException {
-        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-        return getCertificationManagerRequired().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                preProcessOptionsSecurity(rawOptions, task, parentResult)
+                        .getCollection();
+        return getCertificationManagerRequired()
+                .searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
     }
 
     @Override
     public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-        return getCertificationManagerRequired().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                preProcessOptionsSecurity(rawOptions, task, parentResult)
+                        .getCollection();
+        return getCertificationManagerRequired()
+                .countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
     }
 
     @Override
@@ -2328,11 +2330,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         enterModelMethod();
 
         try {
-
-            Collection<ObjectDeltaOperation<? extends ObjectType>> deltas =
-                    objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
-
-            return deltas;
+            return objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
         } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException |
                 ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException |
                 RuntimeException | Error e) {
@@ -2515,7 +2513,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         if (!QNameUtil.match(PolyStringType.COMPLEX_TYPE, definition.getTypeName())) {
             return;
         }
-        //noinspection unchecked
         for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>) visitable).getValues()) {
             PolyString polyString = pval.getValue();
             if (polyString != null && polyString.getOrig() == null) {

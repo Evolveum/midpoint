@@ -299,7 +299,7 @@ public class ReportFunctions {
         List<T> ret = new ArrayList<>();
         Task task = taskManager.createTaskInstance();
         try {
-            List<PrismObject<T>> list = model.searchObjects(type, query, null, task, task.getResult()).getList();
+            List<PrismObject<T>> list = model.searchObjects(type, query, null, task, task.getResult());
             for (PrismObject<T> po : list) {
                 ret.add(po.asObjectable());
             }

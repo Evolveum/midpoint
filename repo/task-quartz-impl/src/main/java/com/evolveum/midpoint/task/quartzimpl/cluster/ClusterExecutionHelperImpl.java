@@ -72,12 +72,12 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
             return;
         }
 
-        SearchResultList<PrismObject<NodeType>> otherClusterNodes = searchOtherClusterNodes(context, result);
+        var otherClusterNodes = searchOtherClusterNodes(context, result);
         if (otherClusterNodes == null) {
             return;
         }
 
-        for (PrismObject<NodeType> node : otherClusterNodes.getList()) {
+        for (PrismObject<NodeType> node : otherClusterNodes) {
             try {
                 execute(node.asObjectable(), code, options, context, result);
             } catch (SchemaException|RuntimeException e) {
@@ -124,9 +124,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
                     return node;
                 }
             }
-            SearchResultList<PrismObject<NodeType>> otherClusterNodes = searchOtherClusterNodes(context, result);
+            var otherClusterNodes = searchOtherClusterNodes(context, result);
             if (otherClusterNodes != null) {
-                for (PrismObject<NodeType> otherNode : otherClusterNodes.getList()) {
+                for (PrismObject<NodeType> otherNode : otherClusterNodes) {
                     if (nodeOid == null || !nodeOid.equals(otherNode.getOid())) {
                         if (tryExecute(otherNode.asObjectable(), code, options, context, result)) {
                             String identifier = otherNode.asObjectable().getNodeIdentifier();

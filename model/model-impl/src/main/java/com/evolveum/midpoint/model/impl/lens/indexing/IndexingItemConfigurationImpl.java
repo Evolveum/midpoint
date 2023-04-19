@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IndexedItemNormalizationDefinitionType;
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.schema.error.ConfigErrorReporter.describe;
 
 public class IndexingItemConfigurationImpl implements Serializable, IndexingItemConfiguration {
 
@@ -51,10 +54,7 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
             @NotNull ItemRefinedDefinitionType itemDefBean,
             @NotNull ItemIndexingDefinitionType indexingDefBean)
             throws ConfigurationException {
-        ItemPath path = MiscUtil.configNonNull(
-                        itemDefBean.getRef(),
-                        () -> "No 'ref' in " + itemDefBean)
-                .getItemPath();
+        ItemPath path = ItemRefinedDefinitionTypeUtil.getRef(itemDefBean);
         String explicitName = indexingDefBean.getIndexedItemName();
         String indexedItemName = explicitName != null ? explicitName : deriveName(path, itemDefBean);
         return new IndexingItemConfigurationImpl(
@@ -82,8 +82,9 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
     private static @NotNull String deriveName(ItemPath path, ItemRefinedDefinitionType itemDefBean)
             throws ConfigurationException {
         return MiscUtil.configNonNull(
-                path.lastName(),
-                () -> "No name in path '" + path + "' in " + itemDefBean).getLocalPart();
+                        path.lastName(),
+                        () -> "No name in path '" + path + "' in " + describe(itemDefBean))
+                .getLocalPart();
     }
 
     @Override

@@ -23,6 +23,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface OwnerResolver {
 
-    <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    /**
+     * Returns the owner of the provided object. The meaning of "owner" is different for, e.g., shadows, tasks, and so on.
+     */
+    <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object)
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 }

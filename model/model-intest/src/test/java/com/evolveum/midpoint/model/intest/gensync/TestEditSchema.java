@@ -1273,6 +1273,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
+        var def = modelInteractionService.getEditObjectDefinition(user, null, task, result);
+        user.applyDefinition(def, true);
         assertPropertyValues(user, UserType.F_NAME, (propDef, name) -> {
             assertNotNull("No definition for name in user", propDef);
             assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
@@ -1340,6 +1342,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertEquals("Unexpected number of users found", 7, users.size());
 
         for (final PrismObject<UserType> user : users) {
+            var def = modelInteractionService.getEditObjectDefinition(user, null, task, result);
+            user.applyDefinition(def, true);
             assertProperty(user, UserType.F_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
                 assertNotNull("No definition for name in user", propDef);
                 assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());

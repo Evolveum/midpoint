@@ -102,12 +102,6 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         return null;
     }
 
-
-    public static boolean isMutableAccess(ItemDefinition<?> definition) {
-        return definition instanceof TransformableItemDefinition<?, ?>;
-    }
-
-
     @Override
     public D delegate() {
         return delegate.get();

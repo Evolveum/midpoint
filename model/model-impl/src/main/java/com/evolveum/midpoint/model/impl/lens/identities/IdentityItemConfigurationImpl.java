@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemDefinitionType;
@@ -22,7 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
-public class IdentityItemConfigurationImpl implements Serializable, IdentityItemConfiguration, com.evolveum.midpoint.model.impl.lens.identities.IdentityItemConfiguration {
+import static com.evolveum.midpoint.schema.error.ConfigErrorReporter.describe;
+
+public class IdentityItemConfigurationImpl implements Serializable, IdentityItemConfiguration {
 
     /** Beware, the name may be unqualified! */
     @NotNull private final QName name;
@@ -38,10 +41,7 @@ public class IdentityItemConfigurationImpl implements Serializable, IdentityItem
     @NotNull public static IdentityItemConfigurationImpl of(
             @NotNull ItemRefinedDefinitionType itemDefBean,
             @NotNull IdentityItemDefinitionType identityDefBean) throws ConfigurationException {
-        ItemPath path = MiscUtil.configNonNull(
-                        itemDefBean.getRef(),
-                        () -> "No 'ref' in " + itemDefBean)
-                .getItemPath();
+        ItemPath path = ItemRefinedDefinitionTypeUtil.getRef(itemDefBean);
         QName explicitName = identityDefBean.getName();
         QName name = explicitName != null ? explicitName : deriveName(path, itemDefBean);
         return new IdentityItemConfigurationImpl(name, path);
@@ -51,7 +51,7 @@ public class IdentityItemConfigurationImpl implements Serializable, IdentityItem
             throws ConfigurationException {
         return MiscUtil.configNonNull(
                         path.lastName(),
-                        () -> "No name in path '" + path + "' in " + itemDefBean);
+                        () -> "No name in path '" + path + "' in " + describe(itemDefBean));
     }
 
     @Override
