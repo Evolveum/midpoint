@@ -11,12 +11,12 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.model.impl.schema.transform.DefinitionsToTransformable;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.schema.transform.DefinitionsToTransformable;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableItemDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.prism.*;
@@ -55,6 +55,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -91,7 +92,8 @@ public class SchemaTransformer {
      * - Some objects may be mutated or cloned-and-mutated (if the object was immutable).
      * - This may result in modifying the original `objects` list, or returning a its modified copy (if the list was immutable).
      */
-    <T extends ObjectType> SearchResultList<PrismObject<T>> applySchemasAndSecurityToObjects(
+    @VisibleForTesting
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> applySchemasAndSecurityToObjects(
             SearchResultList<PrismObject<T>> objects,
             ParsedGetOperationOptions options,
             Task task,
@@ -519,53 +521,6 @@ public class SchemaTransformer {
         }
         for (Item<?, ?> itemToRemove : itemsToRemove) {
             pcv.remove(itemToRemove);
-        }
-    }
-
-    void applySecurityConstraintsToInnerDefinitions(
-            @NotNull PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase) {
-        if (phase == null) {
-            applySecurityConstraintsToInnerDefinitionsPhase(pcv, securityConstraints, AuthorizationPhaseType.REQUEST, null);
-            applySecurityConstraintsToInnerDefinitionsPhase(pcv, securityConstraints, AuthorizationPhaseType.EXECUTION, null);
-        } else {
-            applySecurityConstraintsToInnerDefinitionsPhase(pcv, securityConstraints, phase, null);
-        }
-    }
-
-    private void applySecurityConstraintsToInnerDefinitionsPhase(
-            @NotNull PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
-            AuthorizationDecisionType defaultReadDecision) {
-        for (Item<?, ?> item : pcv.getItems()) {
-            ItemPath itemPath = item.getPath();
-            ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
-            AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
-            AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
-            AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
-            ItemDefinition<?> itemDef = item.getDefinition();
-            if (itemDef != null) {
-                if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
-                    mutable(itemDef).setCanRead(false);
-                }
-                if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
-                    mutable(itemDef).setCanAdd(false);
-                }
-                if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
-                    mutable(itemDef).setCanModify(false);
-                }
-            }
-            if (item instanceof PrismContainer<?>) {
-                for (PrismContainerValue<?> value : ((PrismContainer<?>) item).getValues()) {
-                    // No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
-                    AuthorizationDecisionType subDefaultReadDecision;
-                    if (itemReadDecision == AuthorizationDecisionType.ALLOW) {
-                        // This means allow to all subitems unless otherwise denied.
-                        subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
-                    } else {
-                        subDefaultReadDecision = defaultReadDecision;
-                    }
-                    applySecurityConstraintsToInnerDefinitionsPhase(value, securityConstraints, phase, subDefaultReadDecision);
-                }
-            }
         }
     }
 

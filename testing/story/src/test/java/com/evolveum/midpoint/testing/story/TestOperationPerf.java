@@ -12,9 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -24,17 +21,16 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ExtensionValueGenerator;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -68,11 +64,9 @@ public class TestOperationPerf extends AbstractStoryTest {
     private static final String GENERATED_EMPTY_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-e0000000%04d";
     private static final String GENERATED_EMPTY_ROLE_NAME_FORMAT = "Empty Role %04d";
 
-    private static final int MAX_NUMBER_OF_USER_EXTENSION_PROPERTIES = 50; // see big-user-extension.xsd
-    private static final String USER_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/samples/gen";
-    private static final String USER_EXTENSION_PROPERTY_NAME_FORMAT = "prop%04d";
-
     private static final int GET_ITERATIONS = 1_000;
+
+    private final ExtensionValueGenerator extensionValueGenerator = ExtensionValueGenerator.withDefaults();
 
     @Autowired ClockworkMedic clockworkMedic;
     @Autowired RepositoryCache repositoryCache;
@@ -140,13 +134,11 @@ public class TestOperationPerf extends AbstractStoryTest {
 
     private void testAddUser(File userFile, String userOid, int extProperties, int roles) throws Exception {
 
-        assert extProperties <= MAX_NUMBER_OF_USER_EXTENSION_PROPERTIES;
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = parseObject(userFile);
-        populateUserExtension(userBefore, extProperties);
+        extensionValueGenerator.populateExtension(userBefore, extProperties);
         setRandomOrganizations(userBefore, roles);
         display("User before", userBefore);
 
@@ -183,18 +175,6 @@ public class TestOperationPerf extends AbstractStoryTest {
         displayValue("Object clones", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_CLONE_COUNT));
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-    }
-
-    private void populateUserExtension(PrismObject<UserType> user, int numberOfProperties) throws SchemaException {
-        PrismContainer<?> extension = user.getExtension();
-        if (extension == null) {
-            extension = user.createExtension();
-        }
-        for (int i = 0; i < numberOfProperties; i++) {
-            String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
-            PrismProperty<String> prop = extension.findOrCreateProperty(new ItemName(USER_EXTENSION_NS, propName));
-            prop.setRealValue("val " + i);
-        }
     }
 
     private void setRandomOrganizations(PrismObject<UserType> userBefore, int numberOfOrganizations) {
