@@ -242,23 +242,31 @@ public class SchemaTransformer {
 
             object = object.cloneIfImmutable(); // TODO clone only if really needed
 
+            DefinitionUpdateOption definitionUpdateOption = parsedOptions.getDefinitionUpdate();
+            boolean raw = GetOperationOptions.isRaw(rootOptions);
+
+            // we must determine the template before items are stripped off due to authorizations
+            ObjectTemplateType objectTemplate = !raw && definitionUpdateOption != DefinitionUpdateOption.NONE ?
+                    determineObjectTemplate(object, result) : null;
+
             if (!GetOperationOptions.isExecutionPhase(rootOptions)) {
                 applySchemasAndSecurityPhase(object, securityConstraints, AuthorizationPhaseType.REQUEST);
             }
             applySchemasAndSecurityPhase(object, securityConstraints, AuthorizationPhaseType.EXECUTION);
 
-            // TODO is this needed?
-            transform(object, new DefinitionsToTransformable());
+            if (definitionUpdateOption != DefinitionUpdateOption.NONE) {
+                // TODO is this needed?
+                transform(object, new DefinitionsToTransformable());
 
-            // we do not need to process object template when processing in raw mode
-            // TODO cache the definitions
-            if (!GetOperationOptions.isRaw(rootOptions)) {
-                ObjectTemplateType objectTemplate = determineObjectTemplate(object, result);
-                applyObjectTemplateToObject(object, objectTemplate, task, result);
+                // we do not need to process object template when processing in raw mode
+                // TODO cache the definitions
+                if (objectTemplate != null) {
+                    applyObjectTemplateToObject(object, objectTemplate, definitionUpdateOption, task, result);
+                }
+
+                // TODO consider removing this as it shouldn't be needed after definitions caching is implemented
+                applyDefinitionProcessingOption(object, parsedOptions);
             }
-
-            // TODO consider removing this as it shouldn't be needed after definitions caching is implemented
-            applyDefinitionProcessingOption(object, parsedOptions);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -759,19 +767,20 @@ public class SchemaTransformer {
             applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), task, result);
         }
         for (ObjectTemplateItemDefinitionType templateItemDef: objectTemplate.getItem()) {
-                ItemPath itemPath = ItemRefinedDefinitionTypeUtil.getRef(templateItemDef);
-                ItemDefinition<?> itemDef = objectDefinition.findItemDefinition(itemPath);
-                if (itemDef != null) {
-                    applyObjectTemplateItem(itemDef, templateItemDef, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
-                } else {
-                    OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToDefinition");
-                    subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
-                }
+            ItemPath itemPath = ItemRefinedDefinitionTypeUtil.getRef(templateItemDef);
+            ItemDefinition<?> itemDef = objectDefinition.findItemDefinition(itemPath);
+            if (itemDef != null) {
+                applyObjectTemplateItem(itemDef, templateItemDef, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
+            } else {
+                OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToDefinition");
+                subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
+            }
         }
     }
 
     private <O extends ObjectType> void applyObjectTemplateToObject(
-            PrismObject<O> object, ObjectTemplateType objectTemplate, Task task, OperationResult result)
+            PrismObject<O> object, ObjectTemplateType objectTemplate, DefinitionUpdateOption option,
+            Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (objectTemplate == null) {
             return;
@@ -783,7 +792,7 @@ public class SchemaTransformer {
         for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(
                     ObjectTemplateType.class, includeRef.getOid(), createReadOnlyCollection(), result);
-            applyObjectTemplateToObject(object, subTemplate.asObjectable(), task, result);
+            applyObjectTemplateToObject(object, subTemplate.asObjectable(), option, task, result);
         }
         for (ObjectTemplateItemDefinitionType templateItemDef: objectTemplate.getItem()) {
             ItemPath itemPath = ItemRefinedDefinitionTypeUtil.getRef(templateItemDef);
@@ -797,12 +806,14 @@ public class SchemaTransformer {
                         + " as specified in item definition in " + objectTemplate);
                 continue;
             }
-            Collection<Item<?, ?>> items = object.getAllItems(itemPath);
-            for (Item<?, ?> item : items) {
-                ItemDefinition<?> itemDef = item.getDefinition();
-                if (itemDef != itemDefFromObject) {
-                    applyObjectTemplateItem(itemDef, templateItemDef, "item "+itemPath+" in " + object
-                            + " as specified in item definition in "+objectTemplate);
+            if (option == DefinitionUpdateOption.DEEP) {
+                Collection<Item<?, ?>> items = object.getAllItems(itemPath);
+                for (Item<?, ?> item : items) {
+                    ItemDefinition<?> itemDef = item.getDefinition();
+                    if (itemDef != itemDefFromObject) {
+                        applyObjectTemplateItem(itemDef, templateItemDef, "item " + itemPath + " in " + object
+                                + " as specified in item definition in " + objectTemplate);
+                    }
                 }
             }
         }

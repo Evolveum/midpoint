@@ -213,6 +213,14 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     private DefinitionProcessingOption definitionProcessing;
 
     /**
+     * Probably temporary. Default is {@link DefinitionUpdateOption#NONE}.
+     *
+     * @see DefinitionUpdateOption
+     */
+    @Experimental
+    private DefinitionUpdateOption definitionUpdate;
+
+    /**
      * Whether to override default iteration method (in searchObjectsIterative) configured for particular DBMS.
      *
      * @deprecated for new repo, it knows how to do iterative search properly
@@ -918,6 +926,23 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         GetOperationOptions opts = new GetOperationOptions();
         opts.setDefinitionProcessing(value);
         return opts;
+    }
+
+    public DefinitionUpdateOption getDefinitionUpdate() {
+        return definitionUpdate;
+    }
+
+    public void setDefinitionUpdate(DefinitionUpdateOption value) {
+        this.definitionUpdate = value;
+    }
+
+    public GetOperationOptions definitionUpdate(DefinitionUpdateOption value) {
+        this.definitionUpdate = value;
+        return this;
+    }
+
+    public static DefinitionUpdateOption getDefinitionUpdate(GetOperationOptions options) {
+        return options != null ? options.definitionUpdate : null;
     }
 
     public IterationMethodType getIterationMethod() {

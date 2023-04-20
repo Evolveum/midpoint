@@ -12,9 +12,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Generates assignments (in memory).
@@ -40,6 +38,28 @@ public class AssignmentGenerator {
                     new AssignmentType()
                             .description(descriptionFunction.apply(i))
                             .targetRef(targetOidFunction.apply(i), targetTypeFunction.apply(i)));
+        }
+    }
+
+    /**
+     * For objects that are not going through the clockwork, we (very simplistically) create
+     * `roleMembershipRef` and `archetypeRef` values from assignments.
+     *
+     * Assuming all assignments are valid.
+     *
+     * TODO improve if needed
+     */
+    public void createRoleRefs(AssignmentHolderType object) {
+        List<ObjectReferenceType> roleMembershipRefList = object.getRoleMembershipRef();
+        List<ObjectReferenceType> archetypeRefList = object.getArchetypeRef();
+        for (AssignmentType assignment : object.getAssignment()) {
+            ObjectReferenceType targetRef = assignment.getTargetRef();
+            if (targetRef != null) {
+                roleMembershipRefList.add(targetRef.clone());
+                if (ArchetypeType.COMPLEX_TYPE.equals(targetRef.getType())) {
+                    archetypeRefList.add(targetRef.clone());
+                }
+            }
         }
     }
 }

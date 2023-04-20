@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -84,5 +85,11 @@ public class ParsedGetOperationOptions {
 
     public Map<DefinitionProcessingOption, PathSet> getDefinitionProcessingMap() {
         return SelectorOptions.extractOptionValues(originalCollection, (o) -> o.getDefinitionProcessing());
+    }
+
+    public @NotNull DefinitionUpdateOption getDefinitionUpdate() {
+        return Objects.requireNonNullElse(
+                GetOperationOptions.getDefinitionUpdate(getRootOptions()),
+                DefinitionUpdateOption.DEEP); // temporary default
     }
 }
