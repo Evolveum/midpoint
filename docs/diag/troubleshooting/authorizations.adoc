@@ -203,10 +203,10 @@ The configuration issues listed in this section are commonly seen in midPoint de
 === Request and Execution
 
 There are two phases: request and execution.
-The operation needs to be allowed in* both phases* to proceed.
+The operation needs to be allowed in *both phases* to proceed.
 Common issue is that the operation is allowed in the request phase, but it is not allowed in execution phase.
 
-Special note about *assign/unassign authorizations*: assgin/unassign authorizations make sense only in the request phase.
+Special note about *assign/unassign authorizations*: assign/unassign authorizations make sense only in the request phase.
 The primary goal of these authorizations is to limit the _targets_ of assignment.
 And that is processed only in the request phase.
 All that execution phase can see is just a modification of the `assignment` container.
