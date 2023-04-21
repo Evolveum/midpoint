@@ -2266,13 +2266,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertRepoShadow(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN);
 
+        ShadowType swashbucklersShadow = getShadowRepo(GROUP_SWASHBUCKLERS_OID).asObjectable();
+
         // @formatter:off
         ShadowAsserter<Void> provisioningShadowAsserter = assertShadowProvisioning(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN)
                 .associations()
                     .assertSize(1)
                     .association(ASSOCIATION_GROUP_NAME)
-                        .assertShadowOids(GROUP_SWASHBUCKLERS_OID)
+                        .assertSize(1)
+                        .forShadowOid(GROUP_SWASHBUCKLERS_OID)
+                            .assertIdentifierValueMatching(QNAME_DN, GROUP_SWASHBUCKLERS_DN)
+                            .assertIdentifierValueMatching(QNAME_ENTRY_UUID, swashbucklersShadow.getPrimaryIdentifierValue())
+                        .end()
                     .end()
                 .end();
         // @formatter:on

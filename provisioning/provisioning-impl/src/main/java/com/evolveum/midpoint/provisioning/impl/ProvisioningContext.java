@@ -306,7 +306,7 @@ public class ProvisioningContext {
      *
      * The returned context is based on "refined" resource type definition.
      */
-    public ProvisioningContext spawnForKindIntent(
+    @NotNull public ProvisioningContext spawnForKindIntent(
             @NotNull ShadowKindType kind,
             @NotNull String intent)
             throws SchemaException, ConfigurationException {
