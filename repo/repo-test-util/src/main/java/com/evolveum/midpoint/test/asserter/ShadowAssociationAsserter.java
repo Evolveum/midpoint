@@ -6,23 +6,25 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.Nullable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Iterator;
 import java.util.List;
 
-import static org.testng.AssertJUnit.*;
+import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 /**
  * @author semancik
  */
 public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
 
-    private List<ShadowAssociationType> associations;
+    private final List<ShadowAssociationType> associations;
 
     public ShadowAssociationAsserter(List<ShadowAssociationType> associations, R returnAsserter, String details) {
         super(returnAsserter, details);
@@ -38,12 +40,16 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
         for (String expectedShadowOid: expectedShadowOids) {
             ShadowAssociationType association = findByShadowOid(expectedShadowOid);
             if (association == null) {
-                fail("Expected association shadow OID "+expectedShadowOid+" in "+desc()+" but there was none. Association present: "+prettyPrintShadowOids());
+                fail(String.format(
+                        "Expected association shadow OID %s in %s but there was none. Association present: %s",
+                        expectedShadowOid, desc(), prettyPrintShadowOids()));
             }
         }
         for (ShadowAssociationType existingAssociation : associations) {
             if (!ArrayUtils.contains(expectedShadowOids, existingAssociation.getShadowRef().getOid())) {
-                fail("Unexpected association shadow OID "+existingAssociation.getShadowRef().getOid()+" in "+desc()+". Expected attributes: "+ArrayUtils.toString(expectedShadowOids));
+                fail(String.format(
+                        "Unexpected association shadow OID %s in %s. Expected shadow OIDs: %s",
+                        existingAssociation.getShadowRef().getOid(), desc(), ArrayUtils.toString(expectedShadowOids)));
             }
         }
         return this;
@@ -52,7 +58,17 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
     public ShadowReferenceAsserter<ShadowAssociationAsserter<R>> singleShadowRef() {
         assertSize(1);
         PrismReferenceValue refVal = associations.get(0).getShadowRef().asReferenceValue();
-        ShadowReferenceAsserter<ShadowAssociationAsserter<R>> asserter = new ShadowReferenceAsserter<>(refVal, null, this, "shadowRef in "+desc());
+        ShadowReferenceAsserter<ShadowAssociationAsserter<R>> asserter =
+                new ShadowReferenceAsserter<>(refVal, null, this, "shadowRef in "+desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> forShadowOid(String shadowOid) {
+        var value = findByShadowOid(shadowOid);
+        assertThat(value).as("association value with shadow OID " + shadowOid).isNotNull();
+        ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> asserter =
+                new ShadowAssociationValueAsserter<>(value, this, "association value in "+desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -77,7 +93,6 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
         }
         return sb.toString();
     }
-
 
     public ShadowAssociationAsserter<R> assertAny() {
         assertNotNull("No associations in "+desc(), associations);

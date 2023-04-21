@@ -43,4 +43,5 @@ public class MidPointTestConstants {
     public static final ItemName QNAME_ENTRY_UUID = new ItemName(NS_RI, "entryUUID");
     public static final ItemPath PATH_ENTRY_UUID = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_ENTRY_UUID);
     public static final ItemName QNAME_CAR_LICENSE = new ItemName(MidPointConstants.NS_RI, "carLicense");
-    public static final ItemName QNAME_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");}
+    public static final ItemName QNAME_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");
+}

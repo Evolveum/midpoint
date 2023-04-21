@@ -120,10 +120,10 @@
                 <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
                 <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
-               <protected>
-                   <filter>
-                       <q:equal>
-                           <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                         <q:path>attributes/ri:dn</q:path>
                         <!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
                         <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>

@@ -9,6 +9,10 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeToXml;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_DN;
+
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_ENTRY_UUID;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
@@ -2260,13 +2264,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertRepoShadow(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN);
 
+        ShadowType swashbucklersShadow = getShadowRepo(GROUP_SWASHBUCKLERS_OID).asObjectable();
+
         // @formatter:off
         ShadowAsserter<Void> provisioningShadowAsserter = assertShadowProvisioning(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN)
                 .associations()
                     .assertSize(1)
                     .association(ASSOCIATION_GROUP_NAME)
-                        .assertShadowOids(GROUP_SWASHBUCKLERS_OID)
+                        .assertSize(1)
+                        .forShadowOid(GROUP_SWASHBUCKLERS_OID)
+                            .assertIdentifierValueMatching(QNAME_DN, GROUP_SWASHBUCKLERS_DN)
+                            .assertIdentifierValueMatching(QNAME_ENTRY_UUID, swashbucklersShadow.getPrimaryIdentifierValue())
+                        .end()
                     .end()
                 .end();
         // @formatter:on
@@ -2511,7 +2521,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
+                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
@@ -2545,14 +2555,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
-                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
+                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan-rotten,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
         repositoryService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, rotDelta.getModifications(), result);
 
         // This is no-op on resource. (The DN on resource has not changed.)
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
+                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
