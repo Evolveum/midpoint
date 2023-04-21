@@ -916,7 +916,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        PrismObject<UserType> user =
+                modelService.getObject(
+                        UserType.class, USER_JACK_OID,
+                        GetOperationOptionsBuilder.create()
+                                .definitionUpdate(DefinitionUpdateOption.DEEP)
+                                .build(),
+                        task, result);
 
         then();
         result.computeStatus();
@@ -977,7 +983,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_PREFERRED_LANGUAGE, task, result, "en_PR");
 
         when();
-        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        PrismObject<UserType> user =
+                modelService.getObject(
+                        UserType.class, USER_JACK_OID,
+                        GetOperationOptionsBuilder.create()
+                                .definitionUpdate(DefinitionUpdateOption.DEEP)
+                                .build(),
+                        task, result);
 
         then();
         assertSuccess(result);

@@ -90,6 +90,6 @@ public class ParsedGetOperationOptions {
     public @NotNull DefinitionUpdateOption getDefinitionUpdate() {
         return Objects.requireNonNullElse(
                 GetOperationOptions.getDefinitionUpdate(getRootOptions()),
-                DefinitionUpdateOption.DEEP); // temporary default
+                DefinitionUpdateOption.NONE); // temporary default (for experiments)
     }
 }

@@ -16,6 +16,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import org.assertj.core.api.Assertions;
@@ -39,10 +40,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -3245,6 +3242,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     @Test
     public void test410ItemAccessMultivalueAttrChild() throws Exception {
         given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         cleanupAutzTest(USER_JACK_OID);
 
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
@@ -3253,7 +3253,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         when();
 
-        PrismObject<UserType> user = getObject(UserType.class, USER_CHARLES_OID);
+        PrismObject<UserType> user = modelService.getObject(
+                UserType.class,
+                USER_CHARLES_OID,
+                GetOperationOptionsBuilder.create()
+                        .definitionUpdate(DefinitionUpdateOption.ROOT_ONLY)
+                        .build(),
+                task,
+                result);
 
         then();
 

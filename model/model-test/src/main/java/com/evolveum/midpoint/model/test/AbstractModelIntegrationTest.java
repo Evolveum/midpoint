@@ -7325,6 +7325,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 SimulationResultAsserter.forResult(simResult, desc));
     }
 
+    // FIXME does not call applySchemasAndSecurity!
     public <O extends ObjectType> PrismObject<O> getObject(
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
