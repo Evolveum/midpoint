@@ -10,6 +10,9 @@ package com.evolveum.midpoint.model.impl.perf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.DefinitionUpdateOption;
@@ -21,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -76,6 +80,15 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
     private final ExtensionValueGenerator extensionValueGenerator = ExtensionValueGenerator.withDefaults();
     private final AssignmentGenerator assignmentGenerator = AssignmentGenerator.withDefaults();
 
+    private static final Set<DefinitionUpdateOption> OPTIONS_TESTED =
+            Set.of(DefinitionUpdateOption.DEEP, DefinitionUpdateOption.ROOT_ONLY, DefinitionUpdateOption.NONE);
+
+    private static final int HEAT_UP_ITERATIONS = 2;
+    private static final int TEST_ITERATIONS = 5;
+    private static final int NUMBER_OF_USERS = 4000;
+
+    private SearchResultList<PrismObject<UserType>> users;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -85,6 +98,8 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
                 ROLE_CAN_READ_ALMOST_ALL, USER_CAN_READ_ALMOST_ALL,
                 ROLE_CAN_READ_FEW, USER_CAN_READ_FEW);
         InternalsConfig.reset(); // We want to measure performance, so no consistency checking and the like.
+
+        users = generateUsers();
     }
 
     @Override
@@ -122,7 +137,7 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
         executeAutzTest("read almost all", user -> assertReadAlmostAll(user));
     }
 
-    private void assertReadAlmostAll(UserType user) throws CommonException {
+    private void assertReadAlmostAll(UserType user) {
         assertUser(user.asPrismObject(), "after")
                 .extension()
                 .assertSize(49)
@@ -139,7 +154,7 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
         executeAutzTest("read few", user -> assertReadFew(user));
     }
 
-    private void assertReadFew(UserType user) throws CommonException {
+    private void assertReadFew(UserType user) {
         assertUser(user.asPrismObject(), "after")
                 .extension()
                 .assertSize(1)
@@ -161,18 +176,20 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
     private void executeAutzTest1(
             String autzLabel, DefinitionUpdateOption definitionUpdateOption, CheckedConsumer<UserType> autzAsserter)
             throws CommonException {
+
+        if (!OPTIONS_TESTED.contains(definitionUpdateOption)) {
+            return;
+        }
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-        int iterations = 5;
-        int numUsers = 4000;
 
         String label = autzLabel + "/" + definitionUpdateOption;
 
         when("heating up: " + label);
-        int heatUpExecutions = numUsers * 2;
-        long heatUpDuration = executeSingleAutzTestIteration(
-                heatUpExecutions, definitionUpdateOption,
+        long heatUpDuration = executeSingleAutzTestIterations(
+                HEAT_UP_ITERATIONS,
+                definitionUpdateOption,
                 user -> {
                     if (autzAsserter != null) {
                         autzAsserter.accept(user);
@@ -180,30 +197,47 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
                     checkDefinition(user, definitionUpdateOption);
                 }, task, result);
 
+        int heatUpExecutions = users.size() * HEAT_UP_ITERATIONS;
         display(String.format(
-                "Heat-up %s: Applied to a single user in %.3f ms (%,d executions)",
-                label, (double) heatUpDuration / heatUpExecutions, heatUpExecutions));
+                "Average processing time for a user is %.3f ms during heat-up for %s (%,d executions)",
+                (double) heatUpDuration / heatUpExecutions, label, heatUpExecutions));
 
         when("testing: " + label);
-        long start = System.currentTimeMillis();
-        long netDuration = 0;
-        for (int i = 0; i < iterations; i++) {
-            netDuration += executeSingleAutzTestIteration(
-                    numUsers, definitionUpdateOption, null, task, result);
-        }
-        long grossDuration = System.currentTimeMillis() - start;
-        int executions = numUsers * iterations;
+        long duration = executeSingleAutzTestIterations(TEST_ITERATIONS, definitionUpdateOption, null, task, result);
+        int executions = users.size() * TEST_ITERATIONS;
         display(String.format(
-                "Testing %s: Applied to a single user in %.3f ms (%,d ms gross and %,d ms net duration, %,d executions)",
-                label, (double) netDuration / executions, grossDuration, netDuration, executions));
+                "Testing %s: Applied to a single user in %.3f ms (%,d ms total, %,d executions)",
+                label, (double) duration / executions, duration, executions));
     }
 
-    private long executeSingleAutzTestIteration(
-            int numUsers, DefinitionUpdateOption definitionUpdateOption,
-            CheckedConsumer<UserType> asserter, Task task, OperationResult result)
+    private long executeSingleAutzTestIterations(
+            int iterations,
+            DefinitionUpdateOption definitionUpdateOption,
+            CheckedConsumer<UserType> asserter,
+            Task task, OperationResult result)
             throws CommonException {
+
+        var parsedOptions = ParsedGetOperationOptions.of(
+                GetOperationOptions.createReadOnly()
+                        .definitionUpdate(definitionUpdateOption));
+
+        List<PrismObject<UserType>> usersAfter = new ArrayList<>();
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < iterations; i++) {
+            usersAfter = schemaTransformer.applySchemasAndSecurityToObjects(users, parsedOptions, task, result);
+        }
+        long duration = System.currentTimeMillis() - start;
+
+        if (asserter != null) {
+            asserter.accept(usersAfter.get(0).asObjectable());
+        }
+
+        return duration;
+    }
+
+    private @NotNull SearchResultList<PrismObject<UserType>> generateUsers() throws SchemaException {
         SearchResultList<PrismObject<UserType>> users = new SearchResultList<>();
-        for (int i = 0; i < numUsers; i++) {
+        for (int i = 0; i < NUMBER_OF_USERS; i++) {
             UserType user = new UserType()
                     .name("user " + i)
                     .assignment(ARCHETYPE_PERSON.assignmentTo()
@@ -215,21 +249,8 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
             userPrismObject.freeze();
             users.add(userPrismObject);
         }
-
-        var parsedOptions = ParsedGetOperationOptions.of(
-                GetOperationOptions.createReadOnly()
-                        .definitionUpdate(definitionUpdateOption));
-
-        long start = System.currentTimeMillis();
-        var usersAfter =
-                schemaTransformer.applySchemasAndSecurityToObjects(users, parsedOptions, task, result);
-        long duration = System.currentTimeMillis() - start;
-
-        if (asserter != null) {
-            asserter.accept(usersAfter.get(0).asObjectable());
-        }
-
-        return duration;
+        users.freeze();
+        return users;
     }
 
     private void checkDefinition(UserType user, DefinitionUpdateOption option) {
