@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.util.UUID;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.entry.point.RemoteAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;

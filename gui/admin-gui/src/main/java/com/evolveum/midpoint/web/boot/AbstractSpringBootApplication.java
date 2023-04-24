@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.boot;
 
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;

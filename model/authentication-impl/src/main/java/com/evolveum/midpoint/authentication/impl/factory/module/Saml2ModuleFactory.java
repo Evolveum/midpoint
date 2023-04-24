@@ -9,8 +9,8 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.Filter;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.Filter;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.provider.Saml2Provider;

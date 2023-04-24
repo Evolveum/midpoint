@@ -11,8 +11,8 @@ import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import java.nio.file.AccessDeniedException;
 import javax.naming.AuthenticationException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.NestedExceptionUtils;

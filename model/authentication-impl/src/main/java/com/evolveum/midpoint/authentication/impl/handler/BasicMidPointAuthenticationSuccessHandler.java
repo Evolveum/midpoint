@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.authentication.impl.handler;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.rest.impl;
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 

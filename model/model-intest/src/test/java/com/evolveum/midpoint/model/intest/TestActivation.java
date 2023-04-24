@@ -15,7 +15,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 
 import java.io.File;
 import java.util.*;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;

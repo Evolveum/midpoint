@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.web.util;
 
 import java.io.IOException;
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.catalina.connector.ClientAbortException;
 
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author lazyman
  * @author shood
  */
-// TODO - After upgrading to javax.servlet version API 3.0, add response status code logging
+// TODO - After upgrading to jakarta.servlet version API 3.0, add response status code logging
 // 2020: we are on API>3 now, but what was the original idea? Was it meant for exception logging?
 // Also, elapsedTime should be calculated also for exception scenario and perhaps put into different statistics?
 public class MidPointProfilingServletFilter implements Filter {
