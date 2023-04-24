@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.Collection;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;

@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

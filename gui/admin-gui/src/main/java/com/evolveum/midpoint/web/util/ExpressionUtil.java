@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.util;
 
 import java.util.*;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;

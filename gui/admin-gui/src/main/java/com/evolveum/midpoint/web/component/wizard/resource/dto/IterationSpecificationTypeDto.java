@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import java.io.Serializable;
 
 /**
