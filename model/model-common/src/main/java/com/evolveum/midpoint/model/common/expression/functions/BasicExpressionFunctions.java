@@ -447,7 +447,7 @@ public class BasicExpressionFunctions {
         return getExtensionPropertyValues(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(Containerable object, groovy.xml.QName propertyQname) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable object, groovy.namespace.QName propertyQname) {
         return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
@@ -476,7 +476,7 @@ public class BasicExpressionFunctions {
         }
     }
 
-    public <T> T getExtensionPropertyValue(Containerable containerable, groovy.xml.QName propertyQname) throws SchemaException {
+    public <T> T getExtensionPropertyValue(Containerable containerable, groovy.namespace.QName propertyQname) throws SchemaException {
         return getExtensionPropertyValue(containerable, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
@@ -548,7 +548,7 @@ public class BasicExpressionFunctions {
         return getAttributeValues(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
     }
 
-    public <T> Collection<T> getAttributeValues(ShadowType shadow, groovy.xml.QName attributeQname) {
+    public <T> Collection<T> getAttributeValues(ShadowType shadow, groovy.namespace.QName attributeQname) {
         return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
     }
 
@@ -567,7 +567,7 @@ public class BasicExpressionFunctions {
         return getAttributeValue(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
     }
 
-    public <T> T getAttributeValue(ShadowType shadow, groovy.xml.QName attributeQname) throws SchemaException {
+    public <T> T getAttributeValue(ShadowType shadow, groovy.namespace.QName attributeQname) throws SchemaException {
         return getAttributeValue(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
     }
 
@@ -580,7 +580,7 @@ public class BasicExpressionFunctions {
         return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
-    public Collection<String> getAttributeStringValues(ShadowType shadow, groovy.xml.QName attributeQname) {
+    public Collection<String> getAttributeStringValues(ShadowType shadow, groovy.namespace.QName attributeQname) {
         return getAttributeStringValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
     }
 
