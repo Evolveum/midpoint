@@ -20,7 +20,7 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import javax.xml.ws.Holder;
+import jakarta.xml.ws.Holder;
 
 /**
  * Created by Viliam Repan (lazyman).
