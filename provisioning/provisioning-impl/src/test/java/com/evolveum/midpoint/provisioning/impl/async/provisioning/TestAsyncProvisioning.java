@@ -35,7 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 import javax.xml.namespace.QName;
 
 /**
