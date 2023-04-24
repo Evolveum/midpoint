@@ -250,9 +250,9 @@ public class SchemaTransformer {
                     determineObjectTemplate(object, result) : null;
 
             if (!GetOperationOptions.isExecutionPhase(rootOptions)) {
-                applySchemasAndSecurityPhase(object, securityConstraints, AuthorizationPhaseType.REQUEST);
+                applySecurityConstraintsPhase(object, securityConstraints, AuthorizationPhaseType.REQUEST);
             }
-            applySchemasAndSecurityPhase(object, securityConstraints, AuthorizationPhaseType.EXECUTION);
+            applySecurityConstraintsPhase(object, securityConstraints, AuthorizationPhaseType.EXECUTION);
 
             if (definitionUpdateOption != DefinitionUpdateOption.NONE) {
                 // TODO is this needed?
@@ -413,23 +413,16 @@ public class SchemaTransformer {
             throw new AuthorizationException("Access denied");
         }
 
-        AuthorizationDecisionType globalAddDecision =
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), null);
-        AuthorizationDecisionType globalModifyDecision =
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), null);
-
         elementContext.forEachObject(focusObject ->
-            applySecurityConstraintsToPcv(focusObject.getValue(), securityConstraints, null,
-                    globalReadDecision, globalAddDecision, globalModifyDecision));
+            applySecurityConstraintsToPcv(focusObject.getValue(), securityConstraints, null, globalReadDecision));
 
         elementContext.forEachDelta(focusDelta ->
-            applySecurityConstraintsToDelta(focusDelta, securityConstraints,
-                    globalReadDecision, globalAddDecision, globalModifyDecision));
+            applySecurityConstraintsToDelta(focusDelta, securityConstraints, globalReadDecision));
 
         return securityConstraints;
     }
 
-    private <O extends ObjectType> void applySchemasAndSecurityPhase(
+    private <O extends ObjectType> void applySecurityConstraintsPhase(
             PrismObject<O> object, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase)
             throws SecurityViolationException {
         Validate.notNull(phase);
@@ -442,14 +435,7 @@ public class SchemaTransformer {
             throw new AuthorizationException("Access denied");
         }
 
-        AuthorizationDecisionType globalAddDecision =
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
-        AuthorizationDecisionType globalModifyDecision =
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-
-        applySecurityConstraintsToPcv(
-                object.getValue(), securityConstraints, phase,
-                globalReadDecision, globalAddDecision, globalModifyDecision);
+        applySecurityConstraintsToPcv(object.getValue(), securityConstraints, phase, globalReadDecision);
 
         if (object.isEmpty()) {
             // let's make it explicit
@@ -474,11 +460,9 @@ public class SchemaTransformer {
 
     private void applySecurityConstraintsToPcv(
             @NotNull PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
-            AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
-            AuthorizationDecisionType defaultModifyDecision) {
+            AuthorizationDecisionType defaultReadDecision) {
         Collection<Item<?, ?>> items = pcv.getItems();
-        LOGGER.trace("applySecurityConstraintsToPcv: items={}, phase={}, defaults R={}, A={}, M={}",
-                items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+        LOGGER.trace("applySecurityConstraintsToPcv: items={}, phase={}, default R={}", items, phase, defaultReadDecision);
         if (items.isEmpty()) {
             return;
         }
@@ -488,10 +472,7 @@ public class SchemaTransformer {
             ItemDefinition<?> itemDef = item.getDefinition();
             ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
             AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
-            AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
-            AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
-            LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
-                    itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
+            LOGGER.trace("applySecurityConstraints(item): {}: decision R={}", itemPath, itemReadDecision);
             if (item instanceof PrismContainer<?>) {
                 if (itemReadDecision == AuthorizationDecisionType.DENY) {
                     // Explicitly denied access to the entire container
@@ -513,7 +494,7 @@ public class SchemaTransformer {
                         subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
                     }
                     List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
-                    reduceContainerValues(values, securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision);
+                    reduceContainerValues(values, securityConstraints, phase, itemReadDecision, subDefaultReadDecision);
                     if (item.hasNoValues() && itemReadDecision == null) {
                         // We have removed all the content, if there was any. So, in the default case, there's nothing that
                         // we are interested in inside this item. Therefore let's just remove it.
@@ -538,17 +519,14 @@ public class SchemaTransformer {
 
     private <O extends ObjectType> void applySecurityConstraintsToDelta(
             ObjectDelta<O> objectDelta, ObjectSecurityConstraints securityConstraints,
-            AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
-            AuthorizationDecisionType defaultModifyDecision) {
-        LOGGER.trace("applySecurityConstraintsToDelta: items={}, phase={}, defaults R={}, A={}, M={}",
-                objectDelta, null, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+            AuthorizationDecisionType defaultReadDecision) {
+        LOGGER.trace("applySecurityConstraintsToDelta: items={}, default R={}", objectDelta, defaultReadDecision);
         if (objectDelta == null) {
             return;
         }
         if (objectDelta.isAdd()) {
             applySecurityConstraintsToPcv(
-                    objectDelta.getObjectToAdd().getValue(), securityConstraints, null, defaultReadDecision,
-                    defaultAddDecision, defaultModifyDecision);
+                    objectDelta.getObjectToAdd().getValue(), securityConstraints, null, defaultReadDecision);
             return;
         }
         if (objectDelta.isDelete()) {
@@ -567,10 +545,7 @@ public class SchemaTransformer {
             ItemDefinition<?> itemDef = modification.getDefinition();
             ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
             AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, null);
-            AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, null);
-            AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, null);
-            LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
-                    itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
+            LOGGER.trace("applySecurityConstraints(item): {}: decision R={}", itemPath, itemReadDecision);
             if (modification instanceof ContainerDelta<?>) {
                 if (itemReadDecision == AuthorizationDecisionType.DENY) {
                     // Explicitly denied access to the entire container
@@ -591,11 +566,11 @@ public class SchemaTransformer {
                     }
 
                     reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToAdd(),
-                            securityConstraints, null, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision);
+                            securityConstraints, null, itemReadDecision, subDefaultReadDecision);
                     reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToDelete(),
-                            securityConstraints, null, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision);
+                            securityConstraints, null, itemReadDecision, subDefaultReadDecision);
                     reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToReplace(),
-                            securityConstraints, null, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision);
+                            securityConstraints, null, itemReadDecision, subDefaultReadDecision);
 
                     if (modification.isEmpty() && itemReadDecision == null) {
                         // We have removed all the content, if there was any. So, in the default case, there's nothing that
@@ -619,16 +594,15 @@ public class SchemaTransformer {
     private void reduceContainerValues(
             List<? extends PrismContainerValue<?>> values, ObjectSecurityConstraints securityConstraints,
             AuthorizationPhaseType phase,
-            AuthorizationDecisionType itemReadDecision, AuthorizationDecisionType itemAddDecision,
-            AuthorizationDecisionType itemModifyDecision, AuthorizationDecisionType subDefaultReadDecision) {
+            AuthorizationDecisionType itemReadDecision,
+            AuthorizationDecisionType subDefaultReadDecision) {
         if (values == null) {
             return;
         }
         Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
         while (vi.hasNext()) {
             PrismContainerValue<?> cval = vi.next();
-            applySecurityConstraintsToPcv(cval, securityConstraints, phase,
-                    subDefaultReadDecision, itemAddDecision, itemModifyDecision);
+            applySecurityConstraintsToPcv(cval, securityConstraints, phase, subDefaultReadDecision);
             if (cval.hasNoItems() && itemReadDecision == null) {
                 // We have removed all the content, if there was any. So, in the default case, there's nothing that
                 // we are interested in inside this PCV. Therefore let's just remove it.
