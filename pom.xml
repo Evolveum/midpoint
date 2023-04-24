@@ -98,7 +98,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.7.3</version>
+        <version>3.0.6</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
@@ -238,8 +238,8 @@
         <wicket.version>9.12.0.e1</wicket.version>
         <wicketstuff.version>9.12.0</wicketstuff.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
-        <!-- Groovy 3.0.12 is also default for Spring Boot 2.7.3 -->
-        <groovy.version>3.0.12</groovy.version>
+        <!-- Groovy 4.0.11 is also default for Spring Boot 3.0.6 -->
+        <groovy.version>4.0.11</groovy.version>
         <xmlsec.version>2.2.4</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.5.1.10</connid.version>
