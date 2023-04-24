@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ApplyDefinitionAct
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Applies definitions to relevant objects. Currently supports ShadowType and ResourceType

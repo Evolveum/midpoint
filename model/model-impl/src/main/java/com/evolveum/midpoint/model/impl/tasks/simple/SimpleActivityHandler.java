@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.simple;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelService;

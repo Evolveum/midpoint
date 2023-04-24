@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class LoggingAppenderPanelFactory extends AbstractInputGuiComponentFactory<String> {

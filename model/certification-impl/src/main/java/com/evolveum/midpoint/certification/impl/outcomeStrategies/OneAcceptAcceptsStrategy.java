@@ -10,7 +10,7 @@ package com.evolveum.midpoint.certification.impl.outcomeStrategies;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import java.util.Arrays;
 import java.util.List;

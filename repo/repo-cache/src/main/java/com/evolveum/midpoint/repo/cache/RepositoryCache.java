@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

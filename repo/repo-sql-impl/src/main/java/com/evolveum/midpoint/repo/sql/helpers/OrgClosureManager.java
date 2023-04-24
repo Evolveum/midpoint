@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import static java.util.Collections.singletonList;
 
 import java.util.*;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.hibernate.Session;

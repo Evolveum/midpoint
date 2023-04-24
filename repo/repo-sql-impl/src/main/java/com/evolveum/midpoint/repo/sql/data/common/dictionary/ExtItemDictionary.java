@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.Session;

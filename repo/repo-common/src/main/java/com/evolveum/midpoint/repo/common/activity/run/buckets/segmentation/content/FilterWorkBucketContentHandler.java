@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.cont
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.Containerable;
 

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 
 import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;

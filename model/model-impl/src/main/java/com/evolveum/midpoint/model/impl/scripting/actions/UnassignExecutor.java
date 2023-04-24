@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.PipelineItem;

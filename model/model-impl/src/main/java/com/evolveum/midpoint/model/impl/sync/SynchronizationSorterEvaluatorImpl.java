@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 

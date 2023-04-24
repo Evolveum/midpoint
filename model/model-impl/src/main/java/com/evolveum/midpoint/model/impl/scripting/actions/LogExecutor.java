@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.LogActionExpressio
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Executes "log" scripting action.

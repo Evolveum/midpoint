@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectSet;

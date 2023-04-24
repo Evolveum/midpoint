@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.sql.helpers.modify;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;

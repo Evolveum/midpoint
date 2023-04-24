@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Created by honchar
