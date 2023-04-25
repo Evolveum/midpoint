@@ -26,14 +26,6 @@ public class QueryAutzItemPaths extends AutzItemPaths {
      */
     private final List<ItemPath> requiredItems = new ArrayList<>();
 
-    public List<ItemPath> getRequiredItems() {
-        return requiredItems;
-    }
-
-    public void addRequiredItem(ItemPath path) {
-        requiredItems.add(path);
-    }
-
     /**
      * Takes all left-hand-side items referenced by the given filter and adds them here as required ones.
      *
@@ -84,14 +76,14 @@ public class QueryAutzItemPaths extends AutzItemPaths {
     }
 
     /**
-     * @return Items that are required but we have no authorizations for.
+     * Returns items that are required but we have no authorizations for.
      */
     List<ItemPath> evaluateUnsatisfiedItems() {
         List<ItemPath> unsatisfiedItems = new ArrayList<>();
-        if (isAllItems()) {
+        if (includesAllItems()) {
             return unsatisfiedItems;
         }
-        for (ItemPath requiredItem: requiredItems) {
+        for (ItemPath requiredItem : requiredItems) {
             if (ItemPathCollectionsUtil.containsEquivalent(getIncludedItems(), requiredItem)) {
                 // allowed
                 continue;

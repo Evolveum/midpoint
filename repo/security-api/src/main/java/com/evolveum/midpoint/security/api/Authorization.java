@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.xml.namespace.QName;
@@ -26,17 +27,13 @@ import java.util.Objects;
 public class Authorization implements GrantedAuthority, DebugDumpable {
     private static final long serialVersionUID = 1L;
 
-    private AuthorizationType authorizationType;
+    @NotNull private final AuthorizationType authorizationBean;
     private String sourceDescription;
 
-    public Authorization(AuthorizationType authorizationType) {
-        super();
-        this.authorizationType = authorizationType;
+    public Authorization(@NotNull AuthorizationType authorizationBean) {
+        this.authorizationBean = authorizationBean;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.GrantedAuthority#getAuthority()
-     */
     @Override
     public String getAuthority() {
         // this is complex authority. Just return null
@@ -44,7 +41,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     }
 
     public String getDescription() {
-        return authorizationType.getDescription();
+        return authorizationBean.getDescription();
     }
 
     public String getSourceDescription() {
@@ -55,24 +52,22 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         this.sourceDescription = sourceDescription;
     }
 
-    public AuthorizationDecisionType getDecision() {
-         AuthorizationDecisionType decision = authorizationType.getDecision();
-         if (decision == null) {
-             return AuthorizationDecisionType.ALLOW;
-         }
-         return decision;
+    public @NotNull AuthorizationDecisionType getDecision() {
+        return Objects.requireNonNullElse(
+                authorizationBean.getDecision(),
+                AuthorizationDecisionType.ALLOW);
     }
 
-    public List<String> getAction() {
-        return authorizationType.getAction();
+    public @NotNull List<String> getAction() {
+        return authorizationBean.getAction();
     }
 
-    public AuthorizationPhaseType getPhase() {
-        return authorizationType.getPhase();
+    public @Nullable AuthorizationPhaseType getPhase() {
+        return authorizationBean.getPhase();
     }
 
     public AuthorizationEnforcementStrategyType getEnforcementStrategy() {
-        return authorizationType.getEnforcementStrategy();
+        return authorizationBean.getEnforcementStrategy();
     }
 
     public boolean maySkipOnSearch() {
@@ -80,22 +75,22 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     }
 
     public boolean keepZoneOfControl() {
-        ZoneOfControlType zoneOfControl = authorizationType.getZoneOfControl();
+        ZoneOfControlType zoneOfControl = authorizationBean.getZoneOfControl();
         return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
     }
 
     public List<OwnedObjectSelectorType> getObject() {
-        return authorizationType.getObject();
+        return authorizationBean.getObject();
     }
 
     @NotNull
     public List<ItemPathType> getItem() {
-        return authorizationType.getItem();
+        return authorizationBean.getItem();
     }
 
     @NotNull
     public List<ItemPathType> getExceptItem() {
-        return authorizationType.getExceptItem();
+        return authorizationBean.getExceptItem();
     }
 
     @NotNull
@@ -125,33 +120,33 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     }
 
     public List<OwnedObjectSelectorType> getTarget() {
-        return authorizationType.getTarget();
+        return authorizationBean.getTarget();
     }
 
     @NotNull
     public List<QName> getRelation() {
-        return authorizationType.getRelation();
+        return authorizationBean.getRelation();
     }
 
     public OrderConstraintsType getOrderConstraints() {
-        return authorizationType.getOrderConstraints();
+        return authorizationBean.getOrderConstraints();
     }
 
     public AuthorizationLimitationsType getLimitations() {
-        return authorizationType.getLimitations();
+        return authorizationBean.getLimitations();
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public Authorization clone() {
-        AuthorizationType authorizationTypeClone = authorizationType.clone();
-        Authorization clone = new Authorization(authorizationTypeClone);
+        Authorization clone = new Authorization(authorizationBean.clone());
         clone.sourceDescription = this.sourceDescription;
         return clone;
     }
 
     public String getHumanReadableDesc() {
         StringBuilder sb = new StringBuilder();
-        if (authorizationType.getName() != null) {
-            sb.append("authorization '").append(authorizationType.getName()).append("'");
+        if (authorizationBean.getName() != null) {
+            sb.append("authorization '").append(authorizationBean.getName()).append("'");
         } else {
             sb.append("unnamed authorization");
         }
@@ -162,25 +157,18 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return sb.toString();
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabel(sb, "Authorization", indent);
-        if (authorizationType == null) {
-            sb.append(" null");
-        } else {
-            sb.append("\n");
-            authorizationType.asPrismContainerValue().debugDump(indent+1);
-        }
+        sb.append("\n");
+        authorizationBean.asPrismContainerValue().debugDump(indent+1);
         return sb.toString();
     }
 
     @Override
     public String toString() {
-        return "Authorization(" + (authorizationType == null ? "null" : authorizationType.getAction() + ")");
+        return "Authorization(" + authorizationBean.getAction() + ")";
     }
 
     @Override
@@ -188,11 +176,12 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Authorization that = (Authorization) o;
-        return Objects.equals(authorizationType, that.authorizationType) && Objects.equals(sourceDescription, that.sourceDescription);
+        return Objects.equals(authorizationBean, that.authorizationBean)
+                && Objects.equals(sourceDescription, that.sourceDescription);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(authorizationType, sourceDescription);
+        return Objects.hash(authorizationBean, sourceDescription);
     }
 }

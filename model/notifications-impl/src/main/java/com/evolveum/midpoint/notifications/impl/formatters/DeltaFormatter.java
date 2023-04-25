@@ -91,7 +91,7 @@ public class DeltaFormatter {
         for (ItemDelta<?, ?> itemDelta : deltas) {
             ItemPath pathToExplain = getPathToExplain(itemDelta);
             if (pathToExplain == null || ItemPathCollectionsUtil.containsSubpathOrEquivalent(alreadyExplained, pathToExplain)) {
-                continue;       // null or already processed
+                continue; // null or already processed
             }
             PrismObject<?> source = null;
             Object item = null;

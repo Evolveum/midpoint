@@ -1205,9 +1205,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             return;
         }
         if (principal.getAuthorities().isEmpty()) {
-            AuthorizationType authorizationType = new AuthorizationType();
-            authorizationType.getAction().add("FAKE");
-            principal.getAuthorities().add(new Authorization(authorizationType));
+            AuthorizationType authorizationBean = new AuthorizationType();
+            authorizationBean.getAction().add("FAKE");
+            principal.getAuthorities().add(new Authorization(authorizationBean));
         }
     }
 

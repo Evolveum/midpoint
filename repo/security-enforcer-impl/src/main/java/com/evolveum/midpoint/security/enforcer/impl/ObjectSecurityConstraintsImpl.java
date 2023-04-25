@@ -19,12 +19,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/** See {@link ObjectSecurityConstraints} for the description. */
 public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints {
 
     private final Map<String, PhasedConstraints> actionMap = new HashMap<>();
 
-    void applyAuthorization(Authorization autz) {
+    void applyAuthorization(@NotNull Authorization autz) {
         List<String> actions = autz.getAction();
         AuthorizationPhaseType phase = autz.getPhase();
         for (String action : actions) {
@@ -37,22 +39,16 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         }
     }
 
-    private @NotNull ItemSecurityConstraintsImpl getOrCreateItemConstraints(String action, AuthorizationPhaseType phase) {
+    private @NotNull ItemSecurityConstraintsImpl getOrCreateItemConstraints(
+            @NotNull String action, @NotNull AuthorizationPhaseType phase) {
         return actionMap
                 .computeIfAbsent(action, k -> new PhasedConstraints())
                 .get(phase);
     }
 
-    private ItemSecurityConstraintsImpl getItemConstraints(String action, AuthorizationPhaseType phase) {
-        PhasedConstraints phasedConstraints = actionMap.get(action);
-        if (phasedConstraints == null) {
-            return null;
-        }
-        return phasedConstraints.get(phase);
-    }
-
     @Override
-    public AuthorizationDecisionType findAllItemsDecision(String[] actionUrls, AuthorizationPhaseType phase) {
+    public @Nullable AuthorizationDecisionType findAllItemsDecision(
+            @NotNull String @NotNull [] actionUrls, @Nullable AuthorizationPhaseType phase) {
         AuthorizationDecisionType decision = null;
         for (String actionUrl : actionUrls) {
             AuthorizationDecisionType actionDecision = findAllItemsDecision(actionUrl, phase);
@@ -60,6 +56,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
                 return actionDecision;
             }
             if (actionDecision != null) {
+                assert actionDecision == AuthorizationDecisionType.ALLOW;
                 decision = actionDecision;
             }
         }
@@ -67,10 +64,11 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
     }
 
     @Override
-    public AuthorizationDecisionType findAllItemsDecision(String actionUrl, AuthorizationPhaseType phase) {
+    public @Nullable AuthorizationDecisionType findAllItemsDecision(
+            @NotNull String actionUrl, @Nullable AuthorizationPhaseType phase) {
         if (phase == null) {
             AuthorizationDecisionType requestDecision = getActionDecisionPhase(actionUrl, AuthorizationPhaseType.REQUEST);
-            if (requestDecision == null || AuthorizationDecisionType.DENY.equals(requestDecision)) {
+            if (requestDecision == null || requestDecision == AuthorizationDecisionType.DENY) {
                 return requestDecision;
             }
             return getActionDecisionPhase(actionUrl, AuthorizationPhaseType.EXECUTION);
@@ -79,24 +77,19 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         }
     }
 
-    private AuthorizationDecisionType getActionDecisionPhase(String actionUrl, AuthorizationPhaseType phase) {
+    private AuthorizationDecisionType getActionDecisionPhase(@NotNull String actionUrl, @NotNull AuthorizationPhaseType phase) {
         ItemSecurityConstraintsImpl itemConstraints = getItemConstraints(actionUrl, phase);
-        if (itemConstraints == null) {
-            return null;
-        }
-        AutzItemPaths deniedItems = itemConstraints.getDeniedItems();
-        if (deniedItems.isAllItems()) {
-            return AuthorizationDecisionType.DENY;
-        }
-        AutzItemPaths allowedItems = itemConstraints.getAllowedItems();
-        if (allowedItems.isAllItems()) {
-            return AuthorizationDecisionType.ALLOW;
-        }
-        return null;
+        return itemConstraints != null ? itemConstraints.findAllItemsDecision() : null;
+    }
+
+    private ItemSecurityConstraintsImpl getItemConstraints(@NotNull String action, @NotNull AuthorizationPhaseType phase) {
+        PhasedConstraints phasedConstraints = actionMap.get(action);
+        return phasedConstraints != null ? phasedConstraints.get(phase) : null;
     }
 
     @Override
-    public AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String[] actionUrls, AuthorizationPhaseType phase) {
+    public @Nullable AuthorizationDecisionType findItemDecision(
+            @NotNull ItemPath nameOnlyItemPath, @NotNull String @NotNull [] actionUrls, @Nullable AuthorizationPhaseType phase) {
         AuthorizationDecisionType decision = null;
         for (String actionUrl : actionUrls) {
             AuthorizationDecisionType actionDecision = findItemDecision(nameOnlyItemPath, actionUrl, phase);
@@ -104,6 +97,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
                 return actionDecision;
             }
             if (actionDecision != null) {
+                assert actionDecision == AuthorizationDecisionType.ALLOW;
                 decision = actionDecision;
             }
         }
@@ -111,9 +105,11 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
     }
 
     @Override
-    public AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase) {
+    public @Nullable AuthorizationDecisionType findItemDecision(
+            @NotNull ItemPath nameOnlyItemPath, @NotNull String actionUrl, @Nullable AuthorizationPhaseType phase) {
         if (phase == null) {
-            AuthorizationDecisionType requestDecision = findItemDecisionPhase(nameOnlyItemPath, actionUrl, AuthorizationPhaseType.REQUEST);
+            AuthorizationDecisionType requestDecision =
+                    findItemDecisionPhase(nameOnlyItemPath, actionUrl, AuthorizationPhaseType.REQUEST);
             if (requestDecision == null || requestDecision == AuthorizationDecisionType.DENY) {
                 return requestDecision;
             }
@@ -126,12 +122,14 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
     private AuthorizationDecisionType findItemDecisionPhase(
             ItemPath nameOnlyItemPath, String actionUrl, @NotNull AuthorizationPhaseType phase) {
         ItemSecurityConstraintsImpl itemConstraints = getItemConstraints(actionUrl, phase);
-        AuthorizationDecisionType decision = null;
+        AuthorizationDecisionType decision;
         if (itemConstraints != null) {
             decision = itemConstraints.findItemDecision(nameOnlyItemPath);
-            if (AuthorizationDecisionType.DENY.equals(decision)) {
+            if (decision == AuthorizationDecisionType.DENY) {
                 return AuthorizationDecisionType.DENY;
             }
+        } else {
+            decision = null;
         }
         ItemSecurityConstraintsImpl itemConstraintsActionAll = getItemConstraints(AuthorizationConstants.AUTZ_ALL_URL, phase);
         if (itemConstraintsActionAll == null) {

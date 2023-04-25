@@ -8,8 +8,6 @@ package com.evolveum.midpoint.security.enforcer.impl;
 
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.PositiveNegativeItemPaths;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Helper class to {@link SecurityEnforcerImpl}, used to evaluate item authorizations.
@@ -18,10 +16,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 class AutzItemPaths extends PositiveNegativeItemPaths {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AutzItemPaths.class);
-
     void collectItems(Authorization autz) {
         collectItemPaths(autz.getItems(), autz.getExceptItems());
     }
-
 }

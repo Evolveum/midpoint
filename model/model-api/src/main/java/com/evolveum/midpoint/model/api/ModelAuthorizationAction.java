@@ -8,9 +8,12 @@ package com.evolveum.midpoint.model.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+
+import java.util.Set;
 
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
@@ -77,7 +80,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     // Authorization to create a user-level (custom) audit record. Does not apply to internal records that are created automatically by the model without
     // any special authorization
     AUDIT_RECORD("auditRecord", "Audit Record", "AUDIT_RECORD_HELP"),
-    // Ability to manage the audit log, e.g. to clean it up (exprunge old records).
+    // Ability to manage the audit log, e.g. to clean it up (expunge old records).
     AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP"),
 
     RAW_OPERATION("rawOperation", "Raw operation", "RAW_OPERATION_HELP"),
@@ -98,16 +101,18 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };
+    public static final Set<String> AUTZ_ACTIONS_URLS_GET_ALL =
+            Set.of(AuthorizationConstants.AUTZ_ALL_URL, READ.getUrl(), GET.getUrl());
     public static final String[] AUTZ_ACTIONS_URLS_ADD = new String[] { ADD.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_MODIFY = new String[] { MODIFY.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_ASSIGN = new String[] { ASSIGN.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_ATTORNEY = new String[] { ATTORNEY.getUrl() };
 
-    private String url;
-    private String label;
-    private String description;
+    private final String url;
+    private final String label;
+    private final String description;
 
-    private ModelAuthorizationAction(String urlLocalPart, String label, String desc) {
+    ModelAuthorizationAction(String urlLocalPart, String label, String desc) {
         this.url = QNameUtil.qNameToUri(new QName(ModelService.AUTZ_NAMESPACE, urlLocalPart));
         this.label = label;
         this.description = desc;

@@ -4722,10 +4722,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
-        AuthorizationType superAutzType = new AuthorizationType();
-        prismContext.adopt(superAutzType, RoleType.class, RoleType.F_AUTHORIZATION);
-        superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-        Authorization superAutz = new Authorization(superAutzType);
+        AuthorizationType superAutzBean = new AuthorizationType();
+        prismContext.adopt(superAutzBean, RoleType.class, RoleType.F_AUTHORIZATION);
+        superAutzBean.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+        Authorization superAutz = new Authorization(superAutzBean);
         Collection<Authorization> authorities = principal.getAuthorities();
         authorities.add(superAutz);
         SecurityContext securityContext = SecurityContextHolder.getContext();

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.security.enforcer.impl;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 import static java.util.Collections.emptySet;
 
 import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
@@ -17,9 +19,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -205,7 +210,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
                 // authority is applicable to this situation. now we can process the decision.
                 AuthorizationDecisionType autzDecision = authority.getDecision();
-                if (autzDecision == null || autzDecision.equals(AuthorizationDecisionType.ALLOW)) {
+                if (autzDecision == AuthorizationDecisionType.ALLOW) {
                     allowedItems.collectItems(authority);
                     LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
                     decision = AccessDecision.ALLOW;
@@ -228,7 +233,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
         if (decision == AccessDecision.ALLOW) {
             // Still check allowedItems. We may still deny the operation.
-            if (allowedItems.isAllItems()) {
+            if (allowedItems.includesAllItems()) {
                 // This means all items are allowed. No need to check anything
                 LOGGER.trace("  Empty list of allowed items, operation allowed");
             } else {
@@ -471,18 +476,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         if (AuthorizationPhaseType.EXECUTION.equals(phase) && isInList(nameOnlyItemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)) {
             return true;
         }
-        return allowedItems.isApplicable(nameOnlyItemPath);
+        return allowedItems.includes(nameOnlyItemPath);
     }
 
     private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
-        boolean itemAllowed = false;
-        for (ItemPath allowedPath : allowedItems) {
-            if (allowedPath.isSubPathOrEquivalent(itemPath)) {
-                itemAllowed = true;
-                break;
-            }
-        }
-        return itemAllowed;
+        return ItemPathCollectionsUtil.containsSubpathOrEquivalent(allowedItems, itemPath);
     }
 
     @Override
@@ -560,9 +558,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
     }
 
-    private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object,
-            MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType> boolean isApplicable(
+            List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object,
+            MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc,
+            Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
             if (object == null) {
                 LOGGER.trace("  {} not applicable for null {}", autzHumanReadableDesc, desc);
@@ -1161,7 +1162,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         return (MidPointPrincipal) principal;
     }
 
-    private Collection<Authorization> getAuthorities(MidPointPrincipal principal) {
+    private @NotNull Collection<Authorization> getAuthorities(MidPointPrincipal principal) {
         if (principal == null) {
             // Anonymous access, possibly with elevated privileges
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -1181,7 +1182,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
-            PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result)
+            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         MidPointPrincipal principal = getMidPointPrincipal();
@@ -1192,27 +1194,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", getUsername(principal), object);
         }
         ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
-        Collection<Authorization> authorities = getAuthorities(principal);
-        if (authorities != null) {
-            for (Authorization autz : authorities) {
-                String autzHumanReadableDesc = autz.getHumanReadableDesc();
-                LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
+        for (Authorization autz : getAuthorities(principal)) {
+            String autzHumanReadableDesc = autz.getHumanReadableDesc();
+            LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
 
-                // skip action applicability evaluation. We are interested in all actions
+            // skip action applicability evaluation. We are interested in all actions
 
-                // object
-                if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
-                    LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
-                } else {
-                    LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
-                            autzHumanReadableDesc, object);
-                    continue;
-                }
-
-                // skip target applicability evaluation. We do not have a target here
-
-                objectSecurityConstraints.applyAuthorization(autz);
+            // object
+            if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
+                LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
+            } else {
+                LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
+                        autzHumanReadableDesc, object);
+                continue;
             }
+
+            // skip target applicability evaluation. We do not have a target here
+
+            objectSecurityConstraints.applyAuthorization(autz);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -1221,6 +1220,57 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
 
         return objectSecurityConstraints;
+    }
+
+    @Override
+    public <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
+            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull Collection<String> actionUrls, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        argCheck(object != null, "Cannot compile security constraints of null object");
+        MidPointPrincipal principal = getMidPointPrincipal();
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("AUTZ: evaluating read security constraints principal={}, object={}", getUsername(principal), object);
+        }
+        ObjectOperationConstraintsImpl constraints = new ObjectOperationConstraintsImpl();
+        for (Authorization autz : getAuthorities(principal)) {
+            String autzHumanReadableDesc = autz.getHumanReadableDesc();
+            LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
+
+            // operation
+            boolean operationRelevant = false;
+            for (String autzAction : autz.getAction()) {
+                if (actionUrls.contains(autzAction)) {
+                    operationRelevant = true;
+                    break;
+                }
+            }
+            if (!operationRelevant) {
+                LOGGER.trace("    {} not applicable for operations {}", autzHumanReadableDesc, actionUrls);
+                continue;
+            }
+
+            // object
+            if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
+                LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
+            } else {
+                LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
+                        autzHumanReadableDesc, object);
+                continue;
+            }
+
+            // skip target applicability evaluation. We do not have a target here
+
+            constraints.applyAuthorization(autz);
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}",
+                    getUsername(principal), object, constraints.debugDump(1));
+        }
+
+        return constraints;
     }
 
     @Override
@@ -1681,7 +1731,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                     F autzObjSecurityF = gizmo.adopt(autzObjSecurityFilter, authority);
                     // authority is applicable to this situation. now we can process the decision.
                     AuthorizationDecisionType decision = authority.getDecision();
-                    if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
+                    if (decision == AuthorizationDecisionType.ALLOW) {
                         // allow
                         securityFilterAllow = gizmo.or(securityFilterAllow, autzObjSecurityF);
                         traceFilter("securityFilterAllow", authority, securityFilterAllow, gizmo);

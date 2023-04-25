@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +62,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Component that deals with authorization of requests in clockwork.
  *
  * @author Radovan Semancik
- *
  */
 @Component
 public class ClockworkAuthorizationHelper {
@@ -414,7 +415,7 @@ public class ClockworkAuthorizationHelper {
         return securityEnforcer.determineSubitemDecision(securityConstraints, primaryDelta, currentObject, deltaOperationUrl, requestAuthorizationPhase, assignmentElementQName);
     }
 
-    private <F extends ObjectType> AuthorizationPhaseType getRequestAuthorizationPhase(LensContext<F> context) {
+    private <F extends ObjectType> @NotNull AuthorizationPhaseType getRequestAuthorizationPhase(LensContext<F> context) {
         if (context.isExecutionPhaseOnly()) {
             return AuthorizationPhaseType.EXECUTION;
         } else {
