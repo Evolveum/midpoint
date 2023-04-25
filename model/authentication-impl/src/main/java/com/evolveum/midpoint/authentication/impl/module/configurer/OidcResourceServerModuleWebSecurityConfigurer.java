@@ -53,7 +53,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends OidcResourc
         super.configure(http);
 
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpAuthenticationEntryPoint());
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
 
         OidcBearerTokenAuthenticationFilter filter = getObjectPostProcessor().postProcess(new OidcBearerTokenAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);

@@ -65,7 +65,7 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
 
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         http.csrf().disable();
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {

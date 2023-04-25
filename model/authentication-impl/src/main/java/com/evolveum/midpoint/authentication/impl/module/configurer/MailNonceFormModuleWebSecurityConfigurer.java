@@ -30,7 +30,7 @@ public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurit
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointFormLoginConfigurer<>(new MailNonceAuthenticationFilter()))
                 .loginPage(getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl())
                 .failureHandler(new MidpointAuthenticationFailureHandler())

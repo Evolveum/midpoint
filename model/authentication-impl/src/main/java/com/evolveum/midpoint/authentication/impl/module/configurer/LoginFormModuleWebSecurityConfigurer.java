@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
-import java.util.Arrays;
-
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
@@ -21,7 +19,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.security.cas.web.CasAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
@@ -46,9 +43,6 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
     private RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter;
 
     @Autowired(required = false)
-    private CasAuthenticationFilter casFilter;
-
-    @Autowired(required = false)
     private LogoutFilter requestSingleLogoutFilter;
 
     private final C configuration;
@@ -61,7 +55,7 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, getMidpointFormLoginConfigurer())
                 .loginPage("/login")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
@@ -76,15 +70,6 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
-
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
-            http.addFilterAt(casFilter, CasAuthenticationFilter.class);
-            http.addFilterBefore(requestSingleLogoutFilter, LogoutFilter.class);
-        }
-
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
-            http.addFilterBefore(requestAttributeAuthenticationFilter, LogoutFilter.class);
-        }
     }
 
     protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {

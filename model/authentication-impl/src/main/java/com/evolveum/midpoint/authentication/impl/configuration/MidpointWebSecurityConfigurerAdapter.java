@@ -24,6 +24,7 @@ import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -31,13 +32,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
@@ -48,6 +50,13 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.accept.ContentNegotiationStrategy;
+import org.springframework.web.accept.HeaderContentNegotiationStrategy;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author skublik
  */
@@ -55,7 +64,7 @@ import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegi
 @Configuration
 @EnableWebSecurity
 @DependsOn("initialSecurityConfiguration")
-public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthChannelRegistryImpl authChannelRegistry;
@@ -63,17 +72,26 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
     @Autowired
     private SessionRegistry sessionRegistry;
 
-    private ObjectPostProcessor<Object> objectObjectPostProcessor;
+    @Autowired
+    private ApplicationContext context;
 
-    public MidpointWebSecurityConfigurerAdapter() {
-        super(true);
+    private ObjectPostProcessor<Object> objectObjectPostProcessor;
+    private ContentNegotiationStrategy contentNegotiationStrategy = new HeaderContentNegotiationStrategy();
+
+//    public MidpointWebSecurityConfigurerAdapter() {
+//        super(true);
+//    }
+
+    @Autowired(required = false)
+    void setContentNegotiationStrategy(ContentNegotiationStrategy contentNegotiationStrategy) {
+        this.contentNegotiationStrategy = contentNegotiationStrategy;
     }
 
+//    @Override
     @Autowired
-    @Override
     public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
         this.objectObjectPostProcessor = objectPostProcessor;
-        super.setObjectPostProcessor(objectPostProcessor);
+//        super.setObjectPostProcessor(objectPostProcessor);
     }
 
     @Bean
@@ -110,38 +128,63 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
     }
 
+
+//    @Override
     @Bean
     @SessionAndRequestScope
-    @Override
     protected MidpointProviderManager authenticationManager() throws Exception {
         return new MidpointProviderManager();
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        super.configure(web);
-        // Web (SOAP) services
-        web.ignoring().antMatchers("/model/**");
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> {
+            // Web (SOAP) services
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/model/**"));
 
-        // Special intra-cluster service to download and delete report outputs
-        web.ignoring().antMatchers("/report");
+            // Special intra-cluster service to download and delete report outputs
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/report"));
 
-        web.ignoring().antMatchers("/js/**");
-        web.ignoring().antMatchers("/css/**");
-        web.ignoring().antMatchers("/img/**");
-        web.ignoring().antMatchers("/fonts/**");
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/js/**"));
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/css/**"));
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/img/**"));
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/fonts/**"));
 
-        web.ignoring().antMatchers("/static/**");
-        web.ignoring().antMatchers("/static-web/**");
-        web.ignoring().antMatchers("/less/**");
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/static/**"));
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/static-web/**"));
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/less/**"));
 
-        web.ignoring().antMatchers("/wicket/resource/**");
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/wicket/resource/**"));
 
-        web.ignoring().antMatchers("/favicon.ico");
+            web.ignoring().requestMatchers(new AntPathRequestMatcher("/favicon.ico"));
+        };
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+//    @Override
+//    public void configure(WebSecurity web) throws Exception {
+//        super.configure(web);
+//        // Web (SOAP) services
+//        web.ignoring().antMatchers("/model/**");
+//
+//        // Special intra-cluster service to download and delete report outputs
+//        web.ignoring().antMatchers("/report");
+//
+//        web.ignoring().antMatchers("/js/**");
+//        web.ignoring().antMatchers("/css/**");
+//        web.ignoring().antMatchers("/img/**");
+//        web.ignoring().antMatchers("/fonts/**");
+//
+//        web.ignoring().antMatchers("/static/**");
+//        web.ignoring().antMatchers("/static-web/**");
+//        web.ignoring().antMatchers("/less/**");
+//
+//        web.ignoring().antMatchers("/wicket/resource/**");
+//
+//        web.ignoring().antMatchers("/favicon.ico");
+//    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
         http.addFilter(new WebAsyncManagerIntegrationFilter())
                 .sessionManagement().and()
@@ -154,7 +197,39 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
                 .maximumSessions(-1)
                 .sessionRegistry(sessionRegistry)
                 .maxSessionsPreventsLogin(true);
+        return http.build();
     }
+
+    @Bean
+    public HttpSecurity httpSecurity() throws Exception {
+        AuthenticationManagerBuilder authenticationBuilder = new AuthenticationManagerBuilder(this.objectObjectPostProcessor);
+        authenticationBuilder.parentAuthenticationManager(authenticationManager());
+        HttpSecurity http = new HttpSecurity(this.objectObjectPostProcessor, authenticationBuilder, createSharedObjects());
+        return http;
+    }
+
+    private Map<Class<?>, Object> createSharedObjects() {
+        Map<Class<?>, Object> sharedObjects = new HashMap<>();
+        sharedObjects.put(ApplicationContext.class, this.context);
+        sharedObjects.put(ContentNegotiationStrategy.class, this.contentNegotiationStrategy);
+        return sharedObjects;
+    }
+
+//    @Override
+//    protected void configure(HttpSecurity http) throws Exception {
+//        http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
+//        http.addFilter(new WebAsyncManagerIntegrationFilter())
+//                .sessionManagement().and()
+//                .securityContext();
+//        http.apply(new AuthFilterConfigurer());
+//
+//        createSessionContextRepository(http);
+//
+//        http.sessionManagement()
+//                .maximumSessions(-1)
+//                .sessionRegistry(sessionRegistry)
+//                .maxSessionsPreventsLogin(true);
+//    }
 
     private void createSessionContextRepository(HttpSecurity http) {
         HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
