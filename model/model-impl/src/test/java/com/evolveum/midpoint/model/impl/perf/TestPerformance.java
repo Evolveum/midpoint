@@ -350,8 +350,8 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
             StringBuilder sb = new StringBuilder();
             sb.append(definitionUpdateOption).append(";").append(autzLabel);
             values.forEach(val -> sb.append(";").append(val));
-            sb.append(";").append(1000.0 * getAverage(values));
-            sb.append(";").append(1000.0 * getAverage(getValuesExceptHighest()));
+            sb.append(";").append(getAverage(values));
+            sb.append(";").append(getAverage(getValuesExceptHighest()));
             return sb.toString();
         }
 
