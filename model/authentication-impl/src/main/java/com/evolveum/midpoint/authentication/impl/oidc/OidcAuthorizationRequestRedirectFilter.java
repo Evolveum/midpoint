@@ -9,7 +9,6 @@ package com.evolveum.midpoint.authentication.impl.oidc;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.util.RequestState;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -91,13 +90,10 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
             throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            OidcClientModuleAuthenticationImpl moduleAuthentication = (OidcClientModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             try {
                 OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request);
                 if (authorizationRequest != null) {
                     this.sendRedirectForAuthorization(request, response, authorizationRequest);
-                    moduleAuthentication.setRequestState(RequestState.SENDED);
                     return;
                 }
             } catch (Exception ex) {
@@ -122,7 +118,6 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
                             throw authzEx;
                         }
                         this.sendRedirectForAuthorization(request, response, authorizationRequest);
-                        moduleAuthentication.setRequestState(RequestState.SENDED);
                         this.requestCache.saveRequest(request, response);
                     } catch (Exception failed) {
                         unsuccessfulAuthentication(request, response,
