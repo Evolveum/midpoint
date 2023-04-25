@@ -57,7 +57,8 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
     }
 
     @Override
-    public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object)
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (object == null) {
             return null;
         }
@@ -140,7 +141,8 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                 return null;
             }
         } else {
-            LOGGER.warn("Cannot resolve owner of {}, owners can be resolved only for Shadows and AbstractRoles", object);
+            LOGGER.warn("Cannot resolve owner of {}, owners can be resolved only for shadows, users (personas), "
+                    + "tasks, and (eventually) abstract roles", object);
             return null;
         }
     }

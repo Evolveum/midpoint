@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -52,7 +53,8 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             }
             if (useParsing) {
                 ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(filterTypeModel.getObject(), value);
-                PrismQuerySerialization serialization = getPageBase().getPrismContext().querySerializer().serialize(objectFilter);
+                PrismQuerySerialization serialization = getPageBase().getPrismContext().querySerializer().serialize(objectFilter,
+                        PrismContext.get().getSchemaRegistry().staticNamespaceContext());
                 if (serialization != null) {
                     return serialization.filterText();
                 }

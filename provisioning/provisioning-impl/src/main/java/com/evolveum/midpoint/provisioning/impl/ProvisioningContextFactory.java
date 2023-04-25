@@ -141,7 +141,7 @@ public class ProvisioningContextFactory {
      *
      * "Unknown" kind/intent is not supported.
      */
-    ProvisioningContext spawnForKindIntent(
+    @NotNull ProvisioningContext spawnForKindIntent(
             @NotNull ProvisioningContext originalCtx,
             @NotNull ShadowKindType kind,
             @NotNull String intent) throws SchemaException, ConfigurationException {

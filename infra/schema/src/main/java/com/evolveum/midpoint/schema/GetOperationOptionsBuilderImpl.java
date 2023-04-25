@@ -238,6 +238,11 @@ public class GetOperationOptionsBuilderImpl
     }
 
     @Override
+    public GetOperationOptionsBuilder definitionUpdate(DefinitionUpdateOption value) {
+        return forPaths(opts -> opts.setDefinitionUpdate(value));
+    }
+
+    @Override
     public GetOperationOptionsBuilder iterationMethod(IterationMethodType value) {
         return forPaths(opts -> opts.setIterationMethod(value));
     }

@@ -147,6 +147,7 @@ public class SearchableItemsDefinitions {
         ));
 
         SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
+                ItemPath.create(AbstractWorkItemType.F_NAME),
                 ItemPath.create(CaseWorkItemType.F_ASSIGNEE_REF),
                 ItemPath.create(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),

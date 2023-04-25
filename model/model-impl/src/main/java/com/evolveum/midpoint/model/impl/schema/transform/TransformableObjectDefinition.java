@@ -31,6 +31,7 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
         delegatedItem(new DelegatedItem.ObjectDef(delegate()));
     }
 
+    @NotNull
     public static <O extends Objectable> TransformableObjectDefinition<O> of(PrismObjectDefinition<O> originalItem) {
         return new TransformableObjectDefinition<>(originalItem);
     }

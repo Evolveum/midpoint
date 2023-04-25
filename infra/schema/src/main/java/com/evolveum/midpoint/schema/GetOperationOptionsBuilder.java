@@ -67,6 +67,7 @@ public interface GetOperationOptionsBuilder {
     GetOperationOptionsBuilder attachDiagData();
     GetOperationOptionsBuilder attachDiagData(Boolean value);
     GetOperationOptionsBuilder definitionProcessing(DefinitionProcessingOption value);
+    GetOperationOptionsBuilder definitionUpdate(DefinitionUpdateOption value);
     GetOperationOptionsBuilder iterationMethod(IterationMethodType value);
     GetOperationOptionsBuilder executionPhase();
     GetOperationOptionsBuilder executionPhase(Boolean value);

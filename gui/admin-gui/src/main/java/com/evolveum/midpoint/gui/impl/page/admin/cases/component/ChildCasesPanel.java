@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
@@ -112,6 +113,11 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
+            }
+
+            @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_CHILD_CASES_TAB;
             }
 
             @Override

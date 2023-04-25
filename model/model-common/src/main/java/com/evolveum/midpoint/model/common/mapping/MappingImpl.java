@@ -61,7 +61,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
                 }
 
                 @Override
-                public boolean supportsProvenance() throws SchemaException {
+                public boolean supportsProvenance() throws SchemaException, ConfigurationException {
                     return processingSpec.isFullProcessing(ValueMetadataType.F_PROVENANCE);
                 }
 

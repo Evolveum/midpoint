@@ -7,24 +7,19 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateCorrelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 public class ObjectTemplateTypeUtil {
 
@@ -40,8 +35,7 @@ public class ObjectTemplateTypeUtil {
             @NotNull ObjectTemplateType template, @NotNull ItemPath path) throws ConfigurationException {
         List<ObjectTemplateItemDefinitionType> definitions = new ArrayList<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : template.getItem()) {
-            ItemPathType ref = configNonNull(itemDefBean.getRef(), () -> "No 'ref' in " + itemDefBean + " in " + template);
-            if (ref.getItemPath().equivalent(path)) {
+            if (ItemRefinedDefinitionTypeUtil.getRef(itemDefBean).equivalent(path)) {
                 definitions.add(itemDefBean);
             }
         }

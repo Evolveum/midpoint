@@ -103,7 +103,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 try {
                     PrismObjectDefinition<UserType> userDef = getModelInteractionService().getEditObjectDefinition(user, null, task, task.getResult());
                     if (userDef != null) {
-                        user.setDefinition(userDef);
+                        user.applyDefinition(userDef, true);
                     }
                 } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                         | CommunicationException | SecurityViolationException e) {

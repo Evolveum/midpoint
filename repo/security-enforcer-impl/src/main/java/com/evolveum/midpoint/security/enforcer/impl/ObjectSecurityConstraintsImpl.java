@@ -18,14 +18,16 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints {
 
-    private Map<String, PhasedConstraints> actionMap = new HashMap<>();
+    private final Map<String, PhasedConstraints> actionMap = new HashMap<>();
 
-    public void applyAuthorization(Authorization autz) {
+    void applyAuthorization(Authorization autz) {
         List<String> actions = autz.getAction();
         AuthorizationPhaseType phase = autz.getPhase();
-        for (String action: actions) {
+        for (String action : actions) {
             if (phase == null) {
                 getOrCreateItemConstraints(action, AuthorizationPhaseType.REQUEST).collectItems(autz);
                 getOrCreateItemConstraints(action, AuthorizationPhaseType.EXECUTION).collectItems(autz);
@@ -35,9 +37,10 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         }
     }
 
-    private ItemSecurityConstraintsImpl getOrCreateItemConstraints(String action, AuthorizationPhaseType phase) {
-        PhasedConstraints phasedConstraints = actionMap.computeIfAbsent(action, k -> new PhasedConstraints());
-        return phasedConstraints.get(phase);
+    private @NotNull ItemSecurityConstraintsImpl getOrCreateItemConstraints(String action, AuthorizationPhaseType phase) {
+        return actionMap
+                .computeIfAbsent(action, k -> new PhasedConstraints())
+                .get(phase);
     }
 
     private ItemSecurityConstraintsImpl getItemConstraints(String action, AuthorizationPhaseType phase) {
@@ -76,7 +79,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         }
     }
 
-    public AuthorizationDecisionType getActionDecisionPhase(String actionUrl, AuthorizationPhaseType phase) {
+    private AuthorizationDecisionType getActionDecisionPhase(String actionUrl, AuthorizationPhaseType phase) {
         ItemSecurityConstraintsImpl itemConstraints = getItemConstraints(actionUrl, phase);
         if (itemConstraints == null) {
             return null;
@@ -111,7 +114,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
     public AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase) {
         if (phase == null) {
             AuthorizationDecisionType requestDecision = findItemDecisionPhase(nameOnlyItemPath, actionUrl, AuthorizationPhaseType.REQUEST);
-            if (requestDecision == null || AuthorizationDecisionType.DENY.equals(requestDecision)) {
+            if (requestDecision == null || requestDecision == AuthorizationDecisionType.DENY) {
                 return requestDecision;
             }
             return findItemDecisionPhase(nameOnlyItemPath, actionUrl, AuthorizationPhaseType.EXECUTION);
@@ -120,7 +123,8 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         }
     }
 
-    public AuthorizationDecisionType findItemDecisionPhase(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase) {
+    private AuthorizationDecisionType findItemDecisionPhase(
+            ItemPath nameOnlyItemPath, String actionUrl, @NotNull AuthorizationPhaseType phase) {
         ItemSecurityConstraintsImpl itemConstraints = getItemConstraints(actionUrl, phase);
         AuthorizationDecisionType decision = null;
         if (itemConstraints != null) {
@@ -149,5 +153,4 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         DebugUtil.debugDumpWithLabel(sb, "actionMap", actionMap, indent+1);
         return sb.toString();
     }
-
 }

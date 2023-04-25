@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>dummy</name>
+    <schemaHandling>
+        <objectType>
+            <intent>test</intent>
+            <attribute id="10">
+                <!-- no ref -->
+            </attribute>
+        </objectType>
+        <objectClass>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute id="123">
+                <!-- no ref -->
+            </attribute>
+        </objectClass>
+    </schemaHandling>
+</resource>

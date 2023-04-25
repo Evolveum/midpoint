@@ -47,7 +47,7 @@ public class ResourceObjectTypeIdentification implements Serializable {
         return new ResourceObjectTypeIdentification(kind, intent);
     }
 
-    public static ResourceObjectTypeIdentification of(@NotNull ResourceObjectTypeDefinitionType definitionBean) {
+    public static @NotNull ResourceObjectTypeIdentification of(@NotNull ResourceObjectTypeDefinitionType definitionBean) {
         return of(
                 ResourceObjectTypeDefinitionTypeUtil.getKind(definitionBean),
                 ResourceObjectTypeDefinitionTypeUtil.getIntent(definitionBean));

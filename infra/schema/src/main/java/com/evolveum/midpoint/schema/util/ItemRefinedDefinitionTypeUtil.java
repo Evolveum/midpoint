@@ -7,18 +7,21 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemRefinedDefinitionTypeUtil {
 
     public static @NotNull ItemPath getRef(@NotNull ItemRefinedDefinitionType bean) throws ConfigurationException {
-        return MiscUtil.configNonNull(
-                        bean.getRef(), () -> "No 'ref' in " + bean)
-                .getItemPath();
+        ItemPathType ref = bean.getRef();
+        if (ref == null) {
+            throw new ConfigurationException("No 'ref' in " + ConfigErrorReporter.describe(bean));
+        }
+        return ref.getItemPath();
     }
 }

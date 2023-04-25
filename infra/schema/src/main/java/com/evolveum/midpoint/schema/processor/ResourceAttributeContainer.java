@@ -10,7 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
@@ -34,20 +34,8 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
         ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, resourceObjectDefinition);
         for (Item item: origAttrContainer.getValue().getItems()) {
             if (item instanceof PrismProperty) {
-                PrismProperty<?> property = (PrismProperty)item;
-                QName attributeName = property.getElementName();
-                ResourceAttributeDefinition attributeDefinition = resourceObjectDefinition.findAttributeDefinition(attributeName);
-                if (attributeDefinition == null) {
-                    throw new SchemaException("No definition for attribute "+attributeName+" in object class "+resourceObjectDefinition);
-                }
-                ResourceAttribute attribute = new ResourceAttributeImpl(attributeName, attributeDefinition);
-                for(PrismPropertyValue pval: property.getValues()) {
-                    // MID-5833 This is manual copy process, could we could assume original property is correctly constructed
-                    attribute.addIgnoringEquivalents(pval.clone());
-                }
-                attributesContainer.add(attribute);
-                attribute.applyDefinition(attributeDefinition);
-                attribute.setIncomplete(item.isIncomplete());
+                attributesContainer.add(
+                        resourceObjectDefinition.propertyToAttribute((PrismProperty<?>) item));
             } else {
                 throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
             }
@@ -67,6 +55,16 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
     @Override
     ResourceAttributeContainerDefinition getDefinition();
 
+    default @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
+        ResourceAttributeContainerDefinition definition =
+                MiscUtil.stateNonNull(
+                        getDefinition(),
+                        () -> "No definition in " + this);
+        return MiscUtil.stateNonNull(
+                definition.getComplexTypeDefinition(),
+                () -> "No resource object definition in " + definition);
+    }
+
     /**
      * TODO review docs
      *
@@ -81,6 +79,13 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
     @NotNull Collection<ResourceAttribute<?>> getAttributes();
 
     void add(ResourceAttribute<?> attribute) throws SchemaException;
+
+    /**
+     * Adds a {@link PrismProperty}, converting to {@link ResourceAttribute} if needed.
+     *
+     * Requires the resource object definition (i.e. complex type definition) be present.
+     */
+    void addAdoptedIfNeeded(@NotNull PrismProperty<?> attribute) throws SchemaException;
 
     /**
      * Returns a (single) primary identifier.
@@ -282,6 +287,10 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
      * @return found attribute or null
      */
     <X> ResourceAttribute<X> findAttribute(QName attributeQName);
+
+    default boolean containsAttribute(QName attributeName) {
+        return findAttribute(attributeName) != null;
+    }
 
     /**
      * Finds a specific attribute in the resource object by definition.
