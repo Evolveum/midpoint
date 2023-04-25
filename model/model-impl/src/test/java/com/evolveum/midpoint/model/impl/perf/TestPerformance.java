@@ -76,6 +76,13 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
     private static final TestObject<UserType> USER_CAN_READ_FEW = TestObject.file(
             TEST_DIR, "user-can-read-few.xml", "a17e2af6-7b60-4cf3-bebf-513af4a61b16");
 
+    private static final String AUTZ_FULL = "full";
+    private static final String AUTZ_READ_ALL = "read all";
+    private static final String AUTZ_READ_ALMOST_ALL = "read almost all";
+    private static final String AUTZ_READ_FEW = "read few";
+
+    private static final Set<String> FAST = Set.of(AUTZ_FULL, AUTZ_READ_ALL); // these get more iterations to be measurable
+
     @Autowired private SchemaTransformer schemaTransformer;
 
     private final ExtensionValueGenerator extensionValueGenerator = ExtensionValueGenerator.withDefaults();
@@ -85,6 +92,7 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
 
     private static final int HEAT_UP_ITERATIONS = 2;
     private static final int TEST_ITERATIONS = 10;
+    private static final int TEST_ITERATIONS_FOR_FAST_EXEC = 200;
     private static final int NUMBER_OF_USERS = 4000;
 
     private SearchResultList<PrismObject<UserType>> users;
@@ -148,11 +156,11 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
     }
 
     private void executeAutzTestFull() throws CommonException {
-        executeAutzTestForAuthorizations(userAdministrator, "full", user -> assertReadAll(user));
+        executeAutzTestForAuthorizations(userAdministrator, AUTZ_FULL, user -> assertReadAll(user));
     }
 
     private void executeAutzTestReadAll() throws CommonException {
-        executeAutzTestForAuthorizations(USER_CAN_READ_ALL.get(), "read all", user -> assertReadAll(user));
+        executeAutzTestForAuthorizations(USER_CAN_READ_ALL.get(), AUTZ_READ_ALL, user -> assertReadAll(user));
     }
 
     private void assertReadAll(UserType user) {
@@ -167,7 +175,7 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
 
     private void executeAutzTestReadAlmostAll() throws CommonException {
         executeAutzTestForAuthorizations(
-                USER_CAN_READ_ALMOST_ALL.get(), "read almost all", user -> assertReadAlmostAll(user));
+                USER_CAN_READ_ALMOST_ALL.get(), AUTZ_READ_ALMOST_ALL, user -> assertReadAlmostAll(user));
     }
 
     private void assertReadAlmostAll(UserType user) {
@@ -181,7 +189,7 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
     }
 
     private void executeAutzTestReadFew() throws CommonException {
-        executeAutzTestForAuthorizations(USER_CAN_READ_FEW.get(), "read few", user -> assertReadFew(user));
+        executeAutzTestForAuthorizations(USER_CAN_READ_FEW.get(), AUTZ_READ_FEW, user -> assertReadFew(user));
     }
 
     private void assertReadFew(UserType user) {
@@ -225,19 +233,20 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
                         autzAsserter.accept(user);
                     }
                     checkDefinition(user, definitionUpdateOption);
-                }, task, result);
+                }, task);
 
         int heatUpExecutions = users.size() * HEAT_UP_ITERATIONS;
         display(String.format(
-                "Average processing time for a user is %.3f ms during heat-up for %s (%,d executions)",
-                (double) heatUpDuration / heatUpExecutions, label, heatUpExecutions));
+                "Average processing time for a user is %,.1f µs during heat-up for %s (%,d executions)",
+                1000.0 * heatUpDuration / heatUpExecutions, label, heatUpExecutions));
 
         when("testing: " + label);
-        long duration = executeSingleAutzTestIterations(TEST_ITERATIONS, definitionUpdateOption, null, task, result);
-        int executions = users.size() * TEST_ITERATIONS;
-        double averageDuration = (double) duration / executions;
+        int iterations = FAST.contains(autzLabel) ? TEST_ITERATIONS_FOR_FAST_EXEC : TEST_ITERATIONS;
+        long duration = executeSingleAutzTestIterations(iterations, definitionUpdateOption, null, task);
+        int executions = users.size() * iterations;
+        double averageDuration = 1000.0 * duration / executions;
         display(String.format(
-                "Testing %s: Applied to a single user in %.3f ms (%,d ms total, %,d executions)",
+                "Testing %s: Applied to a single user in %,.1f µs (%,d ms total, %,d executions)",
                 label, averageDuration, duration, executions));
         PerformanceResult.record(performanceResults, autzLabel, definitionUpdateOption, averageDuration);
     }
@@ -246,7 +255,7 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
             int iterations,
             DefinitionUpdateOption definitionUpdateOption,
             CheckedConsumer<UserType> asserter,
-            Task task, OperationResult result)
+            Task task)
             throws CommonException {
 
         var parsedOptions = ParsedGetOperationOptions.of(
@@ -255,8 +264,12 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
 
         List<PrismObject<UserType>> usersAfter = new ArrayList<>();
         long start = System.currentTimeMillis();
+        OperationResult result1 = null;
         for (int i = 0; i < iterations; i++) {
-            usersAfter = schemaTransformer.applySchemasAndSecurityToObjects(users, parsedOptions, task, result);
+            if (i % 100 == 0) {
+                result1 = new OperationResult("dummy"); // to avoid operation result aggregation
+            }
+            usersAfter = schemaTransformer.applySchemasAndSecurityToObjects(users, parsedOptions, task, result1);
         }
         long duration = System.currentTimeMillis() - start;
 
@@ -337,8 +350,8 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
             StringBuilder sb = new StringBuilder();
             sb.append(definitionUpdateOption).append(";").append(autzLabel);
             values.forEach(val -> sb.append(";").append(val));
-            sb.append(";").append(getAverage(values));
-            sb.append(";").append(getAverage(getValuesExceptHighest()));
+            sb.append(";").append(1000.0 * getAverage(values));
+            sb.append(";").append(1000.0 * getAverage(getValuesExceptHighest()));
             return sb.toString();
         }
 
