@@ -32,6 +32,7 @@ Simply speaking it is the user that starts an action by accessing a GUI page, cl
 Subject is usually currently logged-in user.
 But it may also by the owner of a non-interactive task, client identity for a service and so on.
 Subject is always a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[midPoint User object] (identified by OID).
+// TODO now it can be also an abstract role, e.g. a service
 
 * *Action* is the activity or operation that is initiated by subject.
 It can be access to a GUI page, operation to modify an object, access to a service, etc.
@@ -122,7 +123,7 @@ Object and item specifications can be present.
 This authorization is evaluated *before* the object is xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[recomputed by the IDM model] (i.e. before all the mappings and policies are applied).
 Properties that are result of the computation are *not* yet present in the object.
 
-* *Execution* authorization is evaluated for each operation of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]*after* the object is xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[recomputed by the IDM model] and right before the operation is executed.
+* *Execution* authorization is evaluated for each operation of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] *after* the object is xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[recomputed by the IDM model] and right before the operation is executed.
 This authorization checks if the user that initiates the operation has the right to execute the operation with all the direct and indirect effects that it might have.
 This is a fine-grained authorization.
 Object and item specifications can be present.
@@ -131,7 +132,7 @@ Properties that are result of the computation are present in the object.
 image::security-autz-model.png[]
 
 An operation needs to pass through all three phases to be allowed.
-A single `deny in any of the phases denies entire operation. Therefore a practical authorization role should contain several authorizations to allow an operation for all the phases. E.g. the following code shows a modified version of the default End User role that is present in midPoint after a clean installation:`
+A single `deny` in any of the phases denies entire operation. Therefore a practical authorization role should contain several authorizations to allow an operation for all the phases. E.g. the following code shows a modified version of the default End User role that is present in midPoint after a clean installation:
 
 [source,xml]
 ----
@@ -312,7 +313,7 @@ Previous authorizations applied to a user as an object.
 But this authorization applies to a shadow.
 It is important to realize that change of one object can result in a change of a different object, e.g. as xref:/midpoint/reference/schema/focus-and-projections/[data are mapped between focus and projections]. And authorizations needs to be set up accordingly.
 
-=== actionsObject Authorization Actions
+=== Object Authorization Actions
 
 Following action URLs are used for object operations:
 
@@ -830,8 +831,8 @@ The `orderConstraints` clause can be used to set min/max for order therefore lim
 
 The default behavior of assignment/inducement authorizations is to apply only to assignments.
 Therefore if no `orderConstraints` clause is present, then the authorization allows assignments only.
-This behavior is slightly different than other authorization clauses, where no clause means no limitation.
-But this this behavior was chosen for compatibility reasons.
+This behavior is slightly different from other authorization clauses, where no clause means no limitation.
+But this behavior was chosen for compatibility reasons.
 
 == Expressions
 
@@ -874,7 +875,7 @@ The `subject` variable is usually the right one.
 [NOTE]
 ====
 Authorizations are evaluated frequently.
-Evaluations are evaluated at least twice during ordinary midPoint operation.
+Evaluations are done at least twice during ordinary midPoint operation.
 Authorizations are designed to be very efficient to evaluate.
 However, if expression is part of the evaluation then the expression may impact performance of the entire system.
 Expressions that use the `path` evaluator (as the one above) are usually very fast and they are safe.
@@ -953,14 +954,14 @@ There are "automatic" item in midPoint that midPoint manages by itself.
 For example `roleMembershipRef` reference that contains a collection of direct and indirect role memberships for each focus.
 MidPoint will determine that automatically when assignments are evaluated.
 The `roleMembershipRef` values are stored in the repository so they can be used by quick search operations.
-There are many items like these: object and assignment metadata, role, organization and tenant references (`parentOrgRef`, `roleMembershipRef, tenantRef`), activation virtual properties (e.g. effectiveStatus) and metadata, credential metadata and many more.
+There are many items like these: object and assignment metadata, role, organization and tenant references (`parentOrgRef`, `roleMembershipRef`, `tenantRef`), activation metadata and virtual properties (e.g. `effectiveStatus`), credential metadata and many more.
 
 Those are the items that midPoint logic controls directly.
 They have exception from execution-phase authorization enforcement.
 Their modification in execution phase is always allowed.
 If it was not allowed then midPoint won't be able to function properly and it may even lead to security issues.
 
-Therefore there is a general rule: if midPoint is managed an item by itself as part of midPoint internal data management or policy management then modification of such item is implicitly allowed in the execution phase of authorization evaluation.
+Therefore there is a general rule: if midPoint manages an item by itself as part of midPoint internal data management or policy management then modification of such item is implicitly allowed in the execution phase of authorization evaluation.
 This does not need to be allowed explicitly.
 However, what still needs to be allowed explicitly are the items that are modified by mappings, hooks and other customizable code.
 To put it simply: If midPoint modifies something by itself and there is no way to turn that off or customize it then such modification is implicitly allowed.
@@ -1054,9 +1055,9 @@ See xref:/midpoint/reference/diag/troubleshooting/authorizations/[Troubleshootin
 
 Self-service password change is one of the most widely used IDM functionality.
 However, the authorization setup is not trivial due to various specifics that a password has.
-Let's go through this scenario by starting with the simples way and ending with the right way.
+Let's go through this scenario by starting with the simplest way and ending with the right way.
 
-The simples way how to allow change of user's own password is by using a simple authorization:
+The simplest way how to allow change of user's own password is by using a simple authorization:
 
 [source,xml]
 ----
