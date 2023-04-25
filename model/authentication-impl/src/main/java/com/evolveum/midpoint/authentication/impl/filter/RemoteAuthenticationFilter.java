@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.util.RequestState;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -17,7 +15,6 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,41 +29,6 @@ import java.io.IOException;
 public interface RemoteAuthenticationFilter extends Filter {
 
     Trace LOGGER = TraceManager.getTrace(RemoteAuthenticationFilter.class);
-
-    boolean requiresAuth(HttpServletRequest request, HttpServletResponse response);
-
-    void unsuccessfulAuth(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
-            throws IOException, ServletException;
-
-    String getErrorMessageKeyNotResponse();
-
-    void doAuth(ServletRequest req, ServletResponse res, FilterChain chain) throws ServletException, IOException;
-
-    default void doRemoteFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-            throws IOException, ServletException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean sentRequest = false;
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            RemoteModuleAuthenticationImpl moduleAuthentication = (RemoteModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
-                sentRequest = true;
-            }
-            boolean requiresAuthentication = requiresAuth((HttpServletRequest) req, (HttpServletResponse) res);
-
-            if (!requiresAuthentication && sentRequest) {
-                AuthenticationServiceException exception = new AuthenticationServiceException(getErrorMessageKeyNotResponse());
-                unsuccessfulAuth((HttpServletRequest) req, (HttpServletResponse) res, exception);
-            } else {
-                if (moduleAuthentication != null && requiresAuthentication && sentRequest) {
-                    moduleAuthentication.setRequestState(RequestState.RECEIVED);
-                }
-                doAuth(req, res, chain);
-            }
-        } else {
-            throw new AuthenticationServiceException("Unsupported type of Authentication");
-        }
-    }
 
     default void remoteUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException failed, ModelAuditRecorder auditProvider, RememberMeServices rememberMeService,

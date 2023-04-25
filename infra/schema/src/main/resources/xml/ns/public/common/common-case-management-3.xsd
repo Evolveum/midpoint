@@ -287,6 +287,9 @@
                     <xsd:documentation>
                         Descriptive name of the work item. E.g. "Assign role1 to user1".
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractWorkItemType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
