@@ -942,6 +942,12 @@ Definition for OpenID Provider. Possible attributes are:
 | false
 | _String_
 
+| `jwkSetUri`
+| Uri for JSON web key set endpoint. Available from midPoint 4.8.
+| false
+| _String_
+
+
 |===
 
 Required attribute is only `issuerUri`, because midPoint gets configuration for all other URIs from 'issuerUri'/.well-known/openid-configuration. MidPoint can write error to log file that some from optional configuration URIs is null and required. This error we can see when 'issuerUri'/.well-known/openid-configuration is unavailable.
