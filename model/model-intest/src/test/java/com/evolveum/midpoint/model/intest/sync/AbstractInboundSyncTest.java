@@ -10,10 +10,15 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
+import com.evolveum.midpoint.test.TestTask;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,7 +30,6 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,19 +46,18 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     public static final File TEST_DIR = new File("src/test/resources/sync");
 
-    protected static final File TASK_LIVE_SYNC_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-livesync.xml");
-    protected static final String TASK_LIVE_SYNC_DUMMY_EMERALD_OID = "10000000-0000-0000-5555-55550000e404";
+    static final TestTask TASK_LIVE_SYNC_DUMMY_EMERALD = TestTask.file(
+            TEST_DIR, "task-dummy-emerald-livesync.xml", "10000000-0000-0000-5555-55550000e404");
+    static final TestTask TASK_RECON_DUMMY_EMERALD = TestTask.file(
+            TEST_DIR, "task-dummy-emerald-recon.xml", "10000000-0000-0000-5656-56560000e404");
 
-    protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
-    protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
+    static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
+    static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
-    protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
-    protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
-    protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
+    private static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
 
-    protected static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
-
-    protected long timeBeforeSync;
+    private long timeBeforeSync;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -66,28 +69,14 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         }
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
+        getSyncTask().init(this, initTask, initResult);
+        runSyncTask(initResult); // necessary e.g. for live sync to obtain initial token (for recon should be idempotent)
     }
 
-    @Override
-    protected File getResourceDummyEmeraldFile() {
-        return RESOURCE_DUMMY_EMERALD_FILE;
-    }
+    abstract TestTask getSyncTask();
 
-    protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
-
-    protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);
-
-    protected int getWaitTimeout() {
-        return DEFAULT_TASK_WAIT_TIMEOUT;
-    }
-
-    @Test
-    public void test100ImportLiveSyncTaskDummyEmerald() throws Exception {
-        when();
-        importSyncTask(resourceDummyEmerald);
-
-        then();
-        waitForSyncTaskStart(resourceDummyEmerald);
+    void runSyncTask(OperationResult result) throws CommonException {
+        getSyncTask().rerun(result);
     }
 
     @Test
@@ -115,7 +104,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         dummyResourceEmerald.addAccount(account);
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -161,7 +150,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -185,7 +174,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         assertLinked(userAfter, accountAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepbad"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig("Mancomb Seepbad"));
 
         assertUsers(7);
 
@@ -211,7 +200,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -261,7 +250,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -285,7 +274,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         assertLinked(userAfter, accountAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepevil"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig("Mancomb Seepevil"));
 
         assertUsers(7);
 
@@ -311,7 +300,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -335,8 +324,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         assertLinked(userAfter, accountAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepevil"));
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("Pirate"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig("Mancomb Seepevil"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_TITLE, PolyString.fromOrig("Pirate"));
 
         assertUsers(7);
 
@@ -362,7 +351,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -386,7 +375,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         assertLinked(userAfter, accountAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepevil"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig("Mancomb Seepevil"));
         PrismAsserts.assertNoItem(userAfter, UserType.F_TITLE);
 
         assertUsers(7);
@@ -413,7 +402,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -437,7 +426,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         assertLinked(userAfter, accountAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepgood"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig("Mancomb Seepgood"));
 
         assertUsers(7);
 
@@ -478,7 +467,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         dummyResourceEmerald.addAccount(account);
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -525,7 +514,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         displayValue("Modified dummy account", account.debugDump());
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -553,19 +542,12 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // TODO create and test inbounds for uid and gid numbers; also other attributes
     }
 
-    protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
-        waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
-    }
-
-    protected void waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
-    }
-
-    protected void rememberTimeBeforeSync() {
+    void rememberTimeBeforeSync() {
         timeBeforeSync = System.currentTimeMillis();
     }
 
-    protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
+    @SuppressWarnings("SameParameterValue")
+    private void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
         ShadowType shadowType = shadow.asObjectable();
         SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
         assertEquals("Wrong situation in shadow " + shadow, expectedSituation, actualSituation);

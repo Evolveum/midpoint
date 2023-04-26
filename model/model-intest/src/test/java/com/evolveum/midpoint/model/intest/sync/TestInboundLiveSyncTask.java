@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import static org.testng.AssertJUnit.assertNull;
 
-import java.io.FileNotFoundException;
+import com.evolveum.midpoint.test.TestTask;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
@@ -39,21 +38,8 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
     }
 
     @Override
-    protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-        if (resource == resourceDummyEmerald) {
-            importObjectFromFile(TASK_LIVE_SYNC_DUMMY_EMERALD_FILE);
-        } else {
-            throw new IllegalArgumentException("Unknown resource "+resource);
-        }
-    }
-
-    @Override
-    protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-        if (resource == resourceDummyEmerald) {
-            return TASK_LIVE_SYNC_DUMMY_EMERALD_OID;
-        } else {
-            throw new IllegalArgumentException("Unknown resource "+resource);
-        }
+    protected TestTask getSyncTask() {
+        return TASK_LIVE_SYNC_DUMMY_EMERALD;
     }
 
     @Override
@@ -70,7 +56,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 
         dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
