@@ -20,7 +20,6 @@ import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
@@ -71,19 +70,10 @@ public class Main {
 
         NinjaContext context = null;
         try {
-            ConnectionOptions connection = Objects.requireNonNull(
-                    NinjaUtils.getOptions(jc, ConnectionOptions.class));
-            Action<T> action;
-            if (connection.isUseWebservice()) {
-                action = Command.createRestAction(parsedCommand);
-            } else {
-                action = Command.createRepositoryAction(parsedCommand);
-            }
+            Action<T> action = Command.createRepositoryAction(parsedCommand);
 
             if (action == null) {
-                String strConnection = connection.isUseWebservice() ? "webservice" : "repository";
-                System.err.println("Action for command '" + parsedCommand + "' not found (connection: '"
-                        + strConnection + "')");
+                System.err.println("Action for command '" + parsedCommand + "' not found");
                 return;
             }
 
