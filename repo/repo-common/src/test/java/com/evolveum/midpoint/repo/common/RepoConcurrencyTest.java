@@ -556,7 +556,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
     @Test
     public void test110AddAssignments() throws Exception {
         // Because of:
-        // Caused by: javax.persistence.EntityExistsException: A different object with the same identifier value was already associated with the session : [com.evolveum.midpoint.repo.sql.data.common.container.RAssignment#RContainerId{44c3e25d-e790-4142-958d-ff7ff3ff3a9f, 62}]
+        // Caused by: jakarta.persistence.EntityExistsException: A different object with the same identifier value was already associated with the session : [com.evolveum.midpoint.repo.sql.data.common.container.RAssignment#RContainerId{44c3e25d-e790-4142-958d-ff7ff3ff3a9f, 62}]
         //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:118)
         //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:157)
         //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:164)

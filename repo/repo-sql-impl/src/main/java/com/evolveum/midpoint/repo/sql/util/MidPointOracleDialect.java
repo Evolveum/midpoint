@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import org.hibernate.boot.Metadata;
+import org.hibernate.boot.model.relational.SqlStringGenerationContext;
 import org.hibernate.dialect.Oracle12cDialect;
 import org.hibernate.mapping.Index;
 import org.hibernate.tool.schema.spi.Exporter;
@@ -31,8 +32,8 @@ public class MidPointOracleDialect extends Oracle12cDialect {
         return new Exporter<Index>() {
 
             @Override
-            public String[] getSqlCreateStrings(Index exportable, Metadata metadata) {
-                String[] data = exporter.getSqlCreateStrings(exportable, metadata);
+            public String[] getSqlCreateStrings(Index exportable, Metadata metadata, SqlStringGenerationContext context) {
+                String[] data = exporter.getSqlCreateStrings(exportable, metadata, context);
                 String[] transformed = new String[data.length];
 
                 for (int i = 0; i < data.length; i++) {
@@ -43,8 +44,8 @@ public class MidPointOracleDialect extends Oracle12cDialect {
             }
 
             @Override
-            public String[] getSqlDropStrings(Index exportable, Metadata metadata) {
-                return exporter.getSqlDropStrings(exportable, metadata);
+            public String[] getSqlDropStrings(Index exportable, Metadata metadata, SqlStringGenerationContext context) {
+                return exporter.getSqlDropStrings(exportable, metadata, context);
             }
         };
     }

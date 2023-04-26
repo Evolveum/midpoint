@@ -10,9 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import jakarta.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.Session;
+import org.hibernate.query.criteria.JpaCriteriaQuery;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +63,7 @@ public class ExtItemDictionary {
         try {
             session = baseHelper.beginReadOnlyTransaction();
 
-            CriteriaQuery<RExtItem> query = session.getCriteriaBuilder().createQuery(RExtItem.class);
+            JpaCriteriaQuery<RExtItem> query = session.getCriteriaBuilder().createQuery(RExtItem.class);
             query.select(query.from(RExtItem.class));
             List<RExtItem> items = session.createQuery(query).getResultList();
             LOGGER.debug("Fetched {} item definitions", items.size());

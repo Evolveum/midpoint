@@ -16,8 +16,8 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 
 import org.hibernate.*;

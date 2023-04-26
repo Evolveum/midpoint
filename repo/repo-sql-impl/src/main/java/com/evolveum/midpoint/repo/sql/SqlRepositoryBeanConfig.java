@@ -131,7 +131,7 @@ public class SqlRepositoryBeanConfig {
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", configuration.getHibernateHbm2ddl());
         hibernateProperties.setProperty("hibernate.id.new_generator_mappings", "true");
         hibernateProperties.setProperty("hibernate.jdbc.batch_size", "20");
-        hibernateProperties.setProperty("javax.persistence.validation.mode", "none");
+        hibernateProperties.setProperty("jakarta.persistence.validation.mode", "none");
         hibernateProperties.setProperty("hibernate.transaction.coordinator_class", "jdbc");
         hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy",
                 "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");

@@ -31,6 +31,8 @@ public class MidPointSingleTablePersister extends SingleTableEntityPersister {
         super(persistentClass, cacheAccessStrategy, naturalIdRegionAccessStrategy, creationContext);
     }
 
+    // FIXME: Find hydrate alternative
+    /*
     @Override
     public Object[] hydrate(ResultSet rs, Serializable id, Object object, Loadable rootLoadable,
             String[][] suffixedPropertyColumns, boolean allProperties,
@@ -39,5 +41,5 @@ public class MidPointSingleTablePersister extends SingleTableEntityPersister {
         Object[] values = super.hydrate(rs, id, object, rootLoadable, suffixedPropertyColumns, allProperties, session);
         MidpointPersisterUtil.killUnwantedAssociationValues(getPropertyNames(), getPropertyTypes(), values);
         return values;
-    }
+    }*/
 }

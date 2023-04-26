@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.helpers.delta;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.ManagedType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;

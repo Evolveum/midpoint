@@ -11,13 +11,14 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -80,6 +82,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     public RAccessCertificationCase() {
     }
 
+    @Override
     @Id
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
     @MapsId("owner")
@@ -89,6 +92,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -98,6 +102,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -144,15 +149,18 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @JaxbName(localPart = "currentStageCreateTimestamp")
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getReviewRequestedTimestamp() {
         return reviewRequestedTimestamp;
     }
 
     @JaxbName(localPart = "currentStageDeadline")
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getReviewDeadline() {
         return reviewDeadline;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getRemediedTimestamp() {
         return remediedTimestamp;
     }
@@ -174,6 +182,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return outcome;
     }
 
+    @Override
     public void setOwner(RAccessCertificationCampaign owner) {
         this.owner = owner;
         if (owner != null) {
@@ -181,10 +190,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         }
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }

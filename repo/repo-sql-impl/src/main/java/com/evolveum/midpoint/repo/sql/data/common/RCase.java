@@ -8,13 +8,14 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -114,6 +116,7 @@ public class RCase extends RObject {
         this.requestorRef = requestorRef;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getCloseTimestamp() {
         return closeTimestamp;
     }

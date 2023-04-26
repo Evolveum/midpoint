@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.COL
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.TABLE_NAME;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;

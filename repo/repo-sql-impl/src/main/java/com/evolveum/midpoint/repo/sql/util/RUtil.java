@@ -30,7 +30,8 @@ import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.metamodel.internal.MetamodelImpl;
+import org.hibernate.metamodel.MappingMetamodel;
+import org.hibernate.metamodel.model.domain.internal.JpaMetamodelImpl;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
@@ -201,7 +202,8 @@ public final class RUtil {
 
     private static void fixCompositeIdentifierInMetaModel(
             SessionFactory sessionFactory, Class<?> clazz) {
-        ClassMetadata classMetadata = sessionFactory.getClassMetadata(clazz);
+        //sessionFactory.getMetamodel().entity(clazz);
+        ClassMetadata classMetadata = null; //sessionFactory.getClassMetadata(clazz);
         if (classMetadata instanceof AbstractEntityPersister) {
             AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
             EntityMetamodel model = persister.getEntityMetamodel();
@@ -355,8 +357,8 @@ public final class RUtil {
 
     public static String getTableName(Class<?> hqlType, Session session) {
         SessionFactory factory = session.getSessionFactory();
-        MetamodelImpl model = (MetamodelImpl) factory.getMetamodel();
-        EntityPersister ep = model.entityPersister(hqlType);
+        MappingMetamodel model = (MappingMetamodel) factory.getMetamodel();
+        EntityPersister ep = model.getEntityDescriptor(hqlType); // model.entityPersister(hqlType);
         if (ep instanceof Joinable) {
             Joinable joinable = (Joinable) ep;
             return joinable.getTableName();

@@ -7,12 +7,13 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -93,10 +95,12 @@ public class ROperationExecution implements Container<RObject> {
         return ownerOid;
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -106,6 +110,7 @@ public class ROperationExecution implements Container<RObject> {
         return id;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -145,6 +150,7 @@ public class ROperationExecution implements Container<RObject> {
     }
 
     @Column(name = "timestampValue")
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
     }

@@ -10,15 +10,10 @@ package com.evolveum.midpoint.repo.sql.util;
 import org.hibernate.HibernateException;
 import org.hibernate.cache.spi.access.EntityDataAccess;
 import org.hibernate.cache.spi.access.NaturalIdDataAccess;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.persister.entity.JoinedSubclassEntityPersister;
-import org.hibernate.persister.entity.Loadable;
 import org.hibernate.persister.spi.PersisterCreationContext;
 
-import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
  * See MidPointPersisterUtil comments.
@@ -31,6 +26,8 @@ public class MidPointJoinedPersister extends JoinedSubclassEntityPersister {
         super(persistentClass, cacheAccessStrategy, naturalIdRegionAccessStrategy, creationContext);
     }
 
+    // FIXME: Find replacement for hydrate contract
+    /*
     @Override
     public Object[] hydrate(ResultSet rs, Serializable id, Object object, Loadable rootLoadable,
             String[][] suffixedPropertyColumns, boolean allProperties,
@@ -40,5 +37,6 @@ public class MidPointJoinedPersister extends JoinedSubclassEntityPersister {
         MidpointPersisterUtil.killUnwantedAssociationValues(getPropertyNames(), getPropertyTypes(), values);
         return values;
     }
+    */
 
 }

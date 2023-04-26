@@ -12,48 +12,47 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hibernate.HibernateException;
-import org.hibernate.dialect.Oracle10gDialect;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
+import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.usertype.UserType;
 
-public class PrefixedStringType implements UserType {
+public class PrefixedStringType implements UserType<String> {
 
     public static final String NAME = "PrefixedStringType";
 
     @Override
-    public Object assemble(Serializable cached, Object owner) throws HibernateException {
-        return cached;
+    public String assemble(Serializable cached, Object owner) throws HibernateException {
+        return (String) cached;
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[] { StringType.INSTANCE.sqlType() };
+    public int getSqlType() {
+        return StandardBasicTypes.STRING.getSqlTypeCode();
     }
 
     @Override
-    public Class returnedClass() {
+    public Class<String> returnedClass() {
         return String.class;
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException {
+    public boolean equals(String x, String y) throws HibernateException {
         return x != null ? x.equals(y) : y == null;
     }
 
     @Override
-    public int hashCode(Object x) throws HibernateException {
+    public int hashCode(String x) throws HibernateException {
         if (x == null) {
             return 0;
         }
         return x.hashCode();
     }
 
+
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public String nullSafeGet(ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String value = StringType.INSTANCE.nullSafeGet(rs, names[0], session);
+        String value = rs.getString(position);
         if (isOracle(session) && value != null) {
             value = value.substring(1);
         }
@@ -62,22 +61,23 @@ public class PrefixedStringType implements UserType {
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
+    public void nullSafeSet(PreparedStatement st, String value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException {
         if (isOracle(session) && value != null) {
-            value = '\u0000' + ((String) value);
+            value = '\u0000' + (value);
         }
-
-        StringType.INSTANCE.nullSafeSet(st, value, index, session);
+        st.setString(index, value);
     }
 
     private boolean isOracle(SharedSessionContractImplementor session) {
-        SessionFactoryImplementor factory = session.getFactory();
-        return Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass());
+        //SessionFactoryImplementor factory = session.getFactory();
+        //return Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass());
+
+        return false;
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException {
+    public String deepCopy(String value) throws HibernateException {
         return value;
     }
 
@@ -87,12 +87,12 @@ public class PrefixedStringType implements UserType {
     }
 
     @Override
-    public Serializable disassemble(Object value) throws HibernateException {
-        return (String) value;
+    public Serializable disassemble(String value) throws HibernateException {
+        return value;
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException {
+    public String replace(String original, String target, Object owner) throws HibernateException {
         return deepCopy(original);
     }
 }

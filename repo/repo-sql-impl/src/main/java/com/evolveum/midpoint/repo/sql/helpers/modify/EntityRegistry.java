@@ -7,16 +7,18 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import jakarta.annotation.PostConstruct;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.Metamodel;
+
 import javax.xml.namespace.QName;
 
-import org.hibernate.Metamodel;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,12 +89,23 @@ public class EntityRegistry {
             for (Attribute<?, ?> attribute : entity.getAttributes()) {
                 Class<?> jType = attribute.getJavaType();
                 JaxbPath[] paths = jType.getAnnotationsByType(JaxbPath.class);
+                var member = attribute.getJavaMember();
                 if (paths == null || paths.length == 0) {
-                    paths = ((Method) attribute.getJavaMember()).getAnnotationsByType(JaxbPath.class);
+                    if (member instanceof Method) {
+                        paths = ((Method) member).getAnnotationsByType(JaxbPath.class);
+                    } else if (member instanceof Field) {
+                        paths = ((Field) member).getAnnotationsByType(JaxbPath.class);
+                    }
+
                 }
 
                 if (paths == null || paths.length == 0) {
-                    JaxbName name = ((Method) attribute.getJavaMember()).getAnnotation(JaxbName.class);
+                    JaxbName name = null;
+                    if (member instanceof Method) {
+                        name = ((Method) member).getAnnotation(JaxbName.class);
+                    } else if (member instanceof Field) {
+                        name = ((Field) member).getAnnotation(JaxbName.class);
+                    }
                     if (name != null) {
                         overrides.put(name.localPart(), attribute);
                     }

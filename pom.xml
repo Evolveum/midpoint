@@ -214,7 +214,7 @@
         <testng.version>7.7.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.8.2</xmlunit.version>
-        <hibernate.version>5.5.3.Final</hibernate.version>
+        <!-- hibernate.version>5.5.3.Final</hibernate.version -->
         <!--
         Default Spring Boot 2.7.3 uses H2 2.1.x, which is a big step from our current.
         Every upgrade after v193 up to 1.4.200 had issues for use, some are probably fixed like this NPE bug
@@ -1531,7 +1531,7 @@
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
-                <version>4.9.2</version>
+                <version>4.10.1</version>
             </dependency>
             <dependency>
                 <groupId>net.ttddyy</groupId>

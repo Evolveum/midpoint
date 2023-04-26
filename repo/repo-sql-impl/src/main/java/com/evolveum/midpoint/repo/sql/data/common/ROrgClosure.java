@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.io.Serializable;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
@@ -23,9 +23,9 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 @Entity
 @Table(name = "m_org_closure",
         indexes = {
-                @javax.persistence.Index(name = "iAncestor", columnList = "ancestor_oid"),
-                @javax.persistence.Index(name = "iDescendant", columnList = "descendant_oid"),
-                @javax.persistence.Index(name = "iDescendantAncestor", columnList = "descendant_oid, ancestor_oid")
+                @jakarta.persistence.Index(name = "iAncestor", columnList = "ancestor_oid"),
+                @jakarta.persistence.Index(name = "iDescendant", columnList = "descendant_oid"),
+                @jakarta.persistence.Index(name = "iDescendantAncestor", columnList = "descendant_oid, ancestor_oid")
         })
 @NotQueryable
 @DynamicUpdate

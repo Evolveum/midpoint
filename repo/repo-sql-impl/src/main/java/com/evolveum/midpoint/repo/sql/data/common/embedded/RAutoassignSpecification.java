@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 

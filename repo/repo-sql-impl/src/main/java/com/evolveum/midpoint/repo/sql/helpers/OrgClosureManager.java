@@ -15,8 +15,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -338,9 +337,9 @@ public class OrgClosureManager {
         if (check) {
             LOGGER.info("Reading from existing org closure table");
             NativeQuery selectQuery = session.createNativeQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
-                    .addScalar("descendant_oid", StringType.INSTANCE)
-                    .addScalar("ancestor_oid", StringType.INSTANCE)
-                    .addScalar("val", IntegerType.INSTANCE);
+                    .addScalar("descendant_oid", StandardBasicTypes.STRING)
+                    .addScalar("ancestor_oid", StandardBasicTypes.STRING)
+                    .addScalar("val", StandardBasicTypes.INTEGER);
             existingEntries = selectQuery.list();
             LOGGER.info("{} entries read", existingEntries.size());
         }
@@ -374,9 +373,9 @@ public class OrgClosureManager {
         if (check) {
             LOGGER.info("Reading from recomputed org closure table");
             NativeQuery selectQuery = session.createNativeQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
-                    .addScalar("descendant_oid", StringType.INSTANCE)
-                    .addScalar("ancestor_oid", StringType.INSTANCE)
-                    .addScalar("val", IntegerType.INSTANCE);
+                    .addScalar("descendant_oid", StandardBasicTypes.STRING)
+                    .addScalar("ancestor_oid", StandardBasicTypes.STRING)
+                    .addScalar("val", StandardBasicTypes.INTEGER);
             List recomputedEntries = selectQuery.list();
             LOGGER.info("{} entries read", recomputedEntries.size());
             compareOrgClosureTables(existingEntries, recomputedEntries, rebuild, result);
@@ -420,7 +419,7 @@ public class OrgClosureManager {
         NativeQuery q = session.createNativeQuery(
                 "select count(m_org.oid) as problems from m_org left join m_org_closure cl " +
                         "on cl.descendant_oid = m_org.oid and cl.ancestor_oid = m_org.oid " +
-                        "where cl.descendant_oid is null").addScalar("problems", IntegerType.INSTANCE);
+                        "where cl.descendant_oid is null").addScalar("problems", StandardBasicTypes.INTEGER);
         List problemsList = q.list();
         if (problemsList == null || problemsList.size() != 1) {
             throw new IllegalStateException("Unexpected return value from the closure check query: " + problemsList + " (a 1-item list of Integer expected)");
@@ -647,8 +646,8 @@ public class OrgClosureManager {
     private void checkForCycles(List<Edge> edges, Session session) {
         String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " where " + getWhereClauseForCycleCheck(edges);
         NativeQuery query = session.createNativeQuery(queryText)
-                .addScalar("descendant_oid", StringType.INSTANCE)
-                .addScalar("ancestor_oid", StringType.INSTANCE);
+                .addScalar("descendant_oid", StandardBasicTypes.STRING)
+                .addScalar("ancestor_oid", StandardBasicTypes.STRING);
         long start = System.currentTimeMillis();
         List list = query.list();
         LOGGER.trace("Cycles checked in {} ms, {} conflicts found", System.currentTimeMillis() - start, list.size());
@@ -1032,9 +1031,9 @@ public class OrgClosureManager {
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
         NativeQuery<Object[]> q = session.createNativeQuery(
                         "select descendant_oid, ancestor_oid, val from " + tableName, Object[].class)
-                .addScalar("descendant_oid", StringType.INSTANCE)
-                .addScalar("ancestor_oid", StringType.INSTANCE)
-                .addScalar("val", IntegerType.INSTANCE);
+                .addScalar("descendant_oid", StandardBasicTypes.STRING)
+                .addScalar("ancestor_oid", StandardBasicTypes.STRING)
+                .addScalar("val", StandardBasicTypes.INTEGER);
         List<Object[]> list = q.list();
         LOGGER.trace("{} ({} rows):", tableName, list.size());
         for (Object[] row : list) {
@@ -1258,6 +1257,7 @@ public class OrgClosureManager {
             return ancestor;
         }
 
+        @Override
         public String toString() {
             return descendant + "->" + ancestor;
         }

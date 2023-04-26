@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.transform.BasicTransformerAdapter;
+
 import org.hibernate.transform.ResultTransformer;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -34,7 +34,7 @@ public final class GetAssignmentResult implements Serializable {
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
         @Override
         public ResultTransformer getResultTransformer() {
-            return new BasicTransformerAdapter() {
+            return new ResultTransformer() {
                 @Override
                 public Object transformTuple(Object[] tuple, String[] aliases) {
                     return new GetAssignmentResult(tuple);
