@@ -211,8 +211,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             //noinspection unchecked
             object = (PrismObject<T>) objectResolver
                     .getObject(clazz, oid, parsedOptions.getCollection(), task, result)
-                    .asPrismObject()
-                    .cloneIfImmutable();
+                    .asPrismObject();
 
             object = schemaTransformer.applySchemasAndSecurityToObject(object, parsedOptions, task, result);
             executeResolveOptions(object.asObjectable(), parsedOptions, task, result);
