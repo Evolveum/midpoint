@@ -115,6 +115,7 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
             getOptionalIfNotEmpty(openIdProvider.getTokenUri()).ifPresent(builder::tokenUri);
             getOptionalIfNotEmpty(openIdProvider.getUserInfoUri()).ifPresent(builder::userInfoUri);
             getOptionalIfNotEmpty(openIdProvider.getIssuerUri()).ifPresent(builder::issuerUri);
+            getOptionalIfNotEmpty(openIdProvider.getJwkSetUri()).ifPresent(builder::jwkSetUri);
             ClientRegistration clientRegistration = builder.build();
 
             List<String> scopes = new ArrayList<>();

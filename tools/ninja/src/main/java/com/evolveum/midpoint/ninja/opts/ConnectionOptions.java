@@ -32,9 +32,6 @@ public class ConnectionOptions {
     public static final String P_MIDPOINT_HOME = "-m";
     public static final String P_MIDPOINT_HOME_LONG = "--midpoint-home";
 
-    public static final String P_WEBSERVICE = "-w";
-    public static final String P_WEBSERVICE_LONG = "--webservice";
-
     public static final String P_OFFLINE_LONG = "--offline";
 
     @Parameter(names = { P_URL, P_URL_LONG }, validateWith = URIConverter.class, descriptionKey = "connection.url")
@@ -52,10 +49,6 @@ public class ConnectionOptions {
 
     @Parameter(names = { P_MIDPOINT_HOME, P_MIDPOINT_HOME_LONG }, descriptionKey = "connection.midpointHome")
     private String midpointHome;
-
-    @Parameter(names = { P_WEBSERVICE, P_WEBSERVICE_LONG }, descriptionKey = "connection.useWebservice", hidden = true)
-    //todo remove hidden when implementation is done
-    private boolean useWebservice;
 
     @Parameter(names = { P_OFFLINE_LONG }, descriptionKey = "connection.offline")
     private boolean offline;
@@ -78,10 +71,6 @@ public class ConnectionOptions {
 
     public String getMidpointHome() {
         return midpointHome;
-    }
-
-    public boolean isUseWebservice() {
-        return useWebservice;
     }
 
     public boolean isOffline() {
