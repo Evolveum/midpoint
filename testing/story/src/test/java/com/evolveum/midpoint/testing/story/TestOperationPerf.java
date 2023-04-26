@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -30,10 +32,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ExtensionValueGenerator;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 /**
  * Originally, this class checks number of selected infra operations needed to execute "object add" operation.
@@ -64,7 +67,7 @@ public class TestOperationPerf extends AbstractStoryTest {
     private static final String GENERATED_EMPTY_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-e0000000%04d";
     private static final String GENERATED_EMPTY_ROLE_NAME_FORMAT = "Empty Role %04d";
 
-    private static final int GET_ITERATIONS = 1_000;
+    private static final int GET_ITERATIONS = 2_000_000;
 
     private final ExtensionValueGenerator extensionValueGenerator = ExtensionValueGenerator.withDefaults();
 
@@ -118,18 +121,27 @@ public class TestOperationPerf extends AbstractStoryTest {
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
     }
 
-    /** "Basic user" - 10 extension properties, 3 assignments. */
+    /**
+     * - `alice` is "basic user" - 10 extension properties, 3 assignments.
+     * - `bob` is "heavy user" - "Heavy user" - 50 properties, 40 assignments.
+     * */
     @Test
-    public void test100AddAlice() throws Exception {
+    public void test100AddAndGet() throws Exception {
+        when("creating users");
         testAddUser(USER_ALICE_FILE, USER_ALICE_OID, 10, 3);
-        testGetUser(USER_ALICE_OID);
-    }
-
-    /** "Heavy user" - 50 properties, 40 assignments. */
-    @Test
-    public void test110AddBob() throws Exception {
         testAddUser(USER_BOB_FILE, USER_BOB_OID, 50, 40);
-        testGetUser(USER_BOB_OID);
+
+        and("getting users");
+        testGetUser("alice", USER_ALICE_OID);
+        testGetUser("bob", USER_BOB_OID);
+        testGetUser("alice", USER_ALICE_OID);
+        testGetUser("bob", USER_BOB_OID);
+        testGetUser("alice", USER_ALICE_OID);
+        testGetUser("bob", USER_BOB_OID);
+        testGetUser("alice", USER_ALICE_OID);
+        testGetUser("bob", USER_BOB_OID);
+        testGetUser("alice", USER_ALICE_OID);
+        testGetUser("bob", USER_BOB_OID);
     }
 
     private void testAddUser(File userFile, String userOid, int extProperties, int roles) throws Exception {
@@ -190,18 +202,25 @@ public class TestOperationPerf extends AbstractStoryTest {
     }
 
     /** MID-8479 */
-    private void testGetUser(String oid) throws CommonException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
+    private void testGetUser(String name, String oid) throws CommonException {
+        executeGetUserIterations(oid, GET_ITERATIONS / 10); // heating up
 
         long start = System.currentTimeMillis();
-        for (int i = 0; i < GET_ITERATIONS; i++) {
-            modelService.getObject(UserType.class, oid, null, task, result);
-        }
+        executeGetUserIterations(oid, GET_ITERATIONS);
         long duration = System.currentTimeMillis() - start;
 
-        display(String.format("Retrieved a user in %.3f ms", (double) duration / GET_ITERATIONS));
+        display(String.format("Retrieved %s in %,.3f µs", name, 1000.0 * duration / GET_ITERATIONS));
+    }
 
-        assertSuccess(result);
+    private void executeGetUserIterations(String oid, int iterations) throws CommonException {
+        var task = getTestTask();
+        var options = createReadOnlyCollection();
+        OperationResult result1 = null;
+        for (int i = 0; i < iterations; i++) {
+            if (i % 100 == 0) {
+                result1 = new OperationResult("dummy"); // to avoid operation result aggregation
+            }
+            modelService.getObject(UserType.class, oid, options, task, result1);
+        }
     }
 }
