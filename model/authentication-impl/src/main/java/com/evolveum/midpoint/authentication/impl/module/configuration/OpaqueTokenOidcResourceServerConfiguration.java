@@ -28,6 +28,7 @@ import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -90,7 +91,8 @@ public class OpaqueTokenOidcResourceServerConfiguration extends RemoteModuleWebS
             builder.registrationId("unknownRegistrationId");
         }
 
-        builder.clientId("unknownClientId");
+        //hack, we need ClientRegistration, but it can be empty we use only user info uri
+        builder.authorizationGrantType(AuthorizationGrantType.JWT_BEARER);
 
         if (StringUtils.isNotEmpty(opaqueTokenConfig.getUserInfoUri())) {
             builder.userInfoUri(opaqueTokenConfig.getUserInfoUri());
