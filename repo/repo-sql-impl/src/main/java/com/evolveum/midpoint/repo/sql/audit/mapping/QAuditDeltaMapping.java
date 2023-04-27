@@ -84,6 +84,7 @@ public class QAuditDeltaMapping
             return repositoryContext()
                     .createStringParser(RUtil.getSerializedFormFromBytes(bytes, usingSqlServer))
                     .compat()
+                    .fastAddOperations()
                     .parseRealValue(clazz);
         } catch (SchemaException e) {
             logger.error("Cannot parse {}: {}", clazz.getSimpleName(), e.getMessage(), e);

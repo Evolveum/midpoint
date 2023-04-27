@@ -718,10 +718,11 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
                 if (!toAdd.isEmpty()) {
                     PrismValue valueToAdd = equivalenceClass.getRepresentative().clone();
-                    valueToAdd.getValueMetadataAsContainer().clear();
+                    PrismContainer<Containerable> valueMetadataAsContainer = valueToAdd.getValueMetadataAsContainer();
+                    valueMetadataAsContainer.clear();
                     for (ValueMetadataType metadataToAdd : toAdd) {
                         //noinspection unchecked
-                        valueToAdd.getValueMetadataAsContainer().add(metadataToAdd.clone().asPrismContainerValue());
+                        valueMetadataAsContainer.add(metadataToAdd.clone().asPrismContainerValue());
                     }
                     //noinspection unchecked
                     itemDelta.addValueToAdd((V) valueToAdd);
@@ -729,10 +730,11 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
                 if (!toDelete.isEmpty()) {
                     PrismValue valueToDelete = equivalenceClass.getRepresentative().clone();
-                    valueToDelete.getValueMetadataAsContainer().clear();
+                    PrismContainer<Containerable> valueMetadataAsContainer = valueToDelete.getValueMetadataAsContainer();
+                    valueMetadataAsContainer.clear();
                     for (ValueMetadataType metadataToDelete : toDelete) {
                         //noinspection unchecked
-                        valueToDelete.getValueMetadataAsContainer().add(metadataToDelete.clone().asPrismContainerValue());
+                        valueMetadataAsContainer.add(metadataToDelete.clone().asPrismContainerValue());
                     }
                     //noinspection unchecked
                     itemDelta.addValueToDelete((V) valueToDelete);

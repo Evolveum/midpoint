@@ -235,9 +235,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
         if (response.hasEntity()) {
             String body = response.readEntity(String.class);
             if (expectedClass == null || Object.class.equals(expectedClass)) {
-                return prismContext.parserFor(body).parseRealValue();
+                return prismContext.parserFor(body).fastAddOperations().parseRealValue();
             } else {
-                return prismContext.parserFor(body).parseRealValue(expectedClass);
+                return prismContext.parserFor(body).fastAddOperations().parseRealValue(expectedClass);
             }
         } else {
             return null;
