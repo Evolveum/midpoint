@@ -1871,6 +1871,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="invitationLink" type="tns:SelfRegistrationPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            This flow should be used in the case when the user is created by administrator but still the user
+                            should set their password (or may be some other data). The user receives the link which permits
+                            password (or other data depending on the configuration) update to complete user's registration.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
             <!-- More registration types may come here in the future. -->
         </xsd:sequence>
