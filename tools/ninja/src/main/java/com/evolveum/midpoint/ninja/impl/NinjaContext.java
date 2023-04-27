@@ -6,7 +6,15 @@
  */
 package com.evolveum.midpoint.ninja.impl;
 
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
+
+import java.nio.charset.Charset;
+
 import com.beust.jcommander.JCommander;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -21,15 +29,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
-
-import java.nio.charset.Charset;
-
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -66,8 +65,6 @@ public class NinjaContext {
 
     private AuditService auditService;
 
-    private RestService restService;
-
     private PrismContext prismContext;
 
     private SchemaService schemaService;
@@ -78,19 +75,14 @@ public class NinjaContext {
 
     public void init(@NotNull ConnectionOptions options) {
         boolean initialized = false;
-        if (options.isUseWebservice()) {
-            restService = setupRestService(options);
-            initialized = true;
-        }
 
-        if (!initialized && options.getMidpointHome() != null) {
+        if (options.getMidpointHome() != null) {
             setupRepositoryViaMidPointHome(options);
             initialized = true;
         }
 
         if (!initialized) {
-            throw new IllegalStateException("One of options must be specified: " + ConnectionOptions.P_MIDPOINT_HOME
-                    + ", " + ConnectionOptions.P_WEBSERVICE);
+            throw new IllegalStateException("Option must be defined: " + ConnectionOptions.P_MIDPOINT_HOME);
         }
     }
 
@@ -212,10 +204,6 @@ public class NinjaContext {
         return auditService;
     }
 
-    public RestService getRestService() {
-        return restService;
-    }
-
     public boolean isVerbose() {
         BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
         return base.isVerbose();
@@ -235,10 +223,6 @@ public class NinjaContext {
 
         if (context != null) {
             prismContext = context.getBean(PrismContext.class);
-        }
-
-        if (restService != null) {
-            prismContext = restService.getPrismContext();
         }
 
         return prismContext;

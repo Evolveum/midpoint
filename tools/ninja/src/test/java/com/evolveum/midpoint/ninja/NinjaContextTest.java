@@ -7,40 +7,23 @@
 package com.evolveum.midpoint.ninja;
 
 import com.beust.jcommander.JCommander;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.ninja.impl.RestService;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.ws.Holder;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @UnusedTestElement("throws NPE, see ctx.init")
 public class NinjaContextTest {
-
-    @Test
-    public void setupModelClient() throws Exception {
-        NinjaContext ctx = new NinjaContext(null);
-
-        ctx.init(null);
-        RestService service = ctx.getRestService();
-
-        Holder object = new Holder();
-        Holder result = new Holder();
-//        service.get(UserType.COMPLEX_TYPE, SystemObjectsType.USER_ADMINISTRATOR.value(), null, object, result);
-
-        AssertJUnit.assertNotNull(object.value);
-    }
 
     @Test
     public void setupRepositoryViaMidpointHome() throws Exception {

@@ -49,7 +49,7 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
                         return Collections.singletonList(new ProgressBar(100, ProgressBar.State.SUCCESS,
                                 new SingleLocalizableMessage(KEY_ADDED, new Object[] { size }, KEY_ADDED)));
                     case DELETE:
-                        return Collections.singletonList(new ProgressBar(100, ProgressBar.State.DANGER));
+                        return Collections.singletonList(new ProgressBar(0, ProgressBar.State.SECONDARY));
                     default:
                 }
 
