@@ -1220,10 +1220,6 @@ td .prism-property-value {
 .card.card-outline,
 .card.card-outline-left,
 .card.card-outline-tabs {
-  & .card-header .search-panel-form a {
-    border-top: 0 !important;
-  }
-
   & > .card-header > .card-tools > a.btn.btn-tool {
     border-top: 0 !important;
   }

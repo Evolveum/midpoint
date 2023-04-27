@@ -10,38 +10,36 @@
 <head/>
 <body>
 <wicket:panel>
-    <form wicket:id="popoverForm" style="width: 300px; padding-top: 10px;">
-        <div wicket:id="feedback"></div>
-        <div class="form-group col-sm-12" style="padding-bottom: 5px;">
-            <label class="col-sm-4"><wicket:message key="ReferencePopupPanel.oid"/></label>
-            <div class="col-sm-8" style="padding: 0px;">
-                <input wicket:id="oid" type="text" class="form-control form-control-sm" style="width: 150px; min-width: 150px;" />
+    <form class="my-1" wicket:id="popoverForm" style="width: 300px;">
+        <div wicket:id="feedback"/>
+
+        <div class="row form-group">
+            <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.oid"/></label>
+            <div class="col-8">
+                <input wicket:id="oid" type="text" class="form-control form-control-sm"/>
             </div>
         </div>
-        <div class="form-group col-sm-12" style="padding-bottom: 5px;">
-            <label class="col-sm-4"><wicket:message key="ReferencePopupPanel.name"/></label>
-            <div class="col-sm-8" style="padding: 0px;">
+        <div class="row form-group">
+            <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.name"/></label>
+            <div class="col-8">
                 <div wicket:id="name" />
             </div>
         </div>
-        <div class="form-group col-sm-12" style="padding-bottom: 5px;">
-            <label class="col-sm-4"><wicket:message key="ReferencePopupPanel.targetType"/></label>
-            <div class="col-sm-8" style="padding: 0px;">
+        <div class="row form-group">
+            <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.targetType"/></label>
+            <div class="col-8">
                 <div wicket:id="type" />
             </div>
         </div>
-        <div wicket:id="relationContainer" class="form-group col-sm-12" style="padding-bottom: 5px;">
-            <label class="col-sm-4"><wicket:message key="ReferencePopupPanel.relation"/></label>
-            <div class="col-sm-8" style="padding: 0px;">
+        <div wicket:id="relationContainer" class="row form-group">
+            <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.relation"/></label>
+            <div class="col-8">
                 <div wicket:id="relation" />
             </div>
         </div>
-        <div class="form-group col-sm-12" style="padding-bottom: 10px;">
-            <div>
-                <div>
-                    <a wicket:id="confirmButton" class="btn btn-sm btn-default pull-right"/>
-<!--                    <a wicket:id="selectObject" class="btn btn-sm btn-default pull-right" style="margin-right: 5px;"/>-->
-                </div>
+        <div class="row form-group mb-0">
+            <div class="col">
+                <a wicket:id="confirmButton" class="btn btn-sm btn-default pull-right"/>
             </div>
         </div>
     </form>
