@@ -134,13 +134,13 @@ This option is called `minimumIdle` in HikariCP.
 It is always set by midPoint, so HikariCP default is never used.
 
 The value cannot be lower than 2 for midPoint, and - if set so, minimum value 2 will be used.
-| `8`
+| `8` or `maxPoolSize` if lower
 
 | `maxPoolSize`
 | Maximum # of connections in connection pool, if connection pool is not provided through dataSource.
 Please, be aware that for the multi-node setup the total number of connections *must not* go above
 the `max_connections` in the Postgres configuration, so this is a good default only up to 2 nodes.
-See xref:../native-postgresql/postgresql-configuration/[PostgreSQL Configuration] for more tips.
+See xref:/midpoint/reference/repository/native-postgresql/postgresql-configuration/#connections[PostgreSQL Configuration] for more tips.
 
 When midPoint needs another connection from the pool it will wait for it.
 The time is determined by the default value for HikariCP `connectionTimeout` option, which is 30s.
@@ -148,14 +148,21 @@ Currently, this cannot be changed in midPoint config, but it is a reasonable tim
 But if the pool is oversized and HikariCP asks for the connection from the DB, and there is no free
 connection available, the request fails immediately.
 
-It is better to lower the pool size on the nodes to  that case.
-Don't raise the `max_connections` in PostgreSQL without https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[testing it first]!
-It has far-reaching consequences and can actually hurt performance badly.
+It may be better to lower the pool size on the nodes in that case.
+Don't raise the `max_connections` in PostgreSQL without https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[testing it first].
+It has far-reaching consequences and can actually hurt performance.
 
 This option is called `maximumPoolSize` in HikariCP.
 It is always set by midPoint, so HikariCP default is never used.
 
 This value cannot be lower than `minPoolSize` - if set so, effective `minPoolSize` value is used.
+
+In addition to these connections, there may be another connection pool for the
+xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager] and
+xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[dedicated SQL Audit DB].
+By default, the main DB pool described on this page is used by the Task Manager,
+unless configured otherwise.
+The same goes for SQL Audit - unless configured otherwise, it uses the main DB pool.
 | `40`
 
 | `maxLifetime`

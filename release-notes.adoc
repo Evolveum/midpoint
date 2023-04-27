@@ -1,0 +1,497 @@
+---
+layout: release
+release-version: '4.8'
+---
+= MidPoint 4.8 "Curie"
+:release-version: 4.8
+:page-liquid:
+:page-toc: top
+
+Release {release-version} is a TODO midPoint release code-named _Curie_.
+The {release-version} release brings streamlined upgrade process, security stability and miscellaneous improvements.
+
+++++
+{% include release-data.html %}
+++++
+
+++++
+{% capture dedicationContent %}
+<p>
+<a href="https://en.wikipedia.org/wiki/Marie_Curie">Marie Salomea Skłodowska–Curie</a> (1867-1934) was Polish-French physicist and chemist who conducted pioneering research on radioactivity. ...
+</p>
+<p>
+...
+</p>
+{% endcapture %}
+{% include release-dedication.html content=dedicationContent %}
+++++
+
+== Changes With Respect To Version 4.7
+
+=== New Features and Improvements
+
+* TODO
+
+=== Miscellaneous Improvements
+
+* TODO
+
+=== Releases Of Other Components
+
+* New version (2.6) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector supports internal filtering of search results, it does not need ConnId result handlers any more.
+
+* New version (3.6.1) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
+This version fixes a bug with large integer numbers (bug:MID-4424[]).
+Resource schema of LDAP and AD resources need to be refreshed (deleted and re-fetched) for the connector to operate correctly.
+Please see _Upgrade_ section below for details.
+
+* Docker images will be released in Docker Hub soon after midPoint {release-version} release.
+
+* Overlay project examples will be released soon after midPoint {release-version} release.
+
+* xref:/midpoint/tools/studio/[MidPoint Studio] version {release-version} will be released soon after midPoint {release-version} release.
+
+* xref:/midpoint/devel/prism/[Prism] data representation library {release-version} was released together with midPoint {release-version}.
+
+* xref:/midpoint/reference/interfaces/midpoint-client-java/[Midpoint client Java library] will be released soon after midPoint {release-version} release.
+
+
+== Changes With Respect To Version 4.4 LTS
+
+* TODO
+
+
+++++
+{% include release-quality.html %}
+++++
+
+=== Limitations
+
+Following list provides summary of limitation of this midPoint release.
+
+* Functionality that is marked as xref:/midpoint/versioning/experimental/[Experimental Functionality] is not supported for general use (yet).
+Such features are not covered by midPoint support.
+They are supported only for those subscribers that funded the development of this feature by the means of
+xref:/support/subscription-sponsoring/[subscriptions and sponsoring] or for those that explicitly negotiated such support in their support contracts.
+
+* MidPoint comes with bundled xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector].
+Support for LDAP connector is included in standard midPoint support service, but there are limitations.
+This "bundled" support only includes operations of LDAP connector that 100% compliant with LDAP standards.
+Any non-standard functionality is explicitly excluded from the bundled support.
+We strongly recommend to explicitly negotiate support for a specific LDAP server in your midPoint support contract.
+Otherwise, only standard LDAP functionality is covered by the support.
+See xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] page for more details.
+
+* MidPoint comes with bundled xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)].
+Support for AD connector is included in standard midPoint support service, but there are limitations.
+Only some versions of Active Directory deployments are supported.
+Basic AD operations are supported, but advanced operations may not be supported at all.
+The connector does not claim to be feature-complete.
+See xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)] page for more details.
+
+* MidPoint user interface has flexible (responsive) design, it is able to adapt to various screen sizes, including screen sizes used by some mobile devices.
+However, midPoint administration interface is also quite complex, and it would be very difficult to correctly support all midPoint functionality on very small screens.
+Therefore, midPoint often works well on larger mobile devices (tablets), but it is very likely to be problematic on small screens (mobile phones).
+Even though midPoint may work well on mobile devices, the support for small screens is not included in standard midPoint subscription.
+Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
+
+* There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
+This includes xref:/midpoint/reference/interfaces/midpoint-client-java/[Java client library],
+various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
+Support for these non-bundled items is limited.
+Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
+
+* MidPoint contains a basic case management user interface.
+This part of midPoint user interface is not finished.
+The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
+Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
+
+This list is just an overview, it may not be complete.
+Please see the documentation regarding detailed limitations of individual features.
+
+== Platforms
+
+MidPoint is known to work well in the following deployment environment.
+The following list is list of *tested* platforms, i.e. platforms that midPoint team or reliable partners personally tested with this release.
+The version numbers in parentheses are the actual version numbers used for the tests.
+
+It is very likely that midPoint will also work in similar environments.
+But only the versions specified below are supported as part of midPoint subscription and support programs - unless a different version is explicitly agreed in the contract.
+
+=== Operating System
+
+MidPoint is likely to work on any operating system that supports the Java platform.
+However, for *production deployment*, only some operating systems are supported:
+
+* Linux (x86_64)
+* Windows Server (TODO: specific versions?)
+
+We are positive that midPoint can be successfully installed on other operating systems, especially macOS and Microsoft Windows desktop.
+Such installations can be used to for evaluation, demonstration or development purposes.
+However, we do not support these operating systems for production environments.
+The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
+Please see xref:/midpoint/install/platform-support/[] for details.
+
+Production deployments in Windows environments are supported only for LTS releases.
+As midPoint {release-version} is a feature release, Windows environment is not supported for production use.
+
+=== Java
+
+* OpenJDK 11 (11.0.16).
+
+* OpenJDK 17.
+This is a *recommended* platform.
+
+OpenJDK 17 is the recommended Java platform to run midPoint.
+
+Support for Oracle builds of JDK is provided only for the period in which Oracle provides public support (free updates) for their builds.
+As far as we are aware, free updates for Oracle JDK 11 are no longer available.
+Which means that Oracle JDK 11 is not supported for MidPoint anymore.
+MidPoint is an open source project, and as such it relies on open source components.
+We cannot provide support for platform that do not have public updates as we would not have access to those updates, and therefore we cannot reproduce and fix issues.
+Use of open source OpenJDK builds with public support is recommended instead of proprietary builds.
+
+=== Databases
+
+Since midPoint 4.4, midPoint comes with two repository implementations: _native_ and _generic_.
+Native PostgreSQL repository implementation is strongly recommended for all production deployments.
+
+See xref:/midpoint/reference/repository/repository-database-support/[] for more details.
+
+Since midPoint 4.0, *PostgreSQL is the recommended database* for midPoint deployments.
+Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
+PostgreSQL database is the only database with clear long-term support plan in midPoint.
+We make no commitments for future support of any other database engines.
+See xref:/midpoint/reference/repository/repository-database-support/[] page for the details.
+Only a direct connection from midPoint to the database engine is supported.
+Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
+
+==== Native Database Support
+
+xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository implementation] is developed and tuned
+specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+
+This is now the *primary and recommended repository* for midPoint deployments.
+Following database engines are supported:
+
+* PostgreSQL 15, 14, and 13
+
+==== Generic Database Support (deprecated)
+
+xref:/midpoint/reference/repository/generic/[Generic repository implementation] is based on object-relational
+mapping abstraction (Hibernate), supporting several database engines with the same code.
+Following database engines are supported with this implementation:
+
+* H2 (embedded).
+Supported only in embedded mode.
+Not supported for production deployments.
+Only the version specifically bundled with midPoint is supported. +
+H2 is intended only for development, demo and similar use cases.
+It is *not* supported for any production use.
+Also, upgrade of deployments based on H2 database are not supported.
+
+* PostgreSQL 15, 14, 13, 12, and 11
+
+* Oracle 21c
+
+* Microsoft SQL Server 2019
+
+Support for xref:/midpoint/reference/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
+It is *strongly recommended* to migrate to xref:/midpoint/reference/repository/native-postgresql/[native PostgreSQL repository implementation] as soon as possible.
+See xref:/midpoint/reference/repository/repository-database-support/[] for more details.
+
+=== Supported Browsers
+
+* Firefox
+* Safari
+* Chrome
+* Edge
+* Opera
+
+Any recent version of the browsers is supported.
+That means any stable stock version of the browser released in the last two years.
+We formally support only stock, non-customized versions of the browsers without any extensions or other add-ons.
+According to the experience most extensions should work fine with midPoint.
+However, it is not possible to test midPoint with all of them and support all of them.
+Therefore, if you chose to use extensions or customize the browser in any non-standard way you are doing that on your own risk.
+We reserve the right not to support customized web browsers.
+
+== Important Bundled Components
+
+[%autowidth]
+|===
+| Component | Version | Description
+
+| Tomcat
+| 9.0.65
+| Web container
+
+| ConnId
+| 1.5.1.10
+| ConnId Connector Framework
+
+| xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
+| 3.6.1
+| LDAP and Active Directory
+
+| xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
+| 2.6
+| Connector for CSV files
+
+| xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
+| 1.5.0.0
+| Connector for simple database tables
+
+|===
+
+++++
+{% include release-download.html %}
+++++
+
+== Upgrade
+
+MidPoint is a software designed with easy upgradeability in mind.
+We do our best to maintain strong backward compatibility of midPoint data model, configuration and system behavior.
+However, midPoint is also very flexible and comprehensive software system with a very rich data model.
+It is not humanly possible to test all the potential upgrade paths and scenarios.
+Also, some changes in midPoint behavior are inevitable to maintain midPoint development pace.
+Therefore, there may be some manual actions and configuration changes that need to be done during upgrades,
+mostly related to xref:/midpoint/versioning/feature-lifecycle/[feature lifecycle].
+
+This section provides overall overview of the changes and upgrade procedures.
+Although we try to our best, it is not possible to foresee all possible uses of midPoint.
+Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
+In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
+
+Please refer to the xref:/midpoint/reference/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+The guide describes the steps applicable for upgrades of all midPoint releases.
+Following sections provide details regarding release {release-version}.
+
+=== Upgrade From MidPoint 4.7.x
+
+MidPoint {release-version} data model is backwards compatible with previous midPoint version.
+Please follow our xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade guide] carefully.
+
+Note that:
+
+* There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
+
+* Version numbers of some bundled connectors have changed.
+Connector references from the resource definitions that are using the bundled connectors need to be updated.
+
+* See also the _Actions required_ information below.
+
+It is strongly recommended migrating to the xref:/midpoint/reference/repository/native-postgresql/[new native PostgreSQL repository implementation]
+for all deployments that have not migrated yet.
+However, it is *not* recommended upgrading the system and migrating the repositories in one step.
+It is recommended doing it in two separate steps.
+Please see xref:/midpoint/reference/repository/native-postgresql/migration/[] for the details.
+
+=== Upgrade From MidPoint 4.4.x LTS
+
+TODO
+
+=== Upgrade From Other MidPoint Versions
+
+TODO
+
+Upgrade from midPoint versions older than 4.6 to midPoint {release-version} is not supported directly.
+Please xref:/midpoint/release/4.6/#upgrade[upgrade to midPoint 4.6.x] first.
+
+=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.7
+
+NOTE: This section is relevant to the majority of midPoint deployments.
+It refers to the most significant functionality removals and changes in this version.
+
+* ConnId result handlers are disabled by default.
+Result handlers were enabled by default in previous midPoint versions as this was default set by ConnId framework.
+However, most connectors do not need result handlers, and the result handlers may even be harmful when used with some connector, the default setting was changed in midPoint 4.7.
++
+_Actions required:_
+
+** Explicitly enable ConnId result handlers for the connectors that need them.
+Vast majority of connectors do not need result handlers, no action is required for such connectors.
+CSV connector 2.5 and older required result handlers.
+However, the connector was updated and version 2.6 of CSV connector does not require result handlers.
+As CSV connector is bundled with midPoint, no special action is required even in this case, except for the usual connector upgrade procedure.
+
+* New version (3.6.1) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint 4.7.
+This version fixes a bug with large integer numbers (bug:MID-4424[]).
++
+_Actions required:_
+
+** Resource schema of LDAP and AD resources need to be refreshed for the connector to operate correctly.
+The `schema` section of the resource definition object should be deleted.
+Subsequent _test_ operation on the resource will re-fetch the schema, correctly setting data types for large integer attributes.
+
+* Scripts using `objectVariableMode` set to `prismReference` should, by default, be provided with the
+real value of the reference, however in some cases they were provided `PrismReferenceValue` instead.
+This is now fixed and real value of type `Referencable` is provided.
++
+_Actions required:_
+
+** Review your custom scripts for occurence of `<objectVariableMode>prismReference</objectVariableMode>`.
+If found, review the script code if it conforms to the `Referencable` interface.
+** If `PrismReferenceValue` value should be provided instead, add to your `script` element the following
+sub-element: `<valueVariableMode>prismValue</valueVariableMode>`
+** If `Referencable` is fine but for whatever reason `PrismReferenceValue` is needed as well,
+it can be easily obtained by `def prismRefValue = object?.asReferenceValue()`
+(assuming the input `Referencable` variable is called `object`).
+
+=== Changes In Initial Objects Since 4.7
+
+NOTE: This section is relevant to the majority of midPoint deployments.
+
+MidPoint has a built-in set of "initial objects" that it will automatically create in the database if they are not present.
+This includes vital objects for the system to be configured (e.g., the role `Superuser` and the user `administrator`).
+These objects may change in some midPoint releases.
+However, midPoint is conservative and avoids overwriting customized configuration objects.
+Therefore, midPoint does not overwrite existing objects when they are already in the database.
+This may result in upgrade problems if the existing object contains configuration that is no longer supported in a new version.
+
+The following list contains a description of changes to the initial objects in this midPoint release.
+The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
+
+_Actions required:_ Please review the changes and apply them appropriately to your configuration.
+More details are provided along with individual changes below.
+
+* `000-system-configuration.xml`:
+** Minor changes in home page widgets in `adminGuiConfiguration/homePage/widget` container values related to the fix for bug:MID-8294[].
++
+_Action suggested:_ Apply these changes to your configuration.
+
+** Added object collection views for:
+*** correlation cases (`correlation-case-view`),
+*** application roles (`application-role`),
+*** business roles (`business-role`),
+*** applications (`application`),
+*** event marks (`event-mark`),
+*** object marks (`object-mark`).
++
+_Action suggested:_ Copy these new views into your configuration, unless you are sure you don't need them.
+
+** Added user details panel `applications`.
++
+_Action suggested:_ Add it to your configuration.
+
+** Resource wizard panel `rw-connectorConfiguration-partial` was updated for LDAP and AD connectors (`bindDn` and `bindPassword` properties were made visible) and for the DB Table connector (`host` and `database` properties were made visible).
++
+_Action suggested:_ Update your configuration accordingly.
+
+* `015-security-policy.xml`: `name` attribute was replaced with `identifier` within authentication modules and sequences definition.
++
+_Action suggested:_ Update your configuration accordingly.
+
+* `130-report-certification-definitions.xml`, `140-report-certification-campaigns.xml`, `150-report-certification-cases.xml`, `160-report-certification-work-items.xml` (previously `160-report-certification-decisions.xml`) were fixed. Please see bug:MID-8665[] and commit https://github.com/Evolveum/midpoint/commit/0d552a71[0d552a71].
++
+_Action suggested:_ Use these files to replace your existing ones.
+
+* `310-dashboard-admin.xml` was fixed. Please see bug:MID-8362[], bug:MID-8084[], and commit https://github.com/Evolveum/midpoint/commit/d774ddea[d774ddea].
++
+_Action suggested:_ Update your configuration accordingly.
+
+* A number of initial objects were added: object and event marks, four new object archetypes, two object collections, and six new reports.
++
+_Action suggested:_ None.
+These new objects will be imported automatically.
+
+Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
+
+TIP: Copies of initial object files are located in `config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
+On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
+
+=== Schema Changes Since 4.7
+
+NOTE: This section is relevant to the majority of midPoint deployments.
+It mostly describes what data items were marked as deprecated, or removed altogether from the schema.
+(Additions are not described here.)
+You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
+
+* `name` attribute is deprecated for AuthenticationSequenceType, `identifier` is added to be used instead of name as a unique sequence identifier.
+* `name` attribute is deprecated for AuthenticationSequenceModuleType, `identifier` is added to be used instead of name as a unique sequence module identifier.
+* `name` attribute is deprecated for CredentialsResetPolicyType, `identifier` is added to be used instead of name as a unique credentials reset identifier.
+* `name` attribute is deprecated for AbstractAuthenticationModuleType, `identifier` is added to be used instead of name as a unique authentication module identifier.
+* `securityPolicyRef` attribute is added to ArchetypeType. For now only structural archetypes can have a reference to a security policy.
+* Several authentication modules were added in order to be used for user identification or user authentication. For now the modules are used within password reset process. Following attributes are added to AuthenticationModulesType type: `attributeVerification` (used to verify user's attributes values), `focusIdentification` (used to identify the user comparing their identifier(s) value), `hint` (used to give the user a possibility to remember their password). The related to flexible authentication functionality types were also extended to make the new modules work properly. So, CredentialsPolicyType type was extended with attributeVerification elements, each of them services the corresponding module.
+* Necessity of the authentication modules was extended with more values, therefore `required`, `requisite` and `optional` values can be used for AuthenticationSequenceModuleNecessityType type.
+* AuthenticationSequenceModuleType type was extended with `acceptEmpty` element, so that module can be skipped in case of empty credentials with acceptEmpty=true.
+
+_Actions required:_
+
+* Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
+You can use `ninja` tool for this.
+
+=== Behavior Changes Since 4.7
+
+[NOTE]
+====
+This section describes changes in the behavior that existed before this release.
+New behavior is not mentioned here.
+Plain bugfixes (correcting incorrect behavior) are skipped too.
+Only things that cannot be described as simple "fixing" something are described here.
+
+The changes since 4.5 are of interest probably for "advanced" midPoint deployments only.
+You should at least scan through them, though.
+====
+
+* The behavior of synchronization reaction to `deleted` situation was changed.
+Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.
+See commit link:https://github.com/Evolveum/midpoint/commit/89e139da[89e139da].
+
+* The behavior of "Shadows cleanup" activity was changed.
+Now it checks for real existence of abandoned shadows, assuming that the resource in question has the `read` capability.
+See also bug:MID-8350[] and commit link:https://github.com/Evolveum/midpoint/commit/9402fd3b[9402fd3b].
+
+* Safe operations during preview changes
+** Create on demand feature used in assignment target search now doesn't create objects in internal midpoint repository nor on resources.
+Operations rather fails if necessary.
+** Sequence numbers aren't used during preview. Sequence number doesn't advance, nor is returned to list of returned values.
+
+* Create on demand is now safe to use in multithreaded tasks.
+
+* Users that run distributed report exports now need also the `#modify` authorization for `ReportDataType` objects instead of simple `#add`.
+It is because of the fix in the process of aggregation of these reports.
+See also commit link:https://github.com/Evolveum/midpoint/commit/60f52da3[60f52da3].
+
+* User authentication while password reset procedure was improved with new authentication modules. For more information, please see xref:/midpoint/reference/security/credentials/password-reset/index.adoc[Password Reset Configuration] page for details.
+
+* Selection of resource objects for Live synchronization tasks was implemented (see bug:MID-8537[] and commit https://github.com/Evolveum/midpoint/commit/d929179c[d929179c]).
+Some configuration that are not 100% correct and rely e.g. on setting `kind` to `account` in a live sync task that returns unqualified objects (i.e. objects without `kind` and `intent`), would break down.
+Please check your settings.
+If your task expects that some objects may not be qualified, do not use `kind` and `intent` for specification of synchronized resource objects set.
+
+* Legalization of projections now creates constructions with specific object kind and intent.
+As an additional safety check, for _unclassified_ projections (i.e. those with unknown kind or intent), we _do not_ create legalization assignments.
+See bug:MID-8562[] and commit https://github.com/Evolveum/midpoint/commit/e57142b9[e57142b9].
+
+* When an assignment target (pointed to by `targetRef`) cannot be found during assignment deletion, the error is no longer logged.
+(Only at DEBUG level.)
+See bug:MID-8366[] and commit https://github.com/Evolveum/midpoint/commit/75c10795[75c10795].
+
+* The handling of authorizations of so-called elaborate items (e.g. task `activity` and `activityState`) was fixed.
+These are no longer ignored during authorization processing.
+If your authorizations relied on the original (faulty) behavior, please adapt them.
+See bug:MID-8635[] and commit https://github.com/Evolveum/midpoint/commit/131cb46d[131cb46d].
+
+=== Java and REST API Changes Since 4.7
+
+NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
+(MidPoint does not have explicitly defined Java API, yet.
+But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
+
+* There were only minor API changes in this release
+
+=== Internal Changes Since 4.7
+
+NOTE: These changes should not influence people that use midPoint "as is".
+They should also not influence the XML/JSON/YAML-based customizations or scripting expressions that rely just on the provided library classes.
+These changes will influence midPoint forks and deployments that are heavily customized using the Java components.
+
+* Some now-obsolete methods in `OperationResult` were removed (see commit link:https://github.com/Evolveum/midpoint/commit/c90e5ee1[c90e5ee1]).
+* Code in the `provisioning-impl` module was streamlined, so check any potential dependencies on it.
+* So-called _proposed shadows_ are no longer marked using `lifecycleState` property.
+See bug:MID-4833[], commit link:https://github.com/Evolveum/midpoint/commit/b7d9c550[b7d9c550], and the xref:/midpoint/reference/resources/shadow/dead/[docs].
+
+++++
+{% include release-issues.html %}
+++++
