@@ -1135,7 +1135,7 @@
             <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of claim in jwt, which value define name of user in Midpoint. Default value is 'sub'.
+                        Name of claim in jwt, which value define name of user in Midpoint.
                         <p>
                             Deprecated use attribute in token definition instead
                         </p>
@@ -1233,7 +1233,7 @@
             <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1" default="sub">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of claim in jwt, which value define name of user in Midpoint. Default value is 'sub'.
+                        Name of claim which value define name of user in Midpoint.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1312,7 +1312,7 @@
                     <xsd:element name="userInfoUri" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Uri for user info endpoint.
+                                URI for user info endpoint.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
