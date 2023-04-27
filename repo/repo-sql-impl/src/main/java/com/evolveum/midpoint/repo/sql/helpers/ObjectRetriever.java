@@ -470,7 +470,9 @@ public class ObjectRetriever {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
             ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
             prismObject = prismContext.parserFor(serializedForm)
-                    .context(parsingContext).parse();
+                    .context(parsingContext)
+                    .fastAddOperations()
+                    .parse();
             if (parsingContext.hasWarnings()) {
                 LOGGER.warn("Object {} parsed with {} warnings", ObjectTypeUtil.toShortString(prismObject), parsingContext.getWarnings().size());
             }
@@ -522,6 +524,7 @@ public class ObjectRetriever {
                 if (opResult != null) {
                     String serializedResult = RUtil.getSerializedFormFromBytes(opResult);
                     OperationResultType resultType = prismContext.parserFor(serializedResult)
+                            .fastAddOperations()
                             .parseRealValue(OperationResultType.class);
 
                     PrismProperty<OperationResultType> resultProperty =

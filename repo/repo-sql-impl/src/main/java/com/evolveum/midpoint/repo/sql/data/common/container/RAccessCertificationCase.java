@@ -349,7 +349,9 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", serializedFrom);
         try {
             return prismContext.parserFor(serializedFrom)
-                    .compat().parseRealValue(AccessCertificationCaseType.class);
+                    .compat()
+                    .fastAddOperations()
+                    .parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, serializedFrom);
             throw e;
