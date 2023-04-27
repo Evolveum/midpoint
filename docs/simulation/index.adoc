@@ -361,8 +361,13 @@ Simulations are currently supported by the following activities:
 
 * synchronization ones: import, reconciliation, live synchronization,
 * recomputation,
-* iterative and non-iterative scripting (provided that model-level API is used to execute the actions, see <<Limitations>>),
+* iterative and non-iterative scripting,
 * change execution.
+
+When executing iterative or non-iterative scripting, please make sure you use only model-level APIs to execute your actions.
+Please see <<Limitations>> below.
+Furthermore, please avoid using `notify`, `reencrypt`, and `resumeTask` actions, as they are currently executed also in simulation mode.
+(See bug:MID-8811[], bug:MID-8812[], and bug:MID-8813[].)
 
 For shadow management simulation, only synchronization activities (import, reconciliation, live synchronization) are supported.
 
@@ -379,10 +384,16 @@ There are some fundamental limitations stemming from this approach:
 . Any operations invoked by the custom code that circumvent processing in the clockwork are really executed, even in simulation mode.
 +
 These operations present a bad practice anyway and should be avoided regardless of whether simulation is used or not.
-Examples: direct modification through the repository or provisioning API; direct manipulation of outside objects (files, sockets, and so on).
+Examples:
+
+.. direct actions invoked through internal midPoint APIs, like the repository, provisioning, case management, or notification APIsfootnote:[Please avoid also using `notify`, `reencrypt`, and `resumeTask` bulk actions, as they are currently executed also in simulation mode. See bug:MID-8811[], bug:MID-8812[], and bug:MID-8813[].];
+.. direct manipulation of outside objects (files, sockets, and so on).
++
 If absolutely necessary, your code should check for the execution mode using `task.getExecutionMode()` and related methods and act accordingly.
 +
 Note that calling methods like `midpoint.addObject`, `midpoint.modifyObject`, or `midpoint.deleteObject` is safe in this regard, as these methods invoke the standard clockwork processing.
+The majority of `midpoint.*` functions is safe, except for `midpoint.executeAdHocProvisioningScript`, `midpoint.addRecomputeTrigger`.
+When in doubt, please inspect the method's code.
 
 . xref:/midpoint/reference/expressions/expressions/index.adoc#_create_on_demand[Create-on-demand] scenarios are supported in a very limited way:
 The creation of missing assignment target objects is simulated but not remembered across boundaries represented by the processing of individual source items.
@@ -419,6 +430,8 @@ Other limitations, not principal but practical, are:
 Their creation is reported multiple times, even for a single item being processed.
 The delta visualization is not finished yet: midPoint shows OIDs instead of names.
 . Only selected xref:#_activities_supported[activities] are supported.
+. Approvals are skipped in simulation mode: the execution commences as if no approvals were defined.
+. Notifications are skipped in simulation mode: no notifications are sent (except where requested explicitly by the custom code).
 
 === Shadow Management Simulations
 

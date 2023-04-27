@@ -146,7 +146,7 @@ Update to adapt to midPoint 3.0 changes.
 | *master* +
 (latest  +
 development)
-| link:http://git.evolveum.com/view/midpoint/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[http://git.evolveum.com/view/midpoint/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
+| link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
 | Well-commented Java definition of the interface.
 
 
