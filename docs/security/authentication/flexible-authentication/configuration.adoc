@@ -1003,7 +1003,9 @@ Required attribute is only `issuerUri`, because midPoint gets configuration for 
 </securityPolicy>
 ----
 
-If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the OIDC Redirect URI to point to a valid public URL (see below)
+For the identification of the user, midPoint uses the claim value with the name from _nameOfUsernameAttribute_. The claim is primarily obtained from the ID token. When a claim is missing in the ID token, midPoint looks for it in the access token. Finally, if the claim is missing in the access token, midPoint uses the user info endpoint to retrieve the claim.
+
+If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the OIDC Redirect URI to point to a valid public URL (see below).
 
 .Example of public URL configuration
 [source,xml]
@@ -1023,7 +1025,7 @@ If Midpoint is located behind a reverse proxy it may be useful to set the _publi
 
 ===== Configuration for REST
 
-Configuration for REST is provided via attribute _resourceServer_, that is type _OidcResourceServerAuthenticationModuleType_. When we want to use OIDC module for REST, midPoint works as resource server. Midpoint needs JWT for verifying and identifying midpoint focus. REST request has to contain WWW-Authentication header with syntax `Authorization: Bearer {token}`. We have four choices for verification JWT, using issuerUri, JWKSetUri, singleSymmetricKey or using public key, by trustingAsymmetricCertificate or keyStoreTrustingAsymmetricKey.
+Configuration for REST is provided via attribute _resourceServer_, that is type _OidcResourceServerAuthenticationModuleType_. When we want to use OIDC module for REST, midPoint works as resource server. REST request has to contain WWW-Authentication header with syntax `Authorization: Bearer {token}`.
 
 Resource server contains following attributes:
 
@@ -1031,8 +1033,76 @@ Resource server contains following attributes:
 |===
 | Name | Description | Required | Type
 
+| `jwt`
+| Define that resource server expect token in format JWT. Since midPint 4.8.
+| false
+| _JwtOidcResourceServerType_
+
+| `opaqueToken`
+| Define that resource server expect opaque token, which have to be verified by user info endpoint. Since midPint 4.8.
+| false
+| _OpaqueTokenOidcResourceServerType_
+
 | `realm`
-| Realm which Midpoint use for WWW-Authentication header
+| Realm which Midpoint use for WWW-Authentication header. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _String_
+
+| `issuerUri`
+| Issuer identifier URI for the OpenID Connect provider. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _String_
+
+| `jwkSetUri`
+| URI for the JSON Web Key (JWK) Set endpoint. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _String_
+
+| `nameOfUsernameClaim`
+| Name of claim in JWT, which value define name of user in midPoint. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _String_
+
+| `singleSymmetricKey`
+| Trusting a Single Asymmetric Key. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _ProtectedStringType_
+
+| `trustedAlgorithm`
+| Trusted Algorithms. (RFC7518 section-3.1). Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _String_
+
+| `trustingAsymmetricCertificate`
+| Certificate of trusting a single asymmetric RSA public key. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _ProtectedStringType_
+
+| `keyStoreTrustingAsymmetricKey`
+| Key store with trusting a single asymmetric RSA public key. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| false
+| _AbstractKeyStoreKeyType_
+
+|===
+
+WARNING: Until version 4.8 midPoint needs a JWT to authenticate and identify the midpoint. The configuration attributes used are directly in the OidcResourceServerAuthenticationModuleType.
+
+Since version 4.8, midPoint supports two token formats, JWT (_JwtOidcResourceServerType_) and opaque token (_OpaqueTokenOidcResourceServerType_).
+
+====== JWT format
+
+When we choose the configuration for _jwt_(_JwtOidcResourceServerType_) midPoint obtains a claim, with the name from the _nameOfUsernameClaim_ attribute, from the jwt that is contained in the request.
+
+We have four choices for verification JWT, using issuerUri, JWKSetUri, singleSymmetricKey or using public key, by trustingAsymmetricCertificate or keyStoreTrustingAsymmetricKey.
+
+_JwtOidcResourceServerType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `realm`
+| Realm which Midpoint use for WWW-Authentication header.
 | false
 | _String_
 
@@ -1041,15 +1111,13 @@ Resource server contains following attributes:
 | false
 | _String_
 
-
 | `jwkSetUri`
 | URI for the JSON Web Key (JWK) Set endpoint.
 | false
 | _String_
 
 | `nameOfUsernameClaim`
-| Name of claim in JWT, which value define name of user in midPoint. Default value is 'sub'.
-| false
+| Name of claim in JWT, which value define name of user in midPoint.
 | _String_
 
 | `singleSymmetricKey`
@@ -1074,6 +1142,37 @@ Resource server contains following attributes:
 
 |===
 
+====== Opaque token format
+
+When we select the configuration for the _opaqueToken_(_OpaqueTokenOidcResourceServerType_) midPoint, we get the claim with the name from the _nameOfUsernameClaim_ attribute from the user info endpoint.
+
+_OpaqueTokenOidcResourceServerType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `realm`
+| Realm which Midpoint use for WWW-Authentication header.
+| false
+| _String_
+
+| `issuerUri`
+| Issuer identifier URI for the OpenID Connect provider.
+| false
+| _String_
+
+| `nameOfUsernameClaim`
+| Name of claim in JWT, which value define name of user in midPoint.
+| _String_
+
+| `userInfoUri`
+| URI for user info endpoint.
+| false
+| _String_
+
+|===
+
 .Example of Resource server configuration with issuerUri.
 [source,xml]
 ----
@@ -1084,8 +1183,10 @@ Resource server contains following attributes:
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
-                    <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    <jwt(or opaqueToken)>
+                        <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
+                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    </jwt(or opaqueToken)>
                 </resourceServer>
             </oidc>
         </modules>
