@@ -13,6 +13,16 @@
     <form class="my-1" wicket:id="popoverForm" style="width: 300px;">
         <div wicket:id="feedback"/>
 
+        <div class="row form-group mb-0">
+            <div class="col d-flex flex-column align-items-center">
+                <a wicket:id="chooseObject" class="btn btn-sm btn-default pull-right" wicket:message="title:ReferenceValueSearchPopupPanel.chooseObject">
+                    <wicket:message key="ReferenceValueSearchPopupPanel.chooseObject"/>
+                </a>
+
+                <hr class="w-100"/>
+            </div>
+        </div>
+
         <div class="row form-group">
             <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.oid"/></label>
             <div class="col-8">

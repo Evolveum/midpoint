@@ -48,44 +48,34 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
         initLayout();
     }
 
-    private <O extends ObjectType> void initLayout(){
+    private  void initLayout(){
         setOutputMarkupId(true);
+    }
 
-        AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON) {
-
+    private <O extends ObjectType> void selectObjectPerformed(AjaxRequestTarget target) {
+        List<QName> supportedTypes = getSupportedTargetList();
+        if (CollectionUtils.isEmpty(supportedTypes)) {
+            supportedTypes = WebComponentUtil.createObjectTypeList();
+        }
+        ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
+                getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
+                null) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                List<QName> supportedTypes = getSupportedTargetList();
-                if (CollectionUtils.isEmpty(supportedTypes)) {
-                    supportedTypes = WebComponentUtil.createObjectTypeList();
-                }
-                ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
-                        getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
-                        null) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onSelectPerformed(AjaxRequestTarget target, O object) {
-                        getPageBase().hideMainPopup(target);
-                        ObjectReferenceType ort = new ObjectReferenceType();
-                        ort.setOid(object.getOid());
-                        ort.setTargetName(object.getName());
-                        ort.setType(object.asPrismObject().getComplexTypeDefinition().getTypeName());
-                        ReferenceValueSearchPanel.this.getModel().setObject(ort);
-                        referenceValueUpdated(ort, target);
-                        target.add(ReferenceValueSearchPanel.this);
-                    }
-                };
-
-                getPageBase().showMainPopup(objectBrowserPanel, target);
+            protected void onSelectPerformed(AjaxRequestTarget target, O object) {
+                getPageBase().hideMainPopup(target);
+                ObjectReferenceType ort = new ObjectReferenceType();
+                ort.setOid(object.getOid());
+                ort.setTargetName(object.getName());
+                ort.setType(object.asPrismObject().getComplexTypeDefinition().getTypeName());
+                ReferenceValueSearchPanel.this.getModel().setObject(ort);
+                referenceValueUpdated(ort, target);
+                target.add(ReferenceValueSearchPanel.this);
             }
         };
-        selectObject.setOutputMarkupId(true);
-        selectObject.add(new VisibleBehaviour(this::notDisplayedInPopup));
-        selectObject.add(AttributeAppender.append("title", createStringResource("ReferenceValueSearchPopupPanel.selectObject")));
-        add(selectObject);
+
+        getPageBase().showMainPopup(objectBrowserPanel, target);
     }
 
     @Override
@@ -119,7 +109,33 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
             protected boolean isAllowedNotFoundObjectRef() {
                 return ReferenceValueSearchPanel.this.isAllowedNotFoundObjectRef();
             }
+
+            @Override
+            protected boolean isChooseObjectVisible() {
+                return notDisplayedInPopup();
+            }
+
+            @Override
+            protected void chooseObjectPerformed(AjaxRequestTarget target) {
+                selectObjectPerformed(target);
+            }
         };
+    }
+
+    @Override
+    protected boolean isRemoveVisible() {
+        return true;
+    }
+
+    @Override
+    protected void removeSearchValue(AjaxRequestTarget target) {
+        ObjectReferenceType ref = getModelObject();
+        ref.asReferenceValue().setObject(null);
+        ref.setOid(null);
+        ref.setTargetName(null);
+        ref.setRelation(null);
+
+        target.add(this);
     }
 
     @Override
