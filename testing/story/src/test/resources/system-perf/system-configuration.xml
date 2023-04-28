@@ -75,6 +75,8 @@
                         <objectType>ResourceType</objectType>
                         <objectType>RoleType</objectType>
                         <objectType>ShadowType</objectType>
+                        <objectType>MarkType</objectType>
+                        <objectType>ConnectorType</objectType>
                     </objectTypeSettings>
                 </globalRepoCache>
                 <localRepoCache>
