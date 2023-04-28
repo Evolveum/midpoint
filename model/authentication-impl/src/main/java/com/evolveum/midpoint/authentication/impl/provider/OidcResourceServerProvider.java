@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -21,7 +22,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 import java.util.List;
 
@@ -33,11 +35,15 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcResourceServerProvider.class);
 
-    private final JwtAuthenticationProvider oidcProvider;
+    private final AuthenticationProvider oidcProvider;
 
     public OidcResourceServerProvider(JwtDecoder decoder, JwtAuthenticationConverter jwtAuthenticationConverter) {
         oidcProvider = new JwtAuthenticationProvider(decoder);
-        oidcProvider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
+        ((JwtAuthenticationProvider)oidcProvider).setJwtAuthenticationConverter(jwtAuthenticationConverter);
+    }
+
+    public OidcResourceServerProvider(OpaqueTokenIntrospector introspector) {
+        oidcProvider = new OpaqueTokenAuthenticationProvider(introspector);
     }
 
     @Override
@@ -46,9 +52,9 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
         Authentication token;
         if (authentication instanceof BearerTokenAuthenticationToken) {
             BearerTokenAuthenticationToken oidcAuthenticationToken = (BearerTokenAuthenticationToken) authentication;
-            JwtAuthenticationToken jwtAuthentication;
+            Authentication authenticationToken;
             try {
-                jwtAuthentication = (JwtAuthenticationToken) oidcProvider.authenticate(oidcAuthenticationToken);
+                authenticationToken = oidcProvider.authenticate(oidcAuthenticationToken);
             } catch (AuthenticationException e) {
                 getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
                 throw e;
@@ -56,15 +62,15 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
 
             HttpModuleAuthentication oidcModule = (HttpModuleAuthentication) AuthUtil.getProcessingModule();
             try {
-                    String username = jwtAuthentication.getName();
+                    String username = authenticationToken.getName();
                     if (StringUtils.isEmpty(username)) {
-                        LOGGER.error("Username from jwt token don't contains value");
+                        LOGGER.debug("Username from jwt token don't contains value");
                         throw new AuthenticationServiceException("web.security.provider.invalid");
                     }
                 token = getPreAuthenticationToken(authentication, username, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
-                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage()); // TODO debug?
+                LOGGER.debug("Authentication with oidc module failed: {}", e.getMessage());
                 throw e;
             }
         } else {

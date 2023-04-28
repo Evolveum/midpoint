@@ -10,30 +10,24 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  */
 public class PhasedConstraints implements DebugDumpable {
 
-    private ItemSecurityConstraintsImpl requestConstraints = new ItemSecurityConstraintsImpl();
-    private ItemSecurityConstraintsImpl execConstraints = new ItemSecurityConstraintsImpl();
+    private final ItemSecurityConstraintsImpl requestConstraints = new ItemSecurityConstraintsImpl();
+    private final ItemSecurityConstraintsImpl execConstraints = new ItemSecurityConstraintsImpl();
 
-    protected ItemSecurityConstraintsImpl getRequestConstraints() {
-        return requestConstraints;
-    }
-
-    protected ItemSecurityConstraintsImpl getExecConstraints() {
-        return execConstraints;
-    }
-
-    public ItemSecurityConstraintsImpl get(AuthorizationPhaseType phase) {
+    public @NotNull ItemSecurityConstraintsImpl get(@NotNull AuthorizationPhaseType phase) {
         switch (phase) {
             case REQUEST:
                 return requestConstraints;
             case EXECUTION:
                 return execConstraints;
             default:
-                return null;
+                throw new AssertionError(phase);
         }
     }
 
@@ -44,5 +38,4 @@ public class PhasedConstraints implements DebugDumpable {
         DebugUtil.debugDumpWithLabel(sb, "execution", execConstraints, indent+1);
         return sb.toString();
     }
-
 }

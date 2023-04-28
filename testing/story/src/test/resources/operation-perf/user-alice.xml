@@ -6,12 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user oid="a077357a-1c5f-11e8-ad16-af1b03cecee9"
-        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>alice</name>
     <givenName>Alice</givenName>
     <familyName>Anderson</familyName>

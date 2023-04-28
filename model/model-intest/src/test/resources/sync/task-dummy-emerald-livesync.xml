@@ -14,12 +14,8 @@
 
     <taskIdentifier>10000000-0000-0000-5555-555500000404</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState> <!-- run on demand -->
 
-    <binding>tight</binding>
-    <schedule>
-        <interval>1</interval>
-    </schedule>
     <activity>
         <work>
             <liveSynchronization>

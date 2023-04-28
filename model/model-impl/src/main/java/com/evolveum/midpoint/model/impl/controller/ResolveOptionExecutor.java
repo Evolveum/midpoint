@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ParsedGetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
 
 import static com.evolveum.midpoint.model.impl.controller.ModelController.RESOLVE_REFERENCE;
 
@@ -34,13 +34,13 @@ import static com.evolveum.midpoint.model.impl.controller.ModelController.RESOLV
  */
 class ResolveOptionExecutor {
 
-    @NotNull private final Collection<SelectorOptions<GetOperationOptions>> options;
+    @NotNull private final ParsedGetOperationOptions options;
     @NotNull private final Task task;
     @NotNull private final ModelObjectResolver objectResolver;
     @NotNull private final SchemaTransformer schemaTransformer;
 
     ResolveOptionExecutor(
-            @NotNull Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ParsedGetOperationOptions options,
             @NotNull Task task,
             @NotNull ModelObjectResolver objectResolver,
             @NotNull SchemaTransformer schemaTransformer) {
@@ -51,7 +51,7 @@ class ResolveOptionExecutor {
     }
 
     public void execute(@NotNull Containerable base, OperationResult result) {
-        for (SelectorOptions<GetOperationOptions> option : options) {
+        for (SelectorOptions<GetOperationOptions> option : options.getCollection()) {
             if (GetOperationOptions.isResolve(option.getOptions())) {
                 ObjectSelector selector = option.getSelector();
                 if (selector != null) {
@@ -141,15 +141,12 @@ class ResolveOptionExecutor {
             PrismObject<O> resolved =
                     objectResolver.resolve(referenceValue, context.toString(), option.getOptions(), task, result);
             if (resolved != null) {
-                PrismObject<O> cloned = resolved.cloneIfImmutable();
-                schemaTransformer.applySchemasAndSecurity(
-                        cloned,
-                        option.getOptions(),
-                        SelectorOptions.createCollection(option.getOptions()),
-                        null,
-                        task,
-                        result);
-                referenceValue.setObject(cloned);
+                referenceValue.setObject(
+                        schemaTransformer.applySchemasAndSecurityToObject(
+                                resolved,
+                                ParsedGetOperationOptions.of(option.getOptions()),
+                                task,
+                                result));
             }
         } catch (CommonException e) {
             result.recordWarning(

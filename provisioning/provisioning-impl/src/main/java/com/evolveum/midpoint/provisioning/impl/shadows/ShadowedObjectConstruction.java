@@ -15,14 +15,14 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -31,8 +31,6 @@ import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -173,13 +171,13 @@ class ShadowedObjectConstruction {
             return;
         }
 
-        LOGGER.trace("Start adopting associations: {}", resourceObjectAssociations.size());
+        LOGGER.trace("Start adopting associations: {} value(s)", resourceObjectAssociations.size());
 
         PrismContainer<ShadowAssociationType> associationsCloned = resourceObjectAssociations.clone();
         resultingShadowedObject.asPrismObject().addReplaceExisting(associationsCloned);
         Iterator<PrismContainerValue<ShadowAssociationType>> associationIterator = associationsCloned.getValues().iterator();
         while (associationIterator.hasNext()) {
-            if (!setAssociationValueShadowRef(associationIterator.next(), result)) {
+            if (!adoptAssociationValue(associationIterator.next(), result)) {
                 associationIterator.remove();
             }
         }
@@ -304,16 +302,20 @@ class ShadowedObjectConstruction {
     /**
      * Tries to acquire (find/create) shadow for given association value and fill-in its reference.
      *
+     * Also, provides all identifier values from the shadow (if it's classified). Normally, the name is present among
+     * identifiers, and it is sufficient. However, there may be cases when UID is there only. But the name is sometimes needed,
+     * e.g. when evaluating tolerant/intolerant patterns on associations. See also MID-8815.
+     *
      * @return false if the association value does not fit and should be removed
      */
-    private boolean setAssociationValueShadowRef(PrismContainerValue<ShadowAssociationType> associationValue, OperationResult result)
+    private boolean adoptAssociationValue(PrismContainerValue<ShadowAssociationType> associationValue, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, EncryptionException {
 
         LOGGER.trace("Determining shadowRef for {}", associationValue);
 
-        ResourceAttributeContainer identifierContainer = ShadowUtil.getAttributesContainer(associationValue,
-                ShadowAssociationType.F_IDENTIFIERS);
+        ResourceAttributeContainer identifierContainer =
+                ShadowUtil.getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS);
 
         ShadowAssociationType associationValueBean = associationValue.asContainerable();
         QName associationName = associationValueBean.getName();
@@ -332,6 +334,11 @@ class ShadowedObjectConstruction {
             if (doesAssociationMatch(rAssociationDef, entitlementRepoShadow)) {
                 LOGGER.trace("Association value matches. Repo shadow is: {}", entitlementRepoShadow);
                 associationValueBean.setShadowRef(createObjectRef(entitlementRepoShadow, beans.prismContext));
+                if (ShadowUtil.isClassified(entitlementRepoShadow)) {
+                    addMissingIdentifiers(identifierContainer, ctxEntitlement, entitlementRepoShadow);
+                } else {
+                    // We are not sure we have the right shadow. Hence let us be careful and not copy any identifiers.
+                }
             } else {
                 LOGGER.trace("Association value does not match. Repo shadow is: {}", entitlementRepoShadow);
                 // We have association value that does not match its definition. This may happen because the association attribute
@@ -343,6 +350,25 @@ class ShadowedObjectConstruction {
             }
         }
         return true;
+    }
+
+    /** Copies missing identifiers from entitlement repo shadow to the association value; does not overwrite anything! */
+    private void addMissingIdentifiers(
+            ResourceAttributeContainer identifiersContainer,
+            ProvisioningContext ctxEntitlement,
+            ShadowType shadow)
+            throws SchemaException {
+        var identifierDefinitions = ctxEntitlement.getObjectDefinitionRequired().getAllIdentifiers();
+        for (ResourceAttributeDefinition<?> identifierDef : identifierDefinitions) {
+            ItemName identifierName = identifierDef.getItemName();
+            if (!identifiersContainer.containsAttribute(identifierName)) {
+                var shadowIdentifier =
+                        shadow.asPrismObject().findProperty(ShadowType.F_ATTRIBUTES.append(identifierName));
+                if (shadowIdentifier != null) {
+                    identifiersContainer.addAdoptedIfNeeded(shadowIdentifier);
+                }
+            }
+        }
     }
 
     @Nullable
@@ -384,7 +410,7 @@ class ShadowedObjectConstruction {
         } catch (SchemaException e) {
             // The entitlement to which we point is bad. Simply ignore this association value.
             result.muteLastSubresultError();
-            LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}-{}",
+            LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
                     associationValue, resourceObject, e.getMessage(), e);
             return null;
         }

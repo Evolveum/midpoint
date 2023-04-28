@@ -223,7 +223,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             context = contextFactory.createContext(clonedDeltas, options, task, result);
             context = clockwork.previewChanges(context, listeners, task, result);
 
-            schemaTransformer.applySchemasAndSecurity(context, null, task, result);
+            schemaTransformer.applySecurityToLensContext(context, task, result);
         } finally {
             LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
@@ -260,7 +260,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-        TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
         try {
             // Re-read the object from the repository to make sure we have all the properties.
             // the object from method parameters may be already processed by the security code
@@ -269,15 +268,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             PrismObject<O> fullObject = getFullObjectReadWrite(object, result);
 
             // TODO: maybe we need to expose owner resolver in the interface?
-            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
+            ObjectSecurityConstraints securityConstraints =
+                    securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             if (securityConstraints == null) {
                 // Nothing allowed => everything denied
                 result.recordNotApplicable();
                 return null;
             } else {
+                TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
                 applyArchetypePolicy(objectDefinition, object, task, result);
-                schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
+                schemaTransformer.applySecurityConstraintsToItemDef(objectDefinition, securityConstraints, phase);
                 if (object.canRepresent(ShadowType.class)) {
                     applyObjectClassDefinition(objectDefinition, object, phase, task, result);
                 }
@@ -311,8 +312,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
                         refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 
-                PrismContainerDefinition<?> assocContainer = objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION));
-                TransformableContainerDefinition.require(assocContainer).replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+                PrismContainerDefinition<?> assocContainer =
+                        objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION));
+                TransformableContainerDefinition.require(assocContainer)
+                        .replaceDefinition(
+                                ShadowAssociationType.F_IDENTIFIERS,
+                                refinedObjectClassDefinition
+                                        .toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
             }
         }
     }
@@ -2142,9 +2148,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
 
         if (AuditEventRecordType.class.equals(type)) {
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(
-                    query, options, task, result);
-            return auditRecords.getList();
+            return modelAuditService.searchObjects(query, options, task, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             //noinspection unchecked
             SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects(
@@ -2155,9 +2159,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         } else if (Referencable.class.isAssignableFrom(type)) {
             return modelService.searchReferences(query, options, task, result);
         } else {
-            SearchResultList<? extends Containerable> containers = modelService.searchContainers(
-                    type, query, options, task, result);
-            return containers.getList();
+            return modelService.searchContainers(type, query, options, task, result);
         }
     }
 

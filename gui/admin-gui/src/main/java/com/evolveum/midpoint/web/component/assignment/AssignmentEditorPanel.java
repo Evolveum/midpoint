@@ -1009,11 +1009,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private boolean isItemAllowed(ItemPath itemPath) {
         ItemSecurityConstraints constraints = itemSecurityConstraintsModel.getObject();
-        if (itemPath == null || constraints == null) {
-            return true;
-        }
-        AuthorizationDecisionType decision = constraints.findItemDecision(itemPath);
-        return AuthorizationDecisionType.ALLOW.equals(decision);
+        return itemPath == null
+                || constraints == null
+                || constraints.findItemDecision(itemPath) == AuthorizationDecisionType.ALLOW;
     }
 
     private ItemSecurityConstraints loadSecurityConstraints() {

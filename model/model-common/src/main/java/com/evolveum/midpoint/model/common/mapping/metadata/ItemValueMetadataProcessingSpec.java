@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -192,21 +193,20 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         return Collections.unmodifiableCollection(mappings);
     }
 
-    private void computeItemProcessingMapIfNeeded() throws SchemaException {
+    private void computeItemProcessingMapIfNeeded() throws SchemaException, ConfigurationException {
         if (itemProcessingMap == null) {
             computeItemProcessingMap();
         }
     }
 
-    private void computeItemProcessingMap() throws SchemaException {
+    private void computeItemProcessingMap() throws SchemaException, ConfigurationException {
         itemProcessingMap = new HashMap<>();
         for (MetadataItemDefinitionType item : itemDefinitions) {
-            if (item.getRef() == null) {
-                throw new SchemaException("No 'ref' in item definition: " + item);
-            }
             ItemProcessingType processing = getProcessingOfItem(item);
             if (processing != null) {
-                itemProcessingMap.put(item.getRef().getItemPath(), processing);
+                itemProcessingMap.put(
+                        ItemRefinedDefinitionTypeUtil.getRef(item),
+                        processing);
             }
         }
     }
@@ -214,7 +214,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
     /**
      * Looks up processing information for given path. Proceeds from the most specific to most abstract (empty) path.
      */
-    private ItemProcessingType getProcessing(ItemPath itemPath) throws SchemaException {
+    private ItemProcessingType getProcessing(ItemPath itemPath) throws SchemaException, ConfigurationException {
         computeItemProcessingMapIfNeeded();
         while (!itemPath.isEmpty()) {
             ItemProcessingType processing = ItemPathCollectionsUtil.getFromMap(itemProcessingMap, itemPath);
@@ -226,11 +226,11 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         return null;
     }
 
-    public boolean isFullProcessing(ItemPath itemPath) throws SchemaException {
+    public boolean isFullProcessing(ItemPath itemPath) throws SchemaException, ConfigurationException {
         return getProcessing(itemPath) == ItemProcessingType.FULL;
     }
 
-    public Collection<ItemPath> getTransientPaths() {
+    Collection<ItemPath> getTransientPaths() {
         PathSet transientPaths = new PathSet();
         PathSet persistentPaths = new PathSet();
         for (MetadataItemDefinitionType item : itemDefinitions) {

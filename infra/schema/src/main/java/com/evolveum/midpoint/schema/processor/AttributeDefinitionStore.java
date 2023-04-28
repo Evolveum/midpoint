@@ -14,14 +14,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.LocalItemDefinitionStore;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -156,5 +154,28 @@ public interface AttributeDefinitionStore
                 .filter(attrDef -> !attrDef.getInboundMappingBeans().isEmpty())
                 .map(ItemDefinition::getItemName)
                 .collect(Collectors.toCollection(HashSet::new));
+    }
+
+    /**
+     * Converts a {@link PrismProperty} into corresponding {@link ResourceAttribute}.
+     * Used in the process of "definition application" in `applyDefinitions` and similar methods.
+     */
+    default <T> @NotNull ResourceAttribute<T> propertyToAttribute(PrismProperty<T> property)
+            throws SchemaException {
+        QName attributeName = property.getElementName();
+        //noinspection unchecked
+        ResourceAttributeDefinition<T> attributeDefinition =
+                (ResourceAttributeDefinition<T>) findAttributeDefinition(attributeName);
+        if (attributeDefinition == null) {
+            throw new SchemaException("No definition for attribute " + attributeName + " in " + this);
+        }
+        ResourceAttribute<T> attribute = new ResourceAttributeImpl<>(attributeName, attributeDefinition);
+        for (PrismPropertyValue<T> pval : property.getValues()) {
+            // MID-5833 This is manual copy process, could we could assume original property is correctly constructed
+            attribute.addIgnoringEquivalents(pval.clone());
+        }
+        attribute.applyDefinition(attributeDefinition);
+        attribute.setIncomplete(property.isIncomplete());
+        return attribute;
     }
 }

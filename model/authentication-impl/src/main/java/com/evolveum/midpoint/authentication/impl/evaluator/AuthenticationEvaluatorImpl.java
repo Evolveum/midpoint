@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
-import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -136,7 +135,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     private void checkAuthorizations(MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv, T authnCtx) {
         if (supportsAuthzCheck()) {
             // Authorizations
-            if (hasNoneAuthorization(principal)) {
+            if (hasNoAuthorizations(principal)) {
                 recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, getCredentialsPolicy(principal, authnCtx), "no authorizations");
                 throw new DisabledException("web.security.provider.access.denied");
             }
@@ -219,7 +218,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         String password = getPassword(connEnv, principal, passwordType.getValue());
 
         // Authorizations
-        if (hasNoneAuthorization(principal)) {
+        if (hasNoAuthorizations(principal)) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, passwordCredentialsPolicy, "no authorizations");
             throw new DisabledException("web.security.provider.access.denied");
         }
@@ -233,7 +232,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
         // Authorizations
-        if (hasNoneAuthorization(principal)) {
+        if (hasNoAuthorizations(principal)) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no authorizations");
             throw new DisabledException("web.security.provider.access.denied");
         }
@@ -293,18 +292,13 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return principal;
     }
 
-    protected boolean hasNoneAuthorization(MidPointPrincipal principal) {
-        Collection<Authorization> authorizations = principal.getAuthorities();
-        if (authorizations == null || authorizations.isEmpty()) {
-            return true;
-        }
-        boolean exist = false;
-        for (Authorization auth : authorizations) {
-            if (auth.getAction() != null && !auth.getAction().isEmpty()) {
-                exist = true;
+    private boolean hasNoAuthorizations(MidPointPrincipal principal) {
+        for (Authorization auth : principal.getAuthorities()) {
+            if (!auth.getAction().isEmpty()) {
+                return false;
             }
         }
-        return !exist;
+        return true;
     }
 
     private <P extends CredentialPolicyType> void checkPasswordValidityAndAge(
@@ -322,8 +316,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         Duration maxAge = passwordCredentialsPolicy.getMaxAge();
         if (maxAge != null) {
-            MetadataType credentialMetedata = credentials.getMetadata();
-            XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetedata);
+            MetadataType credentialMetadata = credentials.getMetadata();
+            XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetadata);
             if (changeTimestamp != null) {
                 XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
                 if (clock.isPast(passwordValidUntil)) {

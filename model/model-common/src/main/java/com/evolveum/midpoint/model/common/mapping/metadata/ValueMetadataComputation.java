@@ -212,7 +212,7 @@ abstract public class ValueMetadataComputation {
                 .getItemPath();
     }
 
-    private void processBuiltinMappings() throws SchemaException {
+    private void processBuiltinMappings() throws SchemaException, ConfigurationException {
         for (BuiltinMetadataMapping mapping : beans.metadataMappingEvaluator.getBuiltinMappings()) {
             if (isApplicable(mapping)) {
                 LOGGER.trace("Applying built-in metadata mapping: {}", mapping.getClass().getSimpleName());
@@ -223,7 +223,7 @@ abstract public class ValueMetadataComputation {
 
     abstract void applyBuiltinMapping(BuiltinMetadataMapping mapping) throws SchemaException;
 
-    private boolean isApplicable(BuiltinMetadataMapping mapping) throws SchemaException {
+    private boolean isApplicable(BuiltinMetadataMapping mapping) throws SchemaException, ConfigurationException {
         return processingSpec.isFullProcessing(mapping.getTargetPath());
     }
 

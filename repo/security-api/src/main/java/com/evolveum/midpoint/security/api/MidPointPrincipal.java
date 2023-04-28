@@ -36,7 +36,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     // Focus should not be final in case of session refresh, we need new focus object.
     @NotNull private FocusType focus;
     private Locale preferredLocale;
-    private Collection<Authorization> authorizations = new ArrayList<>();
+    @NotNull private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private SecurityPolicyType applicableSecurityPolicy;
     // TODO: or a set?
@@ -49,61 +49,40 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         this.focus = focus;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#getAuthorities()
-     */
     @Override
-    public Collection<Authorization> getAuthorities() {
+    public @NotNull Collection<Authorization> getAuthorities() {
         return authorizations;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#getPassword()
-     */
     @Override
     public String getPassword() {
         // We won't return password
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#getUsername()
-     */
     @Override
     public String getUsername() {
         return getFocus().getName().getOrig();
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonExpired()
-     */
     @Override
     public boolean isAccountNonExpired() {
         // TODO
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonLocked()
-     */
     @Override
     public boolean isAccountNonLocked() {
         // TODO
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isCredentialsNonExpired()
-     */
     @Override
     public boolean isCredentialsNonExpired() {
         // TODO
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isEnabled()
-     */
     @Override
     public boolean isEnabled() {
         if (effectiveActivationStatus == null) {
@@ -204,20 +183,11 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     protected void copyValues(MidPointPrincipal clone) {
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
-        clone.authorizations = cloneAuthorities();
+        clone.authorizations = new ArrayList<>(authorizations);
         clone.effectiveActivationStatus = this.effectiveActivationStatus;
         clone.delegatorWithOtherPrivilegesLimitationsCollection.addAll(this.delegatorWithOtherPrivilegesLimitationsCollection);
     }
 
-    private Collection<Authorization> cloneAuthorities() {
-        Collection<Authorization> clone = new ArrayList<>(authorizations.size());
-        clone.addAll(authorizations);
-        return clone;
-    }
-
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();

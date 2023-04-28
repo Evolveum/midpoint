@@ -7,11 +7,10 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
+import com.evolveum.midpoint.authentication.impl.oidc.OidcUserTokenService;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,8 +62,16 @@ public class OidcClientProvider extends RemoteModuleProvider {
                 new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
         client.setRequestEntityConverter(requestEntityConverter);
-        oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, new OidcUserService());
+        oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, getUserService(decoder));
         oidcProvider.setJwtDecoderFactory(decoder);
+    }
+
+    private OidcUserService getUserService(JwtDecoderFactory<ClientRegistration> decoder) {
+        OidcUserService service = new OidcUserService();
+        OidcUserTokenService oidcTokenUserService = new OidcUserTokenService();
+        oidcTokenUserService.setJwtDecoderFactory(decoder);
+        service.setOauth2UserService(oidcTokenUserService);
+        return service;
     }
 
     private void initJwkResolver() {

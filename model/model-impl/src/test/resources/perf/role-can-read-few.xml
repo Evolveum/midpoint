@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="46302f20-2197-4345-9d4b-ab183a028aa9">
+    <name>can-read-few</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>extension/prop0025</item>
+        <item>assignment/description</item>
+    </authorization>
+</role>

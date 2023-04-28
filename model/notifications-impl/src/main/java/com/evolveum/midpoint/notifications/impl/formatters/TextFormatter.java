@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -55,15 +57,8 @@ public class TextFormatter {
     @Autowired DeltaFormatter deltaFormatter;
 
     static boolean isAmongHiddenPaths(ItemPath path, Collection<ItemPath> hiddenPaths) {
-        if (hiddenPaths == null) {
-            return false;
-        }
-        for (ItemPath hiddenPath : hiddenPaths) {
-            if (hiddenPath.isSubPathOrEquivalent(path)) {
-                return true;
-            }
-        }
-        return false;
+        return hiddenPaths != null
+                && ItemPathCollectionsUtil.containsSubpathOrEquivalent(hiddenPaths, path);
     }
 
     public String formatShadowAttributes(ShadowType shadowType, boolean showSynchronizationItems, boolean showAuxiliaryItems) {

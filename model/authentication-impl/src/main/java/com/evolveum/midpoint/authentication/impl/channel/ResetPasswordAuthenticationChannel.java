@@ -41,9 +41,9 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
         for (Authorization authzI : authorities) {
             authzI.getAction().removeIf(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
         }
-        AuthorizationType authorizationType = new AuthorizationType();
-        authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
-        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
+        AuthorizationType authorizationBean = new AuthorizationType();
+        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
+        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationBean);
         newAuthorities.add(selfServiceCredentialsAuthz);
         authorities.addAll(newAuthorities);
         return authorities;

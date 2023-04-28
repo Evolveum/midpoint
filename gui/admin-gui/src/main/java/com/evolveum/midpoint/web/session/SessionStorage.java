@@ -63,6 +63,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_WORK_ITEMS = "workItems";
     public static final String KEY_OBJECT_LIST = "containerListPage";
     public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
+    public static final String KEY_CHILD_CASES_TAB = "childCasesTab";
     public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
     public static final String KEY_ORG_STRUCTURE_PANEL_STORAGE = "orgStructurePanelStorage";
 

@@ -8,17 +8,17 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -31,7 +31,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
     <xsd:complexType name="SecurityPolicyType">
         <xsd:annotation>
@@ -190,7 +190,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="identifier" type="xsd:string" >
+            <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique module identifier. Can be used to reference the module.
@@ -884,16 +884,16 @@
     </xsd:complexType>
 
     <xsd:complexType name="ModuleSaml2SimpleKeyType">
-            <xsd:annotation>
-                <xsd:documentation>
-                    SAML2 key from string representation.
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:container/>
-                    <a:since>4.1</a:since>
-                </xsd:appinfo>
-            </xsd:annotation>
-            <xsd:complexContent>
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 key from string representation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
             <xsd:extension base="tns:AbstractSimpleKeyType">
                 <xsd:sequence>
                     <xsd:element name="type" type="tns:ModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
@@ -1071,46 +1071,110 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="jwt" type="tns:JwtOidcResourceServerType" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Define that resource server expect token in format JWT.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="opaqueToken" type="tns:OpaqueTokenOidcResourceServerType" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Define that resource server expect opaque token, which have to be verified by user info endpoint.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
             <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Realm which Midpoint use for WWW-Authentication header
+                        <p>
+                            Deprecated use attribute in token definition instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="issuerUri" type="xsd:string" minOccurs="0" maxOccurs="1" >
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Issuer identifier uri for the OpenID Connect provider.
+                        <p>
+                            Deprecated use attribute in token definition instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Uri for the JSON Web Key (JWK) Set endpoint.
+                        <p>
+                            Deprecated use attribute in token definition instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of claim in jwt, which value define name of user in Midpoint. Default value is 'sub'.
+                        Name of claim in jwt, which value define name of user in Midpoint.
+                        <p>
+                            Deprecated use attribute in token definition instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="singleSymmetricKey" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Trusting a Single Asymmetric Key.
+                        <p>
+                            Deprecated use attribute in token definition instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="trustedAlgorithm" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Trusted Algorithms. (RFC7518 section-3.1).
+                        <p>
+                            Deprecated use attribute in token definition instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:choice>
@@ -1118,6 +1182,9 @@
                     <xsd:annotation>
                         <xsd:documentation>
                             Certificate of trusting a single asymmetric RSA public key.
+                            <p>
+                                Deprecated use attribute in token definition instead
+                            </p>
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -1125,12 +1192,133 @@
                     <xsd:annotation>
                         <xsd:documentation>
                             Key store with trusting a single asymmetric RSA public key.
+                            <p>
+                                Deprecated use attribute in token definition instead
+                            </p>
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:deprecated/>
+                            <a:deprecatedSince>4.8</a:deprecatedSince>
+                            <a:plannedRemoval>4.9</a:plannedRemoval>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice> <!--> can use only one of types, but all can be null<-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractTokenOidcResourceServerType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Realm which Midpoint use for WWW-Authentication header
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="issuerUri" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Issuer identifier uri for the OpenID Connect provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nameOfUsernameClaim" type="xsd:string" minOccurs="0" maxOccurs="1" default="sub">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of claim which value define name of user in Midpoint.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="JwtOidcResourceServerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Define that resource server expect token in format JWT.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractTokenOidcResourceServerType">
+                <xsd:sequence>
+                    <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Uri for the JSON Web Key (JWK) Set endpoint.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="singleSymmetricKey" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Trusting a Single Asymmetric Key.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="trustedAlgorithm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Trusted Algorithms. (RFC7518 section-3.1).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:choice>
+                        <xsd:element name="trustingAsymmetricCertificate" type="t:ProtectedStringType" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Certificate of trusting a single asymmetric RSA public key.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="keyStoreTrustingAsymmetricKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Key store with trusting a single asymmetric RSA public key.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice> <!--> can use only one of types, but all can be null<-->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OpaqueTokenOidcResourceServerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Define that resource server expect opaque token, which have to be verified by user info endpoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractTokenOidcResourceServerType">
+                <xsd:sequence>
+                    <xsd:element name="userInfoUri" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                URI for user info endpoint.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="OidcClientAuthenticationModuleType">
@@ -1296,6 +1484,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Uri for user info endpoint.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="jwkSetUri" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uri for JSON web key set endpoint.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1535,7 +1730,7 @@
                     </xsd:appinfo>
                     <xsd:documentation>
                         Option for updating focus authentication behaviour attributes. We can enable/disable updating of focus
-                        behavior  during every login, or we can use option for updating behaviour only when login failed and
+                        behavior during every login, or we can use option for updating behaviour only when login failed and
                         during success login after fails login. Default value is 'everyLogin'.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1548,7 +1743,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Option for updating focus authentication behaviour attributes. We can enable/disable updating of focus
-                behavior  during every login, or we can use option for updating behaviour only when login failed and
+                behavior during every login, or we can use option for updating behaviour only when login failed and
                 during success login after fails login.
             </xsd:documentation>
             <xsd:appinfo>
@@ -1846,7 +2041,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0" />
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0"/>
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2642,7 +2837,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CredentialPolicyType">
                 <xsd:sequence>
-                    <xsd:element name="questionNumber" type="xsd:int" minOccurs="0"  maxOccurs="1">
+                    <xsd:element name="questionNumber" type="xsd:int" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Number of Questions in order to change the passwords

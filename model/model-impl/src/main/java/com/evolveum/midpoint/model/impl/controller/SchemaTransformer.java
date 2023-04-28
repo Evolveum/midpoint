@@ -6,11 +6,29 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.*;
+
+import java.util.*;
+
+import com.evolveum.midpoint.security.enforcer.api.ObjectOperationConstraints;
+
+import com.google.common.base.Preconditions;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -24,18 +42,17 @@ import com.evolveum.midpoint.prism.ItemDefinitionTransformer.TransformableValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DefinitionProcessingOption;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
@@ -44,26 +61,12 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.google.common.base.Preconditions;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.*;
 
 /**
  * Transforms the schema and objects by applying security constraints,
@@ -76,51 +79,106 @@ public class SchemaTransformer {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
 
-    private static final String OP_APPLY_SCHEMAS_AND_SECURITY = SchemaTransformer.class.getName() + ".applySchemasAndSecurity";
     private static final String OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT = SchemaTransformer.class.getName() + ".applySchemasAndSecurityToObject";
+    private static final String OP_APPLY_SECURITY_TO_LENS_CONTEXT = SchemaTransformer.class.getName() + ".applySecurityToLensContext";
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private SecurityEnforcer securityEnforcer;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
+    @Autowired private PrismContext prismContext;
 
-    @Autowired
-    private PrismContext prismContext;
-
-    // TODO why are the following two methods distinct? Clarify their names.
-    public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(List<T> objectTypes,
-            GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
-            AuthorizationPhaseType phase, Task task, OperationResult result)
-                    throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        for (int i = 0; i < objectTypes.size(); i++) {
-            PrismObject<T> object = (PrismObject<T>) objectTypes.get(i).asPrismObject();
-            object = object.cloneIfImmutable();
-            objectTypes.set(i, object.asObjectable());
-            applySchemasAndSecurity(object, rootOptions, options, phase, task, result);
+    /**
+     * Applies security to a {@link SearchResultList} of prism objects.
+     *
+     * Assumes some items may be immutable, and does lazy object or object list cloning:
+     *
+     * - Some objects may be mutated or cloned-and-mutated (if the object was immutable).
+     * - This may result in modifying the original `objects` list, or returning a its modified copy (if the list was immutable).
+     */
+    @VisibleForTesting
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> applySchemasAndSecurityToObjects(
+            SearchResultList<PrismObject<T>> objects,
+            ParsedGetOperationOptions options,
+            Task task,
+            OperationResult result)
+            throws SecurityViolationException {
+        List<PrismObject<T>> newList = null; // created if needed
+        for (int i = 0; i < objects.size(); i++) {
+            PrismObject<T> object = objects.get(i);
+            PrismObject<T> objectAfter = applySchemasAndSecurityToObjectInList(object, options, task, result);
+            if (newList != null) {
+                newList.add(objectAfter);
+            } else {
+                if (objectAfter != object) {
+                    if (objects.isImmutable()) {
+                        newList = new ArrayList<>(objects.size());
+                        newList.addAll(objects.subList(0, i));
+                        newList.add(objectAfter);
+                    } else {
+                        objects.set(i, objectAfter);
+                    }
+                } else {
+                    // the object is in its place
+                }
+            }
+        }
+        if (newList != null) {
+            return new SearchResultList<>(newList, objects.getMetadata());
+        } else {
+            return objects;
         }
     }
 
-    <T extends ObjectType> void applySchemasAndSecurityToObjects(SearchResultList<PrismObject<T>> objects,
-            GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
-            AuthorizationPhaseType phase, Task task, OperationResult result)
-                    throws SecurityViolationException {
-        assert !objects.isImmutable();
-        for (int i = 0; i < objects.size(); i++) {
-            PrismObject<T> object = objects.get(i);
-            if (object.isImmutable()) {
-                object = object.clone();
-                objects.set(i, object);
-            }
-            applySchemaAndSecurityToObject(object, rootOptions, options, phase, task, result);
+    private <T extends ObjectType> PrismObject<T> applySchemasAndSecurityToObjectInList(
+            PrismObject<T> object,
+            ParsedGetOperationOptions options,
+            Task task,
+            OperationResult parentResult) throws SecurityViolationException {
+        OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT);
+        try {
+            return applySchemasAndSecurityToObject(object, options, task, result);
+        } catch (IllegalArgumentException | IllegalStateException | SchemaException | ConfigurationException |
+                ObjectNotFoundException | ExpressionEvaluationException | CommunicationException e) {
+            LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
+            result.recordFatalError(e);
+            result.close();
+            // todo is it safe to keep the object in the result set if it was not completely post-processed?
+            return updateFetchResult(object, result);
+        } catch (SecurityViolationException e) {
+            // We cannot go on and leave this object in the result set. The object was not post-processed.
+            // Leaving it in the result set may leak information.
+            result.recordFatalError(e);
+            throw e;
+        } finally {
+            result.close();
         }
+    }
+
+    // TODO why is this method used only when processing objects lists and not for individual objects?
+    private static <T extends ObjectType> PrismObject<T> updateFetchResult(PrismObject<T> object, OperationResult result) {
+        var clonedObject = object.cloneIfImmutable();
+        OperationResultType fetchResult = clonedObject.asObjectable().getFetchResult();
+        if (fetchResult == null) {
+            clonedObject.asObjectable().setFetchResult(result.createBeanReduced());
+        } else {
+            fetchResult.getPartialResults().add(result.createBeanReduced());
+            fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
+        }
+        return clonedObject;
     }
 
     // Expecting that C is a direct child of T.
     // Expecting that container values point to their respective parents (in order to evaluate the security!)
     <C extends Containerable, T extends ObjectType>
-    SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, ItemName childItemName,
-            GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
+    SearchResultList<C> applySchemasAndSecurityToContainers(
+            SearchResultList<C> originalResultList,
+            Class<T> parentObjectType,
+            ItemName childItemName,
+            ParsedGetOperationOptions parsedOptions,
+            Task task,
+            OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+            ExpressionEvaluationException, CommunicationException {
 
         List<C> newValues = new ArrayList<>();
         Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
@@ -141,8 +199,7 @@ public class SchemaTransformer {
                 wasProcessed = false;
             }
             if (!wasProcessed) {
-                // TODO what if parent is immutable?
-                applySchemasAndSecurity(parent, rootOptions, options, phase, task, result);
+                parent = applySchemasAndSecurityToObject(parent, parsedOptions, task, result);
                 processedParents.put(parent, null);
             }
             PrismContainer<C> updatedChildContainer = parent.findContainer(childItemName);
@@ -156,272 +213,279 @@ public class SchemaTransformer {
         return new SearchResultList<>(newValues, originalResultList.getMetadata());
     }
 
-    private <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions rootOptions,
-            Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException {
-        OperationResult subresult = result.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT);
-        try {
-            applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
-            subresult.computeStatus();
-        } catch (IllegalArgumentException | IllegalStateException | SchemaException |ConfigurationException |ObjectNotFoundException | ExpressionEvaluationException | CommunicationException e) {
-            LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
-            OperationResultType fetchResult = object.asObjectable().getFetchResult();
-            if (fetchResult == null) {
-                fetchResult = subresult.createBeanReduced();
-                object.asObjectable().setFetchResult(fetchResult);
-            } else {
-                fetchResult.getPartialResults().add(subresult.createBeanReduced());
-            }
-            fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
-            subresult.recordFatalError(e); // todo is it safe to keep the object in the result set if it was not completely post-processed?
-        } catch (SecurityViolationException e) {
-            // We cannot go on and leave this object in the result set. The object was not post-processed.
-            // Leaving it in the result set may leak information.
-            subresult.recordFatalError(e);
-            throw e;
-        }
-    }
-
-    private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        if (GetOperationOptions.isRaw(rootOptions)) {
-            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, AuthorizationParameters.Builder.buildObjectDelta(object, delta), null, task, result);
-        }
-    }
-
     /**
-     * Validate the objects, apply security to the object definition, remove any non-visible properties (security),
-     * apply object template definitions and so on. This method is called for
-     * any object that is returned from the Model Service.
+     * Validates the object, removes any non-visible properties (security), applies object template definitions and so on.
+     * This method is called for any object that is returned from the Model Service.
+     *
+     * Intentionally does NOT apply the authorizations to the object and sub-items definitions.
+     * This is done in {@link ModelInteractionService#getEditObjectDefinition(PrismObject, AuthorizationPhaseType, Task,
+     * OperationResult)} only.
+     *
+     * See also https://github.com/Evolveum/docs/blob/master/midpoint/devel/design/apply-schemas-and-security-4.8/design-meetings.adoc.
+     *
+     * Creates an object clone, if necessary (i.e. if the object is immutable, and there are changes to be made).
+     * [Currently, always clones immutable objects. But this will be changed eventually.]
      */
-    <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            AuthorizationPhaseType phase, Task task, OperationResult parentResult)
-                    throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        LOGGER.trace("applySchemasAndSecurity({}) starting", object);
-        OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY);
-        authorizeOptions(rootOptions, object, null, phase, task, result);
-        validateObject(object, rootOptions, result);
+    <O extends ObjectType> @NotNull PrismObject<O> applySchemasAndSecurityToObject(
+            @NotNull PrismObject<O> object,
+            @NotNull ParsedGetOperationOptions parsedOptions,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
 
-        ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
+        LOGGER.trace("applySchemasAndSecurityToObject({}) starting", object);
+        var rootOptions = parsedOptions.getRootOptions();
+        OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT);
+        try {
+            authorizeRawOption(object, rootOptions, task, result);
+            validateObject(object, rootOptions);
 
-        transform(object, new DefinitionsToTransformable());
-        PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+            ObjectOperationConstraints readConstraints = compileReadConstraints(object, task, result);
 
-        if (phase == null) {
-            if (!GetOperationOptions.isExecutionPhase(rootOptions)) {
-                applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.REQUEST, task, result);
-            }
-            applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.EXECUTION, task, result);
-        } else {
-            if (phase == AuthorizationPhaseType.REQUEST && GetOperationOptions.isExecutionPhase(rootOptions)) {
-                // Skip application of security constraints for request phase.
-                // The caller asked to skip evaluation of request authorization, so everything is allowed here.
+            DefinitionUpdateOption definitionUpdateOption = parsedOptions.getDefinitionUpdate();
+            boolean raw = GetOperationOptions.isRaw(rootOptions);
+
+            // we must determine the template before object items are stripped off by authorizations
+            ObjectTemplateType objectTemplate = !raw && definitionUpdateOption != DefinitionUpdateOption.NONE ?
+                    determineObjectTemplate(object, result) : null;
+
+            if (GetOperationOptions.isExecutionPhase(rootOptions)) {
+                object = applyReadConstraints(object, readConstraints, AuthorizationPhaseType.EXECUTION);
             } else {
-                applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, phase, task, result);
+                object = applyReadConstraints(object, readConstraints, null);
             }
-        }
 
-        // we do not need to process object template when processing REQUEST in RAW mode.
-        if (!GetOperationOptions.isRaw(rootOptions)) {
-            ObjectTemplateType objectTemplateType;
-            try {
-                objectTemplateType = determineObjectTemplate(object, AuthorizationPhaseType.REQUEST, result);
-            } catch (ConfigurationException | SchemaException | ObjectNotFoundException e) {
-                result.recordFatalError(e);
-                throw e;
-            }
-            applyObjectTemplateToObject(object, objectTemplateType, task, result);
-        }
+            if (definitionUpdateOption != DefinitionUpdateOption.NONE) {
 
-        if (CollectionUtils.isNotEmpty(options)) {
-            Map<DefinitionProcessingOption, Collection<UniformItemPath>> definitionProcessing = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing(), prismContext);
-            if (CollectionUtils.isNotEmpty(definitionProcessing.get(DefinitionProcessingOption.NONE))) {
-                throw new UnsupportedOperationException("'NONE' definition processing is not supported now");
-            }
-            Collection<UniformItemPath> onlyIfExists = definitionProcessing.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
-            if (CollectionUtils.isNotEmpty(onlyIfExists)) {
-                if (onlyIfExists.size() != 1 || !ItemPath.isEmpty(onlyIfExists.iterator().next())) {
-                    throw new UnsupportedOperationException("'ONLY_IF_EXISTS' definition processing is currently supported on root level only; not on " + onlyIfExists);
+                // The following can be optimized further. For example, we do not have to switch all definitions
+                // to transformable ones. But this will be dealt with later - if needed.
+
+                object = object.cloneIfImmutable();
+                transform(object, new DefinitionsToTransformable());
+
+                // we do not need to process object template when processing in raw mode
+                // TODO cache the definitions
+                if (objectTemplate != null) {
+                    applyObjectTemplateToObject(object, objectTemplate, definitionUpdateOption, task, result);
                 }
-                Collection<UniformItemPath> full = definitionProcessing.get(DefinitionProcessingOption.FULL);
-                object.trimDefinitionTree(full);
-            }
-        }
 
-        result.computeStatus();
-        result.recordSuccessIfUnknown();
-        LOGGER.trace("applySchemasAndSecurity finishing");
+                // TODO consider removing this as it shouldn't be needed after definitions caching is implemented
+                applyDefinitionProcessingOption(object, parsedOptions);
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+        LOGGER.trace("applySchemasAndSecurityToObject finishing");
+        return object;
+    }
+
+    private <O extends ObjectType> void authorizeRawOption(
+            PrismObject<O> object, GetOperationOptions rootOptions,
+            Task task,
+            OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        if (GetOperationOptions.isRaw(rootOptions)) {
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.RAW_OPERATION.getUrl(),
+                    null,
+                    AuthorizationParameters.Builder.buildObject(object),
+                    null, task, result);
+        }
+    }
+
+    private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options) {
+        if (InternalsConfig.readEncryptionChecks) {
+            CryptoUtil.checkEncrypted(object);
+        }
+        if (InternalsConfig.consistencyChecks) {
+            boolean tolerateRaw;
+            if (ObjectTypeUtil.hasFetchError(object)) {
+                // If there is an error then the object might not be complete.
+                // E.g. we do not have a complete dynamic schema to apply to the object
+                // Tolerate some raw meat in that case.
+                tolerateRaw = true;
+            } else {
+                Class<T> type = object.getCompileTimeClass();
+                if (ResourceType.class.equals(type) || ShadowType.class.equals(type) || ReportType.class.equals(type)) {
+                    // We tolerate raw values for resource and shadows in case the user has requested so
+                    tolerateRaw = GetOperationOptions.isRaw(options);
+                } else {
+                    tolerateRaw = GetOperationOptions.isTolerateRawData(options);
+                }
+            }
+            object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
+        }
+    }
+
+    private void applyDefinitionProcessingOption(PrismObject<? extends ObjectType> object, ParsedGetOperationOptions options) {
+        if (options.isEmpty()) {
+            return;
+        }
+        Map<DefinitionProcessingOption, PathSet> definitionProcessing = options.getDefinitionProcessingMap();
+        if (CollectionUtils.isNotEmpty(definitionProcessing.get(DefinitionProcessingOption.NONE))) {
+            throw new UnsupportedOperationException("'NONE' definition processing is not supported now");
+        }
+        PathSet onlyIfExists = definitionProcessing.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
+        if (CollectionUtils.isNotEmpty(onlyIfExists)) {
+            if (onlyIfExists.size() != 1 || !ItemPath.isEmpty(onlyIfExists.iterator().next())) {
+                throw new UnsupportedOperationException("'ONLY_IF_EXISTS' definition processing is currently"
+                        + " supported on root level only; not on " + onlyIfExists);
+            }
+            PathSet full = definitionProcessing.get(DefinitionProcessingOption.FULL);
+            object.trimDefinitionTree(full);
+        }
     }
 
     private void transform(Item<?,?> object, ItemDefinitionTransformer transformation) {
-        Preconditions.checkArgument(object instanceof TransformableItem, "Value must be %s", TransformableValue.class.getSimpleName());
+        Preconditions.checkArgument(
+                object instanceof TransformableItem,
+                "Value must be %s", TransformableValue.class.getSimpleName());
         ((TransformableItem) object).transformDefinition(null, transformation);
     }
 
-    <O extends ObjectType> void applySchemasAndSecurity(LensContext<O> context,
-            AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        LOGGER.trace("applySchemasAndSecurity({}) starting", context);
-        OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY);
-
+    <O extends ObjectType> void applySecurityToLensContext(
+            @NotNull LensContext<O> context, Task task, OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
+        LOGGER.trace("applySecurityToLensContext({}) starting", context);
+        OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SECURITY_TO_LENS_CONTEXT);
         try {
-            applySchemasAndSecurityFocus(context, phase, task, result);
-            applySchemasAndSecurityProjections(context, phase, task, result);
-
-            result.computeStatus();
-            result.recordSuccessIfUnknown();
-
+            applySecurityToFocusContext(context, task, result);
+            applySecurityToProjectionsContexts(context, task, result);
         } catch (Throwable e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
+        } finally {
+            result.close();
         }
-
-        LOGGER.trace("applySchemasAndSecurity finishing");            // to allow folding in log viewer
+        LOGGER.trace("applySecurityToLensContext finishing"); // to allow folding in log viewer
     }
 
-    private <O extends ObjectType> void applySchemasAndSecurityFocus(LensContext<O> context,
-            AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+    private <O extends ObjectType> void applySecurityToFocusContext(
+            LensContext<O> context, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
         LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null) {
+        PrismObject<O> object = focusContext != null ? focusContext.getObjectAny() : null;
+        if (object == null) {
             return;
         }
 
-        ObjectSecurityConstraints securityConstraints = applySchemasAndSecurityElementContext(context, focusContext, phase, task, result);
-
-        AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
-        if (!AuthorizationDecisionType.ALLOW.equals(assignmentDecision)) {
-            PrismObject<O> object = focusContext.getObjectAny();
+        ObjectOperationConstraints readConstraints = applySecurityToElementContext(focusContext, task, result);
+        AuthorizationDecisionType assignmentDecision =
+                readConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, null);
+        if (assignmentDecision != AuthorizationDecisionType.ALLOW) {
             LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
             result.recordWarning("Logged in user isn't authorized to read (or get) assignment item of the object: " + object);
             context.setEvaluatedAssignmentTriple(null);
         }
     }
 
-    private <O extends ObjectType> void applySchemasAndSecurityProjections(LensContext<O> context,
-            AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+    private <O extends ObjectType> void applySecurityToProjectionsContexts(
+            LensContext<O> context, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
         for (LensProjectionContext projCtx : context.getProjectionContexts()) {
             if (projCtx != null && projCtx.getObjectAny() != null) {
-                applySchemasAndSecurityElementContext(context, projCtx, phase, task, result);
+                applySecurityToElementContext(projCtx, task, result);
             }
         }
     }
 
-    private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints applySchemasAndSecurityElementContext(LensContext<F> context, LensElementContext<O> elementContext,
-            AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+    private <O extends ObjectType> ObjectOperationConstraints applySecurityToElementContext(
+            LensElementContext<O> elementContext, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
 
         PrismObject<O> object = elementContext.getObjectAny();
+        assert object != null;
 
-        if (object == null) {
-            if (elementContext.getSummaryDelta() == null) { // TODO check this
-                return null;
-            } else {
-                throw new IllegalArgumentException("Cannot apply schema and security of null object");
-            }
-        }
-        GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(context.getOptions());
-        authorizeOptions(getOptions, object, null, phase, task, result);
+        GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(elementContext.getLensContext().getOptions());
+        authorizeRawOption(object, getOptions, task, result);
 
-        ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
-
-        AuthorizationDecisionType globalReadDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
+        ObjectOperationConstraints readConstraints = compileReadConstraints(object, task, result);
+        AuthorizationDecisionType globalReadDecision = readConstraints.findAllItemsDecision(null);
         if (globalReadDecision == AuthorizationDecisionType.DENY) {
             // shortcut
             SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
             throw new AuthorizationException("Access denied");
         }
 
-        AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
-        AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-
         elementContext.forEachObject(focusObject ->
-            applySecurityConstraints(focusObject.getValue(), securityConstraints, phase,
-                    globalReadDecision, globalAddDecision, globalModifyDecision,
-                    false));
+            applyReadConstraintsToMutablePcv(focusObject.getValue(), readConstraints, null, globalReadDecision));
 
         elementContext.forEachDelta(focusDelta ->
-            applySecurityConstraints(focusDelta, securityConstraints, phase,
-                    globalReadDecision, globalAddDecision, globalModifyDecision));
+            applyReadConstraintsToDelta(focusDelta, readConstraints, globalReadDecision));
 
-        return securityConstraints;
+        return readConstraints;
     }
 
-    private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition,
-            GetOperationOptions rootOptions, AuthorizationPhaseType phase, Task task, OperationResult result)
-                    throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        Validate.notNull(phase);
-        try {
-            AuthorizationDecisionType globalReadDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
-            if (globalReadDecision == AuthorizationDecisionType.DENY) {
-                // shortcut
-                SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
-                throw new AuthorizationException("Access denied");
-            }
+    private <O extends ObjectType> PrismObject<O> applyReadConstraints(
+            @NotNull PrismObject<O> object,
+            @NotNull ObjectOperationConstraints constraints,
+            @Nullable AuthorizationPhaseType phase)
+            throws SecurityViolationException {
 
-            AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
-            AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-            applySecurityConstraints(object.getValue(), securityConstraints, phase,
-                    globalReadDecision, globalAddDecision, globalModifyDecision, true);
-            if (object.isEmpty()) {
-                // let's make it explicit
-                SecurityUtil.logSecurityDeny(object, "because the subject has not access to any item");
-                throw new AuthorizationException("Access denied");
-            }
-
-            applySecurityConstraintsItemDef(objectDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
-        } catch (SecurityViolationException | RuntimeException e) {
-            result.recordFatalError(e);
-            throw e;
+        if (constraints.isCompletelyAllowed(phase)) {
+            return object;
         }
-    }
 
-    private <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        try {
-            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null, task, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Security constraints for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
-            }
-            if (securityConstraints == null) {
-                SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
-                throw new AuthorizationException("Access denied");
-            }
-            return securityConstraints;
-        } catch (Throwable e) {
-            result.recordFatalError(e);
-            throw e;
+        AuthorizationDecisionType globalReadDecision = constraints.findAllItemsDecision(phase);
+        if (globalReadDecision == AuthorizationDecisionType.DENY) {
+            // shortcut
+            SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
+            throw new AuthorizationException("Access denied");
         }
+
+        var mutable = object.cloneIfImmutable();
+        applyReadConstraintsToMutablePcv(mutable.getValue(), constraints, phase, globalReadDecision);
+
+        if (mutable.isEmpty()) {
+            // let's make it explicit (note that the log message may show empty object if it was originally mutable)
+            SecurityUtil.logSecurityDeny(object, "because the subject has not access to any item");
+            throw new AuthorizationException("Access denied");
+        }
+        return mutable;
     }
 
-    /** The variant of `applySecurityConstraints` for a {@link PrismContainerValue}. */
-    private void applySecurityConstraints(
-            PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
-            AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
-            AuthorizationDecisionType defaultModifyDecision, boolean applyToDefinitions) {
-        LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
-                pcv.getItems(), phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
-        if (pcv.hasNoItems()) {
+    private <O extends ObjectType> @NotNull ObjectOperationConstraints compileReadConstraints(
+            PrismObject<O> object, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
+        ObjectOperationConstraints readConstraints =
+                securityEnforcer.compileOperationConstraints(
+                        object, null, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET_ALL, task, result);
+        LOGGER.trace("Read constraints for {}:\n{}", object, DebugUtil.debugDumpLazily(readConstraints));
+        if (readConstraints == null) {
+            SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
+            throw new AuthorizationException("Access denied");
+        }
+        return readConstraints;
+    }
+
+    private void applyReadConstraintsToMutablePcv(
+            @NotNull PrismContainerValue<?> pcv,
+            @NotNull ObjectOperationConstraints readConstraints,
+            @Nullable AuthorizationPhaseType phase,
+            @Nullable AuthorizationDecisionType defaultReadDecision) {
+        Collection<Item<?, ?>> items = pcv.getItems();
+        LOGGER.trace("applyReadConstraintsToMutablePcv: items={}, phase={}, default R={}", items, phase, defaultReadDecision);
+        if (items.isEmpty()) {
             return;
         }
-        List<Item> itemsToRemove = new ArrayList<>();
-        for (Item<?, ?> item : pcv.getItems()) {
+        List<Item<?, ?>> itemsToRemove = new ArrayList<>();
+        for (Item<?, ?> item : items) {
             ItemPath itemPath = item.getPath();
             ItemDefinition<?> itemDef = item.getDefinition();
             ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
-            AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
-            AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
-            AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
-            LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
-                    itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
-            if (applyToDefinitions && itemDef != null) {
-                itemDef = ensureMutableDefinition((Item) item);
-                if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
-                    mutable(itemDef).setCanRead(false);
-                }
-                if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
-                    mutable(itemDef).setCanAdd(false);
-                }
-                if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
-                    mutable(itemDef).setCanModify(false);
-                }
-            }
+            AuthorizationDecisionType itemReadDecision =
+                    computeItemReadDecision(readConstraints, nameOnlyItemPath, defaultReadDecision, phase);
+            LOGGER.trace("applySecurityConstraints(item): {}: decision R={}", itemPath, itemReadDecision);
             if (item instanceof PrismContainer<?>) {
                 if (itemReadDecision == AuthorizationDecisionType.DENY) {
                     // Explicitly denied access to the entire container
@@ -437,13 +501,15 @@ public class SchemaTransformer {
                     }
                 } else {
                     // No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
-                    AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
+                    AuthorizationDecisionType subDefaultReadDecision;
                     if (itemReadDecision == AuthorizationDecisionType.ALLOW) {
-                        // This means allow to all subitems unless otherwise denied.
+                        // This means allow to all sub-items unless otherwise denied.
                         subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
+                    } else {
+                        subDefaultReadDecision = defaultReadDecision;
                     }
                     List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
-                    reduceContainerValues(values, securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, applyToDefinitions);
+                    reduceContainerValues(values, readConstraints, phase, itemReadDecision, subDefaultReadDecision);
                     if (item.hasNoValues() && itemReadDecision == null) {
                         // We have removed all the content, if there was any. So, in the default case, there's nothing that
                         // we are interested in inside this item. Therefore let's just remove it.
@@ -457,46 +523,26 @@ public class SchemaTransformer {
                 }
             }
         }
-        for (Item itemToRemove : itemsToRemove) {
+        for (Item<?, ?> itemToRemove : itemsToRemove) {
             pcv.remove(itemToRemove);
         }
-    }
-
-    private <D extends ItemDefinition<?>> D ensureMutableDefinition(Item<?, D> item) {
-        D original = item.getDefinition();
-        if (TransformableItemDefinition.isMutableAccess(original)) {
-            return original;
-        }
-        if (true) {
-            throw new IllegalStateException("Transformer did not applied transformable properly");
-        }
-
-        D replace = TransformableItemDefinition.publicFrom(original);
-        try {
-            item.applyDefinition(replace, true);
-        } catch (SchemaException e) {
-            throw new IllegalStateException("Can not replace definition with wrapper");
-        }
-        return replace;
     }
 
     private MutableItemDefinition<?> mutable(ItemDefinition<?> itemDef) {
         return itemDef.toMutable();
     }
 
-    /** The variant of `applySecurityConstraints` for an {@link ObjectDelta}. */
-    private <O extends ObjectType> void applySecurityConstraints(
-            ObjectDelta<O> objectDelta, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
-            AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
-            AuthorizationDecisionType defaultModifyDecision) {
-        LOGGER.trace("applySecurityConstraints(objectDelta): items={}, phase={}, defaults R={}, A={}, M={}",
-                objectDelta, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+    private <O extends ObjectType> void applyReadConstraintsToDelta(
+            @Nullable ObjectDelta<O> objectDelta,
+            @NotNull ObjectOperationConstraints readConstraints,
+            @Nullable AuthorizationDecisionType defaultReadDecision) {
+        LOGGER.trace("applyReadConstraintsToDelta: items={}, default R={}", objectDelta, defaultReadDecision);
         if (objectDelta == null) {
             return;
         }
         if (objectDelta.isAdd()) {
-            applySecurityConstraints(objectDelta.getObjectToAdd().getValue(), securityConstraints, phase, defaultReadDecision,
-                    defaultAddDecision, defaultModifyDecision, false);
+            applyReadConstraintsToMutablePcv(
+                    objectDelta.getObjectToAdd().getValue(), readConstraints, null, defaultReadDecision);
             return;
         }
         if (objectDelta.isDelete()) {
@@ -505,7 +551,7 @@ public class SchemaTransformer {
         }
         // Modify delta
         Collection<? extends ItemDelta<?,?>> modifications = objectDelta.getModifications();
-        if (modifications == null || modifications.isEmpty()) {
+        if (modifications.isEmpty()) {
             // Nothing to do
             return;
         }
@@ -514,17 +560,15 @@ public class SchemaTransformer {
             ItemPath itemPath = modification.getPath();
             ItemDefinition<?> itemDef = modification.getDefinition();
             ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
-            AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
-            AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
-            AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
-            LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
-                    itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
+            AuthorizationDecisionType itemReadDecision =
+                    computeItemReadDecision(readConstraints, nameOnlyItemPath, defaultReadDecision, null);
+            LOGGER.trace("applyReadConstraintsToDelta(item): {}: decision R={}", itemPath, itemReadDecision);
             if (modification instanceof ContainerDelta<?>) {
                 if (itemReadDecision == AuthorizationDecisionType.DENY) {
                     // Explicitly denied access to the entire container
                     itemsToRemove.add(modification);
                 } else if (itemDef != null && itemDef.isElaborate()) {
-                    LOGGER.trace("applySecurityConstraints(item): {}: skipping deeper dive, applying decision '{}' (elaborate)",
+                    LOGGER.trace("applyReadConstraintsToDelta(item): {}: skipping deeper dive, applying decision '{}' (elaborate)",
                             itemPath, itemReadDecision);
                     // See comments in the "PCV" version of this method (above)
                     if (itemReadDecision == null) {
@@ -532,18 +576,24 @@ public class SchemaTransformer {
                     }
                 } else {
                     // No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
-                    AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
+                    AuthorizationDecisionType subDefaultReadDecision;
                     if (itemReadDecision == AuthorizationDecisionType.ALLOW) {
-                        // This means allow to all subitems unless otherwise denied.
+                        // This means allow to all sub-items unless otherwise denied.
                         subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
+                    } else {
+                        subDefaultReadDecision = defaultReadDecision;
                     }
 
-                    reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToAdd(),
-                            securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, false);
-                    reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToDelete(),
-                            securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, false);
-                    reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToReplace(),
-                            securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, false);
+                    ContainerDelta<?> containerDelta = (ContainerDelta<?>) modification;
+                    reduceContainerValues(
+                            (List<? extends PrismContainerValue<?>>) containerDelta.getValuesToAdd(),
+                            readConstraints, null, itemReadDecision, subDefaultReadDecision);
+                    reduceContainerValues(
+                            (List<? extends PrismContainerValue<?>>) containerDelta.getValuesToDelete(),
+                            readConstraints, null, itemReadDecision, subDefaultReadDecision);
+                    reduceContainerValues(
+                            (List<? extends PrismContainerValue<?>>) containerDelta.getValuesToReplace(),
+                            readConstraints, null, itemReadDecision, subDefaultReadDecision);
 
                     if (modification.isEmpty() && itemReadDecision == null) {
                         // We have removed all the content, if there was any. So, in the default case, there's nothing that
@@ -564,91 +614,104 @@ public class SchemaTransformer {
         }
     }
 
-    private boolean reduceContainerValues(List<? extends PrismContainerValue<?>> values, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
-            AuthorizationDecisionType itemReadDecision, AuthorizationDecisionType itemAddDecision, AuthorizationDecisionType itemModifyDecision, AuthorizationDecisionType subDefaultReadDecision,
-            boolean applyToDefinitions) {
+    private void reduceContainerValues(
+            @Nullable List<? extends PrismContainerValue<?>> values,
+            @NotNull ObjectOperationConstraints readConstraints,
+            @Nullable AuthorizationPhaseType phase,
+            @Nullable AuthorizationDecisionType itemReadDecision,
+            @Nullable AuthorizationDecisionType subDefaultReadDecision) {
         if (values == null) {
-            return false;
+            return;
         }
-        boolean removedSomething = false;
         Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
         while (vi.hasNext()) {
             PrismContainerValue<?> cval = vi.next();
-            applySecurityConstraints(cval, securityConstraints, phase,
-                    subDefaultReadDecision, itemAddDecision, itemModifyDecision, applyToDefinitions);
+            applyReadConstraintsToMutablePcv(cval, readConstraints, phase, subDefaultReadDecision);
             if (cval.hasNoItems() && itemReadDecision == null) {
                 // We have removed all the content, if there was any. So, in the default case, there's nothing that
                 // we are interested in inside this PCV. Therefore let's just remove it.
                 // (If itemReadDecision is ALLOW, we obviously keep this untouched.)
                 vi.remove();
-                removedSomething = true;
             }
         }
-        return removedSomething;
     }
 
-    /** The variant of `applySecurityConstraints` for a {@link ItemDefinition}. */
-    public <D extends ItemDefinition> void applySecurityConstraints(
-            D itemDefinition, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase) {
+    <D extends ItemDefinition<?>> void applySecurityConstraintsToItemDef(
+            @NotNull D itemDefinition,
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @Nullable AuthorizationPhaseType phase) {
         if (phase == null) {
-            applySecurityConstraintsPhase(itemDefinition, securityConstraints, AuthorizationPhaseType.REQUEST);
-            applySecurityConstraintsPhase(itemDefinition, securityConstraints, AuthorizationPhaseType.EXECUTION);
+            applySecurityConstraintsToItemDefPhase(itemDefinition, securityConstraints, AuthorizationPhaseType.REQUEST);
+            applySecurityConstraintsToItemDefPhase(itemDefinition, securityConstraints, AuthorizationPhaseType.EXECUTION);
         } else {
-            applySecurityConstraintsPhase(itemDefinition, securityConstraints, phase);
+            applySecurityConstraintsToItemDefPhase(itemDefinition, securityConstraints, phase);
         }
     }
 
-    private <D extends ItemDefinition> void applySecurityConstraintsPhase(D itemDefinition, ObjectSecurityConstraints securityConstraints,
-            AuthorizationPhaseType phase) {
+    private <D extends ItemDefinition<?>> void applySecurityConstraintsToItemDefPhase(
+            @NotNull D itemDefinition,
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull AuthorizationPhaseType phase) {
         Validate.notNull(phase);
         LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}", itemDefinition, phase);
-        applySecurityConstraintsItemDef(itemDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints,
+        applySecurityConstraintsToItemDef(
+                itemDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints,
                 null, null, null, phase);
 
     }
 
-    private <D extends ItemDefinition> void applySecurityConstraintsItemDef(D itemDefinition,
-            IdentityHashMap<ItemDefinition, Object> definitionsSeen,
-            ItemPath nameOnlyItemPath, ObjectSecurityConstraints securityConstraints, AuthorizationDecisionType defaultReadDecision,
-            AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
-            AuthorizationPhaseType phase) {
+    private <D extends ItemDefinition<?>> void applySecurityConstraintsToItemDef(
+            @NotNull D itemDefinition,
+            @NotNull IdentityHashMap<ItemDefinition<?>, Object> definitionsSeen,
+            @NotNull ItemPath nameOnlyItemPath,
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @Nullable AuthorizationDecisionType defaultReadDecision,
+            @Nullable AuthorizationDecisionType defaultAddDecision,
+            @Nullable AuthorizationDecisionType defaultModifyDecision,
+            @NotNull AuthorizationPhaseType phase) {
 
         boolean thisWasSeen = definitionsSeen.containsKey(itemDefinition);
         definitionsSeen.put(itemDefinition, null);
 
-        AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
-        AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultAddDecision, phase);
-        AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultModifyDecision, phase);
+        AuthorizationDecisionType readDecision = computeItemDecision(
+                securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
+        AuthorizationDecisionType addDecision = computeItemDecision(
+                securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultAddDecision, phase);
+        AuthorizationDecisionType modifyDecision = computeItemDecision(
+                securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultModifyDecision, phase);
 
         boolean anySubElementRead = false;
         boolean anySubElementAdd = false;
         boolean anySubElementModify = false;
-        if (itemDefinition instanceof PrismContainerDefinition<?> && !thisWasSeen) {
-            PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-            List<? extends ItemDefinition> subDefinitions = containerDefinition.getDefinitions();
-            for (ItemDefinition subDef: subDefinitions) {
-                ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getItemName());
-                if (subDef.isElaborate()) {
-                    LOGGER.trace("applySecurityConstraints(itemDef): {}: skip (elaborate)", subPath);
-                    continue;
-                }
-                if (!subDef.getItemName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
-                    applySecurityConstraintsItemDef(subDef, definitionsSeen, subPath, securityConstraints,
-                        readDecision, addDecision, modifyDecision, phase);
-                }
-                if (subDef.canRead()) {
-                    anySubElementRead = true;
-                }
-                if (subDef.canAdd()) {
-                    anySubElementAdd = true;
-                }
-                if (subDef.canModify()) {
-                    anySubElementModify = true;
+        if (itemDefinition instanceof PrismContainerDefinition<?>) {
+            if (thisWasSeen) {
+                LOGGER.trace("applySecurityConstraintsToItemDef: {}: skipping (already seen)", nameOnlyItemPath);
+            } else if (itemDefinition.isElaborate()) {
+                LOGGER.trace("applySecurityConstraintsToItemDef: {}: skipping (elaborate)", nameOnlyItemPath);
+            } else {
+                PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>) itemDefinition;
+                List<? extends ItemDefinition<?>> subDefinitions = containerDefinition.getDefinitions();
+                for (ItemDefinition<?> subDef : subDefinitions) {
+                    ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getItemName());
+                    if (!subDef.getItemName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
+                        applySecurityConstraintsToItemDef(
+                                subDef, definitionsSeen, subPath, securityConstraints,
+                                readDecision, addDecision, modifyDecision, phase);
+                    }
+                    if (subDef.canRead()) {
+                        anySubElementRead = true;
+                    }
+                    if (subDef.canAdd()) {
+                        anySubElementAdd = true;
+                    }
+                    if (subDef.canModify()) {
+                        anySubElementModify = true;
+                    }
                 }
             }
         }
 
-        LOGGER.trace("applySecurityConstraints(itemDef): {}: decisions R={}, A={}, M={}; subelements R={}, A={}, M={}",
+        LOGGER.trace("applySecurityConstraintsToItemDef: {}: decisions R={}, A={}, M={}; subelements R={}, A={}, M={}",
                 nameOnlyItemPath, readDecision, addDecision, modifyDecision, anySubElementRead, anySubElementAdd, anySubElementModify);
 
         if (readDecision != AuthorizationDecisionType.ALLOW) {
@@ -673,52 +736,45 @@ public class SchemaTransformer {
     }
 
     @Contract("_, _, _, !null, _ -> !null")
-    public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath nameOnlyItemPath, String[] actionUrls,
-            AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
+    AuthorizationDecisionType computeItemDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull ItemPath nameOnlyItemPath,
+            @NotNull String[] actionUrls,
+            @Nullable AuthorizationDecisionType defaultDecision,
+            @Nullable AuthorizationPhaseType phase) {
         AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(nameOnlyItemPath, actionUrls, phase);
-//        LOGGER.trace("Explicit decision for {} ({} {}): {}", nameOnlyItemPath, actionUrl, phase, explicitDecision);
-        if (explicitDecision != null) {
-            return explicitDecision;
-        } else {
-            return defaultDecision;
-        }
+        return explicitDecision != null ? explicitDecision : defaultDecision;
     }
 
-    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    @Contract("_, _, !null, _ -> !null")
+    private AuthorizationDecisionType computeItemReadDecision(
+            @NotNull ObjectOperationConstraints constraints,
+            @NotNull ItemPath nameOnlyItemPath,
+            @Nullable AuthorizationDecisionType defaultDecision,
+            @Nullable AuthorizationPhaseType phase) {
+        AuthorizationDecisionType explicitDecision = constraints.findItemDecision(nameOnlyItemPath, phase);
+        return explicitDecision != null ? explicitDecision : defaultDecision;
+    }
+
+    private <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
         ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
         if (archetypePolicy == null) {
             return null;
         }
         ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
-        if (objectTemplateRef == null || StringUtils.isEmpty(objectTemplateRef.getOid())) {
+        if (objectTemplateRef == null || objectTemplateRef.getOid() == null) {
             return null;
         }
-        PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class,
-                objectTemplateRef.getOid(), createReadOnlyCollection(), result);
-        return template.asObjectable();
-    }
-
-    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectClass, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-        if (systemConfiguration == null) {
-            return null;
-        }
-        ObjectPolicyConfigurationType objectPolicyConfiguration = ArchetypeManager.determineObjectPolicyConfiguration(objectClass, null, systemConfiguration.asObjectable());
-        if (objectPolicyConfiguration == null) {
-            return null;
-        }
-        ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
-        if (objectTemplateRef == null) {
-            return null;
-        }
-        PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(
-                ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
+        PrismObject<ObjectTemplateType> template =
+                cacheRepositoryService.getObject(
+                        ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
         return template.asObjectable();
     }
 
     <O extends ObjectType> void applyObjectTemplateToDefinition(
             PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplate, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (objectTemplate == null) {
             return;
         }
@@ -731,26 +787,22 @@ public class SchemaTransformer {
                     includeRef.getOid(), createReadOnlyCollection(), result);
             applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), task, result);
         }
-        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
-                ItemPathType ref = templateItemDefType.getRef();
-                if (ref == null) {
-                    throw new SchemaException("No 'ref' in item definition in "+objectTemplate);
-                }
-                ItemPath itemPath = prismContext.toPath(ref);
-                ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
-                if (itemDef != null) {
-                    applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
-                } else {
-                    OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToDefinition");
-                    subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
-                    continue;
-                }
+        for (ObjectTemplateItemDefinitionType templateItemDef: objectTemplate.getItem()) {
+            ItemPath itemPath = ItemRefinedDefinitionTypeUtil.getRef(templateItemDef);
+            ItemDefinition<?> itemDef = objectDefinition.findItemDefinition(itemPath);
+            if (itemDef != null) {
+                applyObjectTemplateItem(itemDef, templateItemDef, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
+            } else {
+                OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToDefinition");
+                subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
+            }
         }
     }
 
     private <O extends ObjectType> void applyObjectTemplateToObject(
-            PrismObject<O> object, ObjectTemplateType objectTemplate, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            PrismObject<O> object, ObjectTemplateType objectTemplate, DefinitionUpdateOption option,
+            Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (objectTemplate == null) {
             return;
         }
@@ -761,17 +813,13 @@ public class SchemaTransformer {
         for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(
                     ObjectTemplateType.class, includeRef.getOid(), createReadOnlyCollection(), result);
-            applyObjectTemplateToObject(object, subTemplate.asObjectable(), task, result);
+            applyObjectTemplateToObject(object, subTemplate.asObjectable(), option, task, result);
         }
-        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
-            ItemPathType ref = templateItemDefType.getRef();
-            if (ref == null) {
-                throw new SchemaException("No 'ref' in item definition in "+objectTemplate);
-            }
-            ItemPath itemPath = prismContext.toPath(ref);
-            ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
+        for (ObjectTemplateItemDefinitionType templateItemDef: objectTemplate.getItem()) {
+            ItemPath itemPath = ItemRefinedDefinitionTypeUtil.getRef(templateItemDef);
+            ItemDefinition<?> itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
             if (itemDefFromObject != null) {
-                applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object
+                applyObjectTemplateItem(itemDefFromObject, templateItemDef, "item " + itemPath + " in " + object
                         + " as specified in item definition in " + objectTemplate);
             } else {
                 OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToObject");
@@ -779,19 +827,21 @@ public class SchemaTransformer {
                         + " as specified in item definition in " + objectTemplate);
                 continue;
             }
-            Collection<Item<?, ?>> items = object.getAllItems(itemPath);
-            for (Item<?, ?> item : items) {
-                ItemDefinition itemDef = item.getDefinition();
-                if (itemDef != itemDefFromObject) {
-                    applyObjectTemplateItem(itemDef, templateItemDefType, "item "+itemPath+" in " + object
-                            + " as specified in item definition in "+objectTemplate);
+            if (option == DefinitionUpdateOption.DEEP) {
+                Collection<Item<?, ?>> items = object.getAllItems(itemPath);
+                for (Item<?, ?> item : items) {
+                    ItemDefinition<?> itemDef = item.getDefinition();
+                    if (itemDef != itemDefFromObject) {
+                        applyObjectTemplateItem(itemDef, templateItemDef, "item " + itemPath + " in " + object
+                                + " as specified in item definition in " + objectTemplate);
+                    }
                 }
             }
         }
     }
 
-    private <IV extends PrismValue,ID extends ItemDefinition> void applyObjectTemplateItem(ID itemDef,
-            ObjectTemplateItemDefinitionType templateItemDefType, String desc) throws SchemaException {
+    private <ID extends ItemDefinition<?>> void applyObjectTemplateItem(
+            ID itemDef, ObjectTemplateItemDefinitionType templateItemDefType, String desc) throws SchemaException {
         if (itemDef == null) {
             throw new SchemaException("No definition for "+desc);
         }
@@ -861,7 +911,7 @@ public class SchemaTransformer {
     }
 
     @NotNull
-    private <O extends ObjectType> List<VisibilityPolicyEntry> getVisibilityPolicy(
+    private List<VisibilityPolicyEntry> getVisibilityPolicy(
             ArchetypePolicyType archetypePolicy, Object contextDesc) throws SchemaException {
         List<VisibilityPolicyEntry> visibilityPolicy = new ArrayList<>();
         for (ItemConstraintType itemConstraint: archetypePolicy.getItemConstraint()) {
@@ -962,50 +1012,8 @@ public class SchemaTransformer {
         return null;
     }
 
-    private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
-        try {
-            if (InternalsConfig.readEncryptionChecks) {
-                CryptoUtil.checkEncrypted(object);
-            }
-            if (!InternalsConfig.consistencyChecks) {
-                return;
-            }
-            Class<T> type = object.getCompileTimeClass();
-            boolean tolerateRaw = GetOperationOptions.isTolerateRawData(options);
-            if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type) || type == ReportType.class) {
-                // We tolerate raw values for resource and shadows in case the user has requested so
-                tolerateRaw = GetOperationOptions.isRaw(options);
-            }
-            if (hasError(object, result)) {
-                // If there is an error then the object might not be complete.
-                // E.g. we do not have a complete dynamic schema to apply to the object
-                // Tolerate some raw meat in that case.
-                tolerateRaw = true;
-            }
-            if (InternalsConfig.consistencyChecks) {
-                object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
-            }
-        } catch (RuntimeException e) {
-            result.recordFatalError(e);
-            throw e;
-        }
-    }
-
-    private <T extends ObjectType> boolean hasError(PrismObject<T> object, OperationResult result) {
-        if (result != null && result.isError()) {        // actually, result is pretty tiny here - does not include object fetch/get operation
-            return true;
-        }
-        OperationResultType fetchResult = object.asObjectable().getFetchResult();
-        if (fetchResult != null &&
-                (fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR ||
-                fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR)) {
-            return true;
-        }
-        return false;
-    }
-
-    public <O extends Objectable> TransformableObjectDefinition<O> transformableDefinition(PrismObjectDefinition<O> definition) {
+    @NotNull
+    <O extends Objectable> TransformableObjectDefinition<O> transformableDefinition(PrismObjectDefinition<O> definition) {
         return TransformableObjectDefinition.of(definition);
     }
-
 }

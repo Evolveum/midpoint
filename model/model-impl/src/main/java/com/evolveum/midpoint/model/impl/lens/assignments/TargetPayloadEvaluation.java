@@ -62,7 +62,7 @@ class TargetPayloadEvaluation<AH extends AssignmentHolderType> extends AbstractE
         }
     }
 
-    private Authorization createAuthorization(AuthorizationType authorizationBean, String sourceDesc) {
+    private Authorization createAuthorization(@NotNull AuthorizationType authorizationBean, String sourceDesc) {
         Authorization authorization = new Authorization(authorizationBean);
         authorization.setSourceDescription(sourceDesc);
         return authorization;

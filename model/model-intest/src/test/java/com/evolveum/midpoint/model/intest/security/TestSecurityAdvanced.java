@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
@@ -2801,6 +2802,63 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
+
+        assertDeleteDeny();
+
+        assertGlobalStateUntouched();
+    }
+
+    /**
+     * Simple check of `exceptItem` handling: There are read + modify authorizations for all items except
+     * for `activation/administrativeStatus`. We make sure that all items (including `activation` and `activation/validTo`)
+     * are properly handled.
+     */
+    @Test
+    public void test305AutzJackPropExceptAdministrativeStatus() throws Exception {
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID);
+        modifyJackValidTo();
+        login(USER_JACK_USERNAME);
+
+        when();
+
+        PrismObject<UserType> userJack = assertAlmostFullJackRead(1);
+        // Administrative status is explicitly excluded from the authorization.
+        PrismAsserts.assertNoItem(userJack, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+        // However, validTo should be readable
+        PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AHEAD);
+
+        PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
+        assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, true);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, true);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
+        assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, false, false, false);
+        assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, true);
+        assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_TO, true, false, true);
+        assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, true, false, true);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PolyString.fromOrig("Captain Jack Sparrow"));
+        assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, JACK_VALID_FROM_LONG_AGO);
+        assertModifyDeny(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                ActivationStatusType.DISABLED);
+        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PolyString.fromOrig("Captain"));
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PolyString.fromOrig("Brethren of the Coast"));
 
         assertDeleteDeny();
 

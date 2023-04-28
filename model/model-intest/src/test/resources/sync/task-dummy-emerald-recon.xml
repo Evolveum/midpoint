@@ -1,37 +1,27 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!--Reconciliation task definition for dummy resource -->
-
-<task oid="10000000-0000-0000-5656-56560000e404"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
-    <!-- Resource printable name -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        oid="10000000-0000-0000-5656-56560000e404">
     <name>Reconciliation: Dummy Emerald</name>
-
-    <extension>
-        <syncext:freshnessInterval>1000</syncext:freshnessInterval>
-        <syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
-    </extension>
-
     <taskIdentifier>10000000-0000-0000-5656-56560000e404</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+    <executionState>closed</executionState> <!-- run on demand -->
     <objectRef oid="10000000-0000-0000-0000-00000000e404" type="ResourceType"/>
-    <binding>tight</binding>
-    <schedule>
-        <interval>5</interval>
-    </schedule>
-
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-00000000e404"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

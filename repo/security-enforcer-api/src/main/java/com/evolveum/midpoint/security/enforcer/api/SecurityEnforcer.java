@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -22,13 +23,11 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -96,7 +95,27 @@ public interface SecurityEnforcer {
 
     MidPointPrincipal getMidPointPrincipal();
 
-    <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    /**
+     * Compiles relevant security constraints ({@link ObjectSecurityConstraints}) for a current principal against given `object`.
+     */
+    <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
+            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
+
+    /**
+     * Compiles relevant single-operation security constraints ({@link ObjectOperationConstraints}) for a current principal
+     * against given `object`.
+     *
+     * We merge information from all `actionUrls`, considering them equivalent.
+     */
+    <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
+            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull Collection<String> actionUrls,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
     /**
      * Returns a filter that applies to all the objects/targets for which the principal is authorized.

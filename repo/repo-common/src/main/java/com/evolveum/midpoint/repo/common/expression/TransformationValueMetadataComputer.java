@@ -31,6 +31,6 @@ public interface TransformationValueMetadataComputer {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 
-    boolean supportsProvenance() throws SchemaException;
+    boolean supportsProvenance() throws SchemaException, ConfigurationException;
 
 }

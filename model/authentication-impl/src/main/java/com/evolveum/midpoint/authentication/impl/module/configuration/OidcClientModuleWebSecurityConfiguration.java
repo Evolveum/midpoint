@@ -115,16 +115,19 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
             getOptionalIfNotEmpty(openIdProvider.getTokenUri()).ifPresent(builder::tokenUri);
             getOptionalIfNotEmpty(openIdProvider.getUserInfoUri()).ifPresent(builder::userInfoUri);
             getOptionalIfNotEmpty(openIdProvider.getIssuerUri()).ifPresent(builder::issuerUri);
+            getOptionalIfNotEmpty(openIdProvider.getJwkSetUri()).ifPresent(builder::jwkSetUri);
             ClientRegistration clientRegistration = builder.build();
 
-            if (clientRegistration.getScopes() == null || !clientRegistration.getScopes().contains("openid")) {
-                List<String> scopes = new ArrayList<>();
-                if (clientRegistration.getScopes() != null) {
-                    scopes.addAll(clientRegistration.getScopes());
-                }
-                scopes.add("openid");
-                builder.scope(scopes);
+            List<String> scopes = new ArrayList<>();
+            if (clientRegistration.getScopes() != null) {
+                scopes.addAll(clientRegistration.getScopes());
             }
+            scopes.addAll(client.getScope());
+            if (!scopes.contains("openid")) {
+                scopes.add("openid");
+            }
+            builder.scope(scopes);
+
             if (StringUtils.isNotEmpty(openIdProvider.getEndSessionUri())) {
                 Map<String, Object> configurationMetadata = new HashMap<>(clientRegistration.getProviderDetails().getConfigurationMetadata());
                 configurationMetadata.remove("end_session_endpoint");

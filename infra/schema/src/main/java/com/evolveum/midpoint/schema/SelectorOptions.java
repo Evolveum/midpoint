@@ -15,12 +15,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -96,13 +97,21 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 
     //region Methods for accessing content (findRoot, hasToLoadPath, ...)
     @Nullable
-    private UniformItemPath getItemPathOrNull() {
+    private UniformItemPath getUniformItemPathOrNull() {
         return selector != null ? selector.getPath() : null;
     }
 
     @NotNull
     public UniformItemPath getItemPath(UniformItemPath emptyPath) {
-        return ObjectUtils.defaultIfNull(getItemPathOrNull(), emptyPath);
+        return ObjectUtils.defaultIfNull(getUniformItemPathOrNull(), emptyPath);
+    }
+
+    public @NotNull ItemPath getItemPath() {
+        if (selector != null) {
+            return Objects.requireNonNullElse(selector.getPath(), ItemPath.EMPTY_PATH);
+        } else {
+            return ItemPath.EMPTY_PATH;
+        }
     }
 
     /**
@@ -127,6 +136,8 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
             @NotNull Consumer<T> updater, Supplier<T> newValueSupplier) {
         if (options == null) {
             options = new ArrayList<>();
+        } else if (!(options instanceof ArrayList)) {
+            options = new ArrayList<>(options); // ugly hack, but the whole concept of updating the options is ugly
         }
         T rootOptions = findRootOptions(options);
         if (rootOptions == null) {
@@ -145,7 +156,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     public static <T> Collection<T> findOptionsForPath(Collection<SelectorOptions<T>> options, @NotNull UniformItemPath path) {
         Collection<T> rv = new ArrayList<>();
         for (SelectorOptions<T> option : CollectionUtils.emptyIfNull(options)) {
-            if (path.equivalent(option.getItemPathOrNull())) {
+            if (path.equivalent(option.getUniformItemPathOrNull())) {
                 rv.add(option.getOptions());
             }
         }
@@ -153,7 +164,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     }
 
     public boolean isRoot() {
-        UniformItemPath itemPathOrNull = getItemPathOrNull();
+        UniformItemPath itemPathOrNull = getUniformItemPathOrNull();
         return itemPathOrNull == null || itemPathOrNull.isEmpty();
     }
 
@@ -271,16 +282,14 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
                 .collect(Collectors.toList());
     }
 
-    public static <T> Map<T, Collection<UniformItemPath>> extractOptionValues(
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            Function<GetOperationOptions, T> supplier, PrismContext prismContext) {
-        Map<T, Collection<UniformItemPath>> rv = new HashMap<>();
-        final UniformItemPath emptyPath = prismContext.emptyPath();
+    public static <T> Map<T, PathSet> extractOptionValues(
+            Collection<SelectorOptions<GetOperationOptions>> options, Function<GetOperationOptions, T> supplier) {
+        Map<T, PathSet> rv = new HashMap<>();
         for (SelectorOptions<GetOperationOptions> selectorOption : CollectionUtils.emptyIfNull(options)) {
             T value = supplier.apply(selectorOption.getOptions());
             if (value != null) {
-                Collection<UniformItemPath> itemPaths = rv.computeIfAbsent(value, t -> new HashSet<>());
-                itemPaths.add(selectorOption.getItemPath(emptyPath));
+                rv.computeIfAbsent(value, t -> new PathSet())
+                        .add(selectorOption.getItemPath());
             }
         }
         return rv;

@@ -10,8 +10,11 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -27,6 +30,7 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
     private static final String ID_EDIT_BUTTON = "editButton";
     private static final String ID_POPOVER_PANEL = "popoverPanel";
     private static final String ID_POPOVER = "popover";
+    private static final String ID_REMOVE="remove";
 
     public PopoverSearchPanel(String id) {
         super(id);
@@ -44,8 +48,9 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
     private void initLayout() {
         setOutputMarkupId(true);
+        add(AttributeAppender.append("class", "d-flex align-items-center"));
 
-        TextPanel<String> textField = new TextPanel<String>(ID_TEXT_FIELD, getTextValue());
+        TextPanel<String> textField = new TextPanel<>(ID_TEXT_FIELD, getTextValue());
         textField.setOutputMarkupId(true);
         textField.add(AttributeAppender.append("title", getTextValue().getObject()));
         textField.setEnabled(false);
@@ -61,7 +66,7 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         };
         add(popover);
 
-        AjaxButton setDateButton = new AjaxButton(ID_EDIT_BUTTON) {
+        AjaxButton edit = new AjaxButton(ID_EDIT_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -69,8 +74,18 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
                 popover.toggle(target);
             }
         };
-        setDateButton.setOutputMarkupId(true);
-        add(setDateButton);
+        edit.setOutputMarkupId(true);
+        add(edit);
+
+        AjaxLink<?> remove = new AjaxLink<>(ID_REMOVE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                removeSearchValue(target);
+            }
+        };
+        remove.add(new VisibleBehaviour(() -> isRemoveVisible()));
+        add(remove);
 
         WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(ID_POPOVER_PANEL);
         popover.add(searchPopupPanel);
@@ -92,5 +107,13 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
     public Boolean isItemPanelEnabled() {
         return true;
+    }
+
+    protected boolean isRemoveVisible() {
+        return false;
+    }
+
+    protected void removeSearchValue(AjaxRequestTarget target) {
+
     }
 }

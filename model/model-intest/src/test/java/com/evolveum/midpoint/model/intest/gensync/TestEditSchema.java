@@ -916,7 +916,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         when();
-        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        PrismObject<UserType> user =
+                modelService.getObject(
+                        UserType.class, USER_JACK_OID,
+                        GetOperationOptionsBuilder.create()
+                                .definitionUpdate(DefinitionUpdateOption.DEEP)
+                                .build(),
+                        task, result);
 
         then();
         result.computeStatus();
@@ -977,7 +983,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_PREFERRED_LANGUAGE, task, result, "en_PR");
 
         when();
-        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        PrismObject<UserType> user =
+                modelService.getObject(
+                        UserType.class, USER_JACK_OID,
+                        GetOperationOptionsBuilder.create()
+                                .definitionUpdate(DefinitionUpdateOption.DEEP)
+                                .build(),
+                        task, result);
 
         then();
         assertSuccess(result);
@@ -1273,6 +1285,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
+        var def = modelInteractionService.getEditObjectDefinition(user, null, task, result);
+        user.applyDefinition(def, true);
         assertPropertyValues(user, UserType.F_NAME, (propDef, name) -> {
             assertNotNull("No definition for name in user", propDef);
             assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
@@ -1340,6 +1354,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertEquals("Unexpected number of users found", 7, users.size());
 
         for (final PrismObject<UserType> user : users) {
+            var def = modelInteractionService.getEditObjectDefinition(user, null, task, result);
+            user.applyDefinition(def, true);
             assertProperty(user, UserType.F_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
                 assertNotNull("No definition for name in user", propDef);
                 assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());

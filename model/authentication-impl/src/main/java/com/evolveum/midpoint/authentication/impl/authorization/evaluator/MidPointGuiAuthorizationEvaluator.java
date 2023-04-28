@@ -19,6 +19,8 @@ import com.evolveum.midpoint.authentication.impl.util.EndPointsUrlMapping;
 import com.evolveum.midpoint.security.api.*;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -317,9 +319,22 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
+            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         return securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
+    }
+
+    @Override
+    public <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
+            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull Collection<String> actionUrls,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return securityEnforcer.compileOperationConstraints(object, ownerResolver, actionUrls, task, result);
     }
 
     @Override

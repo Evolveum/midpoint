@@ -1,0 +1,13 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>dummy</name>
+    <item id="20">
+        <!-- no ref here -->
+    </item>
+</objectTemplate>

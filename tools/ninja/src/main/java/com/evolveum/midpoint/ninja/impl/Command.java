@@ -19,25 +19,25 @@ import com.evolveum.midpoint.ninja.opts.*;
  */
 public enum Command {
 
-    IMPORT("import", ImportOptions.class, ImportRepositoryAction.class, null),
+    IMPORT("import", ImportOptions.class, ImportRepositoryAction.class),
 
-    EXPORT("export", ExportOptions.class, ExportRepositoryAction.class, null),
+    EXPORT("export", ExportOptions.class, ExportRepositoryAction.class),
 
-    DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class, null),
+    DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class),
 
-    COUNT("count", CountOptions.class, CountRepositoryAction.class, null),
+    COUNT("count", CountOptions.class, CountRepositoryAction.class),
 
-    VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class, null),
+    VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class),
 
-    KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null),
+    KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class),
 
-    INFO("info", InfoOptions.class, InfoRepositoryAction.class, null),
+    INFO("info", InfoOptions.class, InfoRepositoryAction.class),
 
-    IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class, null),
+    IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class),
 
-    EXPORT_AUDIT("exportAudit", ExportAuditOptions.class, ExportAuditRepositoryAction.class, null),
+    EXPORT_AUDIT("exportAudit", ExportAuditOptions.class, ExportAuditRepositoryAction.class),
 
-    TRACE("trace", EditTraceOptions.class, EditTraceAction.class, null);
+    TRACE("trace", EditTraceOptions.class, EditTraceAction.class);
 
     // todo reencrypt, modify, bulk, etc
 
@@ -47,14 +47,10 @@ public enum Command {
 
     private final Class<? extends RepositoryAction<?>> repositoryAction;
 
-    private final Class<? extends RestAction<?>> restAction;
-
-    <T> Command(String commandName, Class<T> options, Class<? extends RepositoryAction<T>> repositoryAction,
-            Class<? extends RestAction<T>> restAction) {
+    <T> Command(String commandName, Class<T> options, Class<? extends RepositoryAction<T>> repositoryAction) {
         this.commandName = commandName;
         this.options = options;
         this.repositoryAction = repositoryAction;
-        this.restAction = restAction;
     }
 
     public String getCommandName() {
@@ -82,24 +78,6 @@ public enum Command {
 
             //noinspection unchecked
             return (RepositoryAction<T>) cmd.repositoryAction.getDeclaredConstructor().newInstance();
-        } catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
-
-    public static <T> RestAction<T> createRestAction(String command) {
-        Command cmd = findCommand(command);
-        if (cmd == null) {
-            return null;
-        }
-
-        try {
-            if (cmd.restAction == null) {
-                return null;
-            }
-
-            //noinspection unchecked
-            return (RestAction<T>) cmd.restAction.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
