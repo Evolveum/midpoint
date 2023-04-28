@@ -304,6 +304,7 @@ public class ResourceManager {
             resourceDesc = "resource " + resourceOid;
         } else {
             try {
+                // TODO consider getting the resource in read-only mode
                 resource = getCompletedResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
             } catch (ConfigurationException | SchemaException | ExpressionEvaluationException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
