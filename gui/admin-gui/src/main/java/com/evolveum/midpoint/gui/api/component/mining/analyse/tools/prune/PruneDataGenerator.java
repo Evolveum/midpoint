@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.gui.api.component.mining.RoleMiningFilter;
 import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.ProbabilityGenerator;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.RoleMiningDataGenerator;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.component.mining.structure.ProbabilityStructure;
 import com.evolveum.midpoint.prism.Containerable;
@@ -107,6 +108,48 @@ public class PruneDataGenerator {
         pageBase.showResult(result);
     }
 
+    public void assignInducements(List<PrismObject<RoleType>> rolesList, PageBase pageBase) {
+        OperationResult result = new OperationResult("Assign role");
+
+        for (PrismObject<RoleType> roleTypePrismObject : rolesList) {
+            if (!roleTypePrismObject.getName().toString().equals("Superuser")) {
+
+                if (roleTypePrismObject.asObjectable().getInducement().size() == 0) {
+                    int groupSize = new RoleMiningDataGenerator().generateRolesGroupSize(rolesList.size());
+
+                    int startIndex = new Random().nextInt(((rolesList.size() - groupSize)) + 1);
+
+                    for (int i = 0; i < groupSize; i++) {
+                        RoleType roleType = rolesList.get(startIndex + i).asObjectable();
+                        RoleType roleObject = roleTypePrismObject.asObjectable();
+
+                        if(roleType.equals(roleObject)){
+                            continue;
+                        }
+                        try {
+
+                            Task task = pageBase.createSimpleTask("Assign RoleType object");
+
+                            ObjectDelta<UserType> objectDelta = pageBase.getPrismContext().deltaFor(RoleType.class)
+                                    .item(RoleType.F_INDUCEMENT)
+                                    .add(ObjectTypeUtil.createAssignmentTo(roleType.getOid(),
+                                            ObjectTypes.ROLE, pageBase.getPrismContext()))
+                                    .asObjectDelta(roleObject.getOid());
+
+                            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+                            pageBase.getModelService().executeChanges(deltas, null, task, result);
+                        } catch (Throwable e) {
+                            LOGGER.error("Error while assign object {}, {}", roleObject, e.getMessage(), e);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        result.computeStatusComposite();
+        pageBase.showResult(result);
+    }
     public void assignAuthorizationMultiple(List<PrismObject<RoleType>> rolesList, int maxAuthorizations, PageBase pageBase) {
 
         ArrayList<String> authorizationTemp = new ArrayList<>();

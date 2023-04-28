@@ -43,6 +43,7 @@ public class GenerateDataPanelRBAM extends BasePanel<String> implements Popupabl
     private static final String ID_USER_COUNT = "userCount";
     private static final String ID_ROLE_COUNT = "roleCount";
     private static final String ID_ASSIGN = "assign";
+    private static final String ID_ASSIGN_INDUCEMENTS = "inducements";
     private static final String ID_ASSIGN_AUTH = "assign_auth";
     private static final String ID_ASSIGN_AUTH_MULTIPLE = "assign_auth_multiple";
     private static final String ID_UNASSIGN = "unassign";
@@ -145,6 +146,16 @@ public class GenerateDataPanelRBAM extends BasePanel<String> implements Popupabl
         };
         ajaxLinkUnassign.setOutputMarkupId(true);
         form.add(ajaxLinkUnassign);
+
+        AjaxButton ajaxLinkAssignInducements = new AjaxButton(ID_ASSIGN_INDUCEMENTS, Model.of("Random assign inducements")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                new PruneDataGenerator().assignInducements(new RoleMiningFilter().filterRoles(getPageBase()), getPageBase());
+                getPage().setResponsePage(PageRoleMiningRBAM.class);
+            }
+        };
+        ajaxLinkAssignInducements.setOutputMarkupId(true);
+        form.add(ajaxLinkAssignInducements);
 
         AjaxButton ajaxLinkUnassignAuth = new AjaxButton(ID_UNASSIGN_AUTH, Model.of("Unassign authorizations")) {
             @Override

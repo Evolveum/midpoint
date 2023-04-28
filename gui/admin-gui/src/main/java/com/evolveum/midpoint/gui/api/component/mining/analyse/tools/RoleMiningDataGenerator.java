@@ -33,7 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleMiningDataGenerator {
 
-    int generateRolesGroupSize(int size) {
+    public int generateRolesGroupSize(int size) {
         ProbabilityGenerator probabilityGenerator = new ProbabilityGenerator();
         if (size >= 8) {
             probabilityGenerator.addGroupProbability(7, 0.2d);

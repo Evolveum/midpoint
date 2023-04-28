@@ -1,0 +1,94 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+
+    <p class="text-center" wicket:id="confirmText"/>
+
+
+    <wicket:fragment wicket:id="buttons">
+
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <span class="col-3 d-flex justify-content-end">
+            <wicket:message key="roleMiningExportPanel.encryption.key.title"/>
+            </span>
+            <input class="form-control form-control-sm col-6" wicket:id="keyField" type="text"/>
+            <button type="button" class="btn btn-primary btn-sm" wicket:id="keyGenerateButton"></button>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <span class="col-3 d-flex justify-content-end">
+            <wicket:message key="roleMiningExportPanel.zip.format.title"/>
+            </span>
+            <input type="checkbox" wicket:id="zipCheckBox"/>
+        </div>
+
+
+        <form wicket:id="exportOptions" class="d-flex flex-wrap gap-2 w-100">
+
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                    <span class="col-3 d-flex justify-content-end">
+                        <wicket:message key="roleMiningExportPanel.application.role.label"/>
+                    </span>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                    <span class="col-3 d-flex justify-content-end">
+                             <wicket:message key="roleMiningExportPanel.role.prefix.label"/>
+                    </span>
+                <input class="form-control form-control-sm col-6" placeholder="(none)" wicket:id="applicationPrefix" type="text"/>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                    <span class="col-3 d-flex justify-content-end">
+                           <wicket:message key="roleMiningExportPanel.role.suffix.label"/>
+                    </span>
+                <input class="form-control form-control-sm col-6" placeholder="(none)" wicket:id="applicationSuffix" type="text"/>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                    <span class="col-3 d-flex justify-content-end">
+                        <wicket:message key="roleMiningExportPanel.business.role.label"/>
+                    </span>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                    <span class="col-3 d-flex justify-content-end">
+                          <wicket:message key="roleMiningExportPanel.role.prefix.label"/>
+                    </span>
+                <input class="form-control form-control-sm col-6" placeholder="(none)" wicket:id="businessPrefix" type="text"/>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                    <span class="col-3 d-flex justify-content-end">
+                           <wicket:message key="roleMiningExportPanel.role.suffix.label"/>
+                    </span>
+                <input class="form-control form-control-sm col-6" placeholder="(none)" wicket:id="businessSuffix" type="text"/>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 w-100">
+                <div class="col-3 d-flex justify-content-end">
+                    <input class="btn btn-default btn-sm" wicket:id="submitExportOptions" type="submit" value="Edit options"/>
+                </div>
+            </div>
+
+        </form>
+
+
+        <div class="show-empty-button d-flex justify-content-center w-100" wicket:id="showAdditionalOptions"/>
+
+        <div class="d-flex justify-content-end gap-2 w-100">
+            <a class="btn btn-primary" wicket:id="yes"></a>
+            <a class="btn btn-default" wicket:id="no"></a>
+        </div>
+
+    </wicket:fragment>
+</wicket:panel>

@@ -12,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.dialog.*;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -62,10 +65,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -388,6 +387,35 @@ public class PageDebugList extends PageAdminConfiguration {
                     }
 
                 });
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("roleMiningExport.operation.button.title")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new HeaderMenuAction(PageDebugList.this) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        var list = get(ID_MAIN_FORM)
+                                .getBehaviors(PageDebugDownloadBehaviour.class);
+                        var downloadBehaviour = list.get(0);
+                        ExportMiningPanel dialog = new ExportMiningPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                                createStringResource("roleMiningExportPanel.panel.message"), downloadBehaviour){
+
+                        };
+                        ((PageBase) getPage()).showMainPopup(dialog, target);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(true);
+            }
+
+        });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true) {
             private static final long serialVersionUID = 1L;
