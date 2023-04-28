@@ -1871,7 +1871,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="invitationLink" type="tns:SelfRegistrationPolicyType" minOccurs="0">
+            <xsd:element name="invitation" type="tns:SelfRegistrationPolicyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>

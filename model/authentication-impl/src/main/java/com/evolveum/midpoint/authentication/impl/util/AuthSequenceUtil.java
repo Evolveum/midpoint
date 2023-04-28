@@ -31,7 +31,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +79,7 @@ public class AuthSequenceUtil {
                 .put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI)
                 .put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI)
                 .put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI)
+                .put("invitation", SchemaConstants.CHANNEL_INVITATION_URI)
                 .build();
     }
 
