@@ -1639,6 +1639,26 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return createTokenConfirmationLink(SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX, userType);
     }
 
+    public String createInvitationLink(UserType userType) {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
+        if (securityPolicy != null && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null &&
+                !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+            SelfRegistrationPolicyType invitationPolicy = SecurityPolicyUtil.getInvitationPolicy(securityPolicy);
+            if (invitationPolicy != null) {
+                String invitationSequenceName = invitationPolicy.getAdditionalAuthenticationSequence();
+                if (invitationSequenceName != null) {
+                    String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_INVITATION_URI, invitationSequenceName,
+                            securityPolicy.getAuthentication().getSequence());
+                    if (prefix != null) {
+                        return createTokenConfirmationLink(prefix, userType);
+                    }
+                }
+            }
+        }
+        return createTokenConfirmationLink(SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.CHANNEL_INVITATION_URI, userType);
+    }
+
     @Override
     public @Nullable String createWorkItemCompletionLink(@NotNull WorkItemId workItemId) {
         String publicHttpUrlPattern = getPublicHttpUrlPattern();

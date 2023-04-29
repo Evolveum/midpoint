@@ -36,11 +36,11 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
         return ModelEvent.class;
     }
 
-    public String getConfirmationLink(UserType userType) {
+    public String getConfirmationLink(UserType userType, String channel) {
         throw new UnsupportedOperationException("Please implement in concrete notifier");
     }
 
-    String createConfirmationLink(UserType userType, N config, OperationResult result) {
+    String createConfirmationLink(UserType userType, N config, String channel, OperationResult result) {
 
         RegistrationConfirmationMethodType confirmationMethod = config.getConfirmationMethod();
         if (confirmationMethod == null) {
@@ -54,7 +54,7 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
         try {
             switch (confirmationMethod) {
                 case LINK:
-                    return getConfirmationLink(userType);
+                    return getConfirmationLink(userType, channel);
                 case PIN:
                     throw new UnsupportedOperationException("PIN confirmation not supported yes");
     //                return getNonce(userType);

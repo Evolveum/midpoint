@@ -78,7 +78,8 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
 
         StringBuilder body = new StringBuilder();
         String message = "Your accounts was successfully created. To activate your accounts, please click on the link below.";
-        body.append(message).append("\n\n").append(createConfirmationLink(getUser(event), configuration, result)).append("\n\n");
+        body.append(message).append("\n\n").append(createConfirmationLink(getUser(event), configuration, event.getChannel(),
+                result)).append("\n\n");
 
         FocusType owner = (FocusType) event.getRequesteeObject();
         String userOrOwner = owner instanceof UserType ? "User" : "Owner";
@@ -153,7 +154,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     }
 
     @Override
-    public String getConfirmationLink(UserType userType) {
+    public String getConfirmationLink(UserType userType, String channel) {
         return getMidpointFunctions().createAccountActivationLink(userType);
     }
 }

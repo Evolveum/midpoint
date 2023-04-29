@@ -54,7 +54,7 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
         } else if (event.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
             return false;
-        } else if (SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(event.getChannel())) {
+        } else if (isSelfRegistrationChannel(event.getChannel()) || isInvitationChannel(event.getChannel())) {
             LOGGER.trace("Found change from registration channel.");
             return true;
         } else {
@@ -86,7 +86,7 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
         messageBuilder.append(userType.getGivenName()).append(",\n")
         .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
         .append("\n")
-        .append(createConfirmationLink(userType, configuration, result))
+        .append(createConfirmationLink(userType, configuration, event.getChannel(), result))
         .append("\n\n")
         .append("After your account is activated, use following credentials to log in: \n")
         .append("username: ")
@@ -98,7 +98,21 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
     }
 
     @Override
-    public String getConfirmationLink(UserType userType) {
-        return getMidpointFunctions().createRegistrationConfirmationLink(userType);
+    public String getConfirmationLink(UserType userType, String channel) {
+        if (isSelfRegistrationChannel(channel)) {
+            return getMidpointFunctions().createRegistrationConfirmationLink(userType);
+        }
+        if (isInvitationChannel(channel)) {
+            return getMidpointFunctions().createInvitationLink(userType);
+        }
+        return null;
+    }
+
+    private boolean isSelfRegistrationChannel(String channel) {
+        return SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(channel);
+    }
+
+    private boolean isInvitationChannel(String channel) {
+        return SchemaConstants.CHANNEL_INVITATION_URI.equals(channel);
     }
 }

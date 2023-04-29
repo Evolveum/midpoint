@@ -145,6 +145,16 @@ public class SecurityPolicyUtil {
         return selfRegistrationPolicy;
     }
 
+    public static SelfRegistrationPolicyType getInvitationPolicy(SecurityPolicyType securityPolicyType) {
+        RegistrationsPolicyType flowPolicy = securityPolicyType.getFlow();
+        SelfRegistrationPolicyType invitationPolicy = null;
+        if (flowPolicy != null) {
+            invitationPolicy = flowPolicy.getInvitation();
+        }
+
+        return invitationPolicy;
+    }
+
     public static AuthenticationSequenceType findSequenceByIdentifier(@NotNull SecurityPolicyType securityPolicy, String identifier) {
         if (StringUtils.isEmpty(identifier)) {
             return null;

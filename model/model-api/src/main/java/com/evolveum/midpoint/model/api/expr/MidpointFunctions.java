@@ -1172,6 +1172,8 @@ public interface MidpointFunctions {
 
     String createPasswordResetLink(UserType userType);
 
+    String createInvitationLink(UserType userType);
+
     /**
      * Returns a link where given work item can be completed.
      *
