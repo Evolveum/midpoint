@@ -74,21 +74,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private IModel<UserType> userModel;
 
-    public PageSelfRegistration(PageParameters pageParameters) {
-        super(pageParameters);
-    }
-
-    private String getOidFromParams(PageParameters pageParameters) {
-        if (pageParameters == null) {
-            return null;
-        }
-
-        StringValue oidValue = pageParameters.get(PARAM_USER_OID);
-        if (oidValue != null && isNotAdministrator(oidValue.toString())) {
-            return oidValue.toString();
-        }
-
-        return null;
+    public PageSelfRegistration() {
+        super();
     }
 
     private boolean isNotAdministrator(String userOid) {
@@ -97,49 +84,19 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     @Override
     public void initializeModel() {
-        final String userOid = getOidFromParams(pageParameters);
-
         userModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected UserType load() {
-                return createUserModel(userOid);
+                return createUserModel();
             }
         };
     }
 
-    private UserType createUserModel(String userOid) {
-        if (userOid == null) {
-            LOGGER.trace("Registration process for new user started");
-            return instantiateUser();
-        }
-
-        PrismObject<UserType> result = runPrivileged(new Producer<>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public PrismObject<UserType> run() {
-                LOGGER.trace("Loading preregistered user with oid {}.", userOid);
-                Task task = createAnonymousTask(OPERATION_LOAD_USER);
-                OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-                PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
-                        PageSelfRegistration.this, task, result);
-                result.computeStatus();
-                return user;
-            }
-
-        });
-
-        if (result == null) {
-            LOGGER.error("Failed to load preregistered user");
-            getSession().error(
-                    createStringResource("PageSelfRegistration.invalid.registration.link").getString());
-            throw new RestartResponseException(PageLogin.class);
-        }
-
-        return result.asObjectable();
+    private UserType createUserModel() {
+        LOGGER.trace("Registration process for new user started");
+        return instantiateUser();
     }
 
     private UserType instantiateUser() {
@@ -212,17 +169,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
         input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         input.getBaseFormComponent().setRequired(true);
         feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
-
-        input.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return getOidFromParams(getPageParameters()) == null;
-            }
-
-        });
         input.setRenderBodyOnly(true);
 
     }
@@ -335,34 +281,11 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (getOidFromParams(getPageParameters()) == null) {
-            LOGGER.trace("Preparing user ADD delta (new user registration)");
-            UserType userType = prepareUserToSave(task, result);
-            ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
-            LOGGER.trace("Going to register user {}", userDelta);
-            return userDelta;
-        } else {
-            LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
-            ObjectDelta<UserType> delta;
-            if (!isCustomFormDefined()) {
-                delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class,
-                        getOidFromParams(getPageParameters()));
-                if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
-                    delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
-                            getSelfRegistrationConfiguration().getInitialLifecycleState());
-                }
-                delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, createPassword().getValue());
-            } else {
-                delta = getDynamicFormPanel().getObjectDelta();
-            }
-
-            delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE,
-                    createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result)
-                            .asPrismContainerValue());
-            LOGGER.trace("Going to register user with modifications {}", delta);
-            return delta;
-
-        }
+        LOGGER.trace("Preparing user ADD delta (new user registration)");
+        UserType userType = prepareUserToSave(task, result);
+        ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
+        LOGGER.trace("Going to register user {}", userDelta);
+        return userDelta;
     }
 
     private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

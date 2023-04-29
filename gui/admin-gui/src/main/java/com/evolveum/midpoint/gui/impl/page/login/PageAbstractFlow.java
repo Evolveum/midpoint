@@ -56,6 +56,10 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     protected abstract void submitRegistration(AjaxRequestTarget target);
     protected abstract ObjectReferenceType getCustomFormRef();
 
+    public PageAbstractFlow() {
+        this(null);
+    }
+
     public PageAbstractFlow(PageParameters pageParameters) {
         this.pageParameters = pageParameters;
         initializeModel();
