@@ -181,7 +181,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
-        if (caseInsensitive || isMutable()) {
+        if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
             return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
         } else {
             return attributeDefinitionMap.get(name);
