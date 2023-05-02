@@ -13006,6 +13006,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
+                <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
