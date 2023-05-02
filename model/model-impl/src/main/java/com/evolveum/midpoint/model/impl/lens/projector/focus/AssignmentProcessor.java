@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1067,6 +1069,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
         for (PrismReferenceValue original : originals) {
             var copy = new PrismReferenceValueImpl();
             copy.setOid(original.getOid());
+            PolyString targetName = original.getTargetName();
+            if (targetName != null) {
+                // In general, this is not strictly necessary (maybe for debugging); but for create-on-demand scenarios
+                // it must be here to avoid "empty references" consistency check message.
+                copy.setTargetName(targetName.copy());
+            }
             copy.setTargetType(original.getTargetType());
             copy.setRelation(original.getRelation());
             if (original.hasValueMetadata()) { // getValueMetadata() creates an empty metadata object
