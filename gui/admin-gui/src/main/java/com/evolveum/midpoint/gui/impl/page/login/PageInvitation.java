@@ -3,8 +3,12 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.forgotpassword.PageResetPassword;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+
+import org.apache.wicket.model.IModel;
 
 @PageDescriptor(
         urls = {
@@ -19,4 +23,13 @@ public class PageInvitation extends PageResetPassword {
     public PageInvitation() {
     }
 
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageInvitation.title");
+    }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageInvitation.description");
+    }
 }
