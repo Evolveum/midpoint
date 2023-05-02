@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 
 /**
  * @author katka
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
 })
 @Profile({ "test", "!default" })
 @SpringBootConfiguration
-@ComponentScan(basePackages = { "com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui", "com.evolveum.midpoint.gui.api" }, basePackageClasses = { TextAreaPanelFactory.class, GuiComponentRegistryImpl.class })
+@ComponentScan(basePackages = { "com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui", "com.evolveum.midpoint.gui.api" }, basePackageClasses = { TextAreaPanelFactory.class, GuiComponentRegistryImpl.class, CertGuiHandlerRegistry.class })
 public class TestMidPointSpringApplication extends AbstractSpringBootApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);

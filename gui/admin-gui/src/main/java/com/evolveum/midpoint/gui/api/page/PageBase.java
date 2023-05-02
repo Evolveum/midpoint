@@ -139,6 +139,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
@@ -301,6 +302,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
 
     @SpringBean private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
+
+    @SpringBean private CertGuiHandlerRegistry certGuiHandlerRegistry;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -539,6 +542,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @Override
     public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
         return adminGuiConfigurationMergeManager;
+    }
+
+    public CertGuiHandlerRegistry getCertGuiHandlerRegistry() {
+        return certGuiHandlerRegistry;
     }
 
     @NotNull

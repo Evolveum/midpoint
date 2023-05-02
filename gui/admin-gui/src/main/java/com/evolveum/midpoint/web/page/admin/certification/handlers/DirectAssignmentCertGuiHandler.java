@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.handlers;
 
+import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -27,7 +28,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
@@ -36,8 +40,18 @@ import java.util.List;
 /**
  * @author mederly
  */
+@Component
 public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
     private static final Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertGuiHandler.class);
+
+    @Autowired
+    protected CertGuiHandlerRegistry certGuiHandlerRegistry;
+
+    @PostConstruct
+    public void register() {
+        certGuiHandlerRegistry.registerCertGuiHandler(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI, this);
+        certGuiHandlerRegistry.registerCertGuiHandler(AccessCertificationApiConstants.EXCLUSION_HANDLER_URI, this);
+    }
 
     @Override
     public String getCaseInfoButtonTitle(IModel<? extends CertCaseOrWorkItemDto> rowModel, PageBase page) {

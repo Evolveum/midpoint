@@ -8,6 +8,12 @@
 package com.evolveum.midpoint.web.page.admin.certification.handlers;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides a correct handler for a given handler URI.
@@ -16,24 +22,29 @@ import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
  *
  * @author mederly
  */
+@Component
 public class CertGuiHandlerRegistry {
 
-    public static CertGuiHandlerRegistry instance() {
-        return new CertGuiHandlerRegistry();         // TODO
+    private static final Trace LOGGER = TraceManager.getTrace(CertGuiHandlerRegistry.class);
+
+    private Map<String, CertGuiHandler> handlers = new ConcurrentHashMap<>();
+
+    public void registerCertGuiHandler(String uri, CertGuiHandler handler) {
+        LOGGER.trace("Registering cert gui handler {} for {}", handler, uri);
+        handlers.put(uri, handler);
     }
 
     public CertGuiHandler getHandler(String uri) {
         if (uri == null) {
             return null;
         }
-        switch (uri) {
-            case AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI:
-                return new DirectAssignmentCertGuiHandler();
-            case AccessCertificationApiConstants.EXCLUSION_HANDLER_URI:
-                return new DirectAssignmentCertGuiHandler();        // TODO
-            default:
-                throw new IllegalArgumentException("Unknown handler URI: " + uri);
+
+        CertGuiHandler certGuiHandler = handlers.get(uri);
+        if (certGuiHandler == null) {
+            throw new IllegalArgumentException("Unknown handler URI: " + uri);
         }
+
+        return certGuiHandler;
     }
 
     @SuppressWarnings("unused")
