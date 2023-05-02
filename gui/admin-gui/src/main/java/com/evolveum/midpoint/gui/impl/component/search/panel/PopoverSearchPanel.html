@@ -8,10 +8,13 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="search-item-field" wicket:id="valueTextField" style="float: left;" />
-    <div style="float: left;">
-        <a wicket:id="editButton" class="btn btn-xs btn-default dropdown-toggle"  style="margin-top: 5px; border: none !important;" data-toggle="dropdown">
-            <i class="fa fa-edit fa-lg"/>
+    <div class="search-item-field" wicket:id="valueTextField" />
+    <div class="d-flex">
+        <a wicket:id="remove" class="btn btn-xs border-0" wicket:message="title:PopoverSearchPanel.removeValue">
+            <i class="fa fa-trash"/>
+        </a>
+        <a wicket:id="editButton" class="btn btn-xs border-0">
+            <i class="fa fa-edit"/>
         </a>
         <wicket:child />
     </div>
