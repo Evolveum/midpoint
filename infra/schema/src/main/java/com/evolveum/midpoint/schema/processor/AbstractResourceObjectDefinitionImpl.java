@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.util.QNameUtil;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Common implementation for both {@link ResourceObjectClassDefinition} and {@link ResourceObjectTypeDefinition}.
  *
@@ -66,6 +68,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
      */
     @NotNull final DeeplyFreezableList<ResourceAttributeDefinition<?>> attributeDefinitions =
             new DeeplyFreezableList<>();
+
+    /**
+     * Indexed attribute definitions for faster access.
+     * Created (as immutable map) on freezing.
+     *
+     * Temporary/experimental.
+     */
+    private Map<QName, ResourceAttributeDefinition<?>> attributeDefinitionMap;
 
     /**
      * Names of primary identifiers. They are the same for both raw and refined definitions.
@@ -167,6 +177,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
         return associationDefinitions;
+    }
+
+    @Override
+    public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        if (caseInsensitive || isMutable()) {
+            return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
+        } else {
+            return attributeDefinitionMap.get(name);
+        }
     }
 
     @NotNull
@@ -439,10 +458,20 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     protected void performFreeze() {
         attributeDefinitions.freeze();
+        createAttributeDefinitionMap();
         associationDefinitions.freeze();
         primaryIdentifiersNames.freeze();
         secondaryIdentifiersNames.freeze();
         auxiliaryObjectClassDefinitions.freeze();
+    }
+
+    private void createAttributeDefinitionMap() {
+        var map = new HashMap<QName, ResourceAttributeDefinition<?>>();
+        attributeDefinitions.forEach(def -> {
+            var previous = map.put(def.getItemName(), def);
+            stateCheck(previous == null, "Multiple definitions for attribute %s in %s", def, this);
+        });
+        attributeDefinitionMap = Collections.unmodifiableMap(map);
     }
 
     @Override
