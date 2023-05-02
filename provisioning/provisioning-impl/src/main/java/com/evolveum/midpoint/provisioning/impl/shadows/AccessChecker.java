@@ -156,6 +156,7 @@ class AccessChecker {
                 }
             }
             for (ResourceAttribute<?> attributeToRemove : attributesToRemove) {
+                LOGGER.trace("Removing non-readable attribute {}", attributeToRemove);
                 attributeContainer.remove(attributeToRemove);
             }
         } catch (Throwable t) {
