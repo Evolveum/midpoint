@@ -415,7 +415,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | Create new object
 | POST
 | /\{type}
-| link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | Object to create in the XML form
 a| * 201 Created, Location set to point to the newly created object
 * 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
@@ -425,7 +425,7 @@ a| * 201 Created, Location set to point to the newly created object
 | Create or update object
 | PUT
 | /\{type}/\{oid}
-| link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | Object to create in the XML form
 a| * 201 Created, Location set to point to the newly created object
 * 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
@@ -443,7 +443,7 @@ a| * 200 OK, current object in the response body
 | Modify object
 | PATCH, POST
 | /\{type}/\{oid}
-| link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | Modifications in XML format
 a| * 204 No Content
 * 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
@@ -453,7 +453,7 @@ a| * 204 No Content
 | Delete object
 | DELETE
 | /\{type}/\{oid}
-| link:https://evolveum.com/downloads/midpoint/latest/schema-4.2-SNAPSHOT-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 | -
 a| * 204 No Content
 * 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
