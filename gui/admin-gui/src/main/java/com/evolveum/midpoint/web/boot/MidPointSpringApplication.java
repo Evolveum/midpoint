@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;
@@ -87,7 +88,8 @@ import java.util.Collections;
         },
         basePackageClasses = {
                 TextAreaPanelFactory.class,
-                GuiComponentRegistryImpl.class
+                GuiComponentRegistryImpl.class,
+                CertGuiHandlerRegistry.class
         })
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {

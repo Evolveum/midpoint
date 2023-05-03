@@ -166,7 +166,7 @@ public class CertDecisionHelper implements Serializable {
                 } else {
                     handlerUri = ((PageCertCampaign) page).getCampaignHandlerUri();
                 }
-                CertGuiHandler handler = CertGuiHandlerRegistry.instance().getHandler(handlerUri);
+                CertGuiHandler handler = page.getCertGuiHandlerRegistry().getHandler(handlerUri);
                 if (handler != null) {
                     String title = handler.getCaseInfoButtonTitle(rowModel, page);
                     item.add(AttributeModifier.replace("title", title));
