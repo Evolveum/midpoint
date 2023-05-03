@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.evolveum.midpoint.schema.error.ConfigErrorReporter.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingUseType.*;
 
 /**
  * Determines applicability of a mapping in given evaluation phase.
@@ -74,8 +75,8 @@ class ApplicabilityEvaluator {
 
     private boolean isApplicable(@NotNull InboundMappingType mappingBean) throws ConfigurationException {
         InboundMappingEvaluationPhasesType mappingPhases = mappingBean.getEvaluationPhases();
-        List<InboundMappingUseType> uses = mappingBean.getUse();
-        configCheck(mappingPhases == null || uses.isEmpty(),
+        InboundMappingUseType use = mappingBean.getUse();
+        configCheck(mappingPhases == null || use == null,
                 "Both 'evaluationPhases' and 'use' items present in %s",
                 lazy(() -> ConfigErrorReporter.describe(mappingBean)));
         if (mappingPhases != null) {
@@ -84,13 +85,13 @@ class ApplicabilityEvaluator {
             } else if (mappingPhases.getInclude().contains(currentPhase)) {
                 return true;
             }
-        } else if (!uses.isEmpty()) {
+        } else if (use != null) {
             // The "use" information is definite, if present. Default phases nor correlation usage are not taken into account.
             switch (currentPhase) {
                 case BEFORE_CORRELATION:
-                    return uses.contains(InboundMappingUseType.CORRELATION);
+                    return use == CORRELATION || use == ALL;
                 case CLOCKWORK:
-                    return uses.contains(InboundMappingUseType.DATA_TRANSFER);
+                    return use == DATA_TRANSFER || use == ALL;
                 default:
                     throw new AssertionError(currentPhase);
             }

@@ -9112,7 +9112,7 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element name="use" type="tns:InboundMappingUseType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element name="use" type="tns:InboundMappingUseType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     What purpose or purposes does the inbound mapping serve?
@@ -9226,7 +9226,7 @@
             <xsd:enumeration value="dataTransfer">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The mapping is used for the data transfer.
+                        The mapping is used for the data transfer, i.e. moves data from the resource objects to focus objects.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DATA_TRANSFER"/>
@@ -9236,10 +9236,21 @@
             <xsd:enumeration value="correlation">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The mapping is used for the correlation.
+                        The mapping is used for the correlation. It prepares data for correlation rules, but does not
+                        directly manipulate the content of the focus objects.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CORRELATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The mapping is used for all purposes: currently, this means both correlation and data transfer.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
