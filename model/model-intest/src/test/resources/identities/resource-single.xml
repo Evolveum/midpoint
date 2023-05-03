@@ -78,9 +78,6 @@
                     <target>
                         <path>extension/personalNumber</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <correlation>

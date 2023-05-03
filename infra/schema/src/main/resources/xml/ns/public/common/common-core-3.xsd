@@ -9099,17 +9099,33 @@
         <xsd:complexContent>
             <xsd:extension base="tns:MappingType">
                 <xsd:sequence>
-                    <xsd:element name="evaluationPhases" type="tns:InboundMappingEvaluationPhasesType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Phase or phases in which the mapping should be evaluated.
-                                (Default evaluation phases for given object type are taken into account as well.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>InboundMappingType.evaluationPhases</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <xsd:choice>
+                        <xsd:element name="evaluationPhases" type="tns:InboundMappingEvaluationPhasesType" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Phase or phases in which the mapping should be evaluated.
+                                    (Default evaluation phases for given object type are taken into account as well.)
+                                    Mutually exclusive with "use" item.
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                    <a:displayName>InboundMappingType.evaluationPhases</a:displayName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="use" type="tns:InboundMappingUseType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    What purpose or purposes does the inbound mapping serve?
+                                    This is a simplified version of "evaluationPhases" item and is mutually exclusive with it.
+                                    If present, it overrides any default evaluation phases.
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                    <a:displayName>InboundMappingType.use</a:displayName>
+                                    <a:since>4.8</a:since>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9191,6 +9207,39 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="BEFORE_CORRELATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="InboundMappingUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What purpose or purposes does the inbound mapping serve?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="dataTransfer">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The mapping is used for the data transfer.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DATA_TRANSFER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="correlation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The mapping is used for the correlation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CORRELATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
