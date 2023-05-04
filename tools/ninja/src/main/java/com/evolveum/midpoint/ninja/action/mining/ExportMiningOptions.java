@@ -22,8 +22,6 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_OVERWRITE = "-ow";
     public static final String P_OVERWRITE_LONG = "--overwrite";
 
-    public static final String P_KEY = "-k";
-
     public static final String P_PREFIX_APPLICATION = "-pa";
 
     @Parameter(names = { P_PREFIX_APPLICATION }, descriptionKey = "export.application.role.prefix")
@@ -42,9 +40,6 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
 
     @Parameter(names = { P_SUFFIX_BUSINESS }, descriptionKey = "export.business.role.suffix")
     private String businessRoleSuffix;
-    public static final String P_KEY_LONG = "--key";
-
-    public static final String P_GENERATE_KEY = "-rk";
 
     @Parameter(names = { P_OUTPUT, P_OUTPUT_LONG }, descriptionKey = "export.output")
     private File output;
@@ -52,14 +47,22 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     @Parameter(names = { P_OVERWRITE, P_OVERWRITE_LONG }, descriptionKey = "export.overwrite")
     private boolean overwrite;
 
-    @Parameter(names = { P_KEY, P_KEY_LONG }, descriptionKey = "export.key")
-    private String key;
+    public static final String P_ORG = "-org";
 
-    @Parameter(names = { P_GENERATE_KEY }, descriptionKey = "export.randomKey")
-    private boolean randomKey;
+    @Parameter(names = { P_ORG }, descriptionKey = "export.prevent.org")
+    private boolean notIncludeOrg;
 
-    public String getKey() {
-        return key;
+    public boolean isNotIncludeOrg() {
+        return notIncludeOrg;
+    }
+
+    public static final String P_NAME_OPTIONS = "-nop";
+
+    @Parameter(names = { P_NAME_OPTIONS }, descriptionKey = "export.name.options")
+    private String nameMode;
+
+    public String getNameMode() {
+        return nameMode;
     }
 
     public File getOutput() {
@@ -68,10 +71,6 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
 
     public boolean isOverwrite() {
         return overwrite;
-    }
-
-    public boolean isRandomKey() {
-        return randomKey;
     }
 
     public String getApplicationRolePrefix() {

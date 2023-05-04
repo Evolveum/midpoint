@@ -8,6 +8,7 @@ package com.evolveum.midpoint.ninja.action.mining;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -51,6 +52,18 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     protected String businessRolePrefix;
     protected String businessRoleSuffix;
 
+    private int iteratorRole = 0;
+    private int userIterator = 0;
+    private int orgIterator = 0;
+
+    NameModeExport nameModeExport = NameModeExport.SEQUENTIAL;
+
+    private enum NameModeExport {
+        ENCRYPTED,
+        SEQUENTIAL,
+        UNECRYPTED
+    }
+
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
             OperationStatus operation) {
         super(context, options, queue, operation);
@@ -62,10 +75,20 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         this.applicationRoleSuffix = options.getApplicationRoleSuffix();
         this.businessRolePrefix = options.getBusinessRolePrefix();
         this.businessRoleSuffix = options.getBusinessRoleSuffix();
-        key = options.getKey();
-        if (options.isRandomKey()) {
-            key = generateRandomKey();
+
+        switch (String.valueOf(options.getNameMode())) {
+            case "sequential":
+                nameModeExport = NameModeExport.SEQUENTIAL;
+                break;
+            case "unencrypted":
+                nameModeExport = NameModeExport.UNECRYPTED;
+                break;
+            case "encrypted":
+                nameModeExport = NameModeExport.ENCRYPTED;
+                break;
         }
+
+        key = generateRandomKey();
 
         jsonFormat = options.getOutput().getName().endsWith(".json");
 
@@ -114,7 +137,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private OrgType getPreparedOrgObject(@NotNull FocusType object) {
         OrgType orgObject = new OrgType();
-        orgObject.setName(getEncryptedName(object.getName().toString()));
+        orgObject.setName(getEncryptedOrgName(object.getName().toString(), orgIterator++));
         orgObject.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
@@ -131,7 +154,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private UserType getPreparedUserObject(@NotNull FocusType object) {
         UserType userType = new UserType();
-        userType.setName(getEncryptedName(object.getName().toString()));
+        userType.setName(getEncryptedUserName(object.getName().toString(), userIterator++));
         userType.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
@@ -151,7 +174,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private RoleType getPreparedRoleObject(@NotNull FocusType object) {
         RoleType roleType = new RoleType();
 
-        PolyStringType encryptedName = getEncryptedRoleName(object.getName().toString());
+        PolyStringType encryptedName = getEncryptedRoleName(object.getName().toString(), iteratorRole++);
         roleType.setName(encryptedName);
         roleType.setOid(getEncryptedUUID(object.getOid()));
 
@@ -196,14 +219,61 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     }
 
     private String getEncryptedUUID(String oid) {
-        return UUID.nameUUIDFromBytes(encrypt(oid).getBytes()).toString();
+        UUID uuid = UUID.fromString(oid);
+        byte[] bytes = uuidToBytes(uuid);
+        return UUID.nameUUIDFromBytes(encryptOid(bytes).getBytes()).toString();
     }
 
-    private PolyStringType getEncryptedName(String name) {
+    private static byte[] uuidToBytes(UUID uuid) {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        buffer.putLong(uuid.getMostSignificantBits());
+        buffer.putLong(uuid.getLeastSignificantBits());
+        return buffer.array();
+    }
+
+    private String encryptOid(byte[] value) {
+        if (getKey() == null) {
+            return new String(value, StandardCharsets.UTF_8);
+        }
+
+        Cipher cipher;
+        byte[] ciphertext;
+        try {
+            byte[] keyBytes = getKey().getBytes();
+            cipher = Cipher.getInstance("AES");
+            SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            ciphertext = cipher.doFinal(value);
+            return Base64.getEncoder().encodeToString(ciphertext);
+        } catch (Exception e) {
+            throw new UnsupportedOperationException("Error: Invalid key - " + e.getMessage() + ". \n "
+                    + "Possible causes: \n" + "- The key is not the right size or format for this operation. \n"
+                    + "- The key is not appropriate for the selected algorithm or mode of operation. \n"
+                    + "- The key has been damaged or corrupted.");
+        }
+    }
+
+    private PolyStringType getEncryptedUserName(String name, int iterator) {
+        if (nameModeExport.equals(NameModeExport.ENCRYPTED)) {
             return PolyStringType.fromOrig(encrypt(name));
+        } else if (nameModeExport.equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig("User" + iterator);
+        } else {
+            return PolyStringType.fromOrig(name);
+        }
     }
 
-    private PolyStringType getEncryptedRoleName(String name) {
+    private PolyStringType getEncryptedOrgName(String name, int iterator) {
+        if (nameModeExport.equals(NameModeExport.ENCRYPTED)) {
+            return PolyStringType.fromOrig(encrypt(name));
+        } else if (nameModeExport.equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig("Organization" + iterator);
+        } else {
+            return PolyStringType.fromOrig(name);
+        }
+    }
+
+    private PolyStringType getEncryptedRoleName(String name, int iterator) {
         String prefix = "";
         if (applicationRolePrefix != null && name.startsWith(applicationRolePrefix)) {
             prefix = APPLICATION_ROLE_PREFIX;
@@ -214,10 +284,13 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         } else if (businessRoleSuffix != null && name.endsWith(businessRoleSuffix)) {
             prefix = BUSINESS_ROLE_PREFIX;
         }
-        if (prefix.isEmpty()) {
-            return PolyStringType.fromOrig(encrypt(name));
-        } else {
+
+        if (nameModeExport.equals(NameModeExport.ENCRYPTED)) {
             return PolyStringType.fromOrig(prefix + encrypt(name));
+        } else if (nameModeExport.equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig("Role" + iterator);
+        } else {
+            return PolyStringType.fromOrig(name);
         }
     }
 
@@ -231,7 +304,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
         if (value == null) {
             return null;
-        } else if (getKey() == null && !options.isRandomKey()) {
+        } else if (getKey() == null) {
             return value;
         }
 
@@ -255,7 +328,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     }
 
     private static @NotNull String generateRandomKey() {
-        int keyLength = 16; // specify the desired length of the key in bytes
+        int keyLength = 32;
         return RandomStringUtils.random(keyLength, 0, 0, true, true, null, new SecureRandom());
     }
 

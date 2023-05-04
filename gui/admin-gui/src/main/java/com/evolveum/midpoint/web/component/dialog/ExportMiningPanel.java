@@ -7,21 +7,28 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.RoleMiningExportOperation;
+import java.util.ArrayList;
+import java.util.EnumSet;
 
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.RoleMiningExportOperation;
 
 public class ExportMiningPanel extends ConfirmationPanel {
 
@@ -34,7 +41,20 @@ public class ExportMiningPanel extends ConfirmationPanel {
     private static final String ID_APPLICATION_SUFFIX = "applicationSuffix";
     private static final String ID_BUSINESS_PREFIX = "businessPrefix";
     private static final String ID_BUSINESS_SUFFIX = "businessSuffix";
+    private static final String ID_CHECKBOX_ROLE = "roleCheckbox";
+    private static final String ID_CHECKBOX_USER = "userCheckbox";
+    private static final String ID_CHECKBOX_ORG = "orgCheckbox";
+    private static final String ID_CHECKBOX_ZIP = "zipCheckBox";
+    protected static final String ID_DROPDOWN_NAME_MODE = "choiceNameMode";
     protected static final String ID_SHOW_ADDITIONAL_OPTIONS = "showAdditionalOptions";
+    protected static final String ID_LABEL_EXPORT_OBJECT = "exportObjectLabel";
+    protected static final String ID_LABEL_ZIP = "zipCheckBoxLabel";
+    protected static final String ID_LABEL_NAME_MODE = "nameModeLabel";
+    protected static final String ID_LABEL_APPLICATION = "applicationLabel";
+    protected static final String ID_LABEL_BUSINESS = "businessLabel";
+    protected static final String ID_LABEL_ENCRYPT = "encryptLabel";
+    protected static final String ID_LINK_DOCUMENTATION = "link";
+
     private TextField<String> applicationPrefixField;
     private String applicationPrefix;
     private TextField<String> applicationSuffixField;
@@ -46,6 +66,11 @@ public class ExportMiningPanel extends ConfirmationPanel {
     boolean showEmpty = false;
     private String key;
     private boolean edit = false;
+    boolean zip = false;
+    boolean roleExport = true;
+    boolean orgExport = true;
+    boolean userExport = true;
+    RoleMiningExportOperation.NameModeExport selectedValue;
     protected PageDebugDownloadBehaviour<?> downloadBehaviour;
 
     public ExportMiningPanel(String id, IModel<String> message, PageDebugDownloadBehaviour<?> roleMiningExport) {
@@ -54,17 +79,39 @@ public class ExportMiningPanel extends ConfirmationPanel {
     }
 
     @Override
-    protected void customInitLayout(WebMarkupContainer panel) {
+    protected void onInitialize() {
+        super.onInitialize();
+        ExternalLink link = new ExternalLink(ID_LINK_DOCUMENTATION, "https://docs.evolveum.com/");
+        link.add(AttributeModifier.append("target", "_blank"));
+        link.setBody(Model.of("Evolveum Documentation."));
 
+        add(link);
+    }
+
+    @Override
+    protected void customInitLayout(WebMarkupContainer panel) {
         addEncryptKeyFields(panel);
 
-        panel.add(getAjaxZipCheckBox());
+        addNameModeDropdown(panel);
+        addAjaxZipCheckBox(panel);
+
+        addExportOptionObjects(panel);
 
         Form<?> form = new Form<>(ID_FORM_EXPORT_OPTIONS);
         form.setOutputMarkupId(true);
         form.setOutputMarkupPlaceholderTag(true);
         form.setVisible(showEmpty);
         panel.add(form);
+
+        LabelWithHelpPanel applicationOptionsLabel = getLabelWithHelp(ID_LABEL_APPLICATION,
+                createStringResource("roleMiningExportPanel.application.role.label"),
+                createStringResource("roleMiningExportPanel.application.role.label.help"));
+        form.add(applicationOptionsLabel);
+
+        LabelWithHelpPanel businessOptionsLabel = getLabelWithHelp(ID_LABEL_BUSINESS,
+                createStringResource("roleMiningExportPanel.business.role.label"),
+                createStringResource("roleMiningExportPanel.business.role.label.help"));
+        form.add(businessOptionsLabel);
 
         AjaxButton showAdditionalOptions = getShowAdditionalOptionsButton(form);
         panel.add(showAdditionalOptions);
@@ -82,14 +129,88 @@ public class ExportMiningPanel extends ConfirmationPanel {
 
     }
 
-    @NotNull
-    private AjaxCheckBox getAjaxZipCheckBox() {
-        return new AjaxCheckBox("zipCheckBox", Model.of(zip)) {
+    public LabelWithHelpPanel getLabelWithHelp(String id, IModel<String> labelModel, IModel<String> helpModel) {
+        LabelWithHelpPanel label = new LabelWithHelpPanel(id, labelModel) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return helpModel;
+            }
+        };
+        label.setOutputMarkupId(true);
+        return label;
+    }
+
+    private void addNameModeDropdown(@NotNull WebMarkupContainer panel) {
+        selectedValue = RoleMiningExportOperation.NameModeExport.SEQUENTIAL;
+
+        LabelWithHelpPanel dropdownChoiceLabel = getLabelWithHelp(ID_LABEL_NAME_MODE,
+                createStringResource("roleMiningExportPanel.export.name.options.title"),
+                createStringResource("roleMiningExportPanel.export.name.options.help"));
+        panel.add(dropdownChoiceLabel);
+
+        ChoiceRenderer<RoleMiningExportOperation.NameModeExport> renderer = new ChoiceRenderer<>("displayString");
+
+        DropDownChoice<RoleMiningExportOperation.NameModeExport> dropDownChoice = new DropDownChoice<>(ID_DROPDOWN_NAME_MODE,
+                Model.of(selectedValue), new ArrayList<>(EnumSet.allOf(RoleMiningExportOperation.NameModeExport.class)), renderer);
+        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                selectedValue = dropDownChoice.getModelObject();
+            }
+        });
+
+        panel.add(dropDownChoice);
+    }
+
+    private void addAjaxZipCheckBox(@NotNull WebMarkupContainer panel) {
+        LabelWithHelpPanel zipCheckBoxLabel = getLabelWithHelp(ID_LABEL_ZIP,
+                createStringResource("roleMiningExportPanel.zip.format.title"),
+                createStringResource("roleMiningExportPanel.zip.format.title.help"));
+        panel.add(zipCheckBoxLabel);
+        AjaxCheckBox ajaxCheckBox = new AjaxCheckBox(ID_CHECKBOX_ZIP, Model.of(zip)) {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                 zip = getModelObject();
             }
         };
+        panel.add(ajaxCheckBox);
+
+    }
+
+    private void addExportOptionObjects(WebMarkupContainer panel) {
+
+        LabelWithHelpPanel exportOptionsLabel = getLabelWithHelp(ID_LABEL_EXPORT_OBJECT,
+                createStringResource("roleMiningExportPanel.export.label"),
+                createStringResource("roleMiningExportPanel.export.label.help"));
+        panel.add(exportOptionsLabel);
+
+        AjaxCheckBox roleExportSelector = new AjaxCheckBox(ID_CHECKBOX_ROLE, Model.of(true)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                roleExport = getModelObject();
+            }
+        };
+        roleExportSelector.setOutputMarkupId(true);
+        roleExportSelector.setEnabled(false);
+
+        panel.add(roleExportSelector);
+        AjaxCheckBox userExportSelector = new AjaxCheckBox(ID_CHECKBOX_USER, Model.of(true)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                userExport = getModelObject();
+            }
+        };
+        userExportSelector.setOutputMarkupId(true);
+        userExportSelector.setEnabled(false);
+        panel.add(userExportSelector);
+
+        AjaxCheckBox orgExportSelector = new AjaxCheckBox(ID_CHECKBOX_ORG, Model.of(true)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                orgExport = getModelObject();
+            }
+        };
+        panel.add(orgExportSelector);
     }
 
     @NotNull
@@ -172,6 +293,12 @@ public class ExportMiningPanel extends ConfirmationPanel {
     }
 
     private void addEncryptKeyFields(WebMarkupContainer panel) {
+
+        LabelWithHelpPanel encryptLabel = getLabelWithHelp(ID_LABEL_ENCRYPT,
+                createStringResource("roleMiningExportPanel.encryption.key.title"),
+                createStringResource("roleMiningExportPanel.encryption.key.title.help"));
+        panel.add(encryptLabel);
+
         TextField<Integer> keyField = new TextField<>(ID_KEY_FIELD);
         keyField.setOutputMarkupId(true);
         keyField.setOutputMarkupPlaceholderTag(true);
@@ -222,6 +349,8 @@ public class ExportMiningPanel extends ConfirmationPanel {
         roleMiningExportOperation.setApplicationRoleSuffix(getApplicationSuffix());
         roleMiningExportOperation.setBusinessRolePrefix(getBusinessPrefix());
         roleMiningExportOperation.setBusinessRoleSuffix(getBusinessSuffix());
+        roleMiningExportOperation.setNameModeExport(selectedValue);
+        roleMiningExportOperation.setOrgExport(orgExport);
 
         downloadBehaviour.setRoleMiningExport(roleMiningExportOperation);
         downloadBehaviour.setRoleMiningActive(true);
@@ -233,7 +362,7 @@ public class ExportMiningPanel extends ConfirmationPanel {
 
     @Override
     public int getWidth() {
-        return 550;
+        return 700;
     }
 
     @Override
@@ -302,7 +431,5 @@ public class ExportMiningPanel extends ConfirmationPanel {
     private boolean isZip() {
         return zip;
     }
-
-    boolean zip = false;
 
 }

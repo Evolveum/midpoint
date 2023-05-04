@@ -402,9 +402,7 @@ public class PageDebugList extends PageAdminConfiguration {
                                 .getBehaviors(PageDebugDownloadBehaviour.class);
                         var downloadBehaviour = list.get(0);
                         ExportMiningPanel dialog = new ExportMiningPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                createStringResource("roleMiningExportPanel.panel.message"), downloadBehaviour){
-
-                        };
+                                createStringResource("roleMiningExportPanel.panel.message"), downloadBehaviour);
                         ((PageBase) getPage()).showMainPopup(dialog, target);
                     }
                 };

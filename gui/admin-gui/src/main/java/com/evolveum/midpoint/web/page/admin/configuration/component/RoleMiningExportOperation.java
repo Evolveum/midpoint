@@ -25,6 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -44,11 +45,35 @@ public class RoleMiningExportOperation implements Serializable {
     protected String applicationRoleSuffix;
     protected String businessRolePrefix;
     protected String businessRoleSuffix;
+    NameModeExport nameModeExport = NameModeExport.SEQUENTIAL;
+    int rolesIterator = 0;
+    int organizationsIterator = 0;
+    int membersIterator = 0;
+    boolean orgExport = true;
+
+
+    public enum NameModeExport {
+        ENCRYPTED("ENCRYPTED"),
+        SEQUENTIAL("SEQUENTIAL"),
+        UNECRYPTED("UNECRYPTED");
+
+        private final String displayString;
+
+        NameModeExport(String displayString) {
+            this.displayString = displayString;
+        }
+
+        public String getDisplayString() {
+            return displayString;
+        }
+    }
+
 
     @NotNull
     private OrgType getPreparedOrgObject(@NotNull FocusType object) {
+        organizationsIterator++;
         OrgType orgObject = new OrgType();
-        orgObject.setName(getEncryptedName(object.getName().toString()));
+        orgObject.setName(getEncryptedOrgName(object.getName().toString(), organizationsIterator));
         orgObject.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
@@ -64,8 +89,9 @@ public class RoleMiningExportOperation implements Serializable {
 
     @NotNull
     private UserType getPreparedUserObject(@NotNull FocusType object) {
+        membersIterator++;
         UserType userType = new UserType();
-        userType.setName(getEncryptedName(object.getName().toString()));
+        userType.setName(getEncryptedUserName(object.getName().toString(), membersIterator));
         userType.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
@@ -83,9 +109,11 @@ public class RoleMiningExportOperation implements Serializable {
 
     @NotNull
     private RoleType getPreparedRoleObject(@NotNull FocusType object) {
+        this.rolesIterator++;
+
         RoleType roleType = new RoleType();
 
-        PolyStringType encryptedName = getEncryptedRoleName(object.getName().toString());
+        PolyStringType encryptedName = getEncryptedRoleName(object.getName().toString(), rolesIterator);
         roleType.setName(encryptedName);
         roleType.setOid(getEncryptedUUID(object.getOid()));
 
@@ -120,14 +148,44 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     private String getEncryptedUUID(String oid) {
-        return UUID.nameUUIDFromBytes(encrypt(oid).getBytes()).toString();
+        UUID uuid = UUID.fromString(oid);
+        byte[] bytes = uuidToBytes(uuid);
+        return UUID.nameUUIDFromBytes(encryptOid(bytes).getBytes()).toString();
     }
 
-    private PolyStringType getEncryptedName(String name) {
-        return PolyStringType.fromOrig(encrypt(name));
+    private PolyStringType getEncryptedUserName(String name, int iterator) {
+        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+            return PolyStringType.fromOrig(encrypt(name));
+        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig("User" + iterator);
+        } else {
+            return PolyStringType.fromOrig(name);
+        }
     }
 
-    private PolyStringType getEncryptedRoleName(String name) {
+    private PolyStringType getEncryptedOrgName(String name, int iterator) {
+        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+            return PolyStringType.fromOrig(encrypt(name));
+        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig("Organization" + iterator);
+        } else {
+            return PolyStringType.fromOrig(name);
+        }
+    }
+
+    private PolyStringType getEncryptedRoleName(String name, int iterator) {
+        String prefix = getNamePrefix(name);
+        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+            return PolyStringType.fromOrig(prefix + encrypt(name));
+        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig(prefix + "Role" + iterator);
+        } else {
+            return PolyStringType.fromOrig(name);
+        }
+
+    }
+
+    private String getNamePrefix(String name) {
         String prefix = "";
         if (applicationRolePrefix != null && name.startsWith(applicationRolePrefix)) {
             prefix = APPLICATION_ROLE_PREFIX;
@@ -138,11 +196,7 @@ public class RoleMiningExportOperation implements Serializable {
         } else if (businessRoleSuffix != null && name.endsWith(businessRoleSuffix)) {
             prefix = BUSINESS_ROLE_PREFIX;
         }
-        if (prefix.isEmpty()) {
-            return PolyStringType.fromOrig(encrypt(name));
-        } else {
-            return PolyStringType.fromOrig(prefix + encrypt(name));
-        }
+        return prefix;
     }
 
     private AssignmentType getEncryptedObjectReference(AssignmentType assignmentObject) {
@@ -157,6 +211,28 @@ public class RoleMiningExportOperation implements Serializable {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    private String encryptOid(byte[] value) {
+        if (getKey() == null) {
+            return new String(value, StandardCharsets.UTF_8);
+        }
+
+        Cipher cipher;
+        byte[] ciphertext;
+        try {
+            byte[] keyBytes = getKey().getBytes();
+            cipher = Cipher.getInstance("AES");
+            SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            ciphertext = cipher.doFinal(value);
+            return Base64.getEncoder().encodeToString(ciphertext);
+        } catch (Exception e) {
+            throw new UnsupportedOperationException("Error: Invalid key - " + e.getMessage() + ". \n "
+                    + "Possible causes: \n" + "- The key is not the right size or format for this operation. \n"
+                    + "- The key is not appropriate for the selected algorithm or mode of operation. \n"
+                    + "- The key has been damaged or corrupted.");
+        }
     }
 
     private String encrypt(String value) {
@@ -176,7 +252,7 @@ public class RoleMiningExportOperation implements Serializable {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec);
             ciphertext = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(ciphertext);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             throw new UnsupportedOperationException("Error: Invalid key - " + e.getMessage() + ". \n "
                     + "Possible causes: \n" + "- The key is not the right size or format for this operation. \n"
                     + "- The key is not appropriate for the selected algorithm or mode of operation. \n"
@@ -184,26 +260,30 @@ public class RoleMiningExportOperation implements Serializable {
         }
     }
 
-    public String generateRandomKey() {
-        int keyLength = 32; // specify the desired length of the key in bytes
-        return RandomStringUtils.random(keyLength, 0, 0, true, true, null, new SecureRandom());
+
+    public static byte[] uuidToBytes(UUID uuid) {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        buffer.putLong(uuid.getMostSignificantBits());
+        buffer.putLong(uuid.getLeastSignificantBits());
+        return buffer.array();
     }
 
+    public String generateRandomKey() {
+        int keyLength = 32;
+        return RandomStringUtils.random(keyLength, 0, 0, true, true, null, new SecureRandom());
+    }
 
     public void setApplicationRolePrefix(String applicationRolePrefix) {
         this.applicationRolePrefix = applicationRolePrefix;
     }
 
-
     public void setApplicationRoleSuffix(String applicationRoleSuffix) {
         this.applicationRoleSuffix = applicationRoleSuffix;
     }
 
-
     public void setBusinessRolePrefix(String businessRolePrefix) {
         this.businessRolePrefix = businessRolePrefix;
     }
-
 
     public void setBusinessRoleSuffix(String businessRoleSuffix) {
         this.businessRoleSuffix = businessRoleSuffix;
@@ -212,7 +292,9 @@ public class RoleMiningExportOperation implements Serializable {
     public void dumpMining(final Writer writer, OperationResult result, final PageBase page) throws Exception {
         dumpRoleTypeMining(writer, result, page);
         dumpUserTypeMining(writer, result, page);
-        dumpOrgTypeMining(writer, result, page);
+        if(isOrgExport()) {
+            dumpOrgTypeMining(writer, result, page);
+        }
     }
 
     private static final String DOT_CLASS = PageDebugDownloadBehaviour.class.getName() + ".";
@@ -288,5 +370,21 @@ public class RoleMiningExportOperation implements Serializable {
 
         service.searchObjectsIterative(OrgType.class, null, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
+    }
+
+    public void setNameModeExport(NameModeExport nameModeExport) {
+        this.nameModeExport = nameModeExport;
+    }
+
+    public NameModeExport getNameModeExport() {
+        return nameModeExport;
+    }
+
+    public boolean isOrgExport() {
+        return orgExport;
+    }
+
+    public void setOrgExport(boolean orgExport) {
+        this.orgExport = orgExport;
     }
 }
