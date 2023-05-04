@@ -11,6 +11,8 @@ import java.io.File;
 
 public class UpgradeMidpointHomeStepOptions {
 
+    private File distributionFile;
+
     private File midpointHomeDirectory;
 
     private File distributionDirectory;
@@ -39,5 +41,13 @@ public class UpgradeMidpointHomeStepOptions {
 
     public void setBackupFiles(boolean backupFiles) {
         this.backupFiles = backupFiles;
+    }
+
+    public File getDistributionFile() {
+        return distributionFile;
+    }
+
+    public void setDistributionFile(File distributionFile) {
+        this.distributionFile = distributionFile;
     }
 }

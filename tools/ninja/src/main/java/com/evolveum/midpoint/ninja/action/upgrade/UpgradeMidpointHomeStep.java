@@ -23,6 +23,20 @@ public class UpgradeMidpointHomeStep {
     }
 
     public void execute() throws Exception {
+        downloadDistributionFile();
+
+        upgradeMidpointHome();
+    }
+
+    private void downloadDistributionFile() throws IOException {
+        DistributionManager manager = new DistributionManager();
+        String version = "";
+        ProgressListener listener = null;
+
+        File distributionZip = manager.downloadDistribution(version, listener);
+    }
+
+    private void upgradeMidpointHome() throws IOException {
         File midpointHomeDirectory = options.getMidpointHomeDirectory();
         File distributionDirectory = options.getDistributionDirectory();
 
