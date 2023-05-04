@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 
 /**
  * @author katka
@@ -69,7 +70,8 @@ import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
         },
         basePackageClasses = {
                 TextAreaPanelFactory.class,
-                GuiComponentRegistryImpl.class
+                GuiComponentRegistryImpl.class,
+                CertGuiHandlerRegistry.class
         })
 public class TestMidPointSpringApplication extends AbstractSpringBootApplication {
 

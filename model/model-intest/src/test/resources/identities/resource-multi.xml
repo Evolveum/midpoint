@@ -33,12 +33,6 @@
             <icfi:instanceId>multi</icfi:instanceId>
         </icfc:configurationProperties>
 
-        <icfc:resultsHandlerConfiguration>
-            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-        </icfc:resultsHandlerConfiguration>
-
     </connectorConfiguration>
 
     <schemaHandling>
@@ -88,9 +82,6 @@
                     <target>
                         <path>extension/personalNumber</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <correlation>

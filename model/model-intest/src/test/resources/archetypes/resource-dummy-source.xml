@@ -55,9 +55,6 @@
                     <target>
                         <path>name</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <attribute>

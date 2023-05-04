@@ -41,13 +41,7 @@
                     <target>
                         <path>employeeNumber</path>
                     </target>
-                    <!-- This is a kind of hack. We want to correlate on this attribute by a simple mapping but do not want
-                         to use it to really modify the focus. This may happen for correlation attributes on non-authoritative
-                         resources (e.g. target ones, or "auxiliary" source ones). Repeated for other attributes. -->
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                        <exclude>clockwork</exclude>
-                    </evaluationPhases>
+                    <use>correlation</use>
                 </inbound>
             </attribute>
             <!-- TODO We want to make sure this information is (eventually) consistent with the one in midPoint and HR. -->
@@ -57,10 +51,7 @@
                     <target>
                         <path>emailAddress</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                        <exclude>clockwork</exclude>
-                    </evaluationPhases>
+                    <use>correlation</use>
                 </inbound>
             </attribute>
             <attribute>
@@ -69,10 +60,7 @@
                     <target>
                         <path>givenName</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                        <exclude>clockwork</exclude>
-                    </evaluationPhases>
+                    <use>correlation</use>
                 </inbound>
             </attribute>
             <attribute>
@@ -81,10 +69,7 @@
                     <target>
                         <path>familyName</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                        <exclude>clockwork</exclude>
-                    </evaluationPhases>
+                    <use>correlation</use>
                 </inbound>
             </attribute>
             <correlation>

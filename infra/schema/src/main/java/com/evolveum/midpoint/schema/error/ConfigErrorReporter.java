@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import java.util.function.Supplier;
+
 import static com.evolveum.midpoint.util.QNameUtil.getLocalPart;
 
 /**
@@ -36,6 +38,30 @@ import static com.evolveum.midpoint.util.QNameUtil.getLocalPart;
  */
 @Experimental
 public class ConfigErrorReporter {
+
+    public static Object lazy(Supplier<Object> supplier) {
+        return new Object() {
+            @Override
+            public String toString() {
+                return String.valueOf(supplier.get());
+            }
+        };
+    }
+
+    public static String describe(@NotNull InboundMappingType inboundMapping) {
+        PrismContainerValue<?> pcv = inboundMapping.asPrismContainerValue();
+        var itemDef = PrismValueUtil.getNearestValueOfType(pcv, ResourceItemDefinitionType.class);
+        if (itemDef != null) {
+            return describeLocally(inboundMapping) + " in " + describe(itemDef);
+        } else {
+            return describeLocally(inboundMapping);
+        }
+    }
+
+    private static String describeLocally(@NotNull InboundMappingType mapping) {
+        String name = mapping.getName();
+        return name != null ? "inbound mapping '" + name + "'" : "inbound mapping";
+    }
 
     public static String describe(@NotNull ItemRefinedDefinitionType itemRefinedDefinition) {
         PrismContainerValue<?> pcv = itemRefinedDefinition.asPrismContainerValue();
