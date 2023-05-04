@@ -10,7 +10,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.concepts.Path;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -591,7 +593,7 @@ public class AuthorizationConstants {
      * all existing authorizations much be updated. The cost of slightly increased perceived security is not
      * justified by those operational issues.
      */
-    public static final Collection<ItemPath> EXECUTION_ITEMS_ALLOWED_BY_DEFAULT = Arrays.asList(
+    public static final PathSet EXECUTION_ITEMS_ALLOWED_BY_DEFAULT = PathSet.of(
             ItemPath.create(ObjectType.F_METADATA),
             ItemPath.create(ObjectType.F_PARENT_ORG_REF),
             ItemPath.create(ObjectType.F_TENANT_REF),
@@ -653,9 +655,9 @@ public class AuthorizationConstants {
      * modify such values at will. We do not want that.
      * This is important for some use cases, e.g. delete of a role exclusion policy rule. We want user to add/delete
      * exclusion policy rules, but we do not want the user to manipulate the meta data.
-     * (also similar evolvability reasoning as for EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)
+     * (also similar evolvability reasoning as for {@link #EXECUTION_ITEMS_ALLOWED_BY_DEFAULT})
      */
-    public static final Collection<ItemPath> OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE = Arrays.asList(
+    public static final PathSet OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE = PathSet.of(
             ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
             ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
             ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),

@@ -625,7 +625,7 @@ public class ExpressionUtil {
                 if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()) {
                     return filter.clone();
                 }
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
             }
 
             ExpressionType valueExpression = getFilterExpression(expressionWrapper, shortDesc);
@@ -818,13 +818,13 @@ public class ExpressionUtil {
         switch (queryInterpretationOfNoValue) {
 
             case FILTER_UNDEFINED:
-                return FilterCreationUtil.createUndefined(prismContext);
+                return FilterCreationUtil.createUndefined();
 
             case FILTER_NONE:
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
 
             case FILTER_ALL:
-                return FilterCreationUtil.createAll(prismContext);
+                return FilterCreationUtil.createAll();
 
             case FILTER_EQUAL_NULL:
                 if (filter instanceof ValueFilter) {
@@ -832,9 +832,9 @@ public class ExpressionUtil {
                     evaluatedFilter.setExpression(null);
                     return evaluatedFilter;
                 } else if (filter instanceof InOidFilter) {
-                    return FilterCreationUtil.createNone(prismContext);
+                    return FilterCreationUtil.createNone();
                 } else if (filter instanceof FullTextFilter) {
-                    return FilterCreationUtil.createNone(prismContext); // because full text search for 'no value' is meaningless
+                    return FilterCreationUtil.createNone(); // because full text search for 'no value' is meaningless
                 } else {
                     throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
                 }

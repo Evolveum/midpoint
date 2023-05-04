@@ -73,7 +73,7 @@ public class RoleSelectionSpecification implements DebugDumpable {
         if (other == this) {
             return this;
         }
-        return applyBinary(other, (a, b) -> ObjectQueryUtil.filterAnd(a, b, prismContext) );
+        return applyBinary(other, (a, b) -> ObjectQueryUtil.filterAnd(a, b) );
     }
 
     public RoleSelectionSpecification or(RoleSelectionSpecification other, PrismContext prismContext) {
@@ -83,7 +83,7 @@ public class RoleSelectionSpecification implements DebugDumpable {
         if (other == this) {
             return this;
         }
-        return applyBinary(other, (a, b) -> ObjectQueryUtil.filterOr(a, b, prismContext) );
+        return applyBinary(other, (a, b) -> ObjectQueryUtil.filterOr(a, b) );
     }
 
     public RoleSelectionSpecification not(PrismContext prismContext) {
@@ -91,7 +91,7 @@ public class RoleSelectionSpecification implements DebugDumpable {
     }
 
     public RoleSelectionSpecification simplify(PrismContext prismContext) {
-        return applyUnary((a) -> ObjectQueryUtil.simplify(a, prismContext));
+        return applyUnary((a) -> ObjectQueryUtil.simplify(a));
     }
 
     private RoleSelectionSpecification applyBinary(RoleSelectionSpecification other, BinaryOperator<ObjectFilter> operator) {

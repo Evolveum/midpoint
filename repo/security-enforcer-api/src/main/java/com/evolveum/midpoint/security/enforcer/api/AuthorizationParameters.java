@@ -11,8 +11,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -25,7 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  */
 public class AuthorizationParameters<O extends ObjectType, T extends ObjectType> implements ShortDumpable {
 
-    public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY = new AuthorizationParameters<>(null, null, null, null);
+    public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY =
+            new AuthorizationParameters<>(null, null, null, null);
 
     // ODO specifies authorization object with delta
     private final ObjectDeltaObject<O> odo;
@@ -33,8 +36,8 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
     private final QName relation;
     private final List<OrderConstraintsType> orderConstraints;
 
-    private AuthorizationParameters(ObjectDeltaObject<O> odo, PrismObject<T> target, QName relation, List<OrderConstraintsType> orderConstraints) {
-        super();
+    private AuthorizationParameters(
+            ObjectDeltaObject<O> odo, PrismObject<T> target, QName relation, List<OrderConstraintsType> orderConstraints) {
         this.odo = odo;
         this.target = target;
         this.relation = relation;
@@ -61,6 +64,11 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
             return null;
         }
         return odo.getNewObject();
+    }
+
+    public PrismObjectValue<O> getAnyObjectValue() {
+        PrismObject<O> object = odo.getAnyObject();
+        return object != null ? object.getValue() : null;
     }
 
     public PrismObject<O> getAnyObject() {
@@ -129,7 +137,6 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
             sb.append(label).append("=").append(o).append(", ");
         }
     }
-
 
     public static class Builder<O extends ObjectType, T extends ObjectType> {
         private ObjectDeltaObject<O> odo;
@@ -244,7 +251,5 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
             }
             return new AuthorizationParameters<>(odo, null, null, null);
         }
-
     }
-
 }

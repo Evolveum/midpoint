@@ -58,6 +58,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
                 AuthorizationDecisionType.ALLOW);
     }
 
+    public boolean isAllow() {
+        return getDecision() == AuthorizationDecisionType.ALLOW;
+    }
+
     public @NotNull List<String> getAction() {
         return authorizationBean.getAction();
     }
@@ -79,7 +83,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
     }
 
-    public List<OwnedObjectSelectorType> getObject() {
+    public @NotNull List<OwnedObjectSelectorType> getObject() {
         return authorizationBean.getObject();
     }
 
@@ -119,7 +123,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return !getItem().isEmpty() || !getExceptItem().isEmpty();
     }
 
-    public List<OwnedObjectSelectorType> getTarget() {
+    public @NotNull List<OwnedObjectSelectorType> getTarget() {
         return authorizationBean.getTarget();
     }
 

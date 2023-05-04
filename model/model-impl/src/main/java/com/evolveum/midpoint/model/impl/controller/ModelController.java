@@ -1652,7 +1652,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         AuthorizationPhaseType phase =
                 GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
         ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType, null,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType,
                 origFilter, null, null, task, result);
         return updateObjectQuery(origQuery, secFilter);
     }
@@ -1671,7 +1671,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 null,
                 null,
                 null,
-                null,
                 task,
                 result);
         if (secParentFilter == null || secParentFilter instanceof AllFilter) {
@@ -1679,7 +1678,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
         ObjectFilter secChildFilter;
         if (secParentFilter instanceof NoneFilter) {
-            secChildFilter = FilterCreationUtil.createNone(prismContext);
+            secChildFilter = FilterCreationUtil.createNone();
         } else {
             ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
             ObjectFilter secChildFilterParentPart = prismContext.queryFactory().createExists(ItemName.fromQName(PrismConstants.T_PARENT), // fixme

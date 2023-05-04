@@ -1080,21 +1080,24 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected void assertCanSearchRoleMemberUsers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertCanSearch("Search user members of role " + roleOid, UserType.class,
-                null, null, false, createMembersQuery(UserType.class, roleOid), expectedResult);
+                createMembersQuery(UserType.class, roleOid), expectedResult);
     }
 
     protected void assertCanSearchRoleMembers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertCanSearch("Search all members of role " + roleOid, FocusType.class,
-                null, null, false, createMembersQuery(FocusType.class, roleOid), expectedResult);
+                createMembersQuery(FocusType.class, roleOid), expectedResult);
     }
 
-    protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(String message, Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(
+            String message, Class<T> resultType, ObjectQuery query, boolean expectedResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         Task task = createPlainTask("assertCanSearch");
         OperationResult result = task.getResult();
         String opName = "canSearch(" + message + ")";
         logAttempt(opName);
 
-        boolean decision = modelInteractionService.canSearch(resultType, objectType, objectOid, includeSpecial, query, task, result);
+        boolean decision = modelInteractionService.canSearch(resultType, (Class<O>) null, false, query, task, result);
 
         assertSuccess(result);
         if (expectedResult) {

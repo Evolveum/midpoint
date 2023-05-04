@@ -461,10 +461,10 @@ public class SchemaTransformer {
                 securityEnforcer.compileOperationConstraints(
                         object, null, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET_ALL, task, result);
         LOGGER.trace("Read constraints for {}:\n{}", object, DebugUtil.debugDumpLazily(readConstraints));
-        if (readConstraints == null) {
-            SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
-            throw new AuthorizationException("Access denied");
-        }
+//        if (readConstraints == null) { // FIXME not reachable
+//            SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
+//            throw new AuthorizationException("Access denied");
+//        }
         return readConstraints;
     }
 

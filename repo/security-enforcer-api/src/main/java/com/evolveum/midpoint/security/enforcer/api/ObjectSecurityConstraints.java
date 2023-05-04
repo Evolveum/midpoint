@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ObjectSecurityConstraints extends DebugDumpable {
 
+    /** Are there any constraints defined? */
+    boolean isEmpty();
+
     /**
      * A variant of {@link #findAllItemsDecision(String, AuthorizationPhaseType)} that considers several equivalent action URLs,
      * e.g. "read" and "get" actions. If any of them is denied, operation is denied. If any of them is allowed, operation is
