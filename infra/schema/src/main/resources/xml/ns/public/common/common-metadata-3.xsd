@@ -98,6 +98,8 @@
     </xsd:complexType>
     <xsd:element name="valueMetadata" type="tns:ValueMetadataType"/>
 
+    <xsd:element name="_metadata" type="tns:ValueMetadataType"/>
+
     <xsd:complexType name="StorageMetadataType">
         <xsd:annotation>
             <xsd:documentation>
