@@ -81,7 +81,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
                 fail("Expected attribute "+expectedAttribute+" in "+desc()+" but there was none. Attributes present: "+presentAttributeNames());
             }
         }
-        for (PrismProperty<?> existingAttr : getAttributes().getProperties()) {
+        for (Item<?, ?> existingAttr : getAttributes().getItems()) {
             if (!QNameUtil.contains(expectedAttributes, existingAttr.getElementName())) {
                 fail("Unexpected attribute "+existingAttr.getElementName()+" in "+desc()+". Expected attributes: "+QNameUtil.prettyPrint(expectedAttributes));
             }

@@ -464,16 +464,12 @@ public class ResourceTypeUtil {
     }
 
     public static AvailabilityStatusType getLastAvailabilityStatus(ResourceType resource) {
-        if (resource.getOperationalState() == null) {
-            return null;
-        }
+        OperationalStateType state = resource.getOperationalState();
+        return state != null ? state.getLastAvailabilityStatus() : null;
+    }
 
-        if (resource.getOperationalState().getLastAvailabilityStatus() == null) {
-            return null;
-        }
-
-        return resource.getOperationalState().getLastAvailabilityStatus();
-
+    public static boolean isUp(@NotNull ResourceType resource) {
+        return getLastAvailabilityStatus(resource) == AvailabilityStatusType.UP;
     }
 
     public static boolean isInMaintenance(ResourceType resource) {

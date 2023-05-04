@@ -125,12 +125,8 @@
                             </code>
                         </script>
                     </expression>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
-            
             <correlation>
                 <correlators>
                     <items>

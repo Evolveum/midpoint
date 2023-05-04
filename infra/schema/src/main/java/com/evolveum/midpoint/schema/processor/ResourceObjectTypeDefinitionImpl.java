@@ -205,12 +205,6 @@ public final class ResourceObjectTypeDefinitionImpl
     }
     //endregion
 
-    //region ==== Parsing =================================================================================
-    void add(ResourceAttributeDefinition<?> refinedAttributeDefinition) {
-        attributeDefinitions.add(refinedAttributeDefinition);
-    }
-    //endregion
-
     //region Diagnostic output, hashCode/equals =========================================================
 
     @Override

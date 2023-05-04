@@ -998,13 +998,13 @@ class EntitlementConverter {
                 entitlementDef.toResourceAttributeContainerDefinition()
                         .instantiate(ShadowAssociationType.F_IDENTIFIERS);
         PrismContainerValue<?> cval = container.getValue();
-        for (PrismProperty<?> prop : cval.getProperties()) {
+        for (Item<?, ?> item : cval.getItems()) {
             //noinspection unchecked
             ResourceAttribute<Object> attribute =
                     ((ResourceAttributeDefinition<Object>)
-                            entitlementDef.findAttributeDefinitionRequired(prop.getElementName()))
+                            entitlementDef.findAttributeDefinitionRequired(item.getElementName()))
                             .instantiate();
-            for (Object val : prop.getRealValues()) {
+            for (Object val : item.getRealValues()) {
                 attribute.addRealValue(val);
             }
             attributesContainer.add(attribute);

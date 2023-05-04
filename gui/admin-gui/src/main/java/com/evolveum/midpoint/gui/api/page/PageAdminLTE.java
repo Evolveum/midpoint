@@ -112,6 +112,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -245,6 +246,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private SimulationResultManager simulationResultManager;
+
+    @SpringBean
+    private CertGuiHandlerRegistry certGuiHandlerRegistry;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -544,6 +548,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public SimulationResultManager getSimulationResultManager() {
         return simulationResultManager;
+    }
+
+    public CertGuiHandlerRegistry getCertGuiHandlerRegistry() {
+        return certGuiHandlerRegistry;
     }
 
     public MidPointApplication getMidpointApplication() {

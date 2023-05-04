@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -129,6 +131,7 @@ class AccessChecker {
             ResourceObjectDefinition objectDefinition,
             OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
+        List<ResourceAttribute<?>> attributesToRemove = new ArrayList<>();
         try {
             for (ResourceAttribute<?> attribute : attributeContainer.getAttributes()) {
                 QName attrName = attribute.getElementName();
@@ -148,15 +151,13 @@ class AccessChecker {
                 // e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
                 // for delayed operations (e.g. consistency) that are passing through this code again.
                 // TODO: we need to figure a way how to avoid this loop
-//            if (limitations.isIgnore()) {
-//                String message = "Attempt to create shadow with ignored attribute "+attribute.getName();
-//                LOGGER.error(message);
-//                throw new SchemaException(message);
-//            }
                 if (!limitations.canRead()) {
-                    LOGGER.trace("Removing non-readable attribute {}", attrName);
-                    attributeContainer.remove(attribute);
+                    attributesToRemove.add(attribute);
                 }
+            }
+            for (ResourceAttribute<?> attributeToRemove : attributesToRemove) {
+                LOGGER.trace("Removing non-readable attribute {}", attributeToRemove);
+                attributeContainer.remove(attributeToRemove);
             }
         } catch (Throwable t) {
             result.recordFatalError(t);

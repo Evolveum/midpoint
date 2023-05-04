@@ -13,6 +13,10 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +63,6 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -1015,7 +1018,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
-            return;    // could be if the "assignments" step is skipped
+            return; // could be if the "assignments" step is skipped
         }
         // Similar code is in AssignmentEvaluator.isMemberOfInvocationResultChanged -- check that if changing the business logic
         for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
@@ -1047,13 +1050,39 @@ public class AssignmentProcessor implements ProjectorProcessor {
         SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
         if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
             // Refs can be shared also for archetype refs and we don't want metadata there (MID-8664).
-            membershipRefVals = CloneUtil.cloneCollectionMembers(membershipRefVals);
+            membershipRefVals = copySimpleReferenceValuesQuickly(membershipRefVals);
             for (PrismReferenceValue roleRef : membershipRefVals) {
                 addAssignmentPathValueMetadataValues(roleRef, evaluatedAssignment, focusContext);
             }
         }
 
         addReferences(shouldBeRoleRefs, membershipRefVals);
+    }
+
+    /**
+     * Quick and dirty fix for the issue of cloning the whole content of references, including the embedded object.
+     * To be resolved more intelligently in the future.
+     */
+    private static @NotNull Collection<PrismReferenceValue> copySimpleReferenceValuesQuickly(
+            @NotNull Collection<PrismReferenceValue> originals) {
+        List<PrismReferenceValue> copied = new ArrayList<>(originals.size());
+        for (PrismReferenceValue original : originals) {
+            var copy = new PrismReferenceValueImpl();
+            copy.setOid(original.getOid());
+            PolyString targetName = original.getTargetName();
+            if (targetName != null) {
+                // In general, this is not strictly necessary (maybe for debugging); but for create-on-demand scenarios
+                // it must be here to avoid "empty references" consistency check message.
+                copy.setTargetName(targetName.copy());
+            }
+            copy.setTargetType(original.getTargetType());
+            copy.setRelation(original.getRelation());
+            if (original.hasValueMetadata()) { // getValueMetadata() creates an empty metadata object
+                copy.setValueMetadata(original.getValueMetadata().clone());
+            }
+            copied.add(copy);
+        }
+        return copied;
     }
 
     private void addAssignmentPathValueMetadataValues(PrismReferenceValue roleRef,

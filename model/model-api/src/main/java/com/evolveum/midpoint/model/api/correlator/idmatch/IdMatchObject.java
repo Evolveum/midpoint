@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.api.correlator.idmatch;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -49,7 +48,7 @@ public class IdMatchObject implements DebugDumpable, Serializable {
     }
 
     private static IdMatchAttributesType copyAttributes(ShadowAttributesType attributes) throws SchemaException {
-        IdMatchAttributesType target = new IdMatchAttributesType(PrismContext.get());
+        IdMatchAttributesType target = new IdMatchAttributesType();
         for (Item<?, ?> attribute : ((PrismContainerValue<?>) attributes.asPrismContainerValue()).getItems()) {
             //noinspection unchecked
             target.asPrismContainerValue().add(attribute.clone());
@@ -83,6 +82,6 @@ public class IdMatchObject implements DebugDumpable, Serializable {
 
     public Collection<? extends PrismProperty<?>> getProperties() {
         //noinspection unchecked
-        return attributes.asPrismContainerValue().getProperties();
+        return attributes.asPrismContainerValue().getItems();
     }
 }

@@ -288,8 +288,7 @@ public interface ProvisioningService {
      * . The operation result is cleaned up before returning.
      * . The fetch result ({@link ObjectType#getFetchResult()}) is stored into object being returned. It reflects the result
      * of the whole operation: fetching from the resource, if applicable, but also e.g. application of definitions to an
-     * object retrieved in raw mode. The exception is if the `raw` mode was used and the result is successful (because of
-     * performance).
+     * object retrieved in raw mode. Storing of "success" result may be skipped.
      *
      * == Limitations / Known issues
      *

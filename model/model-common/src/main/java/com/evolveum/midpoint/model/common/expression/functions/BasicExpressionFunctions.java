@@ -700,9 +700,11 @@ public class BasicExpressionFunctions {
         if (configurationProperties == null) {
             return null;
         }
-        for (PrismProperty<?> property : configurationProperties.getValue().getProperties()) {
-            if (propertyLocalPart.equals(property.getElementName().getLocalPart())) {
-                return (T) property.getAnyRealValue();
+        for (Item<?, ?> item : configurationProperties.getValue().getItems()) {
+            if (item instanceof PrismProperty<?>
+                    && propertyLocalPart.equals(item.getElementName().getLocalPart())) {
+                //noinspection unchecked
+                return (T) ((PrismProperty<?>) item).getAnyRealValue();
             }
         }
         return null;

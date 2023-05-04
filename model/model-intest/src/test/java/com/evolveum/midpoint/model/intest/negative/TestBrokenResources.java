@@ -180,7 +180,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.assertSuccess("getObject result", result);
 
         OperationResultType fetchResult = resource.asObjectable().getFetchResult();
-        TestUtil.assertSuccess("resource.fetchResult", fetchResult);
+        if (fetchResult != null) {
+            TestUtil.assertSuccess("resource.fetchResult", fetchResult);
+        } else {
+            // null means success
+        }
 
         // TODO: better asserts
         assertNotNull("Null resource", resource);
