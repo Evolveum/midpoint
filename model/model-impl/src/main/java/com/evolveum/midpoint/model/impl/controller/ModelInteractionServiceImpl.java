@@ -277,7 +277,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 //                result.recordNotApplicable();
 //                return null;
 //            } else
-            {
+//            {
                 TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
                 applyArchetypePolicy(objectDefinition, object, task, result);
                 schemaTransformer.applySecurityConstraintsToItemDef(objectDefinition, securityConstraints, phase);
@@ -285,7 +285,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     applyObjectClassDefinition(objectDefinition, object, phase, task, result);
                 }
                 return objectDefinition;
-            }
+//            }
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
             result.recordFatalError(e);
             throw e;
