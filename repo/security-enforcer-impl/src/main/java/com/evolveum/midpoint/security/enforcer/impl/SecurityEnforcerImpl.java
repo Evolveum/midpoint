@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -24,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -147,7 +145,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     private <O extends ObjectType, T extends ObjectType> @NotNull AccessDecision decideAccessInternal(
-            @Nullable MidPointPrincipal midPointPrincipal,
+            @Nullable MidPointPrincipal principal,
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
             @NotNull AuthorizationParameters<O, T> params,
@@ -157,31 +155,26 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        AutzContext ctx = new AutzContext(principal, ownerResolver, beans, task);
         if (phase == null) {
-            AccessDecision requestPhaseDecision = decideAccessForPhase(
-                    midPointPrincipal, operationUrl, REQUEST,
-                    params, ownerResolver, applicableAutzConsumer, task, result);
+            AccessDecision requestPhaseDecision =
+                    decideAccessForPhase(operationUrl, REQUEST, params, applicableAutzConsumer, ctx, result);
             if (requestPhaseDecision != AccessDecision.ALLOW) {
                 return requestPhaseDecision;
             }
-            return decideAccessForPhase(
-                    midPointPrincipal, operationUrl, EXECUTION,
-                    params, ownerResolver, applicableAutzConsumer, task, result);
+            return decideAccessForPhase(operationUrl, EXECUTION, params, applicableAutzConsumer, ctx, result);
         } else {
-            return decideAccessForPhase(
-                    midPointPrincipal, operationUrl, phase,
-                    params, ownerResolver, applicableAutzConsumer, task, result);
+            return decideAccessForPhase(operationUrl, phase, params, applicableAutzConsumer, ctx, result);
         }
     }
 
     private <O extends ObjectType, T extends ObjectType> @NotNull AccessDecision decideAccessForPhase(
-            @Nullable MidPointPrincipal midPointPrincipal,
             @NotNull String operationUrl,
             @NotNull AuthorizationPhaseType phase,
             @NotNull AuthorizationParameters<O, T> params,
-            @Nullable OwnerResolver ownerResolver,
             @Nullable Consumer<Authorization> applicableAutzConsumer,
-            @NotNull Task task, @NotNull OperationResult result)
+            @NotNull AutzContext ctx,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -191,9 +184,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             return AccessDecision.DENY;
         }
 
-        if (LOGGER.isTraceEnabled()) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, {}",
-                    getUsername(midPointPrincipal), operationUrl, phase, params.shortDump());
+                    ctx.username, operationUrl, phase, params.shortDump());
         }
 
         // Step 1: Iterating through authentications, computing the overall decision and the items we are allowed to touch.
@@ -201,9 +194,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
         AccessDecision overallDecision = AccessDecision.DEFAULT;
         AutzItemPaths allowedItems = new AutzItemPaths();
-        for (Authorization authorization : getAuthorities(midPointPrincipal)) {
+        for (Authorization authorization : ctx.getAuthorizations()) {
             AuthorizationApplicabilityChecker checker =
-                    new AuthorizationApplicabilityChecker(authorization, midPointPrincipal, ownerResolver, beans, task, result);
+                    new AuthorizationApplicabilityChecker(authorization, ctx, result);
             if (!checker.isApplicableToAction(operationUrl)
                     || !checker.isApplicableToPhase(phase, true)
                     || !checker.isApplicableToRelation(params.getRelation())
@@ -269,9 +262,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             }
         }
 
-        if (LOGGER.isTraceEnabled()) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("AUTZ result: principal={}, operation={}: {}",
-                    getUsername(midPointPrincipal), prettyActionUrl(operationUrl), overallDecision);
+                    ctx.username, prettyActionUrl(operationUrl), overallDecision);
         }
         return overallDecision;
     }
@@ -362,7 +355,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     private void logContainerValueItemDecision(AccessDecision subDecision, String contextDesc, ItemPath path) {
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isTraceEnabled()) { // TODO get ctx here
             if (subDecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
                 LOGGER.trace("    item {} for {}: decision={}", path, contextDesc, subDecision);
             }
@@ -371,7 +364,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     private void logContainerValueDecision(
             AccessDecision decision, String contextDesc, PrismContainerValue<?> cval) {
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isTraceEnabled()) { // TODO get ctx here
             if (decision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
                 LOGGER.trace("    container {} for {} (processed sub-items): decision={}", cval.getPath(), contextDesc, decision);
             }
@@ -513,24 +506,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         return null;
     }
 
-    private static @NotNull Collection<Authorization> getAuthorities(MidPointPrincipal principal) {
-        if (principal == null) {
-            // Anonymous access, possibly with elevated privileges
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Collection<Authorization> authorizations = new ArrayList<>();
-            if (authentication != null) {
-                for (GrantedAuthority authority : authentication.getAuthorities()) {
-                    if (authority instanceof Authorization) {
-                        authorizations.add((Authorization) authority);
-                    }
-                }
-            }
-            return authorizations;
-        } else {
-            return principal.getAuthorities();
-        }
-    }
-
     @Override
     public @NotNull <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
             @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
@@ -538,24 +513,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         argCheck(object != null, "Cannot compile security constraints of null object");
-        MidPointPrincipal principal = getMidPointPrincipal();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", getUsername(principal), object);
+        AutzContext ctx = new AutzContext(getMidPointPrincipal(), ownerResolver, beans, task);
+        if (ctx.traceEnabled) {
+            LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", ctx.username, object);
         }
         ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
-        for (Authorization autz : getAuthorities(principal)) {
-            AuthorizationApplicabilityChecker checker =
-                    new AuthorizationApplicabilityChecker(autz, principal, ownerResolver, beans, task, result);
+        for (Authorization autz : ctx.getAuthorizations()) {
+            AuthorizationApplicabilityChecker checker = new AuthorizationApplicabilityChecker(autz, ctx, result);
             if (checker.isApplicableToObject(object)) {
                 objectSecurityConstraints.applyAuthorization(autz);
             }
         }
-
-        if (LOGGER.isTraceEnabled()) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}",
-                    getUsername(principal), object, objectSecurityConstraints.debugDump(1));
+                    ctx.username, object, objectSecurityConstraints.debugDump(1));
         }
-
         return objectSecurityConstraints;
     }
 
@@ -566,22 +538,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         argCheck(object != null, "Cannot compile security constraints of null object");
-        MidPointPrincipal principal = getMidPointPrincipal();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AUTZ: evaluating operation security constraints principal={}, object={}", getUsername(principal), object);
+        AutzContext ctx = new AutzContext(getMidPointPrincipal(), ownerResolver, beans, task);
+        if (ctx.traceEnabled) {
+            LOGGER.trace("AUTZ: evaluating operation security constraints principal={}, object={}", ctx.username, object);
         }
         ObjectOperationConstraintsImpl constraints = new ObjectOperationConstraintsImpl();
-        for (Authorization autz : getAuthorities(principal)) {
-            AuthorizationApplicabilityChecker checker =
-                    new AuthorizationApplicabilityChecker(autz, principal, ownerResolver, beans, task, result);
+        for (Authorization autz : ctx.getAuthorizations()) {
+            AuthorizationApplicabilityChecker checker = new AuthorizationApplicabilityChecker(autz, ctx, result);
             if (checker.isApplicableToActions(actionUrls)
                     && checker.isApplicableToObject(object)) {
                 constraints.applyAuthorization(autz);
             }
         }
-        if (LOGGER.isTraceEnabled()) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}",
-                    getUsername(principal), object, constraints.debugDump(1));
+                    ctx.username, object, constraints.debugDump(1));
         }
         return constraints;
     }
@@ -597,19 +568,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        MidPointPrincipal principal = getMidPointPrincipal();
-        if (LOGGER.isTraceEnabled()) {
+        AutzContext ctx = new AutzContext(getMidPointPrincipal(), null, beans, task);
+        if (ctx.traceEnabled) {
             LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, orig filter {}",
-                    getUsername(principal), searchResultType, origFilter);
+                    ctx.username, getObjectTypeName(searchResultType), origFilter);
         }
         FilterGizmo<ObjectFilter> gizmo = new FilterGizmoObjectFilterImpl();
         ObjectFilter securityFilter = computeSecurityFilterInternal(
-                principal, operationUrls, phase, searchResultType, null, SearchType.OBJECT, true, origFilter,
-                limitAuthorizationAction, paramOrderConstraints, gizmo, "filter pre-processing", task, result);
+                operationUrls, phase, searchResultType, null, SearchType.OBJECT, true, origFilter,
+                limitAuthorizationAction, paramOrderConstraints, gizmo, "filter pre-processing", ctx, result);
         ObjectFilter finalFilter = gizmo.and(origFilter, securityFilter);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}",
-                    getUsername(principal), getObjectTypeName(searchResultType), finalFilter);
+        if (ctx.traceEnabled) {
+            LOGGER.trace("AUTZ: evaluated search pre-process principal={}, searchResultType={}: {}",
+                    ctx.username, getObjectTypeName(searchResultType), finalFilter);
         }
         if (finalFilter instanceof AllFilter) {
             return null; // compatibility
@@ -632,13 +603,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        AutzContext ctx = new AutzContext(getMidPointPrincipal(), null, beans, task);
         return computeSecurityFilterInternal(
-                principal, operationUrls, phase, searchResultType, object, SearchType.TARGET, true, origFilter,
-                limitAuthorizationAction, paramOrderConstraints, gizmo, "security filter computation", task, result);
+                operationUrls, phase, searchResultType, object, SearchType.TARGET, true, origFilter,
+                limitAuthorizationAction, paramOrderConstraints, gizmo, "security filter computation", ctx, result);
     }
 
     private <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilterInternal(
-            MidPointPrincipal principal,
             String[] operationUrls,
             AuthorizationPhaseType phase,
             Class<T> searchResultType,
@@ -650,41 +621,42 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             List<OrderConstraintsType> paramOrderConstraints,
             FilterGizmo<F> gizmo,
             String desc,
-            Task task, OperationResult result)
+            AutzContext ctx,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        if (LOGGER.isTraceEnabled()) {
+        if (ctx.traceEnabled) {
             LOGGER.trace(
                     "AUTZ: computing security filter principal={}, searchResultType={}, object={}, searchType={}: orig filter {}",
-                    getUsername(principal), searchResultType, object, searchType, origFilter);
+                    ctx.username, getObjectTypeName(searchResultType), object, searchType, origFilter);
         }
         F securityFilter;
         if (phase != null) {
             securityFilter = computeSecurityFilterPhase(
-                    principal, operationUrls, phase, true, searchResultType, object, searchType,
+                    operationUrls, phase, true, searchResultType, object, searchType,
                     includeSpecial, origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo,
-                    desc, task, result);
+                    desc, ctx, result);
         } else {
             F filterBoth = computeSecurityFilterPhase(
-                    principal, operationUrls, null, false, searchResultType, object, searchType,
+                    operationUrls, null, false, searchResultType, object, searchType,
                     includeSpecial, origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo,
-                    desc, task, result);
+                    desc, ctx, result);
             F filterRequest = computeSecurityFilterPhase(
-                    principal, operationUrls, REQUEST, false, searchResultType, object, searchType,
+                    operationUrls, REQUEST, false, searchResultType, object, searchType,
                     includeSpecial, origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo,
-                    desc, task, result);
+                    desc, ctx, result);
             F filterExecution = computeSecurityFilterPhase(
-                    principal, operationUrls, EXECUTION, false, searchResultType, object, searchType,
+                    operationUrls, EXECUTION, false, searchResultType, object, searchType,
                     includeSpecial, origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo,
-                    desc, task, result);
+                    desc, ctx, result);
             securityFilter =
                     gizmo.or(
                             filterBoth,
                             gizmo.and(filterRequest, filterExecution));
         }
-        if (LOGGER.isTraceEnabled()) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("AUTZ: computed security filter principal={}, searchResultType={}: {}",
-                    getUsername(principal), getObjectTypeName(searchResultType), securityFilter);
+                    ctx.username, getObjectTypeName(searchResultType), securityFilter);
         }
         return securityFilter;
     }
@@ -700,11 +672,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        MidPointPrincipal principal = getMidPointPrincipal();
+        AutzContext ctx = new AutzContext(getMidPointPrincipal(), null, beans, task);
         FilterGizmo<ObjectFilter> gizmo = new FilterGizmoObjectFilterImpl();
         var securityFilter = computeSecurityFilterInternal(
-                principal, operationUrls, phase, searchResultType, null, SearchType.OBJECT, includeSpecial, origFilter,
-                null, null, gizmo, "canSearch decision", task, result);
+                operationUrls, phase, searchResultType, null, SearchType.OBJECT, includeSpecial, origFilter,
+                null, null, gizmo, "canSearch decision", ctx, result);
         ObjectFilter finalFilter =
                 ObjectQueryUtil.simplify(
                         ObjectQueryUtil.filterAnd(origFilter, securityFilter));
@@ -717,7 +689,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
      * See also {@link SelectorToFilterTranslator}
      */
     private <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilterPhase(
-            MidPointPrincipal principal,
             String[] operationUrls,
             AuthorizationPhaseType phase,
             boolean includeNullPhase,
@@ -730,7 +701,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             List<OrderConstraintsType> paramOrderConstraints,
             FilterGizmo<F> gizmo,
             String desc,
-            Task task,
+            AutzContext ctx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -739,12 +710,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         queryItemsSpec.addRequiredItems(origFilter); // MID-3916
         LOGGER.trace("  phase={}, initial query items spec {}", phase, queryItemsSpec.shortDumpLazily());
 
-        SecurityFilterBuilder<F> totalSecurityFilterBuilder = new SecurityFilterBuilder<>(gizmo, queryItemsSpec);
+        SecurityFilterBuilder<F> totalSecurityFilterBuilder = new SecurityFilterBuilder<>(gizmo, queryItemsSpec, ctx);
 
-        for (Authorization authorization : getAuthorities(principal)) {
-            AuthorizationApplicabilityChecker checker = new AuthorizationApplicabilityChecker(
-                    authorization, principal, null, beans, task, result);
-
+        for (Authorization authorization : ctx.getAuthorizations()) {
+            AuthorizationApplicabilityChecker checker = new AuthorizationApplicabilityChecker(authorization, ctx, result);
             if (!checker.isApplicableToActions(operationUrls)
                     || !checker.isApplicableToPhase(phase, includeNullPhase)
                     || !checker.isApplicableToLimitations(limitAuthorizationAction, operationUrls)
@@ -757,13 +726,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             if (searchType == SearchType.OBJECT) {
                 argCheck(object == null, "Searching for object but object is not null");
                 autzSecurityFilterBuilder = new AuthorizationSecurityFilterBuilder<>(
-                        principal, objectType, authorization, authorization.getObject(), "object",
-                        includeSpecial, queryItemsSpec, origFilter, beans, task, result);
+                        objectType, authorization, authorization.getObject(), "object",
+                        includeSpecial, queryItemsSpec, origFilter, ctx, result);
             } else if (searchType == SearchType.TARGET) {
                 argCheck(object != null, "Searching for target but object is null");
                 autzSecurityFilterBuilder = new AuthorizationSecurityFilterBuilder<>(
-                        principal, objectType, authorization, authorization.getTarget(), "target",
-                        includeSpecial, queryItemsSpec, origFilter, beans, task, result);
+                         objectType, authorization, authorization.getTarget(), "target",
+                        includeSpecial, queryItemsSpec, origFilter, ctx, result);
             } else {
                 throw new AssertionError(searchType);
             }
@@ -787,12 +756,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                         if (gizmo.isAll(autzSecurityFilter)) {
                             // This is "deny all". We cannot have anything stronger than that.
                             // There is no point in continuing the evaluation.
-                            if (LOGGER.isTraceEnabled()) {
+                            if (ctx.traceEnabled) {
                                 LOGGER.trace("  phase={} done: principal={}, operation={}, {}: deny all",
-                                        phase, getUsername(principal), prettyActionUrl(operationUrls), desc);
+                                        phase, ctx.username, prettyActionUrl(operationUrls), desc);
                             }
                             F secFilter = gizmo.createDenyAll();
-                            traceFilter("secFilter", null, secFilter, gizmo);
+                            traceFilter(ctx, "secFilter", null, secFilter, gizmo);
                             return secFilter;
                         }
                         totalSecurityFilterBuilder.addDeny(autzSecurityFilter);
@@ -807,66 +776,62 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         LOGGER.trace("  final items: {}", queryItemsSpec.shortDumpLazily());
         List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfiedItems();
         if (!unsatisfiedItems.isEmpty()) {
-            if (LOGGER.isTraceEnabled()) {
+            if (ctx.traceEnabled) {
                 LOGGER.trace("  phase={} done: principal={}, operation={}, {}: deny because items {} are not allowed",
-                        phase, getUsername(principal), prettyActionUrl(operationUrls), desc, unsatisfiedItems);
+                        phase, ctx.username, prettyActionUrl(operationUrls), desc, unsatisfiedItems);
             }
             F secFilter = gizmo.createDenyAll();
-            traceFilter("secFilter", null, secFilter, gizmo);
+            traceFilter(ctx, "secFilter", null, secFilter, gizmo);
             return secFilter;
         }
 
         var securityFilterAllow = gizmo.simplify(totalSecurityFilterBuilder.getSecurityFilterAllow());
         if (securityFilterAllow == null) {
             // Nothing has been allowed. This means default deny.
-            if (LOGGER.isTraceEnabled()) {
+            if (ctx.traceEnabled) {
                 LOGGER.trace("  phase={} done: principal={}, operation={}, {}: default deny",
-                        phase, getUsername(principal), prettyActionUrl(operationUrls), desc);
+                        phase, ctx.username, prettyActionUrl(operationUrls), desc);
             }
             F secFilter = gizmo.createDenyAll();
-            traceFilter("secFilter", null, secFilter, gizmo);
+            traceFilter(ctx, "secFilter", null, secFilter, gizmo);
             return secFilter;
         }
 
         var securityFilterDeny = totalSecurityFilterBuilder.getSecurityFilterDeny();
         if (securityFilterDeny == null) {
             // Nothing has been denied. We have "allow" filter only.
-            if (LOGGER.isTraceEnabled()) {
+            if (ctx.traceEnabled) {
                 LOGGER.trace("  phase={} done: principal={}, operation={}, {}: allow\n  Filter:\n{}",
-                        phase, getUsername(principal), prettyActionUrl(operationUrls), desc,
+                        phase, ctx.username, prettyActionUrl(operationUrls), desc,
                         gizmo.debugDumpFilter(securityFilterAllow, 2));
             }
-            traceFilter("securityFilterAllow", null, securityFilterAllow, gizmo);
+            traceFilter(ctx, "securityFilterAllow", null, securityFilterAllow, gizmo);
             return securityFilterAllow;
 
         } else {
             // Both "allow" and "deny" filters
             F secFilter = gizmo.and(securityFilterAllow, gizmo.not(securityFilterDeny));
-            if (LOGGER.isTraceEnabled()) {
+            if (ctx.traceEnabled) {
                 LOGGER.trace("  phase={} done: principal={}, operation={}, {}: allow (with deny clauses)\n  Filter:\n{}",
-                        phase, getUsername(principal), prettyActionUrl(operationUrls), desc,
+                        phase, ctx.username, prettyActionUrl(operationUrls), desc,
                         secFilter == null ? "null" : gizmo.debugDumpFilter(secFilter, 2));
             }
-            traceFilter("secFilter", null, secFilter, gizmo);
+            traceFilter(ctx, "secFilter", null, secFilter, gizmo);
             return secFilter;
         }
     }
 
-    static void traceFilter(String message, Object forObj, ObjectFilter filter) {
-        if (FILTER_TRACE_ENABLED && LOGGER.isTraceEnabled()) {
+    static void traceFilter(AutzContext ctx, String message, Object forObj, ObjectFilter filter) {
+        if (FILTER_TRACE_ENABLED && ctx.traceEnabled) {
             LOGGER.trace("FILTER {} for {}:\n{}",
                     message, forObj, filter == null ? DebugDumpable.INDENT_STRING + "null" : filter.debugDump(1));
         }
     }
 
-    static <F> void traceFilter(String message, Object forObj, F filter, FilterGizmo<F> gizmo) {
-        if (FILTER_TRACE_ENABLED && LOGGER.isTraceEnabled()) {
+    static <F> void traceFilter(AutzContext ctx, String message, Object forObj, F filter, FilterGizmo<F> gizmo) {
+        if (FILTER_TRACE_ENABLED && ctx.traceEnabled) {
             LOGGER.trace("FILTER {} for {}:\n{}", message, forObj, gizmo.debugDumpFilter(filter, 1));
         }
-    }
-
-    private String getUsername(MidPointPrincipal principal) {
-        return principal == null ? null : principal.getUsername();
     }
 
     static String prettyActionUrl(String fullUrl) {
@@ -905,11 +870,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
+        AutzContext ctx = new AutzContext(midPointPrincipal, null, beans, task);
         ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
-
-        for (Authorization autz : getAuthorities(midPointPrincipal)) {
-            AuthorizationApplicabilityChecker checker = new AuthorizationApplicabilityChecker(
-                    autz, midPointPrincipal, ownerResolver, beans, task, result);
+        for (Authorization autz : ctx.getAuthorizations()) {
+            AuthorizationApplicabilityChecker checker = new AuthorizationApplicabilityChecker(autz, ctx, result);
             if (checker.isApplicableToAction(operationUrl)
                     && checker.isApplicableToPhase(REQUEST, true)
                     && checker.isApplicableToObject(object)
@@ -917,7 +881,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 itemConstraints.collectItems(autz);
             }
         }
-
         return itemConstraints;
     }
 

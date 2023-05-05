@@ -52,7 +52,6 @@ class AuthorizationSecurityFilterBuilder<T extends ObjectType> extends Authoriza
     private boolean applicable = true;
 
     AuthorizationSecurityFilterBuilder(
-            @Nullable MidPointPrincipal principal,
             @NotNull Class<T> objectType,
             @NotNull Authorization authorization,
             @NotNull List<OwnedObjectSelectorType> objectSelectors,
@@ -60,10 +59,9 @@ class AuthorizationSecurityFilterBuilder<T extends ObjectType> extends Authoriza
             boolean includeSpecial,
             @NotNull QueryAutzItemPaths queryItemsSpec,
             @Nullable ObjectFilter origFilter,
-            @NotNull Beans beans,
-            @NotNull Task task,
+            @NotNull AutzContext ctx,
             @NotNull OperationResult result) {
-        super(authorization, principal, null, beans, task, result);
+        super(authorization, ctx, result);
         this.objectType = objectType;
         this.includeSpecial = includeSpecial;
         this.queryItemsSpec = queryItemsSpec;
@@ -325,12 +323,12 @@ class AuthorizationSecurityFilterBuilder<T extends ObjectType> extends Authoriza
                     objSpecSecurityFilter = objSpecTypeFilter;
                 }
 
-                traceFilter("objSpecSecurityFilter", objectSpecType, objSpecSecurityFilter);
+                traceFilter(ctx, "objSpecSecurityFilter", objectSpecType, objSpecSecurityFilter);
                 autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
             }
 
         }
-        traceFilter("autzObjSecurityFilter", authorization, autzObjSecurityFilter);
+        traceFilter(ctx, "autzObjSecurityFilter", authorization, autzObjSecurityFilter);
     }
 
     /**

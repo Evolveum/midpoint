@@ -17,18 +17,20 @@ class SecurityFilterBuilder<F> {
 
     @NotNull private final FilterGizmo<F> gizmo;
     @NotNull private final QueryAutzItemPaths queryItemsSpec;
+    @NotNull private final AutzContext ctx;
 
     private F securityFilterAllow = null;
     private F securityFilterDeny = null;
 
-    SecurityFilterBuilder(@NotNull FilterGizmo<F> gizmo, @NotNull QueryAutzItemPaths queryItemsSpec) {
+    SecurityFilterBuilder(@NotNull FilterGizmo<F> gizmo, @NotNull QueryAutzItemPaths queryItemsSpec, @NotNull AutzContext ctx) {
         this.gizmo = gizmo;
         this.queryItemsSpec = queryItemsSpec;
+        this.ctx = ctx;
     }
 
     void addAllow(F increment, Authorization authority) {
         securityFilterAllow = gizmo.or(securityFilterAllow, increment);
-        SecurityEnforcerImpl.traceFilter("securityFilterAllow", authority, securityFilterAllow, gizmo);
+        SecurityEnforcerImpl.traceFilter(ctx, "securityFilterAllow", authority, securityFilterAllow, gizmo);
         if (!gizmo.isNone(increment)) {
             queryItemsSpec.collectItems(authority);
         }
@@ -39,8 +41,8 @@ class SecurityFilterBuilder<F> {
     }
 
     void trace(Authorization authority) {
-        SecurityEnforcerImpl.traceFilter("securityFilterAllow", authority, securityFilterAllow, gizmo);
-        SecurityEnforcerImpl.traceFilter("securityFilterDeny", authority, securityFilterDeny, gizmo);
+        SecurityEnforcerImpl.traceFilter(ctx, "securityFilterAllow", authority, securityFilterAllow, gizmo);
+        SecurityEnforcerImpl.traceFilter(ctx, "securityFilterDeny", authority, securityFilterDeny, gizmo);
     }
 
     F getSecurityFilterAllow() {

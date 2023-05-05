@@ -7,6 +7,22 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
+import static java.util.Collections.emptySet;
+
+import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
+import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.prettyActionUrl;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -18,38 +34,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
-
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
-import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.prettyActionUrl;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
-import static java.util.Collections.emptySet;
 
 /**
  * Checks an applicability of given {@link Authorization} to the current situation, represented by action (operation URL),
@@ -63,17 +55,12 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
-    private final boolean traceEnabled = LOGGER.isTraceEnabled();
-
     AuthorizationApplicabilityChecker(
             @NotNull Authorization authorization,
-            @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
-            @NotNull Beans beans,
-            @NotNull Task task,
+            @NotNull AutzContext ctx,
             @NotNull OperationResult result) {
-        super(authorization, principal, ownerResolver, beans, task, result);
-        if (traceEnabled) {
+        super(authorization, ctx, result);
+        if (ctx.traceEnabled) {
             LOGGER.trace("    Evaluating applicability of {}", getDesc());
         }
     }
@@ -83,7 +70,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
         if (autzActions.contains(operationUrl) || autzActions.contains(AuthorizationConstants.AUTZ_ALL_URL)) {
             return true;
         }
-        if (traceEnabled) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("      Authorization not applicable for operation {}", prettyActionUrl(operationUrl));
         }
         return false;
@@ -99,7 +86,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
                 return true;
             }
         }
-        if (traceEnabled) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("      Authorization not applicable for operation {}", prettyActionUrl(requiredActions));
         }
         return false;
@@ -113,7 +100,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
                 return true;
             }
         }
-        if (traceEnabled) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("      Authorization not applicable for operation {}", prettyActionUrl(requiredActions));
         }
         return false;
@@ -142,7 +129,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
         if (autzLimitationsActions.isEmpty() || autzLimitationsActions.contains(limitAuthorizationAction)) {
             return true;
         }
-        if (traceEnabled) {
+        if (ctx.traceEnabled) {
             LOGGER.trace("      Authorization is limited to other action, not applicable for operation {}",
                     prettyActionUrl(operationUrls));
         }
@@ -152,7 +139,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isApplicableToOrderConstraints(List<OrderConstraintsType> paramOrderConstraints) {
         var applies = getOrderConstraintsApplicability(paramOrderConstraints);
-        if (!applies && traceEnabled) {
+        if (!applies && ctx.traceEnabled) {
             LOGGER.trace("      Authorization not applicable for orderConstraints {}",
                     SchemaDebugUtil.shortDumpOrderConstraintsList(paramOrderConstraints));
         }
@@ -271,7 +258,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
         List<OwnedObjectSelectorType> objectSpecTypes = authorization.getObject();
         if (!objectSpecTypes.isEmpty()) {
             if (odo == null) {
-                if (traceEnabled) {
+                if (ctx.traceEnabled) {
                     LOGGER.trace("  object not applicable for null {}", getDesc());
                 }
                 return false;
@@ -318,7 +305,7 @@ class AuthorizationApplicabilityChecker extends AuthorizationProcessor {
             ConfigurationException, SecurityViolationException {
         if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
             if (object == null) {
-                if (traceEnabled) {
+                if (ctx.traceEnabled) {
                     LOGGER.trace("  Authorization is not applicable for null {}", desc);
                 }
                 return false;

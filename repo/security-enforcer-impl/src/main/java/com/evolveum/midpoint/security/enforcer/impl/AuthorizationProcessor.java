@@ -38,6 +38,8 @@ abstract class AuthorizationProcessor {
 
     @NotNull final Authorization authorization;
     @NotNull private final Lazy<String> lazyDescription;
+
+    @NotNull final AutzContext ctx;
     @Nullable final MidPointPrincipal principal;
     @Nullable final OwnerResolver ownerResolver;
     @NotNull final Beans b;
@@ -46,16 +48,14 @@ abstract class AuthorizationProcessor {
 
     AuthorizationProcessor(
             @NotNull Authorization authorization,
-            @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
-            @NotNull Beans beans,
-            @NotNull Task task,
+            @NotNull AutzContext ctx,
             @NotNull OperationResult result) {
         this.authorization = authorization;
-        this.principal = principal;
-        this.ownerResolver = ownerResolver != null ? ownerResolver : beans.securityContextManager.getUserProfileService();
-        this.b = beans;
-        this.task = task;
+        this.ctx = ctx;
+        this.principal = ctx.principal;
+        this.ownerResolver = ctx.ownerResolver;
+        this.b = ctx.b;
+        this.task = ctx.task;
         this.result = result;
         this.lazyDescription = Lazy.from(() -> this.authorization.getHumanReadableDesc());
     }
