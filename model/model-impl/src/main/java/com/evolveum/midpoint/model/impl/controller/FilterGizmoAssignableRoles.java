@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -107,7 +109,7 @@ public class FilterGizmoAssignableRoles implements FilterGizmo<RoleSelectionSpec
 
     @Override
     public String debugDumpFilter(RoleSelectionSpecification filter, int indent) {
-        return filter == null ? null : filter.debugDump(indent);
+        return DebugUtil.debugDump(filter, indent);
     }
 
 }

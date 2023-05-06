@@ -2403,10 +2403,11 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, OrgType.class, 1);
 
-        ObjectFilter jackAssignableRoleFilter = assertAssignableRoleSpecification(getUser(USER_JACK_OID))
-                .relationDefault()
-                .filter()
-                .getFilter();
+        ObjectFilter jackAssignableRoleFilter =
+                assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                        .relationDefault()
+                        .filter()
+                        .getFilter();
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
         query.addFilter(jackAssignableRoleFilter);

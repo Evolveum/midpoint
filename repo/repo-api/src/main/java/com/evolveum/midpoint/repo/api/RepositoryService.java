@@ -685,7 +685,9 @@ public interface RepositoryService {
     RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 
     <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
-            ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+            ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
     void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch);
 

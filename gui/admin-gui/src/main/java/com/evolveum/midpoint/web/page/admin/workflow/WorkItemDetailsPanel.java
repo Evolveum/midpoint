@@ -330,6 +330,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());
+            result.recordException(ex);
+        } finally {
+            result.close();
         }
         return false;
     }

@@ -83,7 +83,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
     }
 
-    public @NotNull List<OwnedObjectSelectorType> getObject() {
+    public @NotNull List<OwnedObjectSelectorType> getObjectSelectors() {
         return authorizationBean.getObject();
     }
 
@@ -123,7 +123,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return !getItem().isEmpty() || !getExceptItem().isEmpty();
     }
 
-    public @NotNull List<OwnedObjectSelectorType> getTarget() {
+    public @NotNull List<OwnedObjectSelectorType> getTargetSelectors() {
         return authorizationBean.getTarget();
     }
 
@@ -155,6 +155,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
             sb.append("unnamed authorization");
         }
         if (sourceDescription != null) {
+            Long id = authorizationBean.getId();
+            if (id != null) {
+                sb.append(" (#").append(id).append(")");
+            }
             sb.append(" in ");
             sb.append(sourceDescription);
         }

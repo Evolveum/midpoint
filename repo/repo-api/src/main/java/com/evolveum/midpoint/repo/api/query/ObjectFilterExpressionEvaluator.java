@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 @FunctionalInterface
 public interface ObjectFilterExpressionEvaluator {
 
-    ObjectFilter evaluate(ObjectFilter filter) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    ObjectFilter evaluate(ObjectFilter filter)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
 }
