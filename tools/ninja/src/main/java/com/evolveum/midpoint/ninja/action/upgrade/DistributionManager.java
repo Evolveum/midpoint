@@ -35,7 +35,7 @@ public class DistributionManager {
 
         String distributionFile = createFileName(versionNumber);
 
-        File file = new File(FileUtils.getTempDirectory(), "midpoint-upgrade/" + System.currentTimeMillis() + "-" + distributionFile);
+        File file = new File(UpgradeConstants.TEMP_UPGRADE_FOLDER, System.currentTimeMillis() + "-" + distributionFile);
         FileUtils.forceMkdirParent(file);
         file.createNewFile();
 

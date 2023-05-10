@@ -68,10 +68,14 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
             if (isWorkersDone()) {
                 operation.finish();
             }
+
+            destroy();
         }
     }
 
-    protected abstract void init();
+    protected void init() {}
+
+    protected void destroy() {}
 
     protected abstract String getProlog();
 

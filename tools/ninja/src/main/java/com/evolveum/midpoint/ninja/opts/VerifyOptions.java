@@ -20,11 +20,19 @@ public class VerifyOptions extends ExportOptions {
     public static final String P_WARN = "-w";
     public static final String P_WARN_LONG = "--warn";
 
+    public static final String P_CREATE_REPORT = "--create-report";
+
     @Parameter(names = {P_WARN, P_WARN_LONG}, descriptionKey = "verify.warn")
     private String warn;
+
+    @Parameter(names = {P_CREATE_REPORT})   // todo description, etc
+    private boolean createReport;
 
     public String getWarn() {
         return warn;
     }
 
+    public boolean isCreateReport() {
+        return createReport;
+    }
 }
