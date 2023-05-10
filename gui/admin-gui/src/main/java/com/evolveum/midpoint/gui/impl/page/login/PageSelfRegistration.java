@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -72,7 +74,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final String PARAM_USER_OID = "user";
 
-    private IModel<UserType> userModel;
+    protected IModel<UserType> userModel;
 
     public PageSelfRegistration() {
         super();
@@ -169,6 +171,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
         input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         input.getBaseFormComponent().setRequired(true);
         feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
+
+        input.add(new EnableBehaviour(this::isNewUserRegistration));
+
         input.setRenderBodyOnly(true);
 
     }
@@ -224,7 +229,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         saveUser(result);
         result.computeStatus();
 
-        if (result.getStatus() == OperationResultStatus.SUCCESS) {
+        if (result.getStatus() == OperationResultStatus.SUCCESS && isNewUserRegistration()) {
             getSession()
                     .success(createStringResource("PageSelfRegistration.registration.success").getString());
 
@@ -253,6 +258,10 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
         target.add(getFeedbackPanel());
         target.add(PageSelfRegistration.this);
+    }
+
+    protected boolean isNewUserRegistration() {
+        return true;
     }
 
     private void saveUser(OperationResult result) {
@@ -323,8 +332,10 @@ public class PageSelfRegistration extends PageAbstractFlow {
             }
         }
 
-        // CredentialsType credentials =
-        applyNonce(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task, result);
+        if (isNewUserRegistration()) {
+            // CredentialsType credentials =
+            applyNonce(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task, result);
+        }
         // userToSave.setCredentials(credentials);
         if (selfRegistrationConfiguration.getInitialLifecycleState() != null) {
             LOGGER.trace("Setting initial lifecycle state of registered user to {}",
