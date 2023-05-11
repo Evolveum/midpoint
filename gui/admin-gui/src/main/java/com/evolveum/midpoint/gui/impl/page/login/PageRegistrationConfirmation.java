@@ -123,7 +123,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         try {
             ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
             return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username, UserType.class,
-                    nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
+                    nonce, getFlowConfiguration().getNoncePolicy()));
         } catch (AuthenticationException ex) {
             getSession().error(getString(ex.getMessage()));
             result.recordFatalError(getString("PageRegistrationConfirmation.message.failedValidUser.fatalError"), ex);
@@ -140,7 +140,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
     }
 
     private void assignDefaultRoles(String userOid, PrismObject<UserType> administrator, OperationResult parentResult) throws CommonException {
-        List<ObjectReferenceType> rolesToAssign = getSelfRegistrationConfiguration().getDefaultRoles();
+        List<ObjectReferenceType> rolesToAssign = getFlowConfiguration().getDefaultRoles();
         if (CollectionUtils.isEmpty(rolesToAssign)) {
             return;
         }

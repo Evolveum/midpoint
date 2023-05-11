@@ -62,6 +62,18 @@ public class SelfRegistrationDto implements Serializable {
         init(securityPolicy, selfRegistration);
     }
 
+    public void initInvitationDto(SecurityPolicyType securityPolicy) throws SchemaException {
+        if (securityPolicy == null) {
+            return;
+        }
+        SelfRegistrationPolicyType invitationPolicy = getInvitationPolicy(securityPolicy);
+        if (invitationPolicy == null) {
+            return;
+        }
+
+        init(securityPolicy, invitationPolicy);
+    }
+
     private void init(SecurityPolicyType securityPolicy, SelfRegistrationPolicyType selfRegistration) throws SchemaException {
         this.name = selfRegistration.getName();
         this.defaultRoles = selfRegistration.getDefaultRole();
@@ -99,6 +111,16 @@ public class SelfRegistrationDto implements Serializable {
         }
 
         return selfRegistrationPolicy;
+    }
+
+    private SelfRegistrationPolicyType getInvitationPolicy(SecurityPolicyType securityPolicyType) {
+        RegistrationsPolicyType flowPolicy = securityPolicyType.getFlow();
+        SelfRegistrationPolicyType invitationPolicy = null;
+        if (flowPolicy != null) {
+            invitationPolicy = flowPolicy.getInvitation();
+        }
+
+        return invitationPolicy;
     }
 
     public String getName() {

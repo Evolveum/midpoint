@@ -18,8 +18,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,7 +41,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -172,7 +168,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         input.getBaseFormComponent().setRequired(true);
         feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
 
-        input.add(new EnableBehaviour(this::isNewUserRegistration));
+        input.add(new EnableBehaviour(this::afterRegistrationAuthenticationNeeded));
 
         input.setRenderBodyOnly(true);
 
@@ -219,7 +215,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     @Override
     public boolean isCustomFormDefined() {
-        return getSelfRegistrationConfiguration().getFormRef() != null;
+        return getFlowConfiguration().getFormRef() != null;
     }
 
     @Override
@@ -229,13 +225,14 @@ public class PageSelfRegistration extends PageAbstractFlow {
         saveUser(result);
         result.computeStatus();
 
-        if (result.getStatus() == OperationResultStatus.SUCCESS && isNewUserRegistration()) {
+        if (result.getStatus() == OperationResultStatus.SUCCESS) {
             getSession()
                     .success(createStringResource("PageSelfRegistration.registration.success").getString());
-
-            String sequenceIdentifier = getSelfRegistrationConfiguration().getAdditionalAuthentication();
-            if (SecurityUtils.sequenceExists(getSelfRegistrationConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
-                target.add(PageSelfRegistration.this);
+            if (afterRegistrationAuthenticationNeeded()) {
+                String sequenceIdentifier = getFlowConfiguration().getAdditionalAuthentication();
+                if (SecurityUtils.sequenceExists(getFlowConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
+                    target.add(PageSelfRegistration.this);
+                }
             }
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
 
@@ -260,7 +257,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         target.add(PageSelfRegistration.this);
     }
 
-    protected boolean isNewUserRegistration() {
+    protected boolean afterRegistrationAuthenticationNeeded() {
         return true;
     }
 
@@ -271,7 +268,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
             runAsChecked(() -> {
                 ObjectDelta<UserType> userDelta;
                 Task task = createSimpleTask(OPERATION_SAVE_USER, null);
-                task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
+                task.setChannel(getChannel());
                 try {
                     userDelta = prepareUserDelta(task, result);
                     userDelta.setPrismContext(getPrismContext());
@@ -289,7 +286,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
     }
 
-    private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         LOGGER.trace("Preparing user ADD delta (new user registration)");
         UserType userType = prepareUserToSave(task, result);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
@@ -297,9 +294,13 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return userDelta;
     }
 
-    private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected String getChannel() {
+        return SchemaConstants.CHANNEL_SELF_REGISTRATION_URI;
+    }
 
-        SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
+    protected UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        SelfRegistrationDto selfRegistrationConfiguration = getFlowConfiguration();
         UserType userType = getUserModel().getObject();
         UserType userToSave = userType.clone();
 
@@ -332,7 +333,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
             }
         }
 
-        if (isNewUserRegistration()) {
+        if (afterRegistrationAuthenticationNeeded()) {
             // CredentialsType credentials =
             applyNonce(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task, result);
         }
@@ -422,7 +423,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     @Override
     protected ObjectReferenceType getCustomFormRef() {
-        return getSelfRegistrationConfiguration().getFormRef();
+        return getFlowConfiguration().getFormRef();
     }
 
     @Override
