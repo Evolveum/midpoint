@@ -74,6 +74,7 @@ public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerT
             shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCaseManagementNotifier(), task, result);
             shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserPasswordNotifier(), task, result);
             shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserRegistrationNotifier(), task, result);
+            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserInvitationNotifier(), task, result);
             shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getPasswordResetNotifier(), task, result);
             shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getAccountActivationNotifier(), task, result);
             shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getAccountPasswordNotifier(), task, result);
