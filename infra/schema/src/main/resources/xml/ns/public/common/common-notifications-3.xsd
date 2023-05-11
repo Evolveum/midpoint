@@ -999,6 +999,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="userInvitationNotifier" type="tns:RegistrationConfirmationNotifierType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="passwordResetNotifier" type="tns:PasswordResetNotifierType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1740,6 +1747,25 @@
         <xsd:annotation>
             <xsd:documentation>
                 TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConfirmationNotifierType">
+
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InvitationNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The notifier should be used in case of the invitation process of the user to midpoint (e.g. use case when
+                administrator creates a user and sends him an invitation link to finish the registration process by providing the
+                necessary data; another use case is sending an invitation link to the existing user who had disabled or archived
+                in the system to reactivate the account)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
