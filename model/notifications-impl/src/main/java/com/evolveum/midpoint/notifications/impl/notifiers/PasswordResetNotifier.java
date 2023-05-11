@@ -72,11 +72,11 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
             OperationResult result) {
         UserType userType = getUser(event);
         return "Did you request password reset? If yes, click on the link below \n\n"
-                + createConfirmationLink(userType, generalNotifierType, event.getChannel(), result);
+                + createConfirmationLink(userType, generalNotifierType, result);
     }
 
     @Override
-    public String getConfirmationLink(UserType userType, String channel) {
+    public String getConfirmationLink(UserType userType) {
         return getMidpointFunctions().createPasswordResetLink(userType);
     }
 }
