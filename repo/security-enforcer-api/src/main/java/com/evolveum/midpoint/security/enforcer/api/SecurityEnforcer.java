@@ -171,6 +171,19 @@ public interface SecurityEnforcer {
             ConfigurationException, SecurityViolationException;
 
     /**
+     * TODO
+     */
+    @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
+            @NotNull PrismObject<O> object,
+            @Nullable AuthorizationPhaseType phase,
+            @Nullable OwnerResolver ownerResolver,
+            @NotNull Collection<String> actionUrls,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
+
+    /**
      * Returns a filter that covers all the objects for which the principal is authorized to apply `operationUrls`.
      *
      * The `searchResultType` parameter defines the class of the object for which should be the returned filter applicable.

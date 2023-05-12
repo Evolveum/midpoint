@@ -125,7 +125,6 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
             }
         }
 
-        ObjectFilter membersFilter = null;
         if (!BooleanUtils.isFalse(selectorRoleRelation.isIncludeMembers())) {
             List<PrismReferenceValue> queryRoleRefs = getRoleOidsFromFilter(fCtx.getOriginalFilter());
             if (queryRoleRefs == null || queryRoleRefs.isEmpty()) {
@@ -151,14 +150,14 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
                 if (isRoleOidOk) {
                     // There is already a good filter in the origFilter
                     // TODO: mind the objectRelation
-                    membersFilter = FilterCreationUtil.createAll();
+                    return FilterCreationUtil.createAll();
                 } else {
-                    membersFilter = FilterCreationUtil.createNone();
+                    return FilterCreationUtil.createNone();
                 }
             }
         }
 
-        return membersFilter;
+        return null;
     }
 
     private List<PrismReferenceValue> getRoleOidsFromFilter(ObjectFilter origFilter) {

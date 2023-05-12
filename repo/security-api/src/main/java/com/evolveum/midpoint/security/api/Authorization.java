@@ -70,6 +70,11 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return authorizationBean.getPhase();
     }
 
+    public boolean matchesPhase(@Nullable AuthorizationPhaseType phase) {
+        var autzPhase = getPhase();
+        return autzPhase == null || autzPhase == phase;
+    }
+
     public AuthorizationEnforcementStrategyType getEnforcementStrategy() {
         return authorizationBean.getEnforcementStrategy();
     }
@@ -117,6 +122,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
             items.add(itemPathType.getItemPath());
         }
         return items;
+    }
+
+    public @NotNull List<ItemValueSelectorType> getItemValueSelectors() {
+        return authorizationBean.getItemValue();
     }
 
     public boolean hasItemSpecification() {

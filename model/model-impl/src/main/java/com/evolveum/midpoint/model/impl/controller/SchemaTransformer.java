@@ -11,7 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterface
 
 import java.util.*;
 
-import com.evolveum.midpoint.security.enforcer.api.ObjectOperationConstraints;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.security.enforcer.api.*;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,9 +58,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -234,6 +232,11 @@ public class SchemaTransformer {
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException {
 
+        // FIXME Temporary
+        if (parsedOptions.getDefinitionUpdate() == DefinitionUpdateOption.NONE) {
+            return applySchemasAndSecurityToObject2(object, parsedOptions, task, parentResult);
+        }
+
         LOGGER.trace("applySchemasAndSecurityToObject({}) starting", object);
         var rootOptions = parsedOptions.getRootOptions();
         OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT);
@@ -280,6 +283,38 @@ public class SchemaTransformer {
             result.close();
         }
         LOGGER.trace("applySchemasAndSecurityToObject finishing");
+        return object;
+    }
+
+    /**
+     * FIXME temporary code
+     */
+    <O extends ObjectType> @NotNull PrismObject<O> applySchemasAndSecurityToObject2(
+            @NotNull PrismObject<O> object,
+            @NotNull ParsedGetOperationOptions parsedOptions,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException {
+        LOGGER.trace("applySchemasAndSecurityToObject2({}) starting", object);
+        var rootOptions = parsedOptions.getRootOptions();
+        OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT);
+        try {
+            authorizeRawOption(object, rootOptions, task, result);
+            validateObject(object, rootOptions);
+            AuthorizationPhaseType phase =
+                    GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
+            var readConstraints =
+                    securityEnforcer.compileValueOperationConstraints(
+                            object, phase, null, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET_ALL, task, result);
+            object = applyReadConstraints(object, readConstraints);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+        LOGGER.trace("applySchemasAndSecurityToObject2 finishing");
         return object;
     }
 
@@ -451,6 +486,84 @@ public class SchemaTransformer {
             throw new AuthorizationException("Access denied");
         }
         return mutable;
+    }
+
+    private <O extends ObjectType> PrismObject<O> applyReadConstraints(
+            @NotNull PrismObject<O> object,
+            @NotNull PrismEntityOpConstraints.ForValueContent constraints)
+            throws SecurityViolationException {
+
+        AccessDecision decision = constraints.getDecision();
+        if (decision == AccessDecision.ALLOW) {
+            return object;
+        } else if (decision == AccessDecision.DENY) {
+            SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
+            throw new AuthorizationException("Access denied");
+        } else {
+            assert decision == AccessDecision.DEFAULT;
+            var mutable = object.cloneIfImmutable();
+            applyReadConstraintsToMutableValue(mutable.getValue(), constraints);
+            if (mutable.isEmpty()) {
+                // let's make it explicit (note that the log message may show empty object if it was originally mutable)
+                SecurityUtil.logSecurityDeny(object, "because the subject has not access to any item");
+                throw new AuthorizationException("Access denied");
+            }
+            return mutable;
+        }
+    }
+
+    private void applyReadConstraintsToMutableValue(
+            @NotNull PrismContainerValue<?> pcv,
+            @NotNull PrismEntityOpConstraints.ForValueContent pcvConstraints) {
+        Collection<Item<?, ?>> items = pcv.getItems();
+        LOGGER.trace("applyReadConstraintsToMutableValue: items={}", items);
+        if (items.isEmpty()) {
+            return;
+        }
+        List<Item<?, ?>> itemsToRemove = new ArrayList<>();
+        for (Item<?, ?> item : items) {
+            var itemConstraints = pcvConstraints.getItemConstraints(item.getElementName());
+            AccessDecision itemDecision = itemConstraints.getDecision();
+            if (itemDecision == AccessDecision.ALLOW) {
+                // OK, keeping it untouched
+            } else if (itemDecision == AccessDecision.DENY) {
+                itemsToRemove.add(item);
+            } else {
+                assert itemDecision == AccessDecision.DEFAULT;
+                applyReadConstraintsToMutableValues(item, itemConstraints);
+            }
+        }
+        for (Item<?, ?> itemToRemove : itemsToRemove) {
+            pcv.remove(itemToRemove);
+        }
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition<?>> void applyReadConstraintsToMutableValues(
+            Item<V, D> item, @NotNull PrismEntityOpConstraints.ForItemContent readConstraints) {
+        List<V> valuesToRemove = new ArrayList<>();
+        for (V value : item.getValues()) {
+            var valueConstraints = readConstraints.getValueConstraints(value);
+            AccessDecision valueDecision = valueConstraints.getDecision();
+            if (valueDecision == AccessDecision.ALLOW) {
+                // OK, keeping it untouched
+            } else if (valueDecision == AccessDecision.DENY) {
+                valuesToRemove.add(value);
+            } else {
+                assert valueDecision == AccessDecision.DEFAULT;
+                if (value instanceof PrismContainerValue<?>) {
+                    applyReadConstraintsToMutableValue((PrismContainerValue<?>) value, valueConstraints);
+                } else {
+                    valuesToRemove.add(value);
+                }
+            }
+        }
+        if (!valuesToRemove.isEmpty()) {
+            if (valuesToRemove.size() == item.size()) {
+                item.clear();
+            } else {
+                item.removeAll(valuesToRemove, EquivalenceStrategy.LITERAL);
+            }
+        }
     }
 
     private <O extends ObjectType> @NotNull ObjectOperationConstraints compileReadConstraints(

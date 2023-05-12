@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.intest.security;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,13 +62,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 
     protected static final String ORG_GUILD_OID = "00000000-8888-6666-a001-000000000000";
 
-    protected static final File ORG_JUNCTION_FILE = new File(TEST_DIR, "org-junction.xml");
-    protected static final String ORG_JUNCTION_OID = "00000000-8888-6666-a001-000000000001";
-    protected static final String ORG_JUNCTION_NAME = "Junction";
-    protected static final String ORG_JUNCTION_DISPLAY_NAME = "Plannet Junction";
-
-    protected static final File ORG_GUILD_SUBTENANT_FILE = new File(TEST_DIR, "org-guild-subtenant.xml");
-    protected static final String ORG_GUILD_SUBTENANT_OID = "00000000-8888-6666-a001-000000000fff";
+    protected static final TestObject<OrgType> ORG_JUNCTION = TestObject.file(
+            TEST_DIR, "org-junction.xml", "00000000-8888-6666-a001-000000000001");
+    protected static final TestObject<OrgType> ORG_GUILD_SUBTENANT = TestObject.file(
+            TEST_DIR, "org-guild-subtenant.xml", "00000000-8888-6666-a001-000000000fff");
 
     protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
 
@@ -75,10 +75,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     protected static final String USER_EDRIC_NAME = "edric";
     protected static final String USER_EDRIC_FULL_NAME = "Navigator Edric";
 
-    protected static final File USER_DMURR_FILE = new File(TEST_DIR, "user-dmurr.xml");
-    protected static final String USER_DMURR_OID = "00000000-8888-6666-a001-200000000001";
-    protected static final String USER_DMURR_NAME = "dmurr";
-    protected static final String USER_DMURR_FULL_NAME = "D'murr Pilru";
+    protected static final TestObject<UserType> USER_DMURR = TestObject.file(
+            TEST_DIR, "user-dmurr.xml", "00000000-8888-6666-a001-200000000001");
 
     private static final File RESOURCE_DUMMY_JUNCTION_FILE = new File(TEST_DIR, "resource-dummy-junction.xml");
     private static final String RESOURCE_DUMMY_JUNCTION_OID = "00000000-8888-6666-a001-300000000000";
@@ -117,8 +115,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     protected static final String ORG_CASTLE_CALADAN_NAME = "Castle Caladan";
     protected static final String ORG_CASTLE_CALADAN_DISPLAY_NAME = "Castle Caladan";
 
-    protected static final File ORG_ATREIDES_SUBTENANT_FILE = new File(TEST_DIR, "org-atreides-subtenant.xml");
-    protected static final String ORG_ATREIDES_SUBTENANT_OID = "00000000-8888-6666-a200-000000000fff";
+    protected static final TestObject<OrgType> ORG_ATREIDES_SUBTENANT = TestObject.file(TEST_DIR, "org-atreides-subtenant.xml", "00000000-8888-6666-a200-000000000fff");
 
     protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
 
@@ -129,8 +126,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     protected static final String ROLE_ATREIDES_GUARD_OID = "00000000-8888-6666-a200-100000000002";
     protected static final File ROLE_ATREIDES_GUARD_FILE = new File(TEST_DIR, "role-atreides-guard.xml");
 
-    protected static final String ROLE_ATREIDES_HACKER_OID = "00000000-8888-6666-a200-100000000003";
-    protected static final File ROLE_ATREIDES_HACKER_FILE = new File(TEST_DIR, "role-atreides-hacker.xml");
+    protected static final TestObject<RoleType> ROLE_ATREIDES_HACKER = TestObject.file(TEST_DIR, "role-atreides-hacker.xml", "00000000-8888-6666-a200-100000000003");
 
     protected static final String ROLE_ATREIDES_SOLDIER_OID = "00000000-8888-6666-a200-100000000004";
 
@@ -157,22 +153,17 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 
     protected static final String ORG_HARKONNEN_OID = "00000000-8888-6666-a300-000000000000";
 
-    protected static final File ORG_GIEDI_PRIME_FILE = new File(TEST_DIR, "org-giedi-prime.xml");
-    protected static final String ORG_GIEDI_PRIME_OID = "00000000-8888-6666-a300-000000000001";
-    protected static final String ORG_GIEDI_PRIME_NAME = "Geidi Prime";
-    protected static final String ORG_GIEDI_PRIME_DISPLAY_NAME = "Plannet Geidi Prime";
-
-    protected static final File ORG_HARKONNEN_SUBTENANT_FILE = new File(TEST_DIR, "org-harkonnen-subtenant.xml");
-    protected static final String ORG_HARKONNEN_SUBTENANT_OID = "00000000-8888-6666-a300-000000000fff";
+    protected static final TestObject<OrgType> ORG_GIEDI_PRIME = TestObject.file(
+            TEST_DIR, "org-giedi-prime.xml", "00000000-8888-6666-a300-000000000001");
+    protected static final TestObject<OrgType> ORG_HARKONNEN_SUBTENANT = TestObject.file(
+            TEST_DIR, "org-harkonnen-subtenant.xml", "00000000-8888-6666-a300-000000000fff");
 
     protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-a300-100000000000";
 
     protected static final String USER_VLADIMIR_HARKONNEN_OID = "00000000-8888-6666-a300-200000000000";
 
-    protected static final File USER_PITER_FILE = new File(TEST_DIR, "user-piter.xml");
-    protected static final String USER_PITER_OID = "00000000-8888-6666-a300-200000000001";
-    protected static final String USER_PITER_NAME = "piter";
-    protected static final String USER_PITER_FULL_NAME = "Piter De Vries";
+    protected static final TestObject<UserType> USER_PITER = TestObject.file(
+            TEST_DIR, "user-piter.xml", "00000000-8888-6666-a300-200000000001");
 
     private static final File RESOURCE_DUMMY_BARONY_FILE = new File(TEST_DIR, "resource-dummy-barony.xml");
     private static final String RESOURCE_DUMMY_BARONY_OID = "00000000-8888-6666-a300-300000000000";
@@ -425,10 +416,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddAllow(USER_DUNCAN_FILE);
 
         // Wrong tenant
-        assertAddDeny(USER_PITER_FILE);
+        assertAddDeny(USER_PITER);
 
         // No tenant
-        assertAddDeny(USER_DMURR_FILE);
+        assertAddDeny(USER_DMURR);
 
         // THEN
         then();
@@ -465,13 +456,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         when();
 
         // Matching tenant
-        assertModifyAllow(UserType.class, USER_PAUL_ATREIDES_OID, UserType.F_LOCALITY, createPolyString("Arrakis"));
+        assertModifyAllow(UserType.class, USER_PAUL_ATREIDES_OID, UserType.F_LOCALITY, PolyString.fromOrig("Arrakis"));
 
         // Wrong tenant
-        assertModifyDeny(UserType.class, USER_VLADIMIR_HARKONNEN_OID, UserType.F_LOCALITY, createPolyString("Deepest hell"));
+        assertModifyDeny(UserType.class, USER_VLADIMIR_HARKONNEN_OID, UserType.F_LOCALITY, PolyString.fromOrig("Deepest hell"));
 
         // No tenant
-        assertModifyDeny(UserType.class, USER_EDRIC_OID, UserType.F_LOCALITY, createPolyString("Whatever"));
+        assertModifyDeny(UserType.class, USER_EDRIC_OID, UserType.F_LOCALITY, PolyString.fromOrig("Whatever"));
 
         // THEN
         then();
@@ -542,10 +533,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeleteAllow(UserType.class, USER_DUNCAN_OID);
 
         // Wrong tenant
-        assertDeleteDeny(UserType.class, USER_PITER_OID);
+        assertDeleteDeny(UserType.class, USER_PITER.oid);
 
         // No tenant
-        assertDeleteDeny(UserType.class, USER_DMURR_OID);
+        assertDeleteDeny(UserType.class, USER_DMURR.oid);
 
         // THEN
         then();
@@ -571,10 +562,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddAllow(ORG_CASTLE_CALADAN_FILE);
 
         // Wrong tenant
-        assertAddDeny(ORG_GIEDI_PRIME_FILE);
+        assertAddDeny(ORG_GIEDI_PRIME);
 
         // No tenant
-        assertAddDeny(ORG_JUNCTION_FILE);
+        assertAddDeny(ORG_JUNCTION);
 
         // THEN
         then();
@@ -620,8 +611,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         when();
 
         // Matching tenant
-        assertAddDeny(ORG_ATREIDES_SUBTENANT_FILE);
-        assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_LOCALITY, createPolyString("Arrakis"));
+        assertAddDeny(ORG_ATREIDES_SUBTENANT);
+        assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_LOCALITY, PolyString.fromOrig("Arrakis"));
         assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_TENANT, false);
         assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_TENANT /* no value */);
         // Attempt to "move" tenant, make it a root node
@@ -636,8 +627,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeleteDeny(OrgType.class, ORG_ATREIDES_OID);
 
         // Wrong tenant
-        assertAddDeny(ORG_HARKONNEN_SUBTENANT_FILE);
-        assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_LOCALITY, createPolyString("Arrakis"));
+        assertAddDeny(ORG_HARKONNEN_SUBTENANT);
+        assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_LOCALITY, PolyString.fromOrig("Arrakis"));
         assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_TENANT, false);
         assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_TENANT /* no value */);
         // Attempt to "move" tenant, make it a root node
@@ -652,8 +643,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeleteDeny(OrgType.class, ORG_HARKONNEN_OID);
 
         // No tenant
-        assertAddDeny(ORG_GUILD_SUBTENANT_FILE);
-        assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_LOCALITY, createPolyString("Arrakis"));
+        assertAddDeny(ORG_GUILD_SUBTENANT);
+        assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_LOCALITY, PolyString.fromOrig("Arrakis"));
         assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_TENANT, false);
         assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_TENANT /* no value */);
         // Attempt to "move" tenant, make it a root node
@@ -748,7 +739,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         // WHEN
         when();
 
-        assertAddDeny(ROLE_ATREIDES_HACKER_FILE);
+        assertAddDeny(ROLE_ATREIDES_HACKER);
 
         AuthorizationType superuserAuthorization = new AuthorizationType()
                 .action(AuthorizationConstants.AUTZ_ALL_URL);

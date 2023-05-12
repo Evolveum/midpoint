@@ -12,12 +12,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.enforcer.api.ObjectOperationConstraints;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.*;
+import com.evolveum.midpoint.security.enforcer.impl.prism.TwoPhasesPrismEntityOpConstraintsImpl;
+import com.evolveum.midpoint.security.enforcer.impl.prism.SinglePhasePrismEntityOpConstraintsImpl;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +78,34 @@ class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation<O> 
         }
         if (traceEnabled) {
             LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}",
+                    username, object, constraints.debugDump(1));
+        }
+        return constraints;
+    }
+
+    @NotNull PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
+            @NotNull PrismObject<O> object,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull Collection<String> actionUrls,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (traceEnabled) {
+            LOGGER.trace("AUTZ: evaluating value operation security constraints principal={}, object={}", username, object);
+        }
+        var constraints =
+                phase != null ?
+                        new SinglePhasePrismEntityOpConstraintsImpl.ForValueContent(phase)
+                        : new TwoPhasesPrismEntityOpConstraintsImpl.ForValueContent();
+        for (Authorization autz : getAuthorizations()) {
+            var evaluation = new AuthorizationEvaluation(autz, this, result);
+            if (evaluation.isApplicableToActions(actionUrls)
+                    && evaluation.isApplicableToObject(object)) {
+                constraints.applyAuthorization(object, evaluation);
+            }
+        }
+        if (traceEnabled) {
+            LOGGER.trace("AUTZ: evaluated value operation constraints principal={}, object={}:\n{}",
                     username, object, constraints.debugDump(1));
         }
         return constraints;

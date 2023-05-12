@@ -6515,17 +6515,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return objects;
     }
 
-    protected void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, null);
+    protected void assertAddDeny(TestObject<? extends ObjectType> testObject) throws CommonException, IOException {
+        assertAddDeny(testObject, null);
     }
 
-    protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, executeOptions().raw());
+    protected void assertAddDenyRaw(TestObject<? extends ObjectType> testObject) throws CommonException, IOException {
+        assertAddDeny(testObject, executeOptions().raw());
     }
 
-    protected <O extends ObjectType> void assertAddDeny(TestResource<O> testResource, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+    protected <O extends ObjectType> void assertAddDeny(TestObject<O> testObject, ModelExecuteOptions options)
+            throws CommonException, IOException {
         assertAddDeny(
-                testResource.get(),
+                testObject.get(),
                 options);
     }
 
@@ -6554,6 +6555,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddAllow(file, null);
     }
 
+    protected void assertAddAllow(TestObject<? extends ObjectType> testObject) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        assertAddAllow(testObject, null);
+    }
+
     protected OperationResult assertAddAllowTracing(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         return assertAddAllowTracing(file, null);
     }
@@ -6564,10 +6569,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddAllow(object, options);
     }
 
-    protected <O extends ObjectType> void assertAddAllow(TestResource<O> testResource, ModelExecuteOptions options)
+    protected <O extends ObjectType> void assertAddAllow(TestObject<O> testObject, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         assertAddAllow(
-                testResource.get(),
+                testObject.get(),
                 options);
     }
 

@@ -73,6 +73,12 @@ public class TestObject<T extends ObjectType> {
                 oid);
     }
 
+    public static <T extends ObjectType> TestObject<T> file(@NotNull File file) {
+        return new TestObject<>(
+                new FileBasedTestObjectSource(file),
+                null);
+    }
+
     public static <T extends ObjectType> TestObject<T> of(@NotNull T object) {
         return new TestObject<>(new InMemoryTestObjectSource(object), object.getOid());
     }
@@ -264,6 +270,10 @@ public class TestObject<T extends ObjectType> {
 
         public FileBasedTestObjectSource(@NotNull File dir, @NotNull String fileName) {
             this.file = new File(dir, fileName);
+        }
+
+        public FileBasedTestObjectSource(@NotNull File file) {
+            this.file = file;
         }
 
         public @NotNull File getFile() {

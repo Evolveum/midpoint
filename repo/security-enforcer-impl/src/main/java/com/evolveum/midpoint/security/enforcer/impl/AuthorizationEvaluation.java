@@ -55,7 +55,7 @@ import static java.util.Collections.emptySet;
  *
  * It is a part of various {@link SecurityEnforcerImpl} operations.
  */
-class AuthorizationEvaluation {
+public class AuthorizationEvaluation {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
@@ -82,6 +82,10 @@ class AuthorizationEvaluation {
         this.lazyDescription = Lazy.from(() -> this.authorization.getHumanReadableDesc());
 
         traceStart();
+    }
+
+    public @NotNull Authorization getAuthorization() {
+        return authorization;
     }
 
     boolean isApplicableToAction(@NotNull String operationUrl) {

@@ -205,6 +205,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     @Override
+    public @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
+            @NotNull PrismObject<O> object,
+            @Nullable AuthorizationPhaseType phase,
+            @Nullable OwnerResolver ownerResolver,
+            @NotNull Collection<String> actionUrls,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return new OtherEnforcerOperation<O>(getMidPointPrincipal(), ownerResolver, beans, task)
+                .compileValueOperationConstraints(object, phase, actionUrls, result);
+    }
+
+    @Override
     public @Nullable <O extends ObjectType> ObjectFilter preProcessObjectFilter(
             String[] operationUrls,
             AuthorizationPhaseType phase,
