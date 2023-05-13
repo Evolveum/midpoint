@@ -60,9 +60,9 @@ public class WorkItemsAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public <O extends ObjectType> CaseWorkItemAsserter<WorkItemsAsserter<RA>> single() {
+    public <O extends ObjectType> CaseWorkItemAsserter<WorkItemsAsserter<RA>, CaseWorkItemType> single() {
         assertSize(1);
-        CaseWorkItemAsserter<WorkItemsAsserter<RA>> asserter =
+        var asserter =
                 new CaseWorkItemAsserter<>(
                         workItems.iterator().next(),
                         this,

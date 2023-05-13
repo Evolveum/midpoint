@@ -13,12 +13,17 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.enforcer.impl.ValueSelectorEvaluation;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemValueSelectorType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -84,48 +89,87 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
 
     @NotNull static PrismValueCoverageInformation forAuthorization(
             PrismObject<? extends ObjectType> object, @NotNull AuthorizationEvaluation evaluation)
-            throws ConfigurationException {
+            throws ConfigurationException, SchemaException {
         var authorization = evaluation.getAuthorization();
         var positives = authorization.getItems();
         var negatives = authorization.getExceptItems();
         List<ItemValueSelectorType> valueSelectors = authorization.getItemValueSelectors();
+        return forItemsSpecifications(object.getValue(), object, positives, negatives, valueSelectors, evaluation);
+    }
+
+    private static PrismValueCoverageInformation forItemsSpecifications(
+            @NotNull PrismContainerValue<?> pcv,
+            @NotNull PrismObject<? extends ObjectType> object,
+            @NotNull List<ItemPath> positives,
+            @NotNull List<ItemPath> negatives,
+            @NotNull List<ItemValueSelectorType> valueSelectors,
+            @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException {
         if (!positives.isEmpty() || !valueSelectors.isEmpty()) {
             configCheck(negatives.isEmpty(),
                     "'item'/'itemValue' and 'exceptItem' cannot be combined: %s (%s) vs %s in %s",
-                    positives, valueSelectors, negatives, authorization);
+                    positives, valueSelectors, negatives, evaluation.getAuthorization());
             var coverage = forPositivePaths(new PathSet(positives));
             for (ItemValueSelectorType valueSelector : valueSelectors) {
-                coverage.merge(forValueSelector(valueSelector, object, evaluation));
+                coverage.merge(forValueSelector(valueSelector, pcv, object, evaluation));
             }
             return coverage;
         } else {
-            return forNegativePaths(new PathSet(negatives)); // may or may not be empty
+            return forNegativePaths(new PathSet(negatives));
         }
     }
 
-    // FIXME temporary implementation
     private static PrismValueCoverageInformation forValueSelector(
             ItemValueSelectorType valueSelector,
+            PrismContainerValue<?> pcv,
             PrismObject<? extends ObjectType> object,
-            AuthorizationEvaluation evaluation) throws ConfigurationException {
+            AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException {
         var path = configNonNull(valueSelector.getPath(), () -> "no path").getItemPath(); // TODO error location
         configCheck(!path.isEmpty(), "Path cannot be empty in %s", valueSelector); // TODO error location
-        var item = object.findItem(path);
+        var item = pcv.findItem(path);
         if (item == null) {
+            // Item is not present in the PCV, the coverage needs no update.
             return PrismValueCoverageInformation.noCoverage();
         }
-        List<PrismValue> matching = new ArrayList<>();
+
+        List<PrismValue> matchingValues = new ArrayList<>();
         for (PrismValue value : item.getValues()) {
             ValueSelectorEvaluation selectorEvaluation = new ValueSelectorEvaluation(value, valueSelector, object, evaluation);
             if (selectorEvaluation.matches()) {
-                matching.add(value);
+                matchingValues.add(value);
             }
         }
-        if (matching.isEmpty()) {
+        if (matchingValues.isEmpty()) {
+            // No matching values, nothing to be updated.
             return PrismValueCoverageInformation.noCoverage();
         }
 
         var root = PrismValueCoverageInformation.noCoverage();
+        var itemCoverageInformation = createItemCoverageInformationObject(root, path);
+        for (PrismValue matchingValue : matchingValues) {
+            PrismValueCoverageInformation subValueCoverage =
+                    matchingValue instanceof PrismContainerValue<?> ?
+                            forItemsSpecifications(
+                                    (PrismContainerValue<?>) matchingValue,
+                                    object,
+                                    toItemPaths(valueSelector.getItem()),
+                                    toItemPaths(valueSelector.getExceptItem()),
+                                    valueSelector.getItemValue(),
+                                    evaluation) :
+                            PrismValueCoverageInformation.fullCoverage();
+            itemCoverageInformation.addForValue(matchingValue, subValueCoverage);
+        }
+        return root;
+    }
+
+    private static List<ItemPath> toItemPaths(List<ItemPathType> beans) {
+        return beans.stream()
+                .map(b -> b.getItemPath())
+                .collect(Collectors.toList());
+    }
+
+    // TODO explain
+    private static PrismItemCoverageInformation createItemCoverageInformationObject(
+            PrismValueCoverageInformation root, ItemPath path) {
         var current = root;
         PrismItemCoverageInformation last = null;
         List<?> segments = path.getSegments();
@@ -137,11 +181,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             current.itemsMap.put(name, last);
             current = next;
         }
-        for (PrismValue matchingValue : matching) {
-            // TODO only selected items/except-for-items/values
-            last.addForValue(matchingValue, PrismValueCoverageInformation.fullCoverage());
-        }
-        return root;
+        return last;
     }
 
     private static PrismValueCoverageInformation forPositivePaths(PathSet positives) {

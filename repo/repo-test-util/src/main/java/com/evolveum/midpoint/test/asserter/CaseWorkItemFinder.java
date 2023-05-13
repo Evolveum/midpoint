@@ -10,40 +10,37 @@ import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
 
-/**
- *
- */
-public class CaseWorkItemFinder<RA> {
+public class CaseWorkItemFinder<RA, WI extends AbstractWorkItemType> {
 
-    private final CaseWorkItemsAsserter<RA> workItemsAsserter;
+    private final CaseWorkItemsAsserter<RA, WI> workItemsAsserter;
     private Integer stageNumber;
     private Long workItemId;
     private String originalAssigneeOid;
 
-    public CaseWorkItemFinder(CaseWorkItemsAsserter<RA> workItemsAsserter) {
+    public CaseWorkItemFinder(CaseWorkItemsAsserter<RA, WI> workItemsAsserter) {
         this.workItemsAsserter = workItemsAsserter;
     }
 
-    public CaseWorkItemFinder<RA> stageNumber(Integer stageNumber) {
+    public CaseWorkItemFinder<RA, WI> stageNumber(Integer stageNumber) {
         this.stageNumber = stageNumber;
         return this;
     }
 
-    public CaseWorkItemFinder<RA> workItemId(Long workItemId) {
+    public CaseWorkItemFinder<RA, WI> workItemId(Long workItemId) {
         this.workItemId = workItemId;
         return this;
     }
 
-    public CaseWorkItemFinder<RA> originalAssignee(String oid) {
+    public CaseWorkItemFinder<RA, WI> originalAssignee(String oid) {
         this.originalAssigneeOid = oid;
         return this;
     }
 
-    public CaseWorkItemAsserter<CaseWorkItemsAsserter<RA>> find() {
-        CaseWorkItemType found = null;
-        for (CaseWorkItemType workItem: workItemsAsserter.getWorkItems()) {
+    public CaseWorkItemAsserter<CaseWorkItemsAsserter<RA, WI>, WI> find() {
+        WI found = null;
+        for (WI workItem: workItemsAsserter.getWorkItems()) {
             if (matches(workItem)) {
                 if (found == null) {
                     found = workItem;
@@ -59,8 +56,8 @@ public class CaseWorkItemFinder<RA> {
         }
     }
 
-    public CaseWorkItemsAsserter<RA> assertNone() {
-        for (CaseWorkItemType workItem: workItemsAsserter.getWorkItems()) {
+    public CaseWorkItemsAsserter<RA, WI> assertNone() {
+        for (WI workItem: workItemsAsserter.getWorkItems()) {
             if (matches(workItem)) {
                 fail("Found workItem while not expecting it: " + workItem);
             }
@@ -68,8 +65,8 @@ public class CaseWorkItemFinder<RA> {
         return workItemsAsserter;
     }
 
-    public CaseWorkItemsAsserter<RA> assertAll() {
-        for (CaseWorkItemType workItem: workItemsAsserter.getWorkItems()) {
+    public CaseWorkItemsAsserter<RA, WI> assertAll() {
+        for (WI workItem: workItemsAsserter.getWorkItems()) {
             if (!matches(workItem)) {
                 fail("Found work item that does not match search criteria: "+workItem);
             }
@@ -78,7 +75,7 @@ public class CaseWorkItemFinder<RA> {
     }
 
     @SuppressWarnings("RedundantIfStatement")
-    private boolean matches(CaseWorkItemType workItem) {
+    private boolean matches(WI workItem) {
         if (stageNumber != null && !stageNumber.equals(workItem.getStageNumber())) {
             return false;
         }

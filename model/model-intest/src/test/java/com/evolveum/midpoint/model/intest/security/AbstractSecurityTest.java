@@ -106,7 +106,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final TestObject<RoleType> ROLE_CASES_ASSIGNEE_SELF = TestObject.file(TEST_DIR, "role-cases-assignee-self.xml", "541ad3fc-1ae7-4412-a205-47093a78f0cf");
     protected static final TestObject<RoleType> ROLE_CASES_OBJECT_SELF = TestObject.file(TEST_DIR, "role-cases-object-self.xml", "96bbb1be-cf8c-4e9c-a994-ec0fbfcadb1d");
     protected static final TestObject<RoleType> ROLE_CASES_REQUESTOR_SELF = TestObject.file(TEST_DIR, "role-cases-requestor-self.xml", "d8a114e1-6f55-4380-876b-87071dbed1b7");
-    protected static final TestObject<RoleType> ROLE_CASE_WORK_ITEMS_ASSIGNEE_SELF_READ = TestObject.file(TEST_DIR, "role-case-work-items-assignee-self-read.xml", "efa5620b-0cf1-492e-8aab-9de3358bb525");
     protected static final TestObject<RoleType> ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN = TestObject.file(TEST_DIR, "role-filter-object-modify-caribbean.xml", "00000000-0000-0000-0000-00000000aa04");
     protected static final TestObject<RoleType> ROLE_PROP_READ_ALL_MODIFY_SOME = TestObject.file(TEST_DIR, "role-prop-read-all-modify-some.xml", "00000000-0000-0000-0000-00000000aa05");
     protected static final TestObject<RoleType> ROLE_PROP_READ_ALL_MODIFY_SOME_USER = TestObject.file(TEST_DIR, "role-prop-read-all-modify-some-user.xml", "00000000-0000-0000-0000-00000000ae05");
@@ -182,7 +181,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final String TASK_T5_OID = "a507e1c8-30e4-11e7-a739-538d921aa79e";
     protected static final String TASK_T6_OID = "a522b610-30e4-11e7-ab1c-6f834b9ae963";
 
-    protected static final File CAMPAIGNS_FILE = new File(TEST_DIR, "campaigns.xml");
+    protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN1 = TestObject.file(TEST_DIR, "access-certification-campaign-1.xml", "f2122c2f-d61f-4176-a35d-132a9f575a70");
+    protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN2 = TestObject.file(TEST_DIR, "access-certification-campaign-2.xml", "8c0027d6-9074-4ab0-bb60-03c29c3e8130");
+    protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN3 = TestObject.file(TEST_DIR, "access-certification-campaign-3.xml", "cb88d128-20f9-450f-88f3-889c15f88a62");
 
     protected static final TestObject<CaseType> CASE1 = TestObject.file(TEST_DIR, "case-1.xml", "99cf4e9f-fced-4f09-a302-57ad3ad6c0c1");
     protected static final TestObject<CaseType> CASE2 = TestObject.file(TEST_DIR, "case-2.xml", "13326d91-9308-499f-9ea7-a4d6daaad437");
@@ -195,7 +196,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 11;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 76;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 75;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -205,11 +206,14 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAddObjectsFromFile(CAMPAIGNS_FILE, initResult);
         repoAdd(CASE1, initResult);
         repoAdd(CASE2, initResult);
         repoAdd(CASE3, initResult);
         repoAdd(CASE4, initResult);
+
+        repoAdd(CAMPAIGN1, initResult);
+        repoAdd(CAMPAIGN2, initResult);
+        repoAdd(CAMPAIGN3, initResult);
 
         repoAdd(ARCHETYPE_BUSINESS_ROLE, initResult);
         repoAdd(ARCHETYPE_APPLICATION_ROLE, initResult);
@@ -226,7 +230,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAdd(ROLE_CASES_ASSIGNEE_SELF, initResult);
         repoAdd(ROLE_CASES_OBJECT_SELF, initResult);
         repoAdd(ROLE_CASES_REQUESTOR_SELF, initResult);
-        repoAdd(ROLE_CASE_WORK_ITEMS_ASSIGNEE_SELF_READ, initResult);
         repoAdd(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN, initResult);
         repoAdd(ROLE_PROP_READ_ALL_MODIFY_SOME, initResult);
         repoAdd(ROLE_PROP_READ_ALL_MODIFY_SOME_USER, initResult);
@@ -391,7 +394,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertModifyAllow();
         assertDeleteAllow();
 
-        assertSearch(AccessCertificationCampaignType.class, null, 2); // 2 campaigns there
+        assertSearch(AccessCertificationCampaignType.class, null, 3);
         assertReadCertCasesAllow();
         assertReadCasesAllow();
         assertSearch(TaskType.class, null, getNumberOfTasks());
@@ -569,7 +572,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertReadCertCases(3);
+        assertReadCertCases(11);
     }
 
     protected void assertReadCasesAllow() throws Exception {
@@ -586,6 +589,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected void assertReadCases(String... expectedOids) throws Exception {
         assertSearch(CaseType.class, null, expectedOids);
+    }
+
+    protected void assertReadCampaigns(String... expectedOids) throws Exception {
+        assertSearch(AccessCertificationCampaignType.class, null, expectedOids);
     }
 
     protected void assertReadDeny(int expectedNumAllUsers) throws Exception {

@@ -53,7 +53,7 @@
             <!-- jack -->
         </originalAssigneeRef>
         <output>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</outcome>
+            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#reject</outcome>
         </output>
     </event>
     <workItem id="4">

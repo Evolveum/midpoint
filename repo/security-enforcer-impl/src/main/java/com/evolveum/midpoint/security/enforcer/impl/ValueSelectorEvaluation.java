@@ -7,16 +7,18 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /** EXPERIMENTAL, PoC CODE */
 public class ValueSelectorEvaluation {
@@ -37,17 +39,32 @@ public class ValueSelectorEvaluation {
         this.evaluation = evaluation;
     }
 
-    public boolean matches() throws ConfigurationException {
+    public boolean matches() throws ConfigurationException, SchemaException {
         ValueSelectorType selector = valueSelector.getValue();
-        configCheck(selector != null,
-                "Selector is null? In: %s in %s", valueSelector, evaluation.getAuthorization());
+        if (selector == null) {
+            // Empty selector means we match everything (is that OK?)
+            return true;
+        }
         Object realValue = value.getRealValue();
-        List<SubjectedObjectSelectorType> assigneeSelectors = selector.getAssignee();
-        if (!assigneeSelectors.isEmpty()) {
-            if (!(realValue instanceof CaseWorkItemType)) {
+
+        SearchFilterType filterBean = selector.getFilter();
+        if (filterBean != null) {
+            if (!(value instanceof PrismContainerValue<?>)) {
+                throw new UnsupportedOperationException("Filter clause can be used only on a container value");
+            }
+            PrismContainerDefinition<?> pcd = getPrismContainerDefinition(((PrismContainerValue<?>) value));
+            ObjectFilter filter = PrismContext.get().getQueryConverter().parseFilter(filterBean, pcd);
+            if (!filter.match((PrismContainerValue<?>) value, SchemaService.get().matchingRuleRegistry())) {
                 return false;
             }
-            List<ObjectReferenceType> assigneeRefs = ((CaseWorkItemType) realValue).getAssigneeRef();
+        }
+
+        List<SubjectedObjectSelectorType> assigneeSelectors = selector.getAssignee();
+        if (!assigneeSelectors.isEmpty()) {
+            if (!(realValue instanceof AbstractWorkItemType)) {
+                return false;
+            }
+            List<ObjectReferenceType> assigneeRefs = ((AbstractWorkItemType) realValue).getAssigneeRef();
             for (SubjectedObjectSelectorType assigneeSelector : assigneeSelectors) {
                 if (!assigneeSelector.getSpecial().isEmpty()) {
                     for (ObjectReferenceType assigneeRef : assigneeRefs) {
@@ -61,5 +78,14 @@ public class ValueSelectorEvaluation {
             return false;
         }
         return true;
+    }
+
+    private PrismContainerDefinition<?> getPrismContainerDefinition(PrismContainerValue<?> value) {
+        ComplexTypeDefinition ctd = value.getComplexTypeDefinition();
+        if (ctd == null) {
+            throw new UnsupportedOperationException(
+                    "Filter clause cannot be used on a value without complex type definition: " + value);
+        }
+        return PrismContext.get().definitionFactory().createContainerDefinition(SchemaConstants.C_VALUE, ctd);
     }
 }

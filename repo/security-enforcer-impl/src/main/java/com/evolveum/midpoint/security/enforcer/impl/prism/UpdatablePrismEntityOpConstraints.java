@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,6 @@ public interface UpdatablePrismEntityOpConstraints extends PrismEntityOpConstrai
         @NotNull UpdatablePrismEntityOpConstraints.ForItemContent getItemConstraints(@NotNull ItemName name);
 
         void applyAuthorization(@NotNull PrismObject<? extends ObjectType> object, @NotNull AuthorizationEvaluation evaluation)
-                throws ConfigurationException;
+                throws ConfigurationException, SchemaException;
     }
 }

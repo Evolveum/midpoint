@@ -129,7 +129,9 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     }
 
     public boolean hasItemSpecification() {
-        return !getItem().isEmpty() || !getExceptItem().isEmpty();
+        return !getItem().isEmpty()
+                || !getExceptItem().isEmpty()
+                || !getItemValueSelectors().isEmpty();
     }
 
     public @NotNull List<OwnedObjectSelectorType> getTargetSelectors() {

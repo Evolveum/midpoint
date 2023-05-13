@@ -6226,6 +6226,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected AccCertCampaignAsserter<Void> assertCampaignFull(String oid, String message) throws CommonException {
+        var campaign = getObject(
+                AccessCertificationCampaignType.class,
+                oid,
+                getOperationOptionsBuilder()
+                        .retrieve()
+                        .build());
+        AccCertCampaignAsserter<Void> asserter = AccCertCampaignAsserter.forCampaign(campaign, message);
+        initializeAsserter(asserter);
+        asserter.assertOid(oid);
+        return asserter;
+    }
+
+    protected AccCertCampaignAsserter<Void> assertCampaignFullAfter(String oid) throws CommonException {
+        return assertCampaignFull(oid, "after")
+                .display();
+    }
+
     protected CaseAsserter<Void> assertCase(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<CaseType> acase = getObject(CaseType.class, oid);
         CaseAsserter<Void> asserter = CaseAsserter.forCase(acase, message);
@@ -7331,10 +7349,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // FIXME does not call applySchemasAndSecurity!
-    public <O extends ObjectType> PrismObject<O> getObject(
+    public <O extends ObjectType> PrismObject<O> getObjectNoAutz(
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return createSimpleModelObjectResolver().getObject(type, oid, options, result);
+    }
+
+    public <O extends ObjectType> PrismObject<O> getObject(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws CommonException {
+        return modelService.getObject(type, oid, options, getTestTask(), getTestOperationResult());
     }
 
     protected @NotNull TestSimulationResult findTestSimulationResultRequired(OperationResult result)
