@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -17,6 +21,7 @@ import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.springframework.security.oauth2.core.*;
@@ -28,6 +33,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.*;
@@ -39,52 +46,69 @@ import java.security.interfaces.RSAPublicKey;
  * @author skublik
  */
 
-public class OidcResourceServerModuleWebSecurityConfiguration extends RemoteModuleWebSecurityConfiguration {
+public class JwtOidcResourceServerConfiguration extends RemoteModuleWebSecurityConfiguration {
+
+    private static final Trace LOGGER = TraceManager.getTrace(JwtOidcResourceServerConfiguration.class);
 
     private JwtDecoder decoder;
 
-    private OidcResourceServerModuleWebSecurityConfiguration() {
+    private JwtOidcResourceServerConfiguration() {
     }
 
     public JwtDecoder getDecoder() {
         return decoder;
     }
 
-    public static OidcResourceServerModuleWebSecurityConfiguration build(OidcAuthenticationModuleType modelType, String prefixOfSequence) {
-        OidcResourceServerModuleWebSecurityConfiguration configuration = buildInternal(modelType, prefixOfSequence);
+    public static JwtOidcResourceServerConfiguration build(OidcAuthenticationModuleType modelType, String prefixOfSequence) {
+        JwtOidcResourceServerConfiguration configuration = buildInternal(modelType, prefixOfSequence);
         configuration.validate();
         return configuration;
     }
 
-    private static OidcResourceServerModuleWebSecurityConfiguration buildInternal(OidcAuthenticationModuleType modelType, String prefixOfSequence) {
-        OidcResourceServerModuleWebSecurityConfiguration configuration = new OidcResourceServerModuleWebSecurityConfiguration();
+    private static JwtOidcResourceServerConfiguration buildInternal(OidcAuthenticationModuleType modelType, String prefixOfSequence) {
+        JwtOidcResourceServerConfiguration configuration = new JwtOidcResourceServerConfiguration();
         build(configuration, modelType, prefixOfSequence);
 
         OidcResourceServerAuthenticationModuleType resourceServer = modelType.getResourceServer();
-        if (resourceServer.getTrustingAsymmetricCertificate() != null || resourceServer.getKeyStoreTrustingAsymmetricKey() != null) {
+        String trustedAlgorithm = getAttribute(resourceServer, JwtOidcResourceServerType.F_TRUSTED_ALGORITHM);
+
+        AbstractKeyStoreKeyType keyStoreTrustingAsymmetricKey = getAttribute(
+                resourceServer, JwtOidcResourceServerType.F_KEY_STORE_TRUSTING_ASYMMETRIC_KEY);
+        ProtectedStringType trustingAsymmetricCertificate = getAttribute(
+                resourceServer, JwtOidcResourceServerType.F_TRUSTING_ASYMMETRIC_CERTIFICATE);
+
+        ProtectedStringType singleSymmetricKey = getAttribute(
+                resourceServer, JwtOidcResourceServerType.F_SINGLE_SYMMETRIC_KEY);
+
+        String jwkSetUri = getAttribute(resourceServer, JwtOidcResourceServerType.F_JWK_SET_URI);
+
+        String issuerUri = getAttribute(resourceServer, JwtOidcResourceServerType.F_ISSUER_URI);
+
+        if (trustingAsymmetricCertificate != null || keyStoreTrustingAsymmetricKey != null) {
             NimbusJwtDecoder.PublicKeyJwtDecoderBuilder builder;
-            if (resourceServer.getKeyStoreTrustingAsymmetricKey() != null) {
-                builder = initializePublicKeyDecoderFromKeyStore(resourceServer.getKeyStoreTrustingAsymmetricKey());
+            if (keyStoreTrustingAsymmetricKey != null) {
+                builder = initializePublicKeyDecoderFromKeyStore(keyStoreTrustingAsymmetricKey);
             } else {
-                builder = initializePublicKeyDecoderFromCertificate(resourceServer.getTrustingAsymmetricCertificate());
+                builder = initializePublicKeyDecoderFromCertificate(trustingAsymmetricCertificate);
             }
-            if (resourceServer.getTrustedAlgorithm() != null) {
-                builder.signatureAlgorithm(SignatureAlgorithm.from(resourceServer.getTrustedAlgorithm()));
+
+            if (trustedAlgorithm != null) {
+                builder.signatureAlgorithm(SignatureAlgorithm.from(trustedAlgorithm));
             }
             configuration.decoder = builder.build();
-        } else if (resourceServer.getSingleSymmetricKey() != null) {
+        } else if (singleSymmetricKey != null) {
             try {
                 byte[] key;
-                String clearValue = protector.decryptString(resourceServer.getSingleSymmetricKey());
+                String clearValue = protector.decryptString(singleSymmetricKey);
                 if (Base64.isBase64(clearValue)) {
                     boolean isBase64Url = clearValue.contains("-") || clearValue.contains("_");
                     key = Base64Utility.decode(clearValue, isBase64Url);
                 } else {
-                    key = protector.decryptString(resourceServer.getSingleSymmetricKey()).getBytes();
+                    key = protector.decryptString(singleSymmetricKey).getBytes();
                 }
                 String algorithm = MacAlgorithm.HS256.getName();
-                if (resourceServer.getTrustedAlgorithm() != null) {
-                    algorithm = resourceServer.getTrustedAlgorithm();
+                if (trustedAlgorithm != null) {
+                    algorithm = trustedAlgorithm;
                 }
                 NimbusJwtDecoder.SecretKeyJwtDecoderBuilder builder = NimbusJwtDecoder.withSecretKey(new SecretKeySpec(key, algorithm));
                 builder.macAlgorithm(MacAlgorithm.from(algorithm));
@@ -94,15 +118,15 @@ public class OidcResourceServerModuleWebSecurityConfiguration extends RemoteModu
             } catch (Base64Exception e) {
                 e.printStackTrace();
             }
-        } else if (resourceServer.getJwkSetUri() != null){
-            if (resourceServer.getTrustedAlgorithm() != null) {
-                configuration.decoder = NimbusJwtDecoder.withJwkSetUri(resourceServer.getJwkSetUri())
-                        .jwsAlgorithm(SignatureAlgorithm.from(resourceServer.getTrustedAlgorithm()))
+        } else if (jwkSetUri != null){
+            if (trustedAlgorithm != null) {
+                configuration.decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
+                        .jwsAlgorithm(SignatureAlgorithm.from(trustedAlgorithm))
                         .build();
             } else {
                 try {
                     JWSKeySelector<SecurityContext> jwsKeySelector =
-                            JWSAlgorithmFamilyJWSKeySelector.fromJWKSetURL(new URL(resourceServer.getJwkSetUri()));
+                            JWSAlgorithmFamilyJWSKeySelector.fromJWKSetURL(new URL(jwkSetUri));
                     DefaultJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
                     jwtProcessor.setJWSKeySelector(jwsKeySelector);
 
@@ -111,10 +135,28 @@ public class OidcResourceServerModuleWebSecurityConfiguration extends RemoteModu
                     e.printStackTrace();
                 }
             }
-        } else if (resourceServer.getIssuerUri() != null) {
-            configuration.decoder = JwtDecoders.fromIssuerLocation(resourceServer.getIssuerUri());
+        } else if (issuerUri != null) {
+            configuration.decoder = JwtDecoders.fromIssuerLocation(issuerUri);
         }
         return configuration;
+    }
+
+    private static <T extends Object> T getAttribute(
+            OidcResourceServerAuthenticationModuleType resourceServer, ItemName itemName) {
+        Containerable parent = resourceServer;
+        if (resourceServer.getJwt() != null) {
+            parent = resourceServer.getJwt();
+        }
+        String methodName = "get" + StringUtils.capitalize(itemName.getLocalPart());
+        try {
+            Method method = parent.getClass().getMethod(methodName);
+            return (T) method.invoke(parent);
+        } catch (NoSuchMethodException e) {
+            LOGGER.debug("Couldn't find method " + methodName + " in class " + parent.getClass());
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            LOGGER.debug("Couldn't invoke method " + methodName + " on object " + parent);
+        }
+        return null;
     }
 
     @Override

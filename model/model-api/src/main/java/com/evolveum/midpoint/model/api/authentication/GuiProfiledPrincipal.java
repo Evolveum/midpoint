@@ -54,7 +54,7 @@ public class GuiProfiledPrincipal extends MidPointPrincipal {
         return clone;
     }
 
-    protected void copyValues(GuiProfiledPrincipal clone) {
+    private void copyValues(GuiProfiledPrincipal clone) {
         super.copyValues(clone);
         // No need to clone user profile here. It is essentially read-only.
         clone.compiledGuiProfile = this.compiledGuiProfile;

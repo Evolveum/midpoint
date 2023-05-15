@@ -13,7 +13,7 @@ import com.evolveum.midpoint.authentication.impl.authorization.evaluator.Midpoin
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.authentication.impl.module.configuration.OidcResourceServerModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.oidc.OidcBearerTokenAuthenticationFilter;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -29,7 +29,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  * @author skublik
  */
 
-public class OidcResourceServerModuleWebSecurityConfigurer<C extends OidcResourceServerModuleWebSecurityConfiguration>
+public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModuleWebSecurityConfiguration>
         extends ModuleWebSecurityConfigurer<C> {
 
     @Autowired

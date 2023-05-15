@@ -167,6 +167,13 @@ public class ResourceAttributeContainerDefinitionImpl
 
     @Override
     public <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
+        var ctd = complexTypeDefinition;
+        if (ctd instanceof ResourceObjectDefinition) {
+            // Shortcut to more efficient lookup implementation - FIXME this is a hack
+            //noinspection unchecked
+            return (ResourceAttributeDefinition<T>)
+                    ((ResourceObjectDefinition) ctd).findAttributeDefinition(elementQName, caseInsensitive);
+        }
         //noinspection unchecked
         return findLocalItemDefinition(ItemName.fromQName(elementQName), ResourceAttributeDefinition.class, caseInsensitive);
     }

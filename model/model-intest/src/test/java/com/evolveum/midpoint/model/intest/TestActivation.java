@@ -2251,9 +2251,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, USER_HERMAN_USERNAME);
         assertNotNull("No khaki account", khakiAccount);
         assertTrue("khaki account not enabled", khakiAccount.isEnabled());
-        assertEquals("Wrong quote (validFrom) in khaki account", "from: 1700-05-30T11:00:00.000Z",
+        assertEquals("Wrong quote (validFrom) in khaki account", "from: 1700-05-30T11:00:00Z",
                 khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME));
-        assertEquals("Wrong drink (validTo) in khaki account", "to: 2233-03-23T18:30:00.000Z",
+        assertEquals("Wrong drink (validTo) in khaki account", "to: 2233-03-23T18:30:00Z",
                 khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
     }
 

@@ -16,6 +16,12 @@ module.exports = {
             './src/frontend/js/vendors.js',
             './src/frontend/scss/vendors.scss',
         ],
+        "vendors-passwords": [
+            './src/frontend/js/vendors-passwords.js',
+        ],
+        "vendors-fonts": [
+            './src/frontend/scss/vendors-fonts.scss',
+        ],
         midpoint: [
             './src/frontend/js/midpoint.js',
             './src/frontend/scss/midpoint.scss',

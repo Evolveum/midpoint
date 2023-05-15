@@ -65,7 +65,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public @NotNull Collection<ResourceAttribute<?>> getAttributes() {
         // TODO: Iterate over the list to assert correct types
-        return (Collection) getValue().getProperties();
+        return (Collection) getValue().getItems();
     }
 
     @Override

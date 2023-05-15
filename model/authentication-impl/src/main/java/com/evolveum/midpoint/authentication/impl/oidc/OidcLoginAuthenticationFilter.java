@@ -64,30 +64,6 @@ public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilt
         this.auditProvider = auditProvider;
     }
 
-    public boolean requiresAuth(HttpServletRequest request, HttpServletResponse response) {
-        return super.requiresAuthentication(request, response);
-    }
-
-    public void unsuccessfulAuth(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
-            throws IOException, ServletException {
-        remoteUnsuccessfulAuthentication(request, response, failed, getRememberMeServices(), getFailureHandler());
-    }
-
-    @Override
-    public String getErrorMessageKeyNotResponse() {
-        return "web.security.flexAuth.oidc.not.response";
-    }
-
-    @Override
-    public void doAuth(ServletRequest req, ServletResponse res, FilterChain chain) throws ServletException, IOException {
-        super.doFilter(req, res, chain);
-    }
-
-    @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        doRemoteFilter(req, res, chain);
-    }
-
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         MultiValueMap<String, String> params = toMultiMap(request.getParameterMap());
         if (!isAuthorizationResponse(params)) {

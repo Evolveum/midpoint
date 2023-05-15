@@ -269,6 +269,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             try {
                 ObjectDeltaType deltaBean =
                         schemaService.parserFor(delta.serializedDelta)
+                                .fastAddOperations()
                                 .parseRealValue(ObjectDeltaType.class);
                 for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
                     ItemPath path = itemDelta.getPath().getItemPath();

@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -46,6 +47,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     private static final String ID_RELATION = "relation";
     private static final String ID_SELECT_OBJECT_BUTTON = "selectObject";
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_CHOOSE_OBJECT="chooseObject";
 
     public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
@@ -56,6 +58,16 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         midpointForm.add(feedback);
+
+        AjaxLink<?> chooseObject = new AjaxLink<>(ID_CHOOSE_OBJECT) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                chooseObjectPerformed(target);
+            }
+        };
+        chooseObject.add(new VisibleBehaviour(() -> isChooseObjectVisible()));
+        midpointForm.add(chooseObject);
 
         PropertyModel<String> oidModel = new PropertyModel<>(getModel(), "oid") {
             @Override
@@ -185,4 +197,11 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         return false;
     }
 
+    protected boolean isChooseObjectVisible() {
+        return true;
+    }
+
+    protected void chooseObjectPerformed(AjaxRequestTarget target) {
+
+    }
 }

@@ -202,7 +202,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     }
 
     public void setValue(Object value) {
-        if (propertyDef.getTypeClass().equals(PolyString.class)) {
+        if (PolyString.class.equals(propertyDef.getTypeClass())) {
             this.value = new PolyString((String) value);
             return;
         }

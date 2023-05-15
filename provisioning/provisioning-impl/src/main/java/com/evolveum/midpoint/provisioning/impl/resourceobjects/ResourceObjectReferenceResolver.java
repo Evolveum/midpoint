@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -182,14 +183,15 @@ class ResourceObjectReferenceResolver {
             return null;
         }
         Collection primaryIdentifiers = new ArrayList<>();
-        for (PrismProperty property: attributesContainer.getValue().getProperties()) {
-            if (objDef.isPrimaryIdentifier(property.getElementName())) {
-                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(property.getElementName());
+        for (Item<?, ?> item : attributesContainer.getValue().getItems()) {
+            ItemName itemName = item.getElementName();
+            if (objDef.isPrimaryIdentifier(itemName)) {
+                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(itemName);
                 if (attrDef == null) {
-                    throw new IllegalStateException("No definition for attribute " + property);
+                    throw new IllegalStateException("No definition for attribute " + item);
                 }
                 ResourceAttribute primaryIdentifier = attrDef.instantiate();
-                primaryIdentifier.setRealValue(property.getRealValue());
+                primaryIdentifier.setRealValue(item.getRealValue());
                 primaryIdentifiers.add(primaryIdentifier);
             }
         }
@@ -288,15 +290,16 @@ class ResourceObjectReferenceResolver {
         }
         ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
         Collection primaryIdentifiers = new ArrayList<>();
-        for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
-            if (objDef.isPrimaryIdentifier(property.getElementName())) {
-                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(property.getElementName());
+        for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
+            ItemName itemName = item.getElementName();
+            if (objDef.isPrimaryIdentifier(itemName)) {
+                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinition(itemName);
                 if (attrDef == null) {
-                    throw new IllegalStateException("No definition for attribute " + property);
+                    throw new IllegalStateException("No definition for attribute " + item);
                 }
                 @SuppressWarnings("rawtypes")
                 ResourceAttribute primaryIdentifier = attrDef.instantiate();
-                primaryIdentifier.setRealValue(property.getRealValue());
+                primaryIdentifier.setRealValue(item.getRealValue());
                 primaryIdentifiers.add(primaryIdentifier);
             }
         }

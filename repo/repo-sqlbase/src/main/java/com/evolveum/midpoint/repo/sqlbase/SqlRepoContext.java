@@ -157,7 +157,9 @@ public class SqlRepoContext {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
             ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
             T value = createStringParser(serializedForm)
-                    .context(parsingContext).parseRealValue(schemaType);
+                    .context(parsingContext)
+                    .fastAddOperations()
+                    .parseRealValue(schemaType);
             return new RepositoryObjectParseResult<>(parsingContext, value);
         } catch (RuntimeException e) {
             throw new SchemaException("Unexpected exception while parsing serialized form: " + e, e);

@@ -223,7 +223,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             context = contextFactory.createContext(clonedDeltas, options, task, result);
             context = clockwork.previewChanges(context, listeners, task, result);
 
-            schemaTransformer.applySchemasAndSecurityToLensContext(context, task, result);
+            schemaTransformer.applySecurityToLensContext(context, task, result);
         } finally {
             LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 

@@ -50,9 +50,9 @@ public class SelfRegistrationAuthenticationChannel extends AuthenticationChannel
     @Override
     public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
         ArrayList<Authorization> newAuthorities = new ArrayList<>();
-        AuthorizationType authorizationType = new AuthorizationType();
-        authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_REGISTRATION_FINISH_URL);
-        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
+        AuthorizationType authorizationBean = new AuthorizationType();
+        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_REGISTRATION_FINISH_URL);
+        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationBean);
         newAuthorities.add(selfServiceCredentialsAuthz);
         authorities.addAll(newAuthorities);
         return authorities;

@@ -6,28 +6,57 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Extracted relevant security constraints related to given object.
+ * Unlike {@link ObjectOperationConstraints}, this one covers all operations (represented by action URLs).
+ *
+ * @see SecurityEnforcer#compileSecurityConstraints(PrismObject, OwnerResolver, Task, OperationResult)
+ * @see ObjectOperationConstraints
+ */
 public interface ObjectSecurityConstraints extends DebugDumpable {
 
     /**
-     * Almost the same as  findAllItemsDecision(String, ...), but in this case there are several equivalent action URLs.
-     * E.g. "read" and "get" actions. If any of them is denied, operation is denied. If any of them is allowed, operation is allowed.
+     * A variant of {@link #findAllItemsDecision(String, AuthorizationPhaseType)} that considers several equivalent action URLs,
+     * e.g. "read" and "get" actions. If any of them is denied, operation is denied. If any of them is allowed, operation is
+     * allowed.
      */
-    AuthorizationDecisionType findAllItemsDecision(String[] actionUrls, AuthorizationPhaseType phase);
+    @Nullable AuthorizationDecisionType findAllItemsDecision(@NotNull String[] actionUrls, @Nullable AuthorizationPhaseType phase);
 
     /**
-     * Returns decision for the whole action. This is fact returns a decision that applies to all items - if there is any.
+     * Returns the explicit allow-deny decision (if present) that is common to all items in the object.
+     *
      * If there is no universally-applicable decision then null is returned. In that case there may still be fine-grained
-     * decisions for individual items. Use findItemDecision() to get them.
+     * decisions for individual items. Use {@link #findItemDecision(ItemPath, String, AuthorizationPhaseType)} to get them.
      */
-    AuthorizationDecisionType findAllItemsDecision(String actionUrl, AuthorizationPhaseType phase);
+    @Nullable AuthorizationDecisionType findAllItemsDecision(@NotNull String actionUrl, @Nullable AuthorizationPhaseType phase);
 
-    AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String[] actionUrls, AuthorizationPhaseType phase);
+    /**
+     * Returns the explicit allow-deny decision (if present) for the particular item and all its sub-items,
+     * relevant to the actions (considered equivalent) and phase(s).
+     *
+     * A variant of {@link #findItemDecision(ItemPath, String, AuthorizationPhaseType)}.
+     */
+    @Nullable AuthorizationDecisionType findItemDecision(
+            @NotNull ItemPath nameOnlyItemPath, @NotNull String[] actionUrls, @Nullable AuthorizationPhaseType phase);
 
-    AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase);
-
+    /**
+     * Returns the explicit allow-deny decision (if present) for the particular item and all its sub-items,
+     * relevant to the action and phase(s).
+     *
+     * See also {@link ItemSecurityConstraints#findItemDecision(ItemPath)}.
+     */
+    @Nullable AuthorizationDecisionType findItemDecision(
+            @NotNull ItemPath nameOnlyItemPath, @NotNull String actionUrl, @Nullable AuthorizationPhaseType phase);
 }

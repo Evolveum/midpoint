@@ -183,9 +183,9 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     }
 
     private Authorization createPrivilegedAuthorization() {
-        AuthorizationType authorizationType = new AuthorizationType();
-        authorizationType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-        return new Authorization(authorizationType);
+        AuthorizationType authorizationBean = new AuthorizationType();
+        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+        return new Authorization(authorizationBean);
     }
 
     @Override

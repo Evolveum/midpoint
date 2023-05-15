@@ -215,18 +215,6 @@ public class PageRegistrationFinish extends PageRegistrationBase {
                 createStringResource("PageRegistrationConfirmation.confirmation.successful"));
         successPanel.add(successMessage);
 
-        AjaxLink<String> continueToLogin = new AjaxLink<String>(ID_LINK_LOGIN) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                AuthUtil.clearMidpointAuthentication();
-                setResponsePage(PageLogin.class);
-            }
-        };
-        successPanel.add(continueToLogin);
-
         WebMarkupContainer errorPanel = new WebMarkupContainer(ID_ERROR_PANEL);
         add(errorPanel);
         errorPanel.add(new VisibleEnableBehaviour() {

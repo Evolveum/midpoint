@@ -40,7 +40,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -340,10 +339,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .assertSize(SOURCES_CONFIGURATION.getSingleValuedMappings() +
                             SOURCES_CONFIGURATION.getMultiValuedMappings() +
                             (memberOf ? 1 : 0))
-                    .property(ItemPath.create(getSingleValuedPropertyName(0)))
+                    .property(getSingleValuedPropertyQName(0))
                         .assertSize(1)
                         .end()
-                    .property(ItemPath.create(getMultiValuedPropertyName(0)))
+                    .property(getMultiValuedPropertyQName(0))
                         .assertSize(SOURCES_CONFIGURATION.getAttributeValues() * SOURCES_CONFIGURATION.getNumberOfResources())
                         .end()
                     .end()
@@ -497,8 +496,17 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     }
 
     @SuppressWarnings("SameParameterValue")
+    private ItemName getSingleValuedPropertyQName(int i) {
+        return new ItemName(NS_EXT, getSingleValuedPropertyName(i));
+    }
+
     private String getSingleValuedPropertyName(int i) {
         return String.format("p-single-%04d", i);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private ItemName getMultiValuedPropertyQName(int i) {
+        return new ItemName(NS_EXT, getMultiValuedPropertyName(i));
     }
 
     @SuppressWarnings("SameParameterValue")

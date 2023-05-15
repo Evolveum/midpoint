@@ -6,7 +6,8 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="7c359aa0-d798-4781-a58b-d6336cb9b1ee">
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/system-perf"
+        oid="7c359aa0-d798-4781-a58b-d6336cb9b1ee">
     <name>metarole-technical</name>
 
     <inducement>
@@ -23,7 +24,7 @@
                     </script>
                 </expression>
                 <target>
-                    <path>$user/extension/memberOf</path>
+                    <path>$user/c:extension/ext:memberOf</path>
                     <set>
                         <condition>
                             <script>

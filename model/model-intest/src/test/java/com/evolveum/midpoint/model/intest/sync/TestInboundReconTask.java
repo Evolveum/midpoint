@@ -9,8 +9,9 @@ package com.evolveum.midpoint.model.intest.sync;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
-import java.io.FileNotFoundException;
 import java.util.Date;
+
+import com.evolveum.midpoint.test.TestTask;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -34,28 +34,15 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
     private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
     @Override
+    protected TestTask getSyncTask() {
+        return TASK_RECON_DUMMY_EMERALD;
+    }
+
+    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         dummyResourceEmerald.setSyncStyle(DummySyncStyle.DUMB);
-    }
-
-    @Override
-    protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-        if (resource == resourceDummyEmerald) {
-            importObjectFromFile(TASK_RECON_DUMMY_EMERALD_FILE);
-        } else {
-            throw new IllegalArgumentException("Unknown resource "+resource);
-        }
-    }
-
-    @Override
-    protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-        if (resource == resourceDummyEmerald) {
-            return TASK_RECON_DUMMY_EMERALD_OID;
-        } else {
-            throw new IllegalArgumentException("Unknown resource "+resource);
-        }
     }
 
     @Override
@@ -71,7 +58,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         /// WHEN
         when();
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();
@@ -111,7 +98,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 
         dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        waitForSyncTaskNextRun(resourceDummyEmerald);
+        runSyncTask(getTestOperationResult());
 
         // THEN
         then();

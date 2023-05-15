@@ -19,7 +19,8 @@ Configuration parameters:
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/system-perf">
 
     <name>$resourceInstance</name>
     <connectorRef type="c:ConnectorType">
@@ -58,7 +59,7 @@ Configuration parameters:
                 <ref>icfs:name</ref>
                 <inbound>
                     <target>
-                        <path>name</path>
+                        <path>c:name</path>
                     </target>
                 </inbound>
                 <inbound>
@@ -69,7 +70,7 @@ Configuration parameters:
                         </assignmentTargetSearch>
                     </expression>
                     <target>
-                        <path>assignment</path>
+                        <path>c:assignment</path>
                     </target>
                 </inbound>
             </attribute>
@@ -83,7 +84,7 @@ Configuration parameters:
                         </script>
                     </expression>
                     <target>
-                        <path>extension/p-single-$index</path>
+                        <path>c:extension/ext:p-single-$index</path>
                     </target>
                 </inbound>
             </attribute>
@@ -98,7 +99,7 @@ Configuration parameters:
                         </script>
                     </expression>
                     <target>
-                        <path>extension/p-multi-$index</path>
+                        <path>c:extension/ext:p-multi-$index</path>
                         <set>
                             <condition>
                                 <script>
@@ -136,7 +137,7 @@ Configuration parameters:
                         </assignmentTargetSearch>
                     </expression>
                     <target>
-                        <path>assignment</path>
+                        <path>c:assignment</path>
                         <set>
                             <condition>
                                 <script>
@@ -158,9 +159,9 @@ Configuration parameters:
             <enabled>true</enabled>
             <correlation>
                 <q:equal>
-                    <q:path>name</q:path>
+                    <q:path>c:name</q:path>
                     <expression>
-                        <path>$projection/attributes/icfs:name</path>
+                        <path>$projection/c:attributes/icfs:name</path>
                     </expression>
                 </q:equal>
             </correlation>

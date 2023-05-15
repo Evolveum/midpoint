@@ -586,11 +586,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismObject<ShadowType> object = prismContext.parseObject(file);
 
         PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
-        for (PrismProperty<?> attr : attrCont.getValue().getProperties()) {
-            if (attr.getDefinition() == null) {
+        for (Item<?, ?> attr : attrCont.getValue().getItems()) {
+            if (attr instanceof PrismProperty<?> && attr.getDefinition() == null) {
                 RawResourceAttributeDefinition<String> attrDef =
                         ObjectFactory.createResourceAttributeDefinition(attr.getElementName(), DOMUtil.XSD_STRING);
-                attr.setDefinition((PrismPropertyDefinition) attrDef);
+                //noinspection unchecked,rawtypes
+                ((PrismProperty<?>) attr).setDefinition((PrismPropertyDefinition) attrDef);
             }
         }
 

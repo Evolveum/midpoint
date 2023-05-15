@@ -149,9 +149,9 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 //            principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
 //        }
 
-        AuthorizationType authorizationType = new AuthorizationType();
-        authorizationType.getAction().add("FAKE");
-        principal.getAuthorities().add(new Authorization(authorizationType));
+        AuthorizationType authorizationBean = new AuthorizationType();
+        authorizationBean.getAction().add("FAKE");
+        principal.getAuthorities().add(new Authorization(authorizationBean));
 
         ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
