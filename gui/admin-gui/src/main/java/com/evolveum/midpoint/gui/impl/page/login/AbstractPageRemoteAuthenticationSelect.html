@@ -20,7 +20,12 @@
 
             <div wicket:id="csrfField"/>
 
-            <input type="submit" wicket:message="value:UserMenuPanel.logout"/>
+            <button type="submit" class="m-auto btn btn-link nav-link" wicket:message="title:PageBase.logout">
+                <i class="fas fa-power-off"></i>
+                <span class="pl-2">
+                    <wicket:message key="PageBase.logout"/>
+                </span>
+            </button>
         </form>
     </div>
 </wicket:extend>

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.authentication.impl.saml;
 
 import java.io.IOException;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,8 +27,12 @@ public class MidpointSaml2LogoutRequestSuccessHandler extends AuditedLogoutHandl
     }
 
     @Override
-    public void onLogoutSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException {
+    public void onLogoutSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
         samlHandler.onLogoutSuccess(httpServletRequest, httpServletResponse, authentication);
-        auditEvent(httpServletRequest, authentication);
+        if (httpServletResponse.getStatus() == 401) {
+            super.onLogoutSuccess(httpServletRequest, httpServletResponse, authentication);
+        } else {
+            auditEvent(httpServletRequest, authentication);
+        }
     }
 }
