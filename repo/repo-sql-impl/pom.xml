@@ -136,7 +136,7 @@
         </dependency>
         <dependency>
             <groupId>jakarta.persistence</groupId>
-            <artifactId>jakaerta.persistence-api</artifactId>
+            <artifactId>jakarta.persistence-api</artifactId>
         </dependency>
 
         <!-- H2 -->

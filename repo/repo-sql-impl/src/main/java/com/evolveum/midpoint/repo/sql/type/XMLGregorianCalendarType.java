@@ -52,6 +52,9 @@ public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> 
         if (cached == null) {
             return null;
         }
+        if (cached instanceof XMLGregorianCalendar) {
+            return (XMLGregorianCalendar) ((XMLGregorianCalendar) cached).clone();
+        }
         long date = (Long) cached;
 
         return asXMLGregorianCalendar(new Date(date));
@@ -61,6 +64,7 @@ public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> 
     public int getSqlType() {
         return JPA_TYPE.getSqlTypeCode();
     }
+
 
     @Override
     public Class<XMLGregorianCalendar> returnedClass() {
@@ -123,9 +127,9 @@ public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> 
         if (value == null) {
             return null;
         }
-
-        XMLGregorianCalendar calendar = value;
-        return asDate(calendar).getTime();
+        return (Serializable) value.clone();
+        //XMLGregorianCalendar calendar = value;
+        //return asDate(calendar).getTime();
     }
 
     @Override
