@@ -170,6 +170,7 @@ public class RoleMiningDataGenerator {
                     for (int i = 0; i < groupSize; i++) {
                         RoleType roleType = rolesList.get(startIndex + i).asObjectable();
                         UserType userType = userTypePrismObject.asObjectable();
+                        LOGGER.info("Assign object iterator: {},",i);
 
                         try {
 

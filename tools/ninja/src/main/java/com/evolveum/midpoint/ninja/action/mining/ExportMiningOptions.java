@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.ninja.action.mining;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -16,6 +19,7 @@ import com.evolveum.midpoint.ninja.opts.BasicExportOptions;
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "exportMining")
 public class ExportMiningOptions extends BaseMiningOptions implements BasicExportOptions {
 
+    private static final String DELIMITER = ",";
     public static final String P_OUTPUT = "-O";
     public static final String P_OUTPUT_LONG = "--output";
 
@@ -23,22 +27,29 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_OVERWRITE_LONG = "--overwrite";
 
     public static final String P_PREFIX_APPLICATION = "-pa";
-
-    @Parameter(names = { P_PREFIX_APPLICATION }, descriptionKey = "export.application.role.prefix")
-    private String applicationRolePrefix;
-
+    public static final String P_PREFIX_APPLICATION_LONG = "-applicationRolePrefix";
     public static final String P_PREFIX_BUSINESS = "-pb";
-
-    @Parameter(names = { P_PREFIX_BUSINESS }, descriptionKey = "export.business.role.prefix")
-    private String businessRolePrefix;
-
+    public static final String P_PREFIX_BUSINESS_LONG = "-businessRolePrefix";
     public static final String P_SUFFIX_APPLICATION = "-sa";
-
-    @Parameter(names = { P_SUFFIX_APPLICATION }, descriptionKey = "export.application.role.suffix")
-    private String applicationRoleSuffix;
+    public static final String P_SUFFIX_APPLICATION_LONG = "-applicationRoleSuffix";
     public static final String P_SUFFIX_BUSINESS = "-sb";
+    public static final String P_SUFFIX_BUSINESS_LONG = "-businessRoleSufix";
+    public static final String P_ORG = "-org";
+    public static final String P_ORG_LONG = "-disableOrgExport";
+    public static final String P_NAME_OPTIONS = "-nm";
+    public static final String P_NAME_OPTIONS_LONG = "-nameMode";
+    public static final String P_ARCHETYPE_OID_APPLICATION = "-arOid";
+    public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "-applicationArchetypeOid";
+    public static final String P_ARCHETYPE_OID_BUSINESS = "-brOid";
+    public static final String P_ARCHETYPE_OID_BUSINESS_LONG = "-businessArchetypeOid";
+    public static final String P_SECURITY_LEVEL = "-s";
+    public static final String P_SECURITY_LEVEL_LONG = "-security";
 
-    @Parameter(names = { P_SUFFIX_BUSINESS }, descriptionKey = "export.business.role.suffix")
+    @Parameter(names = { P_SECURITY_LEVEL, P_SECURITY_LEVEL_LONG }, descriptionKey = "export.security.level.suffix")
+    private String securityLevel;
+    @Parameter(names = { P_SUFFIX_APPLICATION, P_SUFFIX_APPLICATION_LONG }, descriptionKey = "export.application.role.suffix")
+    private String applicationRoleSuffix;
+    @Parameter(names = { P_SUFFIX_BUSINESS, P_SUFFIX_BUSINESS_LONG }, descriptionKey = "export.business.role.suffix")
     private String businessRoleSuffix;
 
     @Parameter(names = { P_OUTPUT, P_OUTPUT_LONG }, descriptionKey = "export.output")
@@ -47,19 +58,39 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     @Parameter(names = { P_OVERWRITE, P_OVERWRITE_LONG }, descriptionKey = "export.overwrite")
     private boolean overwrite;
 
-    public static final String P_ORG = "-org";
+    @Parameter(names = { P_PREFIX_BUSINESS, P_PREFIX_BUSINESS_LONG }, descriptionKey = "export.business.role.prefix")
+    private String businessRolePrefix;
 
-    @Parameter(names = { P_ORG }, descriptionKey = "export.prevent.org")
+    @Parameter(names = { P_PREFIX_APPLICATION, P_PREFIX_APPLICATION_LONG }, descriptionKey = "export.application.role.prefix")
+    private String applicationRolePrefix;
+    @Parameter(names = { P_ORG, P_ORG_LONG }, descriptionKey = "export.prevent.org")
     private boolean notIncludeOrg;
+    @Parameter(names = { P_NAME_OPTIONS, P_NAME_OPTIONS_LONG }, descriptionKey = "export.name.options")
+    private String nameMode;
+    @Parameter(names = { P_ARCHETYPE_OID_APPLICATION, P_ARCHETYPE_OID_APPLICATION_LONG }, descriptionKey = "export.application.role.archetype.oid")
+    private String applicationRoleArchetypeOid;
+
+    @Parameter(names = { P_ARCHETYPE_OID_BUSINESS, P_ARCHETYPE_OID_BUSINESS_LONG }, descriptionKey = "export.business.role.archetype.oid")
+    private String businessRoleArchetypeOid;
+
+    public String getSecurityLevel() {
+        if(securityLevel ==null || securityLevel.isEmpty()){
+            securityLevel = "strong";
+        }
+        return securityLevel;
+    }
 
     public boolean isNotIncludeOrg() {
         return notIncludeOrg;
     }
 
-    public static final String P_NAME_OPTIONS = "-nop";
+    public String getApplicationRoleArchetypeOid() {
+        return applicationRoleArchetypeOid;
+    }
 
-    @Parameter(names = { P_NAME_OPTIONS }, descriptionKey = "export.name.options")
-    private String nameMode;
+    public String getBusinessRoleArchetypeOid() {
+        return businessRoleArchetypeOid;
+    }
 
     public String getNameMode() {
         return nameMode;
@@ -73,19 +104,35 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
         return overwrite;
     }
 
-    public String getApplicationRolePrefix() {
-        return applicationRolePrefix;
+    public List<String> getApplicationRolePrefix() {
+        if (applicationRolePrefix == null || applicationRolePrefix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separatePrefixes = applicationRolePrefix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separatePrefixes));
     }
 
-    public String getBusinessRolePrefix() {
-        return businessRolePrefix;
+    public List<String> getBusinessRolePrefix() {
+        if (businessRolePrefix == null || businessRolePrefix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separatePrefixes = businessRolePrefix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separatePrefixes));
     }
 
-    public String getApplicationRoleSuffix() {
-        return applicationRoleSuffix;
+    public List<String> getApplicationRoleSuffix() {
+        if (applicationRoleSuffix == null || applicationRoleSuffix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separateSuffixes = applicationRoleSuffix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separateSuffixes));
     }
 
-    public String getBusinessRoleSuffix() {
-        return businessRoleSuffix;
+    public List<String> getBusinessRoleSuffix() {
+        if (businessRoleSuffix == null || businessRoleSuffix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separateSuffixes = businessRoleSuffix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separateSuffixes));
     }
 }

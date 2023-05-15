@@ -41,27 +41,34 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private boolean jsonFormat = false;
 
     private PrismSerializer<String> serializer;
-    private static final String APPLICATION_ROLE_PREFIX = "Application_";
-    private static final String BUSINESS_ROLE_PREFIX = "Business_";
-
-    private static final String APPLICATION_ROLE_OID = "00000000-0000-0000-0000-000000000328";
-    private static final String BUSINESS_ROLE_OID = "00000000-0000-0000-0000-000000000321";
-
-    protected String applicationRolePrefix;
-    protected String applicationRoleSuffix;
-    protected String businessRolePrefix;
-    protected String businessRoleSuffix;
+    private static final String APPLICATION_ROLE_PREFIX = "Application role";
+    private static final String BUSINESS_ROLE_PREFIX = "Business role";
+    private static final String APPLICATION_ROLE_ARCHETYPE_OID = "00000000-0000-0000-0000-000000000328";
+    private static final String BUSINESS_ROLE_ARCHETYPE_OID = "00000000-0000-0000-0000-000000000321";
+    private static final String SECURITY_LEVEL_STANDARD = "standard";
+    private static final String SECURITY_LEVEL_STRONG = "strong";
+    private static final String MINING_EXPORT_SUFFIX = "_AE";
+    public static String applicationArchetypeOid;
+    public static String businessArchetypeOid;
+    protected List<String> applicationRolePrefix;
+    protected List<String> applicationRoleSuffix;
+    protected List<String> businessRolePrefix;
+    protected List<String> businessRoleSuffix;
 
     private int iteratorRole = 0;
     private int userIterator = 0;
     private int orgIterator = 0;
+
+    private String securityLevel;
+
+    private boolean orgAllowed = true;
 
     NameModeExport nameModeExport = NameModeExport.SEQUENTIAL;
 
     private enum NameModeExport {
         ENCRYPTED,
         SEQUENTIAL,
-        UNECRYPTED
+        ORIGINAL
     }
 
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
@@ -71,6 +78,26 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
     @Override
     protected void init() {
+
+        if (options.getSecurityLevel().equals(SECURITY_LEVEL_STANDARD)) {
+            securityLevel = options.getSecurityLevel();
+        } else {
+            securityLevel = SECURITY_LEVEL_STRONG;
+        }
+
+        securityLevel = options.getSecurityLevel();
+        orgAllowed = !options.isNotIncludeOrg();
+        applicationArchetypeOid = options.getApplicationRoleArchetypeOid();
+        businessArchetypeOid = options.getBusinessRoleArchetypeOid();
+
+        if (applicationArchetypeOid == null) {
+            applicationArchetypeOid = APPLICATION_ROLE_ARCHETYPE_OID;
+        }
+
+        if (businessArchetypeOid == null) {
+            businessArchetypeOid = BUSINESS_ROLE_ARCHETYPE_OID;
+        }
+
         this.applicationRolePrefix = options.getApplicationRolePrefix();
         this.applicationRoleSuffix = options.getApplicationRoleSuffix();
         this.businessRolePrefix = options.getBusinessRolePrefix();
@@ -80,8 +107,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             case "sequential":
                 nameModeExport = NameModeExport.SEQUENTIAL;
                 break;
-            case "unencrypted":
-                nameModeExport = NameModeExport.UNECRYPTED;
+            case "original":
+                nameModeExport = NameModeExport.ORIGINAL;
                 break;
             case "encrypted":
                 nameModeExport = NameModeExport.ENCRYPTED;
@@ -119,7 +146,6 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
     @Override
     protected void write(Writer writer, @NotNull FocusType object) throws SchemaException, IOException {
-
         if (object.asPrismObject().isOfType(RoleType.class)) {
             RoleType roleType = getPreparedRoleObject(object);
             write(writer, roleType.asPrismContainerValue());
@@ -131,59 +157,65 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             OrgType orgObject = getPreparedOrgObject(object);
             write(writer, orgObject.asPrismContainerValue());
         }
-
     }
 
     @NotNull
     private OrgType getPreparedOrgObject(@NotNull FocusType object) {
-        OrgType orgObject = new OrgType();
-        orgObject.setName(getEncryptedOrgName(object.getName().toString(), orgIterator++));
-        orgObject.setOid(getEncryptedUUID(object.getOid()));
+        OrgType org = new OrgType();
+        org.setName(getEncryptedOrgName(object.getName().toString(), orgIterator++));
+        org.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
             if (targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())) {
-                orgObject.getAssignment().add(getEncryptedObjectReference(assignmentObject));
+                org.getAssignment().add(getEncryptedObjectReference(assignmentObject));
             }
 
         }
-        return orgObject;
+        return org;
     }
 
     @NotNull
     private UserType getPreparedUserObject(@NotNull FocusType object) {
-        UserType userType = new UserType();
-        userType.setName(getEncryptedUserName(object.getName().toString(), userIterator++));
-        userType.setOid(getEncryptedUUID(object.getOid()));
+        UserType user = new UserType();
+        user.setName(getEncryptedUserName(object.getName().toString(), userIterator++));
+        user.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
             if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
                     || targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())) {
-                userType.getAssignment().add(getEncryptedObjectReference(assignmentObject));
+                user.getAssignment().add(getEncryptedObjectReference(assignmentObject));
+            }
 
+            if (orgAllowed && targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())) {
+                user.getAssignment().add(getEncryptedObjectReference(assignmentObject));
             }
 
         }
-        return userType;
+        return user;
     }
 
     @NotNull
     private RoleType getPreparedRoleObject(@NotNull FocusType object) {
-        RoleType roleType = new RoleType();
+        this.iteratorRole++;
 
-        PolyStringType encryptedName = getEncryptedRoleName(object.getName().toString(), iteratorRole++);
-        roleType.setName(encryptedName);
-        roleType.setOid(getEncryptedUUID(object.getOid()));
+        RoleType role = new RoleType();
+        String roleName = object.getName().toString();
+        PolyStringType encryptedName = getEncryptedRoleName(roleName, iteratorRole);
+        role.setName(encryptedName);
+        role.setOid(getEncryptedUUID(object.getOid()));
+
+        String identifier = "";
 
         List<AssignmentType> inducement = ((RoleType) object).getInducement();
 
         for (AssignmentType inducementObject : inducement) {
             ObjectReferenceType targetRef = inducementObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())) {
-                roleType.getInducement().add(getEncryptedObjectReference(inducementObject));
+            if (targetRef != null && targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())) {
+                role.getInducement().add(getEncryptedObjectReference(inducementObject));
 
             }
         }
@@ -193,19 +225,31 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
             if (targetRef.getType().getLocalPart().equals(ArchetypeType.class.getSimpleName())) {
                 AssignmentType assignmentType = new AssignmentType();
-                if (targetRef.getOid().equals(APPLICATION_ROLE_OID)) {
-                    roleType.setName(PolyStringType.fromOrig(APPLICATION_ROLE_PREFIX + encryptedName));
+                if (targetRef.getOid().equals(applicationArchetypeOid)) {
+                    identifier = APPLICATION_ROLE_PREFIX;
+                    role.setName(PolyStringType.fromOrig(String.valueOf(encryptedName)));
                     assignmentType.targetRef(assignmentObject.getTargetRef());
-                    roleType.getAssignment().add(assignmentType);
-                } else if (targetRef.getOid().equals(BUSINESS_ROLE_OID)) {
-                    roleType.setName(PolyStringType.fromOrig(BUSINESS_ROLE_PREFIX + encryptedName));
+                    role.getAssignment().add(assignmentType);
+                } else if (targetRef.getOid().equals(businessArchetypeOid)) {
+                    identifier = BUSINESS_ROLE_PREFIX;
+                    role.setName(PolyStringType.fromOrig(String.valueOf(encryptedName)));
                     assignmentType.targetRef(assignmentObject.getTargetRef());
-                    roleType.getAssignment().add(assignmentType);
+                    role.getAssignment().add(assignmentType);
                 }
             }
 
         }
-        return roleType;
+
+        if (!identifier.isEmpty()) {
+            role.setIdentifier(identifier);
+        } else {
+            String prefixCheckedIdentifier = getRoleCategory(roleName);
+            if (!prefixCheckedIdentifier.isEmpty()) {
+                role.setIdentifier(prefixCheckedIdentifier);
+            }
+        }
+
+        return role;
     }
 
     private void write(Writer writer, PrismContainerValue<?> prismContainerValue) throws SchemaException, IOException {
@@ -224,8 +268,13 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         return UUID.nameUUIDFromBytes(encryptOid(bytes).getBytes()).toString();
     }
 
-    private static byte[] uuidToBytes(UUID uuid) {
+    private byte[] uuidToBytes(UUID uuid) {
         ByteBuffer buffer = ByteBuffer.allocate(32);
+
+        if (options.getSecurityLevel().equals(SECURITY_LEVEL_STANDARD)) {
+            buffer = ByteBuffer.allocate(16);
+        }
+
         buffer.putLong(uuid.getMostSignificantBits());
         buffer.putLong(uuid.getLeastSignificantBits());
         return buffer.array();
@@ -255,43 +304,64 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
     private PolyStringType getEncryptedUserName(String name, int iterator) {
         if (nameModeExport.equals(NameModeExport.ENCRYPTED)) {
-            return PolyStringType.fromOrig(encrypt(name));
+            return PolyStringType.fromOrig(encrypt(name) + MINING_EXPORT_SUFFIX);
         } else if (nameModeExport.equals(NameModeExport.SEQUENTIAL)) {
-            return PolyStringType.fromOrig("User" + iterator);
+            return PolyStringType.fromOrig("User" + iterator + MINING_EXPORT_SUFFIX);
         } else {
-            return PolyStringType.fromOrig(name);
+            return PolyStringType.fromOrig(name + MINING_EXPORT_SUFFIX);
         }
     }
 
     private PolyStringType getEncryptedOrgName(String name, int iterator) {
         if (nameModeExport.equals(NameModeExport.ENCRYPTED)) {
-            return PolyStringType.fromOrig(encrypt(name));
+            return PolyStringType.fromOrig(encrypt(name) + MINING_EXPORT_SUFFIX);
         } else if (nameModeExport.equals(NameModeExport.SEQUENTIAL)) {
-            return PolyStringType.fromOrig("Organization" + iterator);
+            return PolyStringType.fromOrig("Organization" + iterator + MINING_EXPORT_SUFFIX);
         } else {
-            return PolyStringType.fromOrig(name);
+            return PolyStringType.fromOrig(name + MINING_EXPORT_SUFFIX);
         }
     }
 
+    public NameModeExport getNameModeExport() {
+        return nameModeExport;
+    }
+
     private PolyStringType getEncryptedRoleName(String name, int iterator) {
-        String prefix = "";
-        if (applicationRolePrefix != null && name.startsWith(applicationRolePrefix)) {
-            prefix = APPLICATION_ROLE_PREFIX;
-        } else if (applicationRoleSuffix != null && name.endsWith(applicationRoleSuffix)) {
-            prefix = APPLICATION_ROLE_PREFIX;
-        } else if (businessRolePrefix != null && name.startsWith(businessRolePrefix)) {
-            prefix = BUSINESS_ROLE_PREFIX;
-        } else if (businessRoleSuffix != null && name.endsWith(businessRoleSuffix)) {
-            prefix = BUSINESS_ROLE_PREFIX;
+
+        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+            return PolyStringType.fromOrig(encrypt(name) + MINING_EXPORT_SUFFIX);
+        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+            return PolyStringType.fromOrig("Role" + iterator + MINING_EXPORT_SUFFIX);
+        } else {
+            return PolyStringType.fromOrig(name + MINING_EXPORT_SUFFIX);
         }
 
-        if (nameModeExport.equals(NameModeExport.ENCRYPTED)) {
-            return PolyStringType.fromOrig(prefix + encrypt(name));
-        } else if (nameModeExport.equals(NameModeExport.SEQUENTIAL)) {
-            return PolyStringType.fromOrig("Role" + iterator);
-        } else {
-            return PolyStringType.fromOrig(name);
+    }
+
+    private String getRoleCategory(String name) {
+        StringBuilder prefix = new StringBuilder();
+        if (applicationRolePrefix != null && !applicationRolePrefix.isEmpty()) {
+            if (applicationRolePrefix.stream().anyMatch(rolePrefix -> name.toLowerCase().startsWith(rolePrefix.toLowerCase()))) {
+                prefix.append(APPLICATION_ROLE_PREFIX);
+            }
         }
+        if (applicationRoleSuffix != null && !applicationRoleSuffix.isEmpty()) {
+            if (applicationRoleSuffix.stream().anyMatch(roleSuffix -> name.toLowerCase().endsWith(roleSuffix.toLowerCase()))) {
+                prefix.append(APPLICATION_ROLE_PREFIX);
+            }
+        }
+        if (businessRolePrefix != null && !businessRolePrefix.isEmpty()) {
+            if (businessRolePrefix.stream().anyMatch(rolePrefix -> name.toLowerCase().startsWith(rolePrefix.toLowerCase()))) {
+                prefix.append(BUSINESS_ROLE_PREFIX);
+            }
+        }
+        if (businessRoleSuffix != null && !businessRoleSuffix.isEmpty()) {
+            if (businessRoleSuffix.stream().anyMatch(roleSuffix -> name.toLowerCase().endsWith(roleSuffix.toLowerCase()))) {
+                prefix.append(BUSINESS_ROLE_PREFIX);
+            }
+        }
+
+        return String.valueOf(prefix);
     }
 
     private AssignmentType getEncryptedObjectReference(@NotNull AssignmentType assignmentObject) {
@@ -327,8 +397,11 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         return Base64.getEncoder().encodeToString(ciphertext);
     }
 
-    private static @NotNull String generateRandomKey() {
+    private @NotNull String generateRandomKey() {
         int keyLength = 32;
+        if (securityLevel.equals(SECURITY_LEVEL_STANDARD)) {
+            keyLength = 16;
+        }
         return RandomStringUtils.random(keyLength, 0, 0, true, true, null, new SecureRandom());
     }
 

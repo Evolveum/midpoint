@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 
@@ -17,6 +17,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -46,15 +47,24 @@ public class ExportMiningPanel extends ConfirmationPanel {
     private static final String ID_CHECKBOX_ORG = "orgCheckbox";
     private static final String ID_CHECKBOX_ZIP = "zipCheckBox";
     protected static final String ID_DROPDOWN_NAME_MODE = "choiceNameMode";
+    protected static final String ID_DROPDOWN_SECURITY_MODE = "choiceSecurity";
+    protected static final String ID_DROPDOWN_ARCHETYPE_APPLICATION = "archetypeApplicationDropdown";
+    protected static final String ID_DROPDOWN_ARCHETYPE_BUSINESS = "archetypeBusinessDropdown";
     protected static final String ID_SHOW_ADDITIONAL_OPTIONS = "showAdditionalOptions";
     protected static final String ID_LABEL_EXPORT_OBJECT = "exportObjectLabel";
     protected static final String ID_LABEL_ZIP = "zipCheckBoxLabel";
     protected static final String ID_LABEL_NAME_MODE = "nameModeLabel";
+
+    protected static final String ID_LABEL_SECURITY_MODE = "securityModeLabel";
     protected static final String ID_LABEL_APPLICATION = "applicationLabel";
     protected static final String ID_LABEL_BUSINESS = "businessLabel";
     protected static final String ID_LABEL_ENCRYPT = "encryptLabel";
     protected static final String ID_LINK_DOCUMENTATION = "link";
 
+    private static final String APPLICATION_ROLE_ARCHETYPE_OID = "00000000-0000-0000-0000-000000000328";
+    private static final String BUSINESS_ROLE_ARCHETYPE_OID = "00000000-0000-0000-0000-000000000321";
+
+    private static final String DELIMITER = ",";
     private TextField<String> applicationPrefixField;
     private String applicationPrefix;
     private TextField<String> applicationSuffixField;
@@ -63,6 +73,10 @@ public class ExportMiningPanel extends ConfirmationPanel {
     private String businessPrefix;
     private TextField<String> businessSuffixField;
     private String businessSuffix;
+    AutoCompleteTextField<String> autoCompleteBusinessRoleField;
+    AutoCompleteTextField<String> autoCompleteApplicationRoleField;
+
+    TextField<Integer> keyField;
     boolean showEmpty = false;
     private String key;
     private boolean edit = false;
@@ -70,7 +84,11 @@ public class ExportMiningPanel extends ConfirmationPanel {
     boolean roleExport = true;
     boolean orgExport = true;
     boolean userExport = true;
-    RoleMiningExportOperation.NameModeExport selectedValue;
+    RoleMiningExportOperation.NameModeExport nameModeSelected;
+    RoleMiningExportOperation.SecurityLevel securityLevelSelected = RoleMiningExportOperation.SecurityLevel.STRONG;
+
+    String archeTypeApplicationObjectSelected;
+    String archeTypeBusinessObjectSelected;
     protected PageDebugDownloadBehaviour<?> downloadBehaviour;
 
     public ExportMiningPanel(String id, IModel<String> message, PageDebugDownloadBehaviour<?> roleMiningExport) {
@@ -92,7 +110,10 @@ public class ExportMiningPanel extends ConfirmationPanel {
     protected void customInitLayout(WebMarkupContainer panel) {
         addEncryptKeyFields(panel);
 
+        addSecurityDropDown(panel);
+
         addNameModeDropdown(panel);
+
         addAjaxZipCheckBox(panel);
 
         addExportOptionObjects(panel);
@@ -102,6 +123,8 @@ public class ExportMiningPanel extends ConfirmationPanel {
         form.setOutputMarkupPlaceholderTag(true);
         form.setVisible(showEmpty);
         panel.add(form);
+
+        addArchetypeAutoCompleteTextField(form);
 
         LabelWithHelpPanel applicationOptionsLabel = getLabelWithHelp(ID_LABEL_APPLICATION,
                 createStringResource("roleMiningExportPanel.application.role.label"),
@@ -140,8 +163,37 @@ public class ExportMiningPanel extends ConfirmationPanel {
         return label;
     }
 
+    public HashMap<String, String> getArchetypeObjectsList() {
+        return new HashMap<>();
+    }
+
+    private void addSecurityDropDown(@NotNull WebMarkupContainer panel) {
+        securityLevelSelected = RoleMiningExportOperation.SecurityLevel.STRONG;
+
+        LabelWithHelpPanel dropdownChoiceLabel = getLabelWithHelp(ID_LABEL_SECURITY_MODE,
+                createStringResource("roleMiningExportPanel.export.security.options.title"),
+                createStringResource("roleMiningExportPanel.export.security.options.help"));
+        panel.add(dropdownChoiceLabel);
+
+        ChoiceRenderer<RoleMiningExportOperation.SecurityLevel> renderer = new ChoiceRenderer<>("displayString");
+
+        DropDownChoice<RoleMiningExportOperation.SecurityLevel> dropDownChoice = new DropDownChoice<>(ID_DROPDOWN_SECURITY_MODE,
+                Model.of(securityLevelSelected), new ArrayList<>(EnumSet.allOf(RoleMiningExportOperation.SecurityLevel.class)), renderer);
+        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                securityLevelSelected = dropDownChoice.getModelObject();
+                generateRandomKey(securityLevelSelected);
+                keyField.setDefaultModel(Model.of(getKey()));
+                target.add(keyField);
+            }
+        });
+
+        panel.add(dropDownChoice);
+    }
+
     private void addNameModeDropdown(@NotNull WebMarkupContainer panel) {
-        selectedValue = RoleMiningExportOperation.NameModeExport.SEQUENTIAL;
+        nameModeSelected = RoleMiningExportOperation.NameModeExport.SEQUENTIAL;
 
         LabelWithHelpPanel dropdownChoiceLabel = getLabelWithHelp(ID_LABEL_NAME_MODE,
                 createStringResource("roleMiningExportPanel.export.name.options.title"),
@@ -151,15 +203,86 @@ public class ExportMiningPanel extends ConfirmationPanel {
         ChoiceRenderer<RoleMiningExportOperation.NameModeExport> renderer = new ChoiceRenderer<>("displayString");
 
         DropDownChoice<RoleMiningExportOperation.NameModeExport> dropDownChoice = new DropDownChoice<>(ID_DROPDOWN_NAME_MODE,
-                Model.of(selectedValue), new ArrayList<>(EnumSet.allOf(RoleMiningExportOperation.NameModeExport.class)), renderer);
+                Model.of(nameModeSelected), new ArrayList<>(EnumSet.allOf(RoleMiningExportOperation.NameModeExport.class)), renderer);
         dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                selectedValue = dropDownChoice.getModelObject();
+                nameModeSelected = dropDownChoice.getModelObject();
             }
         });
 
         panel.add(dropDownChoice);
+    }
+
+    private void addArchetypeAutoCompleteTextField(@NotNull Form<?> panel) {
+
+        HashMap<String, String> archetypeMap = getArchetypeObjectsList();
+        IModel<String> selectedArchetypeModelApplication = Model.of("");
+        IModel<String> selectedArchetypeModelBusiness = Model.of("");
+
+        List<String> archetypeListString = new ArrayList<>();
+        for (HashMap.Entry<String, String> entry : archetypeMap.entrySet()) {
+
+            if (entry.getKey().equalsIgnoreCase("Application role")) {
+                selectedArchetypeModelApplication.setObject(entry.getKey());
+                archeTypeApplicationObjectSelected = entry.getValue();
+
+            } else if (entry.getKey().equalsIgnoreCase("Business role")) {
+                selectedArchetypeModelBusiness.setObject(entry.getKey());
+                archeTypeBusinessObjectSelected = entry.getValue();
+            }
+
+            archetypeListString.add(entry.getKey());
+        }
+
+        autoCompleteApplicationRoleField = new AutoCompleteTextField<>(ID_DROPDOWN_ARCHETYPE_APPLICATION,
+                selectedArchetypeModelApplication) {
+            @Override
+            protected Iterator<String> getChoices(String input) {
+                List<String> filteredList = archetypeListString.stream()
+                        .filter(archetype -> archetype.toLowerCase().contains(input.toLowerCase()))
+                        .collect(Collectors.toList());
+                return filteredList.iterator();
+            }
+        };
+
+        autoCompleteApplicationRoleField.setRequired(true);
+        autoCompleteApplicationRoleField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                selectedArchetypeModelApplication.setObject(autoCompleteApplicationRoleField.getModelObject());
+                archeTypeApplicationObjectSelected = archetypeMap.get(autoCompleteApplicationRoleField.getModelObject());
+            }
+        });
+
+        autoCompleteApplicationRoleField.setOutputMarkupId(true);
+        autoCompleteApplicationRoleField.setEnabled(false);
+        panel.add(autoCompleteApplicationRoleField);
+
+        autoCompleteBusinessRoleField = new AutoCompleteTextField<>(ID_DROPDOWN_ARCHETYPE_BUSINESS,
+                selectedArchetypeModelBusiness) {
+            @Override
+            protected Iterator<String> getChoices(String input) {
+                List<String> filteredList = archetypeListString.stream()
+                        .filter(archetype -> archetype.toLowerCase().contains(input.toLowerCase()))
+                        .collect(Collectors.toList());
+                return filteredList.iterator();
+            }
+        };
+
+        autoCompleteBusinessRoleField.setRequired(true);
+        autoCompleteBusinessRoleField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                selectedArchetypeModelBusiness.setObject(autoCompleteBusinessRoleField.getModelObject());
+                archeTypeBusinessObjectSelected = archetypeMap.get(autoCompleteBusinessRoleField.getModelObject());
+            }
+        });
+
+        autoCompleteBusinessRoleField.setOutputMarkupId(true);
+        autoCompleteBusinessRoleField.setEnabled(false);
+        panel.add(autoCompleteBusinessRoleField);
+
     }
 
     private void addAjaxZipCheckBox(@NotNull WebMarkupContainer panel) {
@@ -274,6 +397,10 @@ public class ExportMiningPanel extends ConfirmationPanel {
     }
 
     public void updateOptions(AjaxRequestTarget ajaxRequestTarget) {
+        autoCompleteApplicationRoleField.setEnabled(isEdit());
+        ajaxRequestTarget.add(autoCompleteApplicationRoleField);
+        autoCompleteBusinessRoleField.setEnabled(isEdit());
+        ajaxRequestTarget.add(autoCompleteBusinessRoleField);
         applicationPrefixField.setEnabled(isEdit());
         ajaxRequestTarget.add(applicationPrefixField);
         applicationSuffixField.setEnabled(isEdit());
@@ -294,16 +421,18 @@ public class ExportMiningPanel extends ConfirmationPanel {
 
     private void addEncryptKeyFields(WebMarkupContainer panel) {
 
+        securityLevelSelected = RoleMiningExportOperation.SecurityLevel.STRONG;
+
         LabelWithHelpPanel encryptLabel = getLabelWithHelp(ID_LABEL_ENCRYPT,
                 createStringResource("roleMiningExportPanel.encryption.key.title"),
                 createStringResource("roleMiningExportPanel.encryption.key.title.help"));
         panel.add(encryptLabel);
 
-        TextField<Integer> keyField = new TextField<>(ID_KEY_FIELD);
+        keyField = new TextField<>(ID_KEY_FIELD);
         keyField.setOutputMarkupId(true);
         keyField.setOutputMarkupPlaceholderTag(true);
 
-        generateRandomKey();
+        generateRandomKey(securityLevelSelected);
 
         keyField.setDefaultModel(Model.of(getKey()));
         keyField.setEnabled(false);
@@ -313,7 +442,7 @@ public class ExportMiningPanel extends ConfirmationPanel {
                 createStringResource("roleMiningExportPanel.button.generate.title")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                generateRandomKey();
+                generateRandomKey(securityLevelSelected);
                 keyField.setDefaultModel(Model.of(getKey()));
                 ajaxRequestTarget.add(keyField);
             }
@@ -322,8 +451,8 @@ public class ExportMiningPanel extends ConfirmationPanel {
         panel.add(ajaxButton);
     }
 
-    private void generateRandomKey() {
-        setKey(new RoleMiningExportOperation().generateRandomKey());
+    private void generateRandomKey(RoleMiningExportOperation.SecurityLevel securityLevel) {
+        setKey(new RoleMiningExportOperation().generateRandomKey(securityLevel));
     }
 
     @Override
@@ -349,8 +478,20 @@ public class ExportMiningPanel extends ConfirmationPanel {
         roleMiningExportOperation.setApplicationRoleSuffix(getApplicationSuffix());
         roleMiningExportOperation.setBusinessRolePrefix(getBusinessPrefix());
         roleMiningExportOperation.setBusinessRoleSuffix(getBusinessSuffix());
-        roleMiningExportOperation.setNameModeExport(selectedValue);
+        roleMiningExportOperation.setNameModeExport(nameModeSelected);
         roleMiningExportOperation.setOrgExport(orgExport);
+        roleMiningExportOperation.setSecurityLevel(securityLevelSelected);
+
+        if (archeTypeApplicationObjectSelected == null || archeTypeApplicationObjectSelected.isEmpty()) {
+            archeTypeApplicationObjectSelected = APPLICATION_ROLE_ARCHETYPE_OID;
+        }
+
+        if (archeTypeBusinessObjectSelected == null || archeTypeBusinessObjectSelected.isEmpty()) {
+            archeTypeBusinessObjectSelected = BUSINESS_ROLE_ARCHETYPE_OID;
+        }
+
+        RoleMiningExportOperation.setApplicationArchetypeOid(archeTypeApplicationObjectSelected);
+        RoleMiningExportOperation.setBusinessArchetypeOid(archeTypeBusinessObjectSelected);
 
         downloadBehaviour.setRoleMiningExport(roleMiningExportOperation);
         downloadBehaviour.setRoleMiningActive(true);
@@ -380,32 +521,48 @@ public class ExportMiningPanel extends ConfirmationPanel {
         return "px";
     }
 
-    private String getApplicationPrefix() {
-        return applicationPrefix;
+    private List<String> getApplicationPrefix() {
+        if (applicationPrefix == null || applicationPrefix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separatePrefixes = applicationPrefix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separatePrefixes));
     }
 
     private void setApplicationPrefix(String applicationPrefix) {
         this.applicationPrefix = applicationPrefix;
     }
 
-    private String getApplicationSuffix() {
-        return applicationSuffix;
+    private List<String> getApplicationSuffix() {
+        if (applicationSuffix == null || applicationSuffix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separateSuffixes = applicationSuffix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separateSuffixes));
     }
 
     private void setApplicationSuffix(String applicationSuffix) {
         this.applicationSuffix = applicationSuffix;
     }
 
-    private String getBusinessPrefix() {
-        return businessPrefix;
+    private List<String> getBusinessPrefix() {
+        if (businessPrefix == null || businessPrefix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separatePrefixes = businessPrefix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separatePrefixes));
     }
 
     private void setBusinessPrefix(String businessPrefix) {
         this.businessPrefix = businessPrefix;
     }
 
-    private String getBusinessSuffix() {
-        return businessSuffix;
+    private List<String> getBusinessSuffix() {
+        if (businessSuffix == null || businessSuffix.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] separateSuffixes = businessSuffix.split(DELIMITER);
+        return new ArrayList<>(Arrays.asList(separateSuffixes));
     }
 
     private void setBusinessSuffix(String businessSuffix) {
