@@ -170,13 +170,14 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         LOGGER.trace("Retrieved object {} with the status of {}", resultingObject, result.getStatus());
         //noinspection unchecked
-        return (PrismObject<T>) storeFetchResultIfApplicable(resultingObject, operation, result)
+        return (PrismObject<T>) storeFetchResultIfApplicable(resultingObject, result)
                 .asPrismObject();
     }
 
-    private static <T extends ObjectType> T storeFetchResultIfApplicable(
-            T object, ProvisioningGetOperation<T> operation, OperationResult result) {
-        if (operation.isRawMode() && result.isSuccess()) {
+    private static <T extends ObjectType> T storeFetchResultIfApplicable(T object, OperationResult result) {
+        if (result.isSuccess()) {
+            // Let's avoid storing SUCCESS result. This is an optimization in case of read-only object retrieval,
+            // because it avoids cloning the object.
             return object;
         } else {
             // This must be done after the result is closed.

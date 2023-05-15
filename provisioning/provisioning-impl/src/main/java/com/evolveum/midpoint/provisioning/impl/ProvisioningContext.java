@@ -259,6 +259,9 @@ public class ProvisioningContext {
     public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(
             @NotNull Collection<QName> auxObjectClassQNames)
             throws SchemaException, ConfigurationException {
+        if (auxObjectClassQNames.isEmpty()) {
+            return getObjectDefinitionRequired();
+        }
         Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxObjectClassQNames.size());
         for (QName auxObjectClassQName : auxObjectClassQNames) {
             ResourceObjectDefinition auxObjectClassDef = getResourceSchema().findObjectClassDefinition(auxObjectClassQName);
@@ -267,6 +270,7 @@ public class ProvisioningContext {
             }
             auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
         }
+        // FIXME the attribute lookup in this definition will be slow (iterating through all the definitions)
         return new CompositeObjectDefinitionImpl(
                 getObjectDefinitionRequired(),
                 auxiliaryObjectClassDefinitions);

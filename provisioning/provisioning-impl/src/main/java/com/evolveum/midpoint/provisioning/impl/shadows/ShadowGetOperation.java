@@ -393,13 +393,19 @@ class ShadowGetOperation {
     }
 
     private void markResourceUp(OperationResult result) throws ObjectNotFoundException {
-        localBeans.resourceManager.modifyResourceAvailabilityStatus(
-                ctx.getResourceOid(),
-                AvailabilityStatusType.UP,
-                "getting " + repositoryShadow + " was successful.",
-                ctx.getTask(),
-                result,
-                false);
+        // The resourceManager.modifyResourceAvailabilityStatus method retrieves the resource from cache. It is a bit
+        // costly now (e.g., it includes ResourceType cloning). Even if this cost could be reduced, we may skip the operation
+        // altogether, if the (currently known) resource is marked as UP. The data may be slightly outdated, but not much.
+        // Even if so, the resource would certainly be sooner or later marked as UP by a different "get" operation.
+        if (!ResourceTypeUtil.isUp(ctx.getResource())) {
+            localBeans.resourceManager.modifyResourceAvailabilityStatus(
+                    ctx.getResourceOid(),
+                    AvailabilityStatusType.UP,
+                    "getting " + repositoryShadow + " was successful.",
+                    ctx.getTask(),
+                    result,
+                    false);
+        }
     }
 
     private void invokeErrorHandler(Exception cause, OperationResult failedOpResult, OperationResult result)

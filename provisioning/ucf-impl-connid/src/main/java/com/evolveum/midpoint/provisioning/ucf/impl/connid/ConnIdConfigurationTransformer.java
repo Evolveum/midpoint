@@ -225,7 +225,11 @@ public class ConnIdConfigurationTransformer {
         int numConfingProperties = 0;
         List<QName> wrongNamespaceProperties = new ArrayList<>();
 
-        for (PrismProperty prismProperty : configurationPropertiesContainer.getValue().getProperties()) {
+        for (Item<?, ?> item : configurationPropertiesContainer.getValue().getItems()) {
+            if (!(item instanceof PrismProperty)) {
+                continue;
+            }
+            var prismProperty = (PrismProperty<?>) item;
             QName propertyQName = prismProperty.getElementName();
 
             // All the elements must be in a connector instance
@@ -275,7 +279,11 @@ public class ConnIdConfigurationTransformer {
             PrismContainer<?> connectorPoolContainer) throws SchemaException {
 
         if (connectorPoolContainer != null) {
-            for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
+            for (Item<?, ?> item : connectorPoolContainer.getValue().getItems()) {
+                if (!(item instanceof PrismProperty)) {
+                    continue;
+                }
+                var prismProperty = (PrismProperty<?>) item;
                 QName propertyQName = prismProperty.getElementName();
                 if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                     String subelementName = propertyQName.getLocalPart();
@@ -325,7 +333,11 @@ public class ConnIdConfigurationTransformer {
             return;
         }
 
-        for (PrismProperty prismProperty : connectorTimeoutsContainer.getValue().getProperties()) {
+        for (Item<?, ?> item : connectorTimeoutsContainer.getValue().getItems()) {
+            if (!(item instanceof PrismProperty)) {
+                continue;
+            }
+            var prismProperty = (PrismProperty<?>) item;
             QName propertQName = prismProperty.getElementName();
 
             if (SchemaConstants.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {

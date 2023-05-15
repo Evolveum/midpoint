@@ -234,7 +234,7 @@ abstract class MSource implements DebugDumpable {
     @NotNull List<InboundMappingType> selectMappingBeansForEvaluationPhase(
             @NotNull List<InboundMappingType> beans,
             boolean resourceItemLocalCorrelatorDefined,
-            @NotNull Collection<ItemPath> correlationItemPaths) {
+            @NotNull Collection<ItemPath> correlationItemPaths) throws ConfigurationException {
         InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
         List<InboundMappingType> filtered =
                 new ApplicabilityEvaluator(

@@ -376,11 +376,10 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         // THEN
         displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
 
-        // Three hits:
+        // Two hits:
         // - First is "regular"
-        // - Second is when availability state update is considered
-        // - Third one is when the shadow is classified (on "get" operation)
-        assertResourceCacheHitsIncrement(3);
+        // - Second one is when the shadow is classified (on "get" operation)
+        assertResourceCacheHitsIncrement(2);
         assertResourceCacheMissesIncrement(0);
 
         PrismObject<ResourceType> resourceProvisioning =
@@ -608,7 +607,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         // THEN
         displayDumpable("Resource cache (2)", InternalMonitor.getResourceCacheStats());
-        assertResourceCacheHitsIncrement(2);  // one hit is "regular", the other one when availability state update is considered
+        assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);

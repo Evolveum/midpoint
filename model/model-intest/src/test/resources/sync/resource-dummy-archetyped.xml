@@ -72,9 +72,6 @@
                     <target>
                         <path>employeeNumber</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <correlation>
