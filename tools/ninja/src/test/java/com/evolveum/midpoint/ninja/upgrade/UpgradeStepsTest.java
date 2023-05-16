@@ -25,18 +25,18 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeStepsTest {
 
-    @Test
+    @Test(enabled = false)
     public void test100DownloadDistribution() throws Exception {
         DownloadDistributionStep step = new DownloadDistributionStep();
         step.setVersion("4.4.4");
 //        step.execute();
     }
 
-    @Test
+    @Test(enabled = false)
     public void test200UpgradeDatabaseSchema() throws Exception {
         // nasty initialization in test, this looks like an issue in code (messy code/architecture of ninja)
         JCommander jc = NinjaUtils.setupCommandLineParser();
-        jc.parse("-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home".split(" "));
+        jc.parse("-m ../../_mess/midpoint-home".split(" "));
 
         ConnectionOptions options = NinjaUtils.getOptions(jc, ConnectionOptions.class);
 
