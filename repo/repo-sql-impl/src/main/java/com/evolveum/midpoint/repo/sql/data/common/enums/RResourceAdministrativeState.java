@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAdministrativeStateType;
 
 /**
@@ -23,6 +24,7 @@ public enum RResourceAdministrativeState implements SchemaEnum<ResourceAdministr
 
     RResourceAdministrativeState(ResourceAdministrativeStateType administrativeState) {
         this.administrativeState = administrativeState;
+        RUtil.register(this);
     }
 
     @Override

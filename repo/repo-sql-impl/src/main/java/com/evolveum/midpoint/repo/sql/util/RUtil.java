@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -73,6 +74,8 @@ public final class RUtil {
     public static final int COLUMN_LENGTH_OID = 36;
 
     private static final int DB_OBJECT_NAME_MAX_LENGTH = 30;
+
+    private static final Map<Enum<?>, SchemaEnum<?>> ENUM_MAPPINGS = new ConcurrentHashMap<>();
 
     private RUtil() {
         throw new AssertionError("utility class can't be instantiated");
@@ -469,6 +472,17 @@ public final class RUtil {
             if (stmt != null && !stmt.isClosed()) {
                 stmt.close();
             }
+        }
+    }
+
+    public static Object getRepoEnumValue(Object key) {
+         var mapped = ENUM_MAPPINGS.get(key);
+         return mapped != null ? mapped : key;
+    }
+
+    public static <C extends Enum<C>> void register(SchemaEnum<C> value) {
+        if (value.getSchemaValue() != null) {
+            ENUM_MAPPINGS.put(value.getSchemaValue(), value);
         }
     }
 }
