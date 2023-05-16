@@ -59,16 +59,18 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
                 if (internalAuthentication instanceof PreAuthenticatedAuthenticationToken
                         || internalAuthentication instanceof AnonymousAuthenticationToken) {
                     Object details = internalAuthentication.getDetails();
-                    if (details instanceof OAuth2LoginAuthenticationToken
-                            && ((OAuth2LoginAuthenticationToken)details).getDetails() instanceof OidcUser) {
-                        OAuth2LoginAuthenticationToken oidcAuthentication = (OAuth2LoginAuthenticationToken) details;
-                        String registrationId = oidcAuthentication.getClientRegistration().getRegistrationId();
-                        ClientRegistration clientRegistration = this.clientRegistrationRepository.findByRegistrationId(registrationId);
-                        URI endSessionEndpoint = this.endSessionEndpoint(clientRegistration);
-                        if (endSessionEndpoint != null) {
-                            String idToken = this.idToken(oidcAuthentication);
-                            String postLogoutRedirectUri = this.postLogoutRedirectUri(request);
-                            targetUrl = this.endpointUri(endSessionEndpoint, idToken, postLogoutRedirectUri);
+                    if (details instanceof OAuth2LoginAuthenticationToken) {
+                        OidcUser oidcUser = this.getOidcUser((OAuth2LoginAuthenticationToken) details);
+                        if (oidcUser != null) {
+                            OAuth2LoginAuthenticationToken oidcAuthentication = (OAuth2LoginAuthenticationToken) details;
+                            String registrationId = oidcAuthentication.getClientRegistration().getRegistrationId();
+                            ClientRegistration clientRegistration = this.clientRegistrationRepository.findByRegistrationId(registrationId);
+                            URI endSessionEndpoint = this.endSessionEndpoint(clientRegistration);
+                            if (endSessionEndpoint != null) {
+                                String idToken = this.idToken(oidcUser);
+                                String postLogoutRedirectUri = this.postLogoutRedirectUri(request);
+                                targetUrl = this.endpointUri(endSessionEndpoint, idToken, postLogoutRedirectUri);
+                            }
                         }
                     }
                 }
@@ -76,6 +78,17 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
         }
 
         return targetUrl != null ? targetUrl : super.determineTargetUrl(request, response);
+    }
+
+    private OidcUser getOidcUser(OAuth2LoginAuthenticationToken authentication) {
+        if (authentication.getPrincipal() instanceof OidcUser) {
+            return (OidcUser) authentication.getPrincipal();
+        }
+
+        if (authentication.getDetails() instanceof OidcUser) {
+            return (OidcUser) authentication.getDetails();
+        }
+        return null;
     }
 
     private URI endSessionEndpoint(ClientRegistration clientRegistration) {
@@ -90,8 +103,8 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
         return null;
     }
 
-    private String idToken(Authentication authentication) {
-        return ((OidcUser)authentication.getDetails()).getIdToken().getTokenValue();
+    private String idToken(OidcUser oidcUser) {
+        return oidcUser.getIdToken().getTokenValue();
     }
 
     private String postLogoutRedirectUri(HttpServletRequest request) {

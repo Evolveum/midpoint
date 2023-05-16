@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
+import com.nimbusds.jose.util.Base64URL;
+
 import java.io.Serializable;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -19,11 +21,16 @@ public class OidcAdditionalConfiguration implements Serializable {
     private final String singingAlg;
     private final RSAPublicKey publicKey;
     private final RSAPrivateKey privateKey;
+    private final Base64URL thumbprint;
+    private final Base64URL thumbprint256;
 
-    private OidcAdditionalConfiguration(String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey) {
+    private OidcAdditionalConfiguration(
+            String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey, String thumbprint, String thumbprint256) {
         this.singingAlg = singingAlg;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
+        this.thumbprint = thumbprint != null ? Base64URL.encode(thumbprint) : null;
+        this.thumbprint256 = thumbprint256 != null ? Base64URL.encode(thumbprint256) : null;
     }
 
     public String getSingingAlg() {
@@ -38,6 +45,14 @@ public class OidcAdditionalConfiguration implements Serializable {
         return publicKey;
     }
 
+    public Base64URL getThumbprint() {
+        return thumbprint;
+    }
+
+    public Base64URL getThumbprint256() {
+        return thumbprint256;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -47,6 +62,9 @@ public class OidcAdditionalConfiguration implements Serializable {
         private String singingAlg;
         private RSAPublicKey publicKey;
         private RSAPrivateKey privateKey;
+
+        private String thumbprint;
+        private String thumbprint256;
 
         private Builder() {
         }
@@ -66,8 +84,19 @@ public class OidcAdditionalConfiguration implements Serializable {
             return this;
         }
 
+        public Builder thumbprint(String thumbprint) {
+            this.thumbprint = thumbprint;
+            return this;
+        }
+
+        public Builder thumbprint256(String thumbprint256) {
+            this.thumbprint256 = thumbprint256;
+            return this;
+        }
+
         public OidcAdditionalConfiguration build(){
-            return new OidcAdditionalConfiguration(this.singingAlg, this.publicKey, this.privateKey);
+            return new OidcAdditionalConfiguration(
+                    this.singingAlg, this.publicKey, this.privateKey, this.thumbprint, this.thumbprint256);
         }
     }
 }

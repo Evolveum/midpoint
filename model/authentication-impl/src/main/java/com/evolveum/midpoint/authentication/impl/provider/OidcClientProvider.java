@@ -16,10 +16,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.util.Base64URL;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -32,6 +36,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.util.MultiValueMap;
 
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
@@ -58,12 +63,25 @@ public class OidcClientProvider extends RemoteModuleProvider {
         JwtDecoderFactory<ClientRegistration> decoder = new OidcIdTokenDecoderFactory();
         OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
                 new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-        requestEntityConverter.addParametersConverter(
-                new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver));
+        requestEntityConverter.addParametersConverter(createParameterConverter());
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
         client.setRequestEntityConverter(requestEntityConverter);
         oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, getUserService(decoder));
         oidcProvider.setJwtDecoderFactory(decoder);
+    }
+
+    private Converter<OAuth2AuthorizationCodeGrantRequest, MultiValueMap<String, String>> createParameterConverter() {
+        NimbusJwtClientAuthenticationParametersConverter<OAuth2AuthorizationCodeGrantRequest> parameterConverter =
+                new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver);
+        parameterConverter.setJwtClientAssertionCustomizer((context) -> {
+            ClientRegistration clientRegistration = context.getAuthorizationGrantRequest().getClientRegistration();
+            JWK jwk = jwkResolver.apply(clientRegistration);
+            if (jwk.getX509CertThumbprint() != null) {
+                context.getHeaders().x509SHA1Thumbprint(jwk.getX509CertThumbprint().toString());
+                context.getHeaders().type("JWT");
+            }
+        });
+        return parameterConverter;
     }
 
     private OidcUserService getUserService(JwtDecoderFactory<ClientRegistration> decoder) {
@@ -92,7 +110,8 @@ public class OidcClientProvider extends RemoteModuleProvider {
                         .keyID(UUID.randomUUID().toString());
                 String signingAlg = additionalConfiguration.get(clientRegistration.getRegistrationId()).getSingingAlg();
                 builder.algorithm(Algorithm.parse(signingAlg));
-                builder.keyID(null); //hack without it resolver can't find key
+                builder.x509CertThumbprint(config.getThumbprint());
+                builder.keyID(null);  //hack without it resolver can't find key
                 return builder.build();
             }
             return null;
@@ -109,6 +128,7 @@ public class OidcClientProvider extends RemoteModuleProvider {
                 oidcAuthenticationToken = (OAuth2LoginAuthenticationToken) oidcProvider.authenticate(authentication);
             } catch (Exception e) {
                 getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                LOGGER.debug("Unexpected exception in oidc module", e);
                 throw new AuthenticationServiceException("web.security.provider.unavailable", e);
             }
             OidcClientModuleAuthenticationImpl oidcModule = (OidcClientModuleAuthenticationImpl) AuthUtil.getProcessingModule();
@@ -122,7 +142,7 @@ public class OidcClientProvider extends RemoteModuleProvider {
                 ((OAuth2LoginAuthenticationToken) authentication).setDetails(oidcAuthenticationToken.getPrincipal());
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
-                LOGGER.info("Authentication with oidc module failed: {}", e.getMessage()); // TODO debug?
+                LOGGER.debug("Authentication with oidc module failed: {}", e.getMessage());
                 throw e;
             }
         } else {
