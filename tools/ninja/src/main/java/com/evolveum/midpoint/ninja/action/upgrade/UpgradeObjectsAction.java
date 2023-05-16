@@ -9,26 +9,32 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.evolveum.midpoint.ninja.action.Action;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class UpgradeObjectsAction extends Action<Void> {
 
-    private Map<Class<?>, Object> context = new HashMap<>();
-
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
+            // todo upgrade initial objects, also all other objecst that can be upgraded before midpoint version/DB/midpoint home was upgraded
             DownloadDistributionStep.class,
             DatabaseSchemaStep.class,
-            UpgradeMidpointHomeStep.class
+            UpgradeMidpointHomeStep.class,
+            // todo upgrade initial objects, also all other objects (changes that had to be done after DB upgrade)
+            // todo what if recomputation/reconciliation/whatever task is needed?
     };
 
     @Override
     public void execute() throws Exception {
+        UpgradeStepsContext ctx = new UpgradeStepsContext(context);
+
         for (Class<? extends UpgradeStep> stepType : STEPS) {
-            UpgradeStep step = stepType.getConstructor().newInstance();
+            UpgradeStep step;
+            try {
+                step = stepType.getConstructor(UpgradeStepsContext.class).newInstance(ctx);
+            } catch (Exception ex) {
+                step = stepType.getConstructor().newInstance();
+            }
+
             Object result = step.execute();
 
-            context.put(result.getClass(), result);
+            ctx.addResult(step.getClass(), result);
         }
     }
 }

@@ -171,23 +171,6 @@ public class NinjaContext {
         return password;
     }
 
-    private RestService setupRestService(ConnectionOptions options) {
-        log.info("Initializing rest service");
-
-        String url = options.getUrl();
-        String username = options.getUsername();
-        String password = getPassword(options);
-
-        if (url == null) {
-            throw new IllegalStateException("Url is not defined");
-        }
-
-        RestService restService = new RestService(url, username, password);
-        updatePolyStringNormalizationConfiguration(restService.getPrismContext());
-
-        return restService;
-    }
-
     public JCommander getJc() {
         return jc;
     }
