@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
@@ -34,13 +35,31 @@ public abstract class Action<O> {
         this.options = options;
 
         LogTarget target = getInfoLogTarget();
-        log = new Log(target, this.context);
+        Log.LogLevel level = getLogLevel(context);
+        log = new Log(target, level);
 
         this.context.setLog(log);
 
         ConnectionOptions connection = Objects.requireNonNull(
                 NinjaUtils.getOptions(this.context.getJc(), ConnectionOptions.class));
         this.context.init(connection);
+    }
+
+    private Log.LogLevel getLogLevel(NinjaContext context) {
+        BaseOptions base = NinjaUtils.getOptions(context.getJc(), BaseOptions.class);
+        if (base == null) {
+            return Log.LogLevel.DEFAULT;
+        }
+
+        if (base.isVerbose()) {
+            return Log.LogLevel.VERBOSE;
+        }
+
+        if (base.isSilent()) {
+            return Log.LogLevel.SILENT;
+        }
+
+        return Log.LogLevel.DEFAULT;
     }
 
     public LogTarget getInfoLogTarget() {

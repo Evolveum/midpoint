@@ -41,6 +41,7 @@ public class UpgradeStepsTest {
         ConnectionOptions options = NinjaUtils.getOptions(jc, ConnectionOptions.class);
 
         NinjaContext ninjaContext = new NinjaContext(null);
+        ninjaContext.setLog(new Log(LogTarget.SYSTEM_OUT, Log.LogLevel.DEFAULT));
         ninjaContext.init(options);
 
         UpgradeStepsContext ctx = new UpgradeStepsContext(ninjaContext);
