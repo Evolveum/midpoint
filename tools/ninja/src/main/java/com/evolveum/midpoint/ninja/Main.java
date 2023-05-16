@@ -22,6 +22,8 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -43,7 +45,7 @@ public class Main {
         BaseOptions base = Objects.requireNonNull(
                 NinjaUtils.getOptions(jc, BaseOptions.class));
 
-        if (base.isVersion()) {
+        if (BooleanUtils.isTrue(base.isVersion())) {
             try {
                 URL versionResource = Objects.requireNonNull(
                         Main.class.getResource("/version"));

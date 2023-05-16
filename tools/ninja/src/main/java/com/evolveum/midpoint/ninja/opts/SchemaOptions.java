@@ -12,7 +12,7 @@ import com.beust.jcommander.Parameters;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Parameters(resourceBundle = "messages", commandDescription = "schema")
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "schema")
 public class SchemaOptions {
 
     public static final String P_TEST = "-t";

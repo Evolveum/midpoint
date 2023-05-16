@@ -9,6 +9,8 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.beust.jcommander.Parameters;
 
-@Parameters(resourceBundle = "messages", commandDescription = "upgrade")
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "upgrade")
 public class UpgradeOptions {
+
+
 }

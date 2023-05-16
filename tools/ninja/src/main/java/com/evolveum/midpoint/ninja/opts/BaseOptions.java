@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.ninja.opts;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -37,23 +38,23 @@ public class BaseOptions {
     public static final String P_JDBC = "-j";
     public static final String P_JDBC_LONG = "--jdbc";
 
-    @Parameter(names = {P_JDBC, P_JDBC_LONG}, descriptionKey = "base.jdbc", hidden = true)
+    @Parameter(names = { P_JDBC, P_JDBC_LONG }, descriptionKey = "base.jdbc", hidden = true)
     private File jdbc;
 
-    @Parameter(names = {P_HELP, P_HELP_LONG}, help = true, descriptionKey = "base.help")
+    @Parameter(names = { P_HELP, P_HELP_LONG }, help = true, descriptionKey = "base.help")
     private boolean help = false;
 
-    @Parameter(names = {P_VERBOSE, P_VERBOSE_LONG}, descriptionKey = "base.verbose")
+    @Parameter(names = { P_VERBOSE, P_VERBOSE_LONG }, descriptionKey = "base.verbose")
     private boolean verbose = false;
 
-    @Parameter(names = {P_SILENT, P_SILENT_LONG}, descriptionKey = "base.silent")
+    @Parameter(names = { P_SILENT, P_SILENT_LONG }, descriptionKey = "base.silent")
     private boolean silent = false;
 
-    @Parameter(names = {P_CHARSET, P_CHARSET_LONG}, descriptionKey = "base.charset")
-    private String charset = "utf-8";
+    @Parameter(names = { P_CHARSET, P_CHARSET_LONG }, descriptionKey = "base.charset")
+    private String charset = StandardCharsets.UTF_8.name();
 
-    @Parameter(names = {P_VERSION, P_VERSION_LONG}, descriptionKey = "base.version")
-    private boolean version = false;
+    @Parameter(names = { P_VERSION, P_VERSION_LONG }, descriptionKey = "base.version")
+    private Boolean version;
 
     @ParametersDelegate
     private PolyStringNormalizerOptions polyStringNormalizerOptions = new PolyStringNormalizerOptions();
@@ -74,7 +75,7 @@ public class BaseOptions {
         return charset;
     }
 
-    public boolean isVersion() {
+    public Boolean isVersion() {
         return version;
     }
 

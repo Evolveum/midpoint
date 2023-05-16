@@ -15,7 +15,7 @@ import com.evolveum.midpoint.ninja.util.FileReferenceConverter;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Parameters(resourceBundle = "messages", commandDescription = "delete")
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "delete")
 public class DeleteOptions {
 
     public static final String P_OID = "-o";
