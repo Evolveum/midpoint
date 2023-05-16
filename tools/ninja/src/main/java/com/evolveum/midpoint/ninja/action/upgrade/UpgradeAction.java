@@ -9,7 +9,7 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.evolveum.midpoint.ninja.action.Action;
 
-public class UpgradeObjectsAction extends Action<Void> {
+public class UpgradeAction extends Action<UpgradeOptions> {
 
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
             // todo upgrade initial objects, also all other objecst that can be upgraded before midpoint version/DB/midpoint home was upgraded

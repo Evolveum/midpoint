@@ -12,6 +12,8 @@ import com.evolveum.midpoint.ninja.action.audit.ExportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.audit.ImportAuditOptions;
 import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeAction;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
 import com.evolveum.midpoint.ninja.opts.*;
 
 /**
@@ -37,7 +39,9 @@ public enum Command {
 
     EXPORT_AUDIT("exportAudit", ExportAuditOptions.class, ExportAuditRepositoryAction.class),
 
-    TRACE("trace", EditTraceOptions.class, EditTraceAction.class);
+    TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
+
+    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class);
 
     // todo reencrypt, modify, bulk, etc
 
@@ -45,12 +49,12 @@ public enum Command {
 
     private final Class<?> options;
 
-    private final Class<? extends RepositoryAction<?>> repositoryAction;
+    private final Class<? extends Action<?>> action;
 
-    <T> Command(String commandName, Class<T> options, Class<? extends RepositoryAction<T>> repositoryAction) {
+    <T> Command(String commandName, Class<T> options, Class<? extends Action<T>> action) {
         this.commandName = commandName;
         this.options = options;
-        this.repositoryAction = repositoryAction;
+        this.action = action;
     }
 
     public String getCommandName() {
@@ -65,19 +69,19 @@ public enum Command {
         }
     }
 
-    public static <T> RepositoryAction<T> createRepositoryAction(String command) {
+    public static <T> Action<T> createAction(String command) {
         Command cmd = findCommand(command);
         if (cmd == null) {
             return null;
         }
 
         try {
-            if (cmd.repositoryAction == null) {
+            if (cmd.action == null) {
                 return null;
             }
 
             //noinspection unchecked
-            return (RepositoryAction<T>) cmd.repositoryAction.getDeclaredConstructor().newInstance();
+            return (Action<T>) cmd.action.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
