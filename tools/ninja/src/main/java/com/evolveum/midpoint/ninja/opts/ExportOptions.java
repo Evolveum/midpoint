@@ -17,10 +17,10 @@ import com.beust.jcommander.Parameters;
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "export")
 public class ExportOptions extends BaseImportExportOptions implements BasicExportOptions {
 
-    public static final String P_OUTPUT = "-O";
+    public static final String P_OUTPUT = "-o";
     public static final String P_OUTPUT_LONG = "--output";
 
-    public static final String P_OVERWRITE = "-ow";
+    public static final String P_OVERWRITE = "-O";
     public static final String P_OVERWRITE_LONG = "--overwrite";
 
     // TODO not supported yet

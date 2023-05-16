@@ -25,14 +25,14 @@ public class VerifyOptions extends ExportOptions {
     @Parameter(names = {P_WARN, P_WARN_LONG}, descriptionKey = "verify.warn")
     private String warn;
 
-    @Parameter(names = {P_CREATE_REPORT})   // todo description, etc
-    private boolean createReport;
+    @Parameter(names = {P_CREATE_REPORT}, descriptionKey = "verify.createReport")
+    private Boolean createReport;
 
     public String getWarn() {
         return warn;
     }
 
-    public boolean isCreateReport() {
+    public Boolean isCreateReport() {
         return createReport;
     }
 }

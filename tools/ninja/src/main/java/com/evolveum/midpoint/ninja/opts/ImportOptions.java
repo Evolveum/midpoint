@@ -28,7 +28,6 @@ public class ImportOptions extends BaseImportExportOptions implements BasicImpor
 
     public static final String P_CONTINUE_ON_INPUT_ERROR_LONG = "--continueOnInputError";
 
-
     @Parameter(names = { P_INPUT, P_INPUT_LONG }, descriptionKey = "import.input")
     private File input;
 
@@ -39,7 +38,7 @@ public class ImportOptions extends BaseImportExportOptions implements BasicImpor
             descriptionKey = "import.allowUnencryptedValues")
     private boolean allowUnencryptedValues;
 
-    @Parameter(names = { P_CONTINUE_ON_INPUT_ERROR_LONG }, descriptionKey =  "import.continueOnInputError")
+    @Parameter(names = { P_CONTINUE_ON_INPUT_ERROR_LONG }, descriptionKey = "import.continueOnInputError")
     private boolean continueOnInputError;
 
     @Override
@@ -59,6 +58,5 @@ public class ImportOptions extends BaseImportExportOptions implements BasicImpor
     public boolean isContinueOnInputError() {
         return continueOnInputError;
     }
-
 
 }

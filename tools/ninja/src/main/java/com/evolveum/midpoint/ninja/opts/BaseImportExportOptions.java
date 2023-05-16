@@ -23,7 +23,6 @@ public class BaseImportExportOptions {
     public static final String P_RAW = "-r";
     public static final String P_RAW_LONG = "--raw";
 
-    public static final String P_OID = "-o";
     public static final String P_OID_LONG = "--oid";
 
     public static final String P_TYPE = "-t";
@@ -41,7 +40,7 @@ public class BaseImportExportOptions {
     @Parameter(names = {P_RAW, P_RAW_LONG}, descriptionKey = "baseImportExport.raw")
     private boolean raw;
 
-    @Parameter(names = {P_OID, P_OID_LONG}, descriptionKey = "baseImportExport.oid")
+    @Parameter(names = {P_OID_LONG}, descriptionKey = "baseImportExport.oid")
     private String oid;
 
     @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "base.type",

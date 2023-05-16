@@ -9,7 +9,10 @@ package com.evolveum.midpoint.ninja.opts;
 import java.io.File;
 
 public interface BasicExportOptions {
+
     File getOutput();
+
     boolean isOverwrite();
+
     boolean isZip();
 }

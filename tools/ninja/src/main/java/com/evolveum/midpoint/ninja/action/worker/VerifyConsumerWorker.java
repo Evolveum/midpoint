@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.xml.serialize.LineSeparator;
 
 /**
@@ -77,7 +78,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
             }
         }
 
-        if (options.isCreateReport()) {
+        if (BooleanUtils.isTrue(options.isCreateReport())) {
             CSVFormat csv = createCsvFormat();
 
             try {
@@ -113,7 +114,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
             writeValidationItem(writer, prismObject, validationItem);
         }
 
-        if (options.isCreateReport()) {
+        if (BooleanUtils.isTrue(options.isCreateReport())) {
             for (ValidationItem item : validationResult.getItems()) {
                 reportWriter.printRecord(createReportRecord(item, prismObject));
             }
