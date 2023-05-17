@@ -198,7 +198,7 @@ Definition of HTTP BASIC authentication module (RFC 7617).
 [source,xml]
 ----
 <httpBasic>
-	<name>internalHttpBasic</name>
+	<identifier>internalHttpBasic</identifier>
     <description>Http basic username/password authentication, default user password</description>
 </httpBasic>
 ----
@@ -214,7 +214,7 @@ The HTTP SecQ mechanism is similar to HTTP BASIC mechanism, but it is using secu
 [source,xml]
 ----
 <httpSecQ>
-	<name>httpSecurityQuestions</name>
+	<identifier>httpSecurityQuestions</identifier>
 </httpSecQ>
 ----
 
@@ -993,7 +993,7 @@ Required attribute is only `issuerUri`, because midPoint gets configuration for 
                 <urlSuffix>defaultGui</urlSuffix>
             </channel>
             <module>
-                <name>oidcKeycloak</name>
+                <identifier>oidcKeycloak</identifier>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>
