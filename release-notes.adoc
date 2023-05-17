@@ -32,7 +32,7 @@ The {release-version} release brings streamlined upgrade process, security stabi
 
 * Improvements for the OIDC authentication module. Since version 4.8, the flow for identifying a user logged in via the GUI has been changed. MidPoint uses the claim value with the name from the _nameOfUsernameAttribute_. The claim is primarily obtained from the ID token. When a claim is missing in the ID token, midPoint looks for it in the access token. Finally, if the claim is missing in the access token, midPoint uses the user info endpoint to retrieve the claim. And since version 4.8 for REST request midPoint supports authentication with one of two token formats, JWT and Opaque Token. See https://docs.evolveum.com/midpoint/reference/security/authentication/flexible-authentication/configuration/#module-oidc[the documentation] for more configuration details.
 
-* TODO
+* Ninja command line options consolidated (few options renamed) https://jira.evolveum.com/browse/MID-7483[MID-7483]
 
 === Miscellaneous Improvements
 
