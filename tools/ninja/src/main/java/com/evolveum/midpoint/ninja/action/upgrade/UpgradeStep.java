@@ -9,5 +9,7 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 public interface UpgradeStep<R> {
 
+    String getIdentifier();
+
     R execute() throws Exception;
 }

@@ -29,6 +29,11 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
     }
 
     @Override
+    public String getIdentifier() {
+        return "downloadDistribution";
+    }
+
+    @Override
     public DownloadDistributionStepResult execute() throws IOException {
         DistributionManager manager = new DistributionManager();
         ProgressListener listener = new ConsoleProgressListener();

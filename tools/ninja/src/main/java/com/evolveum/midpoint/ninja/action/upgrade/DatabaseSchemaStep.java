@@ -30,6 +30,11 @@ public class DatabaseSchemaStep implements UpgradeStep<Void> {
     }
 
     @Override
+    public String getIdentifier() {
+        return "databaseSchema";
+    }
+
+    @Override
     public Void execute() throws Exception {
         // 1/ initialize DB connection, using midpoint home?
         // 2/ check current state of DB. Is it previous feature release (4.6) or LTS (4.4)

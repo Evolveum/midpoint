@@ -13,6 +13,7 @@ public class UpgradeAction extends Action<UpgradeOptions> {
 
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
             // todo upgrade initial objects, also all other objecst that can be upgraded before midpoint version/DB/midpoint home was upgraded
+            VersionCheckStep.class,
             DownloadDistributionStep.class,
             DatabaseSchemaStep.class,
             UpgradeMidpointHomeStep.class,

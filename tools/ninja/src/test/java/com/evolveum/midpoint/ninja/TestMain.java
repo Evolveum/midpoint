@@ -24,6 +24,7 @@ public class TestMain {
 //                "-f", "<inOid xmlns=\"http://prism.evolveum.com/xml/ns/public/query-3\"><value>00000000-0000-0000-0000-000000000002</value></inOid>");
 
         input = "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home verify --create-report".split(" ");
+        input = "-h upgrade".split(" ");
 
         Main.main(input);
     }
