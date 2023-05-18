@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.component.wizard.resource.component;
+package com.evolveum.midpoint.web.page.admin.resources.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -28,12 +28,11 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.AttributeDto;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDetailsDto;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDataProvider;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDetailsDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.resources.dto.AttributeDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;

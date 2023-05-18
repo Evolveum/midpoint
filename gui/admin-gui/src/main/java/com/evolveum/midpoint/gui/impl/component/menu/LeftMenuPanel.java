@@ -76,7 +76,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
@@ -629,16 +628,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             AbstractPageObjectDetails<?, ?> page = (AbstractPageObjectDetails<?, ?>) pageBase;
             return page.isEditObject();
         }
-        return false;
-    }
-
-    private boolean isEditForResourceWizzard() {
-        PageBase pageBase = getPageBase();
-
-        if (pageBase instanceof PageResourceWizard) {
-            return !((PageResourceWizard) pageBase).isNewResource();
-        }
-
         return false;
     }
 
