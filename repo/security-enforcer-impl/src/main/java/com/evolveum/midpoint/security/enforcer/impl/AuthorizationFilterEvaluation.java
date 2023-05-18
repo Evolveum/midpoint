@@ -62,7 +62,7 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
         this.selectorLabel = selectorLabel;
     }
 
-    public boolean evaluate()
+    boolean computeFilter()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 

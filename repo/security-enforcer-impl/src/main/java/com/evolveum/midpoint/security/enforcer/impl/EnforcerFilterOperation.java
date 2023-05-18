@@ -87,11 +87,11 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
         traceOperationStart();
         F securityFilter;
         if (phase != null) {
-            securityFilter = new Phase(phase, false).compute(result);
+            securityFilter = new Phase(phase, false).computeFilter(result);
         } else {
-            F filterBoth = new Phase(null, true).compute(result); // includeNullPhase is irrelevant here
-            F filterRequest = new Phase(REQUEST, true).compute(result);
-            F filterExecution = new Phase(EXECUTION, true).compute(result);
+            F filterBoth = new Phase(null, true).computeFilter(result); // partialCheck is irrelevant here
+            F filterRequest = new Phase(REQUEST, true).computeFilter(result);
+            F filterExecution = new Phase(EXECUTION, true).computeFilter(result);
             securityFilter =
                     gizmo.or(
                             filterBoth,
@@ -128,7 +128,7 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
          *
          * See also {@link SelectorToFilterTranslator}
          */
-        private F compute(OperationResult result)
+        private F computeFilter(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -164,7 +164,7 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
                     continue;
                 }
 
-                var applicable = autzEvaluation.evaluate();
+                var applicable = autzEvaluation.computeFilter();
 
                 if (applicable) {
                     F autzSecurityFilter =

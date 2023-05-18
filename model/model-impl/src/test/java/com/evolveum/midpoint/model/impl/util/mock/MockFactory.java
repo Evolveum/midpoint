@@ -343,8 +343,8 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
-                    ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+            public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(@NotNull Class<T> type,
+                    @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
                 return new SearchResultList<>(List.of());
             }
 

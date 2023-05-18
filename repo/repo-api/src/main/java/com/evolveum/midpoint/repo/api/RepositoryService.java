@@ -351,8 +351,11 @@ public interface RepositoryService {
     /**
      * Search for "sub-object" structures, i.e. containers.
      */
-    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
+    @NotNull <T extends Containerable> SearchResultList<T> searchContainers(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 
     /**
      * Reference count - currently supporting roleMembershipRef and linkRef search.

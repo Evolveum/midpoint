@@ -365,7 +365,7 @@ public class ObjectRetriever {
         return rv;
     }
 
-    public <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
+    public @NotNull <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         boolean assignments = AssignmentType.class.equals(type);

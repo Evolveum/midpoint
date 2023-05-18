@@ -1277,9 +1277,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
-    public <T extends Containerable> SearchResultList<T> searchContainers(
-            Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+    public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(
+            @NotNull Class<T> type, @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult)
             throws SchemaException {
 
         Objects.requireNonNull(type, "Container type must not be null.");
@@ -1310,8 +1310,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <T extends Containerable> SearchResultList<T> executeSearchContainers(Class<T> type,
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+    private @NotNull <T extends Containerable> SearchResultList<T> executeSearchContainers(
+            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
             throws RepositoryException, SchemaException {
 
         long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS, type);

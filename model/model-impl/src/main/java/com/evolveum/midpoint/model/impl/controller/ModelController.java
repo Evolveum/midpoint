@@ -642,7 +642,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    private class ContainerOperationContext<T extends Containerable> {
+    private class ContainerSearchLikeOpContext<T extends Containerable> {
         final boolean isCertCase;
         final boolean isCaseMgmtWorkItem;
         final boolean isOperationExecution;
@@ -652,7 +652,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         private final boolean isAssignment;
 
         // TODO: task and result here are ugly and probably wrong
-        ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result)
+        ContainerSearchLikeOpContext(Class<T> type, ObjectQuery query, Task task, OperationResult result)
                 throws SchemaException, SecurityViolationException, ObjectNotFoundException,
                 ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
@@ -694,7 +694,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
+            var ctx = new ContainerSearchLikeOpContext<>(type, query, task, result);
 
             var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
             var options = parsedOptions.getCollection();
@@ -730,10 +730,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
                 }
 
-                if (list == null) {
-                    list = new SearchResultList<>(new ArrayList<>());
-                }
-
                 for (T object : list) {
                     // TODO implement read hook, if necessary
                     executeResolveOptions(object, parsedOptions, task, result);
@@ -743,15 +739,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             }
 
             if (ctx.isCertCase) {
-                list = schemaTransformer.applySchemasAndSecurityToContainers(
+                return schemaTransformer.applySchemasAndSecurityToContainerValues(
                         list, AccessCertificationCampaignType.class, AccessCertificationCampaignType.F_CASE,
                         parsedOptions, task, result);
             } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment || ctx.isProcessedObject) {
                 // TODO implement security post processing for CaseWorkItems
+                return list;
             } else {
                 throw new IllegalStateException();
             }
-            return list;
         } finally {
             result.close();
             result.cleanup();
@@ -772,7 +768,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
+            var ctx = new ContainerSearchLikeOpContext<>(type, query, task, result);
             var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
             var options = parsedOptions.getCollection();
             query = ctx.refinedQuery;
@@ -1060,16 +1056,16 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         ModelImplUtils.validatePaging(query.getPaging());
 
-        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
+        OperationResult result = parentResult.createSubresult(SEARCH_REFERENCES)
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, operationResult);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
             var options = parsedOptions.getCollection();
 
-            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+            query = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
 
-            if (isFilterNone(query, operationResult)) {
+            if (isFilterNone(query, result)) {
                 return new SearchResultList<>(new ArrayList<>());
             }
 
@@ -1079,9 +1075,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             try {
                 logQuery(query);
 
-                list = cacheRepositoryService.searchReferences(query, options, operationResult);
+                list = cacheRepositoryService.searchReferences(query, options, result);
             } catch (SchemaException | RuntimeException e) {
-                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                recordSearchException(e, ObjectManager.REPOSITORY, result);
                 throw e;
             } finally {
                 exitModelMethod();
@@ -1090,8 +1086,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // TODO how does schemaTransformer.applySchemasAndSecurityToContainers apply to reference result?
             return list;
         } finally {
-            operationResult.close();
-            operationResult.cleanup();
+            result.close();
+            result.cleanup();
         }
     }
 

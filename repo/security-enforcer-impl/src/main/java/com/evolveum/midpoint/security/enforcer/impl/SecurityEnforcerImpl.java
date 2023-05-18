@@ -159,7 +159,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             CommunicationException, ConfigurationException, SecurityViolationException {
         return new EnforcerDecisionOperation<>(
                 operationUrl, params, applicableAutzConsumer, principal, ownerResolver, beans, task)
-                .execute(phase, result);
+                .decideAccess(phase, result);
     }
 
     @Override

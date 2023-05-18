@@ -58,7 +58,7 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
         this.applicableAutzConsumer = applicableAutzConsumer;
     }
 
-    @NotNull AccessDecision execute(@Nullable AuthorizationPhaseType phase, OperationResult result)
+    @NotNull AccessDecision decideAccess(@Nullable AuthorizationPhaseType phase, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         if (phase == null) {

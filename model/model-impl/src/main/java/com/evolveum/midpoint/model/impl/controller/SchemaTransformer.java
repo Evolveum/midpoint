@@ -168,7 +168,7 @@ public class SchemaTransformer {
     // Expecting that C is a direct child of T.
     // Expecting that container values point to their respective parents (in order to evaluate the security!)
     <C extends Containerable, T extends ObjectType>
-    SearchResultList<C> applySchemasAndSecurityToContainers(
+    SearchResultList<C> applySchemasAndSecurityToContainerValues(
             SearchResultList<C> originalResultList,
             Class<T> parentObjectType,
             ItemName childItemName,
