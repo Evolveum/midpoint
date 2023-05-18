@@ -219,6 +219,8 @@ public class ShadowCreator {
 
         normalizeAttributes(repoShadow, ctx.getObjectDefinitionRequired());
 
+        MetadataUtil.addCreationMetadata(repoShadow);
+
         return repoShadow;
     }
 

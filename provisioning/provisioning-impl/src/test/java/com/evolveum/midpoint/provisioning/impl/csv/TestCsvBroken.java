@@ -233,6 +233,12 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
         display("Resource objects found", resourceObjects);
         assertEquals("Wrong # of CSV resource objects", 2, resourceObjects.size());
 
+        long count = resourceObjects.stream()
+                .map(o -> o.asObjectable())
+                .filter(s -> s.getMetadata() == null || s.getMetadata().getCreateTimestamp() == null)
+                .count();
+        assertEquals("There are shadows without metadata", 0, count);
+
         /*
          * It looks like successful searchObjects operation does not trigger setting resource availability to UP.
          * But getObject does, so let's use it here.
