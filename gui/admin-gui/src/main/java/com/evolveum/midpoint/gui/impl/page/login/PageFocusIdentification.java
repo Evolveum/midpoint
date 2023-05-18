@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -117,18 +118,13 @@ public class PageFocusIdentification extends PageAuthenticationBase {
             return null;
         }
         UserType user = userModel.getObject();
-        if (user == null) {
-            getSession().error(getString("User not found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
-        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
-            getSession().error(getString("Security policy not found"));
-            throw new RestartResponseException(PageError.class);
+        SecurityPolicyType securityPolicy = resolveUserSecurityPolicy(user);
+        if (securityPolicy.getAuthentication() == null || securityPolicy.getAuthentication().getModules() == null) {
+            return null;
         }
         return securityPolicy.getAuthentication().getModules().getFocusIdentification()
                 .stream()
-                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
+                .filter(m -> moduleIdentifier.equals(m.getIdentifier()))
                 .findFirst()
                 .orElse(null);
     }
