@@ -9,6 +9,12 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 public class VersionCheckStep implements UpgradeStep<VersionCheckResult> {
 
+    public static final String SUPPORTED_VERSION_LTS = "4.4.4";
+
+    public static final String SUPPORTED_VERSION_FEATURE = "4.7.1";
+
+    public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE };
+
     @Override
     public String getIdentifier() {
         return "versionCheck";
@@ -17,7 +23,7 @@ public class VersionCheckStep implements UpgradeStep<VersionCheckResult> {
     @Override
     public VersionCheckResult execute() throws Exception {
         String version = "";
-        // todo implement midPoint version check
+        // todo implement midPoint version check, also implement midpoint version support in midpoint sqale db
         return new VersionCheckResult()
                 .currentVersion(version);
     }

@@ -17,6 +17,10 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 public class DatabaseSchemaStep implements UpgradeStep<Void> {
 
+    public static final int SUPPORTED_VERSION_LTS = 1;  // for 4.4.4
+
+    public static final int SUPPORTED_VERSION_FEATURE = 15; // for 4.7.1
+
     private static final String MIDPOINT_DB_UPGRADE_FILE = "/config/postgres-new-upgrade.sql";
 
     private static final String AUDIT_DB_UPGRADE_FILE = "postgres-new-upgrade-audit.sql";
@@ -64,7 +68,7 @@ public class DatabaseSchemaStep implements UpgradeStep<Void> {
 
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
 
-        DownloadDistributionStepResult distribution = context.getResult(DownloadDistributionStepResult.class);
+        DownloadDistributionResult distribution = context.getResult(DownloadDistributionResult.class);
 
         FileSystemResourceLoader loader = new FileSystemResourceLoader();
         Resource script = loader.getResource(distribution.getDistributionDirectory() + MIDPOINT_DB_UPGRADE_FILE);

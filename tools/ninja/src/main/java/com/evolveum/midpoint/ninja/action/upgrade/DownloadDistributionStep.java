@@ -16,7 +16,7 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class DownloadDistributionStep implements UpgradeStep<DownloadDistributionStepResult> {
+public class DownloadDistributionStep implements UpgradeStep<DownloadDistributionResult> {
 
     private String version;
 
@@ -34,7 +34,7 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
     }
 
     @Override
-    public DownloadDistributionStepResult execute() throws IOException {
+    public DownloadDistributionResult execute() throws IOException {
         DistributionManager manager = new DistributionManager();
         ProgressListener listener = new ConsoleProgressListener();
 
@@ -42,7 +42,7 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
 
         File distributionDirectory = unzipDistribution(distributionZipFile);
 
-        return new DownloadDistributionStepResult(distributionZipFile, distributionDirectory);
+        return new DownloadDistributionResult(distributionZipFile, distributionDirectory);
     }
 
     private File unzipDistribution(File distributionZip) throws IOException {

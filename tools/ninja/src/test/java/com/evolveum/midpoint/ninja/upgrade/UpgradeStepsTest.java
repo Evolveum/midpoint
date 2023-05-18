@@ -9,7 +9,7 @@ package com.evolveum.midpoint.ninja.upgrade;
 
 import com.beust.jcommander.JCommander;
 
-import com.evolveum.midpoint.ninja.action.upgrade.DownloadDistributionStepResult;
+import com.evolveum.midpoint.ninja.action.upgrade.DownloadDistributionResult;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.util.Log;
@@ -48,7 +48,7 @@ public class UpgradeStepsTest {
 
         DownloadDistributionStep distributionStep = new DownloadDistributionStep();
         distributionStep.setVersion("4.4.4");
-        DownloadDistributionStepResult result = distributionStep.execute();
+        DownloadDistributionResult result = distributionStep.execute();
 
         ctx.addResult(DownloadDistributionStep.class, result);
 
