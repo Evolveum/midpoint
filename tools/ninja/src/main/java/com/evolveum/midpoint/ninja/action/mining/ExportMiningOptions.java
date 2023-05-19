@@ -22,10 +22,8 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     private static final String DELIMITER = ",";
     public static final String P_OUTPUT = "-O";
     public static final String P_OUTPUT_LONG = "--output";
-
     public static final String P_OVERWRITE = "-ow";
     public static final String P_OVERWRITE_LONG = "--overwrite";
-
     public static final String P_PREFIX_APPLICATION = "-pa";
     public static final String P_PREFIX_APPLICATION_LONG = "-applicationRolePrefix";
     public static final String P_PREFIX_BUSINESS = "-pb";
@@ -45,10 +43,12 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_SECURITY_LEVEL = "-s";
     public static final String P_SECURITY_LEVEL_LONG = "-security";
 
-    @Parameter(names = { P_SECURITY_LEVEL, P_SECURITY_LEVEL_LONG }, descriptionKey = "export.security.level.suffix")
-    private String securityLevel;
+    @Parameter(names = { P_SECURITY_LEVEL, P_SECURITY_LEVEL_LONG }, descriptionKey = "export.security.level")
+    private ExportMiningConsumerWorker.SecurityMode securityMode = ExportMiningConsumerWorker.SecurityMode.STRONG;
+
     @Parameter(names = { P_SUFFIX_APPLICATION, P_SUFFIX_APPLICATION_LONG }, descriptionKey = "export.application.role.suffix")
     private String applicationRoleSuffix;
+
     @Parameter(names = { P_SUFFIX_BUSINESS, P_SUFFIX_BUSINESS_LONG }, descriptionKey = "export.business.role.suffix")
     private String businessRoleSuffix;
 
@@ -63,25 +63,27 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
 
     @Parameter(names = { P_PREFIX_APPLICATION, P_PREFIX_APPLICATION_LONG }, descriptionKey = "export.application.role.prefix")
     private String applicationRolePrefix;
+
     @Parameter(names = { P_ORG, P_ORG_LONG }, descriptionKey = "export.prevent.org")
-    private boolean notIncludeOrg;
+    private boolean includeOrg = true;
+
     @Parameter(names = { P_NAME_OPTIONS, P_NAME_OPTIONS_LONG }, descriptionKey = "export.name.options")
-    private String nameMode;
-    @Parameter(names = { P_ARCHETYPE_OID_APPLICATION, P_ARCHETYPE_OID_APPLICATION_LONG }, descriptionKey = "export.application.role.archetype.oid")
-    private String applicationRoleArchetypeOid;
+    private ExportMiningConsumerWorker.NameMode nameMode = ExportMiningConsumerWorker.NameMode.SEQUENTIAL;
 
-    @Parameter(names = { P_ARCHETYPE_OID_BUSINESS, P_ARCHETYPE_OID_BUSINESS_LONG }, descriptionKey = "export.business.role.archetype.oid")
-    private String businessRoleArchetypeOid;
+    @Parameter(names = { P_ARCHETYPE_OID_APPLICATION, P_ARCHETYPE_OID_APPLICATION_LONG },
+            descriptionKey = "export.application.role.archetype.oid")
+    private String applicationRoleArchetypeOid = "00000000-0000-0000-0000-000000000328";
 
-    public String getSecurityLevel() {
-        if(securityLevel ==null || securityLevel.isEmpty()){
-            securityLevel = "strong";
-        }
-        return securityLevel;
+    @Parameter(names = { P_ARCHETYPE_OID_BUSINESS, P_ARCHETYPE_OID_BUSINESS_LONG },
+            descriptionKey = "export.business.role.archetype.oid")
+    private String businessRoleArchetypeOid = "00000000-0000-0000-0000-000000000321";
+
+    public ExportMiningConsumerWorker.SecurityMode getSecurityLevel() {
+        return securityMode;
     }
 
-    public boolean isNotIncludeOrg() {
-        return notIncludeOrg;
+    public boolean isIncludeOrg() {
+        return includeOrg;
     }
 
     public String getApplicationRoleArchetypeOid() {
@@ -92,7 +94,7 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
         return businessRoleArchetypeOid;
     }
 
-    public String getNameMode() {
+    public ExportMiningConsumerWorker.NameMode getNameMode() {
         return nameMode;
     }
 

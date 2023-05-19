@@ -96,18 +96,18 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
         List<ExportMiningProducerWorker> producers = new ArrayList<>();
 
-        ObjectFilter filter = NinjaUtils.createObjectFilter(null, context, RoleType.class);
+        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getRoleFilter(), context, RoleType.class);
         ObjectQuery query = queryFactory.createQuery(filter);
         producers.add(new ExportMiningProducerWorker(context, options, queue, operation, producers, query, RoleType.class));
 
-        filter = NinjaUtils.createObjectFilter(null, context, UserType.class);
+        filter = NinjaUtils.createObjectFilter(options.getUserFilter(), context, UserType.class);
         query = queryFactory.createQuery(filter);
         producers.add(new ExportMiningProducerWorker(context, options, queue, operation, producers, query, UserType.class));
 
-        if(!options.isNotIncludeOrg()){
-        filter = NinjaUtils.createObjectFilter(null, context, OrgType.class);
-        query = queryFactory.createQuery(filter);
-        producers.add(new ExportMiningProducerWorker(context, options, queue, operation, producers, query, OrgType.class));
+        if (options.isIncludeOrg()) {
+            filter = NinjaUtils.createObjectFilter(options.getOrgFilter(), context, OrgType.class);
+            query = queryFactory.createQuery(filter);
+            producers.add(new ExportMiningProducerWorker(context, options, queue, operation, producers, query, OrgType.class));
         }
         return producers;
     }

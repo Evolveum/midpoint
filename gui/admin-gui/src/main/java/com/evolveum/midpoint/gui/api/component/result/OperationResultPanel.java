@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -37,7 +35,7 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -189,9 +187,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if(this.getParent() != null){
-                    target.add(this.getParent().setVisible(false));
-                }
+                close(target, true);
             }
         };
         box.add(close);
@@ -217,9 +213,15 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         box.add(downloadXml);
     }
 
-    public void close(AjaxRequestTarget target) {
-        this.setVisible(false);
-        target.add(this);
+    public void close(AjaxRequestTarget target, boolean parent) {
+        if (parent) {
+            if (this.getParent() != null) {
+                target.add(this.getParent().setVisible(false));
+            }
+        } else {
+            this.setVisible(false);
+            target.add(this);
+        }
     }
 
     private WebMarkupContainer createMessage() {

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import static com.evolveum.midpoint.repo.api.RepositoryService.LOGGER;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
@@ -24,18 +26,21 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleMiningExportOperation implements Serializable {
 
-    private static final String APPLICATION_ROLE_PREFIX = "Application role";
-    private static final String BUSINESS_ROLE_PREFIX = "Business role";
+    OperationResult result = new OperationResult(DOT_CLASS + "searchObjectByCondition");
+    private static final String APPLICATION_ROLE_IDENTIFIER = "Application role";
+    private static final String BUSINESS_ROLE_IDENTIFIER = "Business role";
 
     private static final String MINING_EXPORT_SUFFIX = "_AE";
     public static String applicationArchetypeOid;
@@ -46,26 +51,25 @@ public class RoleMiningExportOperation implements Serializable {
     protected List<String> applicationRoleSuffix;
     protected List<String> businessRolePrefix;
     protected List<String> businessRoleSuffix;
-    NameModeExport nameModeExport = NameModeExport.SEQUENTIAL;
-    SecurityLevel securityLevel = SecurityLevel.STRONG;
+    NameMode nameMode = NameMode.SEQUENTIAL;
+    SecurityMode securityMode = SecurityMode.STRONG;
 
-    public void setSecurityLevel(SecurityLevel securityLevel) {
-        this.securityLevel = securityLevel;
-    }
-
+    public ObjectQuery roleQuery;
+    public ObjectQuery orgQuery;
+    public ObjectQuery userQuery;
     int rolesIterator = 0;
     int organizationsIterator = 0;
     int membersIterator = 0;
     boolean orgExport = true;
 
-    public enum NameModeExport {
+    public enum NameMode {
         ENCRYPTED("ENCRYPTED"),
         SEQUENTIAL("SEQUENTIAL"),
         ORIGINAL("ORIGINAL");
 
         private final String displayString;
 
-        NameModeExport(String displayString) {
+        NameMode(String displayString) {
             this.displayString = displayString;
         }
 
@@ -74,12 +78,12 @@ public class RoleMiningExportOperation implements Serializable {
         }
     }
 
-    public enum SecurityLevel {
+    public enum SecurityMode {
         STANDARD("STANDARD"),
         STRONG("STRONG");
         private final String displayString;
 
-        SecurityLevel(String displayString) {
+        SecurityMode(String displayString) {
             this.displayString = displayString;
         }
 
@@ -89,39 +93,40 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     @NotNull
-    private OrgType getPreparedOrgObject(@NotNull FocusType object) {
-        organizationsIterator++;
+    private OrgType getPreparedOrgObject(@NotNull FocusType object, PageBase pageBase) {
         OrgType org = new OrgType();
-        org.setName(getEncryptedOrgName(object.getName().toString(), organizationsIterator));
+        org.setName(getEncryptedOrgName(object.getName().toString(), organizationsIterator++));
         org.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())) {
+            if (targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())
+                    && filterAllowedOrg(targetRef.getOid(), pageBase)) {
                 org.getAssignment().add(getEncryptedObjectReference(assignmentObject));
             }
-
         }
+
         return org;
     }
 
     @NotNull
-    private UserType getPreparedUserObject(@NotNull FocusType object) {
-        membersIterator++;
+    private UserType getPreparedUserObject(@NotNull FocusType object, PageBase pageBase) {
         UserType user = new UserType();
-        user.setName(getEncryptedUserName(object.getName().toString(), membersIterator));
+        user.setName(getEncryptedUserName(object.getName().toString(), membersIterator++));
         user.setOid(getEncryptedUUID(object.getOid()));
 
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())) {
-                user.getAssignment().add(getEncryptedObjectReference(assignmentObject));
 
+            if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
+                    && filterAllowedRole(targetRef.getOid(), pageBase)) {
+                user.getAssignment().add(getEncryptedObjectReference(assignmentObject));
             }
 
-            if (isOrgExport() && targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())) {
+            if (orgExport && targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())
+                    && filterAllowedOrg(targetRef.getOid(), pageBase)) {
                 user.getAssignment().add(getEncryptedObjectReference(assignmentObject));
             }
 
@@ -130,12 +135,10 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     @NotNull
-    private RoleType getPreparedRoleObject(@NotNull FocusType object) {
-        this.rolesIterator++;
-
+    private RoleType getPreparedRoleObject(@NotNull FocusType object, PageBase pageBase) {
         RoleType role = new RoleType();
         String roleName = object.getName().toString();
-        PolyStringType encryptedName = getEncryptedRoleName(roleName, rolesIterator);
+        PolyStringType encryptedName = getEncryptedRoleName(roleName, rolesIterator++);
         role.setName(encryptedName);
         role.setOid(getEncryptedUUID(object.getOid()));
 
@@ -145,7 +148,9 @@ public class RoleMiningExportOperation implements Serializable {
 
         for (AssignmentType inducementObject : inducement) {
             ObjectReferenceType targetRef = inducementObject.getTargetRef();
-            if (targetRef != null && targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())) {
+            if (targetRef != null
+                    && targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
+                    && filterAllowedRole(targetRef.getOid(), pageBase)) {
                 role.getInducement().add(getEncryptedObjectReference(inducementObject));
 
             }
@@ -157,13 +162,11 @@ public class RoleMiningExportOperation implements Serializable {
             if (targetRef.getType().getLocalPart().equals(ArchetypeType.class.getSimpleName())) {
                 AssignmentType assignmentType = new AssignmentType();
                 if (targetRef.getOid().equals(applicationArchetypeOid)) {
-                    identifier = APPLICATION_ROLE_PREFIX;
-                    role.setName(PolyStringType.fromOrig(String.valueOf(encryptedName)));
+                    identifier = APPLICATION_ROLE_IDENTIFIER;
                     assignmentType.targetRef(assignmentObject.getTargetRef());
                     role.getAssignment().add(assignmentType);
                 } else if (targetRef.getOid().equals(businessArchetypeOid)) {
-                    identifier = BUSINESS_ROLE_PREFIX;
-                    role.setName(PolyStringType.fromOrig(String.valueOf(encryptedName)));
+                    identifier = BUSINESS_ROLE_IDENTIFIER;
                     assignmentType.targetRef(assignmentObject.getTargetRef());
                     role.getAssignment().add(assignmentType);
                 }
@@ -175,7 +178,7 @@ public class RoleMiningExportOperation implements Serializable {
             role.setIdentifier(identifier);
         } else {
             String prefixCheckedIdentifier = getRoleCategory(roleName);
-            if (!prefixCheckedIdentifier.isEmpty()) {
+            if (prefixCheckedIdentifier != null) {
                 role.setIdentifier(prefixCheckedIdentifier);
             }
         }
@@ -183,9 +186,43 @@ public class RoleMiningExportOperation implements Serializable {
         return role;
     }
 
+    private boolean filterAllowedOrg(String oid, PageBase pageBase) {
+
+        if (orgQuery == null || orgQuery.getFilter() == null) {
+            return true;
+        }
+
+        ObjectQuery objectQuery = pageBase.getPrismContext().queryFactory().createQuery(orgQuery.getFilter());
+        objectQuery.addFilter(pageBase.getPrismContext().queryFor(OrgType.class).id(oid).buildFilter());
+        try {
+
+            return !pageBase.getRepositoryService().searchObjects(OrgType.class,
+                    objectQuery, null, result).isEmpty();
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Failed to search organization object. ", e);
+        }
+        return false;
+    }
+
+    private boolean filterAllowedRole(String oid, PageBase pageBase) {
+        if (roleQuery == null || roleQuery.getFilter() == null) {
+            return true;
+        }
+
+        ObjectQuery objectQuery = pageBase.getPrismContext().queryFactory().createQuery(roleQuery.getFilter());
+        objectQuery.addFilter(pageBase.getPrismContext().queryFor(RoleType.class).id(oid).buildFilter());
+        try {
+            return !pageBase.getRepositoryService().searchObjects(RoleType.class,
+                    objectQuery, null, result).isEmpty();
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Failed to search role object. ", e);
+        }
+        return false;
+    }
+
     public byte[] uuidToBytes(UUID uuid) {
         ByteBuffer buffer = ByteBuffer.allocate(32);
-        if (securityLevel.equals(SecurityLevel.STANDARD)) {
+        if (securityMode.equals(SecurityMode.STANDARD)) {
             buffer = ByteBuffer.allocate(16);
         }
         buffer.putLong(uuid.getMostSignificantBits());
@@ -222,9 +259,9 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     private PolyStringType getEncryptedUserName(String name, int iterator) {
-        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+        if (getNameModeExport().equals(NameMode.ENCRYPTED)) {
             return PolyStringType.fromOrig(encrypt(name) + MINING_EXPORT_SUFFIX);
-        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+        } else if (getNameModeExport().equals(NameMode.SEQUENTIAL)) {
             return PolyStringType.fromOrig("User" + iterator + MINING_EXPORT_SUFFIX);
         } else {
             return PolyStringType.fromOrig(name + MINING_EXPORT_SUFFIX);
@@ -232,9 +269,9 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     private PolyStringType getEncryptedOrgName(String name, int iterator) {
-        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+        if (getNameModeExport().equals(NameMode.ENCRYPTED)) {
             return PolyStringType.fromOrig(encrypt(name) + MINING_EXPORT_SUFFIX);
-        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+        } else if (getNameModeExport().equals(NameMode.SEQUENTIAL)) {
             return PolyStringType.fromOrig("Organization" + iterator + MINING_EXPORT_SUFFIX);
         } else {
             return PolyStringType.fromOrig(name + MINING_EXPORT_SUFFIX);
@@ -243,9 +280,9 @@ public class RoleMiningExportOperation implements Serializable {
 
     private PolyStringType getEncryptedRoleName(String name, int iterator) {
 
-        if (getNameModeExport().equals(NameModeExport.ENCRYPTED)) {
+        if (getNameModeExport().equals(NameMode.ENCRYPTED)) {
             return PolyStringType.fromOrig(encrypt(name) + MINING_EXPORT_SUFFIX);
-        } else if (getNameModeExport().equals(NameModeExport.SEQUENTIAL)) {
+        } else if (getNameModeExport().equals(NameMode.SEQUENTIAL)) {
             return PolyStringType.fromOrig("Role" + iterator + MINING_EXPORT_SUFFIX);
         } else {
             return PolyStringType.fromOrig(name + MINING_EXPORT_SUFFIX);
@@ -254,29 +291,30 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     private String getRoleCategory(String name) {
-        StringBuilder prefix = new StringBuilder();
         if (applicationRolePrefix != null && !applicationRolePrefix.isEmpty()) {
             if (applicationRolePrefix.stream().anyMatch(rolePrefix -> name.toLowerCase().startsWith(rolePrefix.toLowerCase()))) {
-                prefix.append(APPLICATION_ROLE_PREFIX);
-            }
-        }
-        if (applicationRoleSuffix != null && !applicationRoleSuffix.isEmpty()) {
-            if (applicationRoleSuffix.stream().anyMatch(roleSuffix -> name.toLowerCase().endsWith(roleSuffix.toLowerCase()))) {
-                prefix.append(APPLICATION_ROLE_PREFIX);
-            }
-        }
-        if (businessRolePrefix != null && !businessRolePrefix.isEmpty()) {
-            if (businessRolePrefix.stream().anyMatch(rolePrefix -> name.toLowerCase().startsWith(rolePrefix.toLowerCase()))) {
-                prefix.append(BUSINESS_ROLE_PREFIX);
-            }
-        }
-        if (businessRoleSuffix != null && !businessRoleSuffix.isEmpty()) {
-            if (businessRoleSuffix.stream().anyMatch(roleSuffix -> name.toLowerCase().endsWith(roleSuffix.toLowerCase()))) {
-                prefix.append(BUSINESS_ROLE_PREFIX);
+                return APPLICATION_ROLE_IDENTIFIER;
             }
         }
 
-        return String.valueOf(prefix);
+        if (applicationRoleSuffix != null && !applicationRoleSuffix.isEmpty()) {
+            if (applicationRoleSuffix.stream().anyMatch(roleSuffix -> name.toLowerCase().endsWith(roleSuffix.toLowerCase()))) {
+                return APPLICATION_ROLE_IDENTIFIER;
+            }
+        }
+
+        if (businessRolePrefix != null && !businessRolePrefix.isEmpty()) {
+            if (businessRolePrefix.stream().anyMatch(rolePrefix -> name.toLowerCase().startsWith(rolePrefix.toLowerCase()))) {
+                return BUSINESS_ROLE_IDENTIFIER;
+            }
+        }
+
+        if (businessRoleSuffix != null && !businessRoleSuffix.isEmpty()) {
+            if (businessRoleSuffix.stream().anyMatch(roleSuffix -> name.toLowerCase().endsWith(roleSuffix.toLowerCase()))) {
+                return BUSINESS_ROLE_IDENTIFIER;
+            }
+        }
+        return null;
     }
 
     private AssignmentType getEncryptedObjectReference(AssignmentType assignmentObject) {
@@ -318,28 +356,26 @@ public class RoleMiningExportOperation implements Serializable {
         }
     }
 
-    public String generateRandomKey(SecurityLevel securityLevel) {
+    public String generateRandomKey(SecurityMode securityMode) {
         int keyLength = 32;
-        if (securityLevel.equals(SecurityLevel.STANDARD)) {
+        if (securityMode.equals(SecurityMode.STANDARD)) {
             keyLength = 16;
         }
         return RandomStringUtils.random(keyLength, 0, 0, true, true, null, new SecureRandom());
     }
 
-    public void setApplicationRolePrefix(List<String> applicationRolePrefix) {
-        this.applicationRolePrefix = applicationRolePrefix;
-    }
-
-    public void setApplicationRoleSuffix(List<String> applicationRoleSuffix) {
-        this.applicationRoleSuffix = applicationRoleSuffix;
-    }
-
-    public void setBusinessRolePrefix(List<String> businessRolePrefix) {
+    public void setBusinessRoleIdentifier(String businessArchetypeOid, List<String> businessRolePrefix,
+            List<String> businessRoleSuffix) {
+        RoleMiningExportOperation.businessArchetypeOid = businessArchetypeOid;
         this.businessRolePrefix = businessRolePrefix;
+        this.businessRoleSuffix = businessRoleSuffix;
     }
 
-    public void setBusinessRoleSuffix(List<String> businessRoleSuffix) {
-        this.businessRoleSuffix = businessRoleSuffix;
+    public void setApplicationRoleIdentifiers(String applicationArchetypeOid, List<String> applicationRolePrefix,
+            List<String> applicationRoleSuffix) {
+        RoleMiningExportOperation.applicationArchetypeOid = applicationArchetypeOid;
+        this.applicationRolePrefix = applicationRolePrefix;
+        this.applicationRoleSuffix = applicationRoleSuffix;
     }
 
     public void dumpMining(final Writer writer, OperationResult result, final PageBase page) throws Exception {
@@ -357,7 +393,7 @@ public class RoleMiningExportOperation implements Serializable {
 
         ResultHandler<RoleType> handler = (object, parentResult) -> {
             try {
-                RoleType roleType = getPreparedRoleObject(object.asObjectable());
+                RoleType roleType = getPreparedRoleObject(object.asObjectable(), page);
                 String xml = page.getPrismContext().xmlSerializer().serialize(roleType.asPrismObject());
                 writer.write('\t');
                 writer.write(xml);
@@ -373,7 +409,7 @@ public class RoleMiningExportOperation implements Serializable {
         GetOperationOptionsBuilder optionsBuilder = page.getSchemaService().getOperationOptionsBuilder()
                 .raw();
 
-        service.searchObjectsIterative(RoleType.class, null, handler, optionsBuilder.build(),
+        service.searchObjectsIterative(RoleType.class, roleQuery, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }
 
@@ -381,7 +417,7 @@ public class RoleMiningExportOperation implements Serializable {
 
         ResultHandler<UserType> handler = (object, parentResult) -> {
             try {
-                UserType userType = getPreparedUserObject(object.asObjectable());
+                UserType userType = getPreparedUserObject(object.asObjectable(), page);
                 String xml = page.getPrismContext().xmlSerializer().serialize(userType.asPrismObject());
                 writer.write('\t');
                 writer.write(xml);
@@ -397,7 +433,7 @@ public class RoleMiningExportOperation implements Serializable {
         GetOperationOptionsBuilder optionsBuilder = page.getSchemaService().getOperationOptionsBuilder()
                 .raw();
 
-        service.searchObjectsIterative(UserType.class, null, handler, optionsBuilder.build(),
+        service.searchObjectsIterative(UserType.class, userQuery, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }
 
@@ -405,7 +441,7 @@ public class RoleMiningExportOperation implements Serializable {
 
         ResultHandler<OrgType> handler = (object, parentResult) -> {
             try {
-                OrgType orgObject = getPreparedOrgObject(object.asObjectable());
+                OrgType orgObject = getPreparedOrgObject(object.asObjectable(), page);
                 String xml = page.getPrismContext().xmlSerializer().serialize(orgObject.asPrismObject());
                 writer.write('\t');
                 writer.write(xml);
@@ -421,16 +457,16 @@ public class RoleMiningExportOperation implements Serializable {
         GetOperationOptionsBuilder optionsBuilder = page.getSchemaService().getOperationOptionsBuilder()
                 .raw();
 
-        service.searchObjectsIterative(OrgType.class, null, handler, optionsBuilder.build(),
+        service.searchObjectsIterative(OrgType.class, orgQuery, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }
 
-    public void setNameModeExport(NameModeExport nameModeExport) {
-        this.nameModeExport = nameModeExport;
+    public void setNameModeExport(NameMode nameMode) {
+        this.nameMode = nameMode;
     }
 
-    public NameModeExport getNameModeExport() {
-        return nameModeExport;
+    public NameMode getNameModeExport() {
+        return nameMode;
     }
 
     public boolean isOrgExport() {
@@ -441,11 +477,14 @@ public class RoleMiningExportOperation implements Serializable {
         this.orgExport = orgExport;
     }
 
-    public static void setApplicationArchetypeOid(String applicationArchetypeOid) {
-        RoleMiningExportOperation.applicationArchetypeOid = applicationArchetypeOid;
+    public void setQueryParameters(ObjectQuery roleQuery, ObjectQuery orgQuery, ObjectQuery userQuery) {
+        this.roleQuery = roleQuery;
+        this.orgQuery = orgQuery;
+        this.userQuery = userQuery;
     }
 
-    public static void setBusinessArchetypeOid(String businessArchetypeOid) {
-        RoleMiningExportOperation.businessArchetypeOid = businessArchetypeOid;
+    public void setSecurityLevel(SecurityMode securityMode) {
+        this.securityMode = securityMode;
     }
+
 }

@@ -436,11 +436,8 @@ public class PageDebugList extends PageAdminConfiguration {
                                 }
 
                                 HashMap<String, String> hashMap = new HashMap<>();
-
-                                List<ArchetypeType> archetypeTypes = new ArrayList<>();
                                 assert archetypeObjectList != null;
                                 for (PrismObject<ArchetypeType> archetypeTypePrismObject : archetypeObjectList) {
-                                    archetypeTypes.add(archetypeTypePrismObject.asObjectable());
                                     hashMap.put(String.valueOf(archetypeTypePrismObject.getName()), archetypeTypePrismObject.getOid());
                                 }
                                 return hashMap;
