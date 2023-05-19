@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="1e4d06bd-eacf-4e17-b5c6-d97b4ab6b6e0"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>show-my-assignments-and-accesses</name>
+    <authorization>
+        <documentation>
+            Shows only assignments and accesses (roleMembershipRef values) that belong under roles I own.
+        </documentation>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AssignmentType</type>
+            <parent>
+                <type>UserType</type>
+                <path>assignment</path>
+            </parent>
+            <target> <!-- new clause -->
+                <type>RoleType</type>
+                <owner>
+                    <special>self</special>
+                </owner>
+            </target>
+        </object>
+        <object>
+            <type>ObjectReferenceType</type>
+            <parent>
+                <type>AssignmentHolderType</type>
+                <path>roleMembershipRef</path>
+            </parent>
+            <target> <!-- new clause -->
+                <type>RoleType</type>
+                <owner>
+                    <special>self</special>
+                </owner>
+            </target>
+        </object>
+    </authorization>
+</role>
