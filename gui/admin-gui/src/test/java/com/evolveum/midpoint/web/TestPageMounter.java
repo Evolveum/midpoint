@@ -230,7 +230,6 @@ public class TestPageMounter extends AbstractGuiUnitTest {
                 logger.error("{}", msg, e);
             }
 
-            @Override
             public void log(Exception e, String msg) {
                 logger.error("{}", msg, e);
             }
@@ -240,12 +239,10 @@ public class TestPageMounter extends AbstractGuiUnitTest {
                 logger.trace("{}", msg);
             }
 
-            @Override
             public Enumeration<Servlet> getServlets() {
                 return null;
             }
 
-            @Override
             public Enumeration<String> getServletNames() {
                 return null;
             }
@@ -255,7 +252,6 @@ public class TestPageMounter extends AbstractGuiUnitTest {
                 return "mock";
             }
 
-            @Override
             public Servlet getServlet(String arg0) {
                 return null;
             }

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
@@ -56,6 +56,7 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
         super(id, userDetailsModel, config);
     }
 
+    @Override
     protected void initLayout() {
 
         WebMarkupContainer delegations = new WebMarkupContainer(ID_DELEGATIONS_CONTAINER);
@@ -77,6 +78,7 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
                 return getObjectWrapper().getOid();
             }
 
+            @Override
             public IModel<String> getLabel() {
                 return createStringResource("FocusType.delegations");
             }
@@ -169,7 +171,7 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
             @Override
             protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments, QName relation,
                                                           String popupId) {
-                ModalWindow window = (ModalWindow) get(popupId);
+                ModalDialog window = (ModalDialog) get(popupId);
                 if (window != null) {
                     window.close(target);
                 }

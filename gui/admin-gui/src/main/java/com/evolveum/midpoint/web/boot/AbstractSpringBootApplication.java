@@ -22,7 +22,6 @@ import org.springframework.boot.actuate.autoconfigure.management.HeapDumpWebEndp
 import org.springframework.boot.actuate.autoconfigure.management.ThreadDumpEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.*;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -72,7 +71,8 @@ import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
         TomcatMetricsAutoConfiguration.class,
         JvmMetricsAutoConfiguration.class,
         SystemMetricsAutoConfiguration.class,
-        WebMvcMetricsAutoConfiguration.class,
+        // Not present in Spring Boot 3
+        //WebMvcMetricsAutoConfiguration.class,
         MetricsEndpointAutoConfiguration.class
 })
 public abstract class AbstractSpringBootApplication extends SpringBootServletInitializer {

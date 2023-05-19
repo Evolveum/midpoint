@@ -347,7 +347,7 @@ public class ExpressionUtil {
         JAXBElement<Object> evaluator = new JAXBElement<>(
                 SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH,
                 Object.class,
-                new JAXBElement.GlobalScope());
+                JAXBElement.GlobalScope.class);
         SearchObjectExpressionEvaluatorType searchObjectExpressionEvaluatorType = new SearchObjectExpressionEvaluatorType();
 
         XNodeFactory factory = prismContext.xnodeFactory();
