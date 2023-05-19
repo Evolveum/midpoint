@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperati
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorT
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
 /**
  * Evaluation of given {@link Authorization} aimed to determine a "security filter", i.e. additional filter to be
  * applied in searching/filtering situation.
@@ -40,7 +44,7 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
 
     @NotNull private final Class<O> objectType;
     @Nullable private final ObjectFilter originalFilter;
-    @NotNull private final List<OwnedObjectSelectorType> objectSelectors;
+    @NotNull private final List<? extends OwnedObjectSelectorType> objectSelectors;
     @NotNull private final String selectorLabel;
     private final boolean includeSpecial;
     private ObjectFilter autzFilter = null;
@@ -49,7 +53,7 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
             @NotNull Class<O> objectType,
             @Nullable ObjectFilter originalFilter,
             @NotNull Authorization authorization,
-            @NotNull List<OwnedObjectSelectorType> objectSelectors,
+            @NotNull List<? extends OwnedObjectSelectorType> objectSelectors,
             @NotNull String selectorLabel,
             boolean includeSpecial,
             @NotNull EnforcerOperation<?> op,
@@ -78,9 +82,12 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
 
             applicable = false;
             for (OwnedObjectSelectorType objectSelector : objectSelectors) {
+                if (isNotAnObjectType(objectSelector)) { // FIXME remove this hack
+                    continue;
+                }
                 ObjectSelectorFilterEvaluation<O> processor =
                         new ObjectSelectorFilterEvaluation<>(
-                                objectSelector, null, objectType, originalFilter, Set.of(), "TODO",
+                                objectSelector, objectType, originalFilter, Set.of(), "TODO",
                                 selectorLabel, this, result);
 
                 processor.processFilter(includeSpecial);
@@ -92,6 +99,13 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
         }
         traceFilter(op, "for authorization (applicable: " + applicable + ")", authorization, autzFilter);
         return applicable;
+    }
+
+    // TEMPORARY CODE
+    private boolean isNotAnObjectType(OwnedObjectSelectorType objectSelector) {
+        QName typeName = objectSelector.getType();
+        return typeName != null
+                && PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(typeName) == null;
     }
 
     ObjectFilter getAutzFilter() {

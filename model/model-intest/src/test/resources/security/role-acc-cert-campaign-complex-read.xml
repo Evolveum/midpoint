@@ -23,20 +23,16 @@
         <name>campaign-case-iteration-for-object-ann</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCampaignType</type>
+            <type>AccessCertificationCaseType</type>
+            <filter>
+                <q:ref>
+                    <q:path>objectRef</q:path>
+                    <q:value oid="9e0105e1-c601-4265-b71b-3077e04a3b61"/> <!-- ann -->
+                </q:ref>
+            </filter>
+            <!-- no need to specify the parent, as this is a well-known type -->
         </object>
-        <itemValue>
-            <path>case</path>
-            <value>
-                <filter>
-                    <q:ref>
-                        <q:path>objectRef</q:path>
-                        <q:value oid="9e0105e1-c601-4265-b71b-3077e04a3b61"/> <!-- ann -->
-                    </q:ref>
-                </filter>
-            </value>
-            <item>iteration</item>
-        </itemValue>
+        <item>iteration</item>
     </authorization>
     <authorization>
         <!-- applies to case 6 in campaign-3 -->
@@ -44,21 +40,16 @@
         <decision>deny</decision>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCampaignType</type>
+            <type>AccessCertificationCaseType</type>
+            <filter>
+                <q:ref>
+                    <q:path>targetRef</q:path>
+                    <q:value oid="00000000-0000-0000-0000-00000000000a"/> <!-- approver -->
+                </q:ref>
+            </filter>
         </object>
-        <itemValue>
-            <path>case</path>
-            <value>
-                <filter>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <q:value oid="00000000-0000-0000-0000-00000000000a"/> <!-- approver -->
-                    </q:ref>
-                </filter>
-            </value>
-            <item>iteration</item>
-            <item>outcome</item>
-        </itemValue>
+        <item>iteration</item>
+        <item>outcome</item>
     </authorization>
     <authorization>
         <!-- applies to case 1 in campaign-3 -->
@@ -66,19 +57,14 @@
         <decision>deny</decision>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCampaignType</type>
+            <type>AccessCertificationCaseType</type>
+            <filter>
+                <q:ref>
+                    <q:path>objectRef</q:path>
+                    <q:value oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
+                </q:ref>
+            </filter>
         </object>
-        <itemValue>
-            <path>case</path>
-            <value>
-                <filter>
-                    <q:ref>
-                        <q:path>objectRef</q:path>
-                        <q:value oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
-                    </q:ref>
-                </filter>
-            </value>
-        </itemValue>
     </authorization>
     <authorization>
         <!-- campaign-3 applicability: -->
@@ -87,45 +73,29 @@
         <name>campaign-work-items-assigned-to-administrator</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCampaignType</type>
+            <type>AccessCertificationWorkItemType</type>
+            <filter>
+                <q:ref>
+                    <q:path>assigneeRef</q:path>
+                    <q:value oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
+                </q:ref>
+            </filter>
         </object>
-        <itemValue>
-            <path>case</path>
-            <itemValue>
-                <path>workItem</path>
-                <value>
-                    <filter>
-                        <q:ref>
-                            <q:path>assigneeRef</q:path>
-                            <q:value oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
-                        </q:ref>
-                    </filter>
-                </value>
-                <item>assigneeRef</item>
-            </itemValue>
-        </itemValue>
+        <item>assigneeRef</item>
     </authorization>
     <authorization>
         <!-- applies to 8.1 -->
         <name>campaign-extra-work-item</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCampaignType</type>
+            <type>AccessCertificationWorkItemType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>extra</q:value>
+                </q:equal>
+            </filter>
         </object>
-        <itemValue>
-            <path>case</path>
-            <itemValue>
-                <path>workItem</path>
-                <value>
-                    <filter>
-                        <q:equal>
-                            <q:path>name</q:path>
-                            <q:value>extra</q:value>
-                        </q:equal>
-                    </filter>
-                </value>
-                <exceptItem>stageNumber</exceptItem>
-            </itemValue>
-        </itemValue>
+        <exceptItem>stageNumber</exceptItem>
     </authorization>
 </role>

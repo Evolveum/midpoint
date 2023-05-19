@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.impl.AuthorizationEvaluation;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 /**
@@ -138,15 +137,18 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
 
         public void applyAuthorization(
                 @NotNull PrismObject<? extends ObjectType> object, @NotNull AuthorizationEvaluation evaluation)
-                throws ConfigurationException, SchemaException {
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
             var authorization = evaluation.getAuthorization();
             if (authorization.matchesPhase(phase)) {
                 PrismValueCoverageInformation coverageIncrement =
                         PrismValueCoverageInformation.forAuthorization(object, evaluation);
-                if (authorization.isAllow()) {
-                    allowed.merge(coverageIncrement);
-                } else {
-                    denied.merge(coverageIncrement);
+                if (coverageIncrement != null) {
+                    if (authorization.isAllow()) {
+                        allowed.merge(coverageIncrement);
+                    } else {
+                        denied.merge(coverageIncrement);
+                    }
                 }
             }
         }

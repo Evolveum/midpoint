@@ -7,27 +7,24 @@
 <role oid="7090f927-d393-4dc6-aefb-d3c83408978b"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>acc-cert-case-work-items-assignee-self-read</name>
-    <authorization>
-        <name>case-work-items-assignee-self-read</name>
+    <authorization id="1">
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>AccessCertificationCampaignType</type>
         </object>
         <item>name</item>
-        <itemValue>
-            <path>case</path>
-            <itemValue>
-                <path>workItem</path>
-                <value>
-                    <assignee>
-                        <special>self</special>
-                    </assignee>
-                </value>
-                <!-- just to have some fun -->
-                <exceptItem>originalAssigneeRef</exceptItem>
-                <exceptItem>iteration</exceptItem>
-            </itemValue>
-        </itemValue>
+    </authorization>
+    <authorization id="2">
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+        <!-- just to have some fun -->
+        <exceptItem>originalAssigneeRef</exceptItem>
+        <exceptItem>iteration</exceptItem>
     </authorization>
     <delegable>true</delegable>
 </role>

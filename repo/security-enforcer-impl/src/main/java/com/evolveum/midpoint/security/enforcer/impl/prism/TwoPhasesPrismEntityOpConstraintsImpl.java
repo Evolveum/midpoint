@@ -15,8 +15,7 @@ import com.evolveum.midpoint.security.enforcer.api.PrismEntityOpConstraints;
 import com.evolveum.midpoint.security.enforcer.impl.AuthorizationEvaluation;
 import com.evolveum.midpoint.util.DebugUtil;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -109,7 +108,8 @@ public abstract class TwoPhasesPrismEntityOpConstraintsImpl<OC extends SinglePha
 
         public void applyAuthorization(
                 @NotNull PrismObject<? extends ObjectType> object, @NotNull AuthorizationEvaluation evaluation)
-                throws ConfigurationException, SchemaException {
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
             request.applyAuthorization(object, evaluation);
             execution.applyAuthorization(object, evaluation);
         }

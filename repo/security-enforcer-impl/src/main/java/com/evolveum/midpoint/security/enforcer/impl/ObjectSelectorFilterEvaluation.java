@@ -15,19 +15,17 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.security.enforcer.impl.clauses.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.security.enforcer.impl.clauses.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 class ObjectSelectorFilterEvaluation<O extends ObjectType>
-        extends ObjectSelectorEvaluation<O, OwnedObjectSelectorType>
+        extends ObjectSelectorEvaluation<OwnedObjectSelectorType>
         implements ClauseFilterEvaluationContext {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
@@ -60,7 +58,6 @@ class ObjectSelectorFilterEvaluation<O extends ObjectType>
 
     ObjectSelectorFilterEvaluation(
             @NotNull OwnedObjectSelectorType selector,
-            @Nullable PrismObject<O> object,
             @NotNull Class<O> objectType,
             @Nullable ObjectFilter originalFilter,
             @NotNull Collection<String> otherSelfOids,
@@ -68,7 +65,7 @@ class ObjectSelectorFilterEvaluation<O extends ObjectType>
             String selectorLabel,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException {
-        super(selector, object, otherSelfOids, desc, authorizationEvaluation, result);
+        super(selector, null, otherSelfOids, desc, authorizationEvaluation, result);
         this.objectType = objectType;
         this.originalFilter = originalFilter;
         this.selectorLabel = selectorLabel;

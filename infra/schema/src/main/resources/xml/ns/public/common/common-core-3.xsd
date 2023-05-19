@@ -7625,7 +7625,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="object" type="tns:AuthorizationObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Object part from the (subject,action,object) authorization triple.
@@ -8285,6 +8285,63 @@
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthorizationObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO TODO TODO specify the purpose
+
+                "Ultimately flexible specification of an authorization object that may be any prism value, not just prism object"
+
+                TODO Also, consider using more generalized name
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:OwnedObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="parent" type="tns:AuthorizationParentSelectorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthorizationParentSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuthorizationObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

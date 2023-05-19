@@ -13,19 +13,18 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <enforcementStrategy>maySkipOnSearch</enforcementStrategy> <!-- event/outcome is not searchable -->
         <object>
-            <type>CaseType</type>
+            <type>CaseEventType</type>
+            <filter>
+                <q:equal>
+                    <q:path>output/outcome</q:path>
+                    <q:value>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</q:value>
+                </q:equal>
+            </filter>
+            <parent> <!-- This is necessary, because CaseEventType is not among "well-known" value types -->
+                <type>CaseType</type>
+                <path>event</path>
+            </parent>
         </object>
-        <itemValue>
-            <path>event</path>
-            <value>
-                <filter>
-                    <q:equal>
-                        <q:path>output/outcome</q:path>
-                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</q:value>
-                    </q:equal>
-                </filter>
-            </value>
-        </itemValue>
     </authorization>
     <delegable>true</delegable>
 </role>

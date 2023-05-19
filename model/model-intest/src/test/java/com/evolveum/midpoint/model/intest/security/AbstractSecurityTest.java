@@ -353,7 +353,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertEquals("Wrong number of authorizations", 2, authorizations.size());
         AuthorizationType authRead = findAutz(authorizations, ModelAuthorizationAction.READ.getUrl());
         assertEquals("Wrong action in authorization", ModelAuthorizationAction.READ.getUrl(), authRead.getAction().get(0));
-        List<OwnedObjectSelectorType> objectSpecs = authRead.getObject();
+        List<? extends OwnedObjectSelectorType> objectSpecs = authRead.getObject();
         assertEquals("Wrong number of object specs in authorization", 1, objectSpecs.size());
         SubjectedObjectSelectorType objectSpec = objectSpecs.get(0);
         List<SpecialObjectSpecificationType> specials = objectSpec.getSpecial();

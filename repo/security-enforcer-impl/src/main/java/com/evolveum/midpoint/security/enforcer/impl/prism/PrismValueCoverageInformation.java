@@ -8,33 +8,28 @@
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
 import static com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCoverage.*;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.enforcer.impl.ValueSelectorEvaluation;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemValueSelectorType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameKeyedMap;
 import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.impl.AuthorizationEvaluation;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationParentSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Informs whether given {@link PrismValue} and its contained sub-items are covered in the specified context.
@@ -87,84 +82,147 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         return defaultIsFullMatch ? PrismItemCoverageInformation.fullCoverage() : PrismItemCoverageInformation.noCoverage();
     }
 
-    @NotNull static PrismValueCoverageInformation forAuthorization(
+    /** Returns `null` if the authorization is irrelevant for the current object. */
+    static @Nullable PrismValueCoverageInformation forAuthorization(
             PrismObject<? extends ObjectType> object, @NotNull AuthorizationEvaluation evaluation)
-            throws ConfigurationException, SchemaException {
-        var authorization = evaluation.getAuthorization();
-        var positives = authorization.getItems();
-        var negatives = authorization.getExceptItems();
-        List<ItemValueSelectorType> valueSelectors = authorization.getItemValueSelectors();
-        return forItemsSpecifications(object.getValue(), object, positives, negatives, valueSelectors, evaluation);
-    }
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
-    private static PrismValueCoverageInformation forItemsSpecifications(
-            @NotNull PrismContainerValue<?> pcv,
-            @NotNull PrismObject<? extends ObjectType> object,
-            @NotNull List<ItemPath> positives,
-            @NotNull List<ItemPath> negatives,
-            @NotNull List<ItemValueSelectorType> valueSelectors,
-            @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException {
-        if (!positives.isEmpty() || !valueSelectors.isEmpty()) {
-            configCheck(negatives.isEmpty(),
-                    "'item'/'itemValue' and 'exceptItem' cannot be combined: %s (%s) vs %s in %s",
-                    positives, valueSelectors, negatives, evaluation.getAuthorization());
-            var coverage = forPositivePaths(new PathSet(positives));
-            for (ItemValueSelectorType valueSelector : valueSelectors) {
-                coverage.merge(forValueSelector(valueSelector, pcv, object, evaluation));
+        Collection<SelectorChainSegment> roots = createSelectorChains(object, evaluation);
+        if (!roots.isEmpty()) {
+            PrismValueCoverageInformation merged = PrismValueCoverageInformation.noCoverage();
+            for (SelectorChainSegment root : roots) {
+                merged.merge(
+                        forSegment(object.getValue(), object, root, evaluation));
             }
-            return coverage;
+            return merged;
         } else {
-            return forNegativePaths(new PathSet(negatives));
+            return null;
         }
     }
 
-    private static PrismValueCoverageInformation forValueSelector(
-            ItemValueSelectorType valueSelector,
-            PrismContainerValue<?> pcv,
+    private static Collection<SelectorChainSegment> createSelectorChains(
+            PrismObject<? extends ObjectType> object, @NotNull AuthorizationEvaluation evaluation)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        Authorization autz = evaluation.getAuthorization();
+        var positives = new PathSet(autz.getItems());
+        var negatives = new PathSet(autz.getExceptItems());
+        List<SelectorChainSegment> roots = new ArrayList<>();
+        if (autz.getObjectSelectors().isEmpty()) {
+            // Quite special case (e.g. for #all autz)
+            // TODO is this OK?
+            return List.of(
+                    SelectorChainSegment.create(
+                            ItemPath.EMPTY_PATH, null, new AuthorizationObjectSelectorType(),
+                            positives, negatives, evaluation));
+        } else {
+            for (AuthorizationObjectSelectorType objectSelector : autz.getObjectSelectors()) {
+                CollectionUtils.addIgnoreNull(
+                        roots,
+                        createSelectorChain(
+                                ItemPath.EMPTY_PATH, null, objectSelector, positives, negatives, object, evaluation));
+            }
+        }
+        return roots;
+    }
+
+    private static SelectorChainSegment createSelectorChain(
+            ItemPath path,
+            SelectorChainSegment nextSegment,
+            AuthorizationObjectSelectorType objectSelector,
+            PathSet positives,
+            PathSet negatives,
             PrismObject<? extends ObjectType> object,
-            AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException {
-        var path = configNonNull(valueSelector.getPath(), () -> "no path").getItemPath(); // TODO error location
-        configCheck(!path.isEmpty(), "Path cannot be empty in %s", valueSelector); // TODO error location
+            AuthorizationEvaluation evaluation)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+
+        if (evaluation.isSelectorApplicable(objectSelector, object, Set.of(), "TODO")) {
+            return SelectorChainSegment.create(path, nextSegment, objectSelector, positives, negatives, evaluation);
+        }
+
+        ParentSelector parentSelector = getParentSelector(objectSelector);
+        if (parentSelector == null) {
+            return null;
+        }
+
+        var child = SelectorChainSegment.create(path, nextSegment, objectSelector, positives, negatives, evaluation);
+        return createSelectorChain(
+                parentSelector.getPath(),
+                child,
+                parentSelector.getSelector(),
+                PathSet.of(),
+                PathSet.of(),
+                object,
+                evaluation);
+    }
+
+    private static @Nullable ParentSelector getParentSelector(
+            @NotNull AuthorizationObjectSelectorType objectSelector) throws ConfigurationException {
+        AuthorizationParentSelectorType explicit = objectSelector.getParent();
+        if (explicit != null) {
+            return ParentSelector.forBean(explicit);
+        } else {
+            return ParentSelector.implicit(objectSelector.getType());
+        }
+    }
+
+    private static PrismValueCoverageInformation forSegment(
+            @NotNull PrismValue value,
+            @NotNull PrismObject<? extends ObjectType> object,
+            @NotNull SelectorChainSegment segment,
+            @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+
+        if (!evaluation.isSelectorApplicable(segment.selector, value, Set.of(), "TODO")) {
+            return PrismValueCoverageInformation.noCoverage();
+        }
+
+        if (!segment.positives.isEmpty() || segment.next != null) {
+            var coverage = forPositivePaths(segment.positives);
+            if (segment.next != null) {
+                coverage.merge(forNextSegment(segment.path, segment.next, value, object, evaluation));
+            }
+            return coverage;
+        } else {
+            return forNegativePaths(segment.negatives);
+        }
+    }
+
+    private static PrismValueCoverageInformation forNextSegment(
+            ItemPath path,
+            SelectorChainSegment nextSegment,
+            PrismValue parentValue,
+            PrismObject<? extends ObjectType> object,
+            AuthorizationEvaluation evaluation)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        if (!(parentValue instanceof PrismContainerValue<?>)) {
+            return PrismValueCoverageInformation.noCoverage();
+        }
+        var pcv = (PrismContainerValue<?>) parentValue;
         var item = pcv.findItem(path);
         if (item == null) {
             // Item is not present in the PCV, the coverage needs no update.
             return PrismValueCoverageInformation.noCoverage();
         }
 
-        List<PrismValue> matchingValues = new ArrayList<>();
-        for (PrismValue value : item.getValues()) {
-            ValueSelectorEvaluation selectorEvaluation = new ValueSelectorEvaluation(value, valueSelector, object, evaluation);
-            if (selectorEvaluation.matches()) {
-                matchingValues.add(value);
+        var root = PrismValueCoverageInformation.noCoverage();
+        var itemCoverageInformation = createItemCoverageInformationObject(root, path); // TODO evaluate lazily
+
+        for (PrismValue itemValue : item.getValues()) {
+            PrismValueCoverageInformation subValueCoverage =
+                    forSegment(itemValue, object, nextSegment, evaluation);
+            if (subValueCoverage.getCoverage() != NONE) {
+                itemCoverageInformation.addForValue(itemValue, subValueCoverage);
             }
         }
-        if (matchingValues.isEmpty()) {
-            // No matching values, nothing to be updated.
-            return PrismValueCoverageInformation.noCoverage();
+        if (itemCoverageInformation.getCoverage() == NONE) {
+            return PrismValueCoverageInformation.noCoverage(); // to avoid useless root->item chain
+        } else {
+            return root;
         }
-
-        var root = PrismValueCoverageInformation.noCoverage();
-        var itemCoverageInformation = createItemCoverageInformationObject(root, path);
-        for (PrismValue matchingValue : matchingValues) {
-            PrismValueCoverageInformation subValueCoverage =
-                    matchingValue instanceof PrismContainerValue<?> ?
-                            forItemsSpecifications(
-                                    (PrismContainerValue<?>) matchingValue,
-                                    object,
-                                    toItemPaths(valueSelector.getItem()),
-                                    toItemPaths(valueSelector.getExceptItem()),
-                                    valueSelector.getItemValue(),
-                                    evaluation) :
-                            PrismValueCoverageInformation.fullCoverage();
-            itemCoverageInformation.addForValue(matchingValue, subValueCoverage);
-        }
-        return root;
-    }
-
-    private static List<ItemPath> toItemPaths(List<ItemPathType> beans) {
-        return beans.stream()
-                .map(b -> b.getItemPath())
-                .collect(Collectors.toList());
     }
 
     // TODO explain
@@ -305,5 +363,37 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             DebugUtil.debugDumpWithLabel(sb, "Individual sub-items", itemsMap, indent + 1);
         }
         return sb.toString();
+    }
+
+    // TODO rename
+    private static class SelectorChainSegment {
+        /** May be empty */
+        @NotNull private final ItemPath path;
+        @Nullable private final SelectorChainSegment next;
+        @NotNull private final AuthorizationObjectSelectorType selector;
+        @NotNull private final PathSet positives;
+        @NotNull private final PathSet negatives;
+
+        private SelectorChainSegment(
+                @NotNull ItemPath path,
+                @Nullable SelectorChainSegment next,
+                @NotNull AuthorizationObjectSelectorType selector,
+                @NotNull PathSet positives,
+                @NotNull PathSet negatives) {
+            this.path = path;
+            this.next = next;
+            this.selector = selector;
+            this.positives = positives;
+            this.negatives = negatives;
+        }
+
+        static SelectorChainSegment create(
+                ItemPath path, SelectorChainSegment nextSegment, AuthorizationObjectSelectorType objectSelector,
+                PathSet positives, PathSet negatives, AuthorizationEvaluation evaluation) throws ConfigurationException {
+            configCheck(positives.isEmpty() || negatives.isEmpty(),
+                    "'item' and 'exceptItem' cannot be combined: %s vs %s in %s",
+                    positives, negatives, evaluation.getAuthorization());
+            return new SelectorChainSegment(path, nextSegment, objectSelector, positives, negatives);
+        }
     }
 }

@@ -20,34 +20,32 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
+
 /** EXPERIMENTAL, PoC CODE */
 public class ValueSelectorEvaluation {
 
     @NotNull private final PrismValue value;
-    @NotNull private final ItemValueSelectorType valueSelector;
-    @NotNull private final PrismObject<? extends ObjectType> object;
+    @Nullable private final SubjectedObjectSelectorType valueSelector;
     @NotNull private final AuthorizationEvaluation evaluation;
 
     public ValueSelectorEvaluation(
             @NotNull PrismValue value,
-            @NotNull ItemValueSelectorType valueSelector,
-            @NotNull PrismObject<? extends ObjectType> object,
+            @Nullable SubjectedObjectSelectorType valueSelector,
             @NotNull AuthorizationEvaluation evaluation) {
         this.value = value;
         this.valueSelector = valueSelector;
-        this.object = object;
         this.evaluation = evaluation;
     }
 
     public boolean matches() throws ConfigurationException, SchemaException {
-        ValueSelectorType selector = valueSelector.getValue();
-        if (selector == null) {
+        if (valueSelector == null) {
             // Empty selector means we match everything (is that OK?)
             return true;
         }
         Object realValue = value.getRealValue();
 
-        SearchFilterType filterBean = selector.getFilter();
+        SearchFilterType filterBean = valueSelector.getFilter();
         if (filterBean != null) {
             if (!(value instanceof PrismContainerValue<?>)) {
                 throw new UnsupportedOperationException("Filter clause can be used only on a container value");
@@ -59,13 +57,13 @@ public class ValueSelectorEvaluation {
             }
         }
 
-        List<SubjectedObjectSelectorType> assigneeSelectors = selector.getAssignee();
-        if (!assigneeSelectors.isEmpty()) {
-            if (!(realValue instanceof AbstractWorkItemType)) {
-                return false;
-            }
-            List<ObjectReferenceType> assigneeRefs = ((AbstractWorkItemType) realValue).getAssigneeRef();
-            for (SubjectedObjectSelectorType assigneeSelector : assigneeSelectors) {
+        if (valueSelector instanceof OwnedObjectSelectorType) {
+            SubjectedObjectSelectorType assigneeSelector = ((OwnedObjectSelectorType) valueSelector).getAssignee();
+            if (assigneeSelector != null) {
+                if (!(realValue instanceof AbstractWorkItemType)) {
+                    return false;
+                }
+                List<ObjectReferenceType> assigneeRefs = ((AbstractWorkItemType) realValue).getAssigneeRef();
                 if (!assigneeSelector.getSpecial().isEmpty()) {
                     for (ObjectReferenceType assigneeRef : assigneeRefs) {
                         var assigneeOid = assigneeRef.getOid();
@@ -74,8 +72,8 @@ public class ValueSelectorEvaluation {
                         }
                     }
                 }
+                return false;
             }
-            return false;
         }
         return true;
     }

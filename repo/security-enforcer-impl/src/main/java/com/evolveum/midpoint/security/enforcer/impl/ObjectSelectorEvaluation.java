@@ -10,6 +10,9 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,14 +34,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Instantiated and used as part of an {@link EnforcerOperation}.
  */
-class ObjectSelectorEvaluation<O extends ObjectType, S extends SubjectedObjectSelectorType>
+class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
         implements ClauseEvaluationContext {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
     @NotNull final S selector;
-    @Nullable private final PrismObject<O> object;
+    @Nullable private final PrismValue value;
     @NotNull private final Collection<String> otherSelfOids;
     @NotNull private final String desc;
     @NotNull final AuthorizationEvaluation authorizationEvaluation;
@@ -48,13 +51,13 @@ class ObjectSelectorEvaluation<O extends ObjectType, S extends SubjectedObjectSe
 
     ObjectSelectorEvaluation(
             @NotNull S selector,
-            @Nullable PrismObject<O> object,
+            @Nullable PrismValue value,
             @NotNull Collection<String> otherSelfOids,
             @NotNull String desc,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) {
         this.selector = selector;
-        this.object = object;
+        this.value = value;
         this.otherSelfOids = otherSelfOids;
         this.desc = desc;
         this.authorizationEvaluation = authorizationEvaluation;
@@ -67,7 +70,15 @@ class ObjectSelectorEvaluation<O extends ObjectType, S extends SubjectedObjectSe
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        assert object != null; // TODO sure?
+        assert value != null; // TODO sure?
+
+        if (!(value instanceof PrismObjectValue<?>)) {
+            // FIXME TEMPORARY HACK
+            return new ValueSelectorEvaluation(value, selector, authorizationEvaluation)
+                    .matches();
+        }
+
+        PrismObject<? extends ObjectType> object = asObject(value);
 
         ObjectFilterExpressionEvaluator filterExpressionEvaluator = authorizationEvaluation.createFilterEvaluator(desc);
         if (!b.repositoryService.selectorMatches(
@@ -160,6 +171,11 @@ class ObjectSelectorEvaluation<O extends ObjectType, S extends SubjectedObjectSe
 
         LOGGER.trace("    {} applicable for {} (filter)", getAutzDesc(), desc);
         return true;
+    }
+
+    private @NotNull PrismObject<? extends ObjectType> asObject(PrismValue value) {
+        //noinspection unchecked
+        return ((PrismObjectValue<? extends ObjectType>) value).asPrismObject();
     }
 
     @Override

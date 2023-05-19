@@ -99,8 +99,7 @@ class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation<O> 
                         : new TwoPhasesPrismEntityOpConstraintsImpl.ForValueContent();
         for (Authorization autz : getAuthorizations()) {
             var evaluation = new AuthorizationEvaluation(autz, this, result);
-            if (evaluation.isApplicableToActions(actionUrls)
-                    && evaluation.isApplicableToObject(object)) {
+            if (evaluation.isApplicableToActions(actionUrls)) {
                 constraints.applyAuthorization(object, evaluation);
             }
         }

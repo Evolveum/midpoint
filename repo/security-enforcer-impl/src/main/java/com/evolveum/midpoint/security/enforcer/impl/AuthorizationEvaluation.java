@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -278,7 +279,7 @@ public class AuthorizationEvaluation {
     private <O extends ObjectType> boolean isApplicableToObjectDeltaObjectInternal(ObjectDeltaObject<O> odo)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        List<OwnedObjectSelectorType> objectSelectors = authorization.getObjectSelectors();
+        List<? extends OwnedObjectSelectorType> objectSelectors = authorization.getObjectSelectors();
         if (!objectSelectors.isEmpty()) {
             if (odo == null) {
                 if (op.traceEnabled) {
@@ -323,7 +324,7 @@ public class AuthorizationEvaluation {
     }
 
     private <O extends ObjectType> boolean areSelectorsApplicable(
-            @NotNull List<OwnedObjectSelectorType> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
+            @NotNull List<? extends OwnedObjectSelectorType> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (!selectors.isEmpty()) {
@@ -463,14 +464,26 @@ public class AuthorizationEvaluation {
      * The reason is that if we want to match assignee or requestor (probably targetObject and owner as well)
      * we want to give appropriate privileges also to assignee/requestor delegates.
      */
-    boolean isSelectorApplicable(
+    public boolean isSelectorApplicable(
             @NotNull SubjectedObjectSelectorType selector,
             @Nullable PrismObject<? extends ObjectType> object,
             @NotNull Collection<String> otherSelfOids,
             @NotNull String desc)
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return new ObjectSelectorEvaluation<>(selector, object, otherSelfOids, desc, this, result)
+        var value = object != null ? object.getValue() : null;
+        return new ObjectSelectorEvaluation<>(selector, value, otherSelfOids, desc, this, result)
+                .isSelectorApplicable();
+    }
+
+    public boolean isSelectorApplicable(
+            @NotNull SubjectedObjectSelectorType selector,
+            @Nullable PrismValue value,
+            @NotNull Collection<String> otherSelfOids,
+            @NotNull String desc)
+            throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return new ObjectSelectorEvaluation<>(selector, value, otherSelfOids, desc, this, result)
                 .isSelectorApplicable();
     }
 
