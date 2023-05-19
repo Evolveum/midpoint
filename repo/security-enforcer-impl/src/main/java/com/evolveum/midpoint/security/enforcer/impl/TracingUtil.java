@@ -25,7 +25,7 @@ public class TracingUtil {
         }
     }
 
-    static <O extends ObjectType> String getObjectTypeName(Class<O> type) {
+    static String getTypeName(Class<?> type) {
         return type != null ? type.getSimpleName() : null;
     }
 }

@@ -32,13 +32,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 
 /**
  * Represents a {@link SecurityEnforcer} operation: access determination or filter building.
  */
-class EnforcerOperation<O extends ObjectType> {
+class EnforcerOperation {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);

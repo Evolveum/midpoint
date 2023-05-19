@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 
 /** Provides functionality specific for filter processing. */
 public interface ClauseFilterEvaluationContext extends ClauseEvaluationContext {
@@ -23,9 +20,7 @@ public interface ClauseFilterEvaluationContext extends ClauseEvaluationContext {
 
     @NotNull ObjectFilterExpressionEvaluator createFilterEvaluator();
 
-    @NotNull PrismObjectDefinition<?> getObjectDefinition();
-
-    @NotNull Class<? extends ObjectType> getObjectType();
+    @NotNull Class<?> getRefinedType();
 
     @Nullable ObjectFilter getOriginalFilter();
 

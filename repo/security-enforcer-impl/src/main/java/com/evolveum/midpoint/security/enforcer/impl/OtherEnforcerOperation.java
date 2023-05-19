@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -29,7 +30,7 @@ import java.util.Collection;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /** Covers {@link SecurityEnforcer} operations other than access decision or security filter computation. */
-class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation<O> {
+class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation {
 
     OtherEnforcerOperation(
             @Nullable MidPointPrincipal principal,
@@ -84,14 +85,14 @@ class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation<O> 
     }
 
     @NotNull PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
-            @NotNull PrismObject<O> object,
+            @NotNull PrismValue value,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Collection<String> actionUrls,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (traceEnabled) {
-            LOGGER.trace("AUTZ: evaluating value operation security constraints principal={}, object={}", username, object);
+            LOGGER.trace("AUTZ: evaluating value operation security constraints principal={}, value={}", username, value);
         }
         var constraints =
                 phase != null ?
@@ -100,12 +101,12 @@ class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation<O> 
         for (Authorization autz : getAuthorizations()) {
             var evaluation = new AuthorizationEvaluation(autz, this, result);
             if (evaluation.isApplicableToActions(actionUrls)) {
-                constraints.applyAuthorization(object, evaluation);
+                constraints.applyAuthorization(value, evaluation);
             }
         }
         if (traceEnabled) {
             LOGGER.trace("AUTZ: evaluated value operation constraints principal={}, object={}:\n{}",
-                    username, object, constraints.debugDump(1));
+                    username, value, constraints.debugDump(1));
         }
         return constraints;
     }

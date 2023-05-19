@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -163,6 +164,7 @@ public interface SecurityEnforcer {
      *
      * We merge information from all `actionUrls`, considering them equivalent.
      */
+    @Deprecated // to be replaced by value-based variant
     <O extends ObjectType> @NotNull ObjectOperationConstraints compileOperationConstraints(
             @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
             @NotNull Collection<String> actionUrls,
@@ -173,8 +175,8 @@ public interface SecurityEnforcer {
     /**
      * TODO
      */
-    @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
-            @NotNull PrismObject<O> object,
+    @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+            @NotNull PrismValue object,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Collection<String> actionUrls,

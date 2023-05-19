@@ -305,17 +305,20 @@ public class SchemaTransformer {
             AuthorizationPhaseType phase =
                     GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
             var readConstraints =
-                    securityEnforcer.compileValueOperationConstraints(
-                            object, phase, null, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET_ALL, task, result);
-            object = applyReadConstraints(object, readConstraints);
+                    securityEnforcer.compileOperationConstraints(
+                            object.getValue(),
+                            phase,
+                            null,
+                            ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET_ALL,
+                            task,
+                            result);
+            return applyReadConstraints(object, readConstraints);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
         } finally {
             result.close();
         }
-        LOGGER.trace("applySchemasAndSecurityToObject2 finishing");
-        return object;
     }
 
     private <O extends ObjectType> void authorizeRawOption(

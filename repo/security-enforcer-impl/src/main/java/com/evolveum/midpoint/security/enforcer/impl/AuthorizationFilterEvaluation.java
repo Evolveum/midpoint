@@ -37,12 +37,12 @@ import javax.xml.namespace.QName;
  *
  * It is a part of {@link EnforcerFilterOperation}.
  */
-class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationEvaluation {
+class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
-    @NotNull private final Class<O> objectType;
+    @NotNull private final Class<T> objectType;
     @Nullable private final ObjectFilter originalFilter;
     @NotNull private final List<? extends OwnedObjectSelectorType> objectSelectors;
     @NotNull private final String selectorLabel;
@@ -50,13 +50,13 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
     private ObjectFilter autzFilter = null;
 
     AuthorizationFilterEvaluation(
-            @NotNull Class<O> objectType,
+            @NotNull Class<T> objectType,
             @Nullable ObjectFilter originalFilter,
             @NotNull Authorization authorization,
             @NotNull List<? extends OwnedObjectSelectorType> objectSelectors,
             @NotNull String selectorLabel,
             boolean includeSpecial,
-            @NotNull EnforcerOperation<?> op,
+            @NotNull EnforcerOperation op,
             @NotNull OperationResult result) {
         super(authorization, op, result);
         this.objectType = objectType;
@@ -85,7 +85,7 @@ class AuthorizationFilterEvaluation<O extends ObjectType> extends AuthorizationE
                 if (isNotAnObjectType(objectSelector)) { // FIXME remove this hack
                     continue;
                 }
-                ObjectSelectorFilterEvaluation<O> processor =
+                ObjectSelectorFilterEvaluation<T> processor =
                         new ObjectSelectorFilterEvaluation<>(
                                 objectSelector, objectType, originalFilter, Set.of(), "TODO",
                                 selectorLabel, this, result);

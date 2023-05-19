@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see SecurityEnforcer#compileOperationConstraints(PrismObject, OwnerResolver, java.util.Collection, Task, OperationResult)
  */
+@Deprecated // to be replaced by PrismEntityOpConstraints
 public interface ObjectOperationConstraints extends DebugDumpable {
 
     /**

@@ -64,7 +64,7 @@ public class AuthorizationEvaluation {
     @NotNull final Authorization authorization;
     @NotNull private final Lazy<String> lazyDescription;
 
-    @NotNull final EnforcerOperation<?> op;
+    @NotNull final EnforcerOperation op;
     @Nullable private final MidPointPrincipal principal;
     @NotNull private final Beans b;
     @NotNull private final Task task;
@@ -72,7 +72,7 @@ public class AuthorizationEvaluation {
 
     AuthorizationEvaluation(
             @NotNull Authorization authorization,
-            @NotNull EnforcerOperation<?> op,
+            @NotNull EnforcerOperation op,
             @NotNull OperationResult result) {
         this.authorization = authorization;
         this.op = op;
@@ -130,13 +130,12 @@ public class AuthorizationEvaluation {
         return false;
     }
 
-    boolean isApplicableToPhase(AuthorizationPhaseType phase, boolean includeNullPhase) {
-        AuthorizationPhaseType autzPhase = authorization.getPhase();
-        if (autzPhase == phase || (includeNullPhase && autzPhase == null)) {
-            LOGGER.trace("      Authorization is applicable for phases {} (continuing evaluation)", phase);
+    boolean isApplicableToPhase(@NotNull PhaseSelector phaseSelector) {
+        if (phaseSelector.matches(authorization.getPhase())) {
+            LOGGER.trace("      Authorization is applicable for phase filter '{}' (continuing evaluation)", phaseSelector);
             return true;
         } else {
-            LOGGER.trace("      Authorization is not applicable for phase {} (includeNullPhase={})", phase, includeNullPhase);
+            LOGGER.trace("      Authorization is not applicable for phase filter '{}'", phaseSelector);
             return false;
         }
     }

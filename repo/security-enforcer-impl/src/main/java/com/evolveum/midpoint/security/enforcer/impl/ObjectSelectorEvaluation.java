@@ -45,7 +45,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
     @NotNull private final Collection<String> otherSelfOids;
     @NotNull private final String desc;
     @NotNull final AuthorizationEvaluation authorizationEvaluation;
-    @NotNull final EnforcerOperation<?> enforcerOp;
+    @NotNull final EnforcerOperation enforcerOp;
     @NotNull final Beans b;
     @NotNull private final OperationResult result;
 

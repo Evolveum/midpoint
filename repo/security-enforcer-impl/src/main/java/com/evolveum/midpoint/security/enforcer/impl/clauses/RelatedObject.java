@@ -66,10 +66,11 @@ public class RelatedObject extends AbstractSelectorClauseEvaluation {
     }
 
     public boolean applyFilter() {
-        Class<? extends ObjectType> objectType = fCtx.getObjectType();
+        Class<?> objectType = fCtx.getRefinedType();
         if (CaseType.class.isAssignableFrom(objectType)
                 || TaskType.class.isAssignableFrom(objectType)) {
-            var increment = createFilter(objectType);
+            //noinspection unchecked
+            var increment = createFilter((Class<? extends ObjectType>) objectType);
             LOGGER.trace("  applying related object filter {}", increment);
             fCtx.addConjunction(increment);
             return true;

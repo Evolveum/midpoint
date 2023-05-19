@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
+import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.nonStrict;
 import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.prettyActionUrl;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Operation that determines {@link AccessDecision} for a given situation, described by operation URL, parameters, and so on.
  */
 class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
-        extends EnforcerOperation<O> {
+        extends EnforcerOperation {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
@@ -92,7 +93,7 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
         for (Authorization authorization : getAuthorizations()) {
             var evaluation = new AuthorizationEvaluation(authorization, this, result);
             if (!evaluation.isApplicableToAction(operationUrl)
-                    || !evaluation.isApplicableToPhase(phase, true)
+                    || !evaluation.isApplicableToPhase(nonStrict(phase))
                     || !evaluation.isApplicableToRelation(params.getRelation())
                     || !evaluation.isApplicableToOrderConstraints(params.getOrderConstraints())
                     || !evaluation.isApplicableToObject(params.getOdo())

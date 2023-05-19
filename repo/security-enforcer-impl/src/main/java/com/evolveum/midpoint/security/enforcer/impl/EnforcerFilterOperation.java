@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
+import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.*;
+import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.FILTER_TRACE_ENABLED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
+
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -22,29 +32,21 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.*;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 
 /**
  * Operation that computes a "security filter", i.e. additional restrictions to be applied in a given filtering/searching
  * situation.
+ *
+ * @param <T> type of the objects being filtered
+ * @param <F> type of the filter being produced, see {@link FilterGizmo}
  */
-class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation<O> {
+class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
     private final String[] operationUrls;
-    private final Class<O> searchResultType;
-    private final PrismObject<? extends ObjectType> object;
-    private final SecurityEnforcerImpl.SearchType searchType;
+    private final Class<T> searchResultType;
+    private final AuthorizationPreProcessor preProcessor;
     private final boolean includeSpecial;
     private final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
@@ -54,9 +56,8 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
 
     EnforcerFilterOperation(
             String[] operationUrls,
-            Class<O> searchResultType,
-            PrismObject<? extends ObjectType> object,
-            SecurityEnforcerImpl.SearchType searchType,
+            Class<T> searchResultType,
+            AuthorizationPreProcessor preProcessor,
             boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
@@ -68,11 +69,9 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
             @NotNull Beans beans,
             @NotNull Task task) {
         super(principal, ownerResolver, beans, task);
-
         this.operationUrls = operationUrls;
         this.searchResultType = searchResultType;
-        this.object = object;
-        this.searchType = searchType;
+        this.preProcessor = preProcessor;
         this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
         this.limitAuthorizationAction = limitAuthorizationAction;
@@ -87,11 +86,11 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
         traceOperationStart();
         F securityFilter;
         if (phase != null) {
-            securityFilter = new Phase(phase, false).computeFilter(result);
+            securityFilter = new Partial(nonStrict(phase)).computeFilter(result);
         } else {
-            F filterBoth = new Phase(null, true).computeFilter(result); // partialCheck is irrelevant here
-            F filterRequest = new Phase(REQUEST, true).computeFilter(result);
-            F filterExecution = new Phase(EXECUTION, true).computeFilter(result);
+            F filterBoth = new Partial(both()).computeFilter(result);
+            F filterRequest = new Partial(strict(REQUEST)).computeFilter(result);
+            F filterExecution = new Partial(strict(EXECUTION)).computeFilter(result);
             securityFilter =
                     gizmo.or(
                             filterBoth,
@@ -102,12 +101,9 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
     }
 
     /** TODO */
-    private class Phase {
+    private class Partial {
 
-        private final @Nullable AuthorizationPhaseType phase;
-
-        /** True if this check is part of more complex check. */
-        private final boolean partialCheck;
+        private final @NotNull PhaseSelector phaseSelector;
 
         /** TODO */
         @NotNull private final QueryAutzItemPaths queryItemsSpec = new QueryAutzItemPaths();
@@ -118,9 +114,8 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
         /** TODO */
         private F securityFilterDeny = null;
 
-        Phase(@Nullable AuthorizationPhaseType phase, boolean partialCheck) {
-            this.phase = phase;
-            this.partialCheck = partialCheck;
+        Partial(@NotNull PhaseSelector phaseSelector) {
+            this.phaseSelector = phaseSelector;
         }
 
         /**
@@ -137,30 +132,22 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
 
             for (Authorization authorization : getAuthorizations()) {
 
-                AuthorizationFilterEvaluation<O> autzEvaluation;
-                if (searchType == SecurityEnforcerImpl.SearchType.OBJECT) {
-                    argCheck(object == null, "Searching for object but object is not null");
-                    autzEvaluation = new AuthorizationFilterEvaluation<>(
-                            searchResultType, origFilter, authorization, authorization.getObjectSelectors(), "object",
-                            includeSpecial, EnforcerFilterOperation.this, result);
-                } else if (searchType == SecurityEnforcerImpl.SearchType.TARGET) {
-                    argCheck(object != null, "Searching for target but object is null");
-                    autzEvaluation = new AuthorizationFilterEvaluation<>(
-                            searchResultType, origFilter, authorization, authorization.getTargetSelectors(), "target",
-                            includeSpecial, EnforcerFilterOperation.this, result);
-                } else {
-                    throw new AssertionError(searchType);
-                }
-
-                // If doing partial check, we must not take authorization with no phase into account when
-                // looking for non-null phase.
-                boolean includeNullPhase = !partialCheck;
+                AuthorizationFilterEvaluation<T> autzEvaluation;
+                autzEvaluation = new AuthorizationFilterEvaluation<>(
+                        searchResultType,
+                        origFilter,
+                        authorization,
+                        preProcessor.getSelectors(authorization),
+                        preProcessor.getSelectorLabel(),
+                        includeSpecial,
+                        EnforcerFilterOperation.this,
+                        result);
 
                 if (!autzEvaluation.isApplicableToActions(operationUrls)
-                        || !autzEvaluation.isApplicableToPhase(phase, includeNullPhase)
+                        || !autzEvaluation.isApplicableToPhase(phaseSelector)
                         || !autzEvaluation.isApplicableToLimitations(limitAuthorizationAction, operationUrls)
                         || !autzEvaluation.isApplicableToOrderConstraints(paramOrderConstraints)
-                        || (object != null && !autzEvaluation.isApplicableToObject(object))) {
+                        || !preProcessor.isApplicable(autzEvaluation)) {
                     continue;
                 }
 
@@ -238,14 +225,14 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
 
         private void tracePhaseOperationStart() {
             if (traceEnabled) {
-                LOGGER.trace("  phase={}, initial query items specification: {}", phase, queryItemsSpec.shortDumpLazily());
+                LOGGER.trace("  phase={}, initial query items specification: {}", phaseSelector, queryItemsSpec.shortDumpLazily());
             }
         }
 
         private void tracePhaseOperationEnd(F secFilter, String reason) {
             if (traceEnabled) {
                 // TODO message formatting
-                traceFilter(EnforcerFilterOperation.this, desc + ": for whole phase (reason: " + reason + ")", phase, secFilter, gizmo);
+                traceFilter(EnforcerFilterOperation.this, desc + ": for whole phase (reason: " + reason + ")", phaseSelector, secFilter, gizmo);
             }
         }
     }
@@ -254,8 +241,8 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
         if (traceEnabled) {
             // TODO desc?
             LOGGER.trace(
-                    "AUTZ: computing security filter principal={}, searchResultType={}, object={}, searchType={}: orig filter {}",
-                    username, TracingUtil.getObjectTypeName(searchResultType), object, searchType, origFilter);
+                    "AUTZ: computing security filter principal={}, searchResultType={}, searchType={}: orig filter {}",
+                    username, TracingUtil.getTypeName(searchResultType), preProcessor, origFilter);
         }
     }
 
@@ -263,18 +250,18 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
         if (traceEnabled) {
             // TODO desc?
             LOGGER.trace("AUTZ: computed security filter principal={}, searchResultType={}: {}\n{}",
-                    username, TracingUtil.getObjectTypeName(searchResultType),
+                    username, TracingUtil.getTypeName(searchResultType),
                     securityFilter, DebugUtil.debugDump(securityFilter, 1));
         }
     }
 
-    static void traceFilter(EnforcerOperation<?> ctx, String message, Object forObj, ObjectFilter filter) {
+    static void traceFilter(EnforcerOperation ctx, String message, Object forObj, ObjectFilter filter) {
         if (FILTER_TRACE_ENABLED && ctx.traceEnabled) {
             LOGGER.trace("FILTER {} {}:\n{}", message, TracingUtil.describe(forObj), DebugUtil.debugDump(filter, 1));
         }
     }
 
-    static <F> void traceFilter(EnforcerOperation<?> ctx, String message, Object forObj, F filter, FilterGizmo<F> gizmo) {
+    static <F> void traceFilter(EnforcerOperation ctx, String message, Object forObj, F filter, FilterGizmo<F> gizmo) {
         if (FILTER_TRACE_ENABLED && ctx.traceEnabled) {
             LOGGER.trace("FILTER {} {}:\n{}", message, TracingUtil.describe(forObj), gizmo.debugDumpFilter(filter, 1));
         }
@@ -283,6 +270,83 @@ class EnforcerFilterOperation<O extends ObjectType, F> extends EnforcerOperation
     private void tracePaths(String message, QueryAutzItemPaths paths) {
         if (FILTER_TRACE_ENABLED && traceEnabled) {
             LOGGER.trace("PATHS {} {}", message, paths.shortDump());
+        }
+    }
+
+    /**
+     * Extracts relevant parts of authorizations for an {@link EnforcerFilterOperation}.
+     *
+     * TODO better name
+     */
+    static abstract class AuthorizationPreProcessor {
+
+        static AuthorizationPreProcessor forObject() {
+            return new ForObject();
+        }
+
+        static AuthorizationPreProcessor forTarget(@NotNull PrismObject<? extends ObjectType> object) {
+            return new ForTarget(object);
+        }
+
+        abstract List<? extends OwnedObjectSelectorType> getSelectors(Authorization authorization);
+
+        abstract String getSelectorLabel();
+
+        abstract boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException;
+
+        static class ForObject extends AuthorizationPreProcessor {
+
+            @Override
+            List<? extends OwnedObjectSelectorType> getSelectors(Authorization authorization) {
+                return authorization.getObjectSelectors();
+            }
+
+            @Override
+            String getSelectorLabel() {
+                return "object";
+            }
+
+            @Override
+            boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation) {
+                return true;
+            }
+
+            @Override
+            public String toString() {
+                return "object";
+            }
+        }
+
+        static class ForTarget extends AuthorizationPreProcessor {
+            @NotNull private final PrismObject<? extends ObjectType> object;
+
+            ForTarget(@NotNull PrismObject<? extends ObjectType> object) {
+                this.object = object;
+            }
+
+            @Override
+            List<? extends OwnedObjectSelectorType> getSelectors(Authorization authorization) {
+                return authorization.getTargetSelectors();
+            }
+
+            @Override
+            String getSelectorLabel() {
+                return "target";
+            }
+
+            @Override
+            boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
+                    throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                    ConfigurationException, ObjectNotFoundException {
+                return autzEvaluation.isApplicableToObject(object);
+            }
+
+            @Override
+            public String toString() {
+                return "target for " + object;
+            }
         }
     }
 }

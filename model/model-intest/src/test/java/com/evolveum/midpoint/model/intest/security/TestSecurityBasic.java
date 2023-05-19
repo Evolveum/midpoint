@@ -261,7 +261,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(RoleType.class, null, 0);
         // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 2);        // user + campaign (case1 is skipped)
+        assertSearch(ObjectType.class, null, 3); // user + campaign + case1
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY.oid);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN.oid);
@@ -313,7 +313,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(RoleType.class, null, 0);
         // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 1);        // user (case2 is not shown as case clause is skipped)
+        assertSearch(ObjectType.class, null, 2); // user + case2
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY.oid);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN.oid);
@@ -365,7 +365,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(RoleType.class, null, 0);
         // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 1);        // user (case2 is skipped)
+        assertSearch(ObjectType.class, null, 2); // user + case2
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY.oid);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN.oid);
@@ -424,7 +424,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertSearch(RoleType.class, null, 0);
             // The search with ResourceObjectClass is important. It is a very different case
             // than searching just for UserType
-            assertSearch(ObjectType.class, null, 1);        // user (case2 is skipped)
+            assertSearch(ObjectType.class, null, 2); // user + case2
 
             assertGetDeny(RoleType.class, ROLE_ORDINARY.oid);
             assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN.oid);
@@ -3181,7 +3181,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertOwnTaskEditSchema(task.asPrismObject());
 
         assertSearch(UserType.class, null, 0);
-        assertSearch(ObjectType.class, null, 0);
+        assertSearch(ObjectType.class, null, 1); // the task
         assertSearch(OrgType.class, null, 0);
         assertSearch(TaskType.class, null, 1);
 

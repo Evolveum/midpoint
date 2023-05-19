@@ -69,7 +69,7 @@ public class Requester extends AbstractSelectorClauseEvaluation {
     }
 
     public boolean applyFilter() {
-        if (CaseType.class.isAssignableFrom(fCtx.getObjectType())) {
+        if (CaseType.class.isAssignableFrom(fCtx.getRefinedType())) {
             var increment = createFilter();
             LOGGER.trace("  applying requester filter {}", increment);
             fCtx.addConjunction(increment);

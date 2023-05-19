@@ -16,6 +16,7 @@ import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderI
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.impl.util.EndPointsUrlMapping;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.security.api.*;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
@@ -337,8 +338,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
-            @NotNull PrismObject<O> object,
+    public @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+            @NotNull PrismValue value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Collection<String> actionUrls,
@@ -346,7 +347,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileValueOperationConstraints(object, phase, ownerResolver, actionUrls, task, result);
+        return securityEnforcer.compileOperationConstraints(value, phase, ownerResolver, actionUrls, task, result);
     }
 
     @Override

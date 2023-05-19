@@ -7,20 +7,18 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
+import static java.util.Collections.emptySet;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import static java.util.Collections.emptySet;
 
 /**
  * Evaluates "owner" object selector clause.
@@ -64,9 +62,9 @@ public class Owner extends AbstractSelectorClauseEvaluation {
     public boolean applyFilter() {
         // TODO: MID-3899
         // TODO what if owner is specified not as "self" ?
-        if (TaskType.class.isAssignableFrom(fCtx.getObjectType())) {
+        if (TaskType.class.isAssignableFrom(fCtx.getRefinedType())) {
             var increment = applyOwnerFilterOwnerRef(
-                    TaskType.F_OWNER_REF, fCtx.getObjectDefinition(), ctx.getPrincipalFocus());
+                    TaskType.F_OWNER_REF, TaskType.class, ctx.getPrincipalFocus());
             LOGGER.trace("  applying owner filter {}", increment);
             fCtx.addConjunction(increment);
             return true;
@@ -78,14 +76,13 @@ public class Owner extends AbstractSelectorClauseEvaluation {
 
     // TODO review this legacy code
     private ObjectFilter applyOwnerFilterOwnerRef(
-            ItemPath ownerRefPath, PrismObjectDefinition<?> objectDefinition, FocusType principalFocus) {
-        PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
-        S_FilterExit builder = PrismContext.get().queryFor(AbstractRoleType.class)
-                .item(ownerRefPath, ownerRefDef).ref(principalFocus.getOid());
+            ItemPath ownerRefPath, Class<? extends ObjectType> clazz, FocusType principalFocus) {
+        S_FilterExit builder = PrismContext.get().queryFor(clazz)
+                .item(ownerRefPath).ref(principalFocus.getOid());
         // TODO don't understand this code
         for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
             if (PrismContext.get().isDefaultRelation(subjectParentOrgRef.getRelation())) {
-                builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
+                builder = builder.or().item(ownerRefPath).ref(subjectParentOrgRef.getOid());
             }
         }
         return builder.buildFilter();

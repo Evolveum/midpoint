@@ -74,7 +74,7 @@ public class Assignee extends AbstractSelectorClauseEvaluation {
     }
 
     public boolean applyFilter() {
-        if (CaseType.class.isAssignableFrom(fCtx.getObjectType())) {
+        if (CaseType.class.isAssignableFrom(fCtx.getRefinedType())) {
             var increment = PrismContext.get().queryFor(CaseType.class)
                     .exists(CaseType.F_WORK_ITEM)
                     .block()

@@ -49,7 +49,7 @@ public class Filter extends AbstractSelectorClauseEvaluation {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectFilter parsedFilter =
-                PrismContext.get().getQueryConverter().createObjectFilter(fCtx.getObjectDefinition(), filter);
+                PrismContext.get().getQueryConverter().parseFilter(filter, fCtx.getRefinedType());
         if (parsedFilter == null) {
             return null; // TODO what to do here?
         } else {
