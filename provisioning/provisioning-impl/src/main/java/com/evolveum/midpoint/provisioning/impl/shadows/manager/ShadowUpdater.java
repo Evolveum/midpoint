@@ -142,6 +142,8 @@ public class ShadowUpdater {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         if (!repoModifications.isEmpty()) {
+            MetadataUtil.addModificationMetadataDeltas((Collection<ItemDelta<?,?>>) repoModifications, repoShadow); // todo not very nice
+
             LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(repoModifications, 1));
             try {
                 ConstraintsChecker.onShadowModifyOperation(repoModifications);
@@ -198,6 +200,9 @@ public class ShadowUpdater {
                 // We need to free the identifier for further use by live shadows that may come later
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                 .asItemDeltas();
+
+        MetadataUtil.addModificationMetadataDeltas(shadowChanges, repoShadow);
+
         LOGGER.trace("Marking shadow {} as tombstone", repoShadow);
         try {
             repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, result);
@@ -242,6 +247,9 @@ public class ShadowUpdater {
         List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_EXISTS).replace(true)
                 .asItemDeltas();
+
+        MetadataUtil.addModificationMetadataDeltas(shadowChanges, repoShadow);
+
         LOGGER.trace("Marking shadow {} as existent", repoShadow);
         try {
             repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
@@ -270,6 +278,8 @@ public class ShadowUpdater {
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(expectedPrimaryIdentifierValue)
                 .asItemDeltas();
+
+        MetadataUtil.addModificationMetadataDeltas(modifications, repoShadow);
 
         LOGGER.trace("Correcting primaryIdentifierValue for {}: {} -> {}",
                 repoShadow, currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue);
@@ -310,6 +320,9 @@ public class ShadowUpdater {
             List<ItemDelta<?, ?>> resetModifications = prismContext.deltaFor(ShadowType.class)
                     .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                     .asItemDeltas();
+
+            MetadataUtil.addModificationMetadataDeltas(resetModifications, repoShadow);
+
             try {
                 repositoryService.modifyObject(ShadowType.class, potentialConflictingShadow.getOid(), resetModifications, result);
             } catch (ObjectAlreadyExistsException ee) {
