@@ -183,7 +183,9 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
             assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getAdd()).containsExactly("water");
         }
 
-        assertRepoShadow(jackAccountOid);
+        assertRepoShadow(jackAccountOid)
+                .assertHasMetadataModifyTimestamp()
+                .assertHasMetadataModifyTimestamp();
         assertShadowFuture(jackAccountOid)
                 .attributes()
                     .assertValue(ICFS_NAME, "jack")
