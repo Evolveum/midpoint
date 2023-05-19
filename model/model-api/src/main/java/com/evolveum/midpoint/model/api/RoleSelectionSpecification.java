@@ -66,7 +66,7 @@ public class RoleSelectionSpecification implements DebugDumpable {
         return ObjectQueryUtil.isNone(globalFilter);
     }
 
-    public RoleSelectionSpecification and(RoleSelectionSpecification other, PrismContext prismContext) {
+    public RoleSelectionSpecification and(RoleSelectionSpecification other) {
         if (other == null) {
             return this;
         }
@@ -76,7 +76,7 @@ public class RoleSelectionSpecification implements DebugDumpable {
         return applyBinary(other, (a, b) -> ObjectQueryUtil.filterAnd(a, b) );
     }
 
-    public RoleSelectionSpecification or(RoleSelectionSpecification other, PrismContext prismContext) {
+    public RoleSelectionSpecification or(RoleSelectionSpecification other) {
         if (other == null) {
             return this;
         }
@@ -86,11 +86,11 @@ public class RoleSelectionSpecification implements DebugDumpable {
         return applyBinary(other, (a, b) -> ObjectQueryUtil.filterOr(a, b) );
     }
 
-    public RoleSelectionSpecification not(PrismContext prismContext) {
-        return applyUnary((a) -> prismContext.queryFactory().createNot(a));
+    public RoleSelectionSpecification not() {
+        return applyUnary((a) -> PrismContext.get().queryFactory().createNot(a));
     }
 
-    public RoleSelectionSpecification simplify(PrismContext prismContext) {
+    public RoleSelectionSpecification simplify() {
         return applyUnary((a) -> ObjectQueryUtil.simplify(a));
     }
 

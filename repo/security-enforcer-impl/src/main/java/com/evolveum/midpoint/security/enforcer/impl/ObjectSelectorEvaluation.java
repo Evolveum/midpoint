@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createAllowNotFoundCollection;
+import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
+
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismValue;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,17 +73,9 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
 
         assert value != null; // TODO sure?
 
-        if (!(value instanceof PrismObjectValue<?>)) {
-            // FIXME TEMPORARY HACK
-            return new ValueSelectorEvaluation(value, selector, authorizationEvaluation)
-                    .matches();
-        }
-
-        PrismObject<? extends ObjectType> object = asObject(value);
-
         ObjectFilterExpressionEvaluator filterExpressionEvaluator = authorizationEvaluation.createFilterEvaluator(desc);
         if (!b.repositoryService.selectorMatches(
-                selector, object, filterExpressionEvaluator, LOGGER,
+                selector, value, filterExpressionEvaluator, LOGGER,
                 "    authorization not applicable for " + desc + " because of")) {
             // No need to log inapplicability here. It should be logged inside repositoryService.selectorMatches()
             return false;
@@ -102,18 +95,18 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
             }
             // As the "special" declaration is exclusive, we may return here immediately
             return new Special(specSpecial, this)
-                    .isApplicable(object);
+                    .isApplicable(value);
         }
 
         if (specOrgRelation != null) {
-            if (!new OrgRelation(specOrgRelation, this).isApplicable(object)) {
+            if (!new OrgRelation(specOrgRelation, this).isApplicable(value)) {
                 return false;
             }
         }
 
         // roleRelation
         if (specRoleRelation != null) {
-            if (!new RoleRelation(specRoleRelation, this).isApplicable(object)) {
+            if (!new RoleRelation(specRoleRelation, this).isApplicable(value)) {
                 return false;
             }
         }
@@ -123,7 +116,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
 
             SubjectedObjectSelectorType ownerSelector = ownedObjectSelector.getOwner();
             if (ownerSelector != null) {
-                if (!new Owner(ownerSelector, this).isApplicable(object)) {
+                if (!new Owner(ownerSelector, this).isApplicable(value)) {
                     return false;
                 }
             }
@@ -131,7 +124,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
             // Delegator
             SubjectedObjectSelectorType delegatorSpec = ownedObjectSelector.getDelegator();
             if (delegatorSpec != null) {
-                if (!new Delegator(delegatorSpec, this).isApplicable(object)) {
+                if (!new Delegator(delegatorSpec, this).isApplicable(value)) {
                     return false;
                 }
             }
@@ -139,7 +132,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
             // Requestor
             SubjectedObjectSelectorType requestorSpec = ownedObjectSelector.getRequester();
             if (requestorSpec != null) {
-                if (!new Requester(requestorSpec, this).isApplicable(object)) {
+                if (!new Requester(requestorSpec, this).isApplicable(value)) {
                     return false;
                 }
             }
@@ -147,7 +140,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
             // Related object
             SubjectedObjectSelectorType relatedObjectSpec = ownedObjectSelector.getRelatedObject();
             if (relatedObjectSpec != null) {
-                if (!new RelatedObject(relatedObjectSpec, this).isApplicable(object)) {
+                if (!new RelatedObject(relatedObjectSpec, this).isApplicable(value)) {
                     return false;
                 }
             }
@@ -155,7 +148,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
             // Assignee
             SubjectedObjectSelectorType assigneeSpec = ownedObjectSelector.getAssignee();
             if (assigneeSpec != null) {
-                if (!new Assignee(assigneeSpec, this).isApplicable(object)) {
+                if (!new Assignee(assigneeSpec, this).isApplicable(value)) {
                     return false;
                 }
             }
@@ -163,7 +156,7 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
             // Tenant
             TenantSelectorType tenantSpec = ownedObjectSelector.getTenant();
             if (tenantSpec != null) {
-                if (!new Tenant(tenantSpec, this).isApplicable(object)) {
+                if (!new Tenant(tenantSpec, this).isApplicable(value)) {
                     return false;
                 }
             }
@@ -171,11 +164,6 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
 
         LOGGER.trace("    {} applicable for {} (filter)", getAutzDesc(), desc);
         return true;
-    }
-
-    private @NotNull PrismObject<? extends ObjectType> asObject(PrismValue value) {
-        //noinspection unchecked
-        return ((PrismObjectValue<? extends ObjectType>) value).asPrismObject();
     }
 
     @Override
@@ -245,14 +233,15 @@ class ObjectSelectorEvaluation<S extends SubjectedObjectSelectorType>
 
     /** TODO */
     public PrismObject<? extends ObjectType> resolveReference(
-            ObjectReferenceType ref, PrismObject<? extends ObjectType> object, String referenceName) {
+            ObjectReferenceType ref, Object context, String referenceName) {
         if (ref != null && ref.getOid() != null) {
             Class<? extends ObjectType> type = ref.getType() != null ?
                     b.prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()) : UserType.class;
             try {
-                return b.repositoryService.getObject(type, ref.getOid(), null, result);
+                return b.repositoryService.getObject(type, ref.getOid(), createAllowNotFoundCollection(), result);
             } catch (ObjectNotFoundException | SchemaException e) {
-                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't resolve {} of {}", e, referenceName, object);
+                LoggingUtils.logExceptionAsWarning(
+                        LOGGER, "Couldn't resolve {} of {}", e, referenceName, getDiagInfo(context));
                 return null;
             }
         } else {

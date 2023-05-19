@@ -9,13 +9,16 @@ package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismValue;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
 /**
  * Evaluates "delegator" object selector clause.
@@ -33,18 +36,22 @@ public class Delegator extends AbstractSelectorClauseEvaluation {
         this.delegatorSelector = delegatorSelector;
     }
 
-    public boolean isApplicable(@NotNull PrismObject<? extends ObjectType> object) throws SchemaException {
+    public boolean isApplicable(@NotNull PrismValue value) throws SchemaException {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false; // TODO log?
+        }
         if (!isSelfSelector()) {
             throw new SchemaException("Unsupported non-self delegator clause");
         }
-        if (!object.canRepresent(UserType.class)) {
+        if (!(object instanceof UserType)) {
             LOGGER.trace("    delegator object spec not applicable for {}, because the object is not user", ctx.getDesc());
             return false;
         }
         boolean found = false;
         String principalOid = ctx.getPrincipalOid();
         if (principalOid != null) {
-            for (ObjectReferenceType objectDelegatedRef : ((UserType) object.asObjectable()).getDelegatedRef()) {
+            for (ObjectReferenceType objectDelegatedRef : ((UserType) object).getDelegatedRef()) {
                 if (principalOid.equals(objectDelegatedRef.getOid())) {
                     found = true;
                     break;
@@ -53,7 +60,7 @@ public class Delegator extends AbstractSelectorClauseEvaluation {
         }
         if (!found) {
             if (BooleanUtils.isTrue(delegatorSelector.isAllowInactive())) {
-                for (AssignmentType objectAssignment : ((UserType) object.asObjectable()).getAssignment()) {
+                for (AssignmentType objectAssignment : ((UserType) object).getAssignment()) {
                     ObjectReferenceType objectAssignmentTargetRef = objectAssignment.getTargetRef();
                     if (objectAssignmentTargetRef == null) {
                         continue;

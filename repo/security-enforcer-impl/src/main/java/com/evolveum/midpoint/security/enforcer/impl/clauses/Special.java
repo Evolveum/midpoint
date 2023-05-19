@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
+import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 
 /**
  * Evaluates "special" object selector clause.
@@ -33,7 +33,11 @@ public class Special extends AbstractSelectorClauseEvaluation {
         this.specials = specials;
     }
 
-    public boolean isApplicable(@NotNull PrismObject<? extends ObjectType> object) throws SchemaException {
+    public boolean isApplicable(@NotNull PrismValue value) throws SchemaException {
+        var object = ObjectTypeUtil.asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false;
+        }
         assert !specials.isEmpty();
         for (SpecialObjectSpecificationType special : specials) {
             if (special == SpecialObjectSpecificationType.SELF) {

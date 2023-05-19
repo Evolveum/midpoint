@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
-import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
+import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,13 +36,17 @@ public class Assignee extends AbstractSelectorClauseEvaluation {
         this.assigneeSelector = assigneeSelector;
     }
 
-    public <O extends ObjectType> boolean isApplicable(PrismObject<O> object)
+    public <O extends ObjectType> boolean isApplicable(PrismValue value)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        List<PrismObject<? extends ObjectType>> assignees = getAssignees(object);
+        var realValue = value.getRealValueIfExists();
+        if (realValue == null) {
+            return false; // TODO log?
+        }
+        List<PrismObject<? extends ObjectType>> assignees = getAssignees(realValue);
         if (assignees.isEmpty()) {
             LOGGER.trace("    assignee spec not applicable for {}, object OID {} because it has no assignees",
-                    ctx.getDesc(), object.getOid());
+                    ctx.getDesc(), getDiagInfo(realValue)); // TODO diag
             return false;
         }
         Collection<String> relevantDelegators = ctx.getDelegatorsForAssignee();
@@ -55,22 +60,31 @@ public class Assignee extends AbstractSelectorClauseEvaluation {
         }
         if (!applicable) {
             LOGGER.trace("    assignee spec not applicable for {}, object OID {} because none of the assignees match (assignees={})",
-                    ctx.getDesc(), object.getOid(), assignees);
+                    ctx.getDesc(), getDiagInfo(realValue), assignees); // TODO diag
         }
         return applicable;
     }
 
     @NotNull
-    private List<PrismObject<? extends ObjectType>> getAssignees(PrismObject<? extends ObjectType> object) {
-        List<PrismObject<? extends ObjectType>> rv = new ArrayList<>();
-        ObjectType objectBean = asObjectable(object);
-        if (objectBean instanceof CaseType) {
-            List<ObjectReferenceType> assignees = CaseTypeUtil.getAllCurrentAssignees(((CaseType) objectBean));
-            for (ObjectReferenceType assignee : assignees) {
-                CollectionUtils.addIgnoreNull(rv, ctx.resolveReference(assignee, object, "assignee"));
-            }
+    private List<PrismObject<? extends ObjectType>> getAssignees(Object object) {
+        List<ObjectReferenceType> assigneeRefs;
+        if (object instanceof CaseType) {
+            CaseType aCase = (CaseType) object;
+            assigneeRefs = CaseTypeUtil.getAllCurrentAssignees(aCase);
+        } else if (object instanceof AbstractWorkItemType) {
+            assigneeRefs = ((AbstractWorkItemType) object).getAssigneeRef();
+        } else {
+            // TODO e.g. cert case
+            assigneeRefs = List.of();
         }
-        return rv;
+
+        List<PrismObject<? extends ObjectType>> assignees = new ArrayList<>();
+        for (ObjectReferenceType assigneeRef : assigneeRefs) {
+            CollectionUtils.addIgnoreNull(
+                    assignees,
+                    ctx.resolveReference(assigneeRef, object, "assignee"));
+        }
+        return assignees;
     }
 
     public boolean applyFilter() {

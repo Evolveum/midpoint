@@ -54,6 +54,5 @@ public interface ClauseEvaluationContext {
 
     @NotNull RepositoryService getRepositoryService();
 
-    PrismObject<? extends ObjectType> resolveReference(
-            ObjectReferenceType ref, PrismObject<? extends ObjectType> object, String referenceName);
+    PrismObject<? extends ObjectType> resolveReference(ObjectReferenceType ref, Object context, String referenceName);
 }

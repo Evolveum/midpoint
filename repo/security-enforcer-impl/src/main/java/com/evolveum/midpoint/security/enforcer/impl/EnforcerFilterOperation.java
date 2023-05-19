@@ -44,25 +44,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorT
  */
 class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
-    private final String[] operationUrls;
-    private final Class<T> searchResultType;
-    private final AuthorizationPreProcessor preProcessor;
+    @NotNull private final String[] operationUrls;
+    @NotNull private final Class<T> filterType;
+    @NotNull private final AuthorizationPreProcessor preProcessor;
     private final boolean includeSpecial;
     private final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
     private final List<OrderConstraintsType> paramOrderConstraints;
-    private final FilterGizmo<F> gizmo;
+    @NotNull private final FilterGizmo<F> gizmo;
     private final String desc;
 
     EnforcerFilterOperation(
-            String[] operationUrls,
-            Class<T> searchResultType,
-            AuthorizationPreProcessor preProcessor,
+            @NotNull String[] operationUrls,
+            @NotNull Class<T> filterType,
+            @NotNull AuthorizationPreProcessor preProcessor,
             boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
-            FilterGizmo<F> gizmo,
+            @NotNull FilterGizmo<F> gizmo,
             String desc,
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
@@ -70,7 +70,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             @NotNull Task task) {
         super(principal, ownerResolver, beans, task);
         this.operationUrls = operationUrls;
-        this.searchResultType = searchResultType;
+        this.filterType = filterType;
         this.preProcessor = preProcessor;
         this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
@@ -86,11 +86,11 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         traceOperationStart();
         F securityFilter;
         if (phase != null) {
-            securityFilter = new Partial(nonStrict(phase)).computeFilter(result);
+            securityFilter = new PartialOp(nonStrict(phase)).computeFilter(result);
         } else {
-            F filterBoth = new Partial(both()).computeFilter(result);
-            F filterRequest = new Partial(strict(REQUEST)).computeFilter(result);
-            F filterExecution = new Partial(strict(EXECUTION)).computeFilter(result);
+            F filterBoth = new PartialOp(both()).computeFilter(result);
+            F filterRequest = new PartialOp(strict(REQUEST)).computeFilter(result);
+            F filterExecution = new PartialOp(strict(EXECUTION)).computeFilter(result);
             securityFilter =
                     gizmo.or(
                             filterBoth,
@@ -101,7 +101,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     }
 
     /** TODO */
-    private class Partial {
+    private class PartialOp {
 
         private final @NotNull PhaseSelector phaseSelector;
 
@@ -114,7 +114,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         /** TODO */
         private F securityFilterDeny = null;
 
-        Partial(@NotNull PhaseSelector phaseSelector) {
+        PartialOp(@NotNull PhaseSelector phaseSelector) {
             this.phaseSelector = phaseSelector;
         }
 
@@ -128,13 +128,13 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 ConfigurationException, SecurityViolationException {
 
             queryItemsSpec.addRequiredItems(origFilter); // MID-3916
-            tracePhaseOperationStart();
+            tracePartialOperationStart();
 
             for (Authorization authorization : getAuthorizations()) {
 
                 AuthorizationFilterEvaluation<T> autzEvaluation;
                 autzEvaluation = new AuthorizationFilterEvaluation<>(
-                        searchResultType,
+                        filterType,
                         origFilter,
                         authorization,
                         preProcessor.getSelectors(authorization),
@@ -223,7 +223,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             tracePaths("after all authorizations", queryItemsSpec);
         }
 
-        private void tracePhaseOperationStart() {
+        private void tracePartialOperationStart() {
             if (traceEnabled) {
                 LOGGER.trace("  phase={}, initial query items specification: {}", phaseSelector, queryItemsSpec.shortDumpLazily());
             }
@@ -242,7 +242,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             // TODO desc?
             LOGGER.trace(
                     "AUTZ: computing security filter principal={}, searchResultType={}, searchType={}: orig filter {}",
-                    username, TracingUtil.getTypeName(searchResultType), preProcessor, origFilter);
+                    username, TracingUtil.getTypeName(filterType), preProcessor, origFilter);
         }
     }
 
@@ -250,7 +250,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         if (traceEnabled) {
             // TODO desc?
             LOGGER.trace("AUTZ: computed security filter principal={}, searchResultType={}: {}\n{}",
-                    username, TracingUtil.getTypeName(searchResultType),
+                    username, TracingUtil.getTypeName(filterType),
                     securityFilter, DebugUtil.debugDump(securityFilter, 1));
         }
     }

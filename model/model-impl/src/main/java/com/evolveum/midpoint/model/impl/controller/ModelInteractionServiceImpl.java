@@ -591,21 +591,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
         orderConstraintsList.add(orderConstraints);
 
-        FilterGizmo<RoleSelectionSpecification> gizmo = new FilterGizmoAssignableRoles(prismContext);
+        FilterGizmo<RoleSelectionSpecification> gizmo = new FilterGizmoAssignableRoles();
 
         try {
-
-            RoleSelectionSpecification spec = securityEnforcer.computeTargetSecurityFilter(
+            return securityEnforcer.computeTargetSecurityFilter(
                     principal, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN, AuthorizationPhaseType.REQUEST,
                     targetType, focus, prismContext.queryFactory().createAll(), null, orderConstraintsList,
                     gizmo, task, result);
-
-            result.recordSuccess();
-            return spec;
-
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException e) {
-            result.recordFatalError(e);
-            throw e;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 

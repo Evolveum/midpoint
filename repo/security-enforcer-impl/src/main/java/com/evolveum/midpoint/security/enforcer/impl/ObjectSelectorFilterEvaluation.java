@@ -56,7 +56,7 @@ class ObjectSelectorFilterEvaluation<T>
 
     ObjectSelectorFilterEvaluation(
             @NotNull OwnedObjectSelectorType selector,
-            @NotNull Class<T> objectType,
+            @NotNull Class<T> filterType,
             @Nullable ObjectFilter originalFilter,
             @NotNull Collection<String> otherSelfOids,
             @NotNull String desc,
@@ -65,7 +65,7 @@ class ObjectSelectorFilterEvaluation<T>
             @NotNull OperationResult result) throws SchemaException, ConfigurationException {
         super(selector, null, otherSelfOids, desc, authorizationEvaluation, result);
         this.selectorTypeName = PrismContext.get().getSchemaRegistry().qualifyTypeName(selector.getType());
-        this.objectType = objectType;
+        this.objectType = filterType;
         this.refinedType = determineRefinedType();
         this.originalFilter = originalFilter;
         this.selectorLabel = selectorLabel;
@@ -97,7 +97,7 @@ class ObjectSelectorFilterEvaluation<T>
         RoleRelationObjectSpecificationType selectorRoleRelation = selector.getRoleRelation();
         TenantSelectorType selectorTenant = selector.getTenant();
 
-        // Type (not supported by specific clause processor)
+        // Type (it doesn't have its own clause processor)
         if (selectorTypeName != null) {
             if (objectType.equals(refinedType)) {
                 traceClassMatch("Object selector is applicable because of type exact match");

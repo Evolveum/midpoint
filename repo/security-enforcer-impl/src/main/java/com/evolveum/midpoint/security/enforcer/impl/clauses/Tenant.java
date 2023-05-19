@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -17,6 +17,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
+import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 
 /**
  * Evaluates "tenant" object selector clause.
@@ -33,7 +35,12 @@ public class Tenant extends AbstractSelectorClauseEvaluation {
         this.tenantSelector = tenantSelector;
     }
 
-    public boolean isApplicable(PrismObject<? extends ObjectType> object) {
+    public boolean isApplicable(PrismValue value) {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            throw new UnsupportedOperationException("'tenant' spec is not applicable to sub-object values: " + getDiagInfo(value));
+        }
+
         if (BooleanUtils.isTrue(tenantSelector.isSameAsSubject())) {
             FocusType principalFocus = ctx.getPrincipalFocus();
             ObjectReferenceType subjectTenantRef = principalFocus != null ? principalFocus.getTenantRef() : null;
@@ -42,7 +49,7 @@ public class Tenant extends AbstractSelectorClauseEvaluation {
                         ctx.getDesc(), object.getOid());
                 return false;
             }
-            ObjectReferenceType objectTenantRef = object.asObjectable().getTenantRef();
+            ObjectReferenceType objectTenantRef = object.getTenantRef();
             if (objectTenantRef == null || objectTenantRef.getOid() == null) {
                 LOGGER.trace("    tenant object spec not applicable for {}, object OID {} because object does not have tenantRef",
                         ctx.getDesc(), object.getOid());
@@ -54,9 +61,8 @@ public class Tenant extends AbstractSelectorClauseEvaluation {
                 return false;
             }
             if (!BooleanUtils.isTrue(tenantSelector.isIncludeTenantOrg())) {
-                ObjectType objectType = object.asObjectable();
-                if (objectType instanceof OrgType) {
-                    if (BooleanUtils.isTrue(((OrgType) objectType).isTenant())) {
+                if (object instanceof OrgType) {
+                    if (BooleanUtils.isTrue(((OrgType) object).isTenant())) {
                         LOGGER.trace("    tenant object spec not applicable for {}, object OID {} because it is a tenant org and it is not included",
                                 ctx.getDesc(), object.getOid());
                         return false;

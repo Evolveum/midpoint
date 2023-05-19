@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
@@ -28,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
+
 /**
  * Evaluates "roleRelation" object selector clause.
  *
@@ -44,7 +43,11 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
         this.selectorRoleRelation = selectorRoleRelation;
     }
 
-    public boolean isApplicable(@NotNull PrismObject<? extends ObjectType> object) {
+    public boolean isApplicable(@NotNull PrismValue value) {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false; // TODO log?
+        }
         boolean match = false;
         var principalFocus = ctx.getPrincipalFocus();
         if (principalFocus != null) {
@@ -64,9 +67,7 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
         return match;
     }
 
-    private boolean matchesRoleRelation(
-            PrismObject<? extends ObjectType> object,
-            ObjectReferenceType subjectRoleMembershipRef) {
+    private boolean matchesRoleRelation(ObjectType object, ObjectReferenceType subjectRoleMembershipRef) {
         PrismContext prismContext = PrismContext.get();
         if (!prismContext.relationMatches(
                 selectorRoleRelation.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
@@ -77,10 +78,10 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
             return true;
         }
         if (!BooleanUtils.isFalse(selectorRoleRelation.isIncludeMembers())) {
-            if (!object.canRepresent(FocusType.class)) {
+            if (!(object instanceof FocusType)) {
                 return false;
             }
-            for (ObjectReferenceType objectRoleMembershipRef : ((FocusType) object.asObjectable()).getRoleMembershipRef()) {
+            for (ObjectReferenceType objectRoleMembershipRef : ((FocusType) object).getRoleMembershipRef()) {
                 if (!subjectRoleMembershipRef.getOid().equals(objectRoleMembershipRef.getOid())) {
                     continue;
                 }

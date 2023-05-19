@@ -7,7 +7,11 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
+
 import static java.util.Collections.emptySet;
+
+import com.evolveum.midpoint.prism.PrismValue;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -25,24 +29,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class Owner extends AbstractSelectorClauseEvaluation {
 
-    @NotNull
-    private final SubjectedObjectSelectorType ownerSelector;
+    @NotNull private final SubjectedObjectSelectorType ownerSelector;
 
     public Owner(@NotNull SubjectedObjectSelectorType ownerSelector, @NotNull ClauseEvaluationContext ctx) {
         super(ctx);
         this.ownerSelector = ownerSelector;
     }
 
-    public boolean isApplicable(PrismObject<? extends ObjectType> object)
+    public boolean isApplicable(PrismValue value)
             throws ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException,
             SchemaException, ObjectNotFoundException {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false; // TODO log?
+        }
         OwnerResolver ownerResolver = ctx.getOwnerResolver();
         if (ownerResolver == null) {
             LOGGER.trace("    owner object spec not applicable for {}, object OID {} because there is no owner resolver",
                     ctx.getDesc(), object.getOid());
             return false;
         }
-        PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner(object);
+        PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner(object.asPrismObject());
         if (owner == null) {
             LOGGER.trace("    owner object spec not applicable for {}, object OID {} because it has no owner",
                     ctx.getDesc(), object.getOid());

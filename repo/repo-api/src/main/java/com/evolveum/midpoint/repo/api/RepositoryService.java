@@ -8,13 +8,11 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
@@ -687,10 +685,25 @@ public interface RepositoryService {
      */
     RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 
-    <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
+    default <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
             ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException {
+        return selectorMatches(
+                objectSelector,
+                object != null ? object.getValue() : null,
+                filterEvaluator,
+                logger,
+                logMessagePrefix);
+    }
+
+    default boolean selectorMatches(ObjectSelectorType objectSelector, PrismValue value,
+            ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return ObjectSelectorMatcher.selectorMatches(
+                objectSelector, value, filterEvaluator, logger, logMessagePrefix, this);
+    }
 
     void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch);
 

@@ -1143,6 +1143,14 @@ public class ObjectTypeUtil {
         return (ObjectType) pov.asObjectable();
     }
 
+    public static @Nullable ObjectType asObjectTypeIfPossible(@Nullable PrismValue value) {
+        if (value == null) {
+            return null;
+        }
+        Object realValue = value.getRealValueIfExists();
+        return realValue instanceof ObjectType ? (ObjectType) realValue : null;
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -20,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
-import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
 /**
  * Evaluates "requester" object selector clause.
@@ -37,9 +38,13 @@ public class Requester extends AbstractSelectorClauseEvaluation {
         this.requestorSelector = requestorSelector;
     }
 
-    public <O extends ObjectType> boolean isApplicable(PrismObject<O> object)
+    public boolean isApplicable(PrismValue value)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false; // TODO log?
+        }
         PrismObject<? extends ObjectType> requestor = getRequestor(object);
         if (requestor == null) {
             LOGGER.trace("    requester object spec not applicable for {}, object OID {} because it has no requestor",
@@ -59,10 +64,9 @@ public class Requester extends AbstractSelectorClauseEvaluation {
         return requestorApplicable;
     }
 
-    private PrismObject<? extends ObjectType> getRequestor(PrismObject<? extends ObjectType> object) {
-        ObjectType objectBean = asObjectable(object);
-        if (objectBean instanceof CaseType) {
-            return ctx.resolveReference(((CaseType) objectBean).getRequestorRef(), object, "requestor");
+    private PrismObject<? extends ObjectType> getRequestor(ObjectType object) {
+        if (object instanceof CaseType) {
+            return ctx.resolveReference(((CaseType) object).getRequestorRef(), object, "requestor");
         } else {
             return null;
         }

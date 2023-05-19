@@ -12,9 +12,8 @@ import static com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperati
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -24,12 +23,7 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
-
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
 
 /**
  * Evaluation of given {@link Authorization} aimed to determine a "security filter", i.e. additional filter to be
@@ -42,7 +36,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
-    @NotNull private final Class<T> objectType;
+    @NotNull private final Class<T> filterType;
     @Nullable private final ObjectFilter originalFilter;
     @NotNull private final List<? extends OwnedObjectSelectorType> objectSelectors;
     @NotNull private final String selectorLabel;
@@ -50,7 +44,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
     private ObjectFilter autzFilter = null;
 
     AuthorizationFilterEvaluation(
-            @NotNull Class<T> objectType,
+            @NotNull Class<T> filterType,
             @Nullable ObjectFilter originalFilter,
             @NotNull Authorization authorization,
             @NotNull List<? extends OwnedObjectSelectorType> objectSelectors,
@@ -59,7 +53,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             @NotNull EnforcerOperation op,
             @NotNull OperationResult result) {
         super(authorization, op, result);
-        this.objectType = objectType;
+        this.filterType = filterType;
         this.originalFilter = originalFilter;
         this.includeSpecial = includeSpecial;
         this.objectSelectors = objectSelectors;
@@ -82,12 +76,9 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
 
             applicable = false;
             for (OwnedObjectSelectorType objectSelector : objectSelectors) {
-                if (isNotAnObjectType(objectSelector)) { // FIXME remove this hack
-                    continue;
-                }
                 ObjectSelectorFilterEvaluation<T> processor =
                         new ObjectSelectorFilterEvaluation<>(
-                                objectSelector, objectType, originalFilter, Set.of(), "TODO",
+                                objectSelector, filterType, originalFilter, Set.of(), "TODO",
                                 selectorLabel, this, result);
 
                 processor.processFilter(includeSpecial);
@@ -99,13 +90,6 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
         }
         traceFilter(op, "for authorization (applicable: " + applicable + ")", authorization, autzFilter);
         return applicable;
-    }
-
-    // TEMPORARY CODE
-    private boolean isNotAnObjectType(OwnedObjectSelectorType objectSelector) {
-        QName typeName = objectSelector.getType();
-        return typeName != null
-                && PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(typeName) == null;
     }
 
     ObjectFilter getAutzFilter() {

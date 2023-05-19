@@ -9,6 +9,7 @@ package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
 /**
  * Evaluates "relatedObject" object selector clause.
@@ -35,9 +36,13 @@ public class RelatedObject extends AbstractSelectorClauseEvaluation {
         this.relatedObjectSelector = relatedObjectSelector;
     }
 
-    public boolean isApplicable(PrismObject<? extends ObjectType> object)
+    public boolean isApplicable(PrismValue value)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false; // TODO log?
+        }
         PrismObject<? extends ObjectType> relatedObject = getRelatedObject(object);
         if (relatedObject == null) {
             LOGGER.trace("    related object spec not applicable for {}, object OID {} because it has no related object",
@@ -54,12 +59,11 @@ public class RelatedObject extends AbstractSelectorClauseEvaluation {
         return relatedObjectApplicable;
     }
 
-    private PrismObject<? extends ObjectType> getRelatedObject(PrismObject<? extends ObjectType> object) {
-        ObjectType objectBean = asObjectable(object);
-        if (objectBean instanceof CaseType) {
-            return ctx.resolveReference(((CaseType) objectBean).getObjectRef(), object, "related object");
-        } else if (objectBean instanceof TaskType) {
-            return ctx.resolveReference(((TaskType) objectBean).getObjectRef(), object, "related object");
+    private PrismObject<? extends ObjectType> getRelatedObject(ObjectType object) {
+        if (object instanceof CaseType) {
+            return ctx.resolveReference(((CaseType) object).getObjectRef(), object, "related object");
+        } else if (object instanceof TaskType) {
+            return ctx.resolveReference(((TaskType) object).getObjectRef(), object, "related object");
         } else {
             return null;
         }

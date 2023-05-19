@@ -9,6 +9,7 @@ package com.evolveum.midpoint.security.enforcer.impl.clauses;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -24,6 +25,8 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
+
 /**
  * Evaluates "orgRelation" object selector clause.
  */
@@ -38,7 +41,11 @@ public class OrgRelation extends AbstractSelectorClauseEvaluation {
         this.selectorOrgRelation = selectorOrgRelation;
     }
 
-    public boolean isApplicable(PrismObject<? extends ObjectType> object) throws SchemaException {
+    public boolean isApplicable(PrismValue value) throws SchemaException {
+        var object = asObjectTypeIfPossible(value);
+        if (object == null) {
+            return false; // TODO log?
+        }
         boolean match = false;
         var principalFocus = ctx.getPrincipalFocus();
         if (principalFocus != null) {
@@ -58,8 +65,7 @@ public class OrgRelation extends AbstractSelectorClauseEvaluation {
         return match;
     }
 
-    private boolean matchesOrgRelation(
-            PrismObject<? extends ObjectType> object, ObjectReferenceType subjectParentOrgRef)
+    private boolean matchesOrgRelation(ObjectType object, ObjectReferenceType subjectParentOrgRef)
             throws SchemaException {
         if (!PrismContext.get().relationMatches(selectorOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
             return false;
@@ -71,11 +77,11 @@ public class OrgRelation extends AbstractSelectorClauseEvaluation {
         OrgScopeType scope = Objects.requireNonNullElse(selectorOrgRelation.getScope(), OrgScopeType.ALL_DESCENDANTS);
         switch (scope) {
             case ALL_DESCENDANTS:
-                return ctx.getRepositoryService().isDescendant(object, subjectParentOrgRef.getOid());
+                return ctx.getRepositoryService().isDescendant(object.asPrismObject(), subjectParentOrgRef.getOid());
             case DIRECT_DESCENDANTS:
-                return hasParentOrgRef(object, subjectParentOrgRef.getOid());
+                return hasParentOrgRef(object.asPrismObject(), subjectParentOrgRef.getOid());
             case ALL_ANCESTORS:
-                return ctx.getRepositoryService().isAncestor(object, subjectParentOrgRef.getOid());
+                return ctx.getRepositoryService().isAncestor(object.asPrismObject(), subjectParentOrgRef.getOid());
             default:
                 throw new UnsupportedOperationException("Unknown orgRelation scope " + scope);
         }
