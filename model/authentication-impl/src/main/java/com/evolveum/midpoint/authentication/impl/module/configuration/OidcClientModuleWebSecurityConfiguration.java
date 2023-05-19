@@ -203,8 +203,8 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
         try {
             Certificate certificate = getCertificate(key, protector);
             publicKey = certificate.getPublicKey();
-            builder.thumbprint256(DigestUtils.sha256Hex(certificate.getEncoded()));
-            builder.thumbprint(DigestUtils.sha1Hex(certificate.getEncoded()));
+            builder.thumbprint256(DigestUtils.sha256Hex(certificate.getEncoded()))
+                    .thumbprint(DigestUtils.sha1Hex(certificate.getEncoded()));
         } catch (Base64Exception | EncryptionException | CertificateException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
         }
@@ -233,8 +233,8 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
         try {
             Certificate certificate = getCertificate(key, protector);
             publicKey = certificate.getPublicKey();
-            builder.thumbprint256(DigestUtils.sha256Hex(certificate.getEncoded()));
-            builder.thumbprint(DigestUtils.sha1Hex(certificate.getEncoded()));
+            builder.thumbprint256(DigestUtils.sha256Hex(certificate.getEncoded()))
+                    .thumbprint(DigestUtils.sha1Hex(certificate.getEncoded()));
         } catch (EncryptionException | CertificateException  | KeyStoreException | IOException | NoSuchAlgorithmException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
         }
