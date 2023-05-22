@@ -12,7 +12,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 public class ReportConstants {
 
     public static final ItemName REPORT_PARAMS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_REPORT_EXTENSION, "reportParam");
-    public static final ItemName REPORT_OUTPUT_OID_PROPERTY_NAME = new ItemName(SchemaConstants.NS_REPORT_EXTENSION, "reportOutputOid");
     public static final ItemName REPORT_DATA_PROPERTY_NAME = new ItemName(SchemaConstants.NS_REPORT_EXTENSION, "reportDataParam");
 
 }
