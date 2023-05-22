@@ -50,9 +50,6 @@ public class LdapModuleFactory extends AbstractModuleFactory {
     @Autowired
     private Protector protector;
 
-    @Autowired
-    private GuiProfiledPrincipalManager principalManager;
-
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof LdapAuthenticationModuleType;
@@ -111,7 +108,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         getObjectObjectPostProcessor().postProcess(auth);
 
         MidPointLdapAuthenticationProvider provider = new MidPointLdapAuthenticationProvider(auth);
-        provider.setUserDetailsContextMapper(new MidpointPrincipalContextMapper(principalManager));
+        provider.setUserDetailsContextMapper(getObjectObjectPostProcessor().postProcess(new MidpointPrincipalContextMapper()));
         getObjectObjectPostProcessor().postProcess(provider.getAuthenticatorProvider());
         getObjectObjectPostProcessor().postProcess(provider);
 

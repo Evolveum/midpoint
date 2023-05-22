@@ -67,6 +67,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
         OidcClientModuleWebSecurityConfigurer<OidcClientModuleWebSecurityConfiguration> module = getObjectObjectPostProcessor().postProcess(
                 new OidcClientModuleWebSecurityConfigurer<>(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
+        module.setPublicUrlPrefix(getPublicUrlPrefix(request));
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 

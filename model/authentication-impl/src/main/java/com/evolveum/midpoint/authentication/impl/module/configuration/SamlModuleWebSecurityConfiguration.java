@@ -112,14 +112,19 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
         String linkText = providerType.getLinkText() == null ? providerType.getEntityId() : providerType.getLinkText();
         additionalConfigBuilder.nameOfUsernameAttribute(providerType.getNameOfUsernameAttribute())
                 .linkText(linkText);
+
         String registrationId = StringUtils.isNotEmpty(serviceProviderType.getAliasForPath()) ? serviceProviderType.getAliasForPath() :
                     (StringUtils.isNotEmpty(serviceProviderType.getAlias()) ? serviceProviderType.getAlias() : serviceProviderType.getEntityId());
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                 StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
+
         UriComponentsBuilder ssoBuilder = builder.cloneBuilder();
         ssoBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefixOfModule()) + SSO_LOCATION_URL_SUFFIX);
+
         UriComponentsBuilder logoutBuilder = builder.cloneBuilder();
         logoutBuilder.pathSegment(AuthUtil.stripSlashes(configuration.getPrefixOfModule()) + LOGOUT_LOCATION_URL_SUFFIX);
+
         registrationBuilder
                 .registrationId(registrationId)
                 .entityId(serviceProviderType.getEntityId())
@@ -127,9 +132,11 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
                 .singleLogoutServiceLocation(logoutBuilder.build().toUriString())
                 .assertingPartyDetails(party -> {
                     party.entityId(providerType.getEntityId());
+
                     if (serviceProviderType.isSignRequests() != null) {
                         party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
                     }
+
                     if (providerType.getVerificationKeys() != null && !providerType.getVerificationKeys().isEmpty()) {
                         party.verificationX509Credentials(c -> providerType.getVerificationKeys().forEach(verKey -> {
                             byte[] certbytes = new byte[0];

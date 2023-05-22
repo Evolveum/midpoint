@@ -47,7 +47,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
     @Override
     protected void initCustomLayout() {
         List<IdentityProvider> providers = getProviders();
-        add(new ListView<IdentityProvider>(ID_PROVIDERS, providers) {
+        add(new ListView<>(ID_PROVIDERS, providers) {
             @Override
             protected void populateItem(ListItem<IdentityProvider> item) {
                 item.add(new ExternalLink(ID_PROVIDER, item.getModelObject().getRedirectLink(), item.getModelObject().getLinkText()));
@@ -56,13 +56,23 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
         ModuleAuthentication actualModule = AuthUtil.getProcessingModuleIfExist();
         if (actualModule != null) {
-            Authentication actualAuthentication = actualModule.getAuthentication();
+            Class<? extends Authentication> actualAuthClass = actualModule.getAuthentication().getClass();
+            Class<?> detailsClass = actualModule.getAuthentication().getDetails() != null ?
+                    actualModule.getAuthentication().getDetails().getClass() : null;
             String authName = actualModule.getModuleTypeName();
-            form.add(new VisibleBehaviour(() -> existRemoteAuthentication(actualAuthentication, authName)));
+            form.add(new VisibleBehaviour(() -> existRemoteAuthentication(actualAuthClass, detailsClass, authName)));
             String prefix = actualModule.getPrefix();
+
             form.add(AttributeModifier.replace("action",
-                    (IModel<String>) () -> existRemoteAuthentication(actualAuthentication, authName) ?
-                            SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), prefix) : ""));
+                    (IModel<String>) () -> {
+                        boolean exist = existRemoteAuthentication(actualAuthClass, detailsClass, authName);
+
+                        if (exist) {
+                            return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), prefix);
+                        }
+
+                        return "";
+                    }));
         } else {
             form.add(new VisibleBehaviour(() -> false));
         }
@@ -74,12 +84,15 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
 
     abstract protected Class<? extends Authentication> getSupportedAuthToken();
 
-    private boolean existRemoteAuthentication(Authentication actualAuth, String actualModuleName) {
+    private boolean existRemoteAuthentication(
+            Class<? extends Authentication> actualAuthClass,
+            Class<?> detailsClass,
+            String actualModuleName) {
         return getClass().getAnnotation(PageDescriptor.class).authModule().equals(actualModuleName)
-                && (getSupportedAuthToken().isAssignableFrom(actualAuth.getClass())
-                || (actualAuth instanceof AnonymousAuthenticationToken
-                && actualAuth.getDetails() != null
-                && getSupportedAuthToken().isAssignableFrom(actualAuth.getDetails().getClass())));
+                && (getSupportedAuthToken().isAssignableFrom(actualAuthClass)
+                || (AnonymousAuthenticationToken.class.isAssignableFrom(actualAuthClass)
+                && detailsClass != null
+                && getSupportedAuthToken().isAssignableFrom(detailsClass)));
     }
 
     private List<IdentityProvider> getProviders() {

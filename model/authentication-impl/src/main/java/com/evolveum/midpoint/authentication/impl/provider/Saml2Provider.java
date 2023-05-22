@@ -100,6 +100,7 @@ public class Saml2Provider extends RemoteModuleProvider {
                 samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
             } catch (AuthenticationException e) {
                 getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                LOGGER.debug("Unexpected exception in saml module", e);
                 throw e;
             }
             Saml2ModuleAuthenticationImpl samlModule = (Saml2ModuleAuthenticationImpl) AuthUtil.getProcessingModule();
@@ -115,7 +116,7 @@ public class Saml2Provider extends RemoteModuleProvider {
                 token = getPreAuthenticationToken(authentication, enteredUsername, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 samlModule.setAuthentication(samlAuthenticationToken);
-                LOGGER.info("Authentication with saml module failed: {}", e.getMessage()); // TODO debug?
+                LOGGER.debug("Authentication with saml module failed: {}", e.getMessage());
                 throw e;
             }
         } else {
@@ -129,17 +130,20 @@ public class Saml2Provider extends RemoteModuleProvider {
     }
 
     private String defineEnteredUsername(Map<String, List<Object>> attributes, String nameOfSamlAttribute) {
+        LOGGER.debug("attributes in authentication: " + attributes);
+        LOGGER.debug("nameOfSamlAttribute: " + nameOfSamlAttribute);
+
         if (!attributes.containsKey(nameOfSamlAttribute)){
-            LOGGER.error("Couldn't find attribute for username in saml response");
+            LOGGER.debug("Couldn't find attribute for username in saml response");
             throw new AuthenticationServiceException("web.security.provider.invalid");
         } else {
             List<Object> values = attributes.get(nameOfSamlAttribute);
             if (values == null || values.isEmpty() || values.get(0) == null) {
-                LOGGER.error("Saml attribute, which define username don't contains value");
+                LOGGER.debug("Saml attribute, which define username don't contains value");
                 throw new AuthenticationServiceException("web.security.provider.invalid");
             }
             if (values.size() != 1) {
-                LOGGER.error("Saml attribute, which define username contains more values {}", values);
+                LOGGER.debug("Saml attribute, which define username contains more values {}", values);
                 throw new AuthenticationServiceException("web.security.provider.invalid");
             }
             return (String) values.iterator().next();

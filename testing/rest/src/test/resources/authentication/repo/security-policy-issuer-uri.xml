@@ -12,12 +12,11 @@
     <authentication>
         <modules>
             <loginForm>
-                <name>internalLoginForm</name>
+                <identifier>internalLoginForm</identifier>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
             <oidc>
-
-                <name>oidcResourceServer</name>
+                <identifier>oidcResourceServer</identifier>
                 <resourceServer>
                     <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
                     <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>

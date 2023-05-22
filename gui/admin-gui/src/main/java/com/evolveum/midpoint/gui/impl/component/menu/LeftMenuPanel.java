@@ -631,10 +631,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return false;
     }
 
-    private boolean isEditForResourceWizzard() {
-        return false;
-    }
-
     private void createFocusPageNewEditMenu(MainMenuItem mainMenuItem, String newKey, String editKey,
             final Class<? extends PageBase> newPageClass) {
 
