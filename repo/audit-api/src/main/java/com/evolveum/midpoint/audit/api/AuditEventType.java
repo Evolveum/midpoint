@@ -48,7 +48,9 @@ public enum AuditEventType {
 
     RESUME_TASK(new DisplayType().icon(new IconType().cssClass("fa fa-check-square"))),
 
-    RUN_TASK_IMMEDIATELY(new DisplayType().icon(new IconType().cssClass("fa fa-play").color("green")).color("green"));
+    RUN_TASK_IMMEDIATELY(new DisplayType().icon(new IconType().cssClass("fa fa-play").color("green")).color("green")),
+
+    DISCOVER_OBJECT;
 
     public static AuditEventType fromSchemaValue(AuditEventTypeType event) {
         if (event == null) {

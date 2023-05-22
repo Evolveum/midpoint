@@ -15,7 +15,9 @@ public enum RAuditEventStage implements SchemaEnum<AuditEventStageType> {
 
     REQUEST(AuditEventStage.REQUEST),
 
-    EXECUTION(AuditEventStage.EXECUTION);
+    EXECUTION(AuditEventStage.EXECUTION),
+
+    RESOURCE(AuditEventStage.RESOURCE);
 
     private final AuditEventStage stage;
 

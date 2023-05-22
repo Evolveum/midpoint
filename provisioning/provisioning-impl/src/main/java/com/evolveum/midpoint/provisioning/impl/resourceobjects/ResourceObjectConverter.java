@@ -103,6 +103,7 @@ public class ResourceObjectConverter {
     @Autowired private CommonBeans commonBeans;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private ResourceObjectsBeans beans;
+    @Autowired private AuditHelper auditHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -337,6 +338,8 @@ public class ResourceObjectConverter {
 
                 // Be careful NOT to apply this to the cloned shadow. This needs to be propagated outside this method.
                 applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
+
+                auditHelper.auditAddShadow(shadow, parentResult);
             } catch (CommunicationException ex) {
                 throw communicationException(ctx, connector, ex);
             } catch (GenericFrameworkException ex) {
@@ -467,6 +470,7 @@ public class ResourceObjectConverter {
                                 ctx.getUcfExecutionContext(),
                                 result);
 
+                auditHelper.auditDeleteShadow(shadow, parentResult);
             } catch (ObjectNotFoundException ex) {
                 throw ex.wrap(String.format(
                         "An error occurred while deleting resource object %s with identifiers %s (%s)",
@@ -881,6 +885,8 @@ public class ResourceObjectConverter {
                         inProgress = true;
                         asynchronousOperationReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
                     }
+
+                    auditHelper.auditModifyShadow(currentShadow,  operationsWave, result);
                 }
             }
 

@@ -12,7 +12,9 @@ public enum AuditEventStage {
 
     REQUEST,
 
-    EXECUTION;
+    EXECUTION,
+
+    RESOURCE;
 
     public static AuditEventStage fromSchemaValue(AuditEventStageType stage) {
         if (stage == null) {
