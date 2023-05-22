@@ -1624,6 +1624,119 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public String createInvitationLink(UserType user) {
+        try {
+            SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
+            String invitationSequenceId = SecurityUtil.getInvitationSequenceIdentifier(securityPolicy);
+            if (StringUtils.isNotEmpty(invitationSequenceId)) {
+                Task task = taskManager.createTaskInstance("save nonce to user");
+                OperationResult result = new OperationResult("save nonce to user");
+                NonceType nonce = generateNonce(user, task, result);
+                saveNonceToUser(user, nonce, task, result);
+
+                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_INVITATION_URI, invitationSequenceId, securityPolicy.getAuthentication().getSequence(), false);
+                return createBaseConfirmationLink(prefix, user.getName().getNorm()) + "&" + SchemaConstants.TOKEN + "=" + getPlaintext(nonce.getValue());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Could not create invitation link for the user: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    private void saveNonceToUser(UserType user, NonceType nonce, Task task, OperationResult result) {
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+            modifications.add(PrismContext.get().deltaFor(UserType.class)
+                    .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE))
+                    .replace(nonce)
+                    .asItemDelta());
+            repositoryService.modifyObject(UserType.class, user.getOid(), modifications, result);
+        } catch (Exception e) {
+            LOGGER.error("Could not save nonce to the user: {}", e.getMessage(), e);
+        }
+    }
+
+    private NonceType generateNonce(UserType user, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, EncryptionException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        ProtectedStringType nonceCredentials = new ProtectedStringType();
+        String nonceValue = modelInteractionService.generateNonce(getNonceCredentialsPolicy(user, task, result), task, result);
+        nonceCredentials.setClearValue(nonceValue);
+        protector.encrypt(nonceCredentials);
+
+        NonceType nonceType = new NonceType();
+        nonceType.setValue(nonceCredentials);
+
+        return nonceType;
+    }
+
+    private NonceCredentialsPolicyType getNonceCredentialsPolicy(UserType user, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType credentialPolicy = securityPolicy.getCredentials();
+        if (credentialPolicy == null) {
+            return null;
+        }
+        List<NonceCredentialsPolicyType> nonceCredentialsPolicies = credentialPolicy.getNonce();
+        String invitationCredentialName = getNonceCredentialsPolicyName(user, task, result);
+        if (invitationCredentialName == null) {
+            return null;
+        }
+        return nonceCredentialsPolicies
+                .stream()
+                .filter(n -> invitationCredentialName.equals(n.getName()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String getNonceCredentialsPolicyName(UserType user, Task task, OperationResult result) throws
+            ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException{
+        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
+        if (securityPolicy.getFlow() == null) {
+            return null;
+        }
+        String sequenceIdentifier = SecurityUtil.getInvitationSequenceIdentifier(securityPolicy);
+        AuthenticationSequenceType invitationAuthSequence = securityPolicy.getAuthentication()
+                .getSequence()
+                .stream()
+                .filter(seq -> sequenceIdentifierMatch(seq, sequenceIdentifier))
+                .findFirst()
+                .orElse(null);
+        if (invitationAuthSequence == null || invitationAuthSequence.getModule().isEmpty()) {
+            return null;
+        }
+        AuthenticationSequenceModuleType module = invitationAuthSequence.getModule().get(0);
+        String moduleIdentifier = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
+        if (StringUtils.isEmpty(moduleIdentifier)) {
+            return null;
+        }
+
+        MailNonceAuthenticationModuleType invitationAuthModule = securityPolicy.getAuthentication()
+                .getModules()
+                .getMailNonce()
+                .stream()
+                .filter(m -> moduleIdentifierMatch(m, moduleIdentifier))
+                .findFirst()
+                .orElse(null);
+
+        return invitationAuthModule != null ? invitationAuthModule.getCredentialName() : null;
+    }
+
+    private boolean sequenceIdentifierMatch(AuthenticationSequenceType seq, String sequenceIdentifier) {
+        return sequenceIdentifier.equals(seq.getName()) || sequenceIdentifier.equals(seq.getIdentifier());
+    }
+
+    private boolean moduleIdentifierMatch(MailNonceAuthenticationModuleType module, String moduleIdentifier) {
+        String mailNonceModuleId = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
+        return moduleIdentifier.equals(mailNonceModuleId);
+    }
+
+    @Override
     public String createPasswordResetLink(UserType userType) {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
         if (securityPolicy != null && securityPolicy.getAuthentication() != null
@@ -1667,7 +1780,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
     }
 
-    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence, Collection<AuthenticationSequenceType> sequences) {
+    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence,
+            Collection<AuthenticationSequenceType> sequences) {
+        return createPrefixLinkByAuthSequence(channel, nameOfSequence, sequences, true);
+    }
+
+    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence,
+            Collection<AuthenticationSequenceType> sequences, boolean useAuthPrefix) {
         AuthenticationSequenceType sequenceByName = null;
         AuthenticationSequenceType defaultSequence = null;
         for (AuthenticationSequenceType sequenceType : sequences) {
@@ -1682,9 +1801,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         AuthenticationSequenceType usedSequence = sequenceByName != null ? sequenceByName : defaultSequence;
         if (usedSequence != null) {
-            String sequecnceSuffix = usedSequence.getChannel().getUrlSuffix();
-            String prefix = (sequecnceSuffix.startsWith("/")) ? sequecnceSuffix : ("/" + sequecnceSuffix);
-            return SchemaConstants.AUTH_MODULE_PREFIX + prefix;
+            String sequenceSuffix = usedSequence.getChannel().getUrlSuffix();
+            String prefix = (sequenceSuffix.startsWith("/")) ? sequenceSuffix : ("/" + sequenceSuffix);
+            return useAuthPrefix ? SchemaConstants.AUTH_MODULE_PREFIX + prefix : prefix;
         }
         return null;
     }
