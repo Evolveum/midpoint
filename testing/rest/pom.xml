@@ -105,6 +105,17 @@
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.wicket</groupId>
+                    <artifactId>wicket-commons-fileupload</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+         <groupId>org.apache.wicket</groupId>
+                    <artifactId>wicket-commons-fileupload</artifactId>
+                    <version>${wicket.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -281,8 +292,8 @@
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
         </dependency>
 
         <dependency>
