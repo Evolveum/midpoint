@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.ldap.AuditedAuthenticationException;
 import com.evolveum.midpoint.authentication.impl.ldap.LdapDirContextAdapter;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.security.api.*;
@@ -71,7 +72,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             @Override
             protected DirContextOperations doAuthentication(UsernamePasswordAuthenticationToken authentication) {
                     DirContextOperations originalDirContextOperations = super.doAuthentication(authentication);
-                    return MidPointLdapAuthenticationProvider.this.doAuthentication(originalDirContextOperations);
+                    return MidPointLdapAuthenticationProvider.this.doAuthentication(authentication, originalDirContextOperations);
             }
 
             @Override
@@ -84,7 +85,8 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         };
     }
 
-    protected DirContextOperations doAuthentication(DirContextOperations originalDirContextOperations) {
+    protected DirContextOperations doAuthentication(
+            UsernamePasswordAuthenticationToken authentication, DirContextOperations originalDirContextOperations) {
         if (originalDirContextOperations instanceof DirContextAdapter) {
             Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
             if (actualAuthentication instanceof MidpointAuthentication) {
@@ -98,10 +100,17 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                     }
                     LdapDirContextAdapter mpDirContextAdapter = new LdapDirContextAdapter((DirContextAdapter)originalDirContextOperations);
                     mpDirContextAdapter.setNamingAttr(((LdapModuleAuthentication) moduleAuthentication).getNamingAttribute());
-                    if (moduleAuthentication.getFocusType() != null) {
-                        Class<FocusType> focusType = PrismContext.get().getSchemaRegistry().determineCompileTimeClass(moduleAuthentication.getFocusType());
-                        mpDirContextAdapter.setFocusType(focusType);
+
+                    AuthenticationRequirements authRequirements = initAuthRequirements(actualAuthentication);
+
+                    if (authRequirements.focusType != null) {
+                        mpDirContextAdapter.setFocusType(authRequirements.focusType);
                     }
+
+                    mpDirContextAdapter.setChannel(authRequirements.channel);
+                    mpDirContextAdapter.setRequireAssignment(authRequirements.requireAssignment);
+                    mpDirContextAdapter.setConnectionEnvironment(createEnvironment(authRequirements.channel, authentication));
+
                     return mpDirContextAdapter;
                 }
             }
@@ -167,7 +176,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             if (authentication instanceof LdapAuthenticationToken) {
                 token = this.authenticatorProvider.authenticate(authentication);
             } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
+                LOGGER.debug("Unsupported authentication {}", authentication);
                 recordPasswordAuthenticationFailure(authentication.getName(), "unavailable provider");
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
@@ -178,6 +187,8 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                     authentication.getClass().getSimpleName(), principal.getAuthorities());
             return token;
 
+        } catch (AuditedAuthenticationException e) {
+            throw e.getCause();
         } catch (InternalAuthenticationServiceException e) {
             // This sometimes happens ... for unknown reasons the underlying libraries cannot
             // figure out correct exception. Which results to wrong error message (MID-4518)
@@ -186,11 +197,11 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             throw processInternalAuthenticationException(e, e);
 
         } catch (IncorrectResultSizeDataAccessException e) {
-            LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
+            LOGGER.debug("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
             recordPasswordAuthenticationFailure(authentication.getName(), "bad user");
-            throw new BadCredentialsException("LdapAuthentication.bad.user", e);
+            throw new BadCredentialsException("web.security.provider.invalid.credentials", e);
         } catch (RuntimeException e) {
-            LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
+            LOGGER.debug("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
             recordPasswordAuthenticationFailure(authentication.getName(), "bad credentials");
             throw e;
         }
