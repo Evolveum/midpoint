@@ -103,7 +103,7 @@ public class ResourceObjectConverter {
     @Autowired private CommonBeans commonBeans;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private ResourceObjectsBeans beans;
-    @Autowired private AuditHelper auditHelper;
+    @Autowired private ShadowAuditHelper shadowAuditHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -370,25 +370,7 @@ public class ResourceObjectConverter {
     }
 
     private void auditEvent(AuditEventType event, ShadowType shadow, ProvisioningContext ctx, OperationResult result) {
-        ProvisioningOperationContext operationContext = ctx.getOperationContext();
-        AuditEventRecord auditRecord = new AuditEventRecord(event, AuditEventStage.RESOURCE);
-        auditRecord.setRequestIdentifier(operationContext.requestIdentifier());
-        // todo populate audit event record
-
-        ExpressionType eventRecordingExpression = null; // todo get it from system configuration
-        if (eventRecordingExpression != null) {
-            // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression, auditRecord, shadow.asPrismObject(),
-                    operationContext.expressionProfile(), operationContext.expressionEnvironment(), ctx.getTask(), result);
-        }
-
-        if (auditRecord == null) {
-            return;
-        }
-
-        ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = operationContext.nameResolver();
-
-        auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
+        shadowAuditHelper.auditEvent(event, shadow, ctx, result);
     }
 
     /**

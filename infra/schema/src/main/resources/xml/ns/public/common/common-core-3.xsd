@@ -11333,6 +11333,16 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="recordEnhancedShadowChanges" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, midPoint will record audit events for shadow changes on provisioning level.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditEventRecordingType.recordResourceOids</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="recordResourceOids" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
