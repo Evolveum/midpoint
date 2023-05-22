@@ -21,6 +21,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.repo.common.AuditHelper;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -51,10 +56,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -339,7 +340,7 @@ public class ResourceObjectConverter {
                 // Be careful NOT to apply this to the cloned shadow. This needs to be propagated outside this method.
                 applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 
-                auditHelper.auditAddShadow(shadow, parentResult);
+                auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, parentResult);
             } catch (CommunicationException ex) {
                 throw communicationException(ctx, connector, ex);
             } catch (GenericFrameworkException ex) {
@@ -367,6 +368,14 @@ public class ResourceObjectConverter {
         } finally {
             result.close();
         }
+    }
+
+    private void auditEvent(AuditEventType event, ShadowType shadow, ProvisioningContext ctx, OperationResult result) {
+        AuditEventRecord record = new AuditEventRecord(event, AuditEventStage.RESOURCE);
+        // todo populate audit event record
+        ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = null; // todo fix
+
+        auditHelper.audit(record, nameResolver, ctx.getTask(), result);
     }
 
     /**
@@ -470,7 +479,7 @@ public class ResourceObjectConverter {
                                 ctx.getUcfExecutionContext(),
                                 result);
 
-                auditHelper.auditDeleteShadow(shadow, parentResult);
+                auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, parentResult);
             } catch (ObjectNotFoundException ex) {
                 throw ex.wrap(String.format(
                         "An error occurred while deleting resource object %s with identifiers %s (%s)",
@@ -886,7 +895,7 @@ public class ResourceObjectConverter {
                         asynchronousOperationReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
                     }
 
-                    auditHelper.auditModifyShadow(currentShadow,  operationsWave, result);
+                    auditEvent(AuditEventType.ADD_OBJECT, currentShadow, ctx, result);
                 }
             }
 

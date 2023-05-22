@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -202,8 +204,9 @@ public class ClockworkAuditHelper {
 
         if (eventRecordingExpression != null) {
             // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
-                    auditRecord, primaryObject, context, task, result);
+            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression, auditRecord, primaryObject,
+                    context.getPrivilegedExpressionProfile(), () -> new ModelExpressionEnvironment<>(context, null, task, result),
+                    task, result);
         }
 
         if (auditRecord != null) {

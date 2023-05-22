@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -141,7 +142,8 @@ class RawChangesExecutor {
         AuditEventRecord processedRecord;
         if (auditEventRecordingExpression != null) {
             processedRecord = auditHelper.evaluateRecordingExpression(
-                    auditEventRecordingExpression, originalRecord, null, null, task, result);
+                    auditEventRecordingExpression, originalRecord, null, null,
+                    () -> new ModelExpressionEnvironment<>(null, null, task, result), task, result);
         } else {
             processedRecord = originalRecord;
         }

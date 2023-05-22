@@ -1,25 +1,27 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.util;
+package com.evolveum.midpoint.repo.common;
 
 import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
@@ -141,23 +143,25 @@ public class AuditHelper {
         }
     }
 
-    public <F extends ObjectType> AuditEventRecord evaluateRecordingExpression(
-            ExpressionType expression, AuditEventRecord auditRecord,
-            PrismObject<? extends ObjectType> primaryObject, ModelContext<F> context,
-            Task task, OperationResult parentResult) {
+    public AuditEventRecord evaluateRecordingExpression(ExpressionType expression, AuditEventRecord auditRecord,
+            PrismObject<? extends ObjectType> primaryObject, ExpressionProfile expressionProfile,
+            Supplier<ExpressionEnvironment> expressionEnvironmentProducer, Task task, OperationResult parentResult) {
+
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
 
         try {
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
             variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
-            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                    new ModelExpressionEnvironment<>(context, null, task, result));
+
+            ExpressionEnvironment env = expressionEnvironmentProducer.get();
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
+
             try {
                 PrismValue returnValue = ExpressionUtil.evaluateExpression(
                         variables,
                         null,
-                        expression, context != null ? context.getPrivilegedExpressionProfile() : null,
+                        expression, expressionProfile,
                         expressionFactory,
                         OP_EVALUATE_RECORDING_SCRIPT,
                         task,
