@@ -198,6 +198,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull PrismObject<T> object,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
@@ -702,7 +703,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+    public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         Validate.notNull(shadow, "Shadow for refresh must not be null.");

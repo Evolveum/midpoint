@@ -18,27 +18,30 @@ public class ProvisioningOperationContext {
 
     private ObjectDeltaSchemaLevelUtil.NameResolver nameResolver;
 
-    public String getRequestIdentifier() {
+    public String requestIdentifier() {
         return requestIdentifier;
     }
 
-    public void setRequestIdentifier(String requestIdentifier) {
+    public ProvisioningOperationContext requestIdentifier(String requestIdentifier) {
         this.requestIdentifier = requestIdentifier;
+        return this;
     }
 
-    public ExpressionProfile getExpressionProfile() {
+    public ExpressionProfile expressionProfile() {
         return expressionProfile;
     }
 
-    public void setExpressionProfile(ExpressionProfile expressionProfile) {
+    public ProvisioningOperationContext expressionProfile(ExpressionProfile expressionProfile) {
         this.expressionProfile = expressionProfile;
+        return this;
     }
 
-    public ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
+    public ObjectDeltaSchemaLevelUtil.NameResolver nameResolver() {
         return nameResolver;
     }
 
-    public void setNameResolver(ObjectDeltaSchemaLevelUtil.NameResolver nameResolver) {
+    public ProvisioningOperationContext nameResolver(ObjectDeltaSchemaLevelUtil.NameResolver nameResolver) {
         this.nameResolver = nameResolver;
+        return this;
     }
 }
