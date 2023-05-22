@@ -12,11 +12,11 @@
     <authentication>
         <modules>
             <loginForm>
-                <name>internalLoginForm</name>
+                <identifier>internalLoginForm</identifier>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
             <oidc>
-                <name>oidcResourceServer</name>
+                <identifier>oidcResourceServer</identifier>
                 <resourceServer>
                     <jwkSetUri>https://keycloak.lab.evolveum.com/auth/realms/test/protocol/openid-connect/certs</jwkSetUri>
                     <trustedAlgorithm>PS384</trustedAlgorithm>
