@@ -1125,6 +1125,8 @@ public interface MidpointFunctions {
 
     String createRegistrationConfirmationLink(UserType userType);
 
+    String createInvitationLink(UserType userType);
+
     String createPasswordResetLink(UserType userType);
 
     /**

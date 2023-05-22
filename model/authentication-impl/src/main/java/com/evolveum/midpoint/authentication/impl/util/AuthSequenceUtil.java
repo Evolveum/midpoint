@@ -77,6 +77,7 @@ public class AuthSequenceUtil {
                 .put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI)
                 .put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI)
                 .put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI)
+                .put("invitation", SchemaConstants.CHANNEL_INVITATION_URI)
                 .build();
     }
 

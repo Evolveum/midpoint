@@ -9,11 +9,11 @@ package com.evolveum.midpoint.security.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -128,6 +128,20 @@ public class SecurityUtil {
         }
         copyDefaults(creds.getDefault(), passPolicy);
         return passPolicy;
+    }
+
+    public static String getInvitationSequenceName(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
+            return null;
+        }
+        AuthenticationSequenceType invitationSequence = securityPolicy.getAuthentication().getSequence().stream().filter(s -> s.getChannel() != null
+                && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
+                .findFirst()
+                .orElse(null);
+        if (invitationSequence == null) {
+            return null;
+        }
+        return invitationSequence.getName();
     }
 
     public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {

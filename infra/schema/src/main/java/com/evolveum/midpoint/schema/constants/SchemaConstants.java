@@ -426,6 +426,9 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_SELF_REGISTRATION_QNAME = new QName(NS_CHANNEL, "selfRegistration");
     public static final String CHANNEL_SELF_REGISTRATION_URI = qNameToUri(CHANNEL_SELF_REGISTRATION_QNAME);
 
+    public static final QName CHANNEL_INVITATION_QNAME = new QName(NS_CHANNEL, "invitation");
+    public static final String CHANNEL_INVITATION_URI = qNameToUri(CHANNEL_INVITATION_QNAME);
+
     // Channel for self-service part of the user interface. These are the pages when user is changing his own data.
     // E.g. update of his own profile and password change are considered to be self-service.
     public static final QName CHANNEL_SELF_SERVICE_QNAME = new QName(NS_CHANNEL, "selfService");

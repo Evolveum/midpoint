@@ -14,6 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -952,6 +954,18 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public void redirectToNotFoundPage() {
         PageError404 notFound = new PageError404();
         throw new RestartResponseException(notFound);
+    }
+
+    public GuiProfiledPrincipal getPrincipal() {
+        return AuthUtil.getPrincipalUser();
+    }
+
+    public FocusType getPrincipalFocus() {
+        MidPointPrincipal principal = getPrincipal();
+        if (principal == null) {
+            return null;
+        }
+        return principal.getFocus();
     }
 
     //Used by subclasses

@@ -385,7 +385,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean isEqualChannelIdForAuthenticatedUser(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
-        return mpAuthentication != null && !mpAuthentication.getSequence().equals(authWrapper.sequence) && mpAuthentication.isAuthenticated()
+        return mpAuthentication != null && mpAuthentication.getSequence() != null
+                && !mpAuthentication.getSequence().equals(authWrapper.sequence) && mpAuthentication.isAuthenticated()
                 && (((authWrapper.sequence != null && authWrapper.sequence.getChannel() != null && mpAuthentication.getAuthenticationChannel().matchChannel(authWrapper.sequence)))
                 || mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest)));
     }
