@@ -121,7 +121,24 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return processingAuthentication;
     }
 
-    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
+    protected AuthenticationRequirements initAuthRequirements(Authentication actualAuthentication) {
+        AuthenticationRequirements authRequirements = new AuthenticationRequirements();
+        if (actualAuthentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+            ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+            if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
+                authRequirements.focusType = PrismContext.get().getSchemaRegistry()
+                        .determineCompileTimeClass(moduleAuthentication.getFocusType());
+            }
+            authRequirements.requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
+            authRequirements.channel = mpAuthentication.getAuthenticationChannel();
+        }
+        return authRequirements;
+    }
+
+    protected void writeAuthentication(
+            Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
+            ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
         if (principal instanceof MidPointPrincipal) {
             mpAuthentication.setPrincipal(principal);
@@ -193,7 +210,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return delta.getModifications();
     }
 
-    private static class AuthenticationRequirements {
+    static class AuthenticationRequirements {
         List<ObjectReferenceType> requireAssignment = null;
         AuthenticationChannel channel = null;
         Class<? extends FocusType> focusType = UserType.class;
