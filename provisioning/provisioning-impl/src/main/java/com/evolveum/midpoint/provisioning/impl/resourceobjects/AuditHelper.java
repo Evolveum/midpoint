@@ -29,10 +29,10 @@ public class AuditHelper {
     private AuditService auditService;
 
     public void auditAddShadow(ShadowType shadow, OperationResult result) {
-        AuditEventRecord record = new AuditEventRecord()
+        AuditEventRecord record = new AuditEventRecord();
     }
 
-    public void auditModifyShadow(ShadowType shadow, (Collection<Operation> operations, OperationResult result) {
+    public void auditModifyShadow(ShadowType shadow, Collection<Operation> operations, OperationResult result) {
 
     }
 
