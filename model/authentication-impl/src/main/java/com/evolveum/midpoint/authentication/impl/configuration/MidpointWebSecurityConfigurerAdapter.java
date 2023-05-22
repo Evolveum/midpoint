@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
@@ -201,6 +202,7 @@ public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigur
     }
 
     @Bean
+    @Primary
     public HttpSecurity httpSecurity() throws Exception {
         AuthenticationManagerBuilder authenticationBuilder = new AuthenticationManagerBuilder(this.objectObjectPostProcessor);
         authenticationBuilder.parentAuthenticationManager(authenticationManager());

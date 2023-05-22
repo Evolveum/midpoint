@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.authentication.impl.saml;
 
 import java.io.IOException;
-import jakarta.servlet.http.ServletException;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
