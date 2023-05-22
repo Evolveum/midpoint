@@ -555,7 +555,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         public void initializeAuthenticationSequence(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, TaskManager taskManager) {
             if (mpAuthentication != null && AuthSequenceUtil.isLoginPage(httpRequest)) {
-                if (mpAuthentication.getAuthenticationChannel() != null && !mpAuthentication.getAuthenticationChannel().getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest))
+                if (mpAuthentication.getAuthenticationChannel() != null && !mpAuthentication.getAuthenticationChannel()
+                        .getChannelId().equals(AuthSequenceUtil.findChannelByRequest(httpRequest))
                         && AuthSequenceUtil.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups()) == null) {
                     return;
                 }
@@ -564,7 +565,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 this.sequence = AuthSequenceUtil.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups());
             }
 
-            if (isEqualChannelIdForAuthenticatedUser(mpAuthentication, httpRequest)) {
+            if (sequence != null && isEqualChannelIdForAuthenticatedUser(mpAuthentication, httpRequest)) {
                 changeLogoutToNewSequence(mpAuthentication, httpRequest);
                 this.sequence = mpAuthentication.getSequence();
             }
