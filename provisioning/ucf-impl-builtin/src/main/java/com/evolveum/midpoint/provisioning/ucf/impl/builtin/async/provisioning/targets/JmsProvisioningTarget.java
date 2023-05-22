@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.targets;
 
-import javax.jms.*;
+import jakarta.jms.*;
 import javax.naming.InitialContext;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -84,12 +84,14 @@ public class JmsProvisioningTarget extends AbstractMessagingTarget<JmsProvisioni
         Objects.requireNonNull(configuration.getDestination(), "destination must be specified");
     }
 
+    @Override
     protected void executeTest() throws JMSException, EncryptionException {
         closeProducer();
         closeSession();
         getOrCreateProducer();
     }
 
+    @Override
     protected String executeSend(AsyncProvisioningRequest request) throws JMSException, EncryptionException {
         Session session = getOrCreateSession();
         TextMessage message = session.createTextMessage(request.asString());
