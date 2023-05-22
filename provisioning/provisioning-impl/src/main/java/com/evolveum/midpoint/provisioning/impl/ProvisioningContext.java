@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.util.*;
@@ -130,6 +131,8 @@ public class ProvisioningContext {
      */
     private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
+    private ProvisioningOperationContext operationContext;
+
     /** Creating context from scratch. */
     ProvisioningContext(
             @NotNull Task task,
@@ -162,6 +165,10 @@ public class ProvisioningContext {
         this.propagation = originalCtx.propagation;
         // Not copying protected account patters because these are object type specific.
         LOGGER.trace("Created/spawned {}", this);
+    }
+
+    public ProvisioningOperationContext getOperationContext() {
+        return operationContext;
     }
 
     public void setGetOperationOptions(Collection<SelectorOptions<GetOperationOptions>> getOperationOptions) {

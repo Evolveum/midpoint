@@ -45,6 +45,7 @@ public class MockFactory {
                     @NotNull Class<T> type,
                     @NotNull String oid,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @Nullable ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 throw new UnsupportedOperationException();
@@ -55,6 +56,7 @@ public class MockFactory {
                     @NotNull PrismObject<T> object,
                     @Nullable OperationProvisioningScriptsType scripts,
                     @Nullable ProvisioningOperationOptions options,
+                    @Nullable ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -85,6 +87,7 @@ public class MockFactory {
                     @NotNull Class<T> type,
                     @Nullable ObjectQuery query,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @Nullable ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return new SearchResultList<>(new ArrayList<>(0));
@@ -95,6 +98,7 @@ public class MockFactory {
                     @NotNull Class<T> type,
                     @Nullable ObjectQuery query,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @Nullable ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -106,6 +110,7 @@ public class MockFactory {
                     @Nullable ObjectQuery query,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
                     @NotNull ResultHandler<T> handler,
+                    @Nullable ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -118,6 +123,7 @@ public class MockFactory {
                     @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
                     @Nullable OperationProvisioningScriptsType scripts,
                     @Nullable ProvisioningOperationOptions options,
+                    @Nullable ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -129,6 +135,7 @@ public class MockFactory {
                     String oid,
                     ProvisioningOperationOptions option,
                     OperationProvisioningScriptsType scripts,
+                    @Nullable ProvisioningOperationContext context,
                     Task task,
                     OperationResult parentResult) {
                 return null;
@@ -186,6 +193,7 @@ public class MockFactory {
             public void refreshShadow(
                     PrismObject<ShadowType> shadow,
                     ProvisioningOperationOptions options,
+                    ProvisioningOperationContext context,
                     Task task,
                     OperationResult parentResult) {
             }

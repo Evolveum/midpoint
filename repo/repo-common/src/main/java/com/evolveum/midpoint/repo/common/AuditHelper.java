@@ -14,14 +14,13 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
@@ -145,7 +144,7 @@ public class AuditHelper {
 
     public AuditEventRecord evaluateRecordingExpression(ExpressionType expression, AuditEventRecord auditRecord,
             PrismObject<? extends ObjectType> primaryObject, ExpressionProfile expressionProfile,
-            Supplier<ExpressionEnvironment> expressionEnvironmentProducer, Task task, OperationResult parentResult) {
+            Supplier<ExpressionEnvironment> expressionEnvironmentSupplier, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
 
@@ -154,8 +153,10 @@ public class AuditHelper {
             variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
             variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
 
-            ExpressionEnvironment env = expressionEnvironmentProducer.get();
-            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
+            if (expressionEnvironmentSupplier != null) {
+                ExpressionEnvironment env = expressionEnvironmentSupplier.get();
+                ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
+            }
 
             try {
                 PrismValue returnValue = ExpressionUtil.evaluateExpression(
