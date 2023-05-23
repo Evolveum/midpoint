@@ -1180,6 +1180,18 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
+                <a:schemaMigration>
+                    <a:element>tns:container</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use panel.container instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:forms</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use panel configuration instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1199,42 +1211,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectDetailsPageType.saveMethod</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="forms" type="tns:ObjectFormType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Specification of forms (tabs) to be used on object details page.
-                                </p>
-                                <p>
-                                    NOTE: As of midPoint 4.0 this works for archetypes only.
-                                    It is not supposed to work anywhere else than in archetypePolicy.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.0</a:since>
-                                <a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:deprecated/>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Used to specify "virtual" containers for displaying details page in GUI.
-                                As an example, the user might need to reorganize attributes to some logic
-                                block such as personal info, basic info, additional info. Each of this
-                                section should have only attributes which belong to it, e.g. given name,
-                                family name, date of the birth are attributes corresponding to the personal info.
-                                Basic info section will contains attributes describing organizationalUnit, emailAddress
-                                or job position and additional info will contain attributes about user's nickname and so on.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:deprecated/>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1466,7 +1442,7 @@
                             the UI features in any non-trivial midPoint configuration.
                         </p>
                         <p>
-                            Identifier may not be needed at all in some cases (e.g. additionalPanels in views).
+                            Identifier may not be needed at all in some cases.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -1925,6 +1901,12 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:additionalPanels</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1962,26 +1944,6 @@
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                                 <a:displayName>GuiObjectListViewType.action</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Configuration of additional panels that can be present in some view types.
-                                    E.g. configuration of "managers" and "members" panels in orgstruct views.
-                                </p>
-                                <p>
-                                    DEPRECATED. Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>3.9</a:since>
-                                <a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
-                                <a:experimental>true</a:experimental>
-                                <a:deprecated/>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3831,26 +3793,17 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.9</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use identifier instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:UserInterfaceFeatureType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Action short name (identifier). This element is not displayed to the user. It is used
-                                for identification of the action and referencing (e.g. previous column). The definitions
-                                that have the same name in different layers (global, role, user) will be merged together.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>GuiActionType.name</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.6</a:deprecatedSince>
-                                <a:plannedRemoval>4.8</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3937,31 +3890,6 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configuration of additional panels that can be present in some view types.
-                E.g. configuration of "managers" and "members" panels in orgstruct views.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.9</a:since>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <!-- TODO: manager panel -->
-            <xsd:element name="memberPanel" type="tns:GuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiObjectListViewAdditionalPanelsType.memberPanel</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FormType">
@@ -4379,7 +4307,16 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    List of containers to show on this panel
+                                    List of containers to show on this panel.
+                                </p>
+                                <p>
+                                    Used to specify "virtual" containers for displaying details page in GUI.
+                                    As an example, the user might need to reorganize attributes to some logic
+                                    block such as personal info, basic info, additional info. Each of this
+                                    section should have only attributes which belong to it, e.g. given name,
+                                    family name, date of the birth are attributes corresponding to the personal info.
+                                    Basic info section will contains attributes describing organizationalUnit, emailAddress
+                                    or job position and additional info will contain attributes about user's nickname and so on.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
