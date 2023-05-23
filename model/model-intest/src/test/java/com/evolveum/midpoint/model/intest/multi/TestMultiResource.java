@@ -2579,6 +2579,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
+        // during this operation (more specifically get shadow) shadow is refreshed, pending operations deleted and
+        // modifyTimestamp updated, meaning deadRetentionPeriod will not be exceeded
+        reconcileUser(userBefore.getOid(), task, result);
+
+        // this will remove shadow during shadow refresh, since it's dead and modifications didn't happend
+        clockForward("P10D");
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
