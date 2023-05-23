@@ -45,6 +45,12 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:objectForms</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use panel configuration instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -98,24 +104,6 @@
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:displayName>AdminGuiConfigurationType.objectCollectionViews</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies the set of default forms that are used for displaying and
-                            editing of objects, such as User, Role, Org, ...
-                        </p>
-                        <!-- TODO: This has to be moved to  objectDetails/objectDetailsPage/forms -->
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.objectForms</a:displayName>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.4</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -890,138 +878,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <!-- ============================================================== -->
-    <!--  FORMS                                                         -->
-    <!-- ============================================================== -->
-
-
-    <xsd:complexType name="ObjectFormsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies the set of forms that are used for displaying and
-                editing of objects, such as User, Role, Org, ...
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="objectForm" type="tns:ObjectFormType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>ObjectFormsType.objectForm</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="ObjectFormType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies form that are used for displaying and
-                editing of specific object type
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.4</a:since>
-                <a:displayName>ObjectFormType.details</a:displayName>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractObjectTypeConfigurationType">
-                <xsd:sequence>
-                    <xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectFormType.formSpecification</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectFormType.includeDefaultForms</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="FormSpecificationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies a form using several different methods, e.g. by
-                specification of Java class, internal form OID, etc.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Form title that is shown at an appropriate place, such as browser title, heading,
-                        tab name, etc.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>FormSpecificationType.title</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="formRef" type="tns:ObjectReferenceType"
-                         minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to midPoint form object
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
-                        <a:displayName>FormSpecificationType.formRef</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-                <!-- Later on the referenced form may also contain title, panelClass and panelUri.
-                     Equivalent elements from this data type may be used to override those specified
-                     in FormType object referenced from this formRef.
-                     However, not all combination have to be supported. E.g. if the FormType object
-                     specifies a declarative form and this FormSpecificationType specifies panelClass
-                     then an error should be raised.
-                      -->
-            </xsd:element>
-            <xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the Java class that will be used as the form implementation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>FormSpecificationType.panelClass</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="panelUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        URI identifier of Java component that will be used as the form implementation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>FormSpecificationType.panelUri</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="GuiObjectDetailsSetType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies the set of default forms that are used for displaying and
+                Specifies the set of default panels that are used for displaying and
                 editing of objects, such as User, Role, Org, ...
             </xsd:documentation>
             <xsd:appinfo>

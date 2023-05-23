@@ -161,16 +161,6 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         }
     }
 
-    private static void mergeFormObject(ObjectFormType currentForm, ObjectFormType newForm) {
-        if (newForm.getFormSpecification() != null) {
-            currentForm.formSpecification(newForm.getFormSpecification());
-        }
-
-        if (newForm.isIncludeDefaultForms() != null) {
-            currentForm.includeDefaultForms(newForm.isIncludeDefaultForms());
-        }
-    }
-
     private SummaryPanelSpecificationType mergeSummaryPanels(SummaryPanelSpecificationType defaultSummary, SummaryPanelSpecificationType compiledSummary) {
         if (compiledSummary == null) {
             return defaultSummary;

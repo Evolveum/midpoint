@@ -33,14 +33,18 @@ xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
             <targetUrl>http://example.com/engloop</targetUrl>
             <label>Engineering loophole</label>
         </userDashboardLink>
-        <objectForms>
-            <objectForm>
+        <objectDetails>
+            <objectDetailsPage>
                 <type>UserType</type>
-                <formSpecification>
-                    <panelClass>com.example.form.FooPanel</panelClass>
-                </formSpecification>
-            </objectForm>
-        </objectForms>
+                <panel>
+                    <identifier>com.example.form.FooPanel</identifier>
+                    <panelType>basic</panelType>
+                    <display>
+                        <label>FooPanel</label>
+                    </display>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
     <subtype>job</subtype>
 </role>

@@ -60,7 +60,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private DashboardLayoutType userDashboard;
     private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
     private GuiExportSettingsType defaultExportSettings;
-    private ObjectFormsType objectForms;
     private GuiObjectDetailsSetType objectDetails;
     private FeedbackMessagesHookType feedbackMessagesHook;
     @Deprecated
@@ -266,19 +265,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public void setDefaultExportSettings(GuiExportSettingsType defaultExportSettings) {
         this.defaultExportSettings = defaultExportSettings;
-    }
-
-    /**
-     * May change in the future.
-     */
-    @Experimental
-    public ObjectFormsType getObjectForms() {
-        return objectForms;
-    }
-
-    @Experimental
-    public void setObjectForms(ObjectFormsType objectForms) {
-        this.objectForms = objectForms;
     }
 
     /**
@@ -526,7 +512,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelLn(sb, "defaultObjectCollectionView", defaultObjectCollectionView, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "userDashboard", userDashboard, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "defaultExportSettings", defaultExportSettings, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectForms", objectForms, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectDetails", objectDetails, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "feedbackMessagesHook", feedbackMessagesHook, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "roleManagement", roleManagement, indent + 1);
