@@ -85,6 +85,8 @@ public enum AuditEventType {
                 return AuditEventType.RESUME_TASK;
             case RUN_TASK_IMMEDIATELY:
                 return AuditEventType.RUN_TASK_IMMEDIATELY;
+            case DISCOVER_OBJECT:
+                return AuditEventType.DISCOVER_OBJECT;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }
@@ -137,6 +139,8 @@ public enum AuditEventType {
                 return AuditEventTypeType.RESUME_TASK;
             case RUN_TASK_IMMEDIATELY:
                 return AuditEventTypeType.RUN_TASK_IMMEDIATELY;
+            case DISCOVER_OBJECT:
+                return AuditEventTypeType.DISCOVER_OBJECT;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }

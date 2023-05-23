@@ -74,9 +74,9 @@ EXCEPTION WHEN duplicate_object THEN raise notice 'Main repo custom types alread
 CREATE TYPE AuditEventTypeType AS ENUM ('GET_OBJECT', 'ADD_OBJECT', 'MODIFY_OBJECT',
     'DELETE_OBJECT', 'EXECUTE_CHANGES_RAW', 'SYNCHRONIZATION', 'CREATE_SESSION',
     'TERMINATE_SESSION', 'WORK_ITEM', 'WORKFLOW_PROCESS_INSTANCE', 'RECONCILIATION',
-    'SUSPEND_TASK', 'RESUME_TASK', 'RUN_TASK_IMMEDIATELY');
+    'SUSPEND_TASK', 'RESUME_TASK', 'RUN_TASK_IMMEDIATELY', 'DISCOVER_OBJECT');
 
-CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION');
+CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION', 'RESOURCE');
 
 CREATE TYPE ChangeType AS ENUM ('ADD', 'MODIFY', 'DELETE');
 -- endregion
@@ -352,4 +352,4 @@ limit 50;
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_audit_change(3, $$ SELECT 1 $$, true);
+call apply_audit_change(4, $$ SELECT 1 $$, true);

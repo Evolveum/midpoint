@@ -26,6 +26,8 @@ public enum AuditEventStage {
                 return AuditEventStage.EXECUTION;
             case REQUEST:
                 return AuditEventStage.REQUEST;
+            case RESOURCE:
+                return AuditEventStage.RESOURCE;
             default:
                 throw new IllegalArgumentException("Unknown audit event stage: " + stage);
         }
@@ -41,6 +43,8 @@ public enum AuditEventStage {
                 return AuditEventStageType.EXECUTION;
             case REQUEST:
                 return AuditEventStageType.REQUEST;
+            case RESOURCE:
+                return AuditEventStageType.RESOURCE;
             default:
                 throw new IllegalArgumentException("Unknown audit event stage: " + stage);
         }
