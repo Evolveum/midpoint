@@ -241,7 +241,7 @@ public class AuthSequenceUtil {
                 sequencesWithSameChannel.add(sequence);
                 if (Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                        LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
+                        LOGGER.error("Found sequence " + sequence.getIdentifier() + "not contains configuration for module");
                         return null;
                     }
                     return sequence;
@@ -270,7 +270,7 @@ public class AuthSequenceUtil {
         for (AuthenticationSequenceType sequence : sequences) {
             if (sequence != null && sequence.getChannel() != null && urlSuffix.equals(sequence.getChannel().getUrlSuffix())) {
                 if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                    LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
+                    LOGGER.error("Found sequence " + sequence.getIdentifier() + "not contains configuration for module");
                     return null;
                 }
                 return sequence;
@@ -607,7 +607,7 @@ public class AuthSequenceUtil {
     }
 
     public static String getAuthSequenceIdentifier(@NotNull AuthenticationSequenceType seq) {
-        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
+        return seq.getIdentifier();
     }
 
     public static boolean isUrlForAuthProcessing(HttpServletRequest httpRequest) {

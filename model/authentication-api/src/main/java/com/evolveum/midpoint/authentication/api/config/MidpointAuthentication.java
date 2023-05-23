@@ -107,7 +107,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (sequence == null) {
             return null;
         }
-        return StringUtils.isNotEmpty(sequence.getIdentifier()) ? sequence.getIdentifier() : sequence.getName();
+        return sequence.getIdentifier();
     }
 
     public void setSequence(AuthenticationSequenceType sequence) {
