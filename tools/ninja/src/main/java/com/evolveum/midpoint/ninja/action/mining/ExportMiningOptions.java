@@ -14,6 +14,7 @@ import java.util.List;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import com.evolveum.midpoint.common.RoleMiningExportUtils;
 import com.evolveum.midpoint.ninja.opts.BasicExportOptions;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "exportMining")
@@ -24,27 +25,25 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_OUTPUT_LONG = "--output";
     public static final String P_OVERWRITE = "-ow";
     public static final String P_OVERWRITE_LONG = "--overwrite";
-    public static final String P_PREFIX_APPLICATION = "-pa";
-    public static final String P_PREFIX_APPLICATION_LONG = "-applicationRolePrefix";
-    public static final String P_PREFIX_BUSINESS = "-pb";
-    public static final String P_PREFIX_BUSINESS_LONG = "-businessRolePrefix";
-    public static final String P_SUFFIX_APPLICATION = "-sa";
-    public static final String P_SUFFIX_APPLICATION_LONG = "-applicationRoleSuffix";
-    public static final String P_SUFFIX_BUSINESS = "-sb";
-    public static final String P_SUFFIX_BUSINESS_LONG = "-businessRoleSufix";
+    public static final String P_PREFIX_APPLICATION = "-arp";
+    public static final String P_PREFIX_APPLICATION_LONG = "--applicationRolePrefix";
+    public static final String P_PREFIX_BUSINESS = "-brp";
+    public static final String P_PREFIX_BUSINESS_LONG = "--businessRolePrefix";
+    public static final String P_SUFFIX_APPLICATION = "-ars";
+    public static final String P_SUFFIX_APPLICATION_LONG = "--applicationRoleSuffix";
+    public static final String P_SUFFIX_BUSINESS = "-brs";
+    public static final String P_SUFFIX_BUSINESS_LONG = "--businessRoleSuffix";
     public static final String P_ORG = "-org";
-    public static final String P_ORG_LONG = "-disableOrgExport";
+    public static final String P_ORG_LONG = "--includeOrg";
     public static final String P_NAME_OPTIONS = "-nm";
-    public static final String P_NAME_OPTIONS_LONG = "-nameMode";
-    public static final String P_ARCHETYPE_OID_APPLICATION = "-arOid";
-    public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "-applicationArchetypeOid";
-    public static final String P_ARCHETYPE_OID_BUSINESS = "-brOid";
-    public static final String P_ARCHETYPE_OID_BUSINESS_LONG = "-businessArchetypeOid";
+    public static final String P_NAME_OPTIONS_LONG = "--nameMode";
+    public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "--applicationRoleArchetypeOid";
+    public static final String P_ARCHETYPE_OID_BUSINESS_LONG = "--businessRoleArchetypeOid";
     public static final String P_SECURITY_LEVEL = "-s";
-    public static final String P_SECURITY_LEVEL_LONG = "-security";
+    public static final String P_SECURITY_LEVEL_LONG = "--security";
 
     @Parameter(names = { P_SECURITY_LEVEL, P_SECURITY_LEVEL_LONG }, descriptionKey = "export.security.level")
-    private ExportMiningConsumerWorker.SecurityMode securityMode = ExportMiningConsumerWorker.SecurityMode.STRONG;
+    private RoleMiningExportUtils.SecurityMode securityMode = RoleMiningExportUtils.SecurityMode.ADVANCED;
 
     @Parameter(names = { P_SUFFIX_APPLICATION, P_SUFFIX_APPLICATION_LONG }, descriptionKey = "export.application.role.suffix")
     private String applicationRoleSuffix;
@@ -68,17 +67,17 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     private boolean includeOrg = true;
 
     @Parameter(names = { P_NAME_OPTIONS, P_NAME_OPTIONS_LONG }, descriptionKey = "export.name.options")
-    private ExportMiningConsumerWorker.NameMode nameMode = ExportMiningConsumerWorker.NameMode.SEQUENTIAL;
+    private RoleMiningExportUtils.NameMode nameMode = RoleMiningExportUtils.NameMode.SEQUENTIAL;
 
-    @Parameter(names = { P_ARCHETYPE_OID_APPLICATION, P_ARCHETYPE_OID_APPLICATION_LONG },
+    @Parameter(names = { P_ARCHETYPE_OID_APPLICATION_LONG },
             descriptionKey = "export.application.role.archetype.oid")
     private String applicationRoleArchetypeOid = "00000000-0000-0000-0000-000000000328";
 
-    @Parameter(names = { P_ARCHETYPE_OID_BUSINESS, P_ARCHETYPE_OID_BUSINESS_LONG },
+    @Parameter(names = { P_ARCHETYPE_OID_BUSINESS_LONG },
             descriptionKey = "export.business.role.archetype.oid")
     private String businessRoleArchetypeOid = "00000000-0000-0000-0000-000000000321";
 
-    public ExportMiningConsumerWorker.SecurityMode getSecurityLevel() {
+    public RoleMiningExportUtils.SecurityMode getSecurityLevel() {
         return securityMode;
     }
 
@@ -94,7 +93,7 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
         return businessRoleArchetypeOid;
     }
 
-    public ExportMiningConsumerWorker.NameMode getNameMode() {
+    public RoleMiningExportUtils.NameMode getNameMode() {
         return nameMode;
     }
 

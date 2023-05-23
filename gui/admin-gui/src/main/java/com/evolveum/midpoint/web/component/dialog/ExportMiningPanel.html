@@ -10,7 +10,7 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
     <div class="d-flex flex-wrap gap-2 w-100 justify-content-center">
-        <p class="text-center col-9" wicket:id="confirmText"></p>
+        <p class="text-center col-9" wicket:id="introduction"></p>
     </div>
 
     <div class="d-flex flex-wrap gap-2 w-100 justify-content-center">
@@ -21,7 +21,7 @@
     </div>
 
 
-    <wicket:fragment wicket:id="buttons">
+    <wicket:fragment wicket:id="panel">
 
         <div class="gap-2 w-100" wicket:id="warningFeedback"></div>
 
@@ -81,8 +81,9 @@
 
             <form wicket:id="roleFilter" class="d-flex flex-wrap justify-content-end gap-2 w-100">
 
+
                 <div class="card-body col-8 p-0">
-                    <textarea class="border-top border-bottom" wicket:id="roleFilterEditorMidPointScript"></textarea>
+                    <input type="text" class="form-control form-control-sm mp-w-12" wicket:id="roleFilterEditorMidPointScript">
                 </div>
             </form>
 
@@ -99,9 +100,8 @@
             </div>
 
             <form wicket:id="userFilter" class="d-flex flex-wrap justify-content-end gap-2 w-100">
-
                 <div class="card-body col-8 p-0">
-                    <textarea class="border-top border-bottom" wicket:id="userFilterEditorMidPointScript"></textarea>
+                    <input type="text" class="form-control form-control-sm mp-w-12" wicket:id="userFilterEditorMidPointScript">
                 </div>
             </form>
 
@@ -118,9 +118,8 @@
             </div>
 
             <form wicket:id="orgFilter" class="d-flex flex-wrap justify-content-end gap-2 w-100">
-
                 <div class="card-body col-8 p-0">
-                    <textarea class="border-top border-bottom" wicket:id="orgFilterEditorMidPointScript"></textarea>
+                    <input type="text" class="form-control form-control-sm mp-w-12" wicket:id="orgFilterEditorMidPointScript">
                 </div>
             </form>
 
@@ -194,8 +193,8 @@
         <div class="show-empty-button d-flex justify-content-center w-100" wicket:id="showAdditionalOptions"></div>
 
         <div class="d-flex justify-content-end gap-2 w-100">
-            <a class="btn btn-primary" wicket:id="yes"></a>
-            <a class="btn btn-default" wicket:id="no"></a>
+            <a class="btn btn-primary" wicket:id="export"></a>
+            <a class="btn btn-default" wicket:id="cancel"></a>
         </div>
 
     </wicket:fragment>
