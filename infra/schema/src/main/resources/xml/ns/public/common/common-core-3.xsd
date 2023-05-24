@@ -18531,13 +18531,11 @@
                     <xsd:element name="data" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Full data of the report. TEMPORARY!!!
+                                Full data of the report.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>
                                 <a:since>4.4</a:since>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
