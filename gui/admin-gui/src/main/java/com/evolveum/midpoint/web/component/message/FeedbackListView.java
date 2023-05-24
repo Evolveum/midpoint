@@ -49,8 +49,8 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                public void close(AjaxRequestTarget target) {
-                    super.close(target);
+                public void close(AjaxRequestTarget target, boolean parent) {
+                    super.close(target, false);
                     message.markRendered();
                 }
 

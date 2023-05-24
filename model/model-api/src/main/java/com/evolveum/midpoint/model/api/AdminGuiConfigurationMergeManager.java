@@ -29,8 +29,6 @@ public interface AdminGuiConfigurationMergeManager {
 
     GuiShadowDetailsPageType mergeShadowDetailsPageConfiguration(GuiShadowDetailsPageType defaultPageConfiguration, GuiShadowDetailsPageType compiledPageType);
 
-    List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails);
-
     <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction);
 
     DisplayType mergeDisplayType(DisplayType currentDisplayType, DisplayType superDisplayType);

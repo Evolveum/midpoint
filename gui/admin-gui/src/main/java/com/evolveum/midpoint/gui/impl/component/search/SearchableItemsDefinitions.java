@@ -160,7 +160,6 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(CaseType.F_PARENT_REF),
                 ItemPath.create(CaseType.F_REQUESTOR_REF),
                 ItemPath.create(CaseType.F_TARGET_REF),
-                ItemPath.create(CaseType.F_TASK_REF),
                 ItemPath.create(CaseType.F_OBJECT_REF)
         ));
 

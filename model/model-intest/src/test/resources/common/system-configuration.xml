@@ -396,14 +396,18 @@
                 </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>
-        <objectForms>
-            <objectForm>
+        <objectDetails>
+            <objectDetailsPage>
                 <type>RoleType</type>
-                <formSpecification>
-                    <panelClass>com.piracy.form.PirateRolePanel</panelClass>
-                </formSpecification>
-            </objectForm>
-        </objectForms>
+                <panel>
+                    <identifier>com.piracy.form.PirateRolePanel</identifier>
+                    <panelType>basic</panelType>
+                    <display>
+                        <label>PirateRolePanel</label>
+                    </display>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
         <defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
 

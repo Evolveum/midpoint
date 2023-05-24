@@ -31,9 +31,9 @@
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
         <objectTemplateRef oid="10000000-0000-0000-0000-000000000222"/>
-        <propertyConstraint>
+        <itemConstraint>
             <path>extension/piracy:ship</path>
             <oidBound>true</oidBound>
-        </propertyConstraint>
+        </itemConstraint>
     </defaultObjectPolicyConfiguration>
 </systemConfiguration>

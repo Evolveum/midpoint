@@ -288,75 +288,129 @@
         <objectDetails>
             <objectDetailsPage id="107">
                 <type>c:TaskType</type>
-                <container id="108">
+                <panel id="163">
+                    <identifier>advanced-options-panel</identifier>
                     <display>
                         <label>Advanced options</label>
                     </display>
-                    <displayOrder>150</displayOrder>
-                    <item id="111">
-                        <c:path xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">extension/mext:workerThreads</c:path>
-                    </item>
-                    <item id="112">
-                        <c:path>cleanupAfterCompletion</c:path>
-                    </item>
-                    <item id="113">
-                        <c:path>threadStopAction</c:path>
-                    </item>
-                    <item id="114">
-                        <c:path>binding</c:path>
-                    </item>
-                </container>
-                <container id="109">
+                    <panelType>formPanel</panelType>
+                    <container id="108">
+                        <identifier>advanced-options</identifier>
+                        <displayOrder>150</displayOrder>
+                        <display>
+                            <label>Advanced options</label>
+                        </display>
+                        <item id="111">
+                            <c:path>cleanupAfterCompletion</c:path>
+                        </item>
+                        <item id="112">
+                            <c:path>threadStopAction</c:path>
+                        </item>
+                        <item id="113">
+                            <c:path>binding</c:path>
+                        </item>
+                        <item id="114">
+                            <c:path>dependent</c:path>
+                        </item>
+                    </container>
+                </panel>
+                <panel id="164">
+                    <identifier>operational-attributes-panel</identifier>
                     <display>
-                        <label>Operational attributes (state)</label>
+                        <label>Operational attributes</label>
                     </display>
-                    <displayOrder>900</displayOrder>
-                    <item id="115">
-                        <c:path>executionState</c:path>
-                    </item>
-                    <item id="116">
-                        <c:path>unpauseAction</c:path>
-                    </item>
-                    <item id="117">
-                        <c:path>taskIdentifier</c:path>
-                    </item>
-                    <item id="118">
-                        <c:path>parent</c:path>
-                    </item>
-                    <item id="119">
-                        <c:path>waitingReason</c:path>
-                    </item>
-                    <item id="120">
-                        <c:path>stateBeforeSuspend</c:path>
-                    </item>
-                    <item id="121">
-                        <c:path>category</c:path>
-                    </item>
-                    <item id="122">
-                        <c:path>handlerUri</c:path>
-                    </item>
-                    <item id="123">
-                        <c:path>lastRunStartTimestamp</c:path>
-                    </item>
-                    <item id="124">
-                        <c:path>lastRunFinishTimestamp</c:path>
-                    </item>
-                    <item id="125">
-                        <c:path>completionTimestamp</c:path>
-                    </item>
-                </container>
-                <container id="110">
-                    <display>
-                        <label>Operational attributes (progress)</label>
-                    </display>
-                    <displayOrder>910</displayOrder>
-                    <item id="126">
-                        <c:path>progress</c:path>
-                    </item>
-                    <item id="127">
-                        <c:path>stalledSince</c:path>
-                    </item>
-                </container>
+                    <panelType>formPanel</panelType>
+                    <container id="109">
+                        <identifier>operational-attributes</identifier>
+                        <displayOrder>900</displayOrder>
+                        <display>
+                            <label>Operational attributes (state)</label>
+                        </display>
+                        <item id="115">
+                            <c:path>executionState</c:path>
+                        </item>
+                        <item id="116">
+                            <c:path>schedulingState</c:path>
+                        </item>
+                        <item id="117">
+                            <c:path>node</c:path>
+                        </item>
+                        <item id="118">
+                            <c:path>nodeAsObserved</c:path>
+                        </item>
+                        <item id="119">
+                            <c:path>resultStatus</c:path>
+                        </item>
+                        <item id="120">
+                            <c:path>result</c:path>
+                        </item>
+                        <item id="121">
+                            <c:path>nextRunStartTimestamp</c:path>
+                        </item>
+                        <item id="122">
+                            <c:path>nextRetryTimestamp</c:path>
+                        </item>
+                        <item id="123">
+                            <c:path>unpauseAction</c:path>
+                        </item>
+                        <item id="124">
+                            <c:path>taskIdentifier</c:path>
+                        </item>
+                        <item id="125">
+                            <c:path>parent</c:path>
+                        </item>
+                        <item id="165">
+                            <c:path>waitingReason</c:path>
+                        </item>
+                        <item id="166">
+                            <c:path>stateBeforeSuspend</c:path>
+                        </item>
+                        <item id="167">
+                            <path>schedulingStateBeforeSuspend</path>
+                        </item>
+                        <item id="168">
+                            <c:path>category</c:path>
+                        </item>
+                        <item id="169">
+                            <c:path>otherHandlersUriStack</c:path>
+                        </item>
+                        <item id="170">
+                            <c:path>channel</c:path>
+                        </item>
+                        <item id="171">
+                            <c:path>subtaskRef</c:path>
+                        </item>
+                        <item id="172">
+                            <c:path>dependentTaskRef</c:path>
+                        </item>
+                        <item id="173">
+                            <c:path>lastRunStartTimestamp</c:path>
+                        </item>
+                        <item id="174">
+                            <c:path>lastRunFinishTimestamp</c:path>
+                        </item>
+                        <item id="175">
+                            <c:path>completionTimestamp</c:path>
+                        </item>
+                    </container>
+                    <container id="110">
+                        <displayOrder>910</displayOrder>
+                        <visibility>hidden</visibility>
+                        <identifier>operation-attributes-progress</identifier>
+                        <display>
+                            <label>Operational attributes (progress)</label>
+                        </display>
+                        <item id="126">
+                            <c:path>progress</c:path>
+                        </item>
+                        <item id="127">
+                            <c:path>expectedTotal</c:path>
+                        </item>
+                        <item id="176">
+                            <c:path>stalledSince</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetailsPage>
         </objectDetails>
     </adminGuiConfiguration>

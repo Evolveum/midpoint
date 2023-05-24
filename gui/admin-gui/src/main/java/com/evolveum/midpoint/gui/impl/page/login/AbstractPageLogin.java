@@ -142,7 +142,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private String getSequenceIdentifier(AuthenticationSequenceType seq) {
-        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
+        return seq.getIdentifier();
     }
 
     protected abstract void initCustomLayout();

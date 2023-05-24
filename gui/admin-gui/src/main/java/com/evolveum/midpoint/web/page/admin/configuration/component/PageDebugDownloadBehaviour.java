@@ -56,6 +56,25 @@ public class PageDebugDownloadBehaviour<T extends ObjectType> extends AjaxDownlo
     private boolean showAllItems;
     private ObjectQuery query;
 
+    RoleMiningExportOperation roleMiningExportOperation;
+    private boolean roleMiningActive;
+
+    public RoleMiningExportOperation getRoleMiningExport() {
+        return roleMiningExportOperation;
+    }
+
+    public void setRoleMiningExport(RoleMiningExportOperation roleMiningExportOperation) {
+        this.roleMiningExportOperation = roleMiningExportOperation;
+    }
+
+    public boolean isRoleMiningActive() {
+        return roleMiningActive;
+    }
+
+    public void setRoleMiningActive(boolean roleMiningActive) {
+        this.roleMiningActive = roleMiningActive;
+    }
+
     public boolean isExportAll() {
         return exportAll;
     }
@@ -120,7 +139,11 @@ public class PageDebugDownloadBehaviour<T extends ObjectType> extends AjaxDownlo
         try (Writer writer = createWriter(file)) {
             LOGGER.debug("Exporting objects.");
             dumpHeader(writer);
-            dumpObjectsToStream(writer, result);
+            if (isRoleMiningActive()) {
+                getRoleMiningExport().dumpMining(writer, result, getPage());
+            } else {
+                dumpObjectsToStream(writer, result);
+            }
             dumpFooter(writer);
             LOGGER.debug("Export finished.");
 
