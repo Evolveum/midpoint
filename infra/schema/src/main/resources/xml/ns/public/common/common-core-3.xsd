@@ -8748,66 +8748,55 @@
            <xsd:appinfo>
                <a:container/>
                <a:since>3.6</a:since>
+               <a:schemaMigration>
+                   <a:element>tns:targetSubtype</a:element>
+                   <a:version>4.8</a:version>
+                   <a:operation>removed</a:operation>
+               </a:schemaMigration>
            </xsd:appinfo>
        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractConstructionType">
                 <xsd:sequence>
-                        <xsd:element name="targetType" type="xsd:QName">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object type of the target persona (e.g. UserType).
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:since>3.6</a:since>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="targetSubtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object subtype of the target persona.
-                                    Constructions with the same type and subtype configuration are
-                                    interpreted as if they describe the same persona.
-
-                                    DEPRECATED, use archetypeRef instead
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:since>3.6</a:since>
-                                    <a:deprecated>true</a:deprecated>
-                                    <a:deprecatedSince>4.4</a:deprecatedSince>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="objectMappingRef" type="c:ObjectReferenceType" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Reference to the object template that will be used to map values
-                                    from the source object (e.g. physical user) to the persona
-                                    (e.g. virtual identity user).
-                                    Unlike ordinary object template that has the same object as input and
-                                    output, this object mapping will have one object as an input and the
-                                    other as an output.
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="archetypeRef" type="c:ObjectReferenceType" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Archetype of the target persona.
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
-                                    <a:since>4.4</a:since>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:extension>
-            </xsd:complexContent>
+                    <xsd:element name="targetType" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object type of the target persona (e.g. UserType).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectMappingRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the object template that will be used to map values
+                                from the source object (e.g. physical user) to the persona
+                                (e.g. virtual identity user).
+                                Unlike ordinary object template that has the same object as input and
+                                output, this object mapping will have one object as an input and the
+                                other as an output.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Archetype of the target persona.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectTemplateType">

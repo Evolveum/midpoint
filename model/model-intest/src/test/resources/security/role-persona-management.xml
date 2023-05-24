@@ -5,10 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="2f0246f8-30df-11e7-b35b-bbb92a001091"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Role Persona Management</name>
     <authorization>
         <name>auth-self-modify-givenName-req</name>
@@ -54,12 +51,7 @@
         <phase>request</phase>
         <target>
             <type>RoleType</type>
-            <filter>
-                <q:equal>
-                    <q:path>subtype</q:path>
-                    <q:value>personaRole</q:value>
-                </q:equal>
-            </filter>
+            <archetypeRef oid="9791927e-9a84-41ae-a689-4f6715a8327a"/>
         </target>
     </authorization>
     <authorization>
@@ -70,12 +62,7 @@
         <phase>execution</phase>
         <object>
             <type>UserType</type>
-            <filter>
-                <q:equal>
-                    <q:path>subtype</q:path>
-                    <q:value>admin</q:value>
-                </q:equal>
-            </filter>
+            <archetypeRef oid="0d7acb30-db34-49fa-9dae-28a84e2ab9a1"/>
             <owner>
                 <special>self</special>
             </owner>
