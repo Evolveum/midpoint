@@ -6,7 +6,13 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import com.nimbusds.jose.util.Base64URL;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.security.interfaces.RSAPrivateKey;
@@ -17,6 +23,8 @@ import java.security.interfaces.RSAPublicKey;
  */
 
 public class OidcAdditionalConfiguration implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(OidcAdditionalConfiguration.class);
 
     private final String singingAlg;
     private final RSAPublicKey publicKey;
@@ -29,8 +37,8 @@ public class OidcAdditionalConfiguration implements Serializable {
         this.singingAlg = singingAlg;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
-        this.thumbprint = thumbprint != null ? Base64URL.encode(thumbprint) : null;
-        this.thumbprint256 = thumbprint256 != null ? Base64URL.encode(thumbprint256) : null;
+        this.thumbprint = thumbprint != null ? createBase64(thumbprint) : null;
+        this.thumbprint256 = thumbprint256 != null ? createBase64(thumbprint256) : null;
     }
 
     public String getSingingAlg() {
@@ -51,6 +59,15 @@ public class OidcAdditionalConfiguration implements Serializable {
 
     public Base64URL getThumbprint256() {
         return thumbprint256;
+    }
+
+    private Base64URL createBase64(@NotNull String thumbprint) {
+        try {
+            return Base64URL.encode(Hex.decodeHex(thumbprint.toUpperCase()));
+        } catch (DecoderException e) {
+            LOGGER.error("Couldn't decode thumbprint " + thumbprint, e);
+        }
+        return null;
     }
 
     public static Builder builder() {

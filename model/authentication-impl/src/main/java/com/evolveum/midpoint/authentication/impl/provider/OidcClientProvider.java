@@ -16,12 +16,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.util.Base64URL;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -111,6 +108,10 @@ public class OidcClientProvider extends RemoteModuleProvider {
                 String signingAlg = additionalConfiguration.get(clientRegistration.getRegistrationId()).getSingingAlg();
                 builder.algorithm(Algorithm.parse(signingAlg));
                 builder.x509CertThumbprint(config.getThumbprint());
+
+                // sha-1 is deprecated, but some servers don't allow 'x5t#S256' header
+                //builder.x509CertSHA256Thumbprint(config.getThumbprint256());
+
                 builder.keyID(null);  //hack without it resolver can't find key
                 return builder.build();
             }

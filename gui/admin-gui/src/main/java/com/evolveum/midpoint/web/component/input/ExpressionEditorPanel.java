@@ -32,7 +32,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.input.dto.ExpressionTypeDto;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -195,10 +194,6 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         Label updateLabel = new Label(ID_LABEL_UPDATE, createStringResource(getUpdateLabelKey()));
         updateLabel.setRenderBodyOnly(true);
         update.add(updateLabel);
-        if (parentPage instanceof PageResourceWizard) {
-            ((PageResourceWizard) parentPage).addEditingEnabledBehavior(this);
-            ((PageResourceWizard) parentPage).addEditingVisibleBehavior(update);
-        }
         add(update);
 
         add(WebComponentUtil.createHelp(ID_T_TYPE));

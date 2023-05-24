@@ -40,6 +40,8 @@ public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWeb
     @Autowired
     private ModelAuditRecorder auditProvider;
 
+    private String publicUrlPrefix;
+
     public OidcClientModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
@@ -75,6 +77,7 @@ public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWeb
         OidcClientLogoutSuccessHandler logoutRequestSuccessHandler =
                 getObjectPostProcessor().postProcess(new OidcClientLogoutSuccessHandler(clientRegistrationRepository()));
         logoutRequestSuccessHandler.setPostLogoutRedirectUri(getConfiguration().getPrefixOfSequence());
+        logoutRequestSuccessHandler.setPublicUrlPrefix(this.publicUrlPrefix);
         return logoutRequestSuccessHandler;
     }
 
@@ -85,5 +88,9 @@ public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWeb
     @Override
     protected Class<? extends Authentication> getAuthTokenClass() {
         return OAuth2LoginAuthenticationToken.class;
+    }
+
+    public void setPublicUrlPrefix(String publicUrlPrefix) {
+        this.publicUrlPrefix = publicUrlPrefix;
     }
 }

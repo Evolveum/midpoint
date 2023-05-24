@@ -290,12 +290,6 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         if (value != null && value.getCleanupPolicy() != null) {
             simpleExecsCleanupPolicy = value.getCleanupPolicy().getSimpleOperationExecutions();
             complexExecsCleanupPolicy = value.getCleanupPolicy().getComplexOperationExecutions();
-            if (simpleExecsCleanupPolicy == null) {
-                simpleExecsCleanupPolicy = value.getCleanupPolicy().getObjectResults();
-            }
-            if (complexExecsCleanupPolicy == null) {
-                complexExecsCleanupPolicy = value.getCleanupPolicy().getObjectResults();
-            }
         } else {
             simpleExecsCleanupPolicy = null;
             complexExecsCleanupPolicy = null;

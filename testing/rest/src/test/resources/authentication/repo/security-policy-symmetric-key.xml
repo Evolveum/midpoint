@@ -12,11 +12,11 @@
     <authentication>
         <modules>
             <loginForm>
-                <name>internalLoginForm</name>
+                <identifier>internalLoginForm</identifier>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
             <oidc>
-                <name>oidcResourceServer</name>
+                <identifier>oidcResourceServer</identifier>
                 <resourceServer>
                     <singleSymmetricKey>
                         <clearValue>aRpjWIG4mI-SMG6KuEIX5PWT8o-_onPnh8OWoF_3-aMqgYM3ef4JLrHbk0lbQm91L-Mx0YSBFSHqPiAy6WQV9Q</clearValue>
@@ -26,7 +26,7 @@
             </oidc>
         </modules>
         <sequence>
-            <name>admin-gui-default</name>
+            <identifier>admin-gui-default</identifier>
             <description>
                 Default GUI authentication sequence.
             </description>
@@ -42,7 +42,7 @@
             </module>
         </sequence>
         <sequence>
-            <name>rest</name>
+            <identifier>rest</identifier>
             <description>
                 Authentication sequence for REST service.
                 We want just OIDC auth here, HTTP basic as fallback.

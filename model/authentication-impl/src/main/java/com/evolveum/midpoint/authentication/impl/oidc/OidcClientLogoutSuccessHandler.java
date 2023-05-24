@@ -14,6 +14,7 @@ import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -36,6 +37,7 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     private String postLogoutRedirectUri;
+    private String publicUrlPrefix;
 
     public OidcClientLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
@@ -110,10 +112,18 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
     private String postLogoutRedirectUri(HttpServletRequest request) {
         if (this.postLogoutRedirectUri == null) {
             return null;
-        } else {
-            return UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
-                    .replacePath(request.getContextPath()).pathSegment(AuthUtil.stripStartingSlashes(this.postLogoutRedirectUri)).build().toUriString();
         }
+        if (StringUtils.isEmpty(publicUrlPrefix)) {
+            return UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+                    .replacePath(request.getContextPath())
+                    .pathSegment(AuthUtil.stripStartingSlashes(this.postLogoutRedirectUri))
+                    .build()
+                    .toUriString();
+        }
+        return  UriComponentsBuilder.fromUriString(publicUrlPrefix)
+                .pathSegment(AuthUtil.stripStartingSlashes(this.postLogoutRedirectUri))
+                .build()
+                .toUriString();
     }
 
     private String endpointUri(URI endSessionEndpoint, String idToken, String postLogoutRedirectUri) {
@@ -129,5 +139,9 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
     public void setPostLogoutRedirectUri(String postLogoutRedirectUri) {
         Assert.notNull(postLogoutRedirectUri, "postLogoutRedirectUri cannot be null");
         this.postLogoutRedirectUri = postLogoutRedirectUri;
+    }
+
+    public void setPublicUrlPrefix(String publicUrlPrefix) {
+        this.publicUrlPrefix = publicUrlPrefix;
     }
 }

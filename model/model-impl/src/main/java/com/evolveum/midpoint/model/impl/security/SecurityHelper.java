@@ -348,9 +348,8 @@ public class SecurityHelper implements ModelAuditRecorder {
         listToProcess.forEach(itemToProcess -> {
             boolean exist = false;
             for (AM item : mergedList) {
-                String itemIdentifier = StringUtils.isNotEmpty(item.getIdentifier()) ? item.getIdentifier() : item.getName();
-                String itemToProcessIdentifier = StringUtils.isNotEmpty(itemToProcess.getIdentifier()) ?
-                        itemToProcess.getIdentifier() : itemToProcess.getName();
+                String itemIdentifier = item.getIdentifier();
+                String itemToProcessIdentifier = itemToProcess.getIdentifier();
                 if (itemIdentifier != null && StringUtils.equals(itemIdentifier, itemToProcessIdentifier)) {
                     exist = true;
                     break;
@@ -416,8 +415,8 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     private boolean sequencesIdentifiersMatch(AuthenticationSequenceType sequence1, AuthenticationSequenceType sequence2) {
-        String identifier1 = StringUtils.isNotEmpty(sequence1.getIdentifier()) ? sequence1.getIdentifier() : sequence1.getName();
-        String identifier2 = StringUtils.isNotEmpty(sequence2.getIdentifier()) ? sequence2.getIdentifier() : sequence2.getName();
+        String identifier1 = sequence1.getIdentifier();
+        String identifier2 = sequence2.getIdentifier();
         return identifier1 != null && StringUtils.equals(identifier1, identifier2);
     }
 
