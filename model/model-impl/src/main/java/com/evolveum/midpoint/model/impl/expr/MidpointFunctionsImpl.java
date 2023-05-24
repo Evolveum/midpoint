@@ -1635,7 +1635,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 saveNonceToUser(user, nonce, task, result);
 
                 String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_INVITATION_URI, invitationSequenceId, securityPolicy.getAuthentication().getSequence(), false);
-                return createBaseConfirmationLink(prefix, user.getName().getNorm()) + "&" + SchemaConstants.TOKEN + "=" + getPlaintext(nonce.getValue());
+                return createBaseConfirmationLink(prefix, user.getName().getOrig()) + "&" + SchemaConstants.TOKEN + "=" + getPlaintext(nonce.getValue());
             }
         } catch (Exception e) {
             LOGGER.error("Could not create invitation link for the user: {}", e.getMessage(), e);
