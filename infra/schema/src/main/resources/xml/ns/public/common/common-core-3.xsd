@@ -16733,6 +16733,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:schemaMigration>
+                    <a:element>tns:reconcileAffected</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16811,28 +16816,6 @@
                         reconciliation will not be forced (but it may still happen if other configuration
                         loads full projection).
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="reconcileAffected" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Option to reconcile affected objects after executing changes.
-                        Typical use: after a role is changed, all users that have been assigned this role
-                        would be reconciled.
-
-                        Because it is difficult to determine all affected objects (e.g. users that have
-                        indirectly assigned a role), midPoint does a reasonable attempt to determine
-                        and reconcile them. E.g. it may be limited to a direct assignees.
-
-                        Also, because of time complexity, the reconciliation may be executed in
-                        a separate background task.
-
-                        Support was removed in 4.2. It is replaced by new "Linked objects" functionality.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.2</a:deprecatedSince>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0">
