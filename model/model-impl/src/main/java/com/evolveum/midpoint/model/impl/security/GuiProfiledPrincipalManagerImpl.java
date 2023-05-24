@@ -16,6 +16,13 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +31,8 @@ import org.springframework.context.MessageSourceAware;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -31,12 +40,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointDirContextAdapter;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.FocusComputer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -88,6 +95,10 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
     // registry is not available e.g. during tests
     @Autowired(required = false)
     private SessionRegistry sessionRegistry;
+
+    @Autowired
+    @Qualifier("passwordAuthenticationEvaluator")
+    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     private MessageSourceAccessor messages;
 
@@ -354,19 +365,36 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
             Collection<? extends GrantedAuthority> authorities) {
 
-        String userNameEffective = username;
-        Class<? extends FocusType> focusType = UserType.class;
-        try {
-            if (ctx instanceof MidpointDirContextAdapter && ((MidpointDirContextAdapter) ctx).getNamingAttr() != null) {
-                userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
-                focusType = ((MidpointDirContextAdapter) ctx).getFocusType();
-            }
-            return getPrincipal(userNameEffective, focusType);
+        if (!(ctx instanceof MidpointDirContextAdapter) || ((MidpointDirContextAdapter) ctx).getNamingAttr() == null) {
+            LOGGER.debug("Couldn't define midpoint user");
+            throw new AuthenticationServiceException("web.security.provider.invalid");
+        }
 
+        String userNameEffective;
+        try {
+            userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
         } catch (ObjectNotFoundException e) {
-            throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
-        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | NamingException e) {
+            throw new UsernameNotFoundException("web.security.provider.invalid", e);
+        } catch (NamingException e) {
             throw new SystemException(e.getMessage(), e);
+        }
+
+        Class<? extends FocusType> focusType = ((MidpointDirContextAdapter) ctx).getFocusType();
+        List<ObjectReferenceType> requireAssignment = ((MidpointDirContextAdapter) ctx).getRequireAssignment();
+        AuthenticationChannel channel = ((MidpointDirContextAdapter) ctx).getChannel();
+        ConnectionEnvironment connEnv = ((MidpointDirContextAdapter) ctx).getConnectionEnvironment();
+
+        PreAuthenticationContext authContext = new PreAuthenticationContext(userNameEffective, focusType, requireAssignment);
+        if (channel != null) {
+            authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
+        }
+
+        try {
+            PreAuthenticatedAuthenticationToken token = authenticationEvaluator.authenticateUserPreAuthenticated(
+                    connEnv, authContext);
+            return (UserDetails) token.getPrincipal();
+        } catch (DisabledException | AuthenticationServiceException | UsernameNotFoundException e) {
+            throw new AuditedAuthenticationException(e);
         }
     }
 
@@ -385,8 +413,12 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
                 if (namingAttrValue != null) {
                     return namingAttrValue.toString().toLowerCase();
                 }
+            } else if (ldapResponse.size() == 0) {
+                LOGGER.debug("LDAP attribute, which define username is empty");
+                throw new AuthenticationServiceException("web.security.provider.invalid");
             } else {
-                throw new ObjectNotFoundException("Bad response"); // naming attribute contains multiple values
+                LOGGER.debug("LDAP attribute, which define username contains more values {}", ldapResponse.getAll());
+                throw new AuthenticationServiceException("web.security.provider.invalid"); // naming attribute contains multiple values
             }
         }
         return username; // fallback to typed-in username in case ldap value is missing

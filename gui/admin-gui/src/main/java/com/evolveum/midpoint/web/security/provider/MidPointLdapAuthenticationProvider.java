@@ -82,10 +82,18 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                                 }
                                 MidpointDirContextAdapter mpDirContextAdapter = new MidpointDirContextAdapter((DirContextAdapter)originalDirContextOperations);
                                 mpDirContextAdapter.setNamingAttr(((LdapModuleAuthentication) moduleAuthentication).getNamingAttribute());
+
                                 if (moduleAuthentication.getFocusType() != null) {
                                     Class<FocusType> focusType = WebComponentUtil.qnameToClass(prismContext, moduleAuthentication.getFocusType(), FocusType.class);
                                     mpDirContextAdapter.setFocusType(focusType);
                                 }
+
+                                AuthenticationChannel channel = mpAuthentication.getAuthenticationChannel();
+                                mpDirContextAdapter.setChannel(channel);
+                                mpDirContextAdapter.setConnectionEnvironment(createEnvironment(channel));
+
+                                mpDirContextAdapter.setRequireAssignment(mpAuthentication.getSequence().getRequireAssignmentTarget());
+
                                 return mpDirContextAdapter;
                             }
                         }
@@ -177,6 +185,8 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                     authentication.getClass().getSimpleName(), principal.getAuthorities());
             return token;
 
+        } catch (AuditedAuthenticationException e) {
+            throw e.getCause();
         } catch (InternalAuthenticationServiceException e) {
             // This sometimes happens ... for unknown reasons the underlying libraries cannot
             // figure out correct exception. Which results to wrong error message (MID-4518)
@@ -187,7 +197,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         } catch (IncorrectResultSizeDataAccessException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
             recordPasswordAuthenticationFailure(authentication.getName(), "bad user");
-            throw new BadCredentialsException("LdapAuthentication.bad.user", e);
+            throw new BadCredentialsException("web.security.provider.invalid.credentials", e);
         } catch (RuntimeException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
             recordPasswordAuthenticationFailure(authentication.getName(), "bad credentials");

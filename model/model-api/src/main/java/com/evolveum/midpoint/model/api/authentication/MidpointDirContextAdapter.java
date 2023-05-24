@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.model.api.authentication;
 
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.ldap.core.DirContextAdapter;
+
+import java.util.List;
 
 /**
  * @author skublik
@@ -22,8 +26,10 @@ public class MidpointDirContextAdapter extends DirContextAdapter {
     }
 
     private String namingAttr;
-
     private Class<? extends FocusType> focusType = UserType.class;
+    private List<ObjectReferenceType> requireAssignment = null;
+    private AuthenticationChannel channel = null;
+    private ConnectionEnvironment connectionEnvironment = null;
 
     public void setNamingAttr(String namingAttr) {
         this.namingAttr = namingAttr;
@@ -39,5 +45,29 @@ public class MidpointDirContextAdapter extends DirContextAdapter {
 
     public Class<? extends FocusType> getFocusType() {
         return focusType;
+    }
+
+    public List<ObjectReferenceType> getRequireAssignment() {
+        return requireAssignment;
+    }
+
+    public void setRequireAssignment(List<ObjectReferenceType> requireAssignment) {
+        this.requireAssignment = requireAssignment;
+    }
+
+    public AuthenticationChannel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(AuthenticationChannel channel) {
+        this.channel = channel;
+    }
+
+    public ConnectionEnvironment getConnectionEnvironment() {
+        return connectionEnvironment;
+    }
+
+    public void setConnectionEnvironment(ConnectionEnvironment connectionEnvironment) {
+        this.connectionEnvironment = connectionEnvironment;
     }
 }

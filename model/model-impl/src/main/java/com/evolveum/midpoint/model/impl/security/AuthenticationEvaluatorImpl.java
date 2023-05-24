@@ -242,7 +242,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @Override
-    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx) {
+    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(
+            ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx)
+            throws DisabledException, AuthenticationServiceException, UsernameNotFoundException{
 
         MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(),
                 authnCtx.getPrincipalType(), authnCtx.isSupportActivationByChannel());
