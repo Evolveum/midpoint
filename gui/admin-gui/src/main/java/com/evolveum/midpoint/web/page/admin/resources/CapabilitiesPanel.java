@@ -31,7 +31,6 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
     private static final String ID_COUNT_OBJECTS = "countObjects";
     private static final String ID_PAGED_SEARCH = "pagedSearch";
     private static final String ID_PASSWORD = "password";
-    private static final String ID_ADD_ATTRIBUTE_VALUES = "addRemoveAttributeValues";
     private static final String ID_DELETE = "delete";
     private static final String ID_READ = "read";
     private static final String ID_CONNECTOR_SCRIPT = "script";
@@ -55,7 +54,6 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
         createCapabilityButton(ID_TEST);
         createCapabilityButton(ID_CREATE);
         createCapabilityButton(ID_UPDATE);
-        createCapabilityButton(ID_ADD_ATTRIBUTE_VALUES);
         createCapabilityButton(ID_DELETE);
         createCapabilityButton(ID_READ);
         createCapabilityButton(ID_CONNECTOR_SCRIPT);

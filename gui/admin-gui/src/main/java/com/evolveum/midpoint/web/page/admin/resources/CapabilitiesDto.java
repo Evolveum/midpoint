@@ -41,8 +41,6 @@ public class CapabilitiesDto implements Serializable {
 
     private boolean update;
 
-    private boolean addRemoveAttributeValues;
-
     private boolean delete;
 
     private boolean read;
@@ -66,7 +64,6 @@ public class CapabilitiesDto implements Serializable {
         testConnection = ResourceTypeUtil.isTestConnectionCapabilityEnabled(resource);
         create = ResourceTypeUtil.isCreateCapabilityEnabled(resource);
         update = ResourceTypeUtil.isUpdateCapabilityEnabled(resource);
-        addRemoveAttributeValues = ResourceTypeUtil.isAddRemoveAttributesValuesCapabilityEnabled(resource);
         delete = ResourceTypeUtil.isDeleteCapabilityEnabled(resource);
         read = ResourceTypeUtil.isReadCapabilityEnabled(resource);
         script = ResourceTypeUtil.isScriptCapabilityEnabled(resource);
@@ -175,14 +172,6 @@ public class CapabilitiesDto implements Serializable {
 
     public void setUpdate(boolean update) {
         this.update = update;
-    }
-
-    public boolean isAddRemoveAttributeValues() {
-        return addRemoveAttributeValues;
-    }
-
-    public void setAddRemoveAttributeValues(boolean addRemoveAttributeValues) {
-        this.addRemoveAttributeValues = addRemoveAttributeValues;
     }
 
     public boolean isDelete() {

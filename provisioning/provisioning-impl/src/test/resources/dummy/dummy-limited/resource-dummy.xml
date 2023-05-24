@@ -203,10 +203,9 @@
                 <cap:simulate>sequentialSearch</cap:simulate>
             </cap:countObjects>
             <cap:update>
-                <!-- No addRemoveAttributeValues element here. -->
                 <cap:delta>true</cap:delta>
+                <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
             </cap:update>
-            <cap:addRemoveAttributeValues/> <!-- legacy -->
         </configured>
     </capabilities>
 </resource>
