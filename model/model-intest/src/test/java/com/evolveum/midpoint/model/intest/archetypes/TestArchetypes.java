@@ -335,7 +335,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
         ObjectFilter allEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(0)
-            .assertObjectForms(2)
             .assertUserDashboardWidgets(0)
             .objectCollectionViews()
                 .assertViews(3)

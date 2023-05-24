@@ -33,10 +33,6 @@
             <visibility>visible</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/rext:reportOutputOid</path>
-            <visibility>visible</visibility>
-        </itemConstraint>
-        <itemConstraint>
             <path>extension/rext:reportDataParam</path>
             <visibility>visible</visibility>
         </itemConstraint>
@@ -52,9 +48,6 @@
                         </display>
                         <item>
                             <c:path>extension/rext:reportParam</c:path>
-                        </item>
-                        <item>
-                            <c:path>extension/rext:reportOutputOid</c:path>
                         </item>
                         <item>
                             <c:path>extension/rext:reportDataParam</c:path>

@@ -452,7 +452,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertCompiledGuiProfile(compiledGuiProfile)
                 .assertAdditionalMenuLinks(0)
                 .assertUserDashboardLinks(1)
-                .assertObjectForms(1)
                 .assertUserDashboardWidgets(0)
                 .assertObjectCollectionViews(3);
 

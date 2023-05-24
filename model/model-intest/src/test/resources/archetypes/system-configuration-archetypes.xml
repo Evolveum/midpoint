@@ -178,12 +178,15 @@
     </internals>
 
     <adminGuiConfiguration>
-        <objectForms>
-            <objectForm id="111"> <!-- Make sure there will be id conflict: MID-5002 -->
+        <objectDetails>
+            <objectDetailsPage>
                 <type>ServiceType</type>
-                <includeDefaultForms>true</includeDefaultForms>
-            </objectForm>
-        </objectForms>
+                <panel id="111">
+                    <identifier>basic</identifier>
+                    <panelType>basic</panelType>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
         <objectCollectionViews>
             <objectCollectionView>
                 <identifier>all-employees</identifier>

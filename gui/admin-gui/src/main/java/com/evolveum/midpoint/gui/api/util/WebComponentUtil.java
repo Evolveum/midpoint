@@ -3417,7 +3417,7 @@ public final class WebComponentUtil {
                 return;
             }
             String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-                    action.getDisplay().getLabel().getOrig() : action.getName();
+                    action.getDisplay().getLabel().getOrig() : action.getIdentifier();
             menuItems.add(new InlineMenuItem(Model.of(label)) {
                 private static final long serialVersionUID = 1L;
 

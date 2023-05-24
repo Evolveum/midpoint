@@ -48,7 +48,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private CollectionRefSpecificationType collection;
     private List<GuiObjectColumnType> columns = new ArrayList<>();
     private DisplayType display;
-    private GuiObjectListViewAdditionalPanelsType additionalPanels;
     private DistinctSearchOptionType distinct;
     private Boolean disableSorting;
     private Boolean disableCounting;
@@ -133,14 +132,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public void setDisplay(DisplayType display) {
         this.display = display;
-    }
-
-    public GuiObjectListViewAdditionalPanelsType getAdditionalPanels() {
-        return additionalPanels;
-    }
-
-    public void setAdditionalPanels(GuiObjectListViewAdditionalPanelsType additionalPanels) {
-        this.additionalPanels = additionalPanels;
     }
 
     public DistinctSearchOptionType getDistinct() {
@@ -300,7 +291,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "includeDefaultColumns", includeDefaultColumns, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "display", display, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "additionalPanels", additionalPanels, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "disableSorting", disableSorting, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "disableCounting", disableCounting, indent + 1);
@@ -320,7 +310,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         GuiObjectListViewType viewType = new GuiObjectListViewType();
         viewType.setIdentifier(getViewIdentifier());
         viewType.setType(getContainerType());
-        viewType.setAdditionalPanels(getAdditionalPanels() != null ? getAdditionalPanels().clone() : null);
         viewType.setDisplay(getDisplay() != null ? getDisplay().clone() : null);
         for (GuiObjectColumnType column : getColumns()) {
             viewType.column(column.clone());

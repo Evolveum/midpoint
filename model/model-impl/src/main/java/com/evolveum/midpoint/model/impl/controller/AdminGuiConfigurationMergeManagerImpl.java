@@ -112,11 +112,9 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         if (optionalPropertiesPanelConfiguration.isPresent()) {
             ContainerPanelConfigurationType propertiesPanelConfiguration = optionalPropertiesPanelConfiguration.get();
-            List<VirtualContainersSpecificationType> virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), mergedDetailsPage.getContainer());
-            propertiesPanelConfiguration.getContainer().clear();
-            propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
 
-            virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), compiledPageType.getContainer());
+            List<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
+            virtualContainers.addAll(propertiesPanelConfiguration.getContainer());
             MiscSchemaUtil.sortFeaturesPanels(virtualContainers);
             propertiesPanelConfiguration.getContainer().clear();
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
@@ -130,12 +128,6 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         if (compiledPageType.getSaveMethod() != null) {
             mergedDetailsPage.saveMethod(compiledPageType.getSaveMethod());
-        }
-
-        if (mergedDetailsPage.getForms() == null) {
-            mergedDetailsPage.forms(compiledPageType.getForms());
-        } else if (compiledPageType.getForms() != null) {
-            mergeFormObject(mergedDetailsPage.getForms(), compiledPageType.getForms());
         }
 
         if (mergedDetailsPage.getRoleRelation() == null) {
@@ -167,16 +159,6 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         if (newRoleRelation.isIncludeReferenceRole() != null) {
             currentRoleRelation.includeReferenceRole(newRoleRelation.isIncludeReferenceRole());
-        }
-    }
-
-    private static void mergeFormObject(ObjectFormType currentForm, ObjectFormType newForm) {
-        if (newForm.getFormSpecification() != null) {
-            currentForm.formSpecification(newForm.getFormSpecification());
-        }
-
-        if (newForm.isIncludeDefaultForms() != null) {
-            currentForm.includeDefaultForms(newForm.isIncludeDefaultForms());
         }
     }
 
@@ -379,11 +361,6 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         if (redirectionTarget.getVisibility() != null) {
             composited.setVisibility(redirectionTarget.getVisibility());
         }
-    }
-
-    public List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {
-        return mergeContainers(currentObjectDetails.getContainer(), superObjectDetails.getContainer(),
-                this::createVirtualContainersPredicate, this::mergeVirtualContainer);
     }
 
     private List<VirtualContainersSpecificationType> mergeVirtualContainers(List<VirtualContainersSpecificationType> currentVirtualContainers, List<VirtualContainersSpecificationType> superObjectDetails) {

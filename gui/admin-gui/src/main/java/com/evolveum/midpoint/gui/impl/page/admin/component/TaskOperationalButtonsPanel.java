@@ -483,11 +483,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         if (reportData != null && reportData.getRealValue() != null && reportData.getRealValue().getOid() != null) {
             return reportData.getRealValue().getOid();
         }
-        PrismProperty<String> reportOutputOid = task.findProperty(
-                ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
-        if (reportOutputOid != null) {
-            return reportOutputOid.getRealValue();
-        }
         return getReportDataOidFromImportActivity(task.asObjectable());
     }
 
