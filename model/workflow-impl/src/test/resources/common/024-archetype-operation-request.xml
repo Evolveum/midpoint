@@ -23,12 +23,30 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <forms>
-                    <formSpecification>
-                        <panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabOverviewRequest</panelUri>
-                    </formSpecification>
-                    <includeDefaultForms>true</includeDefaultForms>
-                </forms>
+                <panel>
+                    <identifier>childCases</identifier>
+                    <display>
+                        <label>Child cases</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>childCases</panelType>
+                    <type>c:CaseType</type>
+                </panel>
+                <panel>
+                    <identifier>operationRequestCase</identifier>
+                    <display>
+                        <label>Operation request</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>1</displayOrder>
+                    <panelType>operationRequestCase</panelType>
+                    <type>c:CaseType</type>
+                    <default>true</default>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

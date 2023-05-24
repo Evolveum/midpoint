@@ -245,15 +245,6 @@ public class GuiProfileCompiler {
 
         applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
 
-        if (adminGuiConfiguration.getObjectForms() != null) {
-            if (composite.getObjectForms() == null) {
-                composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());
-            } else {
-                for (ObjectFormType objectForm : adminGuiConfiguration.getObjectForms().getObjectForm()) {
-                    joinForms(composite.getObjectForms(), objectForm.clone());
-                }
-            }
-        }
         if (adminGuiConfiguration.getObjectDetails() != null) {
             if (composite.getObjectDetails() == null) {
                 composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().clone());
@@ -614,11 +605,6 @@ public class GuiProfileCompiler {
         collectionProcessor.compileView(existingView, objectListViewType, task, result);
     }
 
-    private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
-        objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
-        objectForms.getObjectForm().add(newForm.clone().id(null));
-    }
-
     private void joinShadowDetails(GuiObjectDetailsSetType objectDetailsSet, GuiShadowDetailsPageType newObjectDetails) {
         objectDetailsSet.getShadowDetailsPage().removeIf(currentDetails -> isTheSameShadowDiscriminatorType(currentDetails, newObjectDetails));
         objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.clone());
@@ -698,38 +684,6 @@ public class GuiProfileCompiler {
                     "resolving connector reference", false, result);
         }
         return reference.getOid();
-    }
-
-    private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm) {
-        if (!isTheSameObjectType(oldForm, newForm)) {
-            return false;
-        }
-        if (oldForm.isIncludeDefaultForms() != null &&
-                newForm.isIncludeDefaultForms() != null) {
-            return true;
-        }
-        if (oldForm.getFormSpecification() == null && newForm.getFormSpecification() == null) {
-            String oldFormPanelUri = oldForm.getFormSpecification().getPanelUri();
-            String newFormPanelUri = newForm.getFormSpecification().getPanelUri();
-            if (oldFormPanelUri != null && oldFormPanelUri.equals(newFormPanelUri)) {
-                return true;
-            }
-
-            String oldFormPanelClass = oldForm.getFormSpecification().getPanelClass();
-            String newFormPanelClass = newForm.getFormSpecification().getPanelClass();
-            if (oldFormPanelClass != null && oldFormPanelClass.equals(newFormPanelClass)) {
-                return true;
-            }
-
-            String oldFormRefOid = oldForm.getFormSpecification().getFormRef() == null ?
-                    null : oldForm.getFormSpecification().getFormRef().getOid();
-            String newFormRefOid = newForm.getFormSpecification().getFormRef() == null ?
-                    null : newForm.getFormSpecification().getFormRef().getOid();
-            if (oldFormRefOid != null && oldFormRefOid.equals(newFormRefOid)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void mergeWidget(CompiledGuiProfile composite, DashboardWidgetType newWidget) {

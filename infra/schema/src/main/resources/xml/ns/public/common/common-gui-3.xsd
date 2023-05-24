@@ -45,6 +45,12 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:objectForms</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use panel configuration instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -98,24 +104,6 @@
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:displayName>AdminGuiConfigurationType.objectCollectionViews</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies the set of default forms that are used for displaying and
-                            editing of objects, such as User, Role, Org, ...
-                        </p>
-                        <!-- TODO: This has to be moved to  objectDetails/objectDetailsPage/forms -->
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.objectForms</a:displayName>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.4</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -890,138 +878,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <!-- ============================================================== -->
-    <!--  FORMS                                                         -->
-    <!-- ============================================================== -->
-
-
-    <xsd:complexType name="ObjectFormsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies the set of forms that are used for displaying and
-                editing of objects, such as User, Role, Org, ...
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="objectForm" type="tns:ObjectFormType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>ObjectFormsType.objectForm</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="ObjectFormType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies form that are used for displaying and
-                editing of specific object type
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.4</a:since>
-                <a:displayName>ObjectFormType.details</a:displayName>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractObjectTypeConfigurationType">
-                <xsd:sequence>
-                    <xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectFormType.formSpecification</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectFormType.includeDefaultForms</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="FormSpecificationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies a form using several different methods, e.g. by
-                specification of Java class, internal form OID, etc.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Form title that is shown at an appropriate place, such as browser title, heading,
-                        tab name, etc.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>FormSpecificationType.title</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="formRef" type="tns:ObjectReferenceType"
-                         minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to midPoint form object
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
-                        <a:displayName>FormSpecificationType.formRef</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-                <!-- Later on the referenced form may also contain title, panelClass and panelUri.
-                     Equivalent elements from this data type may be used to override those specified
-                     in FormType object referenced from this formRef.
-                     However, not all combination have to be supported. E.g. if the FormType object
-                     specifies a declarative form and this FormSpecificationType specifies panelClass
-                     then an error should be raised.
-                      -->
-            </xsd:element>
-            <xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the Java class that will be used as the form implementation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>FormSpecificationType.panelClass</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="panelUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        URI identifier of Java component that will be used as the form implementation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>FormSpecificationType.panelUri</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="GuiObjectDetailsSetType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies the set of default forms that are used for displaying and
+                Specifies the set of default panels that are used for displaying and
                 editing of objects, such as User, Role, Org, ...
             </xsd:documentation>
             <xsd:appinfo>
@@ -1180,6 +1040,18 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
+                <a:schemaMigration>
+                    <a:element>tns:container</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use panel.container instead.</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:forms</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use panel configuration instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1199,42 +1071,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectDetailsPageType.saveMethod</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="forms" type="tns:ObjectFormType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Specification of forms (tabs) to be used on object details page.
-                                </p>
-                                <p>
-                                    NOTE: As of midPoint 4.0 this works for archetypes only.
-                                    It is not supposed to work anywhere else than in archetypePolicy.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.0</a:since>
-                                <a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:deprecated/>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Used to specify "virtual" containers for displaying details page in GUI.
-                                As an example, the user might need to reorganize attributes to some logic
-                                block such as personal info, basic info, additional info. Each of this
-                                section should have only attributes which belong to it, e.g. given name,
-                                family name, date of the birth are attributes corresponding to the personal info.
-                                Basic info section will contains attributes describing organizationalUnit, emailAddress
-                                or job position and additional info will contain attributes about user's nickname and so on.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:deprecated/>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1466,7 +1302,7 @@
                             the UI features in any non-trivial midPoint configuration.
                         </p>
                         <p>
-                            Identifier may not be needed at all in some cases (e.g. additionalPanels in views).
+                            Identifier may not be needed at all in some cases.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -1925,6 +1761,12 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:additionalPanels</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1962,26 +1804,6 @@
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                                 <a:displayName>GuiObjectListViewType.action</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Configuration of additional panels that can be present in some view types.
-                                    E.g. configuration of "managers" and "members" panels in orgstruct views.
-                                </p>
-                                <p>
-                                    DEPRECATED. Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>3.9</a:since>
-                                <a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
-                                <a:experimental>true</a:experimental>
-                                <a:deprecated/>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3831,26 +3653,17 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.9</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use identifier instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:UserInterfaceFeatureType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Action short name (identifier). This element is not displayed to the user. It is used
-                                for identification of the action and referencing (e.g. previous column). The definitions
-                                that have the same name in different layers (global, role, user) will be merged together.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>GuiActionType.name</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.6</a:deprecatedSince>
-                                <a:plannedRemoval>4.8</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3937,31 +3750,6 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configuration of additional panels that can be present in some view types.
-                E.g. configuration of "managers" and "members" panels in orgstruct views.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.9</a:since>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <!-- TODO: manager panel -->
-            <xsd:element name="memberPanel" type="tns:GuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiObjectListViewAdditionalPanelsType.memberPanel</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FormType">
@@ -4379,7 +4167,16 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    List of containers to show on this panel
+                                    List of containers to show on this panel.
+                                </p>
+                                <p>
+                                    Used to specify "virtual" containers for displaying details page in GUI.
+                                    As an example, the user might need to reorganize attributes to some logic
+                                    block such as personal info, basic info, additional info. Each of this
+                                    section should have only attributes which belong to it, e.g. given name,
+                                    family name, date of the birth are attributes corresponding to the personal info.
+                                    Basic info section will contains attributes describing organizationalUnit, emailAddress
+                                    or job position and additional info will contain attributes about user's nickname and so on.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>

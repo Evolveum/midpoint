@@ -49,15 +49,6 @@ public class CompiledGuiProfileAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public CompiledGuiProfileAsserter<RA> assertObjectForms(int expectedForms) {
-        if (getCompiledGuiProfile().getObjectForms() == null) {
-            assertTrue("Wrong number of object forms in " + desc() + "; exected " + expectedForms + " but was null", expectedForms == 0);
-        } else {
-            assertEquals("Wrong number of object forms in " + desc(), expectedForms, getCompiledGuiProfile().getObjectForms().getObjectForm().size());
-        }
-        return this;
-    }
-
     public CompiledGuiProfileAsserter<RA> assertUserDashboardWidgets(int expectedWidgetws) {
         if ( compiledGuiProfile.getUserDashboard() == null) {
             if (expectedWidgetws != 0) {

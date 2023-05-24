@@ -106,7 +106,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
             }
 
             protected void onSubmit(AjaxRequestTarget target) {
-                isSubmitted = true;
                 doRegistration(target);
 
             }
@@ -121,6 +120,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         }
 
         submitRegistration(target);
+        isSubmitted = true;
     }
 
     private boolean validateCaptcha(AjaxRequestTarget target) {

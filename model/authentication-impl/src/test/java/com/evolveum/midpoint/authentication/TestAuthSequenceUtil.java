@@ -29,18 +29,18 @@ public class TestAuthSequenceUtil extends AbstractHigherUnitTest {
     private List<AuthenticationSequenceType> getSequences() {
         List<AuthenticationSequenceType> sequences = new ArrayList<>();
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-        sequence.setName("sequence1");
+        sequence.setIdentifier("sequence1");
         sequence.getNodeGroup().add(getReference("1"));
         sequence.setChannel(getChannel("gui1"));
         sequences.add(sequence);
         sequence = new AuthenticationSequenceType();
-        sequence.setName("sequence2");
+        sequence.setIdentifier("sequence2");
         sequence.getNodeGroup().add(getReference("1"));
         sequence.getNodeGroup().add(getReference("2"));
         sequence.setChannel(getChannel("gui2"));
         sequences.add(sequence);
         sequence = new AuthenticationSequenceType();
-        sequence.setName("sequence3");
+        sequence.setIdentifier("sequence3");
         sequence.setChannel(getChannel("gui3"));
         sequences.add(sequence);
         return sequences;

@@ -47,7 +47,6 @@ public class CompiledShadowCollectionView extends CompiledObjectCollectionView {
         GuiObjectListViewType viewType = new GuiObjectListViewType();
         viewType.setIdentifier(getViewIdentifier());
         viewType.setType(getContainerType());
-        viewType.setAdditionalPanels(getAdditionalPanels());
         viewType.setDisplay(getDisplay());
         for (GuiObjectColumnType column : getColumns()) {
             viewType.column(column.clone());

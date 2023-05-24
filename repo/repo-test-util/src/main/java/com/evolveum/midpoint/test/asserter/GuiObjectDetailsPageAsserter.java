@@ -25,11 +25,6 @@ public class GuiObjectDetailsPageAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    @Deprecated
-    public VirtualContainersSpecificationAsserter<GuiObjectDetailsPageAsserter<RA>> container() {
-        return new VirtualContainersSpecificationAsserter<>(guiObjectDetailsPage.getContainer(), this, "from object details " + guiObjectDetailsPage);
-    }
-
     public ContainerPanelConfigurationsAsserter<GuiObjectDetailsPageAsserter<RA>> panel() {
         return new ContainerPanelConfigurationsAsserter<>(guiObjectDetailsPage.getPanel(), this, "from object details" + guiObjectDetailsPage);
     }
