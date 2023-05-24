@@ -32,7 +32,7 @@ public class UpgradeOptions {
     @Parameter(names = {P_STEP_LONG}, descriptionKey = "upgrade.step")
     private String step;
 
-    public Boolean getAbort() {
+    public Boolean isAbort() {
         return abort;
     }
 }

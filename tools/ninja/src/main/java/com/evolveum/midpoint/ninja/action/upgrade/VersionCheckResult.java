@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-public class VersionCheckResult {
+public class VersionCheckResult implements StepResult {
 
     private String currentVersion;
 

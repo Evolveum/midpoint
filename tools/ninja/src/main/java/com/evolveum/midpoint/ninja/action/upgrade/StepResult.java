@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-public interface UpgradeStep<R extends StepResult> {
+public interface StepResult {
 
-    String getIdentifier();
-
-    R execute() throws Exception;
+    default boolean shouldContinue() {
+        return true;
+    }
 }

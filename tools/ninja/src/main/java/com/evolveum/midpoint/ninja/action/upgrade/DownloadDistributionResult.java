@@ -9,7 +9,7 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 import java.io.File;
 
-public class DownloadDistributionResult {
+public class DownloadDistributionResult implements StepResult {
 
     private File distributionZipFile;
 

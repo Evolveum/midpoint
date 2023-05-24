@@ -12,7 +12,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 
-public class UpgradeMidpointHomeStep implements UpgradeStep<Void> {
+public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
 
     private static final String VAR_DIRECTORY = "var";
 
@@ -27,12 +27,13 @@ public class UpgradeMidpointHomeStep implements UpgradeStep<Void> {
         return "upgradeMidpointHome";
     }
 
-    public Void execute() throws Exception {
+    public StepResult execute() throws Exception {
         downloadDistributionFile();
 
         upgradeMidpointHome();
 
-        return null;
+        return new StepResult() {
+        };
     }
 
     private void downloadDistributionFile() throws IOException {

@@ -12,8 +12,9 @@ import com.evolveum.midpoint.ninja.action.Action;
 public class UpgradeAction extends Action<UpgradeOptions> {
 
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
-            // todo upgrade initial objects, also all other objecst that can be upgraded before midpoint version/DB/midpoint home was upgraded
+            // todo upgrade initial objects, also all other objects that can be upgraded before midpoint version/DB/midpoint home was upgraded
             VersionCheckStep.class,
+            VerifyStep.class,
             DownloadDistributionStep.class,
             DatabaseSchemaStep.class,
             UpgradeMidpointHomeStep.class,
@@ -33,9 +34,13 @@ public class UpgradeAction extends Action<UpgradeOptions> {
                 step = stepType.getConstructor().newInstance();
             }
 
-            Object result = step.execute();
-
+            StepResult result = step.execute();
             ctx.addResult(step.getClass(), result);
+
+            if (!result.shouldContinue()) {
+                // todo print warning that processing was interrupted
+                break;
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
-public class DatabaseSchemaStep implements UpgradeStep<Void> {
+public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
     public static final int SUPPORTED_VERSION_LTS = 1;  // for 4.4.4
 
@@ -39,7 +39,7 @@ public class DatabaseSchemaStep implements UpgradeStep<Void> {
     }
 
     @Override
-    public Void execute() throws Exception {
+    public StepResult execute() throws Exception {
         // 1/ initialize DB connection, using midpoint home?
         // 2/ check current state of DB. Is it previous feature release (4.6) or LTS (4.4)
         // 3/ pick proper scripts
@@ -53,7 +53,8 @@ public class DatabaseSchemaStep implements UpgradeStep<Void> {
             destroy();
         }
 
-        return null;
+        return new StepResult() {
+        };
     }
 
     // todo fix, same code is also in
