@@ -19,11 +19,9 @@ import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -118,7 +116,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         if (!validateCaptcha(target)) {
             return;
         }
-
         submitRegistration(target);
         isSubmitted = true;
     }
@@ -132,7 +129,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         }
 
         CaptchaPanel captcha = getCaptcha();
-        if (captcha.getRandomText() == null) {
+        if (captcha.getRandomText() == null || captcha.getCaptchaText() == null) {
             String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
                     .getString();
             LOGGER.error(message);
@@ -142,16 +139,14 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
             return false;
         }
 
-        if (captcha.getCaptchaText() != null && captcha.getRandomText() != null) {
-            if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
-                String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
-                        .getString();
-                LOGGER.error(message);
-                getSession().error(message);
-                updateCaptcha(target);
-                target.add(getFeedbackPanel());
-                return false;
-            }
+        if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
+            String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
+                    .getString();
+            LOGGER.error(message);
+            getSession().error(message);
+            updateCaptcha(target);
+            target.add(getFeedbackPanel());
+            return false;
         }
         LOGGER.trace("CAPTCHA Validation OK");
         return true;

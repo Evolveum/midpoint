@@ -158,19 +158,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         input.getBaseFormComponent().setRequired(true);
         feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
-
-        input.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return getUserModel().getObject() == null;
-            }
-
-        });
         input.setRenderBodyOnly(true);
-
     }
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
