@@ -51,7 +51,6 @@
         </mail>
     </notificationConfiguration>
     <workflowConfiguration>
-        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
     </workflowConfiguration>
     <!-- Set later, because missing object 120 causes problems on startup; for some strange reasons, on native repo only! -->
