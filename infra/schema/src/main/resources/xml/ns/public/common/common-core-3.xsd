@@ -9522,6 +9522,11 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:propertyConstraint</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9551,18 +9556,6 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectPolicyConfigurationType.itemConstraint</a:displayName>
                         <a:since>4.1</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="propertyConstraint" type="tns:ItemConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Use itemConstraint instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.1</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

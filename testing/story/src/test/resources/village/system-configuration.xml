@@ -30,10 +30,10 @@
     </logging>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
-        <propertyConstraint>
+        <itemConstraint>
             <path>employeeNumber</path>
             <oidBound>true</oidBound>
-        </propertyConstraint>
+        </itemConstraint>
     </defaultObjectPolicyConfiguration>
     <notificationConfiguration>
         <handler>
