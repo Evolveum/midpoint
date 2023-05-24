@@ -728,4 +728,13 @@ public class ProvisioningContext {
         }
         return sb.toString();
     }
+
+    public ProvisioningOperationContext operationContext() {
+        return operationContext;
+    }
+
+    public ProvisioningContext setOperationContext(ProvisioningOperationContext operationContext) {
+        this.operationContext = operationContext;
+        return this;
+    }
 }

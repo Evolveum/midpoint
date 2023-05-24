@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.operations;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +38,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
     @NotNull private final Class<T> type;
     @NotNull private final String oid;
     @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
+    @NotNull private final ProvisioningOperationContext context;
     @Nullable private final GetOperationOptions rootOptions;
     @NotNull private final Task task;
     @NotNull private final CommonBeans beans;
@@ -45,12 +48,14 @@ public class ProvisioningGetOperation<T extends ObjectType> {
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull CommonBeans beans,
             @NotNull OperationsHelper operationsHelper) {
         this.type = type;
         this.oid = oid;
         this.options = options;
+        this.context = context;
         this.rootOptions = SelectorOptions.findRootOptions(options);
         this.task = task;
         this.beans = beans;
@@ -104,7 +109,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException {
         try {
-            return beans.shadowsFacade.getShadow(oid, null, null, options, task, result);
+            return beans.shadowsFacade.getShadow(oid, null, null, options, context, task, result);
         } catch (MaintenanceException e) {
             throw new AssertionError(
                     "Unexpected MaintenanceException. The called method should have returned cached shadow instead.", e);

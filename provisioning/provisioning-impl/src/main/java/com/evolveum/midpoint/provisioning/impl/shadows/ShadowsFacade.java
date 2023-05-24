@@ -8,6 +8,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +41,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * {@link ShadowSearchLikeOperation}, {@link ShadowAddOperation}, {@link ShadowModifyOperation}, {@link ShadowDeleteOperation},
  * {@link ShadowRefreshHelper}, {@link ShadowOperationPropagationHelper}, and so on.
  *
- * @see com.evolveum.midpoint.provisioning.impl.shadows
- *
  * @author Radovan Semancik
  * @author Katarina Valalikova
+ * @see com.evolveum.midpoint.provisioning.impl.shadows
  */
 @Component
 public class ShadowsFacade {
@@ -68,12 +69,13 @@ public class ShadowsFacade {
             @Nullable ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return ShadowGetOperation
-                .create(oid, repositoryShadow, identifiersOverride, options, task, result, localBeans)
+                .create(oid, repositoryShadow, identifiersOverride, options, context, task, result, localBeans)
                 .execute(result);
     }
 
@@ -81,12 +83,13 @@ public class ShadowsFacade {
             @NotNull ShadowType resourceObjectToAdd,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
-        return ShadowAddOperation.executeDirectly(resourceObjectToAdd, scripts, options, task, result);
+        return ShadowAddOperation.executeDirectly(resourceObjectToAdd, scripts, options, context, task, result);
     }
 
     public String modifyShadow(
@@ -94,36 +97,38 @@ public class ShadowsFacade {
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {
-        return ShadowModifyOperation.executeDirectly(repoShadow, modifications, scripts, options, task, result);
+        return ShadowModifyOperation.executeDirectly(repoShadow, modifications, scripts, options, context, task, result);
     }
 
     public ShadowType deleteShadow(
             @NotNull ShadowType repoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
-        return ShadowDeleteOperation.executeDirectly(repoShadow, options, scripts, task, result);
+        return ShadowDeleteOperation.executeDirectly(repoShadow, options, scripts, context, task, result);
     }
 
     @Nullable
     public RefreshShadowOperation refreshShadow(ShadowType repoShadow, ProvisioningOperationOptions options,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, EncryptionException {
-        return refreshHelper.refreshShadow(repoShadow, options, task, result);
+            ProvisioningOperationContext context, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+        return refreshHelper.refreshShadow(repoShadow, options, context, task, result);
     }
 
     public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType repoShadow,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
-                    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         definitionsHelper.applyDefinition(delta, repoShadow, task, result);
     }
 
@@ -141,24 +146,26 @@ public class ShadowsFacade {
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             ResultHandler<ShadowType> handler,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return ShadowSearchLikeOperation
-                .create(query, options, task, result, localBeans)
+                .create(query, options, context, task, result, localBeans)
                 .executeIterativeSearch(handler, result);
     }
 
     public @NotNull SearchResultList<PrismObject<ShadowType>> searchObjects(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return ShadowSearchLikeOperation
-                .create(query, options, task, result, localBeans)
+                .create(query, options, context, task, result, localBeans)
                 .executeNonIterativeSearch(result);
     }
 
@@ -188,11 +195,11 @@ public class ShadowsFacade {
     }
 
     public Integer countObjects(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ProvisioningOperationContext context, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         return ShadowSearchLikeOperation
-                .create(query, options, task, result, localBeans)
+                .create(query, options, context, task, result, localBeans)
                 .executeCount(result);
     }
 

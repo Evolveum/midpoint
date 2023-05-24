@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
@@ -68,6 +69,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             @NotNull ShadowType resourceObjectToAdd,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
@@ -81,6 +83,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
                 resourceObjectToAdd.debugDumpLazily(1));
 
         ProvisioningContext ctx = establishProvisioningContext(resourceObjectToAdd, task, result);
+        ctx.setOperationContext(context);
         ctx.checkExecutionFullyPersistent();
         AddOperationState opState = new AddOperationState();
         return new ShadowAddOperation(ctx, resourceObjectToAdd, scripts, opState, options)

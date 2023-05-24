@@ -151,7 +151,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Preconditions.checkNotNull(task, "task");
         Preconditions.checkNotNull(parentResult, "parentResult");
 
-        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, task, beans, operationsHelper);
+        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, context, task, beans, operationsHelper);
 
         OperationResult result = parentResult.createSubresult(OP_GET_OBJECT);
         result.addParam(OperationResult.PARAM_OID, oid);
@@ -220,7 +220,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (object.canRepresent(ShadowType.class)) {
                 try {
                     String oid = shadowsFacade.addResourceObject(
-                            (ShadowType) object.asObjectable(), scripts, options, task, result);
+                            (ShadowType) object.asObjectable(), scripts, options, context, task, result);
                     LOGGER.trace("Added shadow object {}", oid);
                     return oid;
                 } catch (GenericFrameworkException ex) {
@@ -353,7 +353,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             SearchResultList<PrismObject<T>> objects =
-                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                    new ProvisioningSearchLikeOperation<>(type, query, options, context, task, beans)
                             .executeSearch(result);
 
             LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(objects.getMetadata()));
@@ -390,7 +390,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             Integer count =
-                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                    new ProvisioningSearchLikeOperation<>(type, query, options, context, task, beans)
                             .executeCount(result);
 
             LOGGER.trace("Result of the counting: {}", count);
@@ -448,7 +448,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 
             if (ShadowType.class.isAssignableFrom(type)) {
-                oid = shadowsFacade.modifyShadow((ShadowType) repoShadow, modifications, scripts, options, task, result);
+                oid = shadowsFacade.modifyShadow((ShadowType) repoShadow, modifications, scripts, options, context, task, result);
             } else {
                 cacheRepositoryService.modifyObject(type, oid, modifications, result);
             }
@@ -506,7 +506,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
             if (object instanceof ShadowType && !ProvisioningOperationOptions.isRaw(options)) {
-                return deleteShadow((ShadowType) object, options, scripts, task, result);
+                return deleteShadow((ShadowType) object, options, scripts, context, task, result);
             } else if (object instanceof ResourceType) {
                 resourceManager.deleteResource(oid, result);
                 return null;
@@ -528,6 +528,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ShadowType shadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -538,7 +539,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             //noinspection unchecked
             return (PrismObject<T>)
                     asPrismObject(
-                            shadowsFacade.deleteShadow(shadow, options, scripts, task, result));
+                            shadowsFacade.deleteShadow(shadow, options, scripts, context, task, result));
 
             // TODO improve the error reporting. It is good that we want to provide some context for the error ("Couldn't delete
             //  object: ... problem: ...") but this is just too verbose in code. We need a better approach.
@@ -717,7 +718,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
 
-            shadowsFacade.refreshShadow(shadow.asObjectable(), options, task, result);
+            shadowsFacade.refreshShadow(shadow.asObjectable(), options, context, task, result);
 
         } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
@@ -763,7 +764,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             SearchResultMetadata metadata =
-                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                    new ProvisioningSearchLikeOperation<>(type, query, options, context, task, beans)
                             .executeIterativeSearch(handler, result);
 
             LOGGER.trace("Finished iterative searching. Metadata: {}", DebugUtil.shortDumpLazily(metadata));

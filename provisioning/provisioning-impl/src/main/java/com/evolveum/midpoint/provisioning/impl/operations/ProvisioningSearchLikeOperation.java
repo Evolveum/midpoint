@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +52,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
     @Nullable private final ObjectQuery query;
     @Nullable private final ObjectFilter filter;
     @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
+    @NotNull private final ProvisioningOperationContext context;
     @Nullable private final GetOperationOptions rootOptions;
     @NotNull private final Task task;
     @NotNull private final CommonBeans beans;
@@ -58,12 +61,14 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull CommonBeans beans) {
         this.type = type;
         this.query = simplifyQueryFilter(query);
         this.filter = this.query != null ? this.query.getFilter() : null;
         this.options = options;
+        this.context = context;
         this.rootOptions = SelectorOptions.findRootOptions(options);
         this.task = task;
         this.beans = beans;
@@ -83,7 +88,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
         if (ShadowType.class.isAssignableFrom(type)) {
             //noinspection unchecked,rawtypes
-            return (SearchResultList) beans.shadowsFacade.searchObjects(query, options, task, result);
+            return (SearchResultList) beans.shadowsFacade.searchObjects(query, options, context, task, result);
         } else {
             // TODO: should searching connectors trigger rediscovery?
             SearchResultList<PrismObject<T>> repoObjects =
@@ -102,7 +107,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
         if (ShadowType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return beans.shadowsFacade.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, task, result);
+            return beans.shadowsFacade.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, context, task, result);
         } else {
             ResultHandler<T> internalHandler =
                     (object, objResult) ->
@@ -123,7 +128,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         }
 
         if (ShadowType.class.isAssignableFrom(type)) {
-            return beans.shadowsFacade.countObjects(query, options, task, result);
+            return beans.shadowsFacade.countObjects(query, options, context, task, result);
         } else {
             return beans.cacheRepositoryService.countObjects(type, query, options, result);
         }

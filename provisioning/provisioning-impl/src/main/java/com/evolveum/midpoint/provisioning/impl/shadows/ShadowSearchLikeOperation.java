@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,12 +80,13 @@ class ShadowSearchLikeOperation {
     static ShadowSearchLikeOperation create(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult result,
             ShadowsLocalBeans localBeans)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
         return new ShadowSearchLikeOperation(
-                createContext(query, options, task, localBeans, result),
+                createContext(query, options, context, task, localBeans, result),
                 query,
                 options,
                 localBeans);
@@ -92,6 +95,7 @@ class ShadowSearchLikeOperation {
     private static ProvisioningContext createContext(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
+            ProvisioningOperationContext context,
             Task task,
             ShadowsLocalBeans localBeans,
             OperationResult result)
@@ -100,6 +104,7 @@ class ShadowSearchLikeOperation {
         operationCoordinates.checkNotUnknown();
         operationCoordinates.checkNotResourceScoped();
         ProvisioningContext ctx = localBeans.ctxFactory.createForBulkOperation(operationCoordinates, task, result);
+        ctx.setOperationContext(context);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;

@@ -22,6 +22,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
@@ -87,12 +88,13 @@ class ShadowRefreshHelper {
     @Autowired private DefinitionsHelper definitionsHelper;
 
     public @NotNull RefreshShadowOperation refreshShadow(
-            ShadowType repoShadow, ProvisioningOperationOptions options, Task task, OperationResult result)
+            ShadowType repoShadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, EncryptionException {
 
         LOGGER.trace("Refreshing {}", repoShadow);
         ProvisioningContext ctx = ctxFactory.createForShadow(repoShadow, task, result);
+        ctx.setOperationContext(context);
         ctx.assertDefinition();
         ctx.applyAttributesDefinition(repoShadow);
 

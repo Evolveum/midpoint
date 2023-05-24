@@ -28,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -42,19 +40,20 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
@@ -339,7 +338,7 @@ public class ResourceObjectConverter {
                 // Be careful NOT to apply this to the cloned shadow. This needs to be propagated outside this method.
                 applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 
-                auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, parentResult);
+                shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, result);
             } catch (CommunicationException ex) {
                 throw communicationException(ctx, connector, ex);
             } catch (GenericFrameworkException ex) {
@@ -367,10 +366,6 @@ public class ResourceObjectConverter {
         } finally {
             result.close();
         }
-    }
-
-    private void auditEvent(AuditEventType event, ShadowType shadow, ProvisioningContext ctx, OperationResult result) {
-        shadowAuditHelper.auditEvent(event, shadow, ctx, result);
     }
 
     /**
@@ -474,7 +469,7 @@ public class ResourceObjectConverter {
                                 ctx.getUcfExecutionContext(),
                                 result);
 
-                auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, parentResult);
+                shadowAuditHelper.auditEvent(AuditEventType.DELETE_OBJECT, shadow, ctx, result);
             } catch (ObjectNotFoundException ex) {
                 throw ex.wrap(String.format(
                         "An error occurred while deleting resource object %s with identifiers %s (%s)",
@@ -890,7 +885,7 @@ public class ResourceObjectConverter {
                         asynchronousOperationReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
                     }
 
-                    auditEvent(AuditEventType.ADD_OBJECT, currentShadow, ctx, result);
+                    shadowAuditHelper.auditEvent(AuditEventType.MODIFY_OBJECT, currentShadow, operationsWave, ctx, result);
                 }
             }
 
