@@ -60,7 +60,6 @@
         </lifecycleStateModel>
     </defaultObjectPolicyConfiguration>
     <workflowConfiguration>
-        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
     </workflowConfiguration>
 </systemConfiguration>

@@ -91,13 +91,6 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
         // THEN
         then();
         assertSuccess(result);
-
-/*        List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
-        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(configuredCapabilities,
-                UpdateCapabilityType.class);
-        assertNotNull("No configured UpdateCapabilityType", capUpdate);
-        assertTrue("Configured addRemoveAttributeValues is not disabled", Boolean.FALSE.equals(capUpdate.isAddRemoveAttributeValues()));
-*/
     }
 
     @Test

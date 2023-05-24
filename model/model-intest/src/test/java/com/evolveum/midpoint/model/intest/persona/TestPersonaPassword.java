@@ -74,7 +74,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, "admin");
+        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, ARCHETYPE_ADMIN.oid);
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -101,7 +101,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
         assertPasswordMetadata(userAfter, false, null, startCal);
         assertPasswordHistoryEntries(userAfter);
 
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         assertPersonaAfterPersonaPasswordChange(persona, USER_PASSWORD_3_CLEAR, null, startCal);
     }
 

@@ -593,6 +593,11 @@
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
+                <a:schemaMigration>
+                    <a:element>tns:followOn</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -640,21 +645,6 @@
                             <xsd:documentation>
                                 Password used to connect to the service.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="followOn" type="tns:CompositeCorrelatorType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The correlator that is applied to the resolved (or potentially-matching) reference identifier
-                                provided by the ID Match service. It should be the single one (no composition), and must not
-                                return uncertain results: only "existing (single) owner" and "no owner" answers are accepted.
-
-                                DEPRECATED: Please use "referenceIdProperty" instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecatedSince>4.6</a:deprecatedSince>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="referenceIdProperty" type="t:ItemPathType" minOccurs="0">

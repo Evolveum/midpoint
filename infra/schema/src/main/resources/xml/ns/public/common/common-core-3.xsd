@@ -8748,66 +8748,55 @@
            <xsd:appinfo>
                <a:container/>
                <a:since>3.6</a:since>
+               <a:schemaMigration>
+                   <a:element>tns:targetSubtype</a:element>
+                   <a:version>4.8</a:version>
+                   <a:operation>removed</a:operation>
+               </a:schemaMigration>
            </xsd:appinfo>
        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractConstructionType">
                 <xsd:sequence>
-                        <xsd:element name="targetType" type="xsd:QName">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object type of the target persona (e.g. UserType).
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:since>3.6</a:since>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="targetSubtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object subtype of the target persona.
-                                    Constructions with the same type and subtype configuration are
-                                    interpreted as if they describe the same persona.
-
-                                    DEPRECATED, use archetypeRef instead
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:since>3.6</a:since>
-                                    <a:deprecated>true</a:deprecated>
-                                    <a:deprecatedSince>4.4</a:deprecatedSince>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="objectMappingRef" type="c:ObjectReferenceType" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Reference to the object template that will be used to map values
-                                    from the source object (e.g. physical user) to the persona
-                                    (e.g. virtual identity user).
-                                    Unlike ordinary object template that has the same object as input and
-                                    output, this object mapping will have one object as an input and the
-                                    other as an output.
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="archetypeRef" type="c:ObjectReferenceType" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Archetype of the target persona.
-                                </xsd:documentation>
-                                <xsd:appinfo>
-                                    <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
-                                    <a:since>4.4</a:since>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:extension>
-            </xsd:complexContent>
+                    <xsd:element name="targetType" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object type of the target persona (e.g. UserType).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectMappingRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the object template that will be used to map values
+                                from the source object (e.g. physical user) to the persona
+                                (e.g. virtual identity user).
+                                Unlike ordinary object template that has the same object as input and
+                                output, this object mapping will have one object as an input and the
+                                other as an output.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Archetype of the target persona.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectTemplateType">
@@ -16733,6 +16722,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:schemaMigration>
+                    <a:element>tns:reconcileAffected</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16811,28 +16805,6 @@
                         reconciliation will not be forced (but it may still happen if other configuration
                         loads full projection).
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="reconcileAffected" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Option to reconcile affected objects after executing changes.
-                        Typical use: after a role is changed, all users that have been assigned this role
-                        would be reconciled.
-
-                        Because it is difficult to determine all affected objects (e.g. users that have
-                        indirectly assigned a role), midPoint does a reasonable attempt to determine
-                        and reconcile them. E.g. it may be limited to a direct assignees.
-
-                        Also, because of time complexity, the reconciliation may be executed in
-                        a separate background task.
-
-                        Support was removed in 4.2. It is replaced by new "Linked objects" functionality.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.2</a:deprecatedSince>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0">

@@ -15,7 +15,10 @@ import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.AssertJUnit;
 
@@ -36,10 +39,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIntegrationTest {
 
@@ -234,6 +233,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     protected static final File ROLE_DRINKER_FILE = new File(COMMON_DIR, "role-drinker.xml");
     protected static final String ROLE_DRINKER_OID = "0abbde4c-ab3f-11e6-910d-d7dabf5f09f0";
+
+    protected static final TestObject<ArchetypeType> ARCHETYPE_ADMIN = TestObject.file(
+            COMMON_DIR, "archetype-admin.xml", "0d7acb30-db34-49fa-9dae-28a84e2ab9a1");
+
+    protected static final TestObject<ArchetypeType> ARCHETYPE_PERSONA_ROLE = TestObject.file(
+            COMMON_DIR, "archetype-persona-role.xml", "9791927e-9a84-41ae-a689-4f6715a8327a");
 
     protected static final File ROLE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "role-persona-admin.xml");
     protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
