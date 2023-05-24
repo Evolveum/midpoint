@@ -16162,6 +16162,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:objectResults</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16197,15 +16202,6 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.outputReports</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectResults" type="tns:CleanupPolicyType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>CleanupPoliciesType.objectResults</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.3</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
