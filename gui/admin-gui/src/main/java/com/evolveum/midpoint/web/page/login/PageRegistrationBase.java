@@ -99,7 +99,7 @@ public class PageRegistrationBase extends PageBase {
 
     }
 
-    private SecurityPolicyType resolveSecurityPolicy() {
+    protected SecurityPolicyType resolveSecurityPolicy() {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
 
         if (securityPolicy == null) {

@@ -130,6 +130,20 @@ public class SecurityUtil {
         return passPolicy;
     }
 
+    public static String getInvitationSequenceName(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
+            return null;
+        }
+        AuthenticationSequenceType invitationSequence = securityPolicy.getAuthentication().getSequence().stream().filter(s -> s.getChannel() != null
+                        && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
+                .findFirst()
+                .orElse(null);
+        if (invitationSequence == null) {
+            return null;
+        }
+        return invitationSequence.getName();
+    }
+
     public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return null;

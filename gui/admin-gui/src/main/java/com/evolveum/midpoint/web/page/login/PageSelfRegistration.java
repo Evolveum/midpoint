@@ -77,75 +77,25 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final String ID_STATIC_FORM = "staticForm";
 
-    private static final String PARAM_USER_OID = "user";
+    protected IModel<UserType> userModel;
 
-    private IModel<UserType> userModel;
-
-    public PageSelfRegistration(PageParameters pageParameters) {
-        super(pageParameters);
-    }
-
-    private String getOidFromParams(PageParameters pageParameters) {
-        if (pageParameters == null) {
-            return null;
-        }
-
-        StringValue oidValue = pageParameters.get(PARAM_USER_OID);
-        if (oidValue != null) {
-            return oidValue.toString();
-        }
-
-        return null;
+    public PageSelfRegistration() {
+        super(null);
     }
 
     @Override
     public void initializeModel() {
-        final String userOid = getOidFromParams(pageParameters);
-
-        userModel = new LoadableModel<UserType>(false) {
+        userModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected UserType load() {
-                return createUserModel(userOid);
+                return instantiateUser();
             }
         };
     }
 
-    private UserType createUserModel(String userOid) {
-        if (userOid == null) {
-            LOGGER.trace("Registration process for new user started");
-            return instantiateUser();
-        }
-
-        PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public PrismObject<UserType> run() {
-                LOGGER.trace("Loading preregistered user with oid {}.", userOid);
-                Task task = createAnonymousTask(OPERATION_LOAD_USER);
-                OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-                PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
-                        PageSelfRegistration.this, task, result);
-                result.computeStatus();
-                return user;
-            }
-
-        });
-
-        if (result == null) {
-            LOGGER.error("Failed to load preregistered user");
-            getSession().error(
-                    createStringResource("PageSelfRegistration.invalid.registration.link").getString());
-            throw new RestartResponseException(PageLogin.class);
-        }
-
-        return result.asObjectable();
-    }
-
-    private UserType instantiateUser() {
+    protected UserType instantiateUser() {
         PrismObjectDefinition<UserType> userDef = getUserDefinition();
         PrismObject<UserType> user;
         try {
@@ -176,7 +126,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK,
                 new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
         feedback.setOutputMarkupId(true);
-        add(feedback);
+        staticRegistrationForm.add(feedback);
 
         TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
                 new PropertyModel<String>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
@@ -240,7 +190,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             @Override
             public boolean isEnabled() {
-                return getOidFromParams(getPageParameters()) == null;
+                return getUserModel().getObject() == null;
             }
 
         });
@@ -382,35 +332,12 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
     }
 
-    private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (getOidFromParams(getPageParameters()) == null) {
-            LOGGER.trace("Preparing user ADD delta (new user registration)");
-            UserType userType = prepareUserToSave(task, result);
-            ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
-            LOGGER.trace("Going to register user {}", userDelta);
-            return userDelta;
-        } else {
-            LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
-            ObjectDelta<UserType> delta;
-            if (!isCustomFormDefined()) {
-                delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class,
-                        getOidFromParams(getPageParameters()));
-                if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
-                    delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
-                            getSelfRegistrationConfiguration().getInitialLifecycleState());
-                }
-                delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, createPassword().getValue());
-            } else {
-                delta = getDynamicFormPanel().getObjectDelta();
-            }
-
-            delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE,
-                    createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result)
-                            .asPrismContainerValue());
-            LOGGER.trace("Going to register user with modifications {}", delta);
-            return delta;
-
-        }
+    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        LOGGER.trace("Preparing user ADD delta (new user registration)");
+        UserType userType = prepareUserToSave(task, result);
+        ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
+        LOGGER.trace("Going to register user {}", userDelta);
+        return userDelta;
     }
 
     private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -485,7 +412,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 //
 //    }
 
-    private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ProtectedStringType nonceCredentials = new ProtectedStringType();
         nonceCredentials.setClearValue(generateNonce(noncePolicy, null, task, result));
 
@@ -513,7 +440,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return credentials;
     }
 
-    private PasswordType createPassword() {
+    protected PasswordType createPassword() {
         PasswordType password = new PasswordType();
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setClearValue(getPassword());
