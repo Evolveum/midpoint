@@ -6155,11 +6155,14 @@
                     <xsd:documentation>
                         Traces processing of each N-th item.
                         DEPRECATED. Use beforeItemCondition instead.
+
+                        (Except for tracing asynchronous updates. There, only this property is observed.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>Tracing interval</a:displayName>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.4</a:deprecatedSince>
+                        <a:plannedRemoval>5.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6226,9 +6229,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Profiles processing of each N-th item.
+                        DEPRECATED. Use beforeItemCondition instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>Profiling interval</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>5.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
