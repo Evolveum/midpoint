@@ -46,8 +46,8 @@ For this case one have to use options to specify URL (`-U`), username (`-u`) and
 These options can also be used to override JDBC URL, username and password specified in `config.xml`.
 
 With bash, you can provide `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
-[source,bash]
 
+[source,bash]
 ----
 MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
 ----
@@ -89,6 +89,7 @@ Ninja currently supports these operations:
 * delete
 * importAudit (midPoint 4.4.1 or later)
 * exportAudit (midPoint 4.4.1 or later)
+* miningExport (midPoint 4.4.4 or later)
 
 === Import
 
@@ -178,6 +179,56 @@ ninja.sh importAudit -i audit-export.xml.zip -z
 ----
 
 Check also the xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
+
+=== Role mining export/import
+
+[NOTE]
+Role mining export is an anonymized export of relationships between roles, users, and
+organizations. The goal of the export is to obtain a map of relations between objects, which could
+be helpful in the development of new features such as "Role mining". For detailed information regarding role mining export, please refer to the xref:/midpoint/reference/mining/#role-mining-export[Role Mining Export documentation].
+
+
+.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and 258bits - `ADVANCED` security by default. For exporting in JSON format, rename the exported object file to `-O role-mining-export.json`.
+[source,bash]
+----
+ninja.sh exportMining -O role-mining-export.xml -z -ow
+
+----
+
+----
+java -jar ninja.jar -m <midpoint.home> exportMining -O role-mining-export.xml -z -ow
+
+----
+
+.Example: role mining export using `ENCRYPTED` name mode and 126bits - `STANDARD` security.
+[source,bash]
+----
+ninja.sh exportMining -O role-mining-export.xml -z -ow -nm ENCRYPTED -s STANDARD
+----
+
+.Example: role mining export using an `Axiom filter` for roles.
+[source,bash]
+----
+ninja.sh exportMining -O role-mining-export.xml -fr '% . referencedBy (@type = UserType and @path = roleMembershipRef)'
+----
+
+.Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oid`.
+[source,bash]
+----
+ninja.sh exportMining -O role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_EXPORT" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
+----
+
+.Example: role mining export with `disable organization` structure export.
+[source,bash]
+----
+ninja.sh exportMining -O role-mining-export.xml -org false
+----
+
+.Example: role mining import.
+[source,bash]
+----
+java -jar ninja.jar -m <midpoint.home> import -O -i <path_to_imported_file> -l 4 -r
+----
 
 == Other scenarios
 
@@ -453,6 +504,63 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
           -z, --zip
             Use zip/unzip compression
             Default: false
+
+    exportMining      Export of anonymized structure of relationships between roles, users and organizations
+            objects.
+      Usage: exportMining [options]
+        Options:
+          -fo, --filterOrg
+            Value of organization object filter used to search objects. If you start the filter with the
+            letter @, the rest should be a filename. Start the filter with % to use Axiom query language.
+          -fr, --filterRole
+            Value of role object filter used to search objects. If you start the filter with the letter @,
+            the rest should be a filename. Start the filter with % to use Axiom query language.
+          -fu, --filterUser
+            Value of user object filter used to search objects. If you start the filter with the letter @,
+            the rest should be a filename. Start the filter with % to use Axiom query language.
+          -l, --multi-thread
+            How many threads to use for operation.
+            Default: 1
+          -O, --output
+            Output file for export
+          -ow, --overwrite
+            Overwrite output file
+            Default: false
+          -z, --zip
+            Use zip/unzip compression
+            Default: false
+          --applicationRoleArchetypeOid
+            Detects an application role according to a specific archetype. The parameter input is the oid of
+            the archetype.
+            Default: 00000000-0000-0000-0000-000000000328
+          -arp, --applicationRolePrefix
+            Prefix for identifying exported application roles. Multiple prefixes can be specified by using a
+            comma "," as a delimiter.
+          -ars, --applicationRoleSuffix
+            Suffix for identifying exported application roles. Multiple suffixes can be specified by using a
+            comma "," as a delimiter.
+          --businessRoleArchetypeOid
+            Detects a business role according to a specific archetype. The parameter input is the oid of the
+            archetype.
+            Default: 00000000-0000-0000-0000-000000000321.
+          -brp, --businessRolePrefix
+            Prefix for identifying exported business roles. Multiple prefixes can be specified by using a
+            comma "," as a delimiter.
+          -brs, --businessRoleSuffix
+            Suffix for identifying exported business roles. Multiple suffixes can be specified by using a
+            comma "," as a delimiter.
+          -org, --includeOrg
+            Include export of organizational structures.
+            Default: true
+          -nm, --nameMode
+            Defines the format of the name parameter in the export (case-insensitive value).
+            Default: SEQUENTIAL
+            Possible Values: [ENCRYPTED, SEQUENTIAL, ORIGINAL]
+          -s, --security
+            Set the security level (case-insensitive value). Standard offers (128-bit) security measures and
+            advanced offers (256-bit) security measures.
+            Default: ADVANCED
+            Possible Values: [STANDARD, ADVANCED]
 
     trace      Edit trace file
       Usage: trace [options]
