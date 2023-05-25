@@ -5,17 +5,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="16813ae6-2c0a-11e7-91fc-8333c244329e"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Persona: admin</name>
+    <assignment>
+        <targetRef oid="9791927e-9a84-41ae-a689-4f6715a8327a" type="ArchetypeType"/>
+    </assignment>
     <inducement>
         <personaConstruction>
             <targetType>UserType</targetType>
-            <targetSubtype>admin</targetSubtype>
             <objectMappingRef oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"/>
+            <archetypeRef oid="0d7acb30-db34-49fa-9dae-28a84e2ab9a1"/>
         </personaConstruction>
     </inducement>
-    <subtype>personaRole</subtype>
     <requestable>true</requestable>
 </role>

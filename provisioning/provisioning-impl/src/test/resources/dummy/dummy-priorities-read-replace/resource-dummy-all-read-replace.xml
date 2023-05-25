@@ -182,9 +182,9 @@
                 </filter>
             </protected>
             <configuredCapabilities>
-                <cap:addRemoveAttributeValues>
-                    <cap:enabled>false</cap:enabled>
-                </cap:addRemoveAttributeValues>
+                <cap:update>
+                    <cap:addRemoveAttributeValues>false</cap:addRemoveAttributeValues>
+                </cap:update>
             </configuredCapabilities>
         </objectType>
         <objectType>
@@ -197,9 +197,9 @@
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
             <configuredCapabilities>
-                <cap:addRemoveAttributeValues>
-                    <cap:enabled>false</cap:enabled>
-                </cap:addRemoveAttributeValues>
+                <cap:update>
+                    <cap:addRemoveAttributeValues>false</cap:addRemoveAttributeValues>
+                </cap:update>
             </configuredCapabilities>
         </objectType>
         <objectType>

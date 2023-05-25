@@ -39,8 +39,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String ID_FORCE_CONTAINER = "forceContainer";
     private static final String ID_RECONCILE = "reconcile";
     private static final String ID_RECONCILE_CONTAINER = "reconcileContainer";
-    private static final String ID_RECONCILE_AFFECTED = "reconcileAffected";
-    private static final String ID_RECONCILE_AFFECTED_CONTAINER = "reconcileAffectedContainer";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER = "executeAfterAllApprovalsContainer";
     private static final String ID_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
@@ -53,8 +51,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String FORCE_HELP = "ExecuteChangeOptionsPanel.label.force.help";
     private static final String RECONCILE_LABEL = "ExecuteChangeOptionsPanel.label.reconcile";
     private static final String RECONCILE_HELP = "ExecuteChangeOptionsPanel.label.reconcile.help";
-    private static final String RECONCILE_AFFECTED_LABEL = "ExecuteChangeOptionsPanel.label.reconcileAffected";
-    private static final String RECONCILE_AFFECTED_HELP = "ExecuteChangeOptionsPanel.label.reconcileAffected.help";
     private static final String EXECUTE_AFTER_ALL_APPROVALS_LABEL = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals";
     private static final String EXECUTE_AFTER_ALL_APPROVALS_HELP = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals.help";
     private static final String KEEP_DISPLAYING_RESULTS_LABEL = "ExecuteChangeOptionsPanel.label.keepDisplayingResults";
@@ -63,22 +59,19 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String SAVE_IN_BACKGROUND_HELP = "ExecuteChangeOptionsPanel.label.saveInBackground.help";
 
     private final boolean showReconcile;
-    private final boolean showReconcileAffected;
     private final boolean showKeepDisplayingResults;
 
     public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
-            boolean showReconcile, boolean showReconcileAffected) {
+            boolean showReconcile, boolean ignored) {
         super(id, model);
         this.showReconcile = showReconcile;
-        this.showReconcileAffected = showReconcileAffected;
         showKeepDisplayingResults = getWebApplicationConfiguration().isProgressReportingEnabled();
     }
 
     public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
-            boolean showReconcile, boolean showReconcileAffected, boolean showKeepDisplayingResults) {
+            boolean showReconcile, boolean ignored, boolean showKeepDisplayingResults) {
         super(id, model);
         this.showReconcile = showReconcile;
-        this.showReconcileAffected = showReconcileAffected;
         this.showKeepDisplayingResults = showKeepDisplayingResults;
     }
 
@@ -102,12 +95,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 RECONCILE_LABEL,
                 RECONCILE_HELP,
                 showReconcile);
-
-        createContainer(ID_RECONCILE_AFFECTED_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED),
-                RECONCILE_AFFECTED_LABEL,
-                RECONCILE_AFFECTED_HELP,
-                showReconcileAffected);
 
         createContainer(ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS),

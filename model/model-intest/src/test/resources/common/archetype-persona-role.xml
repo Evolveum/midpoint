@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright (c) 2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="9791927e-9a84-41ae-a689-4f6715a8327a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Persona role</name>
+    <assignment>
+        <assignmentRelation>
+            <holderType>RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

@@ -1017,29 +1017,22 @@ public class ResourceObjectConverter {
         if (rad.getReadReplaceMode() != null) {
             return rad.getReadReplaceMode();
         }
-        // READ+REPLACE mode is if addRemoveAttributeCapability is NOT present. Try to determine from the capabilities. We may still need to force it.
+        // READ+REPLACE mode is if addRemoveAttributeCapability is NOT present.
+        // Try to determine from the capabilities. We may still need to force it.
 
-        UpdateCapabilityType updateCapabilityType =
+        UpdateCapabilityType updateCapability =
                 objectDefinition.getEnabledCapability(UpdateCapabilityType.class, ctx.getResource());
-        if (updateCapabilityType == null) {
+        if (updateCapability == null) {
             // Strange. We are going to update, but we cannot update? Anyway, let it go, it should throw an error on a more appropriate place.
             return false;
         }
-        if (BooleanUtils.isTrue(updateCapabilityType.isDelta())) {
+        if (BooleanUtils.isTrue(updateCapability.isDelta())
+                || BooleanUtils.isTrue(updateCapability.isAddRemoveAttributeValues())) {
             return false;
         }
-        boolean readReplace;
-        if (updateCapabilityType.isAddRemoveAttributeValues() == null) {
-            // Deprecated. Legacy.
-            readReplace =
-                    objectDefinition.getEnabledCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
-        } else {
-            readReplace = !updateCapabilityType.isAddRemoveAttributeValues();
-        }
-        if (readReplace) {
-            LOGGER.trace("Read+replace mode is forced because {} does not support addRemoveAttributeValues", ctx.getResource());
-        }
-        return readReplace;
+        LOGGER.trace("Read+replace mode is forced because {} does not support deltas nor addRemoveAttributeValues",
+                ctx.getResource());
+        return true;
     }
 
     private ResourceAttributeDefinition<?> getAttributeDefinitionIfApplicable(
