@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  *

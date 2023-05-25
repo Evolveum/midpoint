@@ -12,7 +12,7 @@ import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFact
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Registers standard midPoint synchronization actions in {@link SynchronizationActionFactory}.

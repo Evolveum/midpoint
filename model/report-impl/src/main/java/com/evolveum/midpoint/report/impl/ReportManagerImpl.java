@@ -43,8 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
@@ -276,8 +276,8 @@ public class ReportManagerImpl implements ReportManager {
                         (client, node, result1) -> {
                             client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
                             client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
-                            Response response = client.delete();
-                            Response.StatusType statusInfo = response.getStatusInfo();
+                            var response = client.delete();
+                            var statusInfo = response.getStatusInfo();
                             LOGGER.debug("Deleting report output file ({}) from {} finished with status {}: {}",
                                     fileName, node, statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
                             if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
@@ -351,8 +351,8 @@ public class ReportManagerImpl implements ReportManager {
                             client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
                             client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
                             client.accept(MediaType.APPLICATION_OCTET_STREAM);
-                            Response response = client.get();
-                            Response.StatusType statusInfo = response.getStatusInfo();
+                            var response = client.get();
+                            var statusInfo = response.getStatusInfo();
                             LOGGER.debug("Retrieving report output file ({}) from {} finished with status {}: {}",
                                     fileName, originalNodeOid, statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
                             if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {

@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import java.util.Collection;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;

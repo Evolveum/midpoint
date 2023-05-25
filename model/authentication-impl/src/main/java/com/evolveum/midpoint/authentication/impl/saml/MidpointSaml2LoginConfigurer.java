@@ -13,14 +13,13 @@ import java.util.Map;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationRequestFactory;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestFactory;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
-import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.saml2.provider.service.web.*;
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.Saml2AuthenticationRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
@@ -83,9 +82,11 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
     }
 
     public void configure(B http) throws Exception {
-        Saml2AuthenticationRequestFactory authenticationRequestResolver = new OpenSaml4AuthenticationRequestFactory();
-        Saml2AuthenticationRequestContextResolver contextResolver = new DefaultSaml2AuthenticationRequestContextResolver((RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(MidpointSaml2LoginConfigurer.this.relyingPartyRegistrationRepository));
-        http.addFilter(new MidpointSaml2WebSsoAuthenticationRequestFilter(contextResolver, authenticationRequestResolver));
+        OpenSaml4AuthenticationRequestResolver contextResolver = new OpenSaml4AuthenticationRequestResolver(
+                new DefaultRelyingPartyRegistrationResolver(
+                        MidpointSaml2LoginConfigurer.this.relyingPartyRegistrationRepository));
+        contextResolver.setRequestMatcher(new AntPathRequestMatcher(FILTER_PROCESSING_URL));
+        http.addFilter(new MidpointSaml2WebSsoAuthenticationRequestFilter(contextResolver));
         super.configure(http);
         if (this.authenticationManager != null) {
             this.saml2WebSsoAuthenticationFilter.setAuthenticationManager(this.authenticationManager);

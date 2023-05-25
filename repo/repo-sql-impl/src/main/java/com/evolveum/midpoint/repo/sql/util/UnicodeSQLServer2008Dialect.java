@@ -19,9 +19,10 @@ public class UnicodeSQLServer2008Dialect extends SQLServer2008Dialect {
     private static final int MAX_LENGTH = 8000;
 
     public UnicodeSQLServer2008Dialect() {
-        registerColumnType(Types.CLOB, "nvarchar(MAX)");
-        registerColumnType(Types.LONGVARCHAR, "nvarchar(MAX) collate database_default");
-        registerColumnType(Types.VARCHAR, "nvarchar(MAX) collate database_default");
-        registerColumnType(Types.VARCHAR, MAX_LENGTH, "nvarchar($l) collate database_default");
+        // FIXME: Add support for dialect
+        //registerColumnType(Types.CLOB, "nvarchar(MAX)");
+        //registerColumnType(Types.LONGVARCHAR, "nvarchar(MAX) collate database_default");
+        //registerColumnType(Types.VARCHAR, "nvarchar(MAX) collate database_default");
+        //registerColumnType(Types.VARCHAR, MAX_LENGTH, "nvarchar($l) collate database_default");
     }
 }

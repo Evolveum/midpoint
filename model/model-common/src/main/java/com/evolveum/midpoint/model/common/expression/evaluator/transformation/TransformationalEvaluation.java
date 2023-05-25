@@ -23,7 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E extends TransformExpressionEvaluatorType> {
 

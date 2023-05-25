@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.ldap.MidpointPrincipalContextMapper;
 import com.evolveum.midpoint.authentication.impl.provider.MidPointLdapAuthenticationProvider;

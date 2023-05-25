@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import javax.annotation.PostConstruct;
-import javax.ws.rs.core.Response;
+import jakarta.annotation.PostConstruct;
+import jakarta.ws.rs.core.Response;
 
 import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
 
@@ -61,8 +61,8 @@ public class ClusterCacheListener implements CacheListener {
         // eventually. (We can revisit this design decision if needed.)
         clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(getInvalidationRestPath(type, oid));
-            Response response = client.post(null);
-            Response.StatusType statusInfo = response.getStatusInfo();
+            var response = client.post(null);
+            var statusInfo = response.getStatusInfo();
             if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
                 LOGGER.warn("Cluster-wide cache clearance finished on {} with status {}, {}", node.getNodeIdentifier(),
                         statusInfo.getStatusCode(), statusInfo.getReasonPhrase());

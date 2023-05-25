@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.ForeignKey;
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 @Entity
 @IdClass(RCertWorkItemReferenceId.class)
 @Table(name = RCertWorkItemReference.TABLE, indexes = {
-        @javax.persistence.Index(name = "iCertWorkItemRefTargetOid", columnList = "targetOid")
+        @jakarta.persistence.Index(name = "iCertWorkItemRefTargetOid", columnList = "targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RCertWorkItemReference extends RReference {

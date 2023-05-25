@@ -12,9 +12,9 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.ForeignKey;
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -59,16 +60,19 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     // ridiculous name, but needed in order to match case.owner_oid
+    @Override
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     //@OwnerIdGetter()            // this is not a single-valued owner id
     public String getOwnerOwnerOid() {
         return ownerOwnerOid;
     }
 
+    @Override
     public void setOwnerOwnerOid(String ownerOwnerOid) {
         this.ownerOwnerOid = ownerOwnerOid;
     }
 
+    @Override
     @Id
     @ForeignKey(name = "fk_acc_cert_wi_owner")
     @MapsId("owner")
@@ -78,6 +82,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return owner;
     }
 
+    @Override
     public void setOwner(RAccessCertificationCase _case) {
         this.owner = _case;
         if (_case != null) {            // sometimes we are called with null _case but non-null IDs
@@ -86,16 +91,19 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         }
     }
 
+    @Override
     @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     //@OwnerIdGetter()            // this is not a single-valued owner id
     public Integer getOwnerId() {
         return ownerId;
     }
 
+    @Override
     public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -105,6 +113,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return id;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -159,6 +168,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getOutputChangeTimestamp() {
         return outputChangeTimestamp;
     }
@@ -168,6 +178,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getCloseTimestamp() {
         return closeTimestamp;
     }
@@ -199,11 +210,13 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
                 .hash(ownerOwnerOid, ownerId, id, iteration, stageNumber, assigneeRef, performerRef, outcome, outputChangeTimestamp, closeTimestamp);
     }
 
+    @Override
     @Transient
     public Boolean isTransient() {
         return trans;
     }
 
+    @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
     }

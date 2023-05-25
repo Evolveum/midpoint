@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;

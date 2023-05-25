@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;

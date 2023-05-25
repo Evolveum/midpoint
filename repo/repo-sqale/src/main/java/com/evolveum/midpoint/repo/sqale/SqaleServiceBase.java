@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;

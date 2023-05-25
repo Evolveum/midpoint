@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 
 /**
@@ -24,6 +25,7 @@ public enum RAvailabilityStatus implements SchemaEnum<AvailabilityStatusType> {
 
     RAvailabilityStatus(AvailabilityStatusType status) {
         this.status = status;
+        RUtil.register(this);
     }
 
     @Override

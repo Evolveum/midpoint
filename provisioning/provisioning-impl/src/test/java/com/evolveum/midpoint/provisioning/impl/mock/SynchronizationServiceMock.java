@@ -9,8 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.mock;
 
 import static org.testng.AssertJUnit.*;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.task.api.TaskUtil;
 

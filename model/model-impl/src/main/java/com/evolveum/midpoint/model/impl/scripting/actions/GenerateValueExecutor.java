@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.GenerateValueActionExpressionType;
 

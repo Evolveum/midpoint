@@ -9,8 +9,11 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.Filter;
-import javax.servlet.ServletRequest;
+
+import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2WebSsoAuthenticationRequestFilter;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.provider.Saml2Provider;
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditi
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationRequestFilter;
+import org.springframework.security.saml2.provider.service.web.Saml2WebSsoAuthenticationRequestFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
@@ -71,9 +74,10 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         for (Filter f : filter.getFilters()){
-            if (f instanceof Saml2WebSsoAuthenticationRequestFilter) {
-                ((Saml2WebSsoAuthenticationRequestFilter) f).setRedirectMatcher(new AntPathRequestMatcher(module.getPrefix()
-                        + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID));
+            if (f instanceof MidpointSaml2WebSsoAuthenticationRequestFilter) {
+                ((MidpointSaml2WebSsoAuthenticationRequestFilter) f).getAuthenticationRequestResolver().setRequestMatcher(
+                        new AntPathRequestMatcher(module.getPrefix()
+                                + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID));
                 break;
             }
         }

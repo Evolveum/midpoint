@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.wf.impl;
 
 import java.util.*;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;

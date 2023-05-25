@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.criteria.*;
+import jakarta.persistence.criteria.*;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;

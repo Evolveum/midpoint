@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;

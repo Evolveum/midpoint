@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_report_name", columnNames = { "name_norm" }),
         indexes = {
-                @javax.persistence.Index(name = "iReportNameOrig", columnList = "name_orig"),
+                @jakarta.persistence.Index(name = "iReportNameOrig", columnList = "name_orig"),
         }
 )
 @ForeignKey(name = "fk_report")

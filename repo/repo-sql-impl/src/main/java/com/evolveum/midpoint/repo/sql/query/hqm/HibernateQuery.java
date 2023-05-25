@@ -12,7 +12,7 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.criterion.MatchMode;
+import org.hibernate.query.BindableType;
 import org.hibernate.query.Query;
 import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.Type;
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.*;
+import com.evolveum.midpoint.repo.sql.query.restriction.MatchMode;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -141,14 +142,14 @@ public class HibernateQuery {
             LOGGER.trace("Parameter {} = {}", name, parameterValue.debugDump());
 
             if (parameterValue.getValue() instanceof Collection) {
-                if (parameterValue.getType() != null) {
-                    query.setParameterList(name, (Collection) parameterValue.getValue(), parameterValue.getType());
+                if (parameterValue.getType() instanceof BindableType) {
+                    query.setParameterList(name, (Collection) parameterValue.getValue(), (BindableType) parameterValue.getType());
                 } else {
                     query.setParameterList(name, (Collection) parameterValue.getValue());
                 }
             } else {
-                if (parameterValue.getType() != null) {
-                    query.setParameter(name, parameterValue.getValue(), parameterValue.getType());
+                if (parameterValue.getType() instanceof BindableType) {
+                    query.setParameter(name, parameterValue.getValue(), (BindableType) parameterValue.getType());
                 } else {
                     query.setParameter(name, parameterValue.getValue());
                 }

@@ -8,10 +8,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.ForeignKey;
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -122,12 +123,14 @@ public abstract class RFocus extends RObject {
         return timezone;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     @JaxbPath(itemPath = { @JaxbName(localPart = "credentials"), @JaxbName(localPart = "password"),
             @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getPasswordCreateTimestamp() {
         return passwordCreateTimestamp;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     @JaxbPath(itemPath = { @JaxbName(localPart = "credentials"), @JaxbName(localPart = "password"),
             @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getPasswordModifyTimestamp() {

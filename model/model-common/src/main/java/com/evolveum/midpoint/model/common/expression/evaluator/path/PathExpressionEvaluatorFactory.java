@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator.path;
 import java.util.Collection;
 import java.util.Objects;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;

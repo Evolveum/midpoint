@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.io.File;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.testng.annotations.Test;
 
