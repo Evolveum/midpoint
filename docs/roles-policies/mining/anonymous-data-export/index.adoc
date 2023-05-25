@@ -71,12 +71,14 @@ However, partial functionality was back-ported to some older midPoint versions.
 | User interface and command-line
 
 | 4.7.1
-| TODO
+| Command-line only
 
 | 4.4.5 and subsequent 4.4.x releases
 | Command-line only
 
 |====
+
+The functionality may also be available in some support branches of other midPoint versions.
 
 == Minimization and Anonymization
 
@@ -125,6 +127,7 @@ parameter can be performed in three different ways:
 2. `SEQUENTIAL`:  Original value is discarded. It is replaced by a sequential value.
 3. `ORIGINAL`: The original value of the parameter is kept. This option is available for testing and experimentation. It is recommended *not to use it* for exports that will be shared.
 
+// TODO: filters
 
 == Role Categories
 
@@ -145,7 +148,7 @@ If the algorithm is good, it should re-create at least some business roles that 
 * We will use the data to validate our assumptions and algorithms limitations.
 E.g. the data can tell us whether our assumption that application roles do not contain other application roles is correct.
 
-As there is no widespread standardized way to distinguish application and business role in midPoint yet,
+As there is no wide-spread standardized way to distinguish application and business role in midPoint yet,
 the export process provides a couple of ways to distinguish them:
 
 1. Utilizing archetypes.
