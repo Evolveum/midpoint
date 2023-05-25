@@ -74,6 +74,11 @@
                     <a:operation>moved</a:operation>
                     <a:replacement>tns:executionState</a:replacement>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:errorHandlingStrategy</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -497,20 +502,6 @@
                                 DEPRECATED. Moved to the FocusValidityScanWorkDefinitionType.validityConstraint.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="errorHandlingStrategy" type="tns:ActivityErrorHandlingStrategyType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Error handling strategy for this task. EXPERIMENTAL.
-                                DEPRECATED. Set error handling strategy in activity instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.3</a:since>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
