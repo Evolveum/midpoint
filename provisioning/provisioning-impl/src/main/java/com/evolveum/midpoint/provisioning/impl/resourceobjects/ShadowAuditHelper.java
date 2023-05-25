@@ -12,12 +12,9 @@ import static java.util.Collections.emptyList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -30,23 +27,25 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.AuditHelper;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class ShadowAuditHelper {
 
-    @Autowired private ProvisioningService provisioningService;
     @Autowired private AuditHelper auditHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public void auditEvent(AuditEventType event, ShadowType shadow, ProvisioningContext ctx, OperationResult result) {
         auditEvent(event, shadow, null, ctx, result);
@@ -69,7 +68,7 @@ public class ShadowAuditHelper {
         ProvisioningOperationContext operationContext = ctx.getOperationContext();
         AuditEventRecord auditRecord = new AuditEventRecord(event, AuditEventStage.RESOURCE);
         auditRecord.setRequestIdentifier(operationContext.requestIdentifier());
-        if (shadow != null) {
+        if (shadow != null) {   // todo pouzi shadow manager na dotiahnutie, entitlmentconvertercoska pripadne by mohol mat to oid-cko k dispospozicii
             auditRecord.setTargetRef(new ObjectReferenceType()
                     .oid(shadow.getOid())
                     .targetName(shadow.getName())
@@ -119,7 +118,7 @@ public class ShadowAuditHelper {
             return;
         }
 
-        ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = operationContext.nameResolver();
+        ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> repositoryService.getObject(objectClass, oid, null, result).getName();
 
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
     }
@@ -155,15 +154,11 @@ public class ShadowAuditHelper {
     }
 
     private boolean isEnhancedShadowAuditingEnabled(SystemConfigurationType config) {
-        if (config == null) {
+        if (config == null || config.getAudit() == null) {
             return false;
         }
 
-        if (config.getAudit() == null || config.getAudit().getEventRecording() == null) {
-            return true;
-        }
-
         SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
-        return BooleanUtils.isNotFalse(eventRecording.isRecordEnhancedShadowChanges());
+        return BooleanUtils.isTrue(eventRecording.isRecordEnhancedShadowChanges());
     }
 }

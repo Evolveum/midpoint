@@ -7,21 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
-import com.evolveum.midpoint.task.api.ExpressionEnvironment;
-
 import java.util.function.Supplier;
+
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 
 public class ProvisioningOperationContext {
 
     private String requestIdentifier;
 
-    private Supplier<ExpressionEnvironment> expressionEnvironment;
+    private Supplier<ExpressionEnvironment> expressionEnvironmentSupplier;
 
     private ExpressionProfile expressionProfile;
-
-    private ObjectDeltaSchemaLevelUtil.NameResolver nameResolver;
 
     public String requestIdentifier() {
         return requestIdentifier;
@@ -41,21 +38,12 @@ public class ProvisioningOperationContext {
         return this;
     }
 
-    public ObjectDeltaSchemaLevelUtil.NameResolver nameResolver() {
-        return nameResolver;
-    }
-
-    public ProvisioningOperationContext nameResolver(ObjectDeltaSchemaLevelUtil.NameResolver nameResolver) {
-        this.nameResolver = nameResolver;
-        return this;
-    }
-
     public Supplier<ExpressionEnvironment> expressionEnvironment() {
-        return expressionEnvironment;
+        return expressionEnvironmentSupplier;
     }
 
     public ProvisioningOperationContext expressionEnvironment(Supplier<ExpressionEnvironment> expressionEnvironment) {
-        this.expressionEnvironment = expressionEnvironment;
+        this.expressionEnvironmentSupplier = expressionEnvironment;
         return this;
     }
 }

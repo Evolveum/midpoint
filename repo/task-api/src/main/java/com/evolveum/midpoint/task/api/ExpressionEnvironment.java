@@ -14,6 +14,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * Contains current task and operation result (if known - but it is usually so).
  *
  * Usually contained in some kind of a thread-local holder.
+ *
+ * TODO {@link ExpressionEnvironment} should be together with {@link Expresssion}, however it was moved to task-api to be accessible
+ * in provisioning-api for auditing purposes
+ *
+ * TODO this class should probably also contain {@link com.evolveum.midpoint.schema.expression.ExpressionProfile}, please refactor
  */
 public class ExpressionEnvironment {
 
