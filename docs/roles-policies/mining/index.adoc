@@ -1,0 +1,8 @@
+= Role Mining
+:page-since: "4.8"
+:page-upkeep-status: red
+
+Role mining is a planned feature for midPoint 4.8.
+
+// TODO
+
