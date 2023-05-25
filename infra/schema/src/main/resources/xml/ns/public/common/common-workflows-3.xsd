@@ -1379,10 +1379,7 @@
             </xsd:element>
             <xsd:element name="title" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                    </xsd:appinfo>
+                    <xsd:documentation>Simpler (plain string) form of "localizableTitle".</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="part" type="tns:InformationPartType" minOccurs="0" maxOccurs="unbounded" />
@@ -1406,10 +1403,7 @@
             </xsd:element>
             <xsd:element name="text" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                    </xsd:appinfo>
+                    <xsd:documentation>Simpler (plain string) form of "localizableText".</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="hasMarkup" type="xsd:boolean" minOccurs="0" />
