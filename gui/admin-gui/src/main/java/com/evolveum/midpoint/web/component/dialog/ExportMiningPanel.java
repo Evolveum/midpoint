@@ -125,7 +125,8 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
         label.setEscapeModelStrings(true);
         add(label);
 
-        ExternalLink externalLink = new ExternalLink(ID_LINK_DOCUMENTATION, "https://docs.evolveum.com/");
+        ExternalLink externalLink = new ExternalLink(ID_LINK_DOCUMENTATION,
+                "https://docs.evolveum.com/midpoint/reference/roles-policies/mining/anonymous-data-export/");
         externalLink.add(AttributeModifier.append("target", "_blank"));
         externalLink.setBody(createStringResource("roleMiningExportPanel.documentation.link"));
 
