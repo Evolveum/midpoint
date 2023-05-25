@@ -359,11 +359,6 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
-    public TaskAsserter<RA> assertCategory(String category) {
-        assertEquals(category, getTaskBean().getCategory());
-        return this;
-    }
-
     public TaskAsserter<RA> assertBinding(TaskBindingType binding) {
         assertEquals(binding, getTaskBean().getBinding());
         return this;

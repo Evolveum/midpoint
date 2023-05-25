@@ -42,7 +42,6 @@
               relation="org:default"
               type="tns:UserType"><!-- administrator --></ownerRef>
     <executionState>closed</executionState>
-    <category>BulkActions</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
     <binding>tight</binding>
 </task>

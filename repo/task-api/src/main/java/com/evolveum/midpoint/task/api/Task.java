@@ -383,22 +383,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      */
     void setHandlerUri(String value);
 
-    /**
-     * Task category is a user-oriented term, hinting on what 'kind' of task is the one being considered
-     * (system task, workflow, live sync, ...). In most cases, category can be derived from the task handler.
-     *
-     * Category can be set directly; but if not set directly, it is set automatically on first task execution,
-     * determined based on task handler URI.
-     *
-     * List of categories is in the TaskCategory class.
-     */
-    String getCategory();
-
-    /**
-     * Sets the task category.
-     */
-    void setCategory(String category);
-
     // TODO Rework all three following archetype-setting methods
 
     /**

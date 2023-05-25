@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -403,7 +402,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         TaskType approvalTask = prismContext.createObjectable(TaskType.class)
                 .name("approval task")
-                .category(TaskCategory.WORKFLOW)
                 .executionState(TaskExecutionStateType.WAITING)
                 .schedulingState(TaskSchedulingStateType.WAITING)
                 .ownerRef(userAdministrator.getOid(), UserType.COMPLEX_TYPE)
@@ -413,7 +411,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(USER_JACK_OID)
-                .and().item(TaskType.F_CATEGORY).eq(TaskCategory.WORKFLOW)
                 .and().item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.WAITING)
                 .build();
         SearchResultList<PrismObject<TaskType>> tasks = modelService

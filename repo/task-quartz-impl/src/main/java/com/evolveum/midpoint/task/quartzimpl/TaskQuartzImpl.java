@@ -1715,16 +1715,6 @@ public class TaskQuartzImpl implements Task {
                 getHandlerUri());
     }
 
-    @Override
-    public String getCategory() {
-        return getProperty(TaskType.F_CATEGORY);
-    }
-
-    @Override
-    public void setCategory(String value) {
-        setProperty(TaskType.F_CATEGORY, value);
-    }
-
     public String getChannelFromHandler() {
         TaskHandler h = getHandler();
         return h != null ? h.getDefaultChannel() : null;

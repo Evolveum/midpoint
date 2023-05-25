@@ -89,6 +89,11 @@
                     <a:version>4.8</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:category</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -263,18 +268,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.nodeAsObserved</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="category" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Kind of the task, e.g. live sync, reconciliation, workflow, import from resource.
-                                Used mainly for the GUI.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>TaskType.category</a:displayName>
-                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

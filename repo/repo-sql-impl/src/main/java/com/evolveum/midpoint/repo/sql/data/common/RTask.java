@@ -48,7 +48,7 @@ public class RTask extends RObject implements ROperationResultFull {
     private String taskIdentifier;
     private RTaskExecutionState executionStatus;
     private String node;
-    private String category;
+    private String category; // no longer used
     private String handlerUri;
     //operation result
     private byte[] fullResult;
@@ -302,7 +302,6 @@ public class RTask extends RObject implements ROperationResultFull {
         repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
         repo.setRecurrence(RUtil.getRepoEnumValue(TaskTypeUtil.getEffectiveRecurrence(jaxb), RTaskRecurrence.class));
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
-        repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), repositoryContext.relationRegistry));

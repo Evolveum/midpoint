@@ -166,7 +166,6 @@ public class ProcessingCoordinator<I> {
             workerSpecificResults.add(workerSpecificResult);
 
             RunningLightweightTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
-            subtask.setCategory(coordinatorTask.getCategory());
             subtask.setResult(new OperationResult(OP_EXECUTE_WORKER, OperationResultStatus.IN_PROGRESS, (String) null));
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
             subtask.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));

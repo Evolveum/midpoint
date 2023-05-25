@@ -46,7 +46,6 @@
     </ownerRef>
     <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
     <executionState>closed</executionState>
-    <category>Utility</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/execute-deltas/handler-3</handlerUri>
     <binding>tight</binding>
 </task>
