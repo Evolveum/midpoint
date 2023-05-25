@@ -200,6 +200,8 @@
         <prism.version>${project.version}</prism.version>
 
         <!-- Dependencies global versions -->
+        <httpclient.version>4.5.14</httpclient.version>
+
         <commons.io.version>2.9.0</commons.io.version>
         <commons.cli>1.5.0</commons.cli>
         <cxf.version>4.0.1</cxf.version>
@@ -402,31 +404,31 @@
                 <version>${asm.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.groovy</groupId>
+                <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy-all</artifactId>
                 <version>${groovy.version}</version>
                 <type>pom</type>
                 <exclusions>
                     <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
+                        <groupId>org.apache.groovy</groupId>
                         <artifactId>groovy-ant</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
+                        <groupId>org.apache.groovy</groupId>
                         <artifactId>groovy-test-junit5</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
+                        <groupId>org.apache.groovy</groupId>
                         <artifactId>groovy-test</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
+                        <groupId>org.apache.groovy</groupId>
                         <artifactId>groovy-testng</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.groovy</groupId>
+                <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy</artifactId>
                 <version>${groovy.version}</version>
             </dependency>
@@ -1583,13 +1585,6 @@
                 <artifactId>keycloak-core</artifactId>
                 <version>${keycloak.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <!--  Dependencies which are not version managed by spring-boot-dependencies anymore -->
-            <dependency>
-                <groupId>org.apache.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-                <version>${groovy.version}</version>
-                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
