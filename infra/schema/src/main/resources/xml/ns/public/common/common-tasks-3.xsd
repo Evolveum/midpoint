@@ -3976,6 +3976,11 @@
             <xsd:appinfo>
                 <a:since>3.8</a:since>
                 <a:container>true</a:container>
+                <a:schemaMigration>
+                    <a:element>tns:boundaryCharacters</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -3988,21 +3993,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.3</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Characters that make up the boundaries. These characters must be sorted.
-                                Reserved characters: '-', '$' (to be implemented later)
-                                Escaping character: '\'
-
-                                DEPRECATED. Please use boundary instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.3</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

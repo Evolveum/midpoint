@@ -223,8 +223,6 @@ public class StringBucketContentFactory extends BaseBucketContentFactory<StringW
         if (!segmentationConfig.getBoundary().isEmpty()) {
             return new Boundaries(segmentationConfig.getBoundary())
                     .getConfiguredBoundaries();
-        } else if (!segmentationConfig.getBoundaryCharacters().isEmpty()) {
-            return segmentationConfig.getBoundaryCharacters();
         } else if (segmentationConfig instanceof OidWorkSegmentationType) {
             return singletonList(OID_BOUNDARIES);
         } else {
