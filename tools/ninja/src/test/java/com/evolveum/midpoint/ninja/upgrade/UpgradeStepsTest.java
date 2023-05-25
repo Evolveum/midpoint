@@ -9,15 +9,15 @@ package com.evolveum.midpoint.ninja.upgrade;
 
 import com.beust.jcommander.JCommander;
 
-import com.evolveum.midpoint.ninja.action.upgrade.DownloadDistributionResult;
+import com.evolveum.midpoint.ninja.action.upgrade.step.DownloadDistributionResult;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.util.Log;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.action.upgrade.DatabaseSchemaStep;
-import com.evolveum.midpoint.ninja.action.upgrade.DownloadDistributionStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.DatabaseSchemaStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.DownloadDistributionStep;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;

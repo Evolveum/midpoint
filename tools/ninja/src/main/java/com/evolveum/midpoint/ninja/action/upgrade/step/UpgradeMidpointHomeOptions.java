@@ -5,11 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.step;
 
 import java.io.File;
 
-public class UpgradeMidpointHomeStepOptions {
+public class UpgradeMidpointHomeOptions {
 
     private File distributionFile;
 

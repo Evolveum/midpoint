@@ -5,7 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.step;
+
+import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 
 public class VersionCheckResult implements StepResult {
 

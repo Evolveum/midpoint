@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.step;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.evolveum.midpoint.ninja.action.upgrade.*;
 import org.apache.commons.lang3.StringUtils;
 
 public class DownloadDistributionStep implements UpgradeStep<DownloadDistributionResult> {

@@ -8,6 +8,10 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.upgrade.step.DatabaseSchemaStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.DownloadDistributionStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeMidpointHomeStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.VersionCheckStep;
 
 public class UpgradeAction extends Action<UpgradeOptions> {
 

@@ -5,11 +5,14 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.step;
 
 import java.io.Closeable;
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;

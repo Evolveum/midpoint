@@ -5,20 +5,24 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.step;
 
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
+import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
+import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
 import org.apache.commons.io.FileUtils;
 
 public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
 
     private static final String VAR_DIRECTORY = "var";
 
-    private final UpgradeMidpointHomeStepOptions options;
+    private final UpgradeMidpointHomeOptions options;
 
-    public UpgradeMidpointHomeStep(UpgradeMidpointHomeStepOptions options) {
+    public UpgradeMidpointHomeStep(UpgradeMidpointHomeOptions options) {
         this.options = options;
     }
 
