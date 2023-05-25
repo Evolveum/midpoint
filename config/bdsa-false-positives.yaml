@@ -1,0 +1,15 @@
+suppresions:
+  BDSA-2017-3745:
+    False Positive. MidPoint does not use user-supplied inputs in graphs.
+  BDSA-2020-0407:
+    False Positive. MidPoint GUI does not use WYSIWYG editor (CKEditor) from AdminLTE.
+  BDSA-2020-0489:
+    False Positive. MidPoint GUI does not use WYSIWYG editor (CKEditor) from AdminLTE.
+  BDSA-2023-0953:
+    False Positive. MidPoint does not use Cloud Foundry or /cloudfoundryapplication/ endpoints.
+  BDSA-2023-1225:
+    False Positive. MidPoint does not use welcome page feature of Spring Boot.
+  BDSA-2020-3334:
+    False Positive. MidPoint GUI does not use WYSIWYG editor (CKEditor) from AdminLTE.
+  BDSA-2021-1728:
+    False Positive. MidPoint GUI does not use WYSIWYG editor (CKEditor) from AdminLTE.
