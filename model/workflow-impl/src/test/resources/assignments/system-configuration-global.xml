@@ -45,7 +45,6 @@
         </handler>
     </notificationConfiguration>
     <workflowConfiguration>
-        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
         <approverCommentsFormatting>
             <value>

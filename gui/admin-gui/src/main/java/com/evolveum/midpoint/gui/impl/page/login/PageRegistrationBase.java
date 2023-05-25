@@ -147,7 +147,7 @@ public class PageRegistrationBase extends PageAdminLTE {
 
     }
 
-    private SecurityPolicyType resolveSecurityPolicy() {
+    protected SecurityPolicyType resolveSecurityPolicy() {
         SecurityPolicyType securityPolicy = runPrivileged((Producer<SecurityPolicyType>) () -> {
 
             Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);

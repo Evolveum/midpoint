@@ -79,11 +79,6 @@ class ArchetypePolicyMerger {
             mergedPolicy.setObjectTemplateRef(superPolicy.getObjectTemplateRef());
         }
 
-        //DEPRECATED
-        List<ItemConstraintType> propertyConstraints = mergeItemConstraints(currentPolicy.getPropertyConstraint(), superPolicy.getPropertyConstraint());
-        mergedPolicy.getPropertyConstraint().clear();
-        mergedPolicy.getPropertyConstraint().addAll(propertyConstraints);
-
         return mergedPolicy;
     }
 
@@ -384,12 +379,6 @@ class ArchetypePolicyMerger {
         if (archetypePolicy.getItemConstraint().isEmpty()) {
             for (ItemConstraintType objItemConstraint : objectPolicy.getItemConstraint()) {
                 resultPolicy.getItemConstraint().add(objItemConstraint.clone());
-            }
-        }
-        // Deprecated
-        if (archetypePolicy.getPropertyConstraint().isEmpty()) {
-            for (ItemConstraintType objPropertyConstraint : objectPolicy.getPropertyConstraint()) {
-                resultPolicy.getPropertyConstraint().add(objPropertyConstraint.clone());
             }
         }
         return resultPolicy;

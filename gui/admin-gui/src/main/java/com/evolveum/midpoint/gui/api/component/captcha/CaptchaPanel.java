@@ -18,16 +18,17 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 public class CaptchaPanel extends BasePanel<Void> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final String CAPTCHA_TEXT_ID = "text";
+    private static final String CAPTCHA_IMAGE_ID = "image";
     /**
      * The text provided by the user.
      */
@@ -49,7 +50,7 @@ public class CaptchaPanel extends BasePanel<Void> {
         add(feedback);
 
         captchaImageResource = createCaptchaImageResource();
-        final Image captchaImage = new Image("image", captchaImageResource);
+        final Image captchaImage = new Image(CAPTCHA_IMAGE_ID, captchaImageResource);
         captchaImage.setOutputMarkupId(true);
         add(captchaImage);
 
@@ -69,8 +70,7 @@ public class CaptchaPanel extends BasePanel<Void> {
         add(new Label("textDescriptionLabel",
                 pageBase.createStringResource("CaptchaPanel.textDescriptionLabel")));
 
-        add(new RequiredTextField<String>("text",
-                new PropertyModel<>(CaptchaPanel.this, "captchaText"), String.class) {
+        add(new RequiredTextField<String>(CAPTCHA_TEXT_ID, Model.of()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -104,7 +104,8 @@ public class CaptchaPanel extends BasePanel<Void> {
     }
 
     public String getCaptchaText() {
-        return captchaText;
+        RequiredTextField<String> captchaField = (RequiredTextField) get(CAPTCHA_TEXT_ID);
+        return captchaField.getInput();
     }
 
     public String getRandomText() {

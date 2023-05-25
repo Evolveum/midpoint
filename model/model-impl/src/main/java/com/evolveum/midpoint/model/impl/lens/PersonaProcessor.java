@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.projector.focus.TemplateMappingsEvaluation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -222,15 +223,19 @@ public class PersonaProcessor {
         return null;
     }
 
+    /**
+     * Archetype checks are fragile, see {@link ObjectTypeUtil#hasArchetypeRef(AssignmentHolderType, String)} but should
+     * be adequate, as this processor runs after main {@link Clockwork} work is done.
+     */
     private boolean personaMatches(FocusType persona, PersonaKey key) {
         PrismObject<? extends FocusType> personaObj = persona.asPrismObject();
         QName personaType = personaObj.getDefinition().getTypeName();
         if (!QNameUtil.match(personaType, key.getType())) {
             return false;
         }
-        List<String> objectSubtypes = FocusTypeUtil.determineSubTypes(personaObj);
-        for (String keySubtype: key.getSubtypes()) {
-            if (!objectSubtypes.contains(keySubtype)) {
+
+        for (String keyArchetypeOid: key.getArchetypeOids()) {
+            if (!ObjectTypeUtil.hasArchetypeRef(persona, keyArchetypeOid)) {
                 return false;
             }
         }
@@ -253,8 +258,6 @@ public class PersonaProcessor {
 
         if (!constructionBean.getArchetypeRef().isEmpty()) {
             FocusTypeUtil.addArchetypeAssignments(target, constructionBean.getArchetypeRef());
-        } else {
-            FocusTypeUtil.setSubtype(target, constructionBean.getTargetSubtype());
         }
 
         // pretend ADD focusOdo. We need to push all the items through the object template

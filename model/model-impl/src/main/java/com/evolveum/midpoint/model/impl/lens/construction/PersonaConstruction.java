@@ -52,7 +52,6 @@ public class PersonaConstruction<AH extends AssignmentHolderType>
         DebugUtil.debugDumpLabelLn(sb, "PersonaConstruction", indent);
         if (constructionBean != null) {
             DebugUtil.debugDumpWithLabelLn(sb, "targetType", constructionBean.getTargetType(), indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "subtype", constructionBean.getTargetSubtype(), indent + 1);
             DebugUtil.debugDumpWithLabelToStringLn(sb, "archetypeRef", constructionBean.getArchetypeRef(), indent + 1);
             DebugUtil.debugDumpWithLabelToStringLn(sb, "strength", constructionBean.getStrength(), indent + 1);
         }
