@@ -113,7 +113,10 @@ public class ObjectDeltaUpdater {
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
         RObject object = session.byId(objectClass).getReference(oid);
 
-        ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);
+        // Is this correct? should we get type from rObject?
+        //ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);
+
+        ManagedType<T> mainEntityType = (ManagedType) entityRegistry.getMapping(object.getClass());
 
         for (ItemDelta<?, ?> delta : narrowedModifications) {
             UpdateDispatcher.dispatchModification(prismObject, ctx, object, mainEntityType, delta);
