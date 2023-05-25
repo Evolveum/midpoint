@@ -357,6 +357,9 @@ The complete new set of initial objects is in the `config/initial-objects` direc
 _Actions required:_ Please review the changes and apply them appropriately to your configuration.
 More details are provided along with individual changes below.
 
+* References to removed `category` property of tasks were deleted: from task archetypes and from GUI configurations.
+See https://github.com/Evolveum/midpoint/commit/1fe4b600[1fe4b600].
+
 // * `000-system-configuration.xml`:
 // ** Minor changes in home page widgets in `adminGuiConfiguration/homePage/widget` container values related to the fix for bug:MID-8294[].
 // +
