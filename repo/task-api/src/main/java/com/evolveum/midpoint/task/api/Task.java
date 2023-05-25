@@ -963,9 +963,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Returns true if the task has any assignments. */
     boolean hasAssignments();
 
-    /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
-    PolicyRuleType getPolicyRule();
-
     Duration getCleanupAfterCompletion();
 
     void setCleanupAfterCompletion(Duration duration);

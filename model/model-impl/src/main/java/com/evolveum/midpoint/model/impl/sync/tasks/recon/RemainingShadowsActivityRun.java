@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -21,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -73,7 +73,7 @@ final class RemainingShadowsActivityRun
      * TODO change it!
      */
     @Override
-    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result)
+    public void customizeQuery(@NotNull SearchSpecification<ShadowType> searchSpecification, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
         // We doing dry run or preview, we must look after synchronizationTimestamp, because this is the one that
@@ -89,14 +89,15 @@ final class RemainingShadowsActivityRun
                         ShadowType.F_SYNCHRONIZATION_TIMESTAMP;
 
         // TODO maybe we should filter on kind/intent here as well, and not rely on objectsFilter?
-        return getBeans().prismContext.queryFor(ShadowType.class)
-                .block()
-                    .item(syncTimestampItem).le(getReconciliationStartTimestamp(result))
-                    .or().item(syncTimestampItem).isNull()
-                .endBlock()
-                .and().item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(processingScope.getResolvedObjectClassName())
-                .build();
+        searchSpecification.setQuery(
+                getBeans().prismContext.queryFor(ShadowType.class)
+                        .block()
+                            .item(syncTimestampItem).le(getReconciliationStartTimestamp(result))
+                            .or().item(syncTimestampItem).isNull()
+                            .endBlock()
+                        .and().item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
+                        .and().item(ShadowType.F_OBJECT_CLASS).eq(processingScope.getResolvedObjectClassName())
+                        .build());
     }
 
     private @NotNull XMLGregorianCalendar getReconciliationStartTimestamp(OperationResult opResult)
@@ -111,11 +112,11 @@ final class RemainingShadowsActivityRun
 
     // Ignoring configured search options. TODO ok?
     @Override
-    public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
-        return getBeans().schemaService.getOperationOptionsBuilder()
-                .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
-                .build();
+    public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
+        searchSpecification.setSearchOptions(
+                getBeans().schemaService.getOperationOptionsBuilder()
+                        .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                        .build());
     }
 
     @Override

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.testng.SkipException;
+
 /**
  * TODO
  */
@@ -84,5 +86,10 @@ public class TestValidityRecomputeTaskPartitionedMultipleTasks extends TestValid
                     .end()
                     .assertLastScanTimestamp(localRootPath, startCal, endCal);
         }
+    }
+
+    @Override
+    public void test350CustomValidityScan() {
+        throw new SkipException("Not relevant");
     }
 }

@@ -523,11 +523,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public PolicyRuleType getPolicyRule() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public @NotNull TaskExecutionMode getExecutionMode() {
         return TaskExecutionMode.PRODUCTION;
     }

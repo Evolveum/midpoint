@@ -1288,16 +1288,6 @@ public class TaskQuartzImpl implements Task {
         setPropertyImmediate(TaskType.F_DESCRIPTION, value, result);
     }
 
-    /**
-     * BEWARE: this returns a clone
-     */
-    @Override
-    public PolicyRuleType getPolicyRule() {
-        synchronized (prismAccess) {
-            return cloneIfRunning(taskPrism.asObjectable().getPolicyRule());
-        }
-    }
-
     @Override
     public String getParent() {
         return getProperty(TaskType.F_PARENT);

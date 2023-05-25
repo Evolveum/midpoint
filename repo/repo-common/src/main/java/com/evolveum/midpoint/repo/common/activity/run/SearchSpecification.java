@@ -15,12 +15,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecification;
 import com.evolveum.midpoint.repo.common.activity.definition.RepositoryObjectSetSpecificationImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import com.google.common.base.MoreObjects;
@@ -51,15 +53,15 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
     /**
      * Container type provided when counting and retrieving objects.
      */
-    private Class<C> type;
+    @NotNull private final Class<C> type;
 
     /** Query specifying what objects to process. */
-    private ObjectQuery query;
+    @Nullable private ObjectQuery query;
 
     /**
      * Options to be used during counting and searching.
      */
-    private Collection<SelectorOptions<GetOperationOptions>> searchOptions;
+    @Nullable private Collection<SelectorOptions<GetOperationOptions>> searchOptions;
 
     /**
      * Whether we want to use repository directly when counting/searching.
@@ -68,18 +70,20 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
      *
      * Note that this flag is really used only if model processing is available.
      */
-    private Boolean useRepository;
+    @Nullable private Boolean useRepository;
 
-    public SearchSpecification(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> searchOptions, Boolean useRepository) {
+    public SearchSpecification(
+            @NotNull Class<C> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> searchOptions,
+            @Nullable Boolean useRepository) {
         this.type = type;
         this.query = query;
         this.searchOptions = searchOptions;
         this.useRepository = useRepository;
     }
 
-    @SuppressWarnings("CopyConstructorMissesField")
-    protected SearchSpecification(SearchSpecification<C> prototype) {
+    protected SearchSpecification(@NotNull SearchSpecification<C> prototype) {
         this(prototype.type,
                 CloneUtil.clone(prototype.query),
                 CloneUtil.cloneCollectionMembers(prototype.searchOptions),
@@ -125,27 +129,28 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         return targetTypeClass;
     }
 
-    public Class<C> getType() {
+    public @NotNull Class<C> getType() {
         return type;
     }
 
-    public void setType(Class<C> type) {
-        this.type = type;
-    }
-
-    public ObjectQuery getQuery() {
+    public @Nullable ObjectQuery getQuery() {
         return query;
     }
 
-    public void setQuery(ObjectQuery query) {
+    public void setQuery(@Nullable ObjectQuery query) {
         this.query = query;
     }
 
-    public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
+    public void addFilter(ObjectFilter filter) {
+        setQuery(
+                ObjectQueryUtil.addConjunctions(query, filter));
+    }
+
+    public @Nullable Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return searchOptions;
     }
 
-    public void setSearchOptions(Collection<SelectorOptions<GetOperationOptions>> searchOptions) {
+    public void setSearchOptions(@Nullable Collection<SelectorOptions<GetOperationOptions>> searchOptions) {
         this.searchOptions = searchOptions;
     }
 
@@ -157,7 +162,7 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         return Boolean.TRUE.equals(getUseRepository());
     }
 
-    public void setUseRepository(Boolean useRepository) {
+    public void setUseRepository(@Nullable Boolean useRepository) {
         this.useRepository = useRepository;
     }
 

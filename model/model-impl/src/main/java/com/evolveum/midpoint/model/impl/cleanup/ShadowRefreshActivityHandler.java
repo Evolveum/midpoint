@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.cleanup;
 
+import com.evolveum.midpoint.repo.common.activity.run.*;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -17,13 +17,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityRun;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -112,15 +108,15 @@ public class ShadowRefreshActivityHandler
         }
 
         @Override
-        public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
-            if (ObjectQueryUtil.hasFilter(configuredQuery)) {
-                return configuredQuery;
-            } else {
-                return ObjectQueryUtil.replaceFilter(
-                        configuredQuery,
-                        getBeans().prismContext.queryFor(ShadowType.class)
-                                .exists(ShadowType.F_PENDING_OPERATION)
-                                .buildFilter());
+        public void customizeQuery(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
+            var configuredQuery = searchSpecification.getQuery();
+            if (!ObjectQueryUtil.hasFilter(configuredQuery)) {
+                searchSpecification.setQuery(
+                        ObjectQueryUtil.replaceFilter(
+                                configuredQuery,
+                                getBeans().prismContext.queryFor(ShadowType.class)
+                                        .exists(ShadowType.F_PENDING_OPERATION)
+                                        .buildFilter()));
             }
         }
 
