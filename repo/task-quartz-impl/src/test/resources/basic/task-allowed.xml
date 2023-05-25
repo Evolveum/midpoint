@@ -17,7 +17,6 @@
     <executionStatus>runnable</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
-    <recurrence>single</recurrence>
 
     <executionConstraints>
         <group>lightweight-tasks</group>

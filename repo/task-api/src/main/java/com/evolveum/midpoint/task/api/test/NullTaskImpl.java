@@ -171,11 +171,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
-        return null;
-    }
-
-    @Override
     public String getOid() {
         return null;
     }

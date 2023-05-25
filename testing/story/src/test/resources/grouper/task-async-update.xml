@@ -19,7 +19,9 @@
     <objectRef oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233" relation="org:default" type="c:ResourceType">
         <!-- Grouper Resource -->
     </objectRef>
-    <recurrence>recurring</recurrence> <!-- started manually -->
     <binding>loose</binding>
+    <schedule>
+        <recurrence>recurring</recurrence> <!-- started manually -->
+    </schedule>
     <threadStopAction>restart</threadStopAction>
 </task>

@@ -74,6 +74,21 @@
                     <a:operation>moved</a:operation>
                     <a:replacement>tns:executionState</a:replacement>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:errorHandlingStrategy</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:modelOperationContext</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:recurrence</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -414,17 +429,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                DEPRECATED. Moved to schedule/recurrence and made optional.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="binding" type="tns:TaskBindingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -473,22 +477,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="modelOperationContext" type="tns:LensContextType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Model context of the operation that is to be executed within this task.
-                                This is NOT a live information: it is a serialized form of a model context.
-                                Currently there is a specialized task handler that takes this context,
-                                unmarshalls and executes it.
-
-                                Note: This item will be moved to an activity definition in the future.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -497,20 +485,6 @@
                                 DEPRECATED. Moved to the FocusValidityScanWorkDefinitionType.validityConstraint.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="errorHandlingStrategy" type="tns:ActivityErrorHandlingStrategyType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Error handling strategy for this task. EXPERIMENTAL.
-                                DEPRECATED. Set error handling strategy in activity instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.3</a:since>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
@@ -3985,6 +3959,11 @@
             <xsd:appinfo>
                 <a:since>3.8</a:since>
                 <a:container>true</a:container>
+                <a:schemaMigration>
+                    <a:element>tns:boundaryCharacters</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -3997,21 +3976,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.3</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Characters that make up the boundaries. These characters must be sorted.
-                                Reserved characters: '-', '$' (to be implemented later)
-                                Escaping character: '\'
-
-                                DEPRECATED. Please use boundary instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.3</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

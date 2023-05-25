@@ -136,7 +136,7 @@ public class ExplicitChangeExecutionActivityHandler
         }
 
         @Override
-        public ErrorHandlingStrategyExecutor.@NotNull FollowUpAction getDefaultErrorAction() {
+        public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
             return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
         }
     }

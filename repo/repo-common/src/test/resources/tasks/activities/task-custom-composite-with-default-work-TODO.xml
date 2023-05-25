@@ -12,7 +12,6 @@
     <name>task-custom-composite-with-default-work</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <recurrence>single</recurrence>
     <activity>
         <composition>
             <defaultWorkDefinition>

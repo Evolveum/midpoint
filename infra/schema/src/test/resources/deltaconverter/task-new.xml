@@ -177,7 +177,6 @@
     <lastRunStartTimestamp>2013-02-26T16:43:05.692+01:00</lastRunStartTimestamp>
     <lastRunFinishTimestamp>2013-02-26T16:43:38.798+01:00</lastRunFinishTimestamp>
     <progress>4</progress>
-    <c:recurrence>recurring</c:recurrence>
     <c:binding>tight</c:binding>
     <c:schedule>
         <c:interval>5</c:interval>

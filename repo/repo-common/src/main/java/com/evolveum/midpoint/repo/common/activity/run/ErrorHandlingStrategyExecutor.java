@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
-import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.Comparator;
@@ -23,7 +22,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -80,10 +77,12 @@ public class ErrorHandlingStrategyExecutor {
         STOP, CONTINUE
     }
 
-    ErrorHandlingStrategyExecutor(@NotNull Activity<?, ?> activity, @NotNull RunningTask task,
-            @NotNull ErrorHandlingStrategyExecutor.FollowUpAction defaultFollowUpAction, @NotNull CommonTaskBeans beans) {
+    ErrorHandlingStrategyExecutor(
+            @NotNull Activity<?, ?> activity,
+            @NotNull ErrorHandlingStrategyExecutor.FollowUpAction defaultFollowUpAction,
+            @NotNull CommonTaskBeans beans) {
         this.prismContext = beans.prismContext;
-        this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(activity, task).stream()
+        this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(activity).stream()
                 .map(StrategyEntryInformation::new)
                 .collect(Collectors.toList());
         sortIfPossible(strategyEntryInformationList);
@@ -198,34 +197,15 @@ public class ErrorHandlingStrategyExecutor {
         return XmlTypeConverter.fromNow(defaultIfNull(retryReaction.getInitialInterval(), DEFAULT_INITIAL_RETRY_INTERVAL));
     }
 
-    private List<ActivityErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Activity<?, ?> activity, Task task) {
-
-        // The current way
-        ActivityErrorHandlingStrategyType strategyFromActivity = activity.getErrorHandlingStrategy();
-        if (strategyFromActivity != null) {
-            ActivityErrorHandlingStrategyType clone = strategyFromActivity.clone();
+    private List<ActivityErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Activity<?, ?> activity) {
+        ActivityErrorHandlingStrategyType strategy = activity.getErrorHandlingStrategy();
+        if (strategy != null) {
+            ActivityErrorHandlingStrategyType clone = strategy.clone();
             clone.asPrismContainerValue().freeze();
             return clone.getEntry();
+        } else {
+            return List.of();
         }
-
-        // The 4.3.x way
-        ActivityErrorHandlingStrategyType strategyFromTask = task.getErrorHandlingStrategy();
-        if (strategyFromTask != null) {
-            ActivityErrorHandlingStrategyType clone = strategyFromTask.clone();
-            clone.asPrismContainerValue().freeze();
-            return clone.getEntry();
-        }
-
-        // The 4.2.x way
-        ActivityErrorHandlingStrategyType strategyFromExtension =
-                task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY);
-        if (strategyFromExtension != null) {
-            ActivityErrorHandlingStrategyType clone = strategyFromExtension.clone();
-            clone.asPrismContainerValue().freeze();
-            return clone.getEntry();
-        }
-
-        return emptyList();
     }
 
     private static class StrategyEntryInformation {

@@ -101,7 +101,7 @@ public class QTaskMapping
         addItemMapping(F_DEPENDENT, multiStringMapper(q -> q.dependentTaskIdentifiers));
 
         addNestedMapping(F_SCHEDULE, ScheduleType.class)
-                .addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence));
+                .addItemMapping(ScheduleType.F_RECURRENCE, enumMapper(q -> q.recurrence));
     }
 
     @Override

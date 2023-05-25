@@ -23,6 +23,8 @@
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="88ea07a2-2bca-4746-8276-07bdb4b014d5" type="ResourceType"/>
-    <recurrence>recurring</recurrence>
+    <schedule>
+        <recurrence>recurring</recurrence>
+    </schedule>
 
 </task>

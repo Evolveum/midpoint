@@ -28,5 +28,4 @@
     <c:executionState>runnable</c:executionState>
     <c:category>BulkActions</c:category>
     <c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</c:handlerUri>
-    <c:recurrence>single</c:recurrence>
 </c:task>
