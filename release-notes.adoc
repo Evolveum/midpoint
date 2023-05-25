@@ -491,6 +491,10 @@ These changes will influence midPoint forks and deployments that are heavily cus
 
 * The post-processing of retrieved objects in the IDM Model subsystem (sometimes called "apply schemas and security") was xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[simplified].
 
+* Internal `SearchBasedActivityRunSpecifics` interface was changed.
+This may affect those deployments that provide their own activity handlers.
+See https://github.com/Evolveum/midpoint/commit/12f6f66d[12f6f66d].
+
 
 // * Some now-obsolete methods in `OperationResult` were removed (see commit link:https://github.com/Evolveum/midpoint/commit/c90e5ee1[c90e5ee1]).
 // * Code in the `provisioning-impl` module was streamlined, so check any potential dependencies on it.
