@@ -161,19 +161,19 @@ Typically, you can navigate to the repository objects section and select the rol
 
 *1.* Navigate to the repository objects section.
 
-image::images/nav-tutorial-part-1.png[Role mining location]
+image::images/nav-tutorial-part-1.png[Role mining location, width=1300]
 
 *2.* Locate the role mining data export option within the repository objects section.
 
-image::images/nav-tutorial-part-2.png[Role mining location]
+image::images/nav-tutorial-part-2.png[Role mining location, width=1300]
 
 *3.* In the dialog window, customize the export according to your preferences.
 
-image::images/nav-tutorial-part-3.png[Home page of the role of mining export]
+image::images/nav-tutorial-part-3.png[Home page of the role of mining export, width=1300]
 
 *4.* To initiate the export process, simply click on the "Export" button located in the lower-right corner of the screen, and then wait for the export to complete.
 
-image::images/nav-tutorial-part-4.png[Home page of the role of mining export]
+image::images/nav-tutorial-part-4.png[Home page of the role of mining export, width=1300]
 
 == Import
 
