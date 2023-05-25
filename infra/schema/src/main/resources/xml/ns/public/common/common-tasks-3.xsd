@@ -79,6 +79,11 @@
                     <a:version>4.8</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:modelOperationContext</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -476,22 +481,6 @@
                                 What is to be done when the thread allocated to this task stops
                                 (e.g. via node shutdown or node crash).
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="modelOperationContext" type="tns:LensContextType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Model context of the operation that is to be executed within this task.
-                                This is NOT a live information: it is a serialized form of a model context.
-                                Currently there is a specialized task handler that takes this context,
-                                unmarshalls and executes it.
-
-                                Note: This item will be moved to an activity definition in the future.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
