@@ -20,9 +20,9 @@
     <executionStatus>runnable</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
-    <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>
+        <recurrence>recurring</recurrence>
         <!-- empty schedule to signal 'start on demand only' -->
     </schedule>
 </task>

@@ -26,7 +26,6 @@
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="2a7c7130-7a34-11e4-bdf6-001e8c717e5b" xsi:type="c:ResourceType"/>
-    <recurrence>recurring</recurrence>
     <binding>tight</binding>
     <schedule>
         <interval>3</interval>

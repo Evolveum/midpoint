@@ -19,7 +19,6 @@
     <executionStatus>runnable</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
-    <recurrence>recurring</recurrence>
     <binding>tight</binding>
     <schedule>
         <interval>1</interval>

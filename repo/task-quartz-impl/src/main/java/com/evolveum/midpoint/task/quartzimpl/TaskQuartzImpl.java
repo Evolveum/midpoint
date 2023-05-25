@@ -468,7 +468,6 @@ public class TaskQuartzImpl implements Task {
     static {
         // TODO why not scheduling status? Maybe because we do the synchronization explicitly then
         QUARTZ_RELATED_PROPERTIES.add(TaskType.F_BINDING);
-        QUARTZ_RELATED_PROPERTIES.add(TaskType.F_RECURRENCE);
         QUARTZ_RELATED_PROPERTIES.add(TaskType.F_SCHEDULE);
         QUARTZ_RELATED_PROPERTIES.add(TaskType.F_HANDLER_URI);
     }
@@ -1073,10 +1072,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void setSchedule(ScheduleType value) {
         synchronized (prismAccess) {
-            TaskType taskBean = taskPrism.asObjectable();
-            if (taskBean.getRecurrence() != null) {
-                setProperty(TaskType.F_RECURRENCE, null);
-            }
             setContainerable(TaskType.F_SCHEDULE, value);
         }
     }

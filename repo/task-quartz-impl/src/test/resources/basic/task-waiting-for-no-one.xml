@@ -16,6 +16,4 @@
     <executionStatus>waiting</executionStatus>
     <waitingReason>otherTasks</waitingReason>
 
-    <recurrence>single</recurrence>
-
 </task>

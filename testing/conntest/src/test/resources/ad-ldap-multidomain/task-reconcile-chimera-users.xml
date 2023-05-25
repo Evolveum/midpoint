@@ -25,6 +25,5 @@
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="ResourceType"/> <!-- Chimera -->
-    <recurrence>single</recurrence>
 
 </task>

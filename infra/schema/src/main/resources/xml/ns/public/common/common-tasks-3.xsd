@@ -84,6 +84,11 @@
                     <a:version>4.8</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:recurrence</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -417,17 +422,6 @@
 
                                 For activity-based tasks, it is replaced by .../activityState/progress/expectedInCurrentBucket
                                 and - if requested - .../activityState/progress/expectedTotal.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.4</a:deprecatedSince>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                DEPRECATED. Moved to schedule/recurrence and made optional.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
