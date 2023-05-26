@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import java.util.ArrayList;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;

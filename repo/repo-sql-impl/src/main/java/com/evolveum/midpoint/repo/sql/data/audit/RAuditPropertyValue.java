@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.COLU
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.TABLE_NAME;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;

@@ -15,6 +15,5 @@
     <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
-    <recurrence>single</recurrence>
 
 </task>

@@ -1,9 +1,10 @@
 
 package com.evolveum.midpoint.model.impl.integrity.objects;
 
-import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -114,9 +115,13 @@ public class ObjectIntegrityCheckActivityHandler
         }
 
         @Override
-        public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
-            return SelectorOptions.updateRootOptions(configuredOptions, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
+        public void customizeSearchOptions(
+                SearchSpecification<ObjectType> searchSpecification, OperationResult result) {
+            searchSpecification.setSearchOptions(
+                    SelectorOptions.updateRootOptions(
+                            searchSpecification.getSearchOptions(),
+                            opt -> opt.setAttachDiagData(true),
+                            GetOperationOptions::new));
         }
 
         @Override

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
 

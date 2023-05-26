@@ -22,17 +22,15 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -214,11 +212,11 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                     HttpClientBuilder builder = HttpClientBuilder.create();
                     String username = smsGatewayConfigurationType.getUsername();
                     ProtectedStringType password = smsGatewayConfigurationType.getPassword();
-                    CredentialsProvider provider = new BasicCredentialsProvider();
+                    BasicCredentialsProvider provider = new BasicCredentialsProvider();
                     if (username != null) {
                         String plainPassword = password != null ? protector.decryptString(password) : null;
-                        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword);
-                        provider.setCredentials(AuthScope.ANY, credentials);
+                        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword.toCharArray());
+                        provider.setCredentials(new AuthScope(null, null, -1, null, null), credentials);
                         builder = builder.setDefaultCredentialsProvider(provider);
                     }
                     String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
@@ -232,7 +230,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                         }
                         if (StringUtils.isNotBlank(proxyUsername)) {
                             String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
-                            UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
+                            UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword.toCharArray());
                             provider.setCredentials(new AuthScope(proxy), credentials);
                         }
                         builder = builder.setDefaultCredentialsProvider(provider);
@@ -248,7 +246,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                     }
                     ClientHttpResponse response = request.execute();
                     LOGGER.debug("Result: " + response.getStatusCode() + "/" + response.getStatusText());
-                    if (response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL) {
+                    if (!response.getStatusCode().is2xxSuccessful()) {
                         throw new SystemException("SMS gateway communication failed: " + response.getStatusCode() + ": " + response.getStatusText());
                     }
                     LOGGER.debug("Message sent successfully to {} via gateway {}.", message.getTo(), smsGatewayConfigurationType.getName());

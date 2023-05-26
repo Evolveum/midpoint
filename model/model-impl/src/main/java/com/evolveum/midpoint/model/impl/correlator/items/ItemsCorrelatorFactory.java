@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;

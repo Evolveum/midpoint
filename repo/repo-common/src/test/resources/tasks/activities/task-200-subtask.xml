@@ -12,7 +12,6 @@
     <name>task-200</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <recurrence>single</recurrence>
     <activity>
         <work>
             <extension>

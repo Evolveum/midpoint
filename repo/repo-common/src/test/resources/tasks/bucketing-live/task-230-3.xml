@@ -17,5 +17,4 @@
     <workManagement>
         <taskKind>worker</taskKind>
     </workManagement>
-    <recurrence>single</recurrence>
 </task>

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.provider.PasswordProvider;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;

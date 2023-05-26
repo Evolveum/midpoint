@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;

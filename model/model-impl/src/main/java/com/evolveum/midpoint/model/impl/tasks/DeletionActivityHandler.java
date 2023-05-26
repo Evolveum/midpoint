@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
@@ -114,7 +115,7 @@ public class DeletionActivityHandler
          * - in modern case the default of `true` is used.
          *
          * (Note that similar structure for the search options is not stored here. The search options
-         * are managed by the activity framework itself. See {@link #customizeSearchOptions(Collection, OperationResult)}.
+         * are managed by the activity framework itself. See {@link #customizeSearchOptions(SearchSpecification, OperationResult)}.
          * But the principle of managing raw value in search is the same.)
          */
         private ModelExecuteOptions effectiveModelExecuteOptions;
@@ -180,9 +181,10 @@ public class DeletionActivityHandler
         }
 
         @Override
-        public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
-            return getSearchOptionsWithRawSet(configuredOptions);
+        public void customizeSearchOptions(SearchSpecification<ObjectType> searchSpecification, OperationResult result) {
+            searchSpecification.setSearchOptions(
+                    getSearchOptionsWithRawSet(
+                            searchSpecification.getSearchOptions()));
         }
 
         /** Returns search options that have `raw` option set (provided or default). */

@@ -131,7 +131,6 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
                 ItemPath.create(TaskType.F_TASK_IDENTIFIER),
                 ItemPath.create(TaskType.F_NODE),
-                ItemPath.create(TaskType.F_CATEGORY),
                 ItemPath.create(TaskType.F_RESULT_STATUS),
                 ItemPath.create(TaskType.F_EXECUTION_STATE),
                 ItemPath.create(TaskType.F_HANDLER_URI),

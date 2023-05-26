@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;

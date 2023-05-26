@@ -366,9 +366,6 @@
                             <path>schedulingStateBeforeSuspend</path>
                         </item>
                         <item>
-                            <c:path>category</c:path>
-                        </item>
-                        <item>
                             <c:path>otherHandlersUriStack</c:path>
                         </item>
                         <item>

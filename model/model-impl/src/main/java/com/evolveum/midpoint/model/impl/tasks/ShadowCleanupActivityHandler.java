@@ -10,10 +10,11 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
-import java.util.Collection;
 import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.activity.run.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -23,21 +24,14 @@ import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
@@ -153,7 +147,7 @@ public class ShadowCleanupActivityHandler
         }
 
         @Override
-        public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
+        public void customizeQuery(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
 
             Duration notUpdatedDuration = getWorkDefinition().getInterval();
             Date deletingDate = new Date(getActivityHandler().clock.currentTimeMillis());
@@ -166,16 +160,15 @@ public class ShadowCleanupActivityHandler
                     .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
                     .buildFilter();
 
-            ObjectQuery fullQuery = ObjectQueryUtil.addConjunctions(configuredQuery, syncTimestampFilter);
-
-            LOGGER.trace("Query with sync timestamp filter:\n{}", fullQuery.debugDumpLazily());
-            return fullQuery;
+            LOGGER.trace("Using sync timestamp filter:\n{}", syncTimestampFilter.debugDumpLazily());
+            searchSpecification.addFilter(syncTimestampFilter);
         }
 
         @Override
-        public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
-            return GetOperationOptions.updateToNoFetch(configuredOptions);
+        public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
+            searchSpecification.setSearchOptions(
+                    GetOperationOptions.updateToNoFetch(
+                            searchSpecification.getSearchOptions()));
         }
 
         @Override

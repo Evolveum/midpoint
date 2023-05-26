@@ -46,12 +46,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -2220,6 +2220,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismContext.parseObject(file);
     }
 
+    protected <O extends ObjectType> PrismObject<O> parseObject(String stringData) throws SchemaException, IOException {
+        return prismContext.parseObject(stringData);
+    }
     protected void displayCleanup() {
         TestUtil.displayCleanup(getTestNameShort());
     }

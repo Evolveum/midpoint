@@ -133,7 +133,7 @@ public class TaskBasicPanel extends AbstractObjectMainPanel<TaskType, TaskDetail
 
         List<ItemPath> pathsToHide = Arrays.asList(TaskType.F_EXECUTION_STATE, TaskType.F_NODE, TaskType.F_NODE_AS_OBSERVED, TaskType.F_RESULT_STATUS,
                 TaskType.F_RESULT, TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP, TaskType.F_UNPAUSE_ACTION, TaskType.F_TASK_IDENTIFIER,
-                TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND, TaskType.F_CATEGORY,
+                TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND,
                 TaskType.F_CHANNEL, TaskType.F_DEPENDENT_TASK_REF, TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_COMPLETION_TIMESTAMP
         );
 

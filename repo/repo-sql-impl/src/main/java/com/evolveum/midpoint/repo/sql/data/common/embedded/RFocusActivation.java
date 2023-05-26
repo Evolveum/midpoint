@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RLockoutStatus;

@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;

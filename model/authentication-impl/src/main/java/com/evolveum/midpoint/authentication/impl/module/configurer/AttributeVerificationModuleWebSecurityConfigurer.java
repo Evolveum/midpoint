@@ -28,7 +28,7 @@ public class AttributeVerificationModuleWebSecurityConfigurer<C extends LoginFor
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         AttributeVerificationAuthenticationFilter verificationFilter = new AttributeVerificationAuthenticationFilter();
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointAttributeConfigurer<>(verificationFilter))
                 .loginPage("/attributeVerification")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")

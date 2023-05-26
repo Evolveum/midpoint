@@ -7,22 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.tasks.cluster;
 
-import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -63,13 +58,15 @@ public final class AutoScalingActivityRun extends
     }
 
     @Override
-    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
+    public void customizeQuery(@NotNull SearchSpecification<TaskType> searchSpecification, OperationResult result) {
         PrismContext prismContext = getBeans().prismContext;
 
         if (!latch.isShouldReconcileTasks()) {
-            return prismContext.queryFor(TaskType.class)
-                    .none()
-                    .build();
+            searchSpecification.setQuery(
+                    prismContext.queryFor(TaskType.class)
+                            .none()
+                            .build());
+            return;
         }
 
         // We select all autoscaling-enabled running tasks that have some children.
@@ -80,16 +77,16 @@ public final class AutoScalingActivityRun extends
                 .and().not().item(TaskType.F_AUTO_SCALING, TaskAutoScalingType.F_MODE).eq(TaskAutoScalingModeType.DISABLED)
                 .buildFilter();
 
-        ObjectQuery objectQuery = ObjectQueryUtil.addConjunctions(configuredQuery, reconcilableTasksFilter);
-
+        ObjectQuery objectQuery = ObjectQueryUtil.addConjunctions(searchSpecification.getQuery(), reconcilableTasksFilter);
         LOGGER.info("Going to reconcile workers for tasks using a query of {}", objectQuery);
-        return objectQuery;
+        searchSpecification.setQuery(objectQuery);
     }
 
     @Override
-    public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) throws CommonException {
-        return GetOperationOptions.updateToNoFetch(configuredOptions);
+    public void customizeSearchOptions(SearchSpecification<TaskType> searchSpecification, OperationResult result) {
+        searchSpecification.setSearchOptions(
+                GetOperationOptions.updateToNoFetch(
+                        searchSpecification.getSearchOptions()));
     }
 
     @Override
@@ -102,7 +99,7 @@ public final class AutoScalingActivityRun extends
     }
 
     @Override
-    public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
+    public void afterRun(OperationResult result) throws CommonException {
         latch.updateActivityState(result);
     }
 }

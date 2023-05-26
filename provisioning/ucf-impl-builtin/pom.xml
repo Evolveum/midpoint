@@ -127,6 +127,7 @@
             <artifactId>jakarta.jms-api</artifactId>
         </dependency>
 
+
         <!-- Testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.W
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;

@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Enumeration;
-import javax.jms.*;
+import jakarta.jms.*;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 

@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources;
 
-import static javax.jms.Session.CLIENT_ACKNOWLEDGE;
+import static jakarta.jms.Session.CLIENT_ACKNOWLEDGE;
 
 import java.util.Enumeration;
-import javax.jms.*;
+import jakarta.jms.*;
 import javax.naming.InitialContext;
 
 import org.jetbrains.annotations.NotNull;

@@ -292,6 +292,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -306,7 +307,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-jms-client</artifactId>
+            <artifactId>artemis-jakarta-client</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

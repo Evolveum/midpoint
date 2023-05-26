@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;

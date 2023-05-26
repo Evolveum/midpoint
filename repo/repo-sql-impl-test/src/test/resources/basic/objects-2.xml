@@ -26,7 +26,6 @@
         <taskIdentifier>777</taskIdentifier>
         <executionState>runnable</executionState>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-        <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>
             <interval>5</interval>
@@ -39,7 +38,6 @@
         <executionState>runnable</executionState>
         <ownerRef oid="00000000-0000-0000-2222-333333333333" type="c:UserType"/>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-        <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>
             <interval>5</interval>

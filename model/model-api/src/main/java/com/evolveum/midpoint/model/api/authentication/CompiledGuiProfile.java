@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;

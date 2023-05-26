@@ -32,6 +32,4 @@
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233" type="ResourceType" />        <!-- Grouper -->
-
-    <recurrence>single</recurrence>
 </task>

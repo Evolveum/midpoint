@@ -306,6 +306,14 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @PostMapping("/{type}/")
+    public <T extends ObjectType> ResponseEntity<?> addObjectAlt(
+            @PathVariable("type") String type,
+            @RequestParam(value = "options", required = false) List<String> options,
+            @RequestBody @NotNull PrismObject<T> object) {
+        return addObject(type, options, object);
+    }
+
     @PostMapping("/{type}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,

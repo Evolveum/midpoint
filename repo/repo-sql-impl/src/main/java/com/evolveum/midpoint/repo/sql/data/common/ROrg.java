@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 @ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_org_name", columnNames = { "name_norm" }),
         indexes = {
-                @javax.persistence.Index(name = "iOrgNameOrig", columnList = "name_orig"),
+                @jakarta.persistence.Index(name = "iOrgNameOrig", columnList = "name_orig"),
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)

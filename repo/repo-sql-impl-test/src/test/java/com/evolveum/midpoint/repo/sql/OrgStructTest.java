@@ -15,10 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -228,6 +225,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             logger.info("==============CLOSURE TABLE==========");
+            /*
             // descendants of F007 - F007<0>, F009<1>, F008<2>, F0010<2>
             Criteria criteria = session.createCriteria(ROrgClosure.class)
                     .createCriteria("ancestor", "anc")
@@ -247,7 +245,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             orgClosure = criteria.list();
             AssertJUnit.assertEquals(3, orgClosure.size());
-
+            */
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eq(ELAINE_NAME1)
                     .build();

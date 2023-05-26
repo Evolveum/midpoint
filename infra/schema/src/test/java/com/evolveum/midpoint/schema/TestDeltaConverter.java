@@ -38,7 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;

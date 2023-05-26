@@ -26,6 +26,5 @@
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/> <!-- OpenDj -->
-    <recurrence>single</recurrence>
 
 </task>

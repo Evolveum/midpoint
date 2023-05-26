@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import static javax.persistence.CascadeType.ALL;
+import static jakarta.persistence.CascadeType.ALL;
 
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -207,6 +208,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return fullObject;
     }
 
+    @Override
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 5")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
@@ -277,28 +279,34 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return assignments;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @Override
+    @Type(XMLGregorianCalendarType.class)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
 
+    @Override
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 6")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
@@ -309,11 +317,14 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return modifyApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @Override
+    @Type(XMLGregorianCalendarType.class)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
@@ -364,7 +375,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     @ElementCollection
     @CollectionTable(name = "m_object_subtype", joinColumns = {
             @JoinColumn(name = "object_oid", referencedColumnName = "oid",
-                    foreignKey = @javax.persistence.ForeignKey(name = "fk_object_subtype")) })
+                    foreignKey = @jakarta.persistence.ForeignKey(name = "fk_object_subtype")) })
     public Set<String> getSubtype() {
         return subtype;
     }
@@ -373,6 +384,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         this.subtype = subtype;
     }
 
+    @Override
     @Transient
     public Boolean isTransient() {
         return trans;
@@ -395,34 +407,42 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         this.objectTypeClass = objectTypeClass;
     }
 
+    @Override
     public void setCreateApproverRef(Set<RObjectReference<RFocus>> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
+    @Override
     public void setCreateChannel(String createChannel) {
         this.createChannel = createChannel;
     }
 
+    @Override
     public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
         this.createTimestamp = createTimestamp;
     }
 
+    @Override
     public void setCreatorRef(REmbeddedReference creatorRef) {
         this.creatorRef = creatorRef;
     }
 
+    @Override
     public void setModifierRef(REmbeddedReference modifierRef) {
         this.modifierRef = modifierRef;
     }
 
+    @Override
     public void setModifyApproverRef(Set<RObjectReference<RFocus>> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
+    @Override
     public void setModifyChannel(String modifyChannel) {
         this.modifyChannel = modifyChannel;
     }
 
+    @Override
     public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
         this.modifyTimestamp = modifyTimestamp;
     }

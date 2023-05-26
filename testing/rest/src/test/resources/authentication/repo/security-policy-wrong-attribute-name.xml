@@ -18,10 +18,10 @@
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <singleSymmetricKey>
-                        <clearValue>aRpjWIG4mI-SMG6KuEIX5PWT8o-_onPnh8OWoF_3-aMqgYM3ef4JLrHbk0lbQm91L-Mx0YSBFSHqPiAy6WQV9Q</clearValue>
-                    </singleSymmetricKey>
-                    <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    <jwt>
+                        <issuerUri>||issuerUri||</issuerUri>
+                        <nameOfUsernameClaim>wrong-attribute-name</nameOfUsernameClaim>
+                    </jwt>
                 </resourceServer>
             </oidc>
         </modules>

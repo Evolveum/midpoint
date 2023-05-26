@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

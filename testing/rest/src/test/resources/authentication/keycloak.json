@@ -1,0 +1,8 @@
+{
+  "realm" : "rest-tests",
+  "auth-server-url" : "||authServerUrl||",
+  "resource" : "||clientId||",
+  "credentials": {
+    "secret": "||clientSecret||"
+  }
+}

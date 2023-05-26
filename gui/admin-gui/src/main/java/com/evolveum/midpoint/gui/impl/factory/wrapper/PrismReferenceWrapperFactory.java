@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;

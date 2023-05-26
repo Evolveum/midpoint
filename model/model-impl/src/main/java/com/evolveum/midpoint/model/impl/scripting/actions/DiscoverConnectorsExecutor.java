@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import java.util.*;
 

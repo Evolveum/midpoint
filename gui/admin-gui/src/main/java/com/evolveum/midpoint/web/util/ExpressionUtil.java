@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.util;
 
 import java.util.*;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -347,7 +347,7 @@ public class ExpressionUtil {
         JAXBElement<Object> evaluator = new JAXBElement<>(
                 SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH,
                 Object.class,
-                new JAXBElement.GlobalScope());
+                JAXBElement.GlobalScope.class);
         SearchObjectExpressionEvaluatorType searchObjectExpressionEvaluatorType = new SearchObjectExpressionEvaluatorType();
 
         XNodeFactory factory = prismContext.xnodeFactory();

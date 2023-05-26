@@ -33,7 +33,7 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
             LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
             objects = ObjectSetUtil.fromLegacySource(legacySource);
             queryStyle = ValidityScanQueryStyleType.SINGLE_QUERY;
-            validityConstraint = getNotificationEnabledValidityPolicyConstraintFromTask(legacySource.getTaskBean());
+            validityConstraint = null;
         } else {
             FocusValidityScanWorkDefinitionType typedDefinition = (FocusValidityScanWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
@@ -57,16 +57,6 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
 
     TimeValidityPolicyConstraintType getValidityConstraint() {
         return validityConstraint;
-    }
-
-    private TimeValidityPolicyConstraintType getNotificationEnabledValidityPolicyConstraintFromTask(TaskType taskBean) {
-        PolicyRuleType policyRule = taskBean.getPolicyRule();
-        List<TimeValidityPolicyConstraintType> timeValidityConstraints = getTimeValidityConstraints(policyRule);
-        if (timeValidityConstraints.isEmpty() || !hasNotificationActions(policyRule)) {
-            return null;
-        } else {
-            return timeValidityConstraints.iterator().next();
-        }
     }
 
     @Override

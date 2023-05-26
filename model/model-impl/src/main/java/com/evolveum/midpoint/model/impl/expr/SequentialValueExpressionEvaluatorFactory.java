@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import java.util.Collection;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;

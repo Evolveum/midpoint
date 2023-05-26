@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
