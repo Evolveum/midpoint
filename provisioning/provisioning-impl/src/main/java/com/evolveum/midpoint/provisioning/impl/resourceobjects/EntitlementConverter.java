@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
@@ -829,6 +830,11 @@ class EntitlementConverter {
             ConfigurationException, ExpressionEvaluationException {
         ResourceType resource = subjectCtx.getResource();
         ShadowAssociationType associationBean = associationValue.asContainerable();
+        if (subjectCtx.getOperationContext() != null) {
+            ProvisioningOperationContext ctx = subjectCtx.getOperationContext();
+            ctx.shadowRef(associationBean.getShadowRef());
+        }
+
         QName associationName = associationBean.getName();
         if (associationName == null) {
             throw new SchemaException("No name in entitlement association "+associationValue);
