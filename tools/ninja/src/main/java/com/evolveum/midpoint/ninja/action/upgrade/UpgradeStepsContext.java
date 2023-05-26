@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
@@ -20,11 +22,16 @@ public class UpgradeStepsContext {
 
     private final UpgradeOptions options;
 
+    private final File tempDirectory;
+
     private final Map<Class<?>, Object> result = new HashMap<>();
 
     public UpgradeStepsContext(NinjaContext context, UpgradeOptions options) {
         this.context = context;
         this.options = options;
+
+        this.tempDirectory = options.getTempDirectory() != null ?
+                options.getTempDirectory() : new File(FileUtils.getTempDirectory(), "midpoint-upgrade");
     }
 
     public void addResult(@NotNull Class<?> step, Object result) {
@@ -48,5 +55,9 @@ public class UpgradeStepsContext {
 
     public NinjaContext getContext() {
         return context;
+    }
+
+    public File getTempDirectory() {
+        return tempDirectory;
     }
 }

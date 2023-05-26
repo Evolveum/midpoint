@@ -23,6 +23,11 @@ public class VersionCheckStep implements UpgradeStep<VersionCheckResult> {
     }
 
     @Override
+    public String getPresentableName() {
+        return "version check";
+    }
+
+    @Override
     public VersionCheckResult execute() throws Exception {
         String version = "";
         // todo implement midPoint version check, also implement midpoint version support in midpoint sqale db

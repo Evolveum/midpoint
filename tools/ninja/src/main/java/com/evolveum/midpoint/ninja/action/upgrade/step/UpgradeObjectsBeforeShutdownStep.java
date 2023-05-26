@@ -10,6 +10,11 @@ public class UpgradeObjectsBeforeShutdownStep extends UpgradeObjectsStep {
     }
 
     @Override
+    public String getPresentableName() {
+        return "upgrade objects before shutdown";
+    }
+
+    @Override
     public StepResult execute() throws Exception {
         return null;
     }

@@ -12,9 +12,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
-import com.evolveum.midpoint.ninja.action.upgrade.step.*;
+import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeObjectsAfterShutdownStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeObjectsBeforeShutdownStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.VerifyStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.VersionCheckStep;
 import com.evolveum.midpoint.ninja.util.Log;
 
 public class UpgradeAction extends Action<UpgradeOptions> {
@@ -24,34 +29,45 @@ public class UpgradeAction extends Action<UpgradeOptions> {
             VersionCheckStep.class,
             VerifyStep.class,
             UpgradeObjectsBeforeShutdownStep.class,
-            DownloadDistributionStep.class,
-            DatabaseSchemaStep.class,
-            UpgradeMidpointHomeStep.class,
+//            DownloadDistributionStep.class,
+//            DatabaseSchemaStep.class,
+//            UpgradeMidpointHomeStep.class,
             UpgradeObjectsAfterShutdownStep.class, // todo upgrade initial objects, also all other objects (changes that had to be done after DB upgrade)
             // todo what if recomputation/reconciliation/whatever task is needed?
     };
 
     @Override
     public void execute() throws Exception {
-        UpgradeStepsContext ctx = new UpgradeStepsContext(context, options);
-
         final Log log = context.getLog();
 
+        UpgradeStepsContext ctx = new UpgradeStepsContext(context, options);
+        File tempDirectory = ctx.getTempDirectory();
+
+        log.info("Using '" + tempDirectory.getAbsolutePath() + "' as temp directory");
+
+        FileUtils.forceMkdir(tempDirectory);
+
         for (Class<? extends UpgradeStep> stepType : STEPS) {
+            long startTime = System.currentTimeMillis();
+
             UpgradeStep step = createStepInstance(stepType, ctx);
             try {
-                log.info("Starting step: " + step.getPresentableName());
+                log.info("Starting " + step.getPresentableName());
 
                 StepResult result = step.execute();
                 ctx.addResult(step.getClass(), result);
 
                 String identifier = step.getIdentifier();
 
-                File tmpFolder = null; // todo fix
-                File file = new File(tmpFolder, "step");    // todo check for existence
+                File file = new File(tempDirectory, "step");
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
                 FileUtils.write(file, identifier, StandardCharsets.UTF_8, false);
 
-                log.info(step.getPresentableName() + " finished");
+                long duration = System.currentTimeMillis() - startTime;
+                log.info(StringUtils.capitalize(step.getPresentableName()) + " finished in " +
+                        DurationFormatUtils.formatDurationWords(duration, true, true));
 
                 if (!result.shouldContinue()) {
                     // todo print warning that processing was interrupted
