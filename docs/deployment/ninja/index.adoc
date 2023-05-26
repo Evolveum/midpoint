@@ -185,43 +185,43 @@ Check also the xref:/midpoint/reference/repository/native-audit/#audit-migration
 [NOTE]
 Role mining export is an anonymized export of relationships between roles, users, and
 organizations. The goal of the export is to obtain a map of relations between objects, which could
-be helpful in the development of new features such as "Role mining". For detailed information regarding role mining export, please refer to the xref:/midpoint/reference/mining/#role-mining-export[Role Mining Export documentation].
+be helpful in the development of new features such as "Role mining".
+For detailed information regarding role mining export, please refer to the
+xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data].
 
-
-.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and 258bits - `ADVANCED` security by default. For exporting in JSON format, rename the exported object file to `-O role-mining-export.json`.
+.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and `ADVANCED` security by default. For exporting in JSON format, rename the exported file extension to `-O role-mining-export.json`.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml -z -ow
-
+ninja.sh exportMining -O role-mining-export.xml.zip -z -ow
 ----
 
 ----
-java -jar ninja.jar -m <midpoint.home> exportMining -O role-mining-export.xml -z -ow
+java -jar ninja.jar -m <midpoint.home> exportMining -O role-mining-export.xml.zip -z -ow
 
 ----
 
-.Example: role mining export using `ENCRYPTED` name mode and 126bits - `STANDARD` security.
+.Example: role mining export using `ENCRYPTED` name mode and  `STANDARD` security.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml -z -ow -nm ENCRYPTED -s STANDARD
+ninja.sh exportMining -O role-mining-export.xml.zip -z -ow -nm ENCRYPTED -s STANDARD
 ----
 
 .Example: role mining export using an `Axiom filter` for roles.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml -fr '% . referencedBy (@type = UserType and @path = roleMembershipRef)'
+ninja.sh exportMining -O role-mining-export.xml -fr '% name != "Superuser"'
 ----
 
-.Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oid`.
+.Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oids`.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_EXPORT" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
+ninja.sh exportMining -O role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
 ----
 
 .Example: role mining export with `disable organization` structure export.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml -org false
+ninja.sh exportMining -O role-mining-export.xml --disableOrg
 ----
 
 .Example: role mining import.
@@ -549,9 +549,9 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
           -brs, --businessRoleSuffix
             Suffix for identifying exported business roles. Multiple suffixes can be specified by using a
             comma "," as a delimiter.
-          -org, --includeOrg
-            Include export of organizational structures.
-            Default: true
+          -do, --disableOrg
+            Prevent the export of organizational structures.
+            Default: false
           -nm, --nameMode
             Defines the format of the name parameter in the export (case-insensitive value).
             Default: SEQUENTIAL

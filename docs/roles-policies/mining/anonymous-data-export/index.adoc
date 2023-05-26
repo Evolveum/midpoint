@@ -98,9 +98,13 @@ Only the most essential parts of the data are exported, summarized in following 
 ** `name`: Name of the user, re-written according to export settings.
 ** `oid`: Anonymized object identifier for the users in UUID format.
 ** `assignments`: Only assignments of roles (`RoleType`) and optionally orgs (`OrgType`) are exported.
++
+Only objects that have assignments to roles (`RoleType`) or organizations (`OrgType`)
+will be exported. If an object does not include any assignments to roles or organizations, it will
+be excluded from the export.
 
 * Organizations (optional)
-** `name`: Name of the organization, re-written according to export settings..
+** `name`: Name of the organization, re-written according to export settings.
 ** `oid`: Anonymized object identifier for the users in UUID format.
 ** `assignments`: Only org assignments (`OrgType`) are exported, representing parent org. units (organizational hierarchy).
 
@@ -127,7 +131,45 @@ parameter can be performed in three different ways:
 2. `SEQUENTIAL`:  Original value is discarded. It is replaced by a sequential value.
 3. `ORIGINAL`: The original value of the parameter is kept. This option is available for testing and experimentation. It is recommended *not to use it* for exports that will be shared.
 
-// TODO: filters
+
+The possibility of adding an axiom filter is implemented for each parameter, providing a flexible
+way to control the exported data. Using filters, you can selectively include or exclude a specific
+object from the export.
+
+[NOTE]
+When exporting assignments and inducements of the roles (`RoleType`) objects, as well as assignments
+of the orgs (`OrgType`) objects, the filtering of roles and organizations takes effect.
+
+Axiom filters can be used for different objects types:
+
+1. `Roles`: Filtering roles (`RoleType`) objects.
++
+.Example: Filter all roles that are assigned to a user object.
+[source,bash]
+----
+. referencedBy (@type = UserType and @path = roleMembershipRef)
+----
+2. `Users`: Filtering users (`UserType`) objects.
++
+.Example: Filter all users whose accounts are not associated with a specific resource.
+[source,bash]
+----
+linkRef/@ not matches (
+. type ShadowType
+and resourceRef not matches (oid = "093ba5b5-7b15-470a-a147-889d09c2850f"))
+----
+3. `Organizations`: Filtering organizations (`OrgType`) objects.
++
+.Example: Filter all organizations that are assigned to a user object.
+[source,bash]
+----
+. referencedBy (@type = UserType and @path = assignment/targetRef)
+----
+
+.Example of using axiom filters in export dialog.
+image::images/filter-tutorial.png[Role mining location,width=1300]
+
+By using axiom filters, you can modify the export process to ensure that only relevant data that meets the specified criteria is included in the export.
 
 == Role Categories
 
@@ -255,19 +297,19 @@ Typically, you can navigate to the repository objects section and select the rol
 
 *1.* Navigate to the repository objects section.
 
-image::images/nav-tutorial-part-1.png[Role mining location, width=1300]
+image::images/nav-tutorial-part-1.png[Role mining location,width=1300]
 
 *2.* Locate the role mining data export option within the repository objects section.
 
-image::images/nav-tutorial-part-2.png[Role mining location, width=1300]
+image::images/nav-tutorial-part-2.png[Role mining location,width=1300]
 
 *3.* In the dialog window, customize the export according to your preferences.
 
-image::images/nav-tutorial-part-3.png[Home page of the role of mining export, width=1300]
+image::images/nav-tutorial-part-3.png[Home page of the role of mining export,width=1300]
 
 *4.* To initiate the export process, simply click on the "Export" button located in the lower-right corner of the screen, and then wait for the export to complete.
 
-image::images/nav-tutorial-part-4.png[Home page of the role of mining export, width=1300]
+image::images/nav-tutorial-part-4.png[Home page of the role of mining export,width=1300]
 
 === Command-line Export (ninja)
 
