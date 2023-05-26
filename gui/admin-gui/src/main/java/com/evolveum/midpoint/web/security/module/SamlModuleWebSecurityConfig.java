@@ -23,6 +23,8 @@ import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -82,7 +84,8 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
-            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken) {
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken,
+                    AuthenticationSequenceChannelType channel) {
                 if (anonymousAuthenticationToken.getDetails() instanceof Saml2AuthenticationToken) {
                     return (Saml2AuthenticationToken) anonymousAuthenticationToken.getDetails();
                 }

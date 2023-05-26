@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
@@ -16,7 +17,15 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointFormLoginConfigurer;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author skublik
@@ -45,7 +54,18 @@ public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityCon
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
+        MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
+            @Override
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken,
+                    AuthenticationSequenceChannelType channel) {
+                if (channel != null && SchemaConstants.CHANNEL_INVITATION_URI.equals(channel.getChannelId())) {
+                    anonymousAuthenticationToken.setAuthenticated(false);
+                    return anonymousAuthenticationToken;
+                }
+                return null;
+            }
+        };
+        getOrApply(http, exceptionConfigurer)
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(
                         getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl()));
 
@@ -55,5 +75,12 @@ public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityCon
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
+    }
+
+    private boolean uriMatchesInvitationChannel(String uri) {
+        if (uri == null) {
+            return false;
+        }
+        return uri.endsWith(SchemaConstants.CHANNEL_INVITATION_QNAME.getLocalPart());
     }
 }
