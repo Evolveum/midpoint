@@ -7,8 +7,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;

@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -31,9 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Entity
 @Table(name = "m_shadow", indexes = {
-        @javax.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
-        @javax.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm"),
-        @javax.persistence.Index(name = "iPrimaryIdentifierValueWithOC", columnList = "primaryIdentifierValue,objectClass,resourceRef_targetOid", unique = true) })
+        @jakarta.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
+        @jakarta.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm"),
+        @jakarta.persistence.Index(name = "iPrimaryIdentifierValueWithOC", columnList = "primaryIdentifierValue,objectClass,resourceRef_targetOid", unique = true) })
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
         indexes = {
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
@@ -139,19 +141,23 @@ public class RShadow extends RObject implements ROperationResult {
         return intent;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getSynchronizationTimestamp() {
         return synchronizationTimestamp;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getFullSynchronizationTimestamp() {
         return fullSynchronizationTimestamp;
     }
 
+    @Override
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
     }
 
+    @Override
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }

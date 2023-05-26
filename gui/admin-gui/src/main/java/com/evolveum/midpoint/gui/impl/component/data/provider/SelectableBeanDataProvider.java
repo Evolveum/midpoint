@@ -228,8 +228,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
         OperationResult result = task.getResult();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(PrismContext.get(), getOptions(),
-                    null);
+            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge( getOptions(), null);
             Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {

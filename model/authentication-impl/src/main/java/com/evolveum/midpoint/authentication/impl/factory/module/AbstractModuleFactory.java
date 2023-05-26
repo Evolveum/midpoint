@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletRequest;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 

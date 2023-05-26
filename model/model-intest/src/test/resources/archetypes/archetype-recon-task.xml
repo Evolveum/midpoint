@@ -46,17 +46,4 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>Reconciliation</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
 </archetype>

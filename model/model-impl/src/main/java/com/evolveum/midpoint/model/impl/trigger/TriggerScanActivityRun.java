@@ -12,16 +12,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityRun;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,15 +57,12 @@ final class TriggerScanActivityRun
     }
 
     @Override
-    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
-        return ObjectQueryUtil.addConjunctions(configuredQuery, createFilter());
-    }
-
-    private ObjectFilter createFilter() {
+    public void customizeQuery(SearchSpecification<ObjectType> searchSpecification, OperationResult result) {
         LOGGER.debug("Looking for triggers with timestamps up to {}", thisScanTimestamp);
-        return PrismContext.get().queryFor(ObjectType.class)
-                .item(F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
-                .buildFilter();
+        searchSpecification.addFilter(
+                PrismContext.get().queryFor(ObjectType.class)
+                        .item(F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
+                        .buildFilter());
     }
 
     @Override

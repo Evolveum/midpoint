@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;

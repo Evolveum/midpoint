@@ -10,7 +10,7 @@ package com.evolveum.midpoint.schema.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemsType;

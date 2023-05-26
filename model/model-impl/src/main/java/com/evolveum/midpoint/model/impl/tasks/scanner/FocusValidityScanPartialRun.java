@@ -15,37 +15,28 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedTimeValidityTrigger;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -83,21 +74,16 @@ public final class FocusValidityScanPartialRun
         ensureNoDryRun();
     }
 
-    @Override
-    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
-        TimeValidityPolicyConstraintType validityConstraint = getValidityConstraint();
-        return ObjectQueryUtil.addConjunctions(
-                configuredQuery,
+    public void customizeQuery(SearchSpecification<FocusType> searchSpecification, OperationResult result) {
+        TimeValidityPolicyConstraintType validityConstraint = getWorkDefinition().getValidityConstraint();
+        searchSpecification.addFilter(
                 validityConstraint != null ?
-                        createFilterForValidityChecking(validityConstraint) :
+                        createFilterForValidityChecking(searchSpecification, validityConstraint) :
                         createStandardFilter());
     }
 
-    private TimeValidityPolicyConstraintType getValidityConstraint() {
-        return getWorkDefinition().getValidityConstraint();
-    }
-
-    private ObjectFilter createFilterForValidityChecking(TimeValidityPolicyConstraintType validityConstraint) {
+    private ObjectFilter createFilterForValidityChecking(
+            SearchSpecification<FocusType> searchSpecification, TimeValidityPolicyConstraintType validityConstraint) {
         ItemPathType itemPathType = validityConstraint.getItem();
         ItemPath path = java.util.Objects.requireNonNull(itemPathType.getItemPath(),
                 "No path defined in the validity constraint");
@@ -108,7 +94,7 @@ public final class FocusValidityScanPartialRun
             lowerBound.add(negativeOffset);
         }
         upperBound.add(negativeOffset);
-        return createFilterForItemTimestamp(path, lowerBound, upperBound);
+        return createFilterForItemTimestamp(searchSpecification, path, lowerBound, upperBound);
     }
 
     private Duration getNegativeActivationOffset(@NotNull TimeValidityPolicyConstraintType validityConstraint) {
@@ -163,14 +149,15 @@ public final class FocusValidityScanPartialRun
                 scanScope == ScanScope.COMBINED;
     }
 
-    private ObjectFilter createFilterForItemTimestamp(ItemPath path,
+    private ObjectFilter createFilterForItemTimestamp(
+            SearchSpecification<FocusType> searchSpecification, ItemPath path,
             XMLGregorianCalendar lowerBound, XMLGregorianCalendar upperBound) {
         if (lowerBound == null) {
-            return PrismContext.get().queryFor(getItemType())
+            return PrismContext.get().queryFor(searchSpecification.getType())
                     .item(path).le(upperBound)
                     .buildFilter();
         } else {
-            return PrismContext.get().queryFor(getItemType())
+            return PrismContext.get().queryFor(searchSpecification.getType())
                     .item(path).gt(lowerBound)
                     .and().item(path).le(upperBound)
                     .buildFilter();
@@ -190,42 +177,14 @@ public final class FocusValidityScanPartialRun
     private LensContext<FocusType> createLensContext(@NotNull FocusType focus,
             @NotNull RunningTask workerTask, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException {
 
         // We want the reconcile option here. There may be accounts that are in wrong activation state.
         // We will not notice that unless we go with reconcile.
         ModelExecuteOptions options = ModelExecuteOptions.create().reconcile();
 
-        LensContext<FocusType> lensContext = getModelBeans().contextFactory
+        return getModelBeans().contextFactory
                 .createRecomputeContext(focus.asPrismObject(), options, workerTask, result);
-        if (getValidityConstraint() != null) {
-            addTriggeredPolicyRuleToContext(focus, lensContext, workerTask, result);
-        }
-
-        return lensContext;
-    }
-
-    private void addTriggeredPolicyRuleToContext(FocusType focus, LensContext<FocusType> lensContext,
-            RunningTask workerTask, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        TimeValidityPolicyConstraintType constraint = getValidityConstraint();
-
-        // Generated proforma - actually not much needed for now.
-        String ruleId = PolicyRuleTypeUtil.createId(workerTask.getOid());
-
-        EvaluatedPolicyRuleImpl policyRule =
-                new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, TargetType.OBJECT);
-        policyRule.computeEnabledActions(null, focus.asPrismObject(), workerTask, result);
-        EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger =
-                new EvaluatedTimeValidityTrigger(
-                        Boolean.TRUE.equals(constraint.isAssignment()) ?
-                                PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY :
-                                PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
-                        constraint,
-                        LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
-                        LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
-        policyRule.getTriggers().add(evaluatedTrigger);
-        lensContext.getFocusContext().addObjectPolicyRule(policyRule);
     }
 
     public enum ScanScope {

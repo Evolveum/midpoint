@@ -341,11 +341,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public String getCategory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getNode() {
         throw new UnsupportedOperationException();
     }
@@ -362,11 +357,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public ThreadStopActionType getThreadStopAction() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setCategory(String category) {
         throw new UnsupportedOperationException();
     }
 
@@ -529,11 +519,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PolicyRuleType getPolicyRule() {
         throw new UnsupportedOperationException();
     }
 

@@ -23,5 +23,4 @@
     <executionStatus>runnable</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/test/parallel-task-handler</handlerUri>
-    <recurrence>single</recurrence>
 </task>

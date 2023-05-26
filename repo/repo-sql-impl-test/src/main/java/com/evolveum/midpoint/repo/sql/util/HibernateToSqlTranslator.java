@@ -10,16 +10,16 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Criteria;
+//import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.hql.internal.ast.ASTQueryTranslatorFactory;
-import org.hibernate.hql.spi.QueryTranslator;
-import org.hibernate.hql.spi.QueryTranslatorFactory;
-import org.hibernate.internal.CriteriaImpl;
+//import org.hibernate.hql.internal.ast.ASTQueryTranslatorFactory;
+//import org.hibernate.hql.spi.QueryTranslator;
+//import org.hibernate.hql.spi.QueryTranslatorFactory;
+//import org.hibernate.internal.CriteriaImpl;
 import org.hibernate.internal.SessionImpl;
-import org.hibernate.loader.OuterJoinLoader;
-import org.hibernate.loader.criteria.CriteriaLoader;
+//import org.hibernate.loader.OuterJoinLoader;
+//import org.hibernate.loader.criteria.CriteriaLoader;
 import org.hibernate.persister.entity.OuterJoinLoadable;
 
 import java.lang.reflect.Field;
@@ -37,6 +37,7 @@ public class HibernateToSqlTranslator {
      * @param criteria
      * @return SQL string, null if criteria parameter was null.
      */
+    /*
     public static String toSql(Criteria criteria) {
         if (criteria == null) {
             return null;
@@ -62,6 +63,7 @@ public class HibernateToSqlTranslator {
             throw new SystemException(ex.getMessage(), ex);
         }
     }
+    */
 
     /**
      * Do not use in production code! Only for testing purposes only. Used for example during query engine upgrade.
@@ -71,6 +73,7 @@ public class HibernateToSqlTranslator {
      * @param hqlQueryText
      * @return SQL string, null if hqlQueryText parameter is empty.
      */
+    /*
     public static String toSql(SessionFactory sessionFactory, String hqlQueryText) {
         Validate.notNull(sessionFactory, "Session factory must not be null.");
 
@@ -90,4 +93,5 @@ public class HibernateToSqlTranslator {
         translator.compile(Collections.EMPTY_MAP, false);
         return translator.getSQLString();
     }
+    */
 }

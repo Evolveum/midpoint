@@ -11,8 +11,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -21,7 +21,6 @@
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>suspended</executionState>
-    <category>LiveSynchronization</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <result xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:operation>com.evolveum.midpoint.common.operation.liveSync</c:operation>
@@ -177,7 +176,6 @@
     <lastRunStartTimestamp>2013-02-26T16:43:05.692+01:00</lastRunStartTimestamp>
     <lastRunFinishTimestamp>2013-02-26T16:43:38.798+01:00</lastRunFinishTimestamp>
     <progress>4</progress>
-    <c:recurrence>recurring</c:recurrence>
     <c:binding>tight</c:binding>
     <c:schedule>
         <c:interval>5</c:interval>

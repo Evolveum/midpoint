@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.testng.SkipException;
+
 /**
  * TODO
  */
@@ -53,5 +55,10 @@ public class TestValidityRecomputeTaskPartitionedSingleTask extends TestValidity
             throws ObjectNotFoundException, SchemaException {
         assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, ActivityPath.fromId(FOCUS_VALIDITY_SCAN_OBJECTS_ID), start, end);
         assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, ActivityPath.fromId(FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID), start, end);
+    }
+
+    @Override
+    public void test350CustomValidityScan() {
+        throw new SkipException("Not relevant");
     }
 }

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
 

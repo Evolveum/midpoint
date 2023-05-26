@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 

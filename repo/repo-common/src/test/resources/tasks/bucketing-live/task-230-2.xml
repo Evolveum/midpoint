@@ -18,5 +18,4 @@
         <taskKind>worker</taskKind>
         <scavenger>true</scavenger> <!-- we need at least 2 scavengers because one task will be suspended during the test -->
     </workManagement>
-    <recurrence>single</recurrence>
 </task>

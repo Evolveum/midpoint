@@ -5697,14 +5697,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // Use this when you want to start the task manually.
-    protected void reimportWithNoSchedule(String taskOid, File taskFile, Task opTask, OperationResult result)
+    protected void reimportRecurringWithNoSchedule(String taskOid, File taskFile, Task opTask, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException,
             PolicyViolationException {
         taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
         addObject(taskFile, opTask, result, taskObject ->
                 ((TaskType) taskObject.asObjectable())
-                        .schedule(null)
+                        .schedule(new ScheduleType().recurrence(TaskRecurrenceType.RECURRING))
                         .binding(TaskBindingType.LOOSE)); // tightly-bound tasks must have interval set
     }
 

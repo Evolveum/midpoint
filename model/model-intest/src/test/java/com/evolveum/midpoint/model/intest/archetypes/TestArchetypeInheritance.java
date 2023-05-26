@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
@@ -216,7 +215,6 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
         assertTask(TASK_RECON_OID, "created reconciliation task")
                 .assertExecutionState(TaskExecutionStateType.SUSPENDED)
-                .assertCategory(TaskCategory.RECONCILIATION)
                 .assertBinding(TaskBindingType.TIGHT);
     }
 
@@ -231,7 +229,6 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
         assertTask(TASK_LIVE_SYNC_OID, "created live synchronization task")
                 .assertExecutionState(TaskExecutionStateType.SUSPENDED)
-                .assertCategory(TaskCategory.LIVE_SYNCHRONIZATION)
                 .assertBinding(TaskBindingType.TIGHT);
     }
 }

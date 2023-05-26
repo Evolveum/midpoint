@@ -118,17 +118,4 @@
             </mapping>
         </focusMappings>
     </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>Recomputation</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
 </archetype>

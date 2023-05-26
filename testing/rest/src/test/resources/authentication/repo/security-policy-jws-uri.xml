@@ -18,8 +18,10 @@
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <jwkSetUri>https://keycloak.lab.evolveum.com/auth/realms/test/protocol/openid-connect/certs</jwkSetUri>
-                    <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    <jwt>
+                        <jwkSetUri>||jwkSetUri||</jwkSetUri>
+                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    </jwt>
                 </resourceServer>
             </oidc>
         </modules>

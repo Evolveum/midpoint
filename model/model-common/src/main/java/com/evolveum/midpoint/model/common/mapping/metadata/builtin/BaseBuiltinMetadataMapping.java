@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.PrismValue;
 

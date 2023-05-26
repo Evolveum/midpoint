@@ -10,7 +10,7 @@ package com.evolveum.midpoint.gui.api;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.BooleanUtils;

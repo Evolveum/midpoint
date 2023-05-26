@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.story.async;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentWithConstruction;
 
 import java.io.File;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.springframework.test.annotation.DirtiesContext;

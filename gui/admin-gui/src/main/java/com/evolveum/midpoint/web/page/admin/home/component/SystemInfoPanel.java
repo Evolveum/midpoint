@@ -19,7 +19,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.time.Duration;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
@@ -28,6 +27,7 @@ import javax.management.openmbean.CompositeData;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
 import java.util.Date;
 
 /**
@@ -140,7 +140,7 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
         final WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
         table.setOutputMarkupId(true);
         add(table);
-        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(10000)));
+        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(10000)));
 
         Label cpuUsage = new Label(ID_CPU_USAGE, new PropertyModel<>(getModel(), SystemInfoDto.F_CPU_USAGE));
         table.add(cpuUsage);
@@ -177,7 +177,7 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
                 }
 
                 int minutes = (int)(dto.uptime / 1000L / 60L);
-                return WebComponentUtil.formatDurationWordsForLocal(minutes < 1 ? dto.uptime : (long)minutes * 1000L * 60L, true, true,
+                return WebComponentUtil.formatDurationWordsForLocal(minutes < 1 ? dto.uptime : minutes * 1000L * 60L, true, true,
                         SystemInfoPanel.this.getPageBase());
             }
         };

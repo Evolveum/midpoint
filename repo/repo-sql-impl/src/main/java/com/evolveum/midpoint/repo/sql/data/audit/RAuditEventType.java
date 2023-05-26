@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
 public enum RAuditEventType implements SchemaEnum<AuditEventTypeType> {
@@ -49,6 +50,7 @@ public enum RAuditEventType implements SchemaEnum<AuditEventTypeType> {
 
     RAuditEventType(AuditEventType type) {
         this.type = type;
+        RUtil.register(this);
     }
 
     public AuditEventType getType() {

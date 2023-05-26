@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Objects;
 
 /**

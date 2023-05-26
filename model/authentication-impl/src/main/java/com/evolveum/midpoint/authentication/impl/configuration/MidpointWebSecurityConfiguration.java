@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 
 import com.evolveum.midpoint.authentication.impl.filter.MidpointFilterChainProxy;
 

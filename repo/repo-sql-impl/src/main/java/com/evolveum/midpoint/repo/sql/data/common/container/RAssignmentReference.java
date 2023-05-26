@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Entity
 @IdClass(RCObjectReferenceId.class)
 @Table(name = "m_assignment_reference", indexes = {
-        @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
+        @jakarta.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RAssignmentReference extends RContainerReference {

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.expression.evaluator;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;

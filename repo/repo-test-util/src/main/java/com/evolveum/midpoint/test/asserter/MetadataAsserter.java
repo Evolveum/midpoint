@@ -9,8 +9,7 @@ package com.evolveum.midpoint.test.asserter;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
@@ -20,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  */
 public class MetadataAsserter<RA> extends AbstractAsserter<RA> {
 
-    private MetadataType metadata;
+    private final MetadataType metadata;
 
     public MetadataAsserter(MetadataType metadata, RA returnAsserter, String details) {
         super(returnAsserter, details);
@@ -33,6 +32,11 @@ public class MetadataAsserter<RA> extends AbstractAsserter<RA> {
 
     public MetadataAsserter<RA> assertNone() {
         assertNull("Unexpected "+desc(), metadata);
+        return this;
+    }
+
+    public MetadataAsserter<RA> assertPresent() {
+        assertNotNull("Missing "+desc(), metadata);
         return this;
     }
 

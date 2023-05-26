@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;

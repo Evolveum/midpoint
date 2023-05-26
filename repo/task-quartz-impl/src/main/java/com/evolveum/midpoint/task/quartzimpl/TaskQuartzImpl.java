@@ -12,7 +12,6 @@ import static java.util.Collections.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -469,7 +468,6 @@ public class TaskQuartzImpl implements Task {
     static {
         // TODO why not scheduling status? Maybe because we do the synchronization explicitly then
         QUARTZ_RELATED_PROPERTIES.add(TaskType.F_BINDING);
-        QUARTZ_RELATED_PROPERTIES.add(TaskType.F_RECURRENCE);
         QUARTZ_RELATED_PROPERTIES.add(TaskType.F_SCHEDULE);
         QUARTZ_RELATED_PROPERTIES.add(TaskType.F_HANDLER_URI);
     }
@@ -1074,10 +1072,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void setSchedule(ScheduleType value) {
         synchronized (prismAccess) {
-            TaskType taskBean = taskPrism.asObjectable();
-            if (taskBean.getRecurrence() != null) {
-                setProperty(TaskType.F_RECURRENCE, null);
-            }
             setContainerable(TaskType.F_SCHEDULE, value);
         }
     }
@@ -1117,7 +1111,6 @@ public class TaskQuartzImpl implements Task {
 
     private PrismObject<? extends FocusType> resolveOwnerRef(PrismReferenceValue ownerRef, OperationResult result) {
         if (ownerRef.getObject() != null) {
-            //noinspection unchecked
             return ownerRef.getObject();
         }
 
@@ -1220,7 +1213,7 @@ public class TaskQuartzImpl implements Task {
         if (objectRef.asReferenceValue().getObject() != null) {
             PrismObject<?> object = objectRef.asReferenceValue().getObject();
             if (object.canRepresent(type)) {
-                //noinspection CastCanBeRemovedNarrowingVariableType,unchecked
+                //noinspection unchecked
                 return (PrismObject<T>) object;
             } else {
                 throw new IllegalArgumentException(
@@ -1293,16 +1286,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void setDescriptionImmediate(String value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_DESCRIPTION, value, result);
-    }
-
-    /**
-     * BEWARE: this returns a clone
-     */
-    @Override
-    public PolicyRuleType getPolicyRule() {
-        synchronized (prismAccess) {
-            return cloneIfRunning(taskPrism.asObjectable().getPolicyRule());
-        }
     }
 
     @Override
@@ -1653,29 +1636,6 @@ public class TaskQuartzImpl implements Task {
         requestee = user;
     }
 
-    private void setModelOperationContextTransient(LensContextType value) {
-        synchronized (prismAccess) {
-            taskPrism.asObjectable().setModelOperationContext(value);
-        }
-    }
-
-    private ItemDelta<?, ?> setModelOperationContextAndPrepareDelta(LensContextType value)
-            throws SchemaException {
-        setModelOperationContextTransient(value);
-        if (!isPersistent()) {
-            return null;
-        }
-        if (value != null) {
-            return beans.prismContext.deltaFor(TaskType.class)
-                    .item(F_MODEL_OPERATION_CONTEXT).replace(value.asPrismContainerValue().clone())
-                    .asItemDelta();
-        } else {
-            return beans.prismContext.deltaFor(TaskType.class)
-                    .item(F_MODEL_OPERATION_CONTEXT).replace()
-                    .asItemDelta();
-        }
-    }
-
     @Override
     public String getNode() {
         return getProperty(TaskType.F_NODE);
@@ -1743,16 +1703,6 @@ public class TaskQuartzImpl implements Task {
     public TaskHandler getHandler() {
         return beans.handlerRegistry.getHandler(
                 getHandlerUri());
-    }
-
-    @Override
-    public String getCategory() {
-        return getProperty(TaskType.F_CATEGORY);
-    }
-
-    @Override
-    public void setCategory(String value) {
-        setProperty(TaskType.F_CATEGORY, value);
     }
 
     public String getChannelFromHandler() {

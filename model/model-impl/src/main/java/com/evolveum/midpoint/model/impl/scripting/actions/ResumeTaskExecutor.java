@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static java.util.Collections.singleton;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
 

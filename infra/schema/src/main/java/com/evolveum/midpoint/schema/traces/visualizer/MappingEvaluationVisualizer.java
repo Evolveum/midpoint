@@ -16,7 +16,7 @@ import static com.evolveum.midpoint.util.QNameUtil.getLocalPart;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.traces.OpNode;

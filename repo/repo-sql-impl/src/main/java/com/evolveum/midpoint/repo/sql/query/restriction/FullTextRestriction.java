@@ -14,7 +14,6 @@ import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.criterion.MatchMode;
 
 import java.util.ArrayList;
 import java.util.List;

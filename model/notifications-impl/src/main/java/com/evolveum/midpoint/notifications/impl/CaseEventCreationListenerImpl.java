@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.cases.api.CaseManager;

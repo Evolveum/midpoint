@@ -10,8 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -19,9 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -77,8 +73,7 @@ public final class ImportActivityRun
     }
 
     @Override
-    public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
+    public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
         Collection<SelectorOptions<GetOperationOptions>> defaultOptions = SchemaService.get().getOperationOptionsBuilder()
                 .doNotDiscovery(false)
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
@@ -86,7 +81,8 @@ public final class ImportActivityRun
 
         // It is questionable if "do not discovery" and "error reporting" can be overridden from the task
         // or not. Let us assume reasonable administrators and allow the overriding. Otherwise, we would swap the arguments below.
-        return GetOperationOptions.merge(PrismContext.get(), defaultOptions, configuredOptions);
+        searchSpecification.setSearchOptions(
+                GetOperationOptions.merge(defaultOptions, searchSpecification.getSearchOptions()));
     }
 
     @Override

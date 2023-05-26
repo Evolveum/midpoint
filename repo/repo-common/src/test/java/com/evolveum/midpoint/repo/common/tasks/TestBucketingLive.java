@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 
 import java.io.File;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
