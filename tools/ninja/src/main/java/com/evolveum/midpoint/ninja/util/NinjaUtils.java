@@ -50,6 +50,10 @@ public class NinjaUtils {
 
     public static final String XML_OBJECTS_SUFFIX = "</c:objects>";
 
+    public static final String JSON_OBJECTS_PREFIX = "[\n";
+
+    public static final String JSON_OBJECTS_SUFFIX = "\n]";
+
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
     public static final long COUNT_STATUS_LOG_INTERVAL = 2 * 1000; // two seconds
