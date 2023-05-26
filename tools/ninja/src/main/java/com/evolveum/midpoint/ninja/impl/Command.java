@@ -11,6 +11,8 @@ import com.evolveum.midpoint.ninja.action.audit.ExportAuditOptions;
 import com.evolveum.midpoint.ninja.action.audit.ExportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.audit.ImportAuditOptions;
 import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
+import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
+import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.opts.*;
 
@@ -36,6 +38,8 @@ public enum Command {
     IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class, null),
 
     EXPORT_AUDIT("exportAudit", ExportAuditOptions.class, ExportAuditRepositoryAction.class, null),
+
+    EXPORT_MINING("exportMining", ExportMiningOptions.class, ExportMiningRepositoryAction.class, null),
 
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class, null);
 
