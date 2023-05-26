@@ -18,8 +18,10 @@
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
-                    <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    <jwt>
+                        <issuerUri>||issuerUri||</issuerUri>
+                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    </jwt>
                 </resourceServer>
             </oidc>
         </modules>

@@ -110,7 +110,9 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory {
         configuration.setSequenceSuffix(sequenceSuffix);
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        if (resourceServer.getNameOfUsernameClaim() != null) {
+        if (resourceServer.getJwt() != null && resourceServer.getJwt().getNameOfUsernameClaim() != null) {
+            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getJwt().getNameOfUsernameClaim());
+        } else if (resourceServer.getNameOfUsernameClaim() != null) {
             jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getNameOfUsernameClaim());
         }
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(

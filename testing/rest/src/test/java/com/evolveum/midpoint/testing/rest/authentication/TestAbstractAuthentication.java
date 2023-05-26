@@ -28,6 +28,7 @@ import java.io.IOException;
 
 public abstract class TestAbstractAuthentication extends AbstractRestServiceInitializer {
 
+    protected static final File MIDPOINT_HOME = new File("target/midpoint-home");
     protected static final File BASE_AUTHENTICATION_DIR = new File("src/test/resources/authentication/");
     protected static final File BASE_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
 
@@ -80,6 +81,14 @@ public abstract class TestAbstractAuthentication extends AbstractRestServiceInit
     }
 
     protected void replaceSecurityPolicy(File securityPolicy) throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        PrismObject<SecurityPolicyType> secPolicy = parseObject(securityPolicy);
+        addObject(secPolicy, executeOptions().overwrite(), task, result);
+        getDummyAuditService().clear();
+    }
+
+    protected void replaceSecurityPolicy(String securityPolicy) throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<SecurityPolicyType> secPolicy = parseObject(securityPolicy);
