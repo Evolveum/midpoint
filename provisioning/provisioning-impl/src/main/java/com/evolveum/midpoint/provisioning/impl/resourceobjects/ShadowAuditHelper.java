@@ -24,11 +24,13 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -81,10 +83,11 @@ public class ShadowAuditHelper {
             }
         }
 
-        if (shadow != null) {   // todo if shadow is null check shadow manager to get it by identifier (or something like that), or check EntitlementConverter - it should know shadow oid
+        if (shadow != null) {
             auditRecord.setTargetRef(new ObjectReferenceType()
                     .oid(shadow.getOid())
                     .targetName(shadow.getName())
+                    .description(PolyString.getOrig(shadow.getName()))
                     .type(ShadowType.COMPLEX_TYPE).asReferenceValue());
         }
         auditRecord.setTimestamp(Clock.get().currentTimeMillis());
@@ -137,30 +140,34 @@ public class ShadowAuditHelper {
     }
 
     private ObjectDeltaOperation<ShadowType> createDelta(AuditEventType event, ShadowType shadow, Collection<Operation> operations) {
-        if (event == AuditEventType.ADD_OBJECT) {
-            ObjectDelta<ShadowType> delta = DeltaFactory.Object.createAddDelta(shadow.asPrismObject());
+        if (shadow == null) {
+            return null;
+        }
+
+        PrismObject<ShadowType> object = shadow.asPrismObject();
+        if (event == AuditEventType.ADD_OBJECT || event == AuditEventType.DISCOVER_OBJECT) {
+            ObjectDelta<ShadowType> delta = object.createAddDelta();
+
             return new ObjectDeltaOperation<>(delta);
         } else if (event == AuditEventType.DELETE_OBJECT) {
-            ObjectDelta<ShadowType> delta = prismContext
-                    .deltaFactory()
-                    .object()
-                    .createDeleteDelta(ShadowType.class, shadow.getOid());
+            ObjectDelta<ShadowType> delta = object.createDeleteDelta();
 
             return new ObjectDeltaOperation<>(delta);
         } else if (event == AuditEventType.MODIFY_OBJECT) {
-            // todo what if shadow oid is null?
-            if (shadow != null) {
-                ObjectDelta<ShadowType> delta = prismContext
-                        .deltaFactory()
-                        .object()
-                        .createEmptyDelta(ShadowType.class, shadow.getOid(), ChangeType.MODIFY);
-                for (Operation operation : operations) {
-//                    operation.asBean(prismContext).
+            ObjectDelta<ShadowType> delta = prismContext
+                    .deltaFactory()
+                    .object()
+                    .createEmptyDelta(ShadowType.class, shadow.getOid(), ChangeType.MODIFY);
+
+            for (Operation operation : operations) {
+                if (operation instanceof PropertyModificationOperation) {
+                    PropertyModificationOperation propertyOp = (PropertyModificationOperation) operation;
+                    PropertyDelta pDelta = propertyOp.getPropertyDelta().clone();
+                    delta.addModification(pDelta);
                 }
             }
-        } else if (event == AuditEventType.DISCOVER_OBJECT) {
-            // todo this currently can happen, why? where to figure out that's it's discover object?
 
+            return new ObjectDeltaOperation<>(delta);
         }
 
         return null;
