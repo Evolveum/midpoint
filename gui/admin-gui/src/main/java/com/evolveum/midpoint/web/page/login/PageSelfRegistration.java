@@ -190,7 +190,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             @Override
             public boolean isEnabled() {
-                return getUserModel().getObject() == null;
+                return getUserModel().getObject() == null || getUserModel().getObject().getOid() == null;
             }
 
         });
