@@ -2220,6 +2220,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismContext.parseObject(file);
     }
 
+    protected <O extends ObjectType> PrismObject<O> parseObject(String stringData) throws SchemaException, IOException {
+        return prismContext.parseObject(stringData);
+    }
     protected void displayCleanup() {
         TestUtil.displayCleanup(getTestNameShort());
     }

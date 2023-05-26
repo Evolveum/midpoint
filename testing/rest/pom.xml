@@ -113,9 +113,9 @@
             </exclusions>
         </dependency>
         <dependency>
-         <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-commons-fileupload</artifactId>
-                    <version>${wicket.version}</version>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-commons-fileupload</artifactId>
+            <version>${wicket.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -318,6 +318,26 @@
             <artifactId>keycloak-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -338,4 +358,23 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>restAuthenticationTest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>testng-authentication.xml</suiteXmlFile>
+                            </suiteXmlFiles>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

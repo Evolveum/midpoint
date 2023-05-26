@@ -1,8 +1,0 @@
-{
-  "realm" : "master",
-  "auth-server-url" : "https://keycloak.lab.evolveum.com/auth",
-  "resource" : "account",
-  "credentials": {
-    "secret": "2b08e03e-380a-4ae3-8a82-8688ebb7c71c"
-  }
-}
