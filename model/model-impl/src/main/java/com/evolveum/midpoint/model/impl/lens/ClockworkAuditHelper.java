@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static java.util.Collections.emptyList;
-
 import java.util.Collection;
-import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +22,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.AuditConfiguration;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -125,24 +123,12 @@ public class ClockworkAuditHelper {
         AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
         auditRecord.setRequestIdentifier(context.getRequestIdentifier());
 
-        boolean recordResourceOids;
-        List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord;
-        ExpressionType eventRecordingExpression = null;
-
         SystemConfigurationType config = context.getSystemConfigurationBean();
-        if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
-            SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
-            recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
-            propertiesToRecord = eventRecording.getProperty();
-            eventRecordingExpression = eventRecording.getExpression();
-        } else {
-            recordResourceOids = false;
-            propertiesToRecord = emptyList();
-        }
+        AuditConfiguration auditConfiguration = auditHelper.getAuditConfiguration(config);
 
         if (primaryObject != null) {
             auditRecord.setTarget(primaryObject);
-            if (recordResourceOids) {
+            if (auditConfiguration.isRecordResourceOids()) {
                 recordResourceOids(auditRecord, primaryObject.getRealValue(), context);
             }
         }
@@ -183,14 +169,14 @@ public class ClockworkAuditHelper {
 
         addRecordMessage(auditRecord, clone.getMessage());
 
-        for (SystemConfigurationAuditEventRecordingPropertyType property : propertiesToRecord) {
+        for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
             auditHelper.evaluateAuditRecordProperty(property, auditRecord, primaryObject,
                     context.getPrivilegedExpressionProfile(), task, result);
         }
 
-        if (eventRecordingExpression != null) {
+        if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression, auditRecord, primaryObject,
+            auditRecord = auditHelper.evaluateRecordingExpression(auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject,
                     context.getPrivilegedExpressionProfile(), () -> new ModelExpressionEnvironment<>(context, null, task, result),
                     task, result);
         }

@@ -612,6 +612,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DISCOVER_OBJECT"/>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

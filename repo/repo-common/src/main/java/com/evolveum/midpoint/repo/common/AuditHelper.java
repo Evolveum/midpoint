@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common;
 
+import static java.util.Collections.emptyList;
+
 import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
@@ -245,5 +247,20 @@ public class AuditHelper {
         }
         LOGGER.debug("No selector matches for {}", primaryObject);
         return false;
+    }
+
+    public AuditConfiguration getAuditConfiguration(SystemConfigurationType config) {
+        boolean recordResourceOids = false;
+        List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord = emptyList();
+        ExpressionType eventRecordingExpression = null;
+
+        if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
+            SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
+            recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
+            propertiesToRecord = eventRecording.getProperty();
+            eventRecordingExpression = eventRecording.getExpression();
+        }
+
+        return new AuditConfiguration(recordResourceOids, propertiesToRecord, eventRecordingExpression);
     }
 }

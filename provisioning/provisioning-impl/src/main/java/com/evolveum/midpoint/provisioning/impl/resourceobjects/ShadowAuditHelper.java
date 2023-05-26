@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static java.util.Collections.emptyList;
-
 import java.util.Collection;
-import java.util.List;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +29,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.AuditConfiguration;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -39,10 +37,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class ShadowAuditHelper {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowAuditHelper.class);
 
     @Autowired private AuditHelper auditHelper;
     @Autowired private PrismContext prismContext;
@@ -56,14 +58,14 @@ public class ShadowAuditHelper {
     public void auditEvent(AuditEventType event, ShadowType shadow, Collection<Operation> operationsWave, ProvisioningContext ctx, OperationResult result) {
         Task task = ctx.getTask();
 
-        SystemConfigurationType config;
+        SystemConfigurationType systemConfiguration;
         try {
-            config = systemObjectCache.getSystemConfigurationBean(result);
+            systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't load system configuration", ex);
         }
 
-        if (!isEnhancedShadowAuditingEnabled(config)) {
+        if (!isEnhancedShadowAuditingEnabled(systemConfiguration)) {
             return;
         }
 
@@ -79,7 +81,9 @@ public class ShadowAuditHelper {
             try {
                 shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result).asObjectable();
             } catch (Exception ex) {
-                // we can ignore this one
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Couldn't get shadow with reference " + shadowRef, ex);
+                }
             }
         }
 
@@ -98,35 +102,23 @@ public class ShadowAuditHelper {
             auditRecord.addDelta(delta);
         }
 
-        boolean recordResourceOids;
-        List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord;
-        ExpressionType eventRecordingExpression = null;
-
-        if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
-            SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
-            recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
-            propertiesToRecord = eventRecording.getProperty();
-            eventRecordingExpression = eventRecording.getExpression();
-        } else {
-            recordResourceOids = false;
-            propertiesToRecord = emptyList();
-        }
+        AuditConfiguration auditConfiguration = auditHelper.getAuditConfiguration(systemConfiguration);
 
 //        addRecordMessage(auditRecord, clone.getMessage());    // todo add message and other fields to event
-        if (recordResourceOids) {
+        if (auditConfiguration.isRecordResourceOids()) {
             auditRecord.addResourceOid(ctx.getResourceOid());
         }
 
         PrismObject<ShadowType> object = shadow != null ? shadow.asPrismObject() : null;
 
-        for (SystemConfigurationAuditEventRecordingPropertyType property : propertiesToRecord) {
+        for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
             auditHelper.evaluateAuditRecordProperty(property, auditRecord, object,
                     operationContext.expressionProfile(), task, result);
         }
 
-        if (eventRecordingExpression != null) {
+        if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression, auditRecord, object,
+            auditRecord = auditHelper.evaluateRecordingExpression(auditConfiguration.getEventRecordingExpression(), auditRecord, object,
                     operationContext.expressionProfile(), operationContext.expressionEnvironmentSupplier(), ctx.getTask(), result);
         }
 
@@ -161,8 +153,8 @@ public class ShadowAuditHelper {
 
             for (Operation operation : operations) {
                 if (operation instanceof PropertyModificationOperation) {
-                    PropertyModificationOperation propertyOp = (PropertyModificationOperation) operation;
-                    PropertyDelta pDelta = propertyOp.getPropertyDelta().clone();
+                    PropertyModificationOperation<?> propertyOp = (PropertyModificationOperation<?>) operation;
+                    PropertyDelta<?> pDelta = propertyOp.getPropertyDelta().clone();
                     delta.addModification(pDelta);
                 }
             }
