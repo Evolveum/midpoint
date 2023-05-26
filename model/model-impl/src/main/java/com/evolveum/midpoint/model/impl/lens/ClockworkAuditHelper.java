@@ -135,12 +135,7 @@ public class ClockworkAuditHelper {
 
         auditRecord.setChannel(context.getChannel());
 
-        // This is a brutal hack -- FIXME: create some "compute in-depth preview" method on operation result
-        OperationResult clone = overallResult.clone(2, false);
-        for (OperationResult subresult : clone.getSubresults()) {
-            subresult.computeStatusIfUnknown();
-        }
-        clone.computeStatus();
+        OperationResult clone = auditHelper.cloneResultForAuditEventRecord(overallResult);
 
         if (stage == AuditEventStage.REQUEST) {
             Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
@@ -167,7 +162,7 @@ public class ClockworkAuditHelper {
             auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
         }
 
-        addRecordMessage(auditRecord, clone.getMessage());
+        auditHelper.addRecordMessage(auditRecord, clone.getMessage());
 
         for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
             auditHelper.evaluateAuditRecordProperty(property, auditRecord, primaryObject,
@@ -243,36 +238,5 @@ public class ClockworkAuditHelper {
                 }
             }
         }
-    }
-
-    /**
-     * Adds a message to the record by pulling the messages from individual delta results.
-     */
-    private void addRecordMessage(AuditEventRecord auditRecord, String message) {
-        if (auditRecord.getMessage() != null) {
-            return;
-        }
-        if (!StringUtils.isEmpty(message)) {
-            auditRecord.setMessage(message);
-            return;
-        }
-        Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = auditRecord.getDeltas();
-        if (deltas.isEmpty()) {
-            return;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (ObjectDeltaOperation<? extends ObjectType> delta : deltas) {
-            OperationResult executionResult = delta.getExecutionResult();
-            if (executionResult != null) {
-                String deltaMessage = executionResult.getMessage();
-                if (!StringUtils.isEmpty(deltaMessage)) {
-                    if (sb.length() != 0) {
-                        sb.append("; ");
-                    }
-                    sb.append(deltaMessage);
-                }
-            }
-        }
-        auditRecord.setMessage(sb.toString());
     }
 }

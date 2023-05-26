@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import java.util.Collection;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -51,11 +53,15 @@ public class ShadowAuditHelper {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    public void auditEvent(AuditEventType event, ShadowType shadow, ProvisioningContext ctx, OperationResult result) {
+    public void auditEvent(@NotNull AuditEventType event, @Nullable ShadowType shadow, @NotNull ProvisioningContext ctx,
+            @NotNull OperationResult result) {
+
         auditEvent(event, shadow, null, ctx, result);
     }
 
-    public void auditEvent(AuditEventType event, ShadowType shadow, Collection<Operation> operationsWave, ProvisioningContext ctx, OperationResult result) {
+    public void auditEvent(@NotNull AuditEventType event, @Nullable ShadowType shadow, @Nullable Collection<Operation> operationsWave,
+            @NotNull ProvisioningContext ctx, @NotNull OperationResult result) {
+
         Task task = ctx.getTask();
 
         SystemConfigurationType systemConfiguration;
@@ -104,7 +110,11 @@ public class ShadowAuditHelper {
 
         AuditConfiguration auditConfiguration = auditHelper.getAuditConfiguration(systemConfiguration);
 
-//        addRecordMessage(auditRecord, clone.getMessage());    // todo add message and other fields to event
+        OperationResult clone = auditHelper.cloneResultForAuditEventRecord(result);
+        auditHelper.addRecordMessage(auditRecord, clone.getMessage());
+
+        auditRecord.setOutcome(clone.getStatus());
+
         if (auditConfiguration.isRecordResourceOids()) {
             auditRecord.addResourceOid(ctx.getResourceOid());
         }

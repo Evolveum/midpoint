@@ -263,4 +263,46 @@ public class AuditHelper {
 
         return new AuditConfiguration(recordResourceOids, propertiesToRecord, eventRecordingExpression);
     }
+
+    public OperationResult cloneResultForAuditEventRecord(OperationResult result) {
+        // This is a brutal hack -- FIXME: create some "compute in-depth preview" method on operation result
+        OperationResult clone = result.clone(2, false);
+        for (OperationResult subresult : clone.getSubresults()) {
+            subresult.computeStatusIfUnknown();
+        }
+        clone.computeStatus();
+
+        return clone;
+    }
+
+    /**
+     * Adds a message to the record by pulling the messages from individual delta results.
+     */
+    public void addRecordMessage(AuditEventRecord auditRecord, String message) {
+        if (auditRecord.getMessage() != null) {
+            return;
+        }
+        if (!StringUtils.isEmpty(message)) {
+            auditRecord.setMessage(message);
+            return;
+        }
+        Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = auditRecord.getDeltas();
+        if (deltas.isEmpty()) {
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ObjectDeltaOperation<? extends ObjectType> delta : deltas) {
+            OperationResult executionResult = delta.getExecutionResult();
+            if (executionResult != null) {
+                String deltaMessage = executionResult.getMessage();
+                if (!StringUtils.isEmpty(deltaMessage)) {
+                    if (sb.length() != 0) {
+                        sb.append("; ");
+                    }
+                    sb.append(deltaMessage);
+                }
+            }
+        }
+        auditRecord.setMessage(sb.toString());
+    }
 }
