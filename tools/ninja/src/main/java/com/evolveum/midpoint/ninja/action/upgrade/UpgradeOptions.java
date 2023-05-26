@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
+import java.io.File;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
-import java.io.File;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "upgrade")
 public class UpgradeOptions {
@@ -19,20 +19,26 @@ public class UpgradeOptions {
 
     public static final String P_ABORT_LONG = "--abort";
 
-    public static final String P_SKIP_STEP = "--skip-step";
+    public static final String P_CONFIRM_STEPS = "--confirm-steps";
 
-    public static final String P_STEP_LONG = "--step";
-
-    @Parameter(names = {P_ABORT_LONG}, descriptionKey = "upgrade.abort")
+    @Parameter(names = { P_ABORT_LONG }, descriptionKey = "upgrade.abort")
     private Boolean abort;
 
-    @Parameter(names = {P_TEMP_DIR_LONG}, descriptionKey = "upgrade.tempDir")
+    @Parameter(names = { P_TEMP_DIR_LONG }, descriptionKey = "upgrade.tempDir")
     private File tempDirectory;
 
-    @Parameter(names = {P_STEP_LONG}, descriptionKey = "upgrade.step")
-    private String step;
+    @Parameter(names = { P_CONFIRM_STEPS }, descriptionKey = "upgrade.confirmSteps")
+    private Boolean confirmSteps;
 
-    public Boolean isAbort() {
+    public Boolean getAbort() {
         return abort;
+    }
+
+    public File getTempDirectory() {
+        return tempDirectory;
+    }
+
+    public Boolean getConfirmSteps() {
+        return confirmSteps;
     }
 }

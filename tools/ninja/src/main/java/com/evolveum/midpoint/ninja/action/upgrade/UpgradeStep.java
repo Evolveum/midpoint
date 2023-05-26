@@ -11,5 +11,9 @@ public interface UpgradeStep<R extends StepResult> {
 
     String getIdentifier();
 
+    default String getPresentableName() {
+        return getIdentifier();
+    }
+
     R execute() throws Exception;
 }

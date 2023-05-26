@@ -18,10 +18,13 @@ public class UpgradeStepsContext {
 
     private final NinjaContext context;
 
+    private final UpgradeOptions options;
+
     private final Map<Class<?>, Object> result = new HashMap<>();
 
-    public UpgradeStepsContext(NinjaContext context) {
+    public UpgradeStepsContext(NinjaContext context, UpgradeOptions options) {
         this.context = context;
+        this.options = options;
     }
 
     public void addResult(@NotNull Class<?> step, Object result) {

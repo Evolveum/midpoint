@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja.upgrade;
 
 import com.beust.jcommander.JCommander;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
 import com.evolveum.midpoint.ninja.action.upgrade.step.DownloadDistributionResult;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
@@ -36,15 +37,16 @@ public class UpgradeStepsTest {
     public void test200UpgradeDatabaseSchema() throws Exception {
         // nasty initialization in test, this looks like an issue in code (messy code/architecture of ninja)
         JCommander jc = NinjaUtils.setupCommandLineParser();
-        jc.parse("-m ../../_mess/midpoint-home".split(" "));
+        jc.parse("-m ../../_mess/midpoint-home upgrade".split(" "));
 
         ConnectionOptions options = NinjaUtils.getOptions(jc, ConnectionOptions.class);
+        UpgradeOptions upgradeOptions = NinjaUtils.getOptions(jc, UpgradeOptions.class);
 
         NinjaContext ninjaContext = new NinjaContext(null);
         ninjaContext.setLog(new Log(LogTarget.SYSTEM_OUT, Log.LogLevel.DEFAULT));
         ninjaContext.init(options);
 
-        UpgradeStepsContext ctx = new UpgradeStepsContext(ninjaContext);
+        UpgradeStepsContext ctx = new UpgradeStepsContext(ninjaContext, upgradeOptions);
 
         DownloadDistributionStep distributionStep = new DownloadDistributionStep();
         distributionStep.setVersion("4.4.4");
