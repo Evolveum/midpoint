@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.create
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.isRetryableOperation;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.RETRY;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,16 +22,15 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -40,12 +39,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RefreshShadowOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -248,7 +250,7 @@ class ShadowRefreshHelper {
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     //noinspection unchecked
-                    shadowUpdater.addTombstoneDeltas(repoShadow, (List)shadowDelta.getModifications());
+                    shadowUpdater.addTombstoneDeltas(repoShadow, (List) shadowDelta.getModifications());
                 }
                 continue;
 
@@ -306,7 +308,7 @@ class ShadowRefreshHelper {
                                 Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
 
                                 if (valueToReplace.isPresent()) {
-                                    Object valueToReplaceObj = ((PrismPropertyValue)valueToReplace.get()).getValue();
+                                    Object valueToReplaceObj = ((PrismPropertyValue) valueToReplace.get()).getValue();
                                     if (valueToReplaceObj instanceof String) {
 
                                         // Apply the new naming attribute value to the shadow name by adding the change to the modification set for shadow delta
@@ -323,7 +325,7 @@ class ShadowRefreshHelper {
                     }
 
                     // Apply shadow attribute modifications
-                    for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
+                    for (ItemDelta<?, ?> pendingModification : pendingDelta.getModifications()) {
                         shadowDelta.addModification(pendingModification.clone());
                     }
                 }
@@ -331,7 +333,7 @@ class ShadowRefreshHelper {
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     //noinspection unchecked
-                    shadowUpdater.addTombstoneDeltas(repoShadow, (List)shadowDelta.getModifications());
+                    shadowUpdater.addTombstoneDeltas(repoShadow, (List) shadowDelta.getModifications());
                 }
 
                 notificationDeltas.add(pendingDelta);
@@ -414,7 +416,7 @@ class ShadowRefreshHelper {
                             "Skipping the non-RETRY-type operation whose retry time has not elapsed yet: {}", pendingOperation);
                     continue;
                 }
-                if (!ProvisioningOperationOptions.isForceRetry(options)){
+                if (!ProvisioningOperationOptions.isForceRetry(options)) {
                     LOGGER.trace("Skipping the RETRY-type operation whose retry time has not elapsed yet: {}", pendingOperation);
                     continue;
                 }
@@ -577,7 +579,7 @@ class ShadowRefreshHelper {
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
         Duration pendingOperationRetentionPeriod = ProvisioningUtil.getPendingOperationRetentionPeriod(ctx);
         Duration expirePeriod = XmlTypeConverter.longerDuration(gracePeriod, pendingOperationRetentionPeriod);
-        for (PendingOperationType pendingOperation: repoShadow.getPendingOperation()) {
+        for (PendingOperationType pendingOperation : repoShadow.getPendingOperation()) {
             if (ProvisioningUtil.isCompletedAndOverPeriod(now, expirePeriod, pendingOperation)) {
                 LOGGER.trace("Deleting pending operation because it is completed '{}' and expired: {}",
                         pendingOperation.getResultStatus(), pendingOperation);

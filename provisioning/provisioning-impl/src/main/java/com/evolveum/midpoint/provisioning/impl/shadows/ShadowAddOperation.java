@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createResourceFailureDescription;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -32,17 +44,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 /**
  * Represents/executes "add" operation on a shadow - either invoked directly, or during refresh or propagation.

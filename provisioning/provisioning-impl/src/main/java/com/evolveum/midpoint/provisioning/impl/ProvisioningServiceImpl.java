@@ -253,6 +253,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LiveSyncOptions options,
             @NotNull LiveSyncTokenStorage tokenStorage,
             @NotNull LiveSyncEventHandler handler,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -279,7 +280,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ResourceTypeUtil.checkNotInMaintenance(resource.asObjectable());
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(coordinates, options, tokenStorage, handler, task, result);
+            liveSyncResult = liveSynchronizer.synchronize(coordinates, options, tokenStorage, handler, context, task, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |

@@ -423,6 +423,7 @@ public interface ProvisioningService {
      * @param options Options driving the synchronization process (execution mode, batch size, ...)
      * @param tokenStorage Interface for getting and setting the token for the activity
      * @param handler Handler that processes live sync events
+     * @param context Provisioning context used to pass information from upper layers
      * @param parentResult Parent OperationResult to where we write our own subresults.
      * @throws ObjectNotFoundException Some of key objects (resource, task, ...) do not exist
      * @throws CommunicationException Error communicating with the resource
@@ -436,10 +437,23 @@ public interface ProvisioningService {
             @Nullable LiveSyncOptions options,
             @NotNull LiveSyncTokenStorage tokenStorage,
             @NotNull LiveSyncEventHandler handler,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
+
+    default @NotNull SynchronizationResult synchronize(
+            @NotNull ResourceOperationCoordinates coordinates,
+            @Nullable LiveSyncOptions options,
+            @NotNull LiveSyncTokenStorage tokenStorage,
+            @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+        return synchronize(coordinates, options, tokenStorage, handler, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Processes asynchronous updates for a given resource.

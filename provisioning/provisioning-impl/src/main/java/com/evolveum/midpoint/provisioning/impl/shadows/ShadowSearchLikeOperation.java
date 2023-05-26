@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectHandler;

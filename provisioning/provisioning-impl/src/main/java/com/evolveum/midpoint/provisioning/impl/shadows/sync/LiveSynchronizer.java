@@ -9,9 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
-import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
-import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
-import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.TokenUtil;
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -22,8 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
-import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
@@ -69,6 +65,7 @@ public class LiveSynchronizer {
             LiveSyncOptions options,
             LiveSyncTokenStorage tokenStorage,
             LiveSyncEventHandler handler,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,

@@ -18,14 +18,13 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.provisioning.api.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -115,7 +114,6 @@ class ShadowGetOperation {
             CommunicationException {
         ShadowType repositoryShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result, localBeans);
         ProvisioningContext ctx = createProvisioningContext(repositoryShadow, options, context, task, result, localBeans);
-        ctx.setOperationContext(context);
         return new ShadowGetOperation(ctx, repositoryShadow, identifiersOverride, options, localBeans);
     }
 
@@ -225,7 +223,7 @@ class ShadowGetOperation {
     private static @NotNull ProvisioningContext createProvisioningContext(
             @NotNull ShadowType repositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull ShadowsLocalBeans localBeans)
@@ -548,7 +546,7 @@ class ShadowGetOperation {
         if (cachingMetadata == null) {
             if (stalenessOption == Long.MAX_VALUE) {
                 // We must return cached version but there is no cached version.
-                throw new ConfigurationException("Cached version of "+repositoryShadow+" requested, but there is no cached value");
+                throw new ConfigurationException("Cached version of " + repositoryShadow + " requested, but there is no cached value");
             }
             return false;
         }

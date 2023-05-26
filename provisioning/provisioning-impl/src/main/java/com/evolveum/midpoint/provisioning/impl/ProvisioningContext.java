@@ -161,12 +161,18 @@ public class ProvisioningContext {
         this.resourceSchema = originalCtx.resourceSchema;
         this.getOperationOptions = originalCtx.getOperationOptions; // OK?
         this.propagation = originalCtx.propagation;
+        this.operationContext = originalCtx.operationContext;
         // Not copying protected account patters because these are object type specific.
         LOGGER.trace("Created/spawned {}", this);
     }
 
     public ProvisioningOperationContext getOperationContext() {
         return operationContext;
+    }
+
+    public ProvisioningContext setOperationContext(ProvisioningOperationContext operationContext) {
+        this.operationContext = operationContext;
+        return this;
     }
 
     public void setGetOperationOptions(Collection<SelectorOptions<GetOperationOptions>> getOperationOptions) {
@@ -727,14 +733,5 @@ public class ProvisioningContext {
             sb.append(", ").append(connector.getHumanReadableDescription());
         }
         return sb.toString();
-    }
-
-    public ProvisioningOperationContext operationContext() {
-        return operationContext;
-    }
-
-    public ProvisioningContext setOperationContext(ProvisioningOperationContext operationContext) {
-        this.operationContext = operationContext;
-        return this;
     }
 }
