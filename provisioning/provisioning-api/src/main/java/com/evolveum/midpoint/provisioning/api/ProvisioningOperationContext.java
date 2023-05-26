@@ -38,11 +38,11 @@ public class ProvisioningOperationContext {
         return this;
     }
 
-    public Supplier<ExpressionEnvironment> expressionEnvironment() {
+    public Supplier<ExpressionEnvironment> expressionEnvironmentSupplier() {
         return expressionEnvironmentSupplier;
     }
 
-    public ProvisioningOperationContext expressionEnvironment(Supplier<ExpressionEnvironment> expressionEnvironment) {
+    public ProvisioningOperationContext expressionEnvironmentSupplier(Supplier<ExpressionEnvironment> expressionEnvironment) {
         this.expressionEnvironmentSupplier = expressionEnvironment;
         return this;
     }

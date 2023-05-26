@@ -17,10 +17,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -1996,6 +1998,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public @NotNull TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
+    }
+
+    @Override
+    public @NotNull ProvisioningOperationContext createProvisioningOperationContext(Task task, OperationResult result) {
+        return new ProvisioningOperationContext()
+                .requestIdentifier(getRequestIdentifier())
+                .expressionEnvironmentSupplier(() -> new ModelExpressionEnvironment<>(this, null, task, result))
+                .expressionProfile(getPrivilegedExpressionProfile());
     }
 
     public MetadataRecordingStrategyType getShadowMetadataRecordingStrategy() {

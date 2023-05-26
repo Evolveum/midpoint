@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
@@ -12,12 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,12 +31,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 /**
  * @author semancik
- *
  */
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
 
@@ -95,8 +96,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     Map<String, Collection<? extends Containerable>> getHookPreviewResultsMap();
 
-    @NotNull
-    <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
+    @NotNull <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
 
     @Nullable
     PolicyRuleEnforcerPreviewOutputType getPolicyRuleEnforcerPreviewOutput();
@@ -122,4 +122,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     ExpressionProfile getPrivilegedExpressionProfile();
 
     @NotNull TaskExecutionMode getTaskExecutionMode();
+
+    @NotNull ProvisioningOperationContext createProvisioningOperationContext(Task task, OperationResult result);
 }

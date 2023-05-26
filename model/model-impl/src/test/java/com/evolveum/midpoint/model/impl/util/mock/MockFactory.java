@@ -68,6 +68,7 @@ public class MockFactory {
                     LiveSyncOptions options,
                     @NotNull LiveSyncTokenStorage tokenStorage,
                     @NotNull LiveSyncEventHandler handler,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return new SynchronizationResult();

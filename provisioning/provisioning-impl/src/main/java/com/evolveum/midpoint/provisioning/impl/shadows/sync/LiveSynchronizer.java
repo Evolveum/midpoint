@@ -71,7 +71,7 @@ public class LiveSynchronizer {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        LiveSyncCtx ctx = new LiveSyncCtx(coordinates, task, options, tokenStorage, gResult);
+        LiveSyncCtx ctx = new LiveSyncCtx(coordinates, task, options, tokenStorage, context, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -227,11 +227,12 @@ public class LiveSynchronizer {
                 @NotNull Task task,
                 LiveSyncOptions options,
                 @NotNull LiveSyncTokenStorage tokenStorage,
+                @NotNull ProvisioningOperationContext context,
                 OperationResult result)
                 throws ObjectNotFoundException, SchemaException, ConfigurationException,
                 ExpressionEvaluationException {
             this.syncResult = new SynchronizationOperationResult();
-            this.context = ctxFactory.createForBulkOperation(coordinates, task, result);
+            this.context = ctxFactory.createForBulkOperation(coordinates, context, task, result);
             this.task = task;
             this.options = options != null ? options : new LiveSyncOptions();
             this.tokenStorage = tokenStorage;

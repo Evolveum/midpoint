@@ -66,9 +66,13 @@ public class ShadowAuditHelper {
         }
 
         ProvisioningOperationContext operationContext = ctx.getOperationContext();
+        if (operationContext == null) {
+            operationContext = new ProvisioningOperationContext();
+        }
+
         AuditEventRecord auditRecord = new AuditEventRecord(event, AuditEventStage.RESOURCE);
         auditRecord.setRequestIdentifier(operationContext.requestIdentifier());
-        if (shadow != null) {   // todo pouzi shadow manager na dotiahnutie, entitlmentconvertercoska pripadne by mohol mat to oid-cko k dispospozicii
+        if (shadow != null) {   // todo if shadow is null check shadow manager to get it by identifier (or something like that), or check EntitlementConverter - it should know shadow oid
             auditRecord.setTargetRef(new ObjectReferenceType()
                     .oid(shadow.getOid())
                     .targetName(shadow.getName())
@@ -111,7 +115,7 @@ public class ShadowAuditHelper {
         if (eventRecordingExpression != null) {
             // MID-6839
             auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression, auditRecord, object,
-                    operationContext.expressionProfile(), operationContext.expressionEnvironment(), ctx.getTask(), result);
+                    operationContext.expressionProfile(), operationContext.expressionEnvironmentSupplier(), ctx.getTask(), result);
         }
 
         if (auditRecord == null) {

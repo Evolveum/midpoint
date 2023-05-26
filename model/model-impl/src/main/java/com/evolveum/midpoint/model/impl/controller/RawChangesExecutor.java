@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.jetbrains.annotations.NotNull;
@@ -295,8 +296,13 @@ class RawChangesExecutor {
             try {
                 if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
                     ModelImplUtils.clearRequestee(task);
+
+                    ProvisioningOperationContext ctx = new ProvisioningOperationContext()
+                            .requestIdentifier(requestIdentifier)
+                            .expressionEnvironmentSupplier(() -> new ModelExpressionEnvironment<>(null, null, task, result));
+
                     provisioningService.deleteObject(
-                            clazz, oid, ProvisioningOperationOptions.createRaw(), null, task, result);
+                            clazz, oid, ProvisioningOperationOptions.createRaw(), null, ctx, task, result);
                 } else if (TaskType.class.isAssignableFrom(clazz)) {
                     // Maybe we should check if the task is not running. However, this is raw processing.
                     // (But, actually, this is better than simply deleting the task from repository.)

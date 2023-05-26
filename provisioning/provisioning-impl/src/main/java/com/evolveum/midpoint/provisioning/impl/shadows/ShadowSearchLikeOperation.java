@@ -102,8 +102,7 @@ class ShadowSearchLikeOperation {
         ResourceOperationCoordinates operationCoordinates = ObjectQueryUtil.getOperationCoordinates(query);
         operationCoordinates.checkNotUnknown();
         operationCoordinates.checkNotResourceScoped();
-        ProvisioningContext ctx = localBeans.ctxFactory.createForBulkOperation(operationCoordinates, task, result);
-        ctx.setOperationContext(context);
+        ProvisioningContext ctx = localBeans.ctxFactory.createForBulkOperation(operationCoordinates, context, task, result);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;

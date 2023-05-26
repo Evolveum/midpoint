@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
@@ -541,7 +542,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ModelImplUtils.setRequestee(task, context);
         try {
             ProvisioningOperationOptions options = getProvisioningOptions();
-            return b.provisioningService.addObject(object, scripts, options, task, result);
+            ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
+
+            return b.provisioningService.addObject(object, scripts, options, ctx, task, result);
         } finally {
             ModelImplUtils.clearRequestee(task);
         }
@@ -678,9 +681,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ModelImplUtils.setRequestee(task, context);
         try {
             ProvisioningOperationOptions options = getProvisioningOptions();
+            ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
             String updatedOid =
                     b.provisioningService.modifyObject(
-                            objectClass, oid, deltaForExecution.getModifications(), scripts, options, task, result);
+                            objectClass, oid, deltaForExecution.getModifications(), scripts, options, ctx, task, result);
             determineLivenessFromObject(objectToModify);
             return updatedOid;
         } catch (ObjectNotFoundException e) {
@@ -824,6 +828,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
         ProvisioningOperationOptions options = getProvisioningOptions();
+        ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
+
         PrismObject<E> objectToDelete = null;
         try {
             Collection<SelectorOptions<GetOperationOptions>> getOptions = b.schemaService.getOperationOptionsBuilder()
@@ -844,7 +850,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         }
         ModelImplUtils.setRequestee(task, context);
         try {
-            return b.provisioningService.deleteObject(type, oid, options, scripts, task, result);
+            return b.provisioningService.deleteObject(type, oid, options, scripts, ctx, task, result);
         } finally {
             ModelImplUtils.clearRequestee(task);
         }

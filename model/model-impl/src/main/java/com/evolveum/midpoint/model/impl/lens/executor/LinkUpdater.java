@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
@@ -456,8 +457,9 @@ class LinkUpdater<F extends FocusType> {
             ModelImplUtils.setRequestee(task, focusContext);
             ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
             options.setDoNotDiscovery(true);
+            ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
             provisioningService.modifyObject(
-                    ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
+                    ShadowType.class, projectionOid, syncSituationDeltas, null, options, ctx, task, result);
         } catch (ObjectNotFoundException ex) {
             // if the object not found exception is thrown, it's ok..probably
             // the account was deleted by previous execution of changes..just

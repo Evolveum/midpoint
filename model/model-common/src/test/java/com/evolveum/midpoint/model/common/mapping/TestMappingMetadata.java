@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -1257,6 +1258,11 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             @Override
             public @NotNull TaskExecutionMode getTaskExecutionMode() {
                 return TaskExecutionMode.PRODUCTION;
+            }
+
+            @Override
+            public @NotNull ProvisioningOperationContext createProvisioningOperationContext(Task task, OperationResult result) {
+                return new ProvisioningOperationContext();
             }
         };
     }
