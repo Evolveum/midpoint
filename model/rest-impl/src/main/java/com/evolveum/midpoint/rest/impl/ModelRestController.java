@@ -284,6 +284,11 @@ public class ModelRestController extends AbstractRestController {
         }
     }
 
+    @GetMapping("/self/")
+    public ResponseEntity<?> getSelfAlt() {
+        return getSelf();
+    }
+
     @GetMapping("/self")
     public ResponseEntity<?> getSelf() {
         logger.debug("model rest service for get operation start");
