@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.Nullable;

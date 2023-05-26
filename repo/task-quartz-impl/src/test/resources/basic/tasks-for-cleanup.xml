@@ -28,7 +28,6 @@
         <executionState>closed</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-        <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
         <schedule>
@@ -67,7 +66,6 @@
         <executionState>closed</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-        <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <completionTimestamp>2013-05-07T11:38:21.350+02:00</completionTimestamp>
         <schedule>
@@ -86,7 +84,6 @@
         <executionState>closed</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-        <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <completionTimestamp>2013-05-07T12:38:21.350+02:00</completionTimestamp>
         <schedule>

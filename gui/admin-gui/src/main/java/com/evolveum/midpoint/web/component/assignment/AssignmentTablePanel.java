@@ -13,7 +13,7 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -299,6 +299,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
     }
 
+    @Override
     protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
         target.add(get(ID_ASSIGNMENTS));
     }
@@ -309,7 +310,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
     protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
             QName relation, String popupId) {
-        ModalWindow window = (ModalWindow) get(popupId);
+        ModalDialog window = (ModalDialog) get(popupId);
         if (window != null) {
             window.close(target);
         }

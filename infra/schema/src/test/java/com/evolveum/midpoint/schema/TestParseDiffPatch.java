@@ -730,23 +730,6 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
     }
 
-    @Test(enabled = false)
-    public void testReplaceModelOperationContext() throws Exception {
-        PrismObject<TaskType> prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
-
-        ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(TaskType.class, prismObject.getOid());
-        //noinspection unchecked
-        delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
-
-        PrismObject<TaskType> changed = prismObject.clone();
-        ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, LITERAL);
-
-        ItemDeltaCollectionsUtil.applyTo(processedModifications, prismObject);
-
-        assertNull(prismObject.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT));
-    }
-
     @Test
     public void testDiffSameValues() throws Exception {
         PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));

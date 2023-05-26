@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqlbase;
 
 import java.io.Closeable;
 import java.io.IOException;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 

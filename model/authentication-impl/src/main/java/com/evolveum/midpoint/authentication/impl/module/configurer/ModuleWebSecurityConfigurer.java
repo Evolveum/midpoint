@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
@@ -25,13 +25,11 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import com.evolveum.midpoint.authentication.impl.filter.RedirectForLoginPagesWithAuthenticationFilter;
 
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -39,16 +37,12 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -59,15 +53,15 @@ import com.evolveum.midpoint.prism.PrismContext;
  * @author skublik
  */
 
-public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
+public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> {//extends WebSecurityConfigurerAdapter {
 
     @Autowired private AuditedAccessDeniedHandler accessDeniedHandler;
-    @Autowired private SessionRegistry sessionRegistry;
     @Autowired private MidPointGuiAuthorizationEvaluator accessDecisionManager;
     @Autowired private MidpointProviderManager authenticationManager;
     @Autowired private AuthModuleRegistryImpl authRegistry;
     @Autowired private AuthChannelRegistryImpl authChannelRegistry;
     @Autowired private PrismContext prismContext;
+    @Autowired private ApplicationContext context;
 //    @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
     @Value("${security.enable-csrf:true}")
@@ -78,7 +72,7 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     private final C configuration;
 
     public ModuleWebSecurityConfigurer(C configuration){
-        super(true);
+//        super(true);
         this.configuration = configuration;
     }
 
@@ -90,10 +84,10 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         return configuration.getPrefixOfModule();
     }
 
-    @Override
+//    @Override
     public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
         this.objectPostProcessor = objectPostProcessor;
-        super.setObjectPostProcessor(objectPostProcessor);
+//        super.setObjectPostProcessor(objectPostProcessor);
     }
 
     public ObjectPostProcessor<Object> getObjectPostProcessor() {
@@ -101,10 +95,21 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     }
 
     public HttpSecurity getNewHttpSecurity() throws Exception {
-        return getHttp();
+        AuthenticationManagerBuilder authenticationBuilder = new AuthenticationManagerBuilder(this.objectPostProcessor);
+        authenticationBuilder.parentAuthenticationManager(authenticationManager());
+        configure(authenticationBuilder);
+        HttpSecurity http = new HttpSecurity(this.objectPostProcessor, authenticationBuilder, createSharedObjects());
+        configure(http);
+        return http;
     }
 
-    @Override
+    private Map<Class<?>, Object> createSharedObjects() {
+        Map<Class<?>, Object> sharedObjects = new HashMap<>();
+        sharedObjects.put(ApplicationContext.class, this.context);
+        return sharedObjects;
+    }
+
+//    @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
@@ -137,7 +142,7 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
     }
 
-    @Override
+//    @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         if (configuration != null && !configuration.getAuthenticationProviders().isEmpty()) {
             for (AuthenticationProvider authenticationProvider : configuration.getAuthenticationProviders()) {
@@ -149,14 +154,12 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         return authenticationManager;
     }
 
-    @Override
+//    @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         if (configuration != null && !configuration.getAuthenticationProviders().isEmpty()) {
             for (AuthenticationProvider authenticationProvider : configuration.getAuthenticationProviders()) {
                 auth.authenticationProvider(authenticationProvider);
             }
-        } else {
-            super.configure(auth);
         }
     }
 

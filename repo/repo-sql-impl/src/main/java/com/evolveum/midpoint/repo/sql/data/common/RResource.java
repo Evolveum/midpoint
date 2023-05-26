@@ -8,10 +8,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;

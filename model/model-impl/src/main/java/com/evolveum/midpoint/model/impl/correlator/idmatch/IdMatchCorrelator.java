@@ -8,20 +8,18 @@
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
@@ -37,6 +35,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * A correlator based on an external service providing ID Match API.
@@ -78,8 +77,8 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
     @Override
     public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
-            @NotNull OperationResult result) throws ConfigurationException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException, CommunicationException,
+            SecurityViolationException {
         return new CorrelationLikeOperation(correlationContext)
                 .correlate(result);
     }
@@ -89,8 +88,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
-            throws ConfigurationException, SchemaException, CommunicationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            throws ConfigurationException, SchemaException, CommunicationException, SecurityViolationException {
         return new CorrelationLikeOperation(correlationContext)
                 .checkCandidateOwner(candidateOwner, result);
     }
@@ -128,9 +126,8 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             super(correlationContext);
         }
 
-        public CorrelationResult correlate(OperationResult result)
-                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+        CorrelationResult correlate(OperationResult result)
+                throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
 
             ensureNotInShadowSimulationMode();
             MatchingResult mResult = executeMatchAndStoreTheResult(result);
@@ -160,17 +157,16 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
 
         double checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
-                throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException,
-                ExpressionEvaluationException, ObjectNotFoundException {
+                throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
             MatchingResult mResult = executeMatchAndStoreTheResult(result);
             String definiteReferenceId = mResult.getReferenceId();
             if (definiteReferenceId != null) {
-                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId, result) ? 1 : 0;
+                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId) ? 1 : 0;
             } else {
                 for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                     String referenceId = potentialMatch.getReferenceId();
                     if (referenceId != null) {
-                        if (checkCandidateOwnerByReferenceId(candidateOwner, referenceId, result)) {
+                        if (checkCandidateOwnerByReferenceId(candidateOwner, referenceId)) {
                             return getConfidence(potentialMatch);
                         }
                     }
@@ -187,8 +183,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
 
         private CorrelationResult correlateUsingKnownReferenceId(String referenceId, OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                throws ConfigurationException, SchemaException  {
             var focus = findFocusWithGivenReferenceId(referenceId, result);
             if (focus != null) {
                 // Note that ID Match does not provide confidence values for certain matches
@@ -202,14 +197,9 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
 
         private ObjectType findFocusWithGivenReferenceId(String referenceId, OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                throws ConfigurationException, SchemaException {
             ReferenceIdResolutionConfig referenceIdResolutionConfig = new ReferenceIdResolutionConfig(correlationContext);
-            if (referenceIdResolutionConfig.followOnConfiguration != null) {
-                return findFocusUsingFollowOn(referenceId, referenceIdResolutionConfig.followOnConfiguration, result);
-            } else {
-                return findFocusDirectly(referenceId, referenceIdResolutionConfig.referenceIdPropertyPath, result);
-            }
+            return findFocusDirectly(referenceId, referenceIdResolutionConfig.referenceIdPropertyPath, result);
         }
 
         private ObjectType findFocusDirectly(String referenceId, ItemPath referenceIdPropertyPath, OperationResult result)
@@ -235,56 +225,10 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             }
         }
 
-        private ObjectType findFocusUsingFollowOn(
-                String referenceId, CorrelatorConfiguration followOn, OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
-
-            CorrelationContext contextWithReferenceId = createContextWithReferenceId(referenceId);
-
-            CorrelationResult childResult =
-                    instantiateChild(followOn, task, result)
-                            .correlate(contextWithReferenceId, result);
-
-            Collection<CandidateOwner> candidateOwners = childResult.getCandidateOwnersMap()
-                    .selectWithConfidenceAtLeast(correlatorContext.getDefiniteThreshold());
-
-            CandidateOwner candidateOwner =
-                    MiscUtil.extractSingleton(
-                            candidateOwners,
-                            () -> new IllegalStateException(
-                                    String.format("Too many owner candidates found for reference ID %s: %s",
-                                            referenceId, candidateOwners)));
-
-            return candidateOwner != null ? candidateOwner.getObject() : null;
-        }
-
-        private CorrelationContext createContextWithReferenceId(String referenceId) {
-            // When resolving candidates, the correlation context does not contain the referenceId.
-            // So, we must check that, and provide one if needed.
-            AbstractCorrelatorStateType currentState = correlationContext.getCorrelatorState();
-            if (currentState instanceof IdMatchCorrelatorStateType
-                    && referenceId.equals(((IdMatchCorrelatorStateType) currentState).getReferenceId())) {
-                return correlationContext;
-            }
-            CorrelationContext clonedContext = correlationContext.clone();
-            clonedContext.setCorrelatorState(
-                    new IdMatchCorrelatorStateType()
-                            .referenceId(referenceId));
-            return clonedContext;
-        }
-
-        private boolean checkCandidateOwnerByReferenceId(FocusType candidateOwner, String referenceId, OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+        private boolean checkCandidateOwnerByReferenceId(FocusType candidateOwner, String referenceId)
+                throws ConfigurationException {
             ReferenceIdResolutionConfig referenceIdResolutionConfig = new ReferenceIdResolutionConfig(correlationContext);
-            if (referenceIdResolutionConfig.referenceIdPropertyPath != null) {
-                return checkCandidateOwnerDirectly(
-                        candidateOwner, referenceId, referenceIdResolutionConfig.referenceIdPropertyPath);
-            } else {
-                return checkCandidateOwnerUsingCorrelator(
-                        candidateOwner, referenceIdResolutionConfig.followOnConfiguration, result);
-            }
+            return checkCandidateOwnerDirectly(candidateOwner, referenceId, referenceIdResolutionConfig.referenceIdPropertyPath);
         }
 
         private boolean checkCandidateOwnerDirectly(FocusType candidateOwner, String referenceId, ItemPath referenceIdPath) {
@@ -292,21 +236,11 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             return candidateReferenceId != null && candidateReferenceId.toString().equals(referenceId);
         }
 
-        private boolean checkCandidateOwnerUsingCorrelator(
-                FocusType candidateOwner, CorrelatorConfiguration followOnConfiguration, OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
-            double confidence = instantiateChild(followOnConfiguration, task, result)
-                    .checkCandidateOwner(correlationContext, candidateOwner, result);
-            return confidence >= correlatorContext.getDefiniteThreshold();
-        }
-
         /** Converts internal {@link MatchingResult} into "externalized form" of {@link CorrelationResult}. */
         private @NotNull CorrelationResult createUncertainResult(
                 @NotNull MatchingResult mResult,
                 @NotNull OperationResult result)
-                throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                throws SchemaException, ConfigurationException {
             CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
             for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                 String referenceId = potentialMatch.getReferenceId();
@@ -348,7 +282,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             super(correlationContext);
         }
 
-        public void execute(OperationResult result)
+        void execute(OperationResult result)
                 throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
 
             IdMatchCorrelatorStateType correlatorState =
@@ -416,28 +350,16 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
     }
 
     private class ReferenceIdResolutionConfig { // TODO better name
-        private final ItemPath referenceIdPropertyPath;
-        private final CorrelatorConfiguration followOnConfiguration;
+        @NotNull private final ItemPath referenceIdPropertyPath;
 
         private ReferenceIdResolutionConfig(@NotNull CorrelationContext correlationContext) throws ConfigurationException {
             ItemPathType pathBean = configurationBean.getReferenceIdProperty();
-            CompositeCorrelatorType followOnBean = configurationBean.getFollowOn();
-            if (pathBean == null && followOnBean == null) {
-                throw new ConfigurationException("Reference ID property path and/or follow-on correlator must be specified in "
+            if (pathBean == null) {
+                throw new ConfigurationException("Reference ID property path must be specified in "
                         + getDefaultContextDescription(correlationContext));
             }
 
-            referenceIdPropertyPath = pathBean != null ? pathBean.getItemPath() : null;
-            followOnConfiguration = followOnBean != null ? getFollowOnConfiguration(followOnBean) : null;
-        }
-
-        private CorrelatorConfiguration getFollowOnConfiguration(CompositeCorrelatorType configBean)
-                throws ConfigurationException {
-            Collection<CorrelatorConfiguration> followOnConfigs = CorrelatorConfiguration.getChildConfigurations(configBean);
-            configCheck(
-                    followOnConfigs.size() == 1,
-                    "Not a single 'follow on' correlator configured: %s", followOnConfigs);
-            return followOnConfigs.iterator().next();
+            referenceIdPropertyPath = pathBean.getItemPath();
         }
     }
 }

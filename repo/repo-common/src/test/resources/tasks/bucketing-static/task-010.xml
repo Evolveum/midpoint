@@ -17,10 +17,18 @@
                 <stringSegmentation>
                     <discriminator>name</discriminator>
                     <matchingRule>polyStringNorm</matchingRule>
-                    <!-- legacy specification -->
-                    <boundaryCharacters>a</boundaryCharacters>
-                    <boundaryCharacters>\0-\1\a-\c</boundaryCharacters>
-                    <boundaryCharacters>01abc</boundaryCharacters>
+                    <boundary>
+                        <position>1</position>
+                        <characters>a</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>\0-\1\a-\c</characters>
+                    </boundary>
+                    <boundary>
+                        <position>3</position>
+                        <characters>01abc</characters>
+                    </boundary>
                     <comparisonMethod>prefix</comparisonMethod>
                 </stringSegmentation>
             </buckets>

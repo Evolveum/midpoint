@@ -10,7 +10,6 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <workflowConfiguration>
-        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
     </workflowConfiguration>
     <globalPolicyRule>

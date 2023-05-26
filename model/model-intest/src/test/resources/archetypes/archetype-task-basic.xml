@@ -88,9 +88,6 @@
                             <c:path>stateBeforeSuspend</c:path>
                         </item>
                         <item>
-                            <c:path>category</c:path>
-                        </item>
-                        <item>
                             <c:path>handlerUri</c:path>
                         </item>
                         <item>

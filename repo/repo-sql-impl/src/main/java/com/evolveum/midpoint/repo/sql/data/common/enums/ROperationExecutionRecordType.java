@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType;
 
 @JaxbType(type = OperationExecutionRecordTypeType.class)
@@ -19,6 +20,7 @@ public enum ROperationExecutionRecordType implements SchemaEnum<OperationExecuti
 
     ROperationExecutionRecordType(OperationExecutionRecordTypeType schemaValue) {
         this.schemaValue = schemaValue;
+        RUtil.register(this);
     }
 
     @Override

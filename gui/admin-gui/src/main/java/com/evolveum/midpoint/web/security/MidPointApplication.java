@@ -10,7 +10,7 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.configuration2.Configuration;

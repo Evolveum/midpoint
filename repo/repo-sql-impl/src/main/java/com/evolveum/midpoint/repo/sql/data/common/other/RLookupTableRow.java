@@ -8,10 +8,11 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import java.util.Date;
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
@@ -45,6 +46,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     private String key;
     private String value;
     private RPolyString label;
+
     private XMLGregorianCalendar lastChangeTimestamp;
 
     @Id
@@ -58,6 +60,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -69,6 +72,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
 
     public static final String ID_COLUMN_NAME = "id";
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -96,6 +100,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
         this.label = label;
     }
 
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getLastChangeTimestamp() {
         return lastChangeTimestamp;
     }

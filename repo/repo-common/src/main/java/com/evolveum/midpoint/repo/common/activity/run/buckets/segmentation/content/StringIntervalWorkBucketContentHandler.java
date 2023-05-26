@@ -11,7 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringIntervalWorkBucketContentType;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class StringIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {

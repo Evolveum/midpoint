@@ -14,26 +14,19 @@ import com.evolveum.midpoint.testing.rest.authentication.TestAbstractAuthenticat
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
-import com.nimbusds.jose.util.JSONObjectUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.keycloak.authorization.client.AuthzClient;
-import org.keycloak.common.util.KeystoreUtil;
 import org.keycloak.representations.AccessTokenResponse;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.text.ParseException;
-import java.util.Optional;
 import java.util.Properties;
 
 import static org.testng.AssertJUnit.assertNotNull;

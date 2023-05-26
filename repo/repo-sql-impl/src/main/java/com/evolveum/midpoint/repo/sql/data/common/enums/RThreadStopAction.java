@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
 /**
@@ -25,6 +26,7 @@ public enum RThreadStopAction implements SchemaEnum<ThreadStopActionType> {
 
     RThreadStopAction(ThreadStopActionType action) {
         this.action = action;
+        RUtil.register(this);
     }
 
     @Override

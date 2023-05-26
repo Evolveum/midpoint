@@ -9,9 +9,13 @@ package com.evolveum.midpoint.repo.sql.type;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.BasicTypeReference;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.AbstractTemporalJavaType;
 import org.hibernate.usertype.UserType;
+
+import jakarta.persistence.TemporalType;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -20,18 +24,20 @@ import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
  * @author lazyman
  */
-public class XMLGregorianCalendarType implements UserType {
+public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> {
 
     public static final String NAME = "XMLGregorianCalendarType";
 
-    private static final AbstractSingleColumnStandardBasicType HIBERNATE_TYPE = TimestampType.INSTANCE;
     private static DatatypeFactory df = null;
+
+    private static final BasicTypeReference<Date> JPA_TYPE = StandardBasicTypes.TIMESTAMP;
 
     static {
         try {
@@ -42,9 +48,12 @@ public class XMLGregorianCalendarType implements UserType {
     }
 
     @Override
-    public Object assemble(Serializable cached, Object owner) throws HibernateException {
+    public XMLGregorianCalendar assemble(Serializable cached, Object owner) throws HibernateException {
         if (cached == null) {
             return null;
+        }
+        if (cached instanceof XMLGregorianCalendar) {
+            return (XMLGregorianCalendar) ((XMLGregorianCalendar) cached).clone();
         }
         long date = (Long) cached;
 
@@ -52,22 +61,23 @@ public class XMLGregorianCalendarType implements UserType {
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{HIBERNATE_TYPE.sqlType()};
+    public int getSqlType() {
+        return JPA_TYPE.getSqlTypeCode();
+    }
+
+
+    @Override
+    public Class<XMLGregorianCalendar> returnedClass() {
+        return XMLGregorianCalendar.class;
     }
 
     @Override
-    public Class returnedClass() {
-        return Date.class;
-    }
-
-    @Override
-    public boolean equals(Object x, Object y) throws HibernateException {
+    public boolean equals(XMLGregorianCalendar x, XMLGregorianCalendar y) throws HibernateException {
         return x == null ? y == null : x.equals(y);
     }
 
     @Override
-    public int hashCode(Object x) throws HibernateException {
+    public int hashCode(XMLGregorianCalendar x) throws HibernateException {
         if (x == null) {
             return 0;
         }
@@ -76,9 +86,9 @@ public class XMLGregorianCalendarType implements UserType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public XMLGregorianCalendar nullSafeGet(ResultSet rs, int index, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        Date date = (Date) HIBERNATE_TYPE.nullSafeGet(rs, names[0], session);
+        Date date = rs.getTimestamp(index);
         if (date == null) {
             return null;
         }
@@ -86,24 +96,24 @@ public class XMLGregorianCalendarType implements UserType {
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
+    public void nullSafeSet(PreparedStatement st, XMLGregorianCalendar value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException {
-        XMLGregorianCalendar calendar = (XMLGregorianCalendar) value;
+        XMLGregorianCalendar calendar = value;
         Date date = null;
         if (calendar != null) {
             date = asDate(calendar);
         }
-
-        HIBERNATE_TYPE.nullSafeSet(st, date, index, session);
+        var relValue = date != null ? new Timestamp(date.getTime()) : null;
+        st.setTimestamp(index, relValue);
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException {
+    public XMLGregorianCalendar deepCopy(XMLGregorianCalendar value) throws HibernateException {
         if (value == null) {
             return null;
         }
 
-        XMLGregorianCalendar calendar = (XMLGregorianCalendar) value;
+        XMLGregorianCalendar calendar = value;
         return asXMLGregorianCalendar(asDate(calendar));
     }
 
@@ -113,17 +123,17 @@ public class XMLGregorianCalendarType implements UserType {
     }
 
     @Override
-    public Serializable disassemble(Object value) throws HibernateException {
+    public Serializable disassemble(XMLGregorianCalendar value) throws HibernateException {
         if (value == null) {
             return null;
         }
-
-        XMLGregorianCalendar calendar = (XMLGregorianCalendar) value;
-        return asDate(calendar).getTime();
+        return (Serializable) value.clone();
+        //XMLGregorianCalendar calendar = value;
+        //return asDate(calendar).getTime();
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException {
+    public XMLGregorianCalendar replace(XMLGregorianCalendar original, XMLGregorianCalendar target, Object owner) throws HibernateException {
         return deepCopy(original);
     }
 
@@ -160,4 +170,5 @@ public class XMLGregorianCalendarType implements UserType {
             return xgc.toGregorianCalendar().getTime();
         }
     }
+
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="45c36aa1-c3ad-48c4-9d61-e8d67ce85f11">
+    <name>custom-validity-scan</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <focusValidityScan>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>employeeNumber</q:path>
+                                <q:value>AA</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+                <validityConstraint>
+                    <item>extension/funeralTimestamp</item>
+                    <activateOn>-P1D</activateOn>
+                </validityConstraint>
+            </focusValidityScan>
+        </work>
+    </activity>
+</task>

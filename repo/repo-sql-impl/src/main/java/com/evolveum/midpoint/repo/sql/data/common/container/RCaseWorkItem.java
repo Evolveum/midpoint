@@ -11,9 +11,9 @@ import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.ForeignKey;
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -60,6 +61,7 @@ public class RCaseWorkItem implements Container<RCase> {
     public RCaseWorkItem() {
     }
 
+    @Override
     @Id
     @ForeignKey(name = "fk_case_wi_owner")
     @MapsId("owner")
@@ -69,6 +71,7 @@ public class RCaseWorkItem implements Container<RCase> {
         return owner;
     }
 
+    @Override
     public void setOwner(RCase _case) {
         this.owner = _case;
         if (_case != null) {
@@ -76,6 +79,7 @@ public class RCaseWorkItem implements Container<RCase> {
         }
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -85,10 +89,12 @@ public class RCaseWorkItem implements Container<RCase> {
         return ownerOid;
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -98,6 +104,7 @@ public class RCaseWorkItem implements Container<RCase> {
         return id;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -166,6 +173,7 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getCloseTimestamp() {
         return closeTimestamp;
     }
@@ -175,6 +183,7 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
@@ -184,6 +193,7 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getDeadline() {
         return deadline;
     }
@@ -214,11 +224,13 @@ public class RCaseWorkItem implements Container<RCase> {
                 .hash(getOwnerOid(), id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
     }
 
+    @Override
     @Transient
     public Boolean isTransient() {
         return trans;
     }
 
+    @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
     }

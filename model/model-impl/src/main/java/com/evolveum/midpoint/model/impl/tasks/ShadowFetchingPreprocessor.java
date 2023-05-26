@@ -64,6 +64,6 @@ public class ShadowFetchingPreprocessor implements ItemPreprocessor<ShadowType> 
                         .noFetch(false)
                         .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // we need exceptions!
                         .build();
-        return GetOperationOptions.merge(PrismContext.get(), originalOptions, optionsToSet);
+        return GetOperationOptions.merge(originalOptions, optionsToSet);
     }
 }

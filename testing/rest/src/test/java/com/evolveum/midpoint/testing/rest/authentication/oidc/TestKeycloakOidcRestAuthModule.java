@@ -23,14 +23,10 @@ import org.apache.poi.util.ReplacingInputStream;
 import org.keycloak.authorization.client.AuthzClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Optional;
-
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 public class TestKeycloakOidcRestAuthModule extends TestAbstractOidcRestModule {
 

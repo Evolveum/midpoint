@@ -388,6 +388,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAddObjectFromFile(ARCHETYPE_BUSINESS_ROLE_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_APPLICATION_ROLE_FILE, initResult);
 
+        ARCHETYPE_ADMIN.init(this, initTask, initResult);
+        ARCHETYPE_PERSONA_ROLE.init(this, initTask, initResult);
+
         repoAddObjectFromFile(ROLE_READONLY_FILE, initResult);
         repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, initResult);
         repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, initResult);
@@ -456,7 +459,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAddObjectFromFile(ROLE_SELF_TASK_OWNER_FILE, initResult);
         repoAddObjectFromFile(ROLE_PERSONA_MANAGEMENT_FILE, initResult);
         repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_FILE, initResult);
-        repoAddObjectFromFile(ROLE_PERSONA_ADMIN_FILE, initResult);
+        addObject(ROLE_PERSONA_ADMIN_FILE, initTask, initResult);
         repoAddObjectFromFile(ROLE_ORDINARY_FILE, initResult);
         repoAddObjectFromFile(ROLE_UNINTERESTING_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORG_UNIT_FILE, initResult);

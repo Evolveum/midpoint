@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.List;

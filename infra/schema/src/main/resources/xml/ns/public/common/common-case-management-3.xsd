@@ -46,6 +46,11 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:taskRef</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -215,21 +220,6 @@
                             <xsd:appinfo>
                                 <a:since>4.5</a:since>
                                 <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference to the task holding workflow context for wf-related cases.
-                                DEPRECATED. Not used any more. The relation is defined the other way:
-                                task.objectRef points to this case.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.1</a:deprecatedSince>
-                                <a:deprecatedSince>4.0.3</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

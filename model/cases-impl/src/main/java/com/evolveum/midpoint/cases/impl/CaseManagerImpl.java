@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.cases.impl;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 

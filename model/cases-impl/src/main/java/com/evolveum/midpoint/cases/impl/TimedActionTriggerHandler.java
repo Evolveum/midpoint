@@ -14,7 +14,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemR
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 

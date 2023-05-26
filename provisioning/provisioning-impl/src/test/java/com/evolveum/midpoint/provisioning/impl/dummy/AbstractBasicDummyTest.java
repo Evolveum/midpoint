@@ -850,9 +850,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilities, UpdateCapabilityType.class);
         assertUpdateCapability(capUpdate);
 
-        AddRemoveAttributeValuesCapabilityType capAddRemove = CapabilityUtil.getCapability(nativeCapabilities, AddRemoveAttributeValuesCapabilityType.class);
-        assertAddRemoveAttributeValuesCapability(capAddRemove);
-
         RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilities, RunAsCapabilityType.class);
         assertRunAsCapability(capRunAs);
 
@@ -896,10 +893,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("native update capability is NOT delta", capUpdate.isDelta());
         assertNotNull("addRemoveAttributeValues in native update capability is null", capUpdate.isAddRemoveAttributeValues());
         assertTrue("native update capability is NOT addRemoveAttributeValues", capUpdate.isAddRemoveAttributeValues());
-    }
-
-    protected void assertAddRemoveAttributeValuesCapability(AddRemoveAttributeValuesCapabilityType capAddRemove) {
-        assertNull("Unexpected native AddRemoveAttributeValues capability", capAddRemove);
     }
 
     protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {

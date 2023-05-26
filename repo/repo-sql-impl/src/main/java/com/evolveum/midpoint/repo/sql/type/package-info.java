@@ -8,11 +8,12 @@
 /**
  * @author lazyman
  */
-
+/*
 @org.hibernate.annotations.TypeDefs({
         @org.hibernate.annotations.TypeDef(name = XMLGregorianCalendarType.NAME,
                 defaultForType = javax.xml.datatype.XMLGregorianCalendar.class,
                 typeClass = com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType.class),
         @org.hibernate.annotations.TypeDef(name = PrefixedStringType.NAME,
                 typeClass = com.evolveum.midpoint.repo.sql.type.PrefixedStringType.class)
-}) package com.evolveum.midpoint.repo.sql.type;
+}) */
+package com.evolveum.midpoint.repo.sql.type;

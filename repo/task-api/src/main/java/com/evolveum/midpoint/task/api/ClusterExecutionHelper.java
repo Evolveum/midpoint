@@ -16,11 +16,10 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.function.BiConsumer;
 
 /**
- *  Helps with the intra-cluster remote code execution.
  *
  *  Generally, execute(..) methods prepare a configured WebClient (URL, authentication, ...) and execute
  *  specified client code on it. The client code is responsible for setting the correct path (e.g. "/scheduler/information"),

@@ -7,16 +7,18 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTimeIntervalStatus;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -38,21 +40,25 @@ public class RActivation {
     private String disableReason;
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getArchiveTimestamp() {
         return archiveTimestamp;
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getDisableTimestamp() {
         return disableTimestamp;
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getEnableTimestamp() {
         return enableTimestamp;
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getValidityChangeTimestamp() {
         return validityChangeTimestamp;
     }
@@ -76,11 +82,13 @@ public class RActivation {
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getValidTo() {
         return validTo;
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getValidFrom() {
         return validFrom;
     }

@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.Response;
 
 import com.evolveum.midpoint.model.api.authentication.ClusterwideUserSessionManager;
 
@@ -52,7 +51,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         // that terminate session is executed on as wide scale as realistically possible.
         clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterServiceConsts.EVENT_TERMINATE_SESSION);
-            Response response = client.post(terminateSessionEvent.toEventType());
+            var response = client.post(terminateSessionEvent.toEventType());
             LOGGER.info("Remote-node user session termination finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
             response.close();
@@ -81,7 +80,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         // information as complete as realistically possible.
         clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterServiceConsts.EVENT_LIST_USER_SESSION);
-            Response response = client.get();
+            var response = client.get();
             LOGGER.debug("Remote-node retrieval of user sessions finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
 

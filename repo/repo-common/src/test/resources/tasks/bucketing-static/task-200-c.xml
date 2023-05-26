@@ -12,7 +12,6 @@
     <taskIdentifier>a021d1b0-eea3-4378-87b6-7ab8bf9ab537</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>suspended</executionState>
-    <recurrence>single</recurrence>
     <activity>
         <distribution>
             <buckets>

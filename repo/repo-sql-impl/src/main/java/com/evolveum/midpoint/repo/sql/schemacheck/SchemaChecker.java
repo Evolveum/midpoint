@@ -22,7 +22,7 @@ import org.hibernate.tool.hbm2ddl.SchemaValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.*;
 import java.sql.Connection;
 import java.util.ArrayList;

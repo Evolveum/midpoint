@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

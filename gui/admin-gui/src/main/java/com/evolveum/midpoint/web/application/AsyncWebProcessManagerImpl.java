@@ -11,8 +11,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpSession;
+import jakarta.annotation.PreDestroy;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ISessionListener;

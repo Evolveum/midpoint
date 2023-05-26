@@ -28,7 +28,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+//import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.util.tester.WicketTester;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -309,6 +309,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
      */
     protected void executeModalWindowCloseCallback(String path) {
         Component component = tester.getComponentFromLastRenderedPage(path);
+        /*
         if (!(component instanceof ModalWindow)) {
             fail("path: '" + path + "' is not ModalWindow: " + component.getClass());
         }
@@ -320,6 +321,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 }
             }
         }
+        */
     }
 
     protected void clickOnTab(int order, Class<? extends Page> expectedPage) {

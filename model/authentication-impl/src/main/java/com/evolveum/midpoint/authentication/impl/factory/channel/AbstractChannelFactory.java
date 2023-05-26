@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.channel;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 

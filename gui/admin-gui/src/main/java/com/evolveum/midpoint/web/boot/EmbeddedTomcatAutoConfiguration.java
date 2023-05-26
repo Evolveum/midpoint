@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.boot;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import javax.servlet.Servlet;
+import jakarta.servlet.Servlet;
 
 import com.google.common.base.Strings;
 import org.apache.catalina.connector.Connector;

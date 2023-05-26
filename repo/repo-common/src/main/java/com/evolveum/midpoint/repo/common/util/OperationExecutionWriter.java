@@ -37,8 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.Objects;
@@ -290,12 +290,6 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         if (value != null && value.getCleanupPolicy() != null) {
             simpleExecsCleanupPolicy = value.getCleanupPolicy().getSimpleOperationExecutions();
             complexExecsCleanupPolicy = value.getCleanupPolicy().getComplexOperationExecutions();
-            if (simpleExecsCleanupPolicy == null) {
-                simpleExecsCleanupPolicy = value.getCleanupPolicy().getObjectResults();
-            }
-            if (complexExecsCleanupPolicy == null) {
-                complexExecsCleanupPolicy = value.getCleanupPolicy().getObjectResults();
-            }
         } else {
             simpleExecsCleanupPolicy = null;
             complexExecsCleanupPolicy = null;

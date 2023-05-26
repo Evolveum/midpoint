@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.Optional;
 

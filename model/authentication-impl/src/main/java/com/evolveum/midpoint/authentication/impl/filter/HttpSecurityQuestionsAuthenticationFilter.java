@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;

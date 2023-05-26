@@ -81,7 +81,6 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(AbstractRoleType.F_LINK_REF, "FocusType.linkRef", DisplayValueType.NUMBER)))
                 .put(TaskType.class, Arrays.asList(
                         new ColumnWrapper(TaskType.F_NAME),
-                        new ColumnWrapper(TaskType.F_CATEGORY),
                         new ColumnWrapper(TaskType.F_EXECUTION_STATE),
                         new ColumnWrapper(TaskType.F_OBJECT_REF),
                         new ColumnWrapper(TaskType.F_NODE_AS_OBSERVED, "pageTasks.task.executingAt"),

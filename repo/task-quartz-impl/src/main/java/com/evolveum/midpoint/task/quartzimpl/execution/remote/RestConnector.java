@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformation
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Manages remote nodes using REST.

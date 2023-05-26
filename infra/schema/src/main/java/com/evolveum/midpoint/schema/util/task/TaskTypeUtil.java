@@ -122,8 +122,6 @@ public class TaskTypeUtil {
     public static @Nullable TaskRecurrenceType getSpecifiedRecurrence(@NotNull TaskType task) {
         if (task.getSchedule() != null && task.getSchedule().getRecurrence() != null) {
             return task.getSchedule().getRecurrence();
-        } else if (task.getRecurrence() != null) {
-            return task.getRecurrence();
         } else {
             return null;
         }

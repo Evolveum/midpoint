@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_N
 
 import java.io.Serializable;
 import java.util.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.DynamicUpdate;

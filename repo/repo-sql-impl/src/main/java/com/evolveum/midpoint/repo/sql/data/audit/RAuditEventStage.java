@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 
 public enum RAuditEventStage implements SchemaEnum<AuditEventStageType> {
@@ -21,6 +22,7 @@ public enum RAuditEventStage implements SchemaEnum<AuditEventStageType> {
 
     RAuditEventStage(AuditEventStage stage) {
         this.stage = stage;
+        RUtil.register(this);
     }
 
     public AuditEventStage getStage() {

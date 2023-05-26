@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.Objects;
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;

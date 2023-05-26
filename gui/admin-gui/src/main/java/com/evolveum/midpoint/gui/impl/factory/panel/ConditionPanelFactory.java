@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;

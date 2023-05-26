@@ -44,6 +44,8 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         super.initSystem(initTask, initResult);
 
         addObject(getPersonaObjectTemplateFile());
+        ARCHETYPE_ADMIN.init(this, initTask, initResult);
+        ARCHETYPE_PERSONA_ROLE.init(this, initTask, initResult);
         addObject(ROLE_PERSONA_ADMIN_FILE);
 
         // Persona full name is computed by using this ordinary user template
@@ -75,12 +77,12 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
         assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         display("Persona", persona);
         userJackAdminPersonaOid = persona.getOid();
         // Full name is computed by using ordinary user template
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
-        assertSubtype(persona, "admin");
+        assertHasArchetype(persona, ARCHETYPE_ADMIN.oid);
         assertPersonaInitialPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
@@ -164,10 +166,10 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
         assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         display("Persona", persona);
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
-        assertSubtype(persona, "admin");
+        assertHasArchetype(persona, ARCHETYPE_ADMIN.oid);
         assertPersonaInitialPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
@@ -194,11 +196,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
         assertLiveLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         display("Persona", persona);
         // Full name mapping in ordinary user template is weak, fullname is not changed
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
-        assertSubtype(persona, "admin");
+        assertHasArchetype(persona, ARCHETYPE_ADMIN.oid);
         assertPersonaInitialPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
@@ -234,7 +236,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertPasswordMetadata(userAfter, false, startCal, endCal);
         assertPasswordHistoryEntries(userAfter);
 
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         assertPersonaAfterUserPasswordChange(persona, USER_JACK_PASSWORD, USER_PASSWORD_2_CLEAR);
     }
 
@@ -247,7 +249,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, "admin");
+        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, ARCHETYPE_ADMIN.oid);
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -269,7 +271,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertPasswordMetadata(userAfter, false, null, startCal);
         assertPasswordHistoryEntries(userAfter);
 
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         assertPersonaAfterPersonaPasswordChange(persona, USER_PASSWORD_3_CLEAR, startCal, endCal);
     }
 
@@ -285,7 +287,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, "admin");
+        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, ARCHETYPE_ADMIN.oid);
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -307,7 +309,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         assertPasswordMetadata(userAfter, false, null, startCal);
         assertPasswordHistoryEntries(userAfter);
 
-        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, ARCHETYPE_ADMIN.oid);
         assertPersonaAfterPersonaPasswordChange(persona, USER_PASSWORD_2_CLEAR, startCal, endCal);
     }
 

@@ -19,5 +19,4 @@
     <executionStatus>closed</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
-    <recurrence>single</recurrence>
 </task>

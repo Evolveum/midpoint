@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.ResultTransformer;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +22,7 @@ public final class GetContainerableIdOnlyResult implements Serializable {
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
         @Override
         public ResultTransformer getResultTransformer() {
-            return new BasicTransformerAdapter() {
+            return new ResultTransformer() {
                 @Override
                 public Object transformTuple(Object[] tuple, String[] aliases) {
                     return new GetContainerableIdOnlyResult((String) tuple[0], (Integer) tuple[1]);

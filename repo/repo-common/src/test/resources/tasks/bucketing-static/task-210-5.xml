@@ -12,7 +12,6 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <parent>336e4ded-82a6-432c-ade0-43844e59c3e4</parent>
     <executionState>suspended</executionState>
-    <recurrence>single</recurrence>
     <activityState>
         <activity>
             <bucketing>

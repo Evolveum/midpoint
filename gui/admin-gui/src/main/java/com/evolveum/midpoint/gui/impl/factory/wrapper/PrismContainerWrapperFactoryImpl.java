@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;

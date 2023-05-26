@@ -30,7 +30,6 @@
         </work>
     </activity>
 
-    <recurrence>recurring</recurrence>
     <schedule>
         <interval>3</interval>
     </schedule>

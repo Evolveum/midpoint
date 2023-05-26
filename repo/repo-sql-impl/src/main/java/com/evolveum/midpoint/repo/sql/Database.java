@@ -35,7 +35,6 @@ public enum Database {
     ORACLE("oracle.jdbc.OracleDriver",
             MidPointOracleDialect.class.getName(),
             org.hibernate.dialect.OracleDialect.class.getName(),
-            org.hibernate.dialect.Oracle9Dialect.class.getName(),
             org.hibernate.dialect.Oracle8iDialect.class.getName(),
             org.hibernate.dialect.Oracle9iDialect.class.getName(),
             org.hibernate.dialect.Oracle10gDialect.class.getName());

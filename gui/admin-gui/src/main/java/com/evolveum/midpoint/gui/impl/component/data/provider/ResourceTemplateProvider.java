@@ -68,7 +68,7 @@ public class ResourceTemplateProvider
     // where options for this provider are defined.
     protected Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
         @NotNull Collection<SelectorOptions<GetOperationOptions>> rawOption = getOperationOptionsBuilder().raw().build();
-        return GetOperationOptions.merge(getPrismContext(), getOptions(), getDistinctRelatedOptions(), rawOption);
+        return GetOperationOptions.merge(getOptions(), getDistinctRelatedOptions(), rawOption);
     }
 
     @Override

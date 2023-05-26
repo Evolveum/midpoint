@@ -8,7 +8,9 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 public class SimpleComparisonCondition extends PropertyCondition {
 
@@ -43,6 +45,11 @@ public class SimpleComparisonCondition extends PropertyCondition {
         } else {
             finalPropertyPath = propertyPath;
             finalPropertyValue = value;
+        }
+
+        // Hibernate 6 expect proper enum type to be used
+        if (finalPropertyValue instanceof Enum<?> && !(finalPropertyValue instanceof SchemaEnum<?>)) {
+            finalPropertyValue = RUtil.getRepoEnumValue((Enum<?>) finalPropertyValue);
         }
 
         String parameterNamePrefix = createParameterName(propertyPath);

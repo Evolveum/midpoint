@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl.util;
 import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -80,6 +80,7 @@ public class AuthSequenceUtil {
                 .put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI)
                 .put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI)
                 .put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI)
+                .put("invitation", SchemaConstants.CHANNEL_INVITATION_URI)
                 .build();
     }
 

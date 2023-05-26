@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;

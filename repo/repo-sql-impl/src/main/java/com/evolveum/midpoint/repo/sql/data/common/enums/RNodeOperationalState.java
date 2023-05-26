@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 
 @JaxbType(type = NodeOperationalStateType.class)
@@ -20,6 +21,7 @@ public enum RNodeOperationalState implements SchemaEnum<NodeOperationalStateType
 
     RNodeOperationalState(NodeOperationalStateType stateType) {
         this.stateType = stateType;
+        RUtil.register(this);
     }
 
     @Override
