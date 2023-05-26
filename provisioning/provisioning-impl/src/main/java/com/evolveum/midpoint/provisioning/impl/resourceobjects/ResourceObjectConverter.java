@@ -337,14 +337,14 @@ public class ResourceObjectConverter {
 
                 // Be careful NOT to apply this to the cloned shadow. This needs to be propagated outside this method.
                 applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
-
-                shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, result);
             } catch (CommunicationException ex) {
                 throw communicationException(ctx, connector, ex);
             } catch (GenericFrameworkException ex) {
                 throw genericConnectorException(ctx, connector, ex);
             } catch (ObjectAlreadyExistsException ex) {
                 throw objectAlreadyExistsException("", ctx, connector, ex);
+            } finally {
+                shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, result);
             }
 
             // Execute entitlement modification on other objects (if needed)
@@ -468,8 +468,6 @@ public class ResourceObjectConverter {
                                 identifiers,
                                 ctx.getUcfExecutionContext(),
                                 result);
-
-                shadowAuditHelper.auditEvent(AuditEventType.DELETE_OBJECT, shadow, ctx, result);
             } catch (ObjectNotFoundException ex) {
                 throw ex.wrap(String.format(
                         "An error occurred while deleting resource object %s with identifiers %s (%s)",
@@ -480,6 +478,8 @@ public class ResourceObjectConverter {
                 throw genericConnectorException(ctx, connector, ex);
             } catch (ConfigurationException ex) {
                 throw configurationException(ctx, connector, ex);
+            } finally {
+                shadowAuditHelper.auditEvent(AuditEventType.DELETE_OBJECT, shadow, ctx, result);
             }
 
             LOGGER.trace("Deleted resource object {}", shadow);
@@ -871,7 +871,11 @@ public class ResourceObjectConverter {
                 operationsWave = convertToReplaceAsNeeded(
                         ctx, currentShadow, operationsWave, identifiersWorkingCopy, objectDefinition, result);
 
-                if (!operationsWave.isEmpty()) {
+                if (operationsWave.isEmpty()) {
+                    continue;
+                }
+
+                try {
                     ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectDefinition, identifiersWorkingCopy);
                     connectorAsyncOpRet = connector.modifyObject(
                             identification, asPrismObject(currentShadow), operationsWave, connOptions, ctx.getUcfExecutionContext(), result);
@@ -884,7 +888,7 @@ public class ResourceObjectConverter {
                         inProgress = true;
                         asynchronousOperationReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
                     }
-
+                } finally {
                     shadowAuditHelper.auditEvent(AuditEventType.MODIFY_OBJECT, currentShadow, operationsWave, ctx, result);
                 }
             }

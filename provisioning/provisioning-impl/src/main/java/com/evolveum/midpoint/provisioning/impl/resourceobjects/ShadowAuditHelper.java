@@ -103,17 +103,17 @@ public class ShadowAuditHelper {
         auditRecord.setTimestamp(Clock.get().currentTimeMillis());
         auditRecord.setChannel(task.getChannel());
 
-        ObjectDeltaOperation<ShadowType> delta = createDelta(event, shadow, operationsWave);
+        OperationResult clone = auditHelper.cloneResultForAuditEventRecord(result);
+        auditHelper.addRecordMessage(auditRecord, clone.getMessage());
+
+        auditRecord.setOutcome(clone.getStatus());
+
+        ObjectDeltaOperation<ShadowType> delta = createDelta(event, shadow, operationsWave, clone);
         if (delta != null) {
             auditRecord.addDelta(delta);
         }
 
         AuditConfiguration auditConfiguration = auditHelper.getAuditConfiguration(systemConfiguration);
-
-        OperationResult clone = auditHelper.cloneResultForAuditEventRecord(result);
-        auditHelper.addRecordMessage(auditRecord, clone.getMessage());
-
-        auditRecord.setOutcome(clone.getStatus());
 
         if (auditConfiguration.isRecordResourceOids()) {
             auditRecord.addResourceOid(ctx.getResourceOid());
@@ -141,22 +141,19 @@ public class ShadowAuditHelper {
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
     }
 
-    private ObjectDeltaOperation<ShadowType> createDelta(AuditEventType event, ShadowType shadow, Collection<Operation> operations) {
+    private ObjectDeltaOperation<ShadowType> createDelta(AuditEventType event, ShadowType shadow, Collection<Operation> operations, OperationResult result) {
         if (shadow == null) {
             return null;
         }
 
+        ObjectDelta<ShadowType> delta = null;
         PrismObject<ShadowType> object = shadow.asPrismObject();
         if (event == AuditEventType.ADD_OBJECT || event == AuditEventType.DISCOVER_OBJECT) {
-            ObjectDelta<ShadowType> delta = object.createAddDelta();
-
-            return new ObjectDeltaOperation<>(delta);
+            delta = object.createAddDelta();
         } else if (event == AuditEventType.DELETE_OBJECT) {
-            ObjectDelta<ShadowType> delta = object.createDeleteDelta();
-
-            return new ObjectDeltaOperation<>(delta);
+            delta = object.createDeleteDelta();
         } else if (event == AuditEventType.MODIFY_OBJECT) {
-            ObjectDelta<ShadowType> delta = prismContext
+            delta = prismContext
                     .deltaFactory()
                     .object()
                     .createEmptyDelta(ShadowType.class, shadow.getOid(), ChangeType.MODIFY);
@@ -168,11 +165,9 @@ public class ShadowAuditHelper {
                     delta.addModification(pDelta);
                 }
             }
-
-            return new ObjectDeltaOperation<>(delta);
         }
 
-        return null;
+        return delta != null ? new ObjectDeltaOperation<>(delta, result) : null;
     }
 
     private boolean isEnhancedShadowAuditingEnabled(SystemConfigurationType config) {
