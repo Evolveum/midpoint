@@ -19,7 +19,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class OperationStatus {
 
     public enum State {
-        NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED;
+        NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED
     }
 
     private final NinjaContext context;

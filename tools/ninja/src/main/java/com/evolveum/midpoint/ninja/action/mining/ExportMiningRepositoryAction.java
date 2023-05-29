@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningOptions> {
+public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningOptions, Void> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -42,7 +42,7 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus operation = new OperationStatus(context, result);
 
@@ -78,6 +78,8 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
         }
 
         handleResultOnFinish(operation, "Finished " + OPERATION_SHORT_NAME);
+
+        return null;
     }
 
     @Override

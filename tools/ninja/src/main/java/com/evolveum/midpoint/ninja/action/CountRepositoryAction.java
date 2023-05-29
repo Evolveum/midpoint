@@ -7,26 +7,22 @@
 
 package com.evolveum.midpoint.ninja.action;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.CountOptions;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CountRepositoryAction extends RepositoryAction<CountOptions> {
+public class CountRepositoryAction extends RepositoryAction<CountOptions, Void> {
 
     private static final String DOT_CLASS = CountRepositoryAction.class.getName() + ".";
 
@@ -38,7 +34,7 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         RepositoryService repository = context.getRepository();
 
         FileReference fileReference = options.getFilter();
@@ -62,5 +58,7 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
         }
 
         log.info("===\nTotal:\t{}", total);
+
+        return null;
     }
 }

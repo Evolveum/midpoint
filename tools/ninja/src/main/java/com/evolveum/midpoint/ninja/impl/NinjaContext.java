@@ -1,18 +1,29 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.impl;
 
-import com.beust.jcommander.JCommander;
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
+
+import java.io.Closeable;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.opts.PolyStringNormalizerOptions;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.PolyStringNormalizerOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -22,80 +33,54 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
-
-import java.nio.charset.Charset;
-
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class NinjaContext {
+public class NinjaContext implements Closeable {
 
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
     private static final String AUDIT_SERVICE_BEAN = "auditService";
 
     private static final String CTX_NINJA = "classpath:ctx-ninja.xml";
 
-    private static final String[] CTX_MIDPOINT = new String[] {
-            "classpath:ctx-common.xml",
-            "classpath:ctx-configuration.xml",
-            "classpath*:ctx-repository.xml",
-            "classpath:ctx-repo-cache.xml",
-            "classpath:ctx-audit.xml"
-    };
+    private final List<Object> options;
 
-    private static final String[] CTX_MIDPOINT_NO_REPO = new String[] {
-            "classpath:ctx-common.xml",
-            "classpath:ctx-configuration-no-repo.xml"
-    };
-
-    private final JCommander jc;
+    private final NinjaApplicationContextLevel applicationContextLevel;
 
     private Log log;
 
-    private GenericXmlApplicationContext context;
+    private GenericXmlApplicationContext applicationContext;
+
+    private MidpointConfiguration midpointConfiguration;
 
     private RepositoryService repository;
 
     private AuditService auditService;
 
-    private RestService restService;
-
     private PrismContext prismContext;
 
     private SchemaService schemaService;
 
-    public NinjaContext(JCommander jc) {
-        this.jc = jc;
+    private final Map<String, String> systemPropertiesBackup = new HashMap<>();
+
+    public NinjaContext(@NotNull List<Object> options, @NotNull NinjaApplicationContextLevel applicationContextLevel) {
+        this.options = options;
+        this.applicationContextLevel = applicationContextLevel;
     }
 
-    public void init(@NotNull ConnectionOptions options) {
-        boolean initialized = false;
-        if (options.isUseWebservice()) {
-            restService = setupRestService(options);
-            initialized = true;
+    @Override
+    public void close() {
+        if (applicationContext != null) {
+            applicationContext.close();
         }
 
-        if (!initialized && options.getMidpointHome() != null) {
-            setupRepositoryViaMidPointHome(options);
-            initialized = true;
-        }
-
-        if (!initialized) {
-            throw new IllegalStateException("One of options must be specified: " + ConnectionOptions.P_MIDPOINT_HOME
-                    + ", " + ConnectionOptions.P_WEBSERVICE);
-        }
-    }
-
-    public void destroy() {
-        if (context != null) {
-            context.close();
-        }
+        systemPropertiesBackup.forEach((k, v) -> {
+            if (v == null) {
+                System.clearProperty(k);
+            } else {
+                System.setProperty(k, v);
+            }
+        });
     }
 
     public void setLog(Log log) {
@@ -103,47 +88,57 @@ public class NinjaContext {
     }
 
     private void setupRepositoryViaMidPointHome(ConnectionOptions options) {
-        boolean connectRepo = !options.isOffline();
+        if (applicationContextLevel == NinjaApplicationContextLevel.NONE) {
+            throw new IllegalStateException("Application context shouldn't be initialized");
+        }
 
-        log.info("Initializing using midpoint home; {} repository connection", connectRepo ? "with" : "WITHOUT");
+        log.info("Initializing using midpoint home ({})", applicationContextLevel);
 
-        System.setProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
+        backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
 
         String midpointHome = options.getMidpointHome();
 
-        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
+        backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
         overrideRepoConfiguration(options);
 
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
         ctx.load(CTX_NINJA);
-        ctx.load(connectRepo ? CTX_MIDPOINT : CTX_MIDPOINT_NO_REPO);
+        ctx.load(applicationContextLevel.contexts);
         ctx.refresh();
 
-        context = ctx;
+        applicationContext = ctx;
 
-        updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+        if (applicationContextLevel.containsPrismInitialization()) {
+            updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+        }
+    }
 
-        repository = connectRepo ? context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class) : null;
-        auditService = connectRepo ? context.getBean(AUDIT_SERVICE_BEAN, AuditService.class) : null;
+    private void backupAndUpdateSystemProperty(String key, String value) {
+        String oldValue = System.getProperty(key);
+        systemPropertiesBackup.put(key, oldValue);
+
+        System.setProperty(key, value);
     }
 
     private void overrideRepoConfiguration(ConnectionOptions options) {
         if (options.getUrl() != null) {
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_URL,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_URL,
                     options.getUrl());
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_DATABASE,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_DATABASE,
                     getDatabase(options.getUrl()));
         }
 
         if (options.getUsername() != null) {
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_USERNAME,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_USERNAME,
                     options.getUsername());
         }
 
         if (options.getPassword() != null) {
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD,
                     options.getPassword());
         }
+
+        // TODO how to override audit repo? the same options?
     }
 
     private String getDatabase(String url) {
@@ -152,10 +147,6 @@ public class NinjaContext {
             return "postgresql";
         } else if (postfix.startsWith("sqlserver")) {
             return "sqlserver";
-        } else if (postfix.startsWith("mysql")) {
-            return "mysql";
-        } else if (postfix.startsWith("mariadb")) {
-            return "mariadb";
         } else if (postfix.startsWith("oracle")) {
             return "oracle";
         } else if (postfix.startsWith("h2")) {
@@ -166,58 +157,61 @@ public class NinjaContext {
     }
 
     public ApplicationContext getApplicationContext() {
-        return context;
-    }
-
-    private String getPassword(ConnectionOptions options) {
-        String password = options.getPassword();
-        if (password == null) {
-            password = options.getAskPassword();
+        if (applicationContext != null) {
+            return applicationContext;
         }
 
-        return password;
+        ConnectionOptions opts = getOptions(ConnectionOptions.class);
+        if (opts == null) {
+            throw new IllegalStateException("Couldn't setup application context, ConnectionOptions is not defined (null)");
+        }
+        setupRepositoryViaMidPointHome(opts);
+
+        return applicationContext;
     }
 
-    private RestService setupRestService(ConnectionOptions options) {
-        log.info("Initializing rest service");
+    public <T> T getOptions(Class<T> type) {
+        return NinjaUtils.getOptions(options, type);
+    }
 
-        String url = options.getUrl();
-        String username = options.getUsername();
-        String password = getPassword(options);
+    public List<Object> getAllOptions() {
+        return options;
+    }
 
-        if (url == null) {
-            throw new IllegalStateException("Url is not defined");
+    public MidpointConfiguration getMidpointConfiguration() {
+        if (midpointConfiguration != null) {
+            return midpointConfiguration;
         }
 
-        RestService restService = new RestService(url, username, password);
-        updatePolyStringNormalizationConfiguration(restService.getPrismContext());
-
-        return restService;
-    }
-
-    public JCommander getJc() {
-        return jc;
+        midpointConfiguration = getApplicationContext().getBean(MidpointConfiguration.class);
+        return midpointConfiguration;
     }
 
     public RepositoryService getRepository() {
+        if (repository != null) {
+            return repository;
+        }
+
+        repository = getApplicationContext().getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
         return repository;
     }
 
     public AuditService getAuditService() {
+        if (auditService != null) {
+            return auditService;
+        }
+
+        auditService = getApplicationContext().getBean(AUDIT_SERVICE_BEAN, AuditService.class);
         return auditService;
     }
 
-    public RestService getRestService() {
-        return restService;
-    }
-
     public boolean isVerbose() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         return base.isVerbose();
     }
 
     public Charset getCharset() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         String charset = base.getCharset();
 
         return Charset.forName(charset);
@@ -228,13 +222,7 @@ public class NinjaContext {
             return prismContext;
         }
 
-        if (context != null) {
-            prismContext = context.getBean(PrismContext.class);
-        }
-
-        if (restService != null) {
-            prismContext = restService.getPrismContext();
-        }
+        prismContext = getApplicationContext().getBean(PrismContext.class);
 
         return prismContext;
     }
@@ -253,7 +241,7 @@ public class NinjaContext {
     }
 
     private PolyStringNormalizerConfigurationType createPolyStringNormalizerConfiguration() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         PolyStringNormalizerOptions opts = base.getPolyStringNormalizerOptions();
 
         PolyStringNormalizerConfigurationType config = new PolyStringNormalizerConfigurationType();
@@ -267,7 +255,7 @@ public class NinjaContext {
     }
 
     private boolean shouldUseCustomPolyStringNormalizer() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         PolyStringNormalizerOptions opts = base.getPolyStringNormalizerOptions();
 
         return StringUtils.isNotEmpty(opts.getPsnClassName()) ||
@@ -282,9 +270,7 @@ public class NinjaContext {
             return schemaService;
         }
 
-        if (context != null) {
-            schemaService = context.getBean(SchemaService.class);
-        }
+        schemaService = applicationContext.getBean(SchemaService.class);
 
         return schemaService;
     }

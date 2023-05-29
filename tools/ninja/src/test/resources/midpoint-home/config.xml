@@ -1,15 +1,12 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <configuration>
     <midpoint>
-        <webApplication>
-            <importFolder>${midpoint.home}/import</importFolder>
-        </webApplication>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
             <baseDir>${midpoint.home}</baseDir>
@@ -31,22 +28,6 @@
             <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
             <keyStorePassword>changeit</keyStorePassword>
             <encryptionKeyAlias>default</encryptionKeyAlias>
-            <!--
-            You can use smaller cipher key size for encryption. For:
-            AES_128 "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
-            AES_256 "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
-            AES_192 "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
-
-            in element <xmlCipher></xmlCipher>
-            By default AES_128 is used. If you change key size, than
-            you must also create secret key in key store with proper key size and change encryptionKeyAlias.
-
-            To generate keystore with keytool use command:
-            keytool -genseckey -alias default -keystore keystore.jceks -storetype jceks -keyalg AES -keysize 128
-
-            secret key password is by default 'midpoint'
-            -->
         </keystore>
-        <!-- <profilingEnabled>true</profilingEnabled> -->
     </midpoint>
 </configuration>

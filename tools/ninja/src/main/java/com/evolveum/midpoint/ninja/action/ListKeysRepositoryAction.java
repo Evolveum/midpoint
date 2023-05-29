@@ -6,25 +6,27 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.security.*;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
+import java.util.List;
+import javax.crypto.SecretKey;
+
+import org.apache.commons.codec.binary.Base64;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.context.ApplicationContext;
-
-import javax.crypto.SecretKey;
-import java.security.*;
-import java.security.cert.Certificate;
-import java.util.Enumeration;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> {
+public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
@@ -34,7 +36,12 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
     }
 
     @Override
-    public void execute() throws Exception {
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        return NinjaApplicationContextLevel.NO_REPOSITORY;
+    }
+
+    @Override
+    public Void execute() throws Exception {
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 
@@ -65,6 +72,7 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
         }
 
         // todo implement dump other keys from keystore
+        return null;
     }
 
     private void describeAlias(KeyStore keyStore, String alias, Protector protector)

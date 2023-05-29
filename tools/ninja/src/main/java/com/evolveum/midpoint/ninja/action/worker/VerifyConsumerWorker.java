@@ -6,12 +6,17 @@
  */
 package com.evolveum.midpoint.ninja.action.worker;
 
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.io.IOUtils;
+
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.VerifyOptions;
+import com.evolveum.midpoint.ninja.action.VerifyOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
@@ -25,7 +30,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOptions, ObjectType> {
 
+    private static final String[] REPORT_HEADER = {
+            "Oid",
+            "Type",
+            "Name",
+            "Status",
+            "Item path",
+            "Message",
+            "Ignore during upgrade [yes/no]"
+    };
+
     private ObjectValidator validator;
+
+    private CSVPrinter reportWriter;
 
     public VerifyConsumerWorker(NinjaContext context, VerifyOptions options,
             BlockingQueue<ObjectType> queue, OperationStatus operation) {
@@ -57,6 +74,33 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
                 }
             }
         }
+
+        File report = options.getReport();
+        if (report != null) {
+            if (report.exists()) {
+                report.delete();
+            }
+
+            CSVFormat csv = createCsvFormat();
+
+            try {
+                report.createNewFile();
+                try (Writer writer = new BufferedWriter(new FileWriter(report, context.getCharset()))) {
+                    reportWriter = csv.print(writer);
+
+                    reportWriter.printRecord(REPORT_HEADER);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace(); // todo handle exception
+            }
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (reportWriter != null) {
+            IOUtils.closeQuietly(reportWriter);
+        }
     }
 
     @Override
@@ -71,6 +115,25 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
         for (ValidationItem validationItem : validationResult.getItems()) {
             writeValidationItem(writer, prismObject, validationItem);
         }
+
+        if (options.getReport() != null) {
+            for (ValidationItem item : validationResult.getItems()) {
+                reportWriter.printRecord(createReportRecord(item, prismObject));
+            }
+        }
+    }
+
+    private String[] createReportRecord(ValidationItem item, PrismObject<?> object) {
+        // this array has to match {@link VerifyConsumerWorker#REPORT_HEADER}
+        return new String[] {
+                object.getOid(),
+                object.getDefinition().getTypeName().getLocalPart(),
+                object.getName().getOrig(),
+                Objects.toString(item.getStatus()),
+                Objects.toString(item.getItemPath()),
+                item.getMessage() != null ? item.getMessage().getFallbackMessage() : null,
+                null
+        };
     }
 
     private void writeValidationItem(Writer writer, PrismObject<?> object, ValidationItem validationItem) throws IOException {
@@ -101,5 +164,14 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
     @Override
     protected String getEpilog() {
         return null;
+    }
+
+    private CSVFormat createCsvFormat() {
+        return CSVFormat.newFormat(';')
+                .withEscape('\\')
+                .withIgnoreHeaderCase(false)
+                .withQuote('"')
+                .withRecordSeparator('\n')
+                .withQuoteMode(QuoteMode.ALL);
     }
 }

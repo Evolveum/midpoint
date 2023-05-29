@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.action.mining;
 
 import static com.evolveum.midpoint.common.RoleMiningExportUtils.*;
+import static com.evolveum.midpoint.repo.api.RepositoryService.LOGGER;
 import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -288,7 +290,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return !context.getRepository().searchObjects(OrgType.class,
                     objectQuery, null, operationResult).isEmpty();
         } catch (SchemaException e) {
-            context.getLog().error("Failed to search organization object. ", e);
+            LoggingUtils.logException(LOGGER, "Failed to search organization object. ", e);
         }
         return false;
     }
@@ -304,8 +306,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return !context.getRepository().searchObjects(RoleType.class,
                     objectQuery, null, operationResult).isEmpty();
         } catch (SchemaException e) {
-            context.getLog().error("Failed to search role object. ", e);
-
+            LoggingUtils.logException(LOGGER, "Failed to search role object. ", e);
         }
         return false;
     }
@@ -315,7 +316,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             this.filterRole = NinjaUtils.createObjectFilter(roleFileReference, context, RoleType.class);
             this.filterOrg = NinjaUtils.createObjectFilter(orgFileReference, context, OrgType.class);
         } catch (IOException | SchemaException e) {
-            context.getLog().error("Failed to crate object filter. ", e);
+            LoggingUtils.logException(LOGGER, "Failed to crate object filter. ", e);
         }
     }
 

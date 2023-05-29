@@ -10,17 +10,20 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.fusesource.jansi.AnsiConsole;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
@@ -30,6 +33,8 @@ public class Main {
     }
 
     protected <T> void run(String[] args) {
+        AnsiConsole.systemInstall();
+
         JCommander jc = NinjaUtils.setupCommandLineParser();
 
         try {
@@ -41,10 +46,9 @@ public class Main {
 
         String parsedCommand = jc.getParsedCommand();
 
-        BaseOptions base = Objects.requireNonNull(
-                NinjaUtils.getOptions(jc, BaseOptions.class));
+        BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
-        if (base.isVersion()) {
+        if (BooleanUtils.isTrue(base.isVersion())) {
             try {
                 URL versionResource = Objects.requireNonNull(
                         Main.class.getResource("/version"));
@@ -71,59 +75,36 @@ public class Main {
 
         NinjaContext context = null;
         try {
-            ConnectionOptions connection = Objects.requireNonNull(
-                    NinjaUtils.getOptions(jc, ConnectionOptions.class));
-            Action<T> action;
-            if (connection.isUseWebservice()) {
-                action = Command.createRestAction(parsedCommand);
-            } else {
-                action = Command.createRepositoryAction(parsedCommand);
-            }
+            Action<T, ?> action = Command.createAction(parsedCommand);
 
             if (action == null) {
-                String strConnection = connection.isUseWebservice() ? "webservice" : "repository";
-                System.err.println("Action for command '" + parsedCommand + "' not found (connection: '"
-                        + strConnection + "')");
+                System.err.println("Action for command '" + parsedCommand + "' not found");
                 return;
             }
 
             //noinspection unchecked
             T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
+            List<Object> allOptions = new ArrayList<>(jc.getObjects());
+            allOptions.add(options);
 
-            context = new NinjaContext(jc);
-
-            preInit(context);
+            context = new NinjaContext(allOptions, action.getApplicationContextLevel(allOptions));
 
             action.init(context, options);
 
-            preExecute(context);
-
             action.execute();
-
-            postExecute(context);
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {
             cleanupResources(base, context);
+
+            AnsiConsole.systemUninstall();
         }
-    }
-
-    protected void preInit(NinjaContext context) {
-        // intentionally left out empty
-    }
-
-    protected void preExecute(NinjaContext context) {
-        // intentionally left out empty
-    }
-
-    protected void postExecute(NinjaContext context) {
-        // intentionally left out empty
     }
 
     private void cleanupResources(BaseOptions opts, NinjaContext context) {
         try {
             if (context != null) {
-                context.destroy();
+                context.close();
             }
         } catch (Exception ex) {
             if (opts.isVerbose()) {

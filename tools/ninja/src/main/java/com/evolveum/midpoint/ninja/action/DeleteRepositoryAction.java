@@ -15,13 +15,10 @@ import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.ninja.opts.DeleteOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -35,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
+public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions, Void> {
 
     private static final String DOT_CLASS = DeleteRepositoryAction.class.getName() + ".";
 
@@ -43,25 +40,31 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
     private enum State {
 
-        DELETE, SKIP, STOP;
+        DELETE, SKIP, STOP
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         String oid = options.getOid();
 
         if (oid != null) {
             deleteByOid();
-        } else {
-            ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context, ObjectType.class);
-            deleteByFilter(query);
+            return null;
         }
+
+        ObjectTypes type = options.getType();
+        if (type == null) {
+            type = ObjectTypes.OBJECT;
+        }
+
+        ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context, type.getClassDefinition());
+        deleteByFilter(query);
+
+        return null;
     }
 
     private void deleteByOid() throws SchemaException {
-        QueryFactory queryFactory = context.getPrismContext().queryFactory();
-        InOidFilter filter = queryFactory.createInOid(options.getOid());
-        ObjectQuery query = queryFactory.createQuery(filter);
+        ObjectQuery query = context.getPrismContext().queryFor(ObjectType.class).ownerId(options.getOid()).build();
 
         deleteByFilter(query);
     }
@@ -131,7 +134,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
         repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, true, result);
     }
 
-    private State askForState(PrismObject object) throws IOException {
+    private State askForState(PrismObject<?> object) throws IOException {
         log.info("Do you really want to delete object '" + object.toDebugName() + "'? Yes/No/Cancel");
 
         State state = null;

@@ -15,7 +15,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import com.evolveum.midpoint.common.RoleMiningExportUtils;
-import com.evolveum.midpoint.ninja.opts.BasicExportOptions;
+import com.evolveum.midpoint.ninja.action.BasicExportOptions;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "exportMining")
 public class ExportMiningOptions extends BaseMiningOptions implements BasicExportOptions {

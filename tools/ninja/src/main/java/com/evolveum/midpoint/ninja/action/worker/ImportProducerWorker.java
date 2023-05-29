@@ -23,7 +23,7 @@ import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.BasicImportOptions;
+import com.evolveum.midpoint.ninja.action.BasicImportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.Containerable;

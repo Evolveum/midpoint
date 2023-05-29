@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,18 +20,17 @@ import java.util.zip.ZipOutputStream;
 import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
 
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -81,9 +80,8 @@ public class NinjaUtils {
         return jc;
     }
 
-    public static <T> T getOptions(JCommander jc, Class<T> type) {
-        List<Object> objects = jc.getObjects();
-        for (Object object : objects) {
+    public static <T> T getOptions(List<Object> options, Class<T> type) {
+        for (Object object : options) {
             if (type.equals(object.getClass())) {
                 //noinspection unchecked
                 return (T) object;
@@ -115,7 +113,7 @@ public class NinjaUtils {
         PrismContext prismContext = context.getPrismContext();
         // Experimental Axiom filter support, % is chosen as a marker and will be skipped.
         if (filterStr.startsWith("%")) {
-            ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(objectClass, filterStr.substring(1));
+            ObjectFilter objectFilter = prismContext.createQueryParser().parseFilter(objectClass, filterStr.substring(1));
             return prismContext.queryFactory().createQuery(objectFilter);
         } else {
             PrismParserNoIO parser = prismContext.parserFor(filterStr);
@@ -137,16 +135,6 @@ public class NinjaUtils {
         return writer.toString();
     }
 
-    public static OperationResult parseResult(String result) {
-        if (result == null) {
-            return null;
-        }
-
-        //todo implement
-
-        return null;
-    }
-
     public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
         OutputStream os;
         if (output != null) {
@@ -163,7 +151,7 @@ public class NinjaUtils {
         if (zip) {
             ZipOutputStream zos = new ZipOutputStream(os);
 
-            String entryName = output.getName().replaceAll("\\.", "-") + ".xml";
+            String entryName = output != null ? output.getName().replaceAll("\\.", "-") + ".xml" : "objects.xml";
             ZipEntry entry = new ZipEntry(entryName);
             zos.putNextEntry(entry);
 
@@ -213,5 +201,20 @@ public class NinjaUtils {
         Collections.sort(types);
 
         return types;
+    }
+
+    public static File computeInstallationDirectory(File installationDirectory, NinjaContext context) {
+        final ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
+        File midpointHomeDirectory = new File(connectionOptions.getMidpointHome());
+
+        return computeInstallationDirectory(installationDirectory, midpointHomeDirectory);
+    }
+
+    public static File computeInstallationDirectory(File installationDirectory, File midpointHomeDirectory) {
+        if (installationDirectory != null) {
+            return installationDirectory;
+        }
+
+        return midpointHomeDirectory.getParentFile();
     }
 }
