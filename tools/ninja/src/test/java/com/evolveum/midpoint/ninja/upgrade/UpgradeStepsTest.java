@@ -28,8 +28,8 @@ public class UpgradeStepsTest {
 
     @Test(enabled = false)
     public void test100DownloadDistribution() throws Exception {
-        DownloadDistributionStep step = new DownloadDistributionStep();
-        step.setVersion("4.4.4");
+        DownloadDistributionStep step = new DownloadDistributionStep(null);
+//        step.setVersion("4.4.4");
 //        step.execute();
     }
 
@@ -48,8 +48,8 @@ public class UpgradeStepsTest {
 
         UpgradeStepsContext ctx = new UpgradeStepsContext(ninjaContext, upgradeOptions);
 
-        DownloadDistributionStep distributionStep = new DownloadDistributionStep();
-        distributionStep.setVersion("4.4.4");
+        DownloadDistributionStep distributionStep = new DownloadDistributionStep(ctx);
+//        distributionStep.setVersion("4.4.4");
         DownloadDistributionResult result = distributionStep.execute();
 
         ctx.addResult(DownloadDistributionStep.class, result);

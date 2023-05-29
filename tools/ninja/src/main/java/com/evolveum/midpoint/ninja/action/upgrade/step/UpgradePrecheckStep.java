@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
+
 import org.fusesource.jansi.Ansi;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,14 +26,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 public class UpgradePrecheckStep implements UpgradeStep<UpgradePreCheckResult> {
-
-    public static final String SUPPORTED_VERSION_LTS = "4.4.4";
-
-    public static final String SUPPORTED_VERSION_FEATURE = "4.7.1";
-
-    public static final String SUPPORTED_VERSION_TARGET = "4.8";
-
-    public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE, "4.8-SNAPSHOT" }; // todo remove viliam
 
     private UpgradeStepsContext context;
 
@@ -84,7 +78,7 @@ public class UpgradePrecheckStep implements UpgradeStep<UpgradePreCheckResult> {
             }
 
             String version = versions.iterator().next();
-            boolean match = Arrays.stream(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(version));
+            boolean match = Arrays.stream(UpgradeConstants.SUPPORTED_VERSIONS).anyMatch(v -> v.equals(version));
             if (!match) {
                 // todo error, version didn't match. Ask whether to continue?
 

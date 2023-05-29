@@ -44,7 +44,7 @@ public class DistributionManagerTest {
 
         System.out.println(Ansi.ansi().fgBlue().a("Start").reset());
         for (int i = 0; i < 10; i++) {
-            System.out.println(Ansi.ansi().eraseLine().fgGreen().a(i).reset());
+            System.out.println(Ansi.ansi().eraseLine(Ansi.Erase.ALL).fgGreen().a(i).reset());
         }
         System.out.println(Ansi.ansi().fgRed().a("Complete").reset());
 

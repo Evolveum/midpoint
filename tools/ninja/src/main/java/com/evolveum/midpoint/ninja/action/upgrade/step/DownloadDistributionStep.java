@@ -14,26 +14,20 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.evolveum.midpoint.ninja.util.Log;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.ninja.action.upgrade.*;
+
+import org.fusesource.jansi.Ansi;
 
 public class DownloadDistributionStep implements UpgradeStep<DownloadDistributionResult> {
 
     private UpgradeStepsContext context;
 
-    private String version;
-
     public DownloadDistributionStep(UpgradeStepsContext context) {
         this.context = context;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     @Override
@@ -48,15 +42,19 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
 
     @Override
     public DownloadDistributionResult execute() throws IOException {
+        final Log log = context.getContext().getLog();
+
+        final File tempDirectory = context.getTempDirectory();
         final UpgradeOptions options = context.getOptions();
-        final File tempDirectory = options.getTempDirectory();
 
         File distributionZipFile = options.getDistributionArchive();
         if (distributionZipFile == null || !distributionZipFile.exists()) {
             DistributionManager manager = new DistributionManager(tempDirectory);
             ProgressListener listener = new ConsoleProgressListener();
 
-            distributionZipFile = manager.downloadDistribution(version, listener);
+            distributionZipFile = manager.downloadDistribution(UpgradeConstants.SUPPORTED_VERSION_TARGET, listener);
+        } else {
+            log.info(Ansi.ansi().fgGreen().a("Distribution zip already downloaded here: " + distributionZipFile.getAbsolutePath()).reset().toString());
         }
 
         File distributionDirectory = unzipDistribution(distributionZipFile);

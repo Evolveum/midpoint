@@ -25,6 +25,8 @@ public class UpgradeOptions {
 
     public static final String P_BACKUP_MIDPOINT_DIRECTORY = "--backup-midpoint-directory";
 
+    public static final String P_INSTALLATION_DIRECTORY = "--installation-directory";
+
     @Parameter(names = { P_ABORT_LONG }, descriptionKey = "upgrade.abort")
     private Boolean abort;
 
@@ -39,6 +41,9 @@ public class UpgradeOptions {
 
     @Parameter(names = { P_BACKUP_MIDPOINT_DIRECTORY }, descriptionKey = "upgrade.backupMidpointDirectory")
     private Boolean backupMidpointDirectory;
+
+    @Parameter(names = { P_INSTALLATION_DIRECTORY }, descriptionKey = "upgrade.installationDirectory")
+    private File installationDirectory;
 
     public Boolean isAbort() {
         return abort;
@@ -58,5 +63,9 @@ public class UpgradeOptions {
 
     public Boolean isBackupMidpointDirectory() {
         return backupMidpointDirectory;
+    }
+
+    public File getInstallationDirectory() {
+        return installationDirectory;
     }
 }

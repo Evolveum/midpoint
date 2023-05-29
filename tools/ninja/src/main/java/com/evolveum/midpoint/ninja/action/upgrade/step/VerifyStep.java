@@ -30,13 +30,17 @@ public class VerifyStep implements UpgradeStep<StepResult> {
     public StepResult execute() throws Exception {
         // todo implement
 
-
         VerifyOptions options = new VerifyOptions();
+//        options.isCreateReport();
+//        options.getMultiThread();
+//        options.getOutput();
+//        options.isOverwrite();
 
         VerifyRepositoryAction action = new VerifyRepositoryAction();
         action.init(context.getContext(), options);
         action.execute();
 
-        return new StepResult() {};
+        return new StepResult() {
+        };
     }
 }

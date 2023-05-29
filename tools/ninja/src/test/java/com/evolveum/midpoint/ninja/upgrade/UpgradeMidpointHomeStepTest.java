@@ -13,7 +13,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeMidpointHomeStep;
+import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeMidpointInstallationStep;
 
 public class UpgradeMidpointHomeStepTest {
 
@@ -40,7 +40,7 @@ public class UpgradeMidpointHomeStepTest {
 //        opts.setMidpointHomeDirectory(midpointHome);
 //        opts.setBackupFiles(withBackup);
 
-        UpgradeMidpointHomeStep step = new UpgradeMidpointHomeStep(null);
+        UpgradeMidpointInstallationStep step = new UpgradeMidpointInstallationStep(null);
         step.execute();
     }
 

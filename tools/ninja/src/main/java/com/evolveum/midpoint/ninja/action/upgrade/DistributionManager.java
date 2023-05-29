@@ -37,9 +37,7 @@ public class DistributionManager {
     }
 
     public File downloadDistribution(@NotNull String version, ProgressListener listener) throws IOException {
-        String versionNumber = LATEST_VERSION.equals(version) ? LATEST_VERSION_NUMBER : version;
-
-        String distributionFile = createFileName(versionNumber);
+        String distributionFile = createFileName(version);
 
         File file = new File(tempDirectory, System.currentTimeMillis() + "-" + distributionFile);
         FileUtils.forceMkdirParent(file);

@@ -25,7 +25,13 @@ public class TestMain {
 
 //        input = "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home verify --create-report".split(" ");
 //        input = "-h upgrade".split(" ");
-        input = "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home upgrade".split(" ");
+        input = (""
+                + "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842/var "
+                + "upgrade "
+                + "--distribution-archive /Users/lazyman/Downloads/midpoint-latest-dist.zip "
+                + "--installation-directory /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842 "
+                + "--backup-midpoint-directory "
+                + "").split(" ");
 
         Main.main(input);
     }

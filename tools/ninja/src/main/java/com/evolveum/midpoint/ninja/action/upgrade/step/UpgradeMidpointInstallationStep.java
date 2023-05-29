@@ -23,34 +23,42 @@ import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
+public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> {
 
     private static final String VAR_DIRECTORY = "var";
 
     private final UpgradeStepsContext context;
 
-    public UpgradeMidpointHomeStep(@NotNull UpgradeStepsContext context) {
+    public UpgradeMidpointInstallationStep(@NotNull UpgradeStepsContext context) {
         this.context = context;
     }
 
     @Override
     public String getIdentifier() {
-        return "upgradeMidpointHome";
+        return "upgradeMidpointInstallation";
+    }
+
+    @Override
+    public String getPresentableName() {
+        return "upgrade midpoint installation";
     }
 
     public StepResult execute() throws Exception {
-        final ConnectionOptions connectionOptions = context.getContext().getOptions(ConnectionOptions.class);
-        final File midpointHomeDirectory = new File(connectionOptions.getMidpointHome());
-
         final DownloadDistributionResult distributionResult = context.getResult(DownloadDistributionResult.class);
         final File distributionDirectory = distributionResult.getDistributionDirectory();
 
         final UpgradeOptions upgradeOptions = context.getOptions();
         final boolean backupFiles = BooleanUtils.isTrue(upgradeOptions.isBackupMidpointDirectory());
 
+        File midpointInstallation = upgradeOptions.getInstallationDirectory();
+        if (midpointInstallation == null) {
+            final ConnectionOptions connectionOptions = context.getContext().getOptions(ConnectionOptions.class);
+            midpointInstallation = new File(connectionOptions.getMidpointHome()).getParentFile();
+        }
+
         File backupDirectory = null;
         if (backupFiles) {
-            backupDirectory = new File(midpointHomeDirectory, ".backup-" + System.currentTimeMillis());
+            backupDirectory = new File(midpointInstallation, ".backup-" + System.currentTimeMillis());
             backupDirectory.mkdir();
         }
 
@@ -58,7 +66,7 @@ public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
             String fileName = file.getName();
 
             if (backupFiles) {
-                File newFile = new File(midpointHomeDirectory, fileName);
+                File newFile = new File(midpointInstallation, fileName);
 
                 if (!VAR_DIRECTORY.equals(fileName)) {
                     if (newFile.exists()) {
@@ -71,9 +79,9 @@ public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
             }
 
             if (VAR_DIRECTORY.equals(fileName)) {
-                copyFiles(file, new File(midpointHomeDirectory, fileName), new File(backupDirectory, fileName), backupFiles);
+                copyFiles(file, new File(midpointInstallation, fileName), new File(backupDirectory, fileName), backupFiles);
             } else {
-                FileUtils.moveToDirectory(file, midpointHomeDirectory, false);
+                FileUtils.moveToDirectory(file, midpointInstallation, false);
             }
         }
 

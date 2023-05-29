@@ -23,13 +23,12 @@ import com.evolveum.midpoint.ninja.util.Log;
 public class UpgradeAction extends Action<UpgradeOptions> {
 
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
-            // todo upgrade initial objects, also all other objects that can be upgraded before midpoint version/DB/midpoint home was upgraded
-            UpgradePrecheckStep.class,
+//            UpgradePrecheckStep.class,
 //            VerifyStep.class,
-//            UpgradeObjectsBeforeShutdownStep.class,
-//            DownloadDistributionStep.class,
+//            UpgradeObjectsBeforeShutdownStep.class,   // todo upgrade initial objects, also all other objects that can be upgraded before midpoint version/DB/midpoint home was upgraded
+            DownloadDistributionStep.class,
 //            DatabaseSchemaStep.class,
-//            UpgradeMidpointHomeStep.class,
+            UpgradeMidpointInstallationStep.class,
 //            UpgradeObjectsAfterShutdownStep.class, // todo upgrade initial objects, also all other objects (changes that had to be done after DB upgrade)
             // todo what if recomputation/reconciliation/whatever task is needed?
     };
