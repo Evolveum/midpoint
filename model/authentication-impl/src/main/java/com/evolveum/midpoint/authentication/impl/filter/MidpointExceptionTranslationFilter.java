@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.io.IOException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,15 +60,19 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
             ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken
                     && !mpAuthentication.hasSucceededAuthentication()) {
+                AuthenticationSequenceChannelType channel = mpAuthentication.getSequence() != null ?
+                        mpAuthentication.getSequence().getChannel() : null;
                 moduleAuthentication.setAuthentication(
-                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication()));
+                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication(),
+                                channel));
                 mpAuthentication.setPrincipal(null);
             }
             SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
         }
     }
 
-    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
+    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication,
+            AuthenticationSequenceChannelType channel) {
         return null;
     }
 

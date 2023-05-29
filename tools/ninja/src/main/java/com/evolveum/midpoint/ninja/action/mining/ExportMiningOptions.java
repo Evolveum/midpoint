@@ -33,8 +33,8 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_SUFFIX_APPLICATION_LONG = "--applicationRoleSuffix";
     public static final String P_SUFFIX_BUSINESS = "-brs";
     public static final String P_SUFFIX_BUSINESS_LONG = "--businessRoleSuffix";
-    public static final String P_ORG = "-org";
-    public static final String P_ORG_LONG = "--includeOrg";
+    public static final String P_ORG = "-do";
+    public static final String P_ORG_LONG = "--disableOrg";
     public static final String P_NAME_OPTIONS = "-nm";
     public static final String P_NAME_OPTIONS_LONG = "--nameMode";
     public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "--applicationRoleArchetypeOid";
@@ -64,7 +64,7 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     private String applicationRolePrefix;
 
     @Parameter(names = { P_ORG, P_ORG_LONG }, descriptionKey = "export.prevent.org")
-    private boolean includeOrg = true;
+    private boolean disableOrg = false;
 
     @Parameter(names = { P_NAME_OPTIONS, P_NAME_OPTIONS_LONG }, descriptionKey = "export.name.options")
     private RoleMiningExportUtils.NameMode nameMode = RoleMiningExportUtils.NameMode.SEQUENTIAL;
@@ -82,7 +82,7 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     }
 
     public boolean isIncludeOrg() {
-        return includeOrg;
+        return !disableOrg;
     }
 
     public String getApplicationRoleArchetypeOid() {

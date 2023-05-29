@@ -284,6 +284,11 @@ public class ModelRestController extends AbstractRestController {
         }
     }
 
+    @GetMapping("/self/")
+    public ResponseEntity<?> getSelfAlt() {
+        return getSelf();
+    }
+
     @GetMapping("/self")
     public ResponseEntity<?> getSelf() {
         logger.debug("model rest service for get operation start");
@@ -304,6 +309,14 @@ public class ModelRestController extends AbstractRestController {
 
         finishRequest(task, result);
         return response;
+    }
+
+    @PostMapping("/{type}/")
+    public <T extends ObjectType> ResponseEntity<?> addObjectAlt(
+            @PathVariable("type") String type,
+            @RequestParam(value = "options", required = false) List<String> options,
+            @RequestBody @NotNull PrismObject<T> object) {
+        return addObject(type, options, object);
     }
 
     @PostMapping("/{type}")
