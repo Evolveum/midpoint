@@ -63,7 +63,7 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
     }
 
     private File unzipDistribution(File distributionZip) throws IOException {
-        final File tempDirectory = context.getOptions().getTempDirectory();
+        final File tempDirectory = context.getTempDirectory();
 
         String name = distributionZip.getName();
         File distribution = new File(tempDirectory, StringUtils.left(name, name.length() - 4));

@@ -31,6 +31,7 @@ public class TestMain {
                 + "--distribution-archive /Users/lazyman/Downloads/midpoint-latest-dist.zip "
                 + "--installation-directory /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842 "
                 + "--backup-midpoint-directory "
+                + "--temp-dir /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842/.upgrade-process"
                 + "").split(" ");
 
         Main.main(input);

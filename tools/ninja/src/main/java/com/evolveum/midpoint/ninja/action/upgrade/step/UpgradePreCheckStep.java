@@ -25,11 +25,11 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
-public class UpgradePrecheckStep implements UpgradeStep<UpgradePreCheckResult> {
+public class UpgradePreCheckStep implements UpgradeStep<UpgradePreCheckResult> {
 
     private UpgradeStepsContext context;
 
-    public UpgradePrecheckStep(@NotNull UpgradeStepsContext context) {
+    public UpgradePreCheckStep(@NotNull UpgradeStepsContext context) {
         this.context = context;
     }
 

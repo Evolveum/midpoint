@@ -62,7 +62,19 @@ public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> 
             backupDirectory.mkdir();
         }
 
-        for (File file : distributionDirectory.listFiles()) {
+        File distribution = distributionDirectory;
+
+        File[] files = distributionDirectory.listFiles();
+        if (files != null && files.length == 1) {
+            distribution = files[0];
+        }
+
+        if (distribution == null) {
+            return new StepResult() {
+            };
+        }
+
+        for (File file : emptyIfNull(distribution.listFiles())) {
             String fileName = file.getName();
 
             if (backupFiles) {
@@ -87,6 +99,14 @@ public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> 
 
         return new StepResult() {
         };
+    }
+
+    private File[] emptyIfNull(File[] files) {
+        if (files == null) {
+            return new File[0];
+        }
+
+        return files;
     }
 
     private void copyFiles(File srcDir, File dstDir, File backupDir, boolean backup) throws IOException {

@@ -18,8 +18,6 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
 public class UpgradeStepsContext {
 
-    private static final String UPGRADE_TEMP_DIRECTORY = "midpoint-upgrade";
-
     private final NinjaContext context;
 
     private final UpgradeOptions options;
@@ -33,7 +31,7 @@ public class UpgradeStepsContext {
         this.options = options;
 
         this.tempDirectory = options.getTempDirectory() != null ?
-                options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UPGRADE_TEMP_DIRECTORY);
+                options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
     }
 
     public void addResult(@NotNull Class<?> step, Object result) {
