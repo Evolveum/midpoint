@@ -21,7 +21,7 @@
                     <jwt>
                         <jwkSetUri>||jwkSetUri||</jwkSetUri>
                         <trustedAlgorithm>PS384</trustedAlgorithm>
-                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                        <nameOfUsernameClaim>||nameOfUsernameClaim||</nameOfUsernameClaim>
                     </jwt>
                 </resourceServer>
             </oidc>

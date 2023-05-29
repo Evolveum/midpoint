@@ -18,16 +18,10 @@
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <jwt>
-                        <keyStoreTrustingAsymmetricKey>
-                            <keyStorePath>||keyStorePath||</keyStorePath>
-                            <keyStorePassword>
-                                <clearValue>secret</clearValue>
-                            </keyStorePassword>
-                            <keyAlias>cert</keyAlias>
-                        </keyStoreTrustingAsymmetricKey>
+                    <opaqueToken>
+                        <userInfoUri>||userInfoUri||</userInfoUri>
                         <nameOfUsernameClaim>||nameOfUsernameClaim||</nameOfUsernameClaim>
-                    </jwt>
+                    </opaqueToken>
                 </resourceServer>
             </oidc>
         </modules>
