@@ -27,7 +27,7 @@ public class TestMain {
 //        input = "-h upgrade".split(" ");
         input = ("-m ../../_mess/mid8842/var "
                 + "upgrade "
-                + "--distribution-archive ~/Downloads/midpoint-latest-dist.zip "
+                + "--distribution-archive ../../_mess/mid8842/1685390031006-midpoint-latest-dist.zip "
                 + "--installation-directory ../../_mess/mid8842 "
                 + "--backup-midpoint-directory "
                 + "--temp-dir ../../_mess/mid8842/.upgrade-process")

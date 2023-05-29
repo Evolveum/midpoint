@@ -10,6 +10,12 @@ package com.evolveum.midpoint.ninja.action.upgrade.step;
 import java.io.File;
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.init.AuditServiceProxy;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
@@ -49,10 +55,15 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
         // upgrade midpoint repository
         final DataSource dataSource = applicationContext.getBean(DataSource.class);
+
         executeUpgradeScript(new File(distributionDirectory, MIDPOINT_DB_UPGRADE_FILE), dataSource);
 
         // upgrade audit database
-        final DataSource auditDataSource = dataSource; // todo get datasource for audit properly
+        AuditServiceProxy auditProxy = applicationContext.getBean(AuditServiceProxy.class);
+        SqaleAuditService auditService = auditProxy.getImplementation(SqaleAuditService.class);
+        SqaleRepoContext repoContext = auditService.sqlRepoContext();
+        final DataSource auditDataSource = (DataSource) FieldUtils.readField(repoContext, "dataSource", true);
+
         executeUpgradeScript(new File(distributionDirectory, AUDIT_DB_UPGRADE_FILE), auditDataSource);
 
         return new StepResult() {

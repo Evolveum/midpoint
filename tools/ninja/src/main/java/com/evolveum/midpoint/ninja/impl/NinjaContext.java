@@ -111,16 +111,6 @@ public class NinjaContext {
         updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
     }
 
-    private ApplicationContext getContext() {
-        if (context != null) {
-            return context;
-        }
-
-        setupRepositoryViaMidPointHome(connectionOptions);
-
-        return context;
-    }
-
     private void overrideRepoConfiguration(ConnectionOptions options) {
         if (options.getUrl() != null) {
             System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_URL,
@@ -158,6 +148,12 @@ public class NinjaContext {
     }
 
     public ApplicationContext getApplicationContext() {
+        if (context != null) {
+            return context;
+        }
+
+        setupRepositoryViaMidPointHome(connectionOptions);
+
         return context;
     }
 
@@ -179,7 +175,7 @@ public class NinjaContext {
             return midpointConfiguration;
         }
 
-        midpointConfiguration = getContext().getBean(MidpointConfiguration.class);
+        midpointConfiguration = getApplicationContext().getBean(MidpointConfiguration.class);
         return midpointConfiguration;
     }
 
@@ -188,7 +184,7 @@ public class NinjaContext {
             return repository;
         }
 
-        repository = getContext().getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
+        repository = getApplicationContext().getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
         return repository;
     }
 
@@ -197,7 +193,7 @@ public class NinjaContext {
             return auditService;
         }
 
-        auditService = getContext().getBean(AUDIT_SERVICE_BEAN, AuditService.class);
+        auditService = getApplicationContext().getBean(AUDIT_SERVICE_BEAN, AuditService.class);
         return auditService;
     }
 
@@ -218,7 +214,7 @@ public class NinjaContext {
             return prismContext;
         }
 
-        prismContext = getContext().getBean(PrismContext.class);
+        prismContext = getApplicationContext().getBean(PrismContext.class);
 
         return prismContext;
     }
