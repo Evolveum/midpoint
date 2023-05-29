@@ -10,20 +10,27 @@ package com.evolveum.midpoint.ninja.action.upgrade.step;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
-import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
+
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+
+import org.apache.commons.io.FileUtils;
+
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
-import org.apache.commons.io.FileUtils;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
 
     private static final String VAR_DIRECTORY = "var";
 
-    private final UpgradeMidpointHomeOptions options;
+    private final UpgradeStepsContext context;
 
-    public UpgradeMidpointHomeStep(UpgradeMidpointHomeOptions options) {
-        this.options = options;
+    public UpgradeMidpointHomeStep(@NotNull UpgradeStepsContext context) {
+        this.context = context;
     }
 
     @Override
@@ -32,28 +39,17 @@ public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
     }
 
     public StepResult execute() throws Exception {
-        downloadDistributionFile();
+        final ConnectionOptions connectionOptions = context.getContext().getOptions(ConnectionOptions.class);
+        final File midpointHomeDirectory = new File(connectionOptions.getMidpointHome());
 
-        upgradeMidpointHome();
+        final DownloadDistributionResult distributionResult = context.getResult(DownloadDistributionResult.class);
+        final File distributionDirectory = distributionResult.getDistributionDirectory();
 
-        return new StepResult() {
-        };
-    }
-
-    private void downloadDistributionFile() throws IOException {
-        DistributionManager manager = new DistributionManager();
-        String version = "";
-        ProgressListener listener = null;
-
-        File distributionZip = manager.downloadDistribution(version, listener);
-    }
-
-    private void upgradeMidpointHome() throws IOException {
-        File midpointHomeDirectory = options.getMidpointHomeDirectory();
-        File distributionDirectory = options.getDistributionDirectory();
+        final UpgradeOptions upgradeOptions = context.getOptions();
+        final boolean backupFiles = BooleanUtils.isTrue(upgradeOptions.isBackupMidpointDirectory());
 
         File backupDirectory = null;
-        if (options.isBackupFiles()) {
+        if (backupFiles) {
             backupDirectory = new File(midpointHomeDirectory, ".backup-" + System.currentTimeMillis());
             backupDirectory.mkdir();
         }
@@ -61,7 +57,7 @@ public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
         for (File file : distributionDirectory.listFiles()) {
             String fileName = file.getName();
 
-            if (options.isBackupFiles()) {
+            if (backupFiles) {
                 File newFile = new File(midpointHomeDirectory, fileName);
 
                 if (!VAR_DIRECTORY.equals(fileName)) {
@@ -75,11 +71,14 @@ public class UpgradeMidpointHomeStep implements UpgradeStep<StepResult> {
             }
 
             if (VAR_DIRECTORY.equals(fileName)) {
-                copyFiles(file, new File(midpointHomeDirectory, fileName), new File(backupDirectory, fileName), options.isBackupFiles());
+                copyFiles(file, new File(midpointHomeDirectory, fileName), new File(backupDirectory, fileName), backupFiles);
             } else {
                 FileUtils.moveToDirectory(file, midpointHomeDirectory, false);
             }
         }
+
+        return new StepResult() {
+        };
     }
 
     private void copyFiles(File srcDir, File dstDir, File backupDir, boolean backup) throws IOException {

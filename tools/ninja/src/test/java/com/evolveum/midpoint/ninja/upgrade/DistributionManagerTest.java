@@ -30,7 +30,7 @@ public class DistributionManagerTest {
 
         final ProgressListener listener = new ConsoleProgressListener();
 
-        File file = new DistributionManager().downloadDistribution("4.4.4", listener);
+        File file = new DistributionManager(new File("./target")).downloadDistribution("4.4.4", listener);
         AssertJUnit.assertTrue(file.exists());
         LOGGER.info("File size: " + file.length());
         LOGGER.info("File path: " + file.getAbsolutePath());

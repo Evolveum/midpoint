@@ -11,28 +11,26 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 
+import com.evolveum.midpoint.ninja.action.upgrade.step.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
-import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeObjectsAfterShutdownStep;
-import com.evolveum.midpoint.ninja.action.upgrade.step.UpgradeObjectsBeforeShutdownStep;
-import com.evolveum.midpoint.ninja.action.upgrade.step.VerifyStep;
-import com.evolveum.midpoint.ninja.action.upgrade.step.VersionCheckStep;
 import com.evolveum.midpoint.ninja.util.Log;
 
 public class UpgradeAction extends Action<UpgradeOptions> {
 
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
             // todo upgrade initial objects, also all other objects that can be upgraded before midpoint version/DB/midpoint home was upgraded
-            VersionCheckStep.class,
-            VerifyStep.class,
-            UpgradeObjectsBeforeShutdownStep.class,
+            UpgradePrecheckStep.class,
+//            VerifyStep.class,
+//            UpgradeObjectsBeforeShutdownStep.class,
 //            DownloadDistributionStep.class,
 //            DatabaseSchemaStep.class,
 //            UpgradeMidpointHomeStep.class,
-            UpgradeObjectsAfterShutdownStep.class, // todo upgrade initial objects, also all other objects (changes that had to be done after DB upgrade)
+//            UpgradeObjectsAfterShutdownStep.class, // todo upgrade initial objects, also all other objects (changes that had to be done after DB upgrade)
             // todo what if recomputation/reconciliation/whatever task is needed?
     };
 
@@ -74,6 +72,7 @@ public class UpgradeAction extends Action<UpgradeOptions> {
                     break;
                 }
             } catch (Exception ex) {
+                log.error("Unknown error occurred during upgrade, reason: {}", ex, ex.getMessage());
                 // todo handle exception properly
                 throw new RuntimeException("Exception occurred", ex);
             }

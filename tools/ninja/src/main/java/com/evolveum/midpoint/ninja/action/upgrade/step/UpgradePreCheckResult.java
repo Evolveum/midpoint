@@ -9,7 +9,7 @@ package com.evolveum.midpoint.ninja.action.upgrade.step;
 
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 
-public class VersionCheckResult implements StepResult {
+public class UpgradePreCheckResult implements StepResult {
 
     private String currentVersion;
 
@@ -17,7 +17,7 @@ public class VersionCheckResult implements StepResult {
         return currentVersion;
     }
 
-    public VersionCheckResult currentVersion(String currentVersion) {
+    public UpgradePreCheckResult currentVersion(String currentVersion) {
         this.currentVersion = currentVersion;
         return this;
     }

@@ -57,6 +57,8 @@ public class NinjaContext {
 
     private Log log;
 
+    private ConnectionOptions connectionOptions;
+
     private GenericXmlApplicationContext context;
 
     private MidpointConfiguration midpointConfiguration;
@@ -74,16 +76,7 @@ public class NinjaContext {
     }
 
     public void init(@NotNull ConnectionOptions options) {
-        boolean initialized = false;
-
-        if (options.getMidpointHome() != null) {
-            setupRepositoryViaMidPointHome(options);
-            initialized = true;
-        }
-
-        if (!initialized) {
-            throw new IllegalStateException("Option must be defined: " + ConnectionOptions.P_MIDPOINT_HOME);
-        }
+        this.connectionOptions = options;
     }
 
     public void destroy() {
@@ -116,10 +109,16 @@ public class NinjaContext {
         context = ctx;
 
         updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+    }
 
-        midpointConfiguration = context.getBean(MidpointConfiguration.class);
-        repository = connectRepo ? context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class) : null;
-        auditService = connectRepo ? context.getBean(AUDIT_SERVICE_BEAN, AuditService.class) : null;
+    private ApplicationContext getContext() {
+        if (context != null) {
+            return context;
+        }
+
+        setupRepositoryViaMidPointHome(connectionOptions);
+
+        return context;
     }
 
     private void overrideRepoConfiguration(ConnectionOptions options) {
@@ -176,14 +175,29 @@ public class NinjaContext {
     }
 
     public MidpointConfiguration getMidpointConfiguration() {
+        if (midpointConfiguration != null) {
+            return midpointConfiguration;
+        }
+
+        midpointConfiguration = getContext().getBean(MidpointConfiguration.class);
         return midpointConfiguration;
     }
 
     public RepositoryService getRepository() {
+        if (repository != null) {
+            return repository;
+        }
+
+        repository = getContext().getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
         return repository;
     }
 
     public AuditService getAuditService() {
+        if (auditService != null) {
+            return auditService;
+        }
+
+        auditService = getContext().getBean(AUDIT_SERVICE_BEAN, AuditService.class);
         return auditService;
     }
 
@@ -204,9 +218,7 @@ public class NinjaContext {
             return prismContext;
         }
 
-        if (context != null) {
-            prismContext = context.getBean(PrismContext.class);
-        }
+        prismContext = getContext().getBean(PrismContext.class);
 
         return prismContext;
     }
@@ -254,9 +266,7 @@ public class NinjaContext {
             return schemaService;
         }
 
-        if (context != null) {
-            schemaService = context.getBean(SchemaService.class);
-        }
+        schemaService = context.getBean(SchemaService.class);
 
         return schemaService;
     }
@@ -267,5 +277,9 @@ public class NinjaContext {
 
     public QueryConverter getQueryConverter() {
         return prismContext.getQueryConverter();
+    }
+
+    public <T> T getOptions(Class<T> type) {
+        return NinjaUtils.getOptions(jc, type);
     }
 }

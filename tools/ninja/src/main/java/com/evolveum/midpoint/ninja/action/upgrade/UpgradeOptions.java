@@ -21,6 +21,10 @@ public class UpgradeOptions {
 
     public static final String P_CONFIRM_STEPS = "--confirm-steps";
 
+    public static final String P_DISTRIBUTION_ARCHIVE = "--distribution-archive";
+
+    public static final String P_BACKUP_MIDPOINT_DIRECTORY = "--backup-midpoint-directory";
+
     @Parameter(names = { P_ABORT_LONG }, descriptionKey = "upgrade.abort")
     private Boolean abort;
 
@@ -30,7 +34,13 @@ public class UpgradeOptions {
     @Parameter(names = { P_CONFIRM_STEPS }, descriptionKey = "upgrade.confirmSteps")
     private Boolean confirmSteps;
 
-    public Boolean getAbort() {
+    @Parameter(names = { P_DISTRIBUTION_ARCHIVE }, descriptionKey = "upgrade.distributionArchive")
+    private File distributionArchive;
+
+    @Parameter(names = { P_BACKUP_MIDPOINT_DIRECTORY }, descriptionKey = "upgrade.backupMidpointDirectory")
+    private Boolean backupMidpointDirectory;
+
+    public Boolean isAbort() {
         return abort;
     }
 
@@ -38,7 +48,15 @@ public class UpgradeOptions {
         return tempDirectory;
     }
 
-    public Boolean getConfirmSteps() {
+    public Boolean isConfirmSteps() {
         return confirmSteps;
+    }
+
+    public File getDistributionArchive() {
+        return distributionArchive;
+    }
+
+    public Boolean isBackupMidpointDirectory() {
+        return backupMidpointDirectory;
     }
 }

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.fusesource.jansi.AnsiConsole;
 
 public class Main {
 
@@ -31,6 +32,8 @@ public class Main {
     }
 
     protected <T> void run(String[] args) {
+        AnsiConsole.systemInstall();
+
         JCommander jc = NinjaUtils.setupCommandLineParser();
 
         try {
@@ -97,6 +100,8 @@ public class Main {
             handleException(base, ex);
         } finally {
             cleanupResources(base, context);
+
+            AnsiConsole.systemUninstall();
         }
     }
 

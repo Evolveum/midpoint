@@ -16,6 +16,7 @@ public class UpgradeObjectsAfterShutdownStep extends UpgradeObjectsStep {
 
     @Override
     public StepResult execute() throws Exception {
-        return null;
+        return new StepResult() {
+        };
     }
 }

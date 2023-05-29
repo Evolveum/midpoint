@@ -25,7 +25,7 @@ public class TestMain {
 
 //        input = "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home verify --create-report".split(" ");
 //        input = "-h upgrade".split(" ");
-        input = "--offline -m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home upgrade".split(" ");
+        input = "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home upgrade".split(" ");
 
         Main.main(input);
     }

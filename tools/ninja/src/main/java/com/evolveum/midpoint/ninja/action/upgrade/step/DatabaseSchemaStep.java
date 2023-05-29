@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade.step;
 
-import java.io.Closeable;
+import java.io.File;
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+
+import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
 
 public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
@@ -26,11 +27,9 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
     private static final String MIDPOINT_DB_UPGRADE_FILE = "/config/postgres-new-upgrade.sql";
 
-    private static final String AUDIT_DB_UPGRADE_FILE = "postgres-new-upgrade-audit.sql";
+    private static final String AUDIT_DB_UPGRADE_FILE = "/config/postgres-new-upgrade-audit.sql";
 
     private final UpgradeStepsContext context;
-
-    private ApplicationContext applicationContext;
 
     public DatabaseSchemaStep(UpgradeStepsContext context) {
         this.context = context;
@@ -43,52 +42,30 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
     @Override
     public StepResult execute() throws Exception {
-        // 1/ initialize DB connection, using midpoint home?
-        // 2/ check current state of DB. Is it previous feature release (4.6) or LTS (4.4)
-        // 3/ pick proper scripts
-        // 4/ execute upgrade scripts
+        final DownloadDistributionResult distribution = context.getResult(DownloadDistributionResult.class);
+        final File distributionDirectory = distribution.getDistributionDirectory();
 
-        try {
-            init();
+        final ApplicationContext applicationContext = context.getContext().getApplicationContext();
 
-            upgrade();
-        } finally {
-            destroy();
-        }
+        // upgrade midpoint repository
+        final DataSource dataSource = applicationContext.getBean(DataSource.class);
+        executeUpgradeScript(new File(distributionDirectory, MIDPOINT_DB_UPGRADE_FILE), dataSource);
+
+        // upgrade audit database
+        final DataSource auditDataSource = dataSource; // todo get datasource for audit properly
+        executeUpgradeScript(new File(distributionDirectory, AUDIT_DB_UPGRADE_FILE), auditDataSource);
 
         return new StepResult() {
+
         };
     }
 
-    // todo fix, same code is also in
-    private void init() {
-        // todo application context should be initialized here ("at this time") not during initialization of ninja context
-        applicationContext = context.getContext().getApplicationContext();
-    }
-
-    private void upgrade() {
-        // todo implement audit upgrade
-        DataSource midpointDS = applicationContext.getBean(DataSource.class);
+    private void executeUpgradeScript(File upgradeScript, DataSource dataSource) {
+        FileSystemResourceLoader loader = new FileSystemResourceLoader();
+        Resource script = loader.getResource(upgradeScript.getAbsolutePath());
 
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-
-        DownloadDistributionResult distribution = context.getResult(DownloadDistributionResult.class);
-
-        FileSystemResourceLoader loader = new FileSystemResourceLoader();
-        Resource script = loader.getResource(distribution.getDistributionDirectory() + MIDPOINT_DB_UPGRADE_FILE);
-
         populator.addScript(script);
-        populator.execute(midpointDS);
-    }
-
-    private void destroy() {
-        try {
-            if (applicationContext instanceof Closeable) {
-                ((Closeable) applicationContext).close();
-            }
-        } catch (Exception ex) {
-            // todo handle properly
-            ex.printStackTrace();
-        }
+        populator.execute(dataSource);
     }
 }

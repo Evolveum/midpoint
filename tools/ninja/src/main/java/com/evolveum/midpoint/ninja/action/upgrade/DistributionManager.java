@@ -30,12 +30,18 @@ public class DistributionManager {
 
     private static final String LATEST_VERSION_NUMBER = "SNAPSHOT";
 
+    private File tempDirectory;
+
+    public DistributionManager(@NotNull File tempDirectory) {
+        this.tempDirectory = tempDirectory;
+    }
+
     public File downloadDistribution(@NotNull String version, ProgressListener listener) throws IOException {
         String versionNumber = LATEST_VERSION.equals(version) ? LATEST_VERSION_NUMBER : version;
 
         String distributionFile = createFileName(versionNumber);
 
-        File file = new File(UpgradeConstants.TEMP_UPGRADE_FOLDER, System.currentTimeMillis() + "-" + distributionFile);
+        File file = new File(tempDirectory, System.currentTimeMillis() + "-" + distributionFile);
         FileUtils.forceMkdirParent(file);
         file.createNewFile();
 

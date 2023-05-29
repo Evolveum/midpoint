@@ -14,12 +14,19 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.evolveum.midpoint.ninja.action.upgrade.*;
 import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.ninja.action.upgrade.*;
 
 public class DownloadDistributionStep implements UpgradeStep<DownloadDistributionResult> {
 
+    private UpgradeStepsContext context;
+
     private String version;
+
+    public DownloadDistributionStep(UpgradeStepsContext context) {
+        this.context = context;
+    }
 
     public String getVersion() {
         return version;
@@ -41,10 +48,16 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
 
     @Override
     public DownloadDistributionResult execute() throws IOException {
-        DistributionManager manager = new DistributionManager();
-        ProgressListener listener = new ConsoleProgressListener();
+        final UpgradeOptions options = context.getOptions();
+        final File tempDirectory = options.getTempDirectory();
 
-        File distributionZipFile = manager.downloadDistribution(version, listener);
+        File distributionZipFile = options.getDistributionArchive();
+        if (distributionZipFile == null || !distributionZipFile.exists()) {
+            DistributionManager manager = new DistributionManager(tempDirectory);
+            ProgressListener listener = new ConsoleProgressListener();
+
+            distributionZipFile = manager.downloadDistribution(version, listener);
+        }
 
         File distributionDirectory = unzipDistribution(distributionZipFile);
 
@@ -52,8 +65,10 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
     }
 
     private File unzipDistribution(File distributionZip) throws IOException {
+        final File tempDirectory = context.getOptions().getTempDirectory();
+
         String name = distributionZip.getName();
-        File distribution = new File(UpgradeConstants.TEMP_UPGRADE_FOLDER, StringUtils.left(name, name.length() - 4));
+        File distribution = new File(tempDirectory, StringUtils.left(name, name.length() - 4));
 
         byte[] buffer = new byte[1024];
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(distributionZip))) {

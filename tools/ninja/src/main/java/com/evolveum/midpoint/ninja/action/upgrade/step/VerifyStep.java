@@ -7,10 +7,19 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade.step;
 
+import com.evolveum.midpoint.ninja.action.VerifyRepositoryAction;
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
+import com.evolveum.midpoint.ninja.opts.VerifyOptions;
 
 public class VerifyStep implements UpgradeStep<StepResult> {
+
+    private UpgradeStepsContext context;
+
+    public VerifyStep(UpgradeStepsContext context) {
+        this.context = context;
+    }
 
     @Override
     public String getIdentifier() {
@@ -20,6 +29,13 @@ public class VerifyStep implements UpgradeStep<StepResult> {
     @Override
     public StepResult execute() throws Exception {
         // todo implement
+
+
+        VerifyOptions options = new VerifyOptions();
+
+        VerifyRepositoryAction action = new VerifyRepositoryAction();
+        action.init(context.getContext(), options);
+        action.execute();
 
         return new StepResult() {};
     }
