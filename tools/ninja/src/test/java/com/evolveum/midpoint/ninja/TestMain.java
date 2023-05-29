@@ -17,22 +17,21 @@ public class TestMain {
 //                "-O", "./export.xml",
 //                "-t", "users",
 //                "-o", SystemObjectsType.USER_ADMINISTRATOR.value());
-        String[] input = new String[]{"-v", "-m", "./src/test/resources/midpoint-home",
+        String[] input = new String[] { "-v", "-m", "./src/test/resources/midpoint-home",
                 "export",
                 "-O", "./export.xml",
-                "-t", "roles"};
+                "-t", "roles" };
 //                "-f", "<inOid xmlns=\"http://prism.evolveum.com/xml/ns/public/query-3\"><value>00000000-0000-0000-0000-000000000002</value></inOid>");
 
-//        input = "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/midpoint-home verify --create-report".split(" ");
+//        input = "-m ../../_mess/midpoint-home verify --create-report".split(" ");
 //        input = "-h upgrade".split(" ");
-        input = (""
-                + "-m /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842/var "
+        input = ("-m ../../_mess/mid8842/var "
                 + "upgrade "
-                + "--distribution-archive /Users/lazyman/Downloads/midpoint-latest-dist.zip "
-                + "--installation-directory /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842 "
+                + "--distribution-archive ~/Downloads/midpoint-latest-dist.zip "
+                + "--installation-directory ../../_mess/mid8842 "
                 + "--backup-midpoint-directory "
-                + "--temp-dir /Users/lazyman/Work/monoted/git/evolveum/midpoint-support/_mess/mid8842/.upgrade-process"
-                + "").split(" ");
+                + "--temp-dir ../../_mess/mid8842/.upgrade-process")
+                .split(" ");
 
         Main.main(input);
     }

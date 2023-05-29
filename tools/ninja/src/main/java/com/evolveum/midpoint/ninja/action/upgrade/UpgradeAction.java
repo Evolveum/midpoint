@@ -24,7 +24,7 @@ public class UpgradeAction extends Action<UpgradeOptions> {
 
     private static final Class<? extends UpgradeStep>[] STEPS = new Class[] {
             UpgradePreCheckStep.class,
-//            VerifyStep.class,
+            VerifyStep.class,
 //            UpgradeObjectsBeforeShutdownStep.class,   // todo upgrade initial objects, also all other objects that can be upgraded before midpoint version/DB/midpoint home was upgraded
             DownloadDistributionStep.class,
 //            DatabaseSchemaStep.class,

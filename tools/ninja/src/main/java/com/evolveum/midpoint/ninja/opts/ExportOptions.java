@@ -52,4 +52,19 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
     public boolean isSkipContainerIds() {
         return skipIds;
     }
+
+    public ExportOptions setOutput(File output) {
+        this.output = output;
+        return this;
+    }
+
+    public ExportOptions setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+        return this;
+    }
+
+    public ExportOptions setSkipIds(boolean skipIds) {
+        this.skipIds = skipIds;
+        return this;
+    }
 }

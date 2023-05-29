@@ -35,4 +35,14 @@ public class VerifyOptions extends ExportOptions {
     public Boolean isCreateReport() {
         return createReport;
     }
+
+    public VerifyOptions setWarn(String warn) {
+        this.warn = warn;
+        return this;
+    }
+
+    public VerifyOptions setCreateReport(Boolean createReport) {
+        this.createReport = createReport;
+        return this;
+    }
 }

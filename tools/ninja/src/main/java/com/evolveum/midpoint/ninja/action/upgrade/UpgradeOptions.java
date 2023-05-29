@@ -11,6 +11,7 @@ import java.io.File;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.validators.PositiveInteger;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "upgrade")
 public class UpgradeOptions {
@@ -26,6 +27,8 @@ public class UpgradeOptions {
     public static final String P_BACKUP_MIDPOINT_DIRECTORY = "--backup-midpoint-directory";
 
     public static final String P_INSTALLATION_DIRECTORY = "--installation-directory";
+
+    public static final String P_VERIFY_THREADS = "--verify-threads";
 
     @Parameter(names = { P_ABORT_LONG }, descriptionKey = "upgrade.abort")
     private Boolean abort;
@@ -44,6 +47,9 @@ public class UpgradeOptions {
 
     @Parameter(names = { P_INSTALLATION_DIRECTORY }, descriptionKey = "upgrade.installationDirectory")
     private File installationDirectory;
+
+    @Parameter(names = { P_VERIFY_THREADS }, descriptionKey = "upgrade.verifyThreads", validateWith = PositiveInteger.class)
+    private int verifyThreads = 1;
 
     public Boolean isAbort() {
         return abort;
@@ -67,5 +73,9 @@ public class UpgradeOptions {
 
     public File getInstallationDirectory() {
         return installationDirectory;
+    }
+
+    public int getVerifyThreads() {
+        return verifyThreads;
     }
 }

@@ -80,4 +80,34 @@ public class BaseImportExportOptions {
     public int getMultiThread() {
         return multiThread;
     }
+
+    public BaseImportExportOptions setRaw(boolean raw) {
+        this.raw = raw;
+        return this;
+    }
+
+    public BaseImportExportOptions setOid(String oid) {
+        this.oid = oid;
+        return this;
+    }
+
+    public BaseImportExportOptions setType(Set<ObjectTypes> type) {
+        this.type = type;
+        return this;
+    }
+
+    public BaseImportExportOptions setFilter(FileReference filter) {
+        this.filter = filter;
+        return this;
+    }
+
+    public BaseImportExportOptions setZip(boolean zip) {
+        this.zip = zip;
+        return this;
+    }
+
+    public BaseImportExportOptions setMultiThread(int multiThread) {
+        this.multiThread = multiThread;
+        return this;
+    }
 }

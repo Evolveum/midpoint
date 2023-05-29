@@ -11,4 +11,6 @@ public class UpgradeConstants {
     public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE, "4.8-SNAPSHOT" }; // todo remove viliam
 
     public static final String UPGRADE_TEMP_DIRECTORY = ".upgrade";
+
+    public static final String VERIFY_OUTPUT_FILE = "verify-output.csv";
 }

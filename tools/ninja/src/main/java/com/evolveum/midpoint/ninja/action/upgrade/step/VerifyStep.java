@@ -7,15 +7,18 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade.step;
 
+import java.io.File;
+
 import com.evolveum.midpoint.ninja.action.VerifyRepositoryAction;
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
 import com.evolveum.midpoint.ninja.opts.VerifyOptions;
 
 public class VerifyStep implements UpgradeStep<StepResult> {
 
-    private UpgradeStepsContext context;
+    private final UpgradeStepsContext context;
 
     public VerifyStep(UpgradeStepsContext context) {
         this.context = context;
@@ -28,17 +31,23 @@ public class VerifyStep implements UpgradeStep<StepResult> {
 
     @Override
     public StepResult execute() throws Exception {
-        // todo implement
+        final VerifyOptions options = new VerifyOptions();
+        options.setCreateReport(true);
+        options.setOverwrite(true);
 
-        VerifyOptions options = new VerifyOptions();
-//        options.isCreateReport();
-//        options.getMultiThread();
-//        options.getOutput();
-//        options.isOverwrite();
+        int threads = context.getOptions().getVerifyThreads();
+        options.setMultiThread(threads);
+
+        final File tempDirectory = context.getTempDirectory();
+        File output = new File(tempDirectory, UpgradeConstants.VERIFY_OUTPUT_FILE);
+        options.setOutput(output);
 
         VerifyRepositoryAction action = new VerifyRepositoryAction();
         action.init(context.getContext(), options);
         action.execute();
+
+        // todo progress reporting
+        // todo ask after this finishes, whether to exit or continue to next step
 
         return new StepResult() {
         };
