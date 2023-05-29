@@ -367,7 +367,6 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_UPDATE_ID_MATCH = new ItemName(NS_MODEL_EXTENSION, "updateIdMatch");
 
     public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
-    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
     public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
     public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
@@ -439,6 +438,9 @@ public abstract class SchemaConstants {
 
     public static final QName CHANNEL_SELF_REGISTRATION_QNAME = new QName(NS_CHANNEL, "selfRegistration");
     public static final String CHANNEL_SELF_REGISTRATION_URI = qNameToUri(CHANNEL_SELF_REGISTRATION_QNAME);
+
+    public static final QName CHANNEL_INVITATION_QNAME = new QName(NS_CHANNEL, "invitation");
+    public static final String CHANNEL_INVITATION_URI = qNameToUri(CHANNEL_INVITATION_QNAME);
 
     // Channel for self-service part of the user interface. These are the pages when user is changing his own data.
     // E.g. update of his own profile and password change are considered to be self-service.

@@ -11,7 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 import java.util.Map;
 
 /**

@@ -16,7 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
@@ -198,7 +198,8 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     String hqlToSql(String hql) {
-        return HibernateToSqlTranslator.toSql(factory, hql);
+        //return HibernateToSqlTranslator.toSql(factory, hql);
+        throw new UnsupportedOperationException("Not migrated to Hibernate 6");
     }
 
     protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
@@ -310,6 +311,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         displayDumpable(title, value);
     }
 
+    @Override
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }

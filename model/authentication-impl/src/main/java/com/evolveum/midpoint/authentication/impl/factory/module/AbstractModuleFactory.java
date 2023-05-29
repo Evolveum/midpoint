@@ -7,13 +7,14 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletRequest;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
+import com.evolveum.midpoint.authentication.impl.filter.RefuseUnauthenticatedRequestFilter;
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,6 +24,8 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 /**
  * @author skublik
@@ -76,9 +79,11 @@ public abstract class AbstractModuleFactory {
         }
     }
 
-    protected HttpSecurity getNewHttpSecurity(ModuleWebSecurityConfigurer module) throws Exception {
+    HttpSecurity getNewHttpSecurity(ModuleWebSecurityConfigurer module) throws Exception {
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
-        return module.getNewHttpSecurity();
+        HttpSecurity httpSecurity =  module.getNewHttpSecurity();
+        httpSecurity.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
+        return httpSecurity;
     }
 
 }

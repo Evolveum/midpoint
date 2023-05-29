@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBElement;
 import java.util.Collection;
 import java.util.List;
 

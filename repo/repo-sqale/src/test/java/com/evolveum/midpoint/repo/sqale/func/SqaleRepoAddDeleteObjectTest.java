@@ -1738,7 +1738,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .name(objectName)
                 .taskIdentifier("task-id")
                 .binding(TaskBindingType.LOOSE)
-                .category("category")
                 .completionTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
                 .executionState(TaskExecutionStateType.RUNNABLE)
                 .result(new OperationResultType()
@@ -1771,7 +1770,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MTask row = selectObjectByOid(QTask.class, task.getOid());
         assertThat(row.taskIdentifier).isEqualTo("task-id");
         assertThat(row.binding).isEqualTo(TaskBindingType.LOOSE);
-        assertThat(row.category).isEqualTo("category");
         assertThat(row.completionTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.executionState).isEqualTo(TaskExecutionStateType.RUNNABLE);
         assertThat(row.fullResult).isNotNull();

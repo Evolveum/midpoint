@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
 
 import java.util.ArrayList;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.annotations.VisibleForTesting;

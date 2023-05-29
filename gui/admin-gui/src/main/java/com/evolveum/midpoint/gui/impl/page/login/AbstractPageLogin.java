@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
@@ -142,7 +142,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private String getSequenceIdentifier(AuthenticationSequenceType seq) {
-        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
+        return seq.getIdentifier();
     }
 
     protected abstract void initCustomLayout();

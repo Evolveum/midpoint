@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;

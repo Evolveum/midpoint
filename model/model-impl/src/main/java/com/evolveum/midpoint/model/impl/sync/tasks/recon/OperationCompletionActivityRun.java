@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -43,12 +44,13 @@ final class OperationCompletionActivityRun
      * We ignore other parameters like kind, intent or object class. This is a behavior inherited from pre-4.4.
      */
     @Override
-    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
-        return getBeans().prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
-                .and()
-                .exists(ShadowType.F_PENDING_OPERATION)
-                .build();
+    public void customizeQuery(@NotNull SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
+        searchSpecification.setQuery(
+                getBeans().prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
+                        .and()
+                        .exists(ShadowType.F_PENDING_OPERATION)
+                        .build());
     }
 
     @Override

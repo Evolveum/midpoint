@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 //@Component
 //todo no need to have boolean wrapper factory right now, while using 3-state Boolean gui component,

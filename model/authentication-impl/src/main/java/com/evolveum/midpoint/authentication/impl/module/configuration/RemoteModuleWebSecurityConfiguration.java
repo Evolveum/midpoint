@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -58,12 +59,26 @@ public class RemoteModuleWebSecurityConfiguration extends ModuleWebSecurityConfi
     protected static Certificate getCertificate(ProtectedStringType certficate, Protector protector) throws EncryptionException, CertificateException, Base64Exception {
         String clearValue = protector.decryptString(certficate);
         byte[] certBytes;
+
+        if (StringUtils.isNotEmpty(clearValue) && clearValue.startsWith("-----")) {
+            //remove header on start
+            clearValue = clearValue.replaceFirst("-----", "");
+            clearValue = clearValue.substring(clearValue.indexOf("-----"));
+            clearValue = clearValue.replaceFirst("-----", "");
+
+            //remove header on end
+            clearValue = clearValue.substring(0, clearValue.indexOf("-----"));
+            clearValue = clearValue.replaceFirst("^\\s*", "");
+            clearValue = clearValue.replaceFirst("\\s++$", "");
+        }
+
         if (Base64.isBase64(clearValue)) {
             boolean isBase64Url = clearValue.contains("-") || clearValue.contains("_");
             certBytes = Base64Utility.decode(clearValue, isBase64Url);
         } else {
             certBytes = clearValue.getBytes();
         }
+
         return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certBytes));
     }
 
@@ -95,7 +110,7 @@ public class RemoteModuleWebSecurityConfiguration extends ModuleWebSecurityConfi
             parser.close();
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
             if (obj == null) {
-                throw new EncryptionException("Unable to decode PEM key:" + key.getPrivateKey());
+                throw new EncryptionException("Unable to decode PEM key");
             } else if (obj instanceof PEMEncryptedKeyPair) {
 
                 // Encrypted key - we will use provided password

@@ -40,7 +40,6 @@
     <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3</handlerUri>
-    <recurrence>single</recurrence>
     <binding>tight</binding>
 
 </task>

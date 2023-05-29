@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 

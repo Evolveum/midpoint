@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -36,8 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @Entity
 @Table(name = "m_task", indexes = {
-        @javax.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
-        @javax.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig") },
+        @jakarta.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
+        @jakarta.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig") },
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = { "taskIdentifier" }))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
@@ -48,7 +49,7 @@ public class RTask extends RObject implements ROperationResultFull {
     private String taskIdentifier;
     private RTaskExecutionState executionStatus;
     private String node;
-    private String category;
+    private String category; // no longer used
     private String handlerUri;
     //operation result
     private byte[] fullResult;
@@ -200,16 +201,19 @@ public class RTask extends RObject implements ROperationResultFull {
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getLastRunFinishTimestamp() {
         return lastRunFinishTimestamp;
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getCompletionTimestamp() {
         return completionTimestamp;
     }
 
     @Column
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getLastRunStartTimestamp() {
         return lastRunStartTimestamp;
     }
@@ -224,12 +228,14 @@ public class RTask extends RObject implements ROperationResultFull {
         return taskIdentifier;
     }
 
+    @Override
     @JaxbName(localPart = "resultStatus")
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
     }
 
+    @Override
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }
@@ -302,7 +308,6 @@ public class RTask extends RObject implements ROperationResultFull {
         repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
         repo.setRecurrence(RUtil.getRepoEnumValue(TaskTypeUtil.getEffectiveRecurrence(jaxb), RTaskRecurrence.class));
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
-        repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), repositoryContext.relationRegistry));

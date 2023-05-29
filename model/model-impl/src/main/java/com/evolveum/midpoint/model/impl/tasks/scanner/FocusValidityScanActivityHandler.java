@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.impl.tasks.scanner;
 import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPartialRun.ScanScope.*;
 
 import java.util.ArrayList;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;

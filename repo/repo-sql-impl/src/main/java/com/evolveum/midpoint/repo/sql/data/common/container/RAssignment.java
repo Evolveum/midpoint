@@ -9,11 +9,11 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.*;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -91,6 +92,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         this.assignmentOwner = assignmentOwner;
     }
 
+    @Override
     @Id
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     @MapsId("owner")
@@ -100,6 +102,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -109,6 +112,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -165,6 +169,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return order;
     }
 
+    @Override
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
@@ -176,28 +181,34 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return createApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @Override
+    @Type(XMLGregorianCalendarType.class)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
 
+    @Override
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
@@ -209,11 +220,14 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return modifyApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @Override
+    @Type(XMLGregorianCalendarType.class)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
@@ -270,6 +284,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         }
     }
 
+    @Override
     public void setOwner(RObject owner) {
         this.owner = owner;
         if (owner != null) {
@@ -277,42 +292,52 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         }
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
 
+    @Override
     public void setCreateApproverRef(Set<RAssignmentReference> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
+    @Override
     public void setCreateChannel(String createChannel) {
         this.createChannel = createChannel;
     }
 
+    @Override
     public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
         this.createTimestamp = createTimestamp;
     }
 
+    @Override
     public void setCreatorRef(REmbeddedReference creatorRef) {
         this.creatorRef = creatorRef;
     }
 
+    @Override
     public void setModifierRef(REmbeddedReference modifierRef) {
         this.modifierRef = modifierRef;
     }
 
+    @Override
     public void setModifyApproverRef(Set<RAssignmentReference> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
+    @Override
     public void setModifyChannel(String modifyChannel) {
         this.modifyChannel = modifyChannel;
     }
 
+    @Override
     public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
         this.modifyTimestamp = modifyTimestamp;
     }

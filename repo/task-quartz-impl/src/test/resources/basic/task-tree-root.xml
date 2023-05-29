@@ -14,5 +14,4 @@
     <executionStatus>running</executionStatus>
     <schedulingState>waiting</schedulingState>
     <waitingReason>otherTasks</waitingReason>
-    <recurrence>single</recurrence>
 </task>

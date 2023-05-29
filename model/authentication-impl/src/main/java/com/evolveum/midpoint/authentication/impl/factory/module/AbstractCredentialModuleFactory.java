@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
@@ -103,7 +103,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         if (!usedPolicy.getClass().equals(supportedClass())) {
-            String moduleIdentifier = StringUtils.isNotEmpty(moduleType.getIdentifier()) ? moduleType.getIdentifier() : moduleType.getName();
+            String moduleIdentifier = moduleType.getIdentifier();
             String message = "Module " + moduleIdentifier + "support only " + supportedClass() + " type of credential";
             IllegalArgumentException e = new IllegalArgumentException(message);
             LOGGER.error(message);
@@ -111,10 +111,6 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         return getObjectObjectPostProcessor().postProcess(createProvider(usedPolicy));
-    }
-
-    private String getCredentialAuthModuleIdentifier(AbstractCredentialAuthenticationModuleType module) {
-        return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
     }
 
     protected abstract ModuleAuthenticationImpl createEmptyModuleAuthentication(

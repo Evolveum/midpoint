@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.ldap.MidpointPrincipalContextMapper;
 import com.evolveum.midpoint.authentication.impl.provider.MidPointLdapAuthenticationProvider;
@@ -49,9 +49,6 @@ public class LdapModuleFactory extends AbstractModuleFactory {
 
     @Autowired
     private Protector protector;
-
-    @Autowired
-    private GuiProfiledPrincipalManager principalManager;
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -111,7 +108,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         getObjectObjectPostProcessor().postProcess(auth);
 
         MidPointLdapAuthenticationProvider provider = new MidPointLdapAuthenticationProvider(auth);
-        provider.setUserDetailsContextMapper(new MidpointPrincipalContextMapper(principalManager));
+        provider.setUserDetailsContextMapper(getObjectObjectPostProcessor().postProcess(new MidpointPrincipalContextMapper()));
         getObjectObjectPostProcessor().postProcess(provider.getAuthenticatorProvider());
         getObjectObjectPostProcessor().postProcess(provider);
 

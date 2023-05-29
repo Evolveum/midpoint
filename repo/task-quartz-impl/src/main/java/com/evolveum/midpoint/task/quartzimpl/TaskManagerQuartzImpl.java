@@ -11,8 +11,8 @@ import static java.util.Collections.emptySet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Predicate;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import com.google.common.annotations.VisibleForTesting;

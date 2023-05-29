@@ -9,12 +9,11 @@ package com.evolveum.midpoint.repo.sql.query.matcher;
 
 import java.util.Objects;
 
-import org.hibernate.criterion.MatchMode;
-
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
+import com.evolveum.midpoint.repo.sql.query.restriction.MatchMode;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

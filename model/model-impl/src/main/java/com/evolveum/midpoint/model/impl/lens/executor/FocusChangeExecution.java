@@ -289,10 +289,6 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             for (ItemConstraintType itemConstraint : archetypePolicy.getItemConstraint()) {
                 processItemConstraint(objectNew, itemConstraint);
             }
-            // Deprecated
-            for (ItemConstraintType itemConstraint : archetypePolicy.getPropertyConstraint()) {
-                processItemConstraint(objectNew, itemConstraint);
-            }
         }
     }
 

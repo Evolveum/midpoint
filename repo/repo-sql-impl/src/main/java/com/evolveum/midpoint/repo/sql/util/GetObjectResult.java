@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.ResultTransformer;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +25,7 @@ public class GetObjectResult implements Serializable {
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
         @Override
         public ResultTransformer getResultTransformer() {
-            return new BasicTransformerAdapter() {
+            return new ResultTransformer() {
                 @Override
                 public Object transformTuple(Object[] tuple, String[] aliases) {
                     return new GetObjectResult((String) tuple[0], (byte[]) tuple[1]);

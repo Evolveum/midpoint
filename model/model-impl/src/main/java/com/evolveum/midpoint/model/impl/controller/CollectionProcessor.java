@@ -493,7 +493,6 @@ public class CollectionProcessor {
         }
         compileObjectType(existingView, objectListViewType);
         compileActions(existingView, objectListViewType);
-        compileAdditionalPanels(existingView, objectListViewType, replaceIfExist);
         compileColumns(existingView, objectListViewType);
         compileDisplay(existingView, objectListViewType, replaceIfExist);
         compileDistinct(existingView, objectListViewType, replaceIfExist);
@@ -537,17 +536,6 @@ public class CollectionProcessor {
             existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
         }
 
-    }
-
-    private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
-        GuiObjectListViewAdditionalPanelsType newAdditionalPanels = objectListViewType.getAdditionalPanels();
-        if (newAdditionalPanels == null) {
-            return;
-        }
-        // TODO: later: merge additional panel definitions
-        if (existingView.getAdditionalPanels() == null || replaceIfExist) {
-            existingView.setAdditionalPanels(newAdditionalPanels);
-        }
     }
 
     private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

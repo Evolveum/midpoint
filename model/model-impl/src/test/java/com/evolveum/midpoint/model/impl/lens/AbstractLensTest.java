@@ -151,9 +151,6 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             ROLE_CORP_MANAGER_FILE
     };
 
-    static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
-    static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
-
     static final File ORG_BRETHREN_FILE = new File(TEST_DIR, "org-brethren.xml");
     static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";
     static final String ORG_BRETHREN_INDUCED_ORGANIZATION = "Pirate Brethren";

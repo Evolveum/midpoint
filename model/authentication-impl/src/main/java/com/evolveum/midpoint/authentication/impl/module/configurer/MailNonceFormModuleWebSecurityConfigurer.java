@@ -15,7 +15,13 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointForm
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+
 
 /**
  * @author skublik
@@ -30,13 +36,24 @@ public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurit
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointFormLoginConfigurer<>(new MailNonceAuthenticationFilter()))
                 .loginPage(getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl())
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler())).permitAll();
-        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
+        MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
+            @Override
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken,
+                    AuthenticationSequenceChannelType channel) {
+                if (channel != null && SchemaConstants.CHANNEL_INVITATION_URI.equals(channel.getChannelId())) {
+                    anonymousAuthenticationToken.setAuthenticated(false);
+                    return anonymousAuthenticationToken;
+                }
+                return null;
+            }
+        };
+        getOrApply(http, exceptionConfigurer)
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(
                         getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl()));
 

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.Model;

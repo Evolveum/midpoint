@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.Task;

@@ -11,8 +11,8 @@ import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Helper class that registers SynchronizationService as a provisioning change notification listener.

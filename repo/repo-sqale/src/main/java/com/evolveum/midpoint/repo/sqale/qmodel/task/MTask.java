@@ -20,7 +20,7 @@ public class MTask extends MObject {
 
     public String taskIdentifier;
     public TaskBindingType binding;
-    public String category;
+    public String category; // not used anymore
     public Instant completionTimestamp;
     public TaskExecutionStateType executionState;
     // Logically fullResult and resultStatus are related, managed by Task manager.

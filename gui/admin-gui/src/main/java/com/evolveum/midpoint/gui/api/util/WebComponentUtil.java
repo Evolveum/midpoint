@@ -177,7 +177,6 @@ import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -702,14 +701,6 @@ public final class WebComponentUtil {
 
     public static boolean isRecurringTask(TaskType task) {
         return task != null && TaskTypeUtil.isTaskRecurring(task);
-    }
-
-    // We no longer need to treat workflow-related tasks in a different way.
-    // Approvals are carried out via cases. So the only workflow-related tasks are those that execute
-    // approved operations. And they can be treated exactly like all the other tasks.
-    @Deprecated
-    public static boolean isWorkflowTask(TaskType task) {
-        return task != null && TaskCategory.WORKFLOW.equals(task.getCategory());
     }
 
     public static boolean isReconciliation(TaskType task) {
@@ -3417,7 +3408,7 @@ public final class WebComponentUtil {
                 return;
             }
             String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-                    action.getDisplay().getLabel().getOrig() : action.getName();
+                    action.getDisplay().getLabel().getOrig() : action.getIdentifier();
             menuItems.add(new InlineMenuItem(Model.of(label)) {
                 private static final long serialVersionUID = 1L;
 

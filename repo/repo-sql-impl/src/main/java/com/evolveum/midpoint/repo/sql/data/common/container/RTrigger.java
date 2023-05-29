@@ -7,11 +7,12 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -54,6 +56,7 @@ public class RTrigger implements Container<RObject> {
         setOwner(owner);
     }
 
+    @Override
     @Id
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,6 +66,7 @@ public class RTrigger implements Container<RObject> {
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -72,6 +76,7 @@ public class RTrigger implements Container<RObject> {
         return ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -86,6 +91,7 @@ public class RTrigger implements Container<RObject> {
     }
 
     @Column(name = C_TIMESTAMP)
+    @Type(XMLGregorianCalendarType.class)
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
     }
@@ -101,6 +107,7 @@ public class RTrigger implements Container<RObject> {
         this.trans = trans;
     }
 
+    @Override
     public void setOwner(RObject owner) {
         this.owner = owner;
         if (owner != null) {
@@ -108,10 +115,12 @@ public class RTrigger implements Container<RObject> {
         }
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }

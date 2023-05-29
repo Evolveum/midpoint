@@ -162,7 +162,6 @@
         <dependency>
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- LOGGING -->

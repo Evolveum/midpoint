@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNe
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;

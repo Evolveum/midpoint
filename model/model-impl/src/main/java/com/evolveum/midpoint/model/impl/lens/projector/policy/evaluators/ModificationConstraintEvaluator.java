@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import java.util.Collection;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

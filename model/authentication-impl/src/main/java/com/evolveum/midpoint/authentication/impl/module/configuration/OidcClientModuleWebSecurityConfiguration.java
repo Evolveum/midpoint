@@ -13,6 +13,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.nimbusds.jose.util.Base64URL;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -24,8 +26,8 @@ import org.springframework.security.oauth2.core.*;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -142,8 +144,6 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
 
             clientRegistration = builder.build();
 
-            Assert.hasText(clientRegistration.getProviderDetails().getUserInfoEndpoint().getUri(), "UserInfoUri cannot be empty");
-
             registrations.add(clientRegistration);
 
             OidcAdditionalConfiguration.Builder additionalConfBuilder = OidcAdditionalConfiguration.builder()
@@ -203,6 +203,8 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
         try {
             Certificate certificate = getCertificate(key, protector);
             publicKey = certificate.getPublicKey();
+            builder.thumbprint256(DigestUtils.sha256Hex(certificate.getEncoded()))
+                    .thumbprint(DigestUtils.sha1Hex(certificate.getEncoded()));
         } catch (Base64Exception | EncryptionException | CertificateException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
         }
@@ -231,6 +233,8 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
         try {
             Certificate certificate = getCertificate(key, protector);
             publicKey = certificate.getPublicKey();
+            builder.thumbprint256(DigestUtils.sha256Hex(certificate.getEncoded()))
+                    .thumbprint(DigestUtils.sha1Hex(certificate.getEncoded()));
         } catch (EncryptionException | CertificateException  | KeyStoreException | IOException | NoSuchAlgorithmException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get certificate from " + key, e);
         }

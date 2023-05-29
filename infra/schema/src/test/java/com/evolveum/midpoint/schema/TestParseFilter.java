@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;

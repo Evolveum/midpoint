@@ -31,7 +31,7 @@ public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFor
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointFormLoginConfigurer<>(new SecurityQuestionsAuthenticationFilter()))
                 .loginPage("/securityquestions")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")

@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 
 import com.evolveum.midpoint.authentication.impl.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.MidpointExceptionTranslationFilter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
@@ -87,8 +89,9 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
         ExceptionTranslationFilter exceptionTranslationFilter = new MidpointExceptionTranslationFilter(
                 entryPoint, getRequestCache(http)) {
             @Override
-            protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
-                return MidpointExceptionHandlingConfigurer.this.createNewAuthentication(authentication);
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication,
+                    AuthenticationSequenceChannelType channel) {
+                return MidpointExceptionHandlingConfigurer.this.createNewAuthentication(authentication, channel);
             }
         };
         AccessDeniedHandler deniedHandler = getAccessDeniedHandler();
@@ -98,7 +101,8 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
         http.addFilterAfter(exceptionTranslationFilter, MidpointAnonymousAuthenticationFilter.class);
     }
 
-    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
+    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication,
+            AuthenticationSequenceChannelType channel) {
         return null;
     }
 

@@ -9,11 +9,11 @@ package com.evolveum.midpoint.security.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -24,14 +24,13 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author Radovan Semancik
@@ -129,6 +128,20 @@ public class SecurityUtil {
         }
         copyDefaults(creds.getDefault(), passPolicy);
         return passPolicy;
+    }
+
+    public static String getInvitationSequenceIdentifier(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
+            return null;
+        }
+        AuthenticationSequenceType invitationSequence = securityPolicy.getAuthentication().getSequence().stream().filter(s -> s.getChannel() != null
+                && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
+                .findFirst()
+                .orElse(null);
+        if (invitationSequence == null) {
+            return null;
+        }
+        return invitationSequence.getIdentifier();
     }
 
     public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {

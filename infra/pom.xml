@@ -22,7 +22,9 @@
 
     <modules>
         <module>schema</module>
+        <!-- FIXME: Enable after migration to newer jaxb?
         <module>schema-pure-jaxb</module>
+        -->
         <module>common</module>
         <module>test-util</module>
     </modules>

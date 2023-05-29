@@ -98,7 +98,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     }
 
     protected static String getAuthenticationModuleIdentifier(AbstractAuthenticationModuleType module) {
-        return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
+        return module.getIdentifier();
     }
 
 

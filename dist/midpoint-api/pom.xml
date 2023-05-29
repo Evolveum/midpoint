@@ -17,7 +17,7 @@
     </parent>
 
     <artifactId>midpoint-api</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>midPoint API Distribution</name>
 

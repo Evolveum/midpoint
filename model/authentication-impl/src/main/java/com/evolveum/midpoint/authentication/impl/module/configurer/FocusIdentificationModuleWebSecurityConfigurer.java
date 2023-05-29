@@ -34,7 +34,7 @@ public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormM
         super.configure(http);
         FocusIdentificationAuthenticationFilter identificationFilter = new FocusIdentificationAuthenticationFilter();
 
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointAttributeConfigurer<>(identificationFilter))
                 .loginPage("/focusIdentification")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")

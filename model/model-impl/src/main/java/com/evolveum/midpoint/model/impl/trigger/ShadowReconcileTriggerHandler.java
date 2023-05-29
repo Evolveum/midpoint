@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 

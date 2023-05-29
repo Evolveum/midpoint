@@ -8,7 +8,7 @@ package com.evolveum.midpoint.schema.util;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;

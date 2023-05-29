@@ -15,17 +15,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -211,13 +211,13 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                 mimeMessage.setFrom(new InternetAddress(from));
 
                 for (String recipient : mailMessage.getTo()) {
-                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+                    mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                 }
                 for (String recipientCc : mailMessage.getCc()) {
-                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
+                    mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
                 }
                 for (String recipientBcc : mailMessage.getBcc()) {
-                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
+                    mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject(), StandardCharsets.UTF_8.name());
                 String contentType = mailMessage.getContentType();
@@ -285,7 +285,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                 }
 
                 mimeMessage.setContent(multipart);
-                try (javax.mail.Transport t = session.getTransport("smtp")) {
+                try (jakarta.mail.Transport t = session.getTransport("smtp")) {
                     if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
                         ProtectedStringType passwordProtected = mailServerConfigurationType.getPassword();
                         String password = null;

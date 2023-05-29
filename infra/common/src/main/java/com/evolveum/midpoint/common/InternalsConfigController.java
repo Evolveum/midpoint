@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.common;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.Configuration;
 

@@ -19,6 +19,10 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
 
+    <schedule>
+        <interval>3</interval>
+    </schedule>
+
     <activity>
         <work>
             <liveSynchronization>
@@ -29,10 +33,5 @@
             </liveSynchronization>
         </work>
     </activity>
-
-    <recurrence>recurring</recurrence>
-    <schedule>
-        <interval>3</interval>
-    </schedule>
 
 </task>

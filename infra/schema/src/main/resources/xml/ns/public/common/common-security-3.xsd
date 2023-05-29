@@ -926,10 +926,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="encryption">
+            <xsd:enumeration value="decryption">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ENCRYPTION"/>
+                        <jaxb:typesafeEnumMember name="DECRYPTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

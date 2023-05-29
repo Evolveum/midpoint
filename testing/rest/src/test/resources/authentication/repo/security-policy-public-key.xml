@@ -12,21 +12,23 @@
     <authentication>
         <modules>
             <loginForm>
-                <name>internalLoginForm</name>
+                <identifier>internalLoginForm</identifier>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
             <oidc>
-                <name>oidcResourceServer</name>
+                <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <trustingAsymmetricCertificate>
-                        <clearValue>MIIClzCCAX8CBgF+TkjEqzANBgkqhkiG9w0BAQsFADAPMQ0wCwYDVQQDDAR0ZXN0MB4XDTIyMDExMjEyMzMxOFoXDTMyMDExMjEyMzQ1OFowDzENMAsGA1UEAwwEdGVzdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN0prZaeDeXQycO3X73ZzB+7zVdu+WOu9WfTd9QtJaulXfKbNaWgkYn8MnwMmNXEquTDctPP2F0oZ3jnavPl7AamZaRcN+ZkWnY+jVEG3Xlmv4Psu82Pmy6TltclnXWg2nnHx29+9wlPjF4H3svru6wtXTeNbSUfnowpt3iOM7QKa4g/cBIihkD3dxJ0cUFwqy3scqXCCL6awkER77tfF5n7bPczjQ3E9BJCgsumcbH13Y4PHeq9zUOA/x7HgzyFUFQUWljlQQEASBtkZsKz9PGewSE61yFzCqx3o6+Z+WvM0lEk7vxN0ah3mTpIJdDz6xC5psX2Ef5OsDuy0WnH990CAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAJKb00wJeDzXJU+wpaR/B33BTVp4xlXmQmC4Lh8DCW9OCICVn6ngiSQtGuhFRQnHAzjaegGxj+oB6GHHMI1QapuVdJ83ZsUw20spwBxptrqklIGgtB4OsWU3P2QZvwF06zUGjRCA8ZuO64TFsULzB2mYzNFT7KNG1UO4Z8h5g7NuX1a0abHrHK9Yzx6eYNMwS+SCbVwG2ww3zrLXw10Jx3VUdkdPA2R/mkVCS/FEv44UJAwN/bG9E7RNA/AoCVF8qPxx8cx5oE0R5IEIA5vKKoW/iEN3+D2ye66mwpqyFK2zCZsCWocq8IWydq+umPSFsG24tj0NUmznzSULoBJ4KiA==</clearValue>
-                    </trustingAsymmetricCertificate>
-                    <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    <jwt>
+                        <trustingAsymmetricCertificate>
+                            <clearValue>||trustingAsymmetricCertificate||</clearValue>
+                        </trustingAsymmetricCertificate>
+                        <nameOfUsernameClaim>||nameOfUsernameClaim||</nameOfUsernameClaim>
+                    </jwt>
                 </resourceServer>
             </oidc>
         </modules>
         <sequence>
-            <name>admin-gui-default</name>
+            <identifier>admin-gui-default</identifier>
             <description>
                 Default GUI authentication sequence.
             </description>
@@ -42,7 +44,7 @@
             </module>
         </sequence>
         <sequence>
-            <name>rest</name>
+            <identifier>rest</identifier>
             <description>
                 Authentication sequence for REST service.
                 We want just OIDC auth here, HTTP basic as fallback.

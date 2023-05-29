@@ -501,10 +501,6 @@
                                             <q:path>executionState</q:path>
                                             <q:value>waiting</q:value>
                                         </q:equal>
-                                        <q:equal>
-                                            <q:path>category</q:path>
-                                            <q:value>Workflow</q:value>    <!-- note uppercase 'W' here -->
-                                        </q:equal>
                                     </q:and>
                                 </q:filter>
                             </s:query>

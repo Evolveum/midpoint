@@ -403,7 +403,7 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         });
 
-        headerMenuItems.add(new InlineMenuItem(createStringResource("roleMiningExport.operation.button.title")) {
+        headerMenuItems.add(new InlineMenuItem(createStringResource("roleMiningExportPanel.operation.button.title")) {
             private static final long serialVersionUID = 1L;
 
             @Override

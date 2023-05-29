@@ -69,7 +69,6 @@ public class QTaskMapping
 
         addItemMapping(F_TASK_IDENTIFIER, stringMapper(q -> q.taskIdentifier));
         addItemMapping(F_BINDING, enumMapper(q -> q.binding));
-        addItemMapping(F_CATEGORY, stringMapper(q -> q.category));
         addItemMapping(F_COMPLETION_TIMESTAMP,
                 timestampMapper(q -> q.completionTimestamp));
         addItemMapping(F_EXECUTION_STATE, enumMapper(q -> q.executionState));
@@ -101,7 +100,7 @@ public class QTaskMapping
         addItemMapping(F_DEPENDENT, multiStringMapper(q -> q.dependentTaskIdentifiers));
 
         addNestedMapping(F_SCHEDULE, ScheduleType.class)
-                .addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence));
+                .addItemMapping(ScheduleType.F_RECURRENCE, enumMapper(q -> q.recurrence));
     }
 
     @Override
@@ -135,7 +134,6 @@ public class QTaskMapping
 
         row.taskIdentifier = task.getTaskIdentifier();
         row.binding = task.getBinding();
-        row.category = task.getCategory();
         row.completionTimestamp = MiscUtil.asInstant(task.getCompletionTimestamp());
         row.executionState = task.getExecutionState();
 
