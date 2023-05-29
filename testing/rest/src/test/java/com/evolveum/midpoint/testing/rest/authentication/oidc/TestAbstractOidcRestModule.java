@@ -11,16 +11,18 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.testing.rest.authentication.TestAbstractAuthentication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import com.nimbusds.jose.shaded.json.JSONArray;
+import com.nimbusds.jose.shaded.json.JSONObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.keycloak.authorization.client.AuthzClient;
-import org.keycloak.representations.AccessTokenResponse;
 import org.testng.annotations.Test;
 
 import jakarta.ws.rs.core.Response;
@@ -29,36 +31,46 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
 public abstract class TestAbstractOidcRestModule extends TestAbstractAuthentication {
 
+    private static final Trace LOGGER = TraceManager.getTrace(TestAbstractOidcRestModule.class);
+
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
-    public static final File SECURITY_POLICY_ISSUER_URI =
-            new File(BASE_REPO_DIR, "security-policy-issuer-uri.xml");
-    public static final File SECURITY_POLICY_JWS_URI =
-            new File(BASE_REPO_DIR, "security-policy-jws-uri.xml");
-    public static final File SECURITY_POLICY_JWS_URI_WRONG_ALG =
-            new File(BASE_REPO_DIR, "security-policy-jws-uri-wrong-alg.xml");
-    public static final File SECURITY_POLICY_PUBLIC_KEY =
-            new File(BASE_REPO_DIR, "security-policy-public-key.xml");
-    public static final File SECURITY_POLICY_PUBLIC_KEY_WRONG_ALG =
-            new File(BASE_REPO_DIR, "security-policy-public-key-wrong-alg.xml");
-    public static final File SECURITY_POLICY_PUBLIC_KEY_KEYSTORE =
-            new File(BASE_REPO_DIR, "security-policy-public-key-keystore.xml");
-    public static final File SECURITY_POLICY_WRONG_ATTRIBUTE_NAME =
-            new File(BASE_REPO_DIR, "security-policy-wrong-attribute-name.xml");
+    public static final String NAME_OF_USERNAME_CLAIM_VALUE = "preferred_username";
 
-    private static final String MIDPOINT_USER_PASSWORD_KEY = "midpointUserPassword";
+    public static final File SECURITY_POLICY_ISSUER_URI =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-issuer-uri.xml");
+    public static final File SECURITY_POLICY_JWS_URI =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-jws-uri.xml");
+    public static final File SECURITY_POLICY_JWS_URI_WRONG_ALG =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-jws-uri-wrong-alg.xml");
+    public static final File SECURITY_POLICY_PUBLIC_KEY =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-public-key.xml");
+    public static final File SECURITY_POLICY_PUBLIC_KEY_WRONG_ALG =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-public-key-wrong-alg.xml");
+    public static final File SECURITY_POLICY_PUBLIC_KEY_KEYSTORE =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-public-key-keystore.xml");
+    public static final File SECURITY_POLICY_WRONG_ATTRIBUTE_NAME =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-wrong-attribute-name.xml");
+    public static final File SECURITY_POLICY_USER_INFO_URI =
+            new File(BASE_AUTH_REPO_DIR, "security-policy-user-info-uri.xml");
+
+    private static final String NAME_OF_USERNAME_CLAIM_KEY = "nameOfUsernameClaim";
+    protected static final String MIDPOINT_USER_PASSWORD_KEY = "midpointUserPassword";
     protected static final String CLIENT_ID_KEY = "clientId";
     protected static final String CLIENT_SECRET_KEY = "clientSecret";
     private static final String ISSUER_URI_KEY = "issuerUri";
     private static final String JWK_SET_URI_KEY = "jwkSetUri";
     private static final String TRUSTING_ASYMMETRIC_CERT_KEY = "trustingAsymmetricCertificate";
     private static final String KEY_STORE_PATH_KEY = "keyStorePath";
+    private static final String USER_INFO_URI_KEY = "userInfoUri";
+    private static final String KID_KEY = "kid";
 
     private Properties properties;
 
@@ -79,18 +91,22 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
         return StringEscapeUtils.escapeXml10(properties.getProperty(getServerPrefix() + "." + key));
     }
 
+    protected String getUserPasssword() {
+        return properties.getProperty(getServerPrefix() + "." + MIDPOINT_USER_PASSWORD_KEY);
+    }
+
     protected abstract String getServerPrefix();
 
     protected String createTag(String key){
         return "||" + key + "||";
     }
 
-    public abstract AuthzClient getAuthzClient();
-
     protected String getSecurityPolicy(File securityPolicyFile) throws IOException {
-        return FileUtils.readFileToString(
+        String securityPolicy = FileUtils.readFileToString(
                 securityPolicyFile,
                 StandardCharsets.UTF_8);
+        securityPolicy = securityPolicy.replace(createTag(NAME_OF_USERNAME_CLAIM_KEY), getNameOfUsernameClaim());
+        return securityPolicy;
     }
 
     @Test
@@ -224,17 +240,46 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
         assertUnsuccess(response, 0);
     }
 
-    protected abstract String getPublicKey();
+    @Test
+    public void test008OidcOpaqueToken() throws Exception {
+        String securityContent = getSecurityPolicy(SECURITY_POLICY_USER_INFO_URI);
+        securityContent = securityContent.replace(createTag(USER_INFO_URI_KEY), getProperty(USER_INFO_URI_KEY));
+        replaceSecurityPolicy(securityContent);
 
-    private WebClient prepareClient() {
-        AccessTokenResponse result = getAuthzClient().obtainAccessToken(
-                USER_ADMINISTRATOR_USERNAME,
-                getProperty(MIDPOINT_USER_PASSWORD_KEY));
+        WebClient client = prepareClientForOpaqueToken();
 
-        WebClient client = prepareClient(result.getTokenType(), result.getToken());
-        client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-        return client;
+        when();
+        Response response = client.get();
+
+        then();
+        assertSuccess(response);
     }
+
+    protected WebClient prepareClientForOpaqueToken() {
+        return prepareClient();
+    }
+
+    private String getPublicKey() {
+        try {
+            Optional<Object> jsonWithKey = ((JSONArray) JSONObjectUtils.parse(
+                    WebClient.create(getJwksUri()).get().readEntity(String.class)).get("keys"))
+                    .stream().filter(json ->
+                            ((JSONObject) json).containsKey("use")
+                            && "sig".equals(((JSONObject) json).get("use"))
+                            && (getProperty(KID_KEY) == null || getProperty(KID_KEY).equals(((JSONObject) json).get("kid"))))
+                    .findFirst();
+            return (String) ((JSONArray)((JSONObject)jsonWithKey.get()).get("x5c")).get(0);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't get public key for keycloak", e);
+            return null;
+        }
+    }
+
+    private String getJwksUri(){
+        return getProperty(JWK_SET_URI_KEY);
+    }
+
+    protected abstract WebClient prepareClient();
 
     protected void createAuthorizationHeader(WebClient client, String username, String password) {
         if (username != null) {
@@ -266,5 +311,9 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
             getDummyAuditService().assertRecords(expectedAuditRecords);
             getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
         }
+    }
+
+    protected String getNameOfUsernameClaim(){
+        return NAME_OF_USERNAME_CLAIM_VALUE;
     }
 }

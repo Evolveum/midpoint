@@ -338,7 +338,12 @@
             <artifactId>commons-codec</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>msal4j</artifactId>
+            <version>1.13.8</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

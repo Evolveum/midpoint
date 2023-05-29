@@ -22,10 +22,10 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuthentication {
 
-    public static final File SECURITY_POLICY_DEFAULT = new File(BASE_REPO_DIR, "security-policy-default.xml");
-    public static final File SECURITY_POLICY_ENABLED = new File(BASE_REPO_DIR, "security-policy-enabled.xml");
-    public static final File SECURITY_POLICY_DISABLED = new File(BASE_REPO_DIR, "security-policy-disabled.xml");
-    public static final File SECURITY_POLICY_ONLY_UNSUCCESSFUL = new File(BASE_REPO_DIR, "security-policy-unsuccessful.xml");
+    public static final File SECURITY_POLICY_DEFAULT = new File(BASE_AUTH_REPO_DIR, "security-policy-default.xml");
+    public static final File SECURITY_POLICY_ENABLED = new File(BASE_AUTH_REPO_DIR, "security-policy-enabled.xml");
+    public static final File SECURITY_POLICY_DISABLED = new File(BASE_AUTH_REPO_DIR, "security-policy-disabled.xml");
+    public static final File SECURITY_POLICY_ONLY_UNSUCCESSFUL = new File(BASE_AUTH_REPO_DIR, "security-policy-unsuccessful.xml");
 
     @Test
     public void test001DefaultOption() throws Exception {

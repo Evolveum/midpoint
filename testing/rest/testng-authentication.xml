@@ -11,6 +11,7 @@
     <test name="REST Authentication" preserve-order="false">
         <classes>
             <class name="com.evolveum.midpoint.testing.rest.authentication.oidc.TestKeycloakOidcRestAuthModule"/>
+            <class name="com.evolveum.midpoint.testing.rest.authentication.oidc.TestAzureOidcRestAuthModule"/>
         </classes>
     </test>
 </suite>
