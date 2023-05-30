@@ -337,6 +337,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="formMaxMultiparts" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Sets the maximum limit for multipart data inside submitted form (inputs and file uploads are counted).
+                            Default value is 100.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4.5</a:since>
+                        <a:displayName>AdminGuiConfigurationType.formMaxMultiparts</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
