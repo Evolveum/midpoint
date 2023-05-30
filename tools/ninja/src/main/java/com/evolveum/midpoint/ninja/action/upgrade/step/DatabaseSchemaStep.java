@@ -31,9 +31,11 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
     public static final int SUPPORTED_VERSION_FEATURE = 15; // for 4.7.1
 
-    private static final String MIDPOINT_DB_UPGRADE_FILE = "/config/postgres-new-upgrade.sql";
+    private static final String MIDPOINT_DB_SCRIPTS_DIRECTORY = "/doc/config/sql/native-new";
 
-    private static final String AUDIT_DB_UPGRADE_FILE = "/config/postgres-new-upgrade-audit.sql";
+    private static final String MIDPOINT_DB_UPGRADE_FILE = MIDPOINT_DB_SCRIPTS_DIRECTORY + "/postgres-new-upgrade.sql";
+
+    private static final String AUDIT_DB_UPGRADE_FILE = MIDPOINT_DB_SCRIPTS_DIRECTORY + "/postgres-new-upgrade-audit.sql";
 
     private final UpgradeStepsContext context;
 
@@ -73,7 +75,7 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
     private void executeUpgradeScript(File upgradeScript, DataSource dataSource) {
         FileSystemResourceLoader loader = new FileSystemResourceLoader();
-        Resource script = loader.getResource(upgradeScript.getAbsolutePath());
+        Resource script = loader.getResource("file:" + upgradeScript.getAbsolutePath());
 
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.addScript(script);

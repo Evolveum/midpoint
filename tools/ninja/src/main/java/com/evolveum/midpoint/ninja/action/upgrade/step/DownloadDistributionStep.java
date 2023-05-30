@@ -16,6 +16,7 @@ import java.util.zip.ZipInputStream;
 
 import com.evolveum.midpoint.ninja.util.Log;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.ninja.action.upgrade.*;
@@ -94,6 +95,15 @@ public class DownloadDistributionStep implements UpgradeStep<DownloadDistributio
                 }
                 zipEntry = zis.getNextEntry();
             }
+        }
+
+        File[] files = distribution.listFiles();
+        if (files != null && files.length == 1) {
+            File zipRootDirectory = files[0];
+            for (File file : zipRootDirectory.listFiles()) {
+                FileUtils.moveToDirectory(file, distribution, false);
+            }
+            zipRootDirectory.delete();
         }
 
         return distribution;

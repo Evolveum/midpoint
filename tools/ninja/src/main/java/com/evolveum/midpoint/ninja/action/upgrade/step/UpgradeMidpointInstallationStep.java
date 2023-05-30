@@ -10,18 +10,15 @@ package com.evolveum.midpoint.ninja.action.upgrade.step;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
-
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-
 import org.apache.commons.io.FileUtils;
-
-import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 
 public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> {
 
@@ -62,19 +59,7 @@ public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> 
             backupDirectory.mkdir();
         }
 
-        File distribution = distributionDirectory;
-
-        File[] files = distributionDirectory.listFiles();
-        if (files != null && files.length == 1) {
-            distribution = files[0];
-        }
-
-        if (distribution == null) {
-            return new StepResult() {
-            };
-        }
-
-        for (File file : emptyIfNull(distribution.listFiles())) {
+        for (File file : emptyIfNull(distributionDirectory.listFiles())) {
             String fileName = file.getName();
 
             if (backupFiles) {
