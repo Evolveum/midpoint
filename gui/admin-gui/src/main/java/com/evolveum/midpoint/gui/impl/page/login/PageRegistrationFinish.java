@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,6 +64,8 @@ public class PageRegistrationFinish extends PageRegistrationBase {
     private static final String ID_LINK_LOGIN = "linkToLogin";
     private static final String ID_SUCCESS_PANEL = "successPanel";
     private static final String ID_ERROR_PANEL = "errorPanel";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_CONTENT_AREA = "contentArea";
 
     private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + "assignDefaultRoles";
     private static final String OPERATION_ASSIGN_ADDITIONAL_ROLE = DOT_CLASS + "assignAdditionalRole";
@@ -193,9 +197,16 @@ public class PageRegistrationFinish extends PageRegistrationBase {
     }
 
     private void initLayout(final OperationResult result) {
+        MidpointForm<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
+        mainForm.setMultiPart(true);
+        add(mainForm);
+
+        WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT_AREA);
+        content.setOutputMarkupId(true);
+        mainForm.add(content);
 
         WebMarkupContainer successPanel = new WebMarkupContainer(ID_SUCCESS_PANEL);
-        add(successPanel);
+        mainForm.add(successPanel);
         successPanel.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
@@ -228,7 +239,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
         successPanel.add(continueToLogin);
 
         WebMarkupContainer errorPanel = new WebMarkupContainer(ID_ERROR_PANEL);
-        add(errorPanel);
+        mainForm.add(errorPanel);
         errorPanel.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
