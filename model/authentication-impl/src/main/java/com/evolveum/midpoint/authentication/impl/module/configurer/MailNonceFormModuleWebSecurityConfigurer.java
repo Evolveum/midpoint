@@ -15,13 +15,7 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointForm
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
-
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
-
 
 /**
  * @author skublik
@@ -42,18 +36,7 @@ public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurit
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler())).permitAll();
-        MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
-            @Override
-            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken,
-                    AuthenticationSequenceChannelType channel) {
-                if (channel != null && SchemaConstants.CHANNEL_INVITATION_URI.equals(channel.getChannelId())) {
-                    anonymousAuthenticationToken.setAuthenticated(false);
-                    return anonymousAuthenticationToken;
-                }
-                return null;
-            }
-        };
-        getOrApply(http, exceptionConfigurer)
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(
                         getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl()));
 

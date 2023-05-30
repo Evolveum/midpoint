@@ -48,11 +48,6 @@ public class InvitationAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
-    public String getPathDuringProccessing() {
-        return "/";
-    }
-
-    @Override
     public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
         ArrayList<Authorization> newAuthorities = new ArrayList<>();
         AuthorizationType authorizationBean = new AuthorizationType();

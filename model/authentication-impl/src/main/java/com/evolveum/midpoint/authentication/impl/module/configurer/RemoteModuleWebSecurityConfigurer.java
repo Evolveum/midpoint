@@ -8,9 +8,6 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.util.UUID;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
@@ -73,8 +70,7 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
-            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken,
-                    AuthenticationSequenceChannelType channel) {
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken) {
                 if (anonymousAuthenticationToken.getDetails() != null
                         && getAuthTokenClass().isAssignableFrom(anonymousAuthenticationToken.getDetails().getClass())) {
                     return (Authentication) anonymousAuthenticationToken.getDetails();

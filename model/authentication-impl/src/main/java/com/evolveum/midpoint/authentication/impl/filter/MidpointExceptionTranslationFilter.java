@@ -19,8 +19,6 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAut
 
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
-
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -63,19 +61,15 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
             ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken
                     && !mpAuthentication.hasSucceededAuthentication()) {
-                AuthenticationSequenceChannelType channel = mpAuthentication.getSequence() != null ?
-                        mpAuthentication.getSequence().getChannel() : null;
                 moduleAuthentication.setAuthentication(
-                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication(),
-                                channel));
+                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication()));
                 mpAuthentication.setPrincipal(null);
             }
             SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
         }
     }
 
-    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication,
-            AuthenticationSequenceChannelType channel) {
+    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
         return null;
     }
 
