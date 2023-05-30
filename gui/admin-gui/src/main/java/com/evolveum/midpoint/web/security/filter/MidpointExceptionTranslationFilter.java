@@ -48,6 +48,9 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
         if (!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
             requestCache.saveRequest(request, response);
         }
+        if (reason != null) {
+            LOGGER.debug(reason.getMessage());
+        }
         LOGGER.debug("Calling Authentication entry point.");
         getAuthenticationEntryPoint().commence(request, response, reason);
         if (authentication instanceof MidpointAuthentication){
