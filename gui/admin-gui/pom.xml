@@ -748,13 +748,14 @@
             </resource>
             <!-- ICF LOGGING CONFIGURATION -->
             <resource>
-                <targetPath>../midpoint/META-INF/services</targetPath>
+                <targetPath>META-INF/services</targetPath>
                 <filtering>false</filtering>
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>**/org.identityconnectors.common.logging</include>
                 </includes>
             </resource>
+            
             <resource>
                 <filtering>false</filtering>
                 <directory>src/main/java</directory>

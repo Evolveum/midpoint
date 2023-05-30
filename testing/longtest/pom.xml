@@ -24,10 +24,12 @@
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
@@ -110,6 +112,7 @@
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -120,18 +123,22 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- TEST dependency -->
