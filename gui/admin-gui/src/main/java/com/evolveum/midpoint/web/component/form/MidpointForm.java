@@ -11,6 +11,7 @@ import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.Response;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
@@ -20,12 +21,10 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
  */
 public class MidpointForm<T> extends Form<T> {
 
-    private static final long DEFAULT_MAX_FILE_COUNT = 10;
     private boolean addFakeInputFields = false;
 
     public MidpointForm(String id) {
         super(id);
-        setFileCountMax(DEFAULT_MAX_FILE_COUNT);
     }
 
     /**
@@ -38,6 +37,12 @@ public class MidpointForm<T> extends Form<T> {
     public MidpointForm(String id, boolean addFakeInputFields) {
         this(id);
         this.addFakeInputFields = addFakeInputFields;
+    }
+
+    @Override
+    protected void onRender() {
+        setFileCountMax(MultipartFormConfiguration.getMaxMultipartsLimit());
+        super.onRender();
     }
 
     @Override
