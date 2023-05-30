@@ -34,6 +34,8 @@ The {release-version} release brings streamlined upgrade process, security stabi
 
 * Ninja command line options consolidated (few options renamed) https://jira.evolveum.com/browse/MID-7483[MID-7483]
 
+* Groovy scripting language is updated to version 4.0. See https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 Release Notes] for more details.
+
 === Miscellaneous Improvements
 
 * TODO
@@ -139,7 +141,6 @@ As midPoint {release-version} is a feature release, Windows environment is not s
 
 === Java
 
-* OpenJDK 11 (11.0.16).
 
 * OpenJDK 17.
 This is a *recommended* platform.
@@ -147,8 +148,7 @@ This is a *recommended* platform.
 OpenJDK 17 is the recommended Java platform to run midPoint.
 
 Support for Oracle builds of JDK is provided only for the period in which Oracle provides public support (free updates) for their builds.
-As far as we are aware, free updates for Oracle JDK 11 are no longer available.
-Which means that Oracle JDK 11 is not supported for MidPoint anymore.
+
 MidPoint is an open source project, and as such it relies on open source components.
 We cannot provide support for platform that do not have public updates as we would not have access to those updates, and therefore we cannot reproduce and fix issues.
 Use of open source OpenJDK builds with public support is recommended instead of proprietary builds.
