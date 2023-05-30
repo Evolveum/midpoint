@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.MultipartFormConfiguration;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -89,7 +90,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
         },
         basePackageClasses = {
                 TextAreaPanelFactory.class,
-                GuiComponentRegistryImpl.class
+                GuiComponentRegistryImpl.class,
+                MultipartFormConfiguration.class
         })
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
