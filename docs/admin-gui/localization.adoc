@@ -13,7 +13,7 @@ MidPoint was born in Europe, therefore it is quite natural that it had support f
 MidPoint supports localization on many levels:
 
 * User interface strings are translated to individual languages by using localization catalogs (property files).
-Those translations are maintained by using link:https://www.transifex.com/evolveum/midpoint/dashboard/[transifex.com].
+Those translations are maintained by using link:https://app.transifex.com/evolveum/midpoint/dashboard/[transifex.com].
 
 * Localized data may be entered dynamically into midPoint by leveraging xref:/midpoint/reference/concepts/polystring/[PolyString] mechanism.
 However, please note that this method xref:/midpoint/features/planned/polystring/[needs some Improvements].
@@ -64,11 +64,11 @@ Thank you!
 
 === Participation
 
-The easiest way to help with midPoint localization is to use link:https://www.transifex.com/evolveum/midpoint/dashboard/[Transifex]. Transifex is a cloud service that provides and user-friendly interface to maintain the localization files.
+The easiest way to help with midPoint localization is to use link:https://app.transifex.com/evolveum/midpoint/dashboard/[Transifex]. Transifex is a cloud service that provides and user-friendly interface to maintain the localization files.
 Just create a free account on Transifex and request to join the midPoint localization team.
 Any work that you do on Transifex will be synchronized to localization files in midPoint source code repositories.
 
-In case of any questions please contact link:https://www.transifex.com/user/profile/petr.gasparik/[Petr Gašpark] who coordinates the translation effort.
+In case of any questions please contact link:https://app.transifex.com/user/profile/petr.gasparik/[Petr Gašpark] who coordinates the translation effort.
 
 
 == Localization Of Diagnostics
@@ -114,7 +114,7 @@ MidPoint does not fully support such deployment and it is expected that a xref:/
 
 == See Also
 
-* link:https://www.transifex.com/evolveum/midpoint/dashboard/[midPoint page at Transifex]
+* link:https://app.transifex.com/evolveum/midpoint/dashboard/[midPoint page at Transifex]
 
 * xref:/midpoint/reference/concepts/polystring/[PolyString]
 
