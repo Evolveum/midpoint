@@ -26,9 +26,7 @@ public class DistributionManager {
 
     private static final String DOWNLOAD_URL = "https://download.evolveum.com/midpoint/";
 
-    private static final String LATEST_VERSION = "latest";
-
-    private static final String LATEST_VERSION_NUMBER = "SNAPSHOT";
+    public static final String LATEST_VERSION = "latest";
 
     private File tempDirectory;
 

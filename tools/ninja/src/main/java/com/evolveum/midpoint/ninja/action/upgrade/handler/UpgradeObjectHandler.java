@@ -8,10 +8,13 @@
 package com.evolveum.midpoint.ninja.action.upgrade.handler;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
-public class UpgradeObjectHandler {
+public interface UpgradeObjectHandler {
 
-    public void handleObject(PrismObject<?> object) {
+    UpgradePhase getPhase();
 
-    }
+    boolean isApplicable(String version);
+
+    void handleObject(PrismObject<?> object, OperationResult result);
 }

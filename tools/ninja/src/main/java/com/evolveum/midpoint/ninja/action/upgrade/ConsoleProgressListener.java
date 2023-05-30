@@ -23,7 +23,7 @@ public class ConsoleProgressListener implements ProgressListener {
     @Override
     public void update(long bytesRead, long contentLength, boolean done) {
         if (done) {
-            System.out.println(Ansi.ansi().eraseLine().fgGreen().a("Download complete").reset());
+            System.out.println(Ansi.ansi().cursorUpLine().eraseLine().fgGreen().a("Download complete").reset());
             return;
         }
 
@@ -37,7 +37,7 @@ public class ConsoleProgressListener implements ProgressListener {
 
         double newProgress = (double) (100 * bytesRead) / contentLength;
         if (newProgress - progress > 1) {
-            System.out.print(Ansi.ansi().eraseLine(Ansi.Erase.ALL).a("Progress: ").fgBlue().a(FORMAT.format(newProgress) + "%\n").reset());
+            System.out.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).a("Progress: ").fgBlue().a(FORMAT.format(newProgress)).a("%").reset());
 
             progress = newProgress;
         }

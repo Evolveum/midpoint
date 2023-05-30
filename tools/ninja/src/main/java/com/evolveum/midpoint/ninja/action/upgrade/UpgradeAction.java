@@ -27,7 +27,7 @@ public class UpgradeAction extends Action<UpgradeOptions> {
 //            VerifyStep.class,
 //            UpgradeObjectsBeforeShutdownStep.class,   // todo upgrade initial objects, also all other objects that can be upgraded before midpoint version/DB/midpoint home was upgraded
             DownloadDistributionStep.class,
-            DatabaseSchemaStep.class,
+//            DatabaseSchemaStep.class,
 //            UpgradeMidpointInstallationStep.class,
 //            UpgradeObjectsAfterShutdownStep.class, // todo upgrade initial objects, also all other objects (changes that had to be done after DB upgrade)
             // todo what if recomputation/reconciliation/whatever task is needed?

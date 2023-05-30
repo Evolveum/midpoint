@@ -30,6 +30,8 @@ public class UpgradeOptions {
 
     public static final String P_VERIFY_THREADS = "--verify-threads";
 
+    public static final String P_UPGRADE_THREADS = "--upgrade-threads";
+
     @Parameter(names = { P_ABORT_LONG }, descriptionKey = "upgrade.abort")
     private Boolean abort;
 
@@ -50,6 +52,9 @@ public class UpgradeOptions {
 
     @Parameter(names = { P_VERIFY_THREADS }, descriptionKey = "upgrade.verifyThreads", validateWith = PositiveInteger.class)
     private int verifyThreads = 1;
+
+    @Parameter(names = { P_UPGRADE_THREADS }, descriptionKey = "upgrade.upgradeThreads", validateWith = PositiveInteger.class)
+    private int upgradeThreads = 1;
 
     public Boolean isAbort() {
         return abort;
@@ -77,5 +82,9 @@ public class UpgradeOptions {
 
     public int getVerifyThreads() {
         return verifyThreads;
+    }
+
+    public int getUpgradeThreads() {
+        return upgradeThreads;
     }
 }
