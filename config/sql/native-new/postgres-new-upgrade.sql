@@ -29,6 +29,8 @@ Current database name is ''%'', schema name is ''%''.', current_database(), curr
     END
 $$;
 
+;;  -- sql statements delimiter, used by ninja
+
 -- SCHEMA-COMMIT 4.4: commit 20ad200b
 -- see: https://github.com/Evolveum/midpoint/blob/20ad200bd10a114fd70d2d131c0d11b5cd920150/config/sql/native-new/postgres-new.sql
 
@@ -59,6 +61,8 @@ CREATE TRIGGER m_org_mark_refresh_trunc_tr
     FOR EACH STATEMENT EXECUTE FUNCTION mark_org_closure_for_refresh_org();
 $aa$);
 
+;;
+
 -- SCHEMA-COMMIT 4.4.1: commit de18c14f
 
 -- changes for 4.5
@@ -68,6 +72,8 @@ $aa$);
 call apply_change(2, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
 $aa$);
+
+;;
 
 call apply_change(3, $aa$
 CREATE TABLE m_message_template (
@@ -92,11 +98,15 @@ CREATE INDEX m_message_template_createTimestamp_idx ON m_message_template (creat
 CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modifyTimestamp);
 $aa$);
 
+;;
+
 -- MID-7487 Identity matching
 -- We add the new enum value in separate change, because it must be committed before it is used.
 call apply_change(4, $aa$
 CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
 $aa$);
+
+;;
 
 call apply_change(5, $aa$
 ALTER TABLE m_shadow
@@ -112,6 +122,8 @@ CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationC
 CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
 $aa$);
 
+;;
+
 -- SCHEMA-COMMIT 4.5: commit c5f19c9e
 
 -- changes for 4.6
@@ -122,10 +134,14 @@ call apply_change(6, $aa$
 CREATE TYPE AdministrativeAvailabilityStatusType AS ENUM ('MAINTENANCE', 'OPERATIONAL');
 $aa$);
 
+;;
+
 call apply_change(7, $aa$
 ALTER TABLE m_resource
 ADD COLUMN administrativeOperationalStateAdministrativeAvailabilityStatus AdministrativeAvailabilityStatusType;
 $aa$);
+
+;;
 
 -- smart correlation
 call apply_change(8, $aa$
@@ -133,6 +149,8 @@ CREATE EXTENSION IF NOT EXISTS fuzzystrmatch; -- fuzzy string match (levenshtein
 
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'FOCUS_IDENTITY' AFTER 'CASE_WORK_ITEM';
 $aa$);
+
+;;
 
 call apply_change(9, $aa$
 CREATE TABLE m_focus_identity (
@@ -152,15 +170,21 @@ ALTER TABLE m_focus ADD normalizedData JSONB;
 CREATE INDEX m_focus_normalizedData_idx ON m_focus USING gin(normalizedData);
 $aa$);
 
+;;
+
 -- resource templates
 call apply_change(10, $aa$
 ALTER TABLE m_resource ADD template BOOLEAN;
 $aa$);
 
+;;
+
 -- MID-8053: "Active" connectors detection
 call apply_change(11, $aa$
 ALTER TABLE m_connector ADD available BOOLEAN;
 $aa$);
+
+;;
 
 -- SCHEMA-COMMIT 4.5: commit c5f19c9e
 
@@ -177,6 +201,8 @@ ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'OBJECT_EFFECTIVE_MARK' AFTER '
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
 $aa$);
+
+;;
 
 -- Simulations, tables
 call apply_change(13, $aa$
@@ -310,6 +336,8 @@ CREATE INDEX m_ref_object_effective_mark_targetOidRelationId_idx
     ON m_ref_object_effective_mark (targetOid, relationId);
 $aa$);
 
+;;
+
 -- Minor index name fixes
 call apply_change(14, $aa$
 ALTER INDEX m_ref_object_create_approverTargetOidRelationId_idx
@@ -318,10 +346,14 @@ ALTER INDEX m_ref_object_modify_approverTargetOidRelationId_idx
     RENAME TO m_ref_object_modify_approver_targetOidRelationId_idx;
 $aa$);
 
+;;
+
 -- Making resource.abstract queryable
 call apply_change(15, $aa$
 ALTER TABLE m_resource ADD abstract BOOLEAN;
 $aa$);
+
+;;
 
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

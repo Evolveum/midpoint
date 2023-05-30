@@ -8,12 +8,10 @@
 package com.evolveum.midpoint.ninja.action.upgrade.step;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.sql.DataSource;
-
-import com.evolveum.midpoint.init.AuditServiceProxy;
-
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.ApplicationContext;
@@ -21,9 +19,12 @@ import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
+import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 
 public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
@@ -73,12 +74,25 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
         };
     }
 
-    private void executeUpgradeScript(File upgradeScript, DataSource dataSource) {
+    private void executeUpgradeScript(File upgradeScript, DataSource dataSource) throws SQLException {
         FileSystemResourceLoader loader = new FileSystemResourceLoader();
         Resource script = loader.getResource("file:" + upgradeScript.getAbsolutePath());
 
-        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-        populator.addScript(script);
-        populator.execute(dataSource);
+        try (Connection connection = dataSource.getConnection()) {
+            boolean autocommit = connection.getAutoCommit();
+            connection.setAutoCommit(true);
+
+            try {
+                ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+                populator.setSeparator(";;");
+                populator.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
+                populator.addScript(script);
+                populator.populate(connection);
+            } finally {
+                connection.setAutoCommit(autocommit);
+            }
+        }
     }
 }
+
+//1685390031006-midpoint-latest-dist.zip
