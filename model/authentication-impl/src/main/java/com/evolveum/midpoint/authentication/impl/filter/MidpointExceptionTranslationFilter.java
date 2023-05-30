@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
@@ -49,6 +50,9 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
             requestCache.saveRequest(request, response);
+        }
+        if (reason != null) {
+            LOGGER.debug(reason.getMessage());
         }
         LOGGER.debug("Calling Authentication entry point.");
         getAuthenticationEntryPoint().commence(request, response, reason);
