@@ -36,6 +36,11 @@ The {release-version} release brings streamlined upgrade process, security stabi
 
 * Groovy scripting language is updated to version 4.0. See https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 Release Notes] for more details.
 
+* Major upgrade of third-party dependencies, which resulted in Migration from Java EE `javax` package names to `jakarta` package names.
+** Spring Framework 6
+** Hibernate 6
+** Wicket 10
+
 === Miscellaneous Improvements
 
 * TODO
@@ -485,6 +490,11 @@ NOTE: As for the Java API, this section describes changes in `midpoint` and `bas
 But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
 
 // * There were only minor API changes in this release
+
+* Migration from Java EE 7 (`javax`) package names to Jakarta 9 (`jakarta`) package names.
+** Most notable rename for Groovy scripts is `javax.xml.bind.JAXBElement` to `jakarta.xml.bind.JAXBElement`
+
+
 
 === Internal Changes Since 4.7
 
