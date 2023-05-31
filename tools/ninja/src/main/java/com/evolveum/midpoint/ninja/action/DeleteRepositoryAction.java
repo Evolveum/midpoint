@@ -41,7 +41,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
     private enum State {
 
-        DELETE, SKIP, STOP;
+        DELETE, SKIP, STOP
     }
 
     @Override

@@ -41,14 +41,9 @@ public class DistributionManager {
         FileUtils.forceMkdirParent(file);
         file.createNewFile();
 
-        StringBuilder url = new StringBuilder();
-        url.append(DOWNLOAD_URL);
-        url.append(version);
-        url.append("/");
-        url.append(distributionFile);
-
+        String url = DOWNLOAD_URL + version + "/" + distributionFile;
         Request request = new Request.Builder()
-                .url(url.toString())
+                .url(url)
                 .build();
 
         OkHttpClient client = new OkHttpClient.Builder()

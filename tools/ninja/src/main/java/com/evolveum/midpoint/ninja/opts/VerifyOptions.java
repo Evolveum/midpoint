@@ -9,8 +9,6 @@ package com.evolveum.midpoint.ninja.opts;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-import java.io.File;
-
 /**
  * @author semancik
  */
@@ -22,10 +20,10 @@ public class VerifyOptions extends ExportOptions {
 
     public static final String P_CREATE_REPORT = "--create-report";
 
-    @Parameter(names = {P_WARN, P_WARN_LONG}, descriptionKey = "verify.warn")
+    @Parameter(names = { P_WARN, P_WARN_LONG }, descriptionKey = "verify.warn")
     private String warn;
 
-    @Parameter(names = {P_CREATE_REPORT}, descriptionKey = "verify.createReport")
+    @Parameter(names = { P_CREATE_REPORT }, descriptionKey = "verify.createReport")
     private Boolean createReport;
 
     public String getWarn() {

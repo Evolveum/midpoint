@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.xml.serialize.LineSeparator;
 
 /**
  * @author Radovan Semancik

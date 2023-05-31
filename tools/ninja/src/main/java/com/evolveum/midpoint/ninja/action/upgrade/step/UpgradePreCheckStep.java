@@ -78,7 +78,7 @@ public class UpgradePreCheckStep implements UpgradeStep<UpgradePreCheckResult> {
             }
 
             String version = versions.iterator().next();
-            boolean match = Arrays.stream(UpgradeConstants.SUPPORTED_VERSIONS).anyMatch(v -> v.equals(version));
+            boolean match = Arrays.asList(UpgradeConstants.SUPPORTED_VERSIONS).contains(version);
             if (!match) {
                 // todo error, version didn't match. Ask whether to continue?
 
