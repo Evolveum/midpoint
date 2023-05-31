@@ -15,12 +15,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.poi.util.ReplacingInputStream;
 import org.keycloak.authorization.client.AuthzClient;
+import org.keycloak.representations.AccessTokenResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import jakarta.ws.rs.core.MediaType;
@@ -32,7 +35,7 @@ public class TestKeycloakOidcRestAuthModule extends TestAbstractOidcRestModule {
 
     private static final Trace LOGGER = TraceManager.getTrace(GlobalQueryCache.class);
 
-    private static final File KEYCLOAK_HMAC_CONFIGURATION = new File(BASE_AUTHENTICATION_DIR, "keycloak.json");
+    private static final File KEYCLOAK_CONFIGURATION = new File(BASE_AUTHENTICATION_DIR, "keycloak.json");
 
     private static final String AUTH_SERVER_URL_KEY= "authServerUrl";
     private static final String SERVER_PREFIX = "keycloak";
@@ -61,7 +64,7 @@ public class TestKeycloakOidcRestAuthModule extends TestAbstractOidcRestModule {
     public void initSystem(Task initTask, OperationResult result) throws Exception {
         super.initSystem(initTask, result);
         ReplacingInputStream is1 = new ReplacingInputStream(
-                new FileInputStream(KEYCLOAK_HMAC_CONFIGURATION),
+                new FileInputStream(KEYCLOAK_CONFIGURATION),
                 createTag(AUTH_SERVER_URL_KEY),
                 getProperty(AUTH_SERVER_URL_KEY));
 
@@ -83,20 +86,18 @@ public class TestKeycloakOidcRestAuthModule extends TestAbstractOidcRestModule {
         return SERVER_PREFIX;
     }
 
-    public AuthzClient getAuthzClient() {
+    private AuthzClient getAuthzClient() {
         return authzClient;
     }
 
     @Override
-    protected String getPublicKey() {
-        try {
-            Optional<Object> jsonWithKey = ((JSONArray) JSONObjectUtils.parse(
-                    WebClient.create(getAuthzClient().getServerConfiguration().getJwksUri()).get().readEntity(String.class)).get("keys"))
-                    .stream().filter(json -> ((JSONObject) json).containsKey("use") && "sig".equals(((JSONObject) json).get("use"))).findFirst();
-            return (String) ((JSONArray)((JSONObject)jsonWithKey.get()).get("x5c")).get(0);
-        } catch (Exception e) {
-            LOGGER.error("Couldn't get public key for keycloak", e);
-            return null;
-        }
+    protected WebClient prepareClient() {
+        AccessTokenResponse result = getAuthzClient().obtainAccessToken(
+                USER_ADMINISTRATOR_USERNAME,
+                getUserPasssword());
+
+        WebClient client = prepareClient(result.getTokenType(), result.getToken());
+        client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+        return client;
     }
 }

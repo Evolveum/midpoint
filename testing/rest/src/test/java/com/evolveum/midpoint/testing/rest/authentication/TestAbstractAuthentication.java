@@ -30,9 +30,9 @@ public abstract class TestAbstractAuthentication extends AbstractRestServiceInit
 
     protected static final File MIDPOINT_HOME = new File("target/midpoint-home");
     protected static final File BASE_AUTHENTICATION_DIR = new File("src/test/resources/authentication/");
-    protected static final File BASE_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
+    protected static final File BASE_AUTH_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
 
-    public static final File SECURITY_POLICY_DEFAULT = new File(BASE_REPO_DIR, "security-policy-default.xml");
+    public static final File SECURITY_POLICY_DEFAULT = new File(BASE_AUTH_REPO_DIR, "security-policy-default.xml");
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {

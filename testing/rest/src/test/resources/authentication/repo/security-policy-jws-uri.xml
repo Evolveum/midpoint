@@ -20,7 +20,7 @@
                 <resourceServer>
                     <jwt>
                         <jwkSetUri>||jwkSetUri||</jwkSetUri>
-                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                        <nameOfUsernameClaim>||nameOfUsernameClaim||</nameOfUsernameClaim>
                     </jwt>
                 </resourceServer>
             </oidc>

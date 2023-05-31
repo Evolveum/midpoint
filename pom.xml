@@ -170,7 +170,7 @@
         <!-- Encoding for both sources and resources -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- JDK level also affects midPoint Studio, which depends on JDK used by minimum supported IDEA version. -->
-        <project.source.version>11</project.source.version>
+        <project.source.version>17</project.source.version>
         <project.build.locale>en_US</project.build.locale>
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
@@ -1753,7 +1753,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.3.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.ow2.asm</groupId>
@@ -1814,6 +1814,22 @@
                                 <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
+                            <ignoredNonTestScopedDependencies>
+                                <ignoredNonTestScopedDependency>com.evolveum.midpoint.*:*</ignoredNonTestScopedDependency>
+                                <ignoredNonTestScopedDependency>org.slf4j:slf4j-api</ignoredNonTestScopedDependency>
+                                <!--  Since generated code depends on prism-impl, it needs sometime to be runtime/compile
+                                      but report can not detect this uses (and if you change scope, it can not compile target project -->
+                                <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
+                                <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
+
+                                <!-- Testing dependencies are not troubling us from. -->
+                                <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.assertj:assertj-core</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.javasimon:javasimon-core</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUsedUndeclaredDependency>
+                                
+                            </ignoredNonTestScopedDependencies>
                         </configuration>
                     </execution>
                 </executions>
