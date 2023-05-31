@@ -54,7 +54,7 @@ Basically there are two major different scenarios:
 
 * self-registration for the new users
 
-* self post-registration (or invite) for existing users in midPoint
+* self post-registration (or invitation) for existing users in midPoint
 
 
 == Self Registration For The New Users
@@ -82,7 +82,7 @@ For this newly created user, lifecycle state is set to the draft.
 Until user doesn't confirm his/her registration it cannot do anything, it is disabled and no roles are assigned.
 After confirmation, specified default roles are assigned to the user.
 
-== Self Post-Registration (or Invite) For Existing Users in MidPoint
+== Self Post-Registration (or Invitation) For Existing Users in MidPoint
 
 This scenario can be used for various scenarios, e.g:
 
@@ -101,23 +101,24 @@ After the year, they are marked as disabled and are requested to remake the regi
 
 * .....
 
-For such scenarios, the configuration can look like following:
+To activate the invitation flow the same flow configuration should be used.
 
 [source,xml]
 ----
     <flow>
-      <postAuthentication>
+      <selfRegistration>
          <name>selfRegistration</name>
          <initialLifecycleState>proposed</initialLifecycleState>
          <requiredLifecycleState>draft</requiredLifecycleState>
          <displayName>Self Registration</displayName>
          <additionalAuthenticationSequence>confirmationLink</additionalAuthenticationSequence>
          <defaultRole oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"/>
-      </postAuthentication>
+      </selfRegistration>
    </flow>
 ----
 
-Example above shows configuration for self post-registration where it is required that the user already exists in midPoint.
+The invitation flow also requires an invitation sequence to be added to the authentication part of the security policy (please, see Authentication Part chapter) and a notifier to be configured to send the invitation link to be configured (please, see Email Notifications chapter). For invitation sequence a mail nonce authentication module is used. As for notifier, different possibilities are available depending on the use case, in this documentation simple user notifier configuration is used to generate and send an invitation link.
+Current flow requires that the user already exists in midPoint.
 The lifecycle state which is required to successfully register the user is specified with attribute requiredLifecyleState.
 This is to support situations, where all potential users are pre-created/pre-registered by administrators (but  they are not active until they don't  register and confirm the registration).
 After user fills in registration form and submits it, existing user is modified in midPoint with the configured lifecycle state (initialLifecycleState attribute).
@@ -126,6 +127,21 @@ Confirmation of registration is configurable using additionalAuthenticationSeque
 After user successfully confirms the registration, default roles are assigned to him/her - default roles are configured using defaultRole attribute.
 
 More information about lifecycle configuration, please, see xref:/midpoint/reference/security/authentication/post-authentication-configuration/#configure-lifecycle-activation[Configure lifecycle activation]
+
+As an example let's see on the use case when the user is created by the administrator and the invitation link is sent to the user.
+1. Administrator creates new user. Lifecycle state is set to Draft (notification configuration example sends invitation link just in case when the lifecycle is draft).
+
+2. Simple user notifier is triggered. Invitation link is created (please, see notification configuration part) and sent to the user. While this action producing the nonce is created and saved to the new user. This nonce is used to authenticate the user while invitation link opening.
+
+3. The user receives the link and opens it.
+
+4. Registration form is opened. The user fills in the necessary fields and confirms the form.
+
+5. Registration confirmation link is sent to the user (please, see user registration notifier configuration).
+
+6. User opens registration confirmation link.
+
+7. Invitation flow is finished.If all authentications were successful, the user lifecycle state is changed to Active.
 
 === Authentication Part
 
@@ -141,9 +157,10 @@ More information about lifecycle configuration, please, see xref:/midpoint/refer
         </mailNonce>
      </modules>
      ...
+    <!-- sequence which is used to authenticate the user after registration form submitting -->
      <sequence>
         <name>selfRegistrationAuth</name>
-        <description>Just a nonce mail to validate e-mail address.</description>
+        <description>A nonce mail used to confirm user's registration</description>
         <channel>
             <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration</channelId>
             <urlSuffix>registration</urlSuffix>
@@ -154,12 +171,27 @@ More information about lifecycle configuration, please, see xref:/midpoint/refer
             <necessity>sufficient</necessity>
         </module>
      </sequence>
+
+    <!-- sequence which is used to authenticate the user while opening the invitation link -->
+     <sequence>
+        <name>invitationAuth</name>
+        <description>A nonce mail to authenticate the user while invitation link opening</description>
+        <channel>
+            <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#invitation</channelId>
+            <urlSuffix>invitation</urlSuffix>
+        </channel>
+        <module>
+            <name>MailNonce</name>
+            <order>10</order>
+            <necessity>sufficient</necessity>
+        </module>
+     </sequence>
 </authentication>
 ----
 
-Authentication part contains configuration for the sequence used for registration confirmation.
-Examples above uses mailNonce authentication sequence which means that the user receives the mail with the confirmation link.
-After clicking on the link in the mail midPoint tries to confirm the user.
+Authentication part contains one sequence ("selfRegistrationAuth") for the registration confirmation and one sequence ("invitationAuth") for the user authentication while invitation link opening.
+In both sequences mail authentication module is used. This means that the user receives the mail with the confirmation/invitation link.
+After clicking on the link in the mail midPoint tries to authenticate the user.
 
 === Credentials Part
 
@@ -167,7 +199,7 @@ After clicking on the link in the mail midPoint tries to confirm the user.
 ----
    <credentials>
       <nonce>
-         <maxAge>PT10M</maxAge>
+         <maxAge>PT10M</maxAge> <!-- be aware of setting the appropriate maxAge value for the invitation link usage-->
          <name>mailNonce</name>
          <valuePolicyRef oid="00000000-0000-1111-0000-000000000003" type="c:ValuePolicyType" />
       </nonce>
@@ -182,7 +214,7 @@ Max age is the time how long is the nonce valid and valuePolicyRef is reference 
 
 == Self-Registration And Custom Form
 
-It is (probably) more than welcome to support definition of custom form when talking about self-registration process.
+It is possible to define a custom form for self-registration process.
 With introducing xref:/midpoint/reference/admin-gui/custom-forms/[custom forms] in midPoint they can be also used with the self-registration.
 All what is needed is to reference to the concrete form in the self-registration configuration as in the example below
 
@@ -263,61 +295,45 @@ Configuration looks as follows:
             <confirmationMethod>link</confirmationMethod>
          </userRegistrationNotifier>
       </handler>
- <!-->BEGIN: Handler in case of post-registration<-->
+ <!-->BEGIN: Handler in case of user's invitation <-->
    <handler>
-    <simpleUserNotifier>
-        <expressionFilter>
-            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:type="c:ScriptExpressionEvaluatorType">
-                    <code>
-                    import com.evolveum.midpoint.notifications.api.events.ModelEvent
-                    import com.evolveum.midpoint.prism.delta.ChangeType
+            <simpleUserNotifier>
+                <expressionFilter>
+                    <script>
+                        <code>
+                            basic.stringify(requestee?.lifecycleState).equals('draft')
+                        </code>
+                    </script>
+                </expressionFilter>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <bodyExpression>
+                    <script>
+                        <code>
+                        import com.evolveum.midpoint.notifications.api.events.ModelEvent
+                        import com.evolveum.midpoint.prism.delta.ChangeType
+                        import com.evolveum.midpoint.schema.constants.SchemaConstants
 
-                     if (!(event instanceof ModelEvent)) {
-                        return false;
-                    }
-                    modelEvent = (ModelEvent) event
-                    if (modelEvent.getChannel().equals("http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user") || modelEvent.getChannel().equals("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import")) {
-                    } else {
-                        return false;
-                    }
-                    if (modelEvent.getChangeType() != ChangeType.ADD) {
-                        return false;
-                    }
-                     return true;
-                </code>
-            </script>
-        </expressionFilter>
-        <recipientExpression>
-            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:type="c:ScriptExpressionEvaluatorType">
-                <code>
-                        return requestee.getEmailAddress()
-                </code>
-            </script>
-        </recipientExpression>
-        <bodyExpression>
-            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:type="c:ScriptExpressionEvaluatorType">
-                <code>
-        import com.evolveum.midpoint.notifications.api.events.ModelEvent
-        modelEvent = (ModelEvent) event
-        newUser = modelEvent.getFocusContext().getObjectNew();
-        userType = newUser.asObjectable();
-        link = midpoint.getDefaultHostname() + "/registration?user=" + userType.getOid();
-              bodyMessage = "Dear " + userType.getGivenName() + ",\n\n" +
-                            "your account was successfully created. To register and activate your account please click on the registration link below in the email." +
-                            "\n" +
-                            "The registration link: \n" +
-                                link;
-        return bodyMessage;
-                </code>
-            </script>
-        </bodyExpression>
-        <transport>mail</transport>
-    </simpleUserNotifier>
-</handler>
- <!-->END: Handler in case of post-registration<-->
+                        modelEvent = (ModelEvent) event
+                        context = modelEvent.getModelContext()
+                        changeType = modelEvent.getChangeType()
+                        if (!SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(context.getChannel())) {
+                            if (changeType == ChangeType.ADD) {
+                                newUser = modelEvent.getFocusContext().getObjectNew();
+                                userType = newUser.asObjectable();
+                                link = midpoint.createInvitationLink(userType)
+                                return "Please, follow the link to finish the registration  \n" + link
+                            }
+                        }
+                        return null;
+                      </code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </simpleUserNotifier>
+ </handler>
+ <!-->END: Handler in case of user's invitation<-->
       <mail>
          <server>
             <host>smtp.gmail.com</host>
