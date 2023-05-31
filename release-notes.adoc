@@ -36,6 +36,21 @@ The {release-version} release brings streamlined upgrade process, security stabi
 
 * Groovy scripting language is updated to version 4.0. See https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 Release Notes] for more details.
 
+* Major upgrade of third-party dependencies, which resulted in Migration from Java EE `javax` package names to `jakarta` package names.
+** Spring Framework 6
+** Hibernate 6
+** Wicket 10
+
+* xref:/midpoint/reference/roles-policies/mining/[Role Mining].
+Introduction of anonymous role mining data export. This feature allows users to export relationships between roles, users, and
+organizations while ensuring the privacy and security of exported data.
+The following options are available for exporting anonymized role mining data:
+** Ninja: For configuration details, refer to the
+xref:/midpoint/reference/deployment/ninja/#mining-exportimport[Ninja documentation].
+** Repository object (GUI): For detailed information, see the
+xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
+
+
 === Miscellaneous Improvements
 
 * TODO
@@ -485,6 +500,11 @@ NOTE: As for the Java API, this section describes changes in `midpoint` and `bas
 But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
 
 // * There were only minor API changes in this release
+
+* Migration from Java EE 7 (`javax`) package names to Jakarta 9 (`jakarta`) package names.
+** Most notable rename for Groovy scripts is `javax.xml.bind.JAXBElement` to `jakarta.xml.bind.JAXBElement`
+
+
 
 === Internal Changes Since 4.7
 
