@@ -298,8 +298,7 @@ public class AuthSequenceUtil {
         List<AuthModule> authModules = new ArrayList<>();
         sequenceModules.forEach(sequenceModule -> {
             try {
-                String sequenceModuleIdentifier = StringUtils.isNotEmpty(sequenceModule.getIdentifier()) ?
-                        sequenceModule.getIdentifier() : sequenceModule.getName();
+                String sequenceModuleIdentifier = sequenceModule.getIdentifier();
                 AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
                 AbstractModuleFactory moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
