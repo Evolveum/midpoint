@@ -151,7 +151,7 @@ As an example let's see on the use case when the user is created by the administ
     <modules>
     ...
         <mailNonce>
-            <name>MailNonce</name>
+            <identifier>MailNonce</identifier>
             <description> Authentication based on mail message with a nonce. Used for user registration.</description>
             <credentialName>mailNonce</credentialName>
         </mailNonce>
@@ -159,14 +159,14 @@ As an example let's see on the use case when the user is created by the administ
      ...
     <!-- sequence which is used to authenticate the user after registration form submitting -->
      <sequence>
-        <name>selfRegistrationAuth</name>
+        <identifier>selfRegistrationAuth</identifier>
         <description>A nonce mail used to confirm user's registration</description>
         <channel>
             <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration</channelId>
             <urlSuffix>registration</urlSuffix>
         </channel>
         <module>
-            <name>MailNonce</name>
+            <identifier>MailNonce</identifier>
             <order>10</order>
             <necessity>sufficient</necessity>
         </module>
@@ -174,14 +174,14 @@ As an example let's see on the use case when the user is created by the administ
 
     <!-- sequence which is used to authenticate the user while opening the invitation link -->
      <sequence>
-        <name>invitationAuth</name>
+        <identifier>invitationAuth</identifier>
         <description>A nonce mail to authenticate the user while invitation link opening</description>
         <channel>
             <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#invitation</channelId>
             <urlSuffix>invitation</urlSuffix>
         </channel>
         <module>
-            <name>MailNonce</name>
+            <identifier>MailNonce</identifier>
             <order>10</order>
             <necessity>sufficient</necessity>
         </module>
