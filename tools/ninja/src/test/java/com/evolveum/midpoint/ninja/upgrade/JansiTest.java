@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 public class JansiTest {
 
     @Test//(enabled = false)
-    public void testJANSI() throws Exception{
+    public void testJANSI() throws Exception {
         AnsiConsole.systemInstall();
 
 //        System.out.print(Ansi.ansi().a("vilko\n"));
