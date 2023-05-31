@@ -320,7 +320,7 @@
                     <xsd:documentation>
                         <p>
                             Sets the maximum limit for multipart data inside submitted form (inputs and file uploads are counted).
-                            Default value is 100.
+                            Default value is unlimited (-1).
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

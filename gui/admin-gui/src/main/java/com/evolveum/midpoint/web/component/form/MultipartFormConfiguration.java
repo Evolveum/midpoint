@@ -23,7 +23,7 @@ public class MultipartFormConfiguration implements SystemConfigurationChangeList
 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-    private static final int DEFAULT_MAX_MULTIPART_COUNT = 100;
+    private static final int DEFAULT_MAX_MULTIPART_COUNT = 200;
     private static Integer maxMultipartLimit = DEFAULT_MAX_MULTIPART_COUNT;
 
     @Override
