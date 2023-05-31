@@ -114,7 +114,7 @@
         </securityQuestions>
     </credentials>
     <credentialsReset>
-        <name>passwordReset</name>
+        <identifier>passwordReset</identifier>
         <forceChange>true</forceChange>
         <newCredentialSource>
             <userEntry/>
