@@ -46,7 +46,7 @@ Introduction of anonymous role mining data export. This feature allows users to 
 organizations while ensuring the privacy and security of exported data.
 The following options are available for exporting anonymized role mining data:
 ** Ninja: For configuration details, refer to the
-xref:/midpoint/reference/deployment/ninja/#mining-exportimport[Ninja documentation].
+xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja documentation].
 ** Repository object (GUI): For detailed information, see the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
 

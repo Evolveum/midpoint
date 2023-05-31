@@ -313,7 +313,7 @@ image::images/nav-tutorial-part-4.png[Home page of the role of mining export,wid
 
 === Command-line Export (ninja)
 
-For users of the support-4.4 version or later, exporting anonymized role mining data using the Ninja tool is available. To perform the export, refer to the  xref:/midpoint/reference/deployment/ninja/#mining-exportimport[Ninja documentation].
+For users of the support-4.4 version or later, exporting anonymized role mining data using the Ninja tool is available. To perform the export, refer to the  xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja documentation].
 
 == Sharing the Data
 
