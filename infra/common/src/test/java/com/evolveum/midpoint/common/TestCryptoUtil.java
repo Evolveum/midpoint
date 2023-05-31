@@ -302,9 +302,9 @@ public class TestCryptoUtil extends AbstractUnitTest {
         System.out.println("sysconfig compromised:\n" + prismContext.xmlSerializer().serialize(config));
         CryptoUtil.checkEncrypted(jack);
         CryptoUtil.checkEncrypted(config);
-        MailConfigurationType mail = config.asObjectable().getNotificationConfiguration().getMail();
-        SmsConfigurationType sms1 = config.asObjectable().getNotificationConfiguration().getSms().get(0);
-        SmsConfigurationType sms2 = config.asObjectable().getNotificationConfiguration().getSms().get(1);
+        var mail = config.asObjectable().getMessageTransportConfiguration().getMail().get(0);
+        var sms1 = config.asObjectable().getMessageTransportConfiguration().getSms().get(0);
+        var sms2 = config.asObjectable().getMessageTransportConfiguration().getSms().get(1);
         String compromisedKeyName = getKeyName(
                 jack.asObjectable().getCredentials().getPassword().getValue(),
                 mail.getServer().get(0).getPassword(),

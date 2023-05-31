@@ -111,192 +111,14 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     protected void initLayout() {
 
-        PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig =
-                PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
-
-        add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig));
-
-        PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
-
-        if (mailConfigType.getObject() == null) {
-            // TODO: This fails for deprecated "mail" element if it's missing, so it's not deprecated yet.
-            //  Reason: mailConfig.getObject() == null
-            //  Root cause: ItemWrapperFactoryImpl.skipCreateWrapper() has a code to skip empty & deprecated stuff.
-            //  The object for mailConfig can't be created with createItemWrapper either as it would be skipped again and return null.
-            //  Let's create new GUI for the new transport configuration first without to-be deprecated components.
-            mailConfigType.setObject(new MailConfigurationType());
-        }
-
-        add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<>(mailConfigType, "defaultFrom"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
-
-        add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<>(mailConfigType, "redirectToFile"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
-
-        add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<>(mailConfigType, "logToFile"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
-
-        add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<>(mailConfigType, "debug"),
-                createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
 
         add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
-
-        add(initServersTable(mailConfigType));
-
-        add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
-
-        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = new DeprecatedPropertyWrapperModel<>(this, getModel(), NotificationConfigurationType.F_FILE);
 
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
         add(files);
-
-        ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<>("values",
-                new PropertyModel<>(fileConfig, "values")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(final ListItem<PrismPropertyValueWrapper<FileConfigurationType>> item) {
-
-                FileConfigurationType fileConfigType = item.getModelObject().getRealValue();
-
-                item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
-
-                AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ((PrismPropertyValue<FileConfigurationType>) item.getModelObject()).setValue(null);
-                        item.getParent().remove(item.getId());
-                        target.add(files);
-                    }
-                };
-                item.add(removeButton);
-
-                TextFormGroup name = new TextFormGroup(ID_FILE_NAME, fileConfigType != null ? new PropertyModel<>(fileConfigType, "name") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".name")), "", getInputCssClass(), false, true);
-                name.getField().add(new OnChangeAjaxBehavior() {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        item.getModelObject().getRealValue().setName(name.getModelObject());
-                    }
-                });
-                item.add(name);
-
-                TextFormGroup file = new TextFormGroup(ID_FILE_PATH, fileConfigType != null ? new PropertyModel<>(fileConfigType, "file") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".file")), "", getInputCssClass(), false, true);
-                file.getField().add(new OnChangeAjaxBehavior() {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        item.getModelObject().getRealValue().setFile(file.getModelObject());
-                    }
-                });
-                item.add(file);
-
-                item.add(new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isVisible() {
-                        return fileConfigType != null;
-                    }
-                });
-            }
-        };
-        values.add(new AttributeModifier("class", "col-md-6"));
-        values.setReuseItems(true);
-        files.add(values);
-
-        AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-
-                PrismPropertyWrapper<FileConfigurationType> propertyWrapper = fileConfig.getObject();
-                PrismPropertyValue<FileConfigurationType> newValue = getPrismContext().itemFactory().createPropertyValue();
-
-                PrismPropertyValueWrapper<FileConfigurationType> newValueWrapper = WebPrismUtil.createNewValueWrapper(propertyWrapper, newValue, getPageBase(), target);
-                //TODO: do we really need to set real value?? why??
-                newValueWrapper.setRealValue(new FileConfigurationType());
-
-                target.add(files);
-            }
-        };
-        add(addButton);
-
     }
 
-    private BoxedTablePanel<MailServerConfiguration> initServersTable(PropertyModel<MailConfigurationType> mailConfigType) {
-
-        List<MailServerConfiguration> mailServers = getListOfMailServerConfiguration(mailConfigType.getObject().getServer());
-        PageStorage pageStorage = getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage();
-        ISortableDataProvider<MailServerConfiguration, String> provider = new ListDataProvider<>(this,
-                new ListModel<>(mailServers) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void setObject(List<MailServerConfiguration> object) {
-                        super.setObject(object);
-                        mailConfigType.getObject().getServer().clear();
-                        for (MailServerConfiguration value : object) {
-                            mailConfigType.getObject().server(value.getValue());
-                        }
-
-                    }
-
-                }) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return pageStorage;
-            }
-        };
-
-        UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;
-        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public int getItemsPerPage() {
-                return getPageBase().getSessionStorage().getUserProfile().getTables()
-                        .get(getTableId());
-            }
-
-            @Override
-            protected WebMarkupContainer createButtonToolbar(String id) {
-                AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
-                        createStringResource("MainObjectListPanel.newObject")) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        newItemPerformed(target, mailServers, mailConfigType);
-                    }
-                };
-                newObjectIcon.add(AttributeModifier.append("class", Model.of("btn btn-success btn-sm")));
-                return newObjectIcon;
-            }
-        };
-        table.setOutputMarkupId(true);
-        table.setShowPaging(true);
-        return table;
-    }
-
-    private <T> Panel createHeader(String id, IModel<PrismPropertyWrapper<T>> model) {
-        PrismPropertyHeaderPanel<T> header = new PrismPropertyHeaderPanel<>(id, model);
-        header.add(AttributeAppender.prepend("class", "prism-title pull-left"));
-        return header;
-    }
 
     @Deprecated
     private Label createHeader(String id, String displayName) {
@@ -309,13 +131,6 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         return header;
     }
 
-    private void newItemPerformed(AjaxRequestTarget target, List<MailServerConfiguration> mailServers, IModel<MailConfigurationType> mailConfigType) {
-        MailServerConfigurationType newServerType = new MailServerConfigurationType();
-        mailConfigType.getObject().server(newServerType);
-        MailServerConfiguration newServer = new MailServerConfiguration(newServerType);
-        mailServers.add(newServer);
-        mailServerEditPerformed(target, Model.of(newServer), null);
-    }
 
     private List<IColumn<MailServerConfiguration, String>> initMailServersColumns() {
         List<IColumn<MailServerConfiguration, String>> columns = new ArrayList<>();
@@ -433,85 +248,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     private List<InlineMenuItem> getMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        });
-
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createEditColumnAction();
-            }
-        });
         return menuItems;
-    }
-
-    private ColumnMenuAction<MailServerConfiguration> createDeleteColumnAction() {
-        return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getRowModel() == null) {
-                    deleteItemPerformed(target, getSelectedItems());
-                } else {
-                    List<MailServerConfiguration> toDelete = new ArrayList<>();
-                    toDelete.add(getRowModel().getObject());
-                    deleteItemPerformed(target, toDelete);
-                }
-            }
-        };
-    }
-
-    private void deleteItemPerformed(AjaxRequestTarget target, List<MailServerConfiguration> toDelete) {
-        if (toDelete == null) {
-            return;
-        }
-
-        PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfigModel = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
-
-        PropertyModel<MailConfigurationType> mailConfigType =
-                new ItemRealValueModel<>(new PropertyModel<>(mailConfigModel, "value"));
-        List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
-
-        toDelete.forEach(value -> servers.remove(value.getValue()));
-        target.add(this.addOrReplace(initServersTable(mailConfigType)));
-    }
-
-    private ColumnMenuAction<MailServerConfiguration> createEditColumnAction() {
-        return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                mailServerEditPerformed(target, getRowModel(), getSelectedItems());
-            }
-        };
-    }
-
-    private List<MailServerConfiguration> getSelectedItems() {
-        BoxedTablePanel<MailServerConfiguration> itemsTable = getMailServersTable();
-        ListDataProvider<MailServerConfiguration> itemsProvider = (ListDataProvider<MailServerConfiguration>) itemsTable.getDataTable()
-                .getDataProvider();
-//        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
-        return new ArrayList<>();
     }
 
     private void mailServerEditPerformed(AjaxRequestTarget target, IModel<MailServerConfiguration> rowModel,
@@ -536,14 +273,6 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     private String getInputCssClass() {
         return "col-10";
-    }
-
-    private List<MailServerConfiguration> getListOfMailServerConfiguration(List<MailServerConfigurationType> mailServersType) {
-        List<MailServerConfiguration> list = new ArrayList<>();
-        for (MailServerConfigurationType value : mailServersType) {
-            list.add(new MailServerConfiguration(value));
-        }
-        return list;
     }
 
     public class MailServerConfiguration extends Selectable<MailServerConfigurationType> implements Editable {

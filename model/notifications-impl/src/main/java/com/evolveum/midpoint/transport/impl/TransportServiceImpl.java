@@ -32,10 +32,6 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeEvent;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.transport.impl.legacy.LegacyCustomTransport;
-import com.evolveum.midpoint.transport.impl.legacy.LegacyFileTransport;
-import com.evolveum.midpoint.transport.impl.legacy.LegacyMailTransport;
-import com.evolveum.midpoint.transport.impl.legacy.LegacySimpleSmsTransport;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfigurationType;
@@ -68,12 +64,6 @@ public class TransportServiceImpl implements TransportService {
 
     private TransportSupport transportSupport; // initialized in post-construct
 
-    // injected legacy transports, can go away after 4.5
-    @Deprecated @Autowired private LegacyMailTransport legacyMailTransport;
-    @Deprecated @Autowired private LegacySimpleSmsTransport simpleSmsTransport;
-    @Deprecated @Autowired private LegacyFileTransport legacyFileTransport;
-    @Deprecated @Autowired private LegacyCustomTransport legacyCustomTransport;
-
     @PostConstruct
     public void init() {
         transportSupport = new TransportSupport() {
@@ -102,8 +92,6 @@ public class TransportServiceImpl implements TransportService {
                 return applicationContext;
             }
         };
-
-        registerLegacyTransports();
     }
 
     /**
@@ -116,14 +104,6 @@ public class TransportServiceImpl implements TransportService {
         createTransports(event.getSystemConfiguration());
     }
 
-    /** TODO: Implicit legacy notifiers, this should go in 4.6. */
-    @Deprecated
-    private void registerLegacyTransports() {
-        registerTransport(legacyMailTransport);
-        registerTransport(simpleSmsTransport);
-        registerTransport(legacyFileTransport);
-        registerTransport(legacyCustomTransport);
-    }
 
     @Override
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {

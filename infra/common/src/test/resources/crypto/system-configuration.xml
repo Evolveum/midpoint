@@ -11,7 +11,7 @@
 
     <name>dummy</name>
 
-    <notificationConfiguration>
+    <messageTransportConfiguration>
         <mail>
             <server>
                 <host>smtp.gmail.com</host>
@@ -37,6 +37,6 @@
                 </password>
             </gateway>
         </sms>
-    </notificationConfiguration>
+    </messageTransportConfiguration>
 
 </systemConfiguration>

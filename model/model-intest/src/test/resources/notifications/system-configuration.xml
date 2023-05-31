@@ -225,7 +225,7 @@ Channel: $!event.channel</code>
                         </code>
                     </script>
                 </expression>
-                <transport>sms:with-get</transport>
+                <transport>sms-with-get</transport>
             </customNotifier>
         </handler>
         <handler>
@@ -251,7 +251,7 @@ Channel: $!event.channel</code>
                         </code>
                     </script>
                 </expression>
-                <transport>sms:with-get-via-proxy</transport>
+                <transport>sms-with-get-via-proxy</transport>
             </customNotifier>
         </handler>
         <handler>
@@ -277,7 +277,7 @@ Channel: $!event.channel</code>
                         </code>
                     </script>
                 </expression>
-                <transport>sms:with-post</transport>
+                <transport>sms-with-post</transport>
             </customNotifier>
         </handler>
         <handler>
@@ -301,7 +301,7 @@ Channel: $!event.channel</code>
                 <bodyExpression>
                     <value>body</value>
                 </bodyExpression>
-                <transport>sms:with-post-multi</transport>
+                <transport>sms-with-post-multi</transport>
             </generalNotifier>
         </handler>
         <handler>
@@ -423,10 +423,16 @@ Channel: $!event.channel</code>
                 <transport>dummy:expression-attachment</transport>
             </simpleUserNotifier>
         </handler>
+
+    </notificationConfiguration>
+    <messageTransportConfiguration>
         <mail>
+        
+        
+        
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
-        <sms name="with-get">
+        <sms name="sms-with-get">
             <gateway>
                 <urlExpression>
                     <script>
@@ -439,7 +445,7 @@ Channel: $!event.channel</code>
                 <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
-        <sms name="with-get-via-proxy">
+        <sms name="sms-with-get-via-proxy">
             <gateway>
                 <urlExpression>
                     <script>
@@ -456,7 +462,7 @@ Channel: $!event.channel</code>
                 <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
-        <sms name="with-post">
+        <sms name="sms-with-post">
             <gateway>
                 <method>post</method>
                 <urlExpression>
@@ -477,7 +483,7 @@ Channel: $!event.channel</code>
                 <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
-        <sms name="with-post-multi">
+        <sms name="sms-with-post-multi">
             <gateway>
                 <method>post</method>
                 <urlExpression>
@@ -498,5 +504,5 @@ Channel: $!event.channel</code>
                 <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
-    </notificationConfiguration>
+    </messageTransportConfiguration>
 </systemConfiguration>

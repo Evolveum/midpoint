@@ -71,12 +71,6 @@ public class NotificationsTest extends AbstractIntegrationTest {
         PrismObject<SystemConfigurationType> config = repositoryService.getObject(
                 SystemConfigurationType.class, SYS_CONFIG_OID, null, getTestOperationResult());
         assertThat(config).isNotNull();
-
-        // test of legacy transports, should go away after 4.5
-        assertThat(transportService.getTransport("mail")).isNotNull();
-        assertThat(transportService.getTransport("sms")).isNotNull();
-        assertThat(transportService.getTransport("file")).isNotNull();
-        assertThat(transportService.getTransport("custom")).isNotNull();
     }
 
     @Test

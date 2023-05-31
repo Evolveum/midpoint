@@ -31,7 +31,6 @@ import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
 
 @ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
 public class TestTransportUtils extends AbstractSpringTest {
@@ -83,88 +82,11 @@ public class TestTransportUtils extends AbstractSpringTest {
         assertTrue("janko@evolveum.eu should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.eu"));
     }
 
-    // TODO remove with old transports
-    @Test
-    public void test011CheckVariablesWhiteListDeprecated() {
-        given();
-        NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
-
-        config.getWhiteList().add("*@evolveum.com");
-        config.getWhiteList().add("janko@evodevel.com");
-        config.getWhiteList().add("vi*@evodevel.com");
-        config.getWhiteList().add("majka@evodevel.*");
-
-        Task task = taskManager.createTaskInstance();
-        List<String> allowRecipient = new ArrayList<>();
-        List<String> forbiddenRecipient = new ArrayList<>();
-
-        List<String> recipients = new ArrayList<>();
-        recipients.add("janko@evodevel.com");
-        recipients.add("janko@evolveum.com");
-        recipients.add("viliam@evodevel.com");
-        recipients.add("majka@evodevel.eu");
-        recipients.add("jack@evodevel.sk");
-        recipients.add("janko@evolveum.eu");
-
-        when();
-        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
-                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
-
-        then();
-        assertThat(allowRecipient).as("allowRecipient").hasSize(4);
-        assertTrue("janko@evodevel.com should be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
-        assertTrue("janko@evolveum.com should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.com"));
-        assertTrue("viliam@evodevel.com should be allowed, but isn't.", allowRecipient.contains("viliam@evodevel.com"));
-        assertTrue("majka@evodevel.eu should be allowed, but isn't.", allowRecipient.contains("majka@evodevel.eu"));
-
-        assertThat(forbiddenRecipient).as("forbiddenRecipient").hasSize(2);
-        assertTrue("jack@evodevel.sk should be forbidden, but isn't.", forbiddenRecipient.contains("jack@evodevel.sk"));
-        assertTrue("janko@evolveum.eu should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.eu"));
-    }
 
     @Test
     public void test020CheckVariablesBlackList() {
         given();
         GeneralTransportConfigurationType config = new GeneralTransportConfigurationType();
-
-        config.getBlackList().add("*@evolveum.com");
-        config.getBlackList().add("janko@evodevel.com");
-        config.getBlackList().add("vi*@evodevel.com");
-        config.getBlackList().add("majka@evodevel.*");
-
-        Task task = taskManager.createTaskInstance();
-        List<String> allowRecipient = new ArrayList<>();
-        List<String> forbiddenRecipient = new ArrayList<>();
-
-        List<String> recipients = new ArrayList<>();
-        recipients.add("janko@evodevel.com");
-        recipients.add("janko@evolveum.com");
-        recipients.add("viliam@evodevel.com");
-        recipients.add("majka@evodevel.eu");
-        recipients.add("jack@evodevel.sk");
-        recipients.add("janko@evolveum.eu");
-
-        when();
-        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
-                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
-
-        then();
-        assertThat(forbiddenRecipient).withFailMessage("forbiddenRecipient").hasSize(4);
-        assertTrue("janko@evodevel.com should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));
-        assertTrue("janko@evolveum.com should be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.com"));
-        assertTrue("viliam@evodevel.com should be forbidden, but isn't.", forbiddenRecipient.contains("viliam@evodevel.com"));
-        assertTrue("majka@evodevel.eu should be forbidden, but isn't.", forbiddenRecipient.contains("majka@evodevel.eu"));
-
-        assertThat(allowRecipient).withFailMessage("allowRecipient").hasSize(2);
-        assertTrue("jack@evodevel.sk should be allowed, but isn't.", allowRecipient.contains("jack@evodevel.sk"));
-        assertTrue("janko@evolveum.eu should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.eu"));
-    }
-
-    // TODO remove with old transports
-    @Test
-    public void test021CheckVariablesBlackList() {
-        given();
-        NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
         config.getBlackList().add("*@evolveum.com");
         config.getBlackList().add("janko@evodevel.com");
