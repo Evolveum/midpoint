@@ -95,10 +95,10 @@ Following is the example of custom form which can be used as a registration form
                </formField>
                <formField>
 				  <binding>
-					 <c:path>c:credentials/password</c:path>
+					 <c:path>c:credentials/password/value</c:path>
 				  </binding>
                   <display>
-                     <label> </label>
+                     <label>Password</label>
                      <help>minimal length 5, use of minimal unique characters 3,...</help>
                      <minOccurs>1</minOccurs>
                   </display>
