@@ -421,51 +421,9 @@ public class GuiProfileCompiler {
             ar.setDocumentation(roleManagement.getDocumentation());
         }
 
-        mergeRoleManagementRoleCatalog(ar, roleManagement);
-    }
-
-    private void mergeRoleManagementRoleCatalog(AccessRequestType result, RoleManagementConfigurationType deprecated) {
-        RoleCatalogType rc = result.getRoleCatalog();
-        if (rc == null) {
-            rc = new RoleCatalogType();
-            result.setRoleCatalog(rc);
+        if (ar.getRoleCatalog() == null) {
+            ar.setRoleCatalog(new RoleCatalogType());
         }
-
-        if (rc.getRoleCatalogRef() == null && deprecated.getRoleCatalogRef() != null) {
-            rc.setRoleCatalogRef(deprecated.getRoleCatalogRef());
-        }
-
-        List<RoleCollectionViewType> collection = rc.getCollection();
-        if (collection.isEmpty() && deprecated.getRoleCatalogCollections() != null) {
-            ObjectCollectionsUseType ocus = deprecated.getRoleCatalogCollections();
-            ocus.getCollection().forEach(ocu -> {
-                RoleCollectionViewType rcv = mapObjectCollectionUse(ocu, false);
-                if (rcv != null) {
-                    collection.add(rcv);
-                }
-            });
-        }
-
-        RoleCollectionViewType defaultCollection = mapObjectCollectionUse(deprecated.getDefaultCollection(), true);
-        if (defaultCollection != null) {
-            collection.add(defaultCollection);
-        }
-    }
-
-    private RoleCollectionViewType mapObjectCollectionUse(ObjectCollectionUseType ocu, boolean isDefault) {
-        if (ocu == null) {
-            return null;
-        }
-        String uri = ocu.getCollectionUri();
-        if (StringUtils.isEmpty(uri)) {
-            return null;
-        }
-
-        RoleCollectionViewType result = new RoleCollectionViewType();
-        result.setDefault(isDefault);
-        result.setCollectionIdentifier(uri);
-
-        return result;
     }
 
     private void mergeAccessRequestConfiguration(CompiledGuiProfile composite, AccessRequestType accessRequest) {
