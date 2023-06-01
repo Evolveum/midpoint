@@ -10,7 +10,7 @@
     xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>Default Security Policy</name>
     <credentialsReset>
-        <name>passwordReset</name>
+        <identifier>passwordReset</identifier>
         <forceChange>true</forceChange>
         <newCredentialSource>
             <userEntry/>

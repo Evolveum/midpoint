@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.MultipartFormConfiguration;
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 
 /**
@@ -91,7 +92,8 @@ import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandle
         basePackageClasses = {
                 TextAreaPanelFactory.class,
                 GuiComponentRegistryImpl.class,
-                CertGuiHandlerRegistry.class
+                CertGuiHandlerRegistry.class,
+                MultipartFormConfiguration.class
         })
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
