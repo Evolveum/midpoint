@@ -14439,6 +14439,27 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:schemaMigration>
+                    <a:element>tns:roleCatalogRef</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>moved</a:operation>
+                    <a:comment>Moved to adminGuiConfiguration/accessRequest/roleCatalog/roleCatalogRef</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:roleCatalogCollections</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>moved</a:operation>
+                    <a:comment>Moved to adminGuiConfiguration/accessRequest/roleCatalog/collection. Requires value converting
+                        (roleCatalogCollections.collection.collectionUri -> collection.identifier)</a:comment>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:defaultCollection</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>moved</a:operation>
+                    <a:comment>Moved to adminGuiConfiguration/accessRequest/roleCatalog/collection. Requires value converting
+                        (roleCatalogCollections.collection.collectionUri -> collection.identifier;
+                        collection.default should be set to true)</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14450,58 +14471,6 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="roleCatalogRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to the root object of the role catalog.
-
-                        DEPRECATED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-                        <a:displayName>RoleManagementConfigurationType.roleCatalogRef</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="roleCatalogCollections" type="tns:ObjectCollectionsUseType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specifies the set of object collections ("role catalog views") to display in role
-                        catalog. If this element is not specified then the default (hardcoded) collections
-                        will be displayed. If this element is specified then only those collections specified
-                        in this element are displayed.
-
-                        DEPRECATED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.6</a:since>
-                        <a:displayName>RoleManagementConfigurationType.roleCatalogCollections</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="defaultCollection" type="tns:ObjectCollectionUseType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specifies the default object collections ("role catalog view") to display in role
-                        catalog.
-
-                        DEPRECATED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.6</a:since>
-                        <a:displayName>RoleManagementConfigurationType.defaultCollection</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="defaultAssignmentConstraints" type="tns:AssignmentConstraintsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
