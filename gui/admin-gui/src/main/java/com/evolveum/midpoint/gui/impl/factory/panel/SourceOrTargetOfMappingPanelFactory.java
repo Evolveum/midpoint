@@ -65,9 +65,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                     panelCtx.getRealValueModel().setObject(null);
                 }
                 VariableBindingDefinitionType def = new VariableBindingDefinitionType()
-                        .path(PrismContext.get().itemPathParser().asItemPathType(
-                                "$" + ExpressionConstants.VAR_FOCUS + "/" + object
-                        ));
+                        .path(PrismContext.get().itemPathParser().asItemPathType(object));
                 panelCtx.getRealValueModel().setObject(def);
             }
         };
