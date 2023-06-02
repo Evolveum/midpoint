@@ -169,10 +169,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // We need to switch off the encryption checks. Some values cannot be encrypted as we do
-        // not have a definition here
-        InternalsConfig.encryptionChecks = false;
-        provisioningService.postInit(initResult);
+        super.initSystem(initTask, initResult);
         resource = addResourceFromFile(getResourceDummyFile(), getDummyConnectorType(), initResult);
         resourceBean = resource.asObjectable();
 
