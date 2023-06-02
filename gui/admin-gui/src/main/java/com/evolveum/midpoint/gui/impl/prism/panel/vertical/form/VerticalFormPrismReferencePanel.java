@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class VerticalFormPrismReferencePanel<R extends Referencable>
         extends PrismReferencePanel<R> {
 
+    private boolean isRequiredTagVisibleInHeaderPanel = false;
+
     public VerticalFormPrismReferencePanel(
             String id,
             IModel<PrismReferenceWrapper<R>> model,
@@ -53,15 +55,21 @@ public class VerticalFormPrismReferencePanel<R extends Referencable>
 
     @Override
     protected Component createHeaderPanel() {
-        return new VerticalFormPrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
+        VerticalFormPrismReferenceHeaderPanel<R> header = new VerticalFormPrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPrismReferencePanel.this);
             }
         };
+        header.setRequiredTagVisibleInHeaderPanel(this.isRequiredTagVisibleInHeaderPanel);
+        return header;
     }
 
     protected String getCssClassForValueContainer() {
         return "";
+    }
+
+    public void setRequiredTagVisibleInHeaderPanel(boolean requiredTagVisibleInHeaderPanel) {
+        isRequiredTagVisibleInHeaderPanel = requiredTagVisibleInHeaderPanel;
     }
 }

@@ -35,25 +35,22 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
 
     private static final String ID_HEADER = "header";
 
+    private boolean isRequiredTagVisibleInHeaderPanel = false;
+
     public VerticalFormPrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
     @Override
     protected Component createHeaderPanel() {
-        return new VerticalFormPrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
+        VerticalFormPrismPropertyHeaderPanel<T> header = new VerticalFormPrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPrismPropertyPanel.this);
             }
-
-            @Override
-            protected void createRequired(String id) {
-                WebMarkupContainer required = new WebMarkupContainer(id);
-                required.add(new VisibleBehaviour(() -> false));
-                add(required);
-            }
         };
+        header.setRequiredTagVisibleInHeaderPanel(this.isRequiredTagVisibleInHeaderPanel);
+        return header;
     }
 
     @Override
@@ -71,5 +68,9 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
 
     protected String getCssClassForValueContainer() {
         return "";
+    }
+
+    public void setRequiredTagVisibleInHeaderPanel(boolean requiredTagVisibleInHeaderPanel) {
+        isRequiredTagVisibleInHeaderPanel = requiredTagVisibleInHeaderPanel;
     }
 }
