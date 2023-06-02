@@ -63,6 +63,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
             public void setObject(String object) {
                 if (StringUtils.isBlank(object)) {
                     panelCtx.getRealValueModel().setObject(null);
+                    return;
                 }
                 VariableBindingDefinitionType def = new VariableBindingDefinitionType()
                         .path(PrismContext.get().itemPathParser().asItemPathType(object));
