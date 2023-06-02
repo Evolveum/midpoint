@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
@@ -92,18 +93,9 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     protected void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
         item.setOutputMarkupId(true);
 
-        ItemPanel propertyPanel;
-        ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-        if (item.getModelObject() instanceof ProtectedStringTypeWrapperImpl) {
-            propertyPanel = new VerticalFormPasswordPropertyPanel(
-                    ID_PROPERTY, (IModel<PrismPropertyWrapper<ProtectedStringType>>) item.getModel(), settings);
-        } else if (item.getModelObject() instanceof PrismPropertyWrapper) {
-            propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
-        } else {
-            propertyPanel = new VerticalFormPrismReferencePanel(ID_PROPERTY, item.getModel(), settings);
-        }
-        propertyPanel.setOutputMarkupId(true);
+        ItemPanel propertyPanel = WebPrismUtil.createVerticalPropertyPanel(ID_PROPERTY, item.getModel(), getSettings());
 
+        ItemPanelSettings settings = propertyPanel.getSettings();
         if (settings != null) {
             propertyPanel.add(
                     new VisibleBehaviour(() -> isNonContainerVisible(item, settings)));

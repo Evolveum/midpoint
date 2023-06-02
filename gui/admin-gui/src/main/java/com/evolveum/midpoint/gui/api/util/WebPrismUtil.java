@@ -10,10 +10,19 @@ import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPasswordPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -36,6 +45,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -411,5 +422,20 @@ public class WebPrismUtil {
             }
         }
         return allAttributes;
+    }
+
+    public static ItemPanel createVerticalPropertyPanel(String id, IModel<? extends ItemWrapper<?, ?>> model, ItemPanelSettings origSettings) {
+        ItemPanel propertyPanel;
+        ItemPanelSettings settings = origSettings != null ? origSettings.copy() : null;
+        if (model.getObject() instanceof ProtectedStringTypeWrapperImpl) {
+            propertyPanel = new VerticalFormPasswordPropertyPanel(
+                    id, (IModel<PrismPropertyWrapper<ProtectedStringType>>) model, settings);
+        } else if (model.getObject() instanceof PrismPropertyWrapper) {
+            propertyPanel = new VerticalFormPrismPropertyPanel(id, model, settings);
+        } else {
+            propertyPanel = new VerticalFormPrismReferencePanel(id, model, settings);
+        }
+        propertyPanel.setOutputMarkupId(true);
+        return propertyPanel;
     }
 }

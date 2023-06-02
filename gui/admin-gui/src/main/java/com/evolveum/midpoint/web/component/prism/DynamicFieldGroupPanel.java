@@ -12,6 +12,13 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
@@ -90,16 +97,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
                 continue;
             }
 
-            ItemWrapper<?, ?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
-
-            try {
-                Panel panel = parentPage.initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
-                panel.setOutputMarkupId(true);
-                itemView.add(panel);
-            } catch (SchemaException e) {
-                getSession().error("Cannot create panel " + e.getMessage());
+            IModel<ItemWrapper<?, ?>> model = () -> findAndTailorItemWrapper(formItem, getObjectWrapper());
+            Panel panel = WebPrismUtil.createVerticalPropertyPanel(itemView.newChildId(), model, null);
+            if (panel instanceof VerticalFormPrismPropertyPanel<?>) {
+                ((VerticalFormPrismPropertyPanel)panel).setRequiredTagVisibleInHeaderPanel(true);
+            } else if (panel instanceof VerticalFormPrismReferencePanel<?>) {
+                ((VerticalFormPrismReferencePanel)panel).setRequiredTagVisibleInHeaderPanel(true);
             }
-
+            itemView.add(panel);
         }
     }
 
