@@ -133,7 +133,7 @@ public class GuiDisplayNameUtil {
         if (objectClass != null) {
             boolean isNotDisplayNameEmpty = StringUtils.isNotEmpty(sb.toString());
             if (isNotDisplayNameEmpty) {
-                sb.append("(");
+                sb.append(" (");
             }
             sb.append(objectClass.getLocalPart());
             if (isNotDisplayNameEmpty) {
