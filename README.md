@@ -1,5 +1,5 @@
-MidPoint 4.6.1 "Baumgarten"  Update 1
--------------------------------------
+MidPoint 4.6 Support Branch
+---------------------------
 
 General information:
 
