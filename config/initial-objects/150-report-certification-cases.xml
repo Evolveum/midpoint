@@ -8,9 +8,10 @@
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         oid="00000000-0000-0000-0000-000000000150">
     <name>Certification cases report</name>
-    <description>Cases within a given certification campaign.</description>
+    <description>Cases within given certification campaign(s).</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
@@ -34,8 +35,11 @@
             </filter>
         </collection>
         <view>
+            <!-- We do sorting on object name. Hence, it is the first column. The campaign name would be more logical as the
+                 first one, but we currently cannot sort on both campaign name and object name. And perhaps the primary use
+                 case will be reporting on a specific campaign. -->
             <column>
-                <name>objectColumn</name>
+                <name>object</name>
                 <path>objectRef</path>
                 <display>
                     <label>Object</label>
@@ -45,8 +49,9 @@
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils;
+                                import com.evolveum.midpoint.report.impl.ReportUtils
 
+                                // Provides the type plus object name
                                 ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
@@ -54,19 +59,20 @@
                 </export>
             </column>
             <column>
-                <name>targetColumn</name>
+                <name>target</name>
                 <path>targetRef</path>
                 <display>
                     <label>Target</label>
                 </display>
-                <previousColumn>objectColumn</previousColumn>
+                <previousColumn>object</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
-                                import com.evolveum.midpoint.report.impl.ReportUtils;
+                                import com.evolveum.midpoint.report.impl.ReportUtils
 
+                                // Provides the type plus object name
                                 ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
@@ -74,116 +80,146 @@
                 </export>
             </column>
             <column>
-                <name>reviewersColumn</name>
+                <name>campaignName</name>
+                <display>
+                    <label>Campaign</label>
+                </display>
+                <previousColumn>target</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
+
+                                CertCampaignTypeUtil.getCampaign(object as AccessCertificationCaseType)?.name?.orig
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>reviewers</name>
                 <display>
                     <label>Reviewers</label>
                 </display>
-                <previousColumn>targetColumn</previousColumn>
+                <previousColumn>campaignName</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
 
-                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object.asPrismContainerValue());
+                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object.asPrismContainerValue())
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
             <column>
-                <name>lastReviewedOnColumn</name>
+                <name>lastReviewedOn</name>
                 <display>
                     <label>Last reviewed on</label>
                 </display>
-                <previousColumn>reviewersColumn</previousColumn>
+                <previousColumn>reviewers</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-                                import com.evolveum.midpoint.report.impl.ReportUtils;
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.report.impl.ReportUtils
 
-                                ReportUtils.prettyPrintForReport(CertCampaignTypeUtil.getLastReviewedOn(object.asPrismContainerValue()))
+                                CertCampaignTypeUtil.getLastReviewedOn(object.asPrismContainerValue())
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
             <column>
-                <name>reviewedByColumn</name>
+                <name>reviewedBy</name>
                 <display>
                     <label>Reviewed by</label>
                 </display>
-                <previousColumn>lastReviewedOnColumn</previousColumn>
+                <previousColumn>lastReviewedOn</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-                                import com.evolveum.midpoint.report.impl.ReportUtils;
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.report.impl.ReportUtils
 
-                                ReportUtils.prettyPrintForReport(CertCampaignTypeUtil.getReviewedBy(object.asPrismContainerValue()))
+                                CertCampaignTypeUtil.getReviewedBy(object.asPrismContainerValue())
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
             <column>
-                <name>iterationColumn</name>
+                <name>iteration</name>
                 <path>iteration</path>
                 <display>
                     <label>Iteration</label>
                 </display>
-                <previousColumn>reviewedByColumn</previousColumn>
+                <previousColumn>reviewedBy</previousColumn>
             </column>
             <column>
-                <name>inStageNumberColumn</name>
+                <name>inStageNumber</name>
                 <path>stageNumber</path>
                 <display>
                     <label>In stage</label>
                 </display>
-                <previousColumn>iterationColumn</previousColumn>
+                <previousColumn>iteration</previousColumn>
             </column>
             <column>
-                <name>outcomeColumn</name>
+                <name>outcome</name>
                 <path>outcome</path>
                 <display>
-                    <label>Result</label>
+                    <label>Outcome</label>
                 </display>
-                <previousColumn>inStageNumberColumn</previousColumn>
-            </column>
-            <column>
-                <name>commentsColumn</name>
-                <display>
-                    <label>Comments</label>
-                </display>
-                <previousColumn>outcomeColumn</previousColumn>
+                <previousColumn>inStageNumber</previousColumn>
                 <export>
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-                                import com.evolveum.midpoint.report.impl.ReportUtils;
+                                import com.evolveum.midpoint.report.impl.ReportUtils
 
-                                ReportUtils.prettyPrintForReport(CertCampaignTypeUtil.getComments(object.asPrismContainerValue()))
+                                ReportUtils.prettyPrintCertOutcomeForReport(input as String, false)
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
             <column>
-                <name>remediedTimestampColumn</name>
+                <name>comments</name>
+                <display>
+                    <label>Comments</label>
+                </display>
+                <previousColumn>outcome</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.report.impl.ReportUtils
+
+                                CertCampaignTypeUtil.getComments(object.asPrismContainerValue())
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>remediedTimestamp</name>
                 <path>remediedTimestamp</path>
                 <display>
                     <label>Remedied on</label>
                 </display>
-                <previousColumn>commentsColumn</previousColumn>
+                <previousColumn>comments</previousColumn>
             </column>
-            <type>AccessCertificationCaseType</type>
             <paging>
-                <orderBy>objectRef/@/name</orderBy>
+                <q:orderBy>objectRef/@/name</q:orderBy>
             </paging>
+            <type>AccessCertificationCaseType</type>
         </view>
         <parameter>
             <name>campaignRef</name>
@@ -191,10 +227,10 @@
             <targetType>c:AccessCertificationCampaignType</targetType>
             <display>
                 <label>
-                    <orig>campaignName</orig>
-                    <translation>
-                        <key>runReportPopupContent.param.name.campaignName</key>
-                    </translation>
+                    <t:orig>campaignName</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.campaignName</t:key>
+                    </t:translation>
                 </label>
             </display>
         </parameter>
