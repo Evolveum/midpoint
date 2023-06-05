@@ -1,12 +1,13 @@
-MidPoint 4.6 "Baumgarten"
--------------------------
+MidPoint 4.6.1 "Baumgarten"  Update 1
+-------------------------------------
 
-Release 4.6 is a forty-third midPoint release code-named Baumgarten.
-The 4.6 release brings substantial GUI improvements, smart correlation, resource inheritance, and many smaller enhancements.
+Release 4.6.1 is a forty-six midPoint release.
+It is a first maintenance update for 4.6.x version family code-named Baumgarten.
+The 4.6.1 release brings miscellaneous bugfixes.
 
-Release date: 21st October 2022
-Release type: Feature release
+Release date: 5th June 2023
+Release type: Maintenance release
 End of support: 21st October 2023
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.6/
+https://docs.evolveum.com/midpoint/release/4.6.1/
