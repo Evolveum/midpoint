@@ -70,10 +70,6 @@ public class SearchConfigurationMerger {
             mergedConfig.setRelationConfiguration(customizedConfig.getRelationConfiguration());
         }
 
-        if (customizedConfig.getDefaultScope() != null) {
-            mergedConfig.setDefaultScope(customizedConfig.getDefaultScope());
-        }
-
         SearchItemsType mergedSearchItems = combineSearchItems(mergedConfig.getSearchItems(), customizedConfig.getSearchItems(), pageBase);
         mergedConfig.setSearchItems(mergedSearchItems);
         return mergedConfig;

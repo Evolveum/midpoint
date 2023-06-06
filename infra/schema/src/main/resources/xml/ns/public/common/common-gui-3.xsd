@@ -1876,6 +1876,12 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:defaultScope</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use scopeConfiguration.defaultValue instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1968,21 +1974,6 @@
                     <xsd:appinfo>
                         <a:displayName>SearchBoxConfigurationType.tenantConfiguration</a:displayName>
                         <a:since>4.3</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="defaultScope" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The scope of the search box. Scope may not be applicable to all types of lists/views.
-                        E.g. it does not make sense for flat searches. Therefore some views may not even display
-                        scope selection at all.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
-                        <a:since>3.9</a:since>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.3</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

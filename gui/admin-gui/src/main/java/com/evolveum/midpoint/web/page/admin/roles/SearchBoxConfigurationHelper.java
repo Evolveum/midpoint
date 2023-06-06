@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SearchBoxConfigurationHelper implements Serializable {
 
@@ -80,13 +79,6 @@ public class SearchBoxConfigurationHelper implements Serializable {
     public ScopeSearchItemConfigurationType getDefaultSearchScopeConfiguration() {
         if (defaultScopeConfiguration == null) {
             defaultScopeConfiguration = searchBoxConfigurationType.getScopeConfiguration();
-            if (defaultScopeConfiguration == null) {
-                defaultScopeConfiguration = new ScopeSearchItemConfigurationType();
-            }
-            if (defaultScopeConfiguration.getDefaultValue() == null) {
-                defaultScopeConfiguration.setDefaultValue(searchBoxConfigurationType.getDefaultScope());
-            }
-
             if (defaultScopeConfiguration == null) {
                 defaultScopeConfiguration = new ScopeSearchItemConfigurationType();
             }
