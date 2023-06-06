@@ -109,4 +109,26 @@
 | Apache JServ Protocol (AJP) of Apache Tomcat may be vulnerable to several types of attack.
 
 
+| 15
+| xref:/midpoint/reference/security/advisories/015-disabled-users-able-to-log-in-with-ldap/[Disabled Users able to log-in when LDAP authentication is enabled]
+| 5 June 2023
+| Medium
+| MidPoint allows log-in for disabled users if LDAP authorization is used.
+
+
+| 16
+| xref:/midpoint/reference/security/advisories/016-unauth-user-is-able-to-reset-password/[Unauthorized user is able to reset password if focusIdentification is enabled]
+| 5 June 2023
+| High
+| MidPoint 4.7 may be vulnerable to password reset attack if new password reset `focusIdentification` is configured.
+
+
+| 17
+| xref:/midpoint/reference/security/advisories/017-self-registration-allows-to-change-password/[Self Registration feature allows to change password of other users]
+| 5 June 2023
+| High
+| MidPoint may be vulnerable to password change attack if self registration or post registration is configured.
+
+
+
 |===
