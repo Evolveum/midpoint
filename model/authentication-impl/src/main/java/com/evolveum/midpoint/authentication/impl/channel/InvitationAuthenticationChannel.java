@@ -39,7 +39,7 @@ public class InvitationAuthenticationChannel extends AuthenticationChannelImpl {
 
     @Override
     public String getSpecificLoginUrl() {
-        return "/invitation";
+        return "/";
     }
 
     @Override

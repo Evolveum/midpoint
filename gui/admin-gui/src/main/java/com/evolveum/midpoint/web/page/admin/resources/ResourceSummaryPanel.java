@@ -97,6 +97,29 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
             }
         };
         summaryTagList.add(modeTag);
+
+        SummaryTag<ResourceType> templateTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void initialize(ResourceType object) {
+
+                if (object == null
+                        || object.getSuper() == null
+                        || object.getSuper().getResourceRef() == null
+                        || StringUtils.isEmpty(object.getSuper().getResourceRef().getOid())) {
+                    setHideTag(true);
+                    return;
+                }
+
+                setHideTag(false);
+
+                setLabel(ResourceSummaryPanel.this.getString("ResourceSummaryPanel.fromTemplate"));
+                setIconCssClass("fa fa-file-lines");
+            }
+        };
+        summaryTagList.add(templateTag);
+
         return summaryTagList;
     }
 
