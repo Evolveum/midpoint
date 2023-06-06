@@ -287,8 +287,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(CaseType.class, CASE2.oid);
         assertGetDeny(CaseType.class, CASE3.oid);
         assertGetDeny(CaseType.class, CASE4.oid);
-        assertReadCertCases(2);
-        assertReadCases(CASE1.oid);
+        assertSearchCertCases(2);
+        assertSearchCases(CASE1.oid);
 
         assertGlobalStateUntouched();
     }
@@ -340,7 +340,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(CaseType.class, CASE3.oid);
         assertGetDeny(CaseType.class, CASE4.oid);
         assertReadCertCasesDeny();
-        assertReadCases(CASE2.oid);
+        assertSearchCases(CASE2.oid);
 
         assertGlobalStateUntouched();
     }
@@ -392,7 +392,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(CaseType.class, CASE3.oid);
         assertGetDeny(CaseType.class, CASE4.oid);
         assertReadCertCasesDeny();
-        assertReadCases(CASE3.oid);
+        assertSearchCases(CASE3.oid);
 
         assertGlobalStateUntouched();
     }
@@ -455,7 +455,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertGetAllow(CaseType.class, CASE3.oid);
             assertGetDeny(CaseType.class, CASE4.oid);
             assertReadCertCasesDeny();
-            assertReadCases(CASE3.oid);
+            assertSearchCases(CASE3.oid);
 
             assertGlobalStateUntouched();
         } finally {
@@ -521,7 +521,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertGetDeny(CaseType.class, CASE3.oid);
             assertGetDeny(CaseType.class, CASE4.oid);
             assertReadCertCasesDeny();
-            assertReadCases();
+            assertSearchCases();
 
             assertGlobalStateUntouched();
         } finally {

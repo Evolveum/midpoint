@@ -14,13 +14,13 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.test.asserter.WorkItemsAsserter;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.test.TestObject;
 
+import com.evolveum.midpoint.test.asserter.CaseWorkItemsAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -563,35 +563,39 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertReadDenyRaw();
     }
 
-    protected void assertReadCertCasesDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertReadCertCases(0);
+    protected void assertReadCertCasesDeny() throws CommonException {
+        assertSearchCertCases(0);
     }
 
     protected void assertReadCasesDeny() throws Exception {
-        assertReadCases(0);
+        assertSearchCases(0);
     }
 
-    protected void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertReadCertCases(11);
+    protected void assertReadCertCasesAllow() throws CommonException {
+        assertSearchCertCases(11);
     }
 
     protected void assertReadCasesAllow() throws Exception {
-        assertReadCases(4);
+        assertSearchCases(4);
     }
 
-    protected void assertReadCertCases(int expectedNumber) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void assertSearchCertCases(int expectedNumber) throws CommonException {
         assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
-    protected void assertReadCases(int expectedNumber) throws Exception {
+    protected void assertSearchCases(int expectedNumber) throws Exception {
         assertSearch(CaseType.class, null, expectedNumber);
     }
 
-    protected void assertReadCases(String... expectedOids) throws Exception {
+    protected List<CaseWorkItemType> assertSearchWorkItems(int expectedNumber) throws CommonException {
+        return assertContainerSearch(CaseWorkItemType.class, null, expectedNumber);
+    }
+
+    protected void assertSearchCases(String... expectedOids) throws Exception {
         assertSearch(CaseType.class, null, expectedOids);
     }
 
-    protected void assertReadCampaigns(String... expectedOids) throws Exception {
+    protected void assertSearchCampaigns(String... expectedOids) throws Exception {
         assertSearch(AccessCertificationCampaignType.class, null, expectedOids);
     }
 
@@ -698,13 +702,14 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertDeleteAllow(UserType.class, USER_LECHUCK.oid, executeOptions().raw());
     }
 
-    protected <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertContainerSearch(type, query, null, expectedResults);
+    protected <C extends Containerable> List<C> assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults)
+            throws CommonException {
+        return assertContainerSearch(type, query, null, expectedResults);
     }
 
     protected <C extends Containerable>
-    void assertContainerSearch(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    List<C> assertContainerSearch(Class<C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws CommonException {
         Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchContainers");
         OperationResult result = task.getResult();
         try {
@@ -718,11 +723,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
             }
             result.computeStatus();
             TestUtil.assertSuccess(result);
+            return objects;
         } catch (SecurityViolationException e) {
             // this should not happen
             result.computeStatus();
             TestUtil.assertFailure(result);
             failAllow("search", type, query, e);
+            throw new NotHereAssertionError();
         }
     }
 
@@ -1063,7 +1070,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
     }
 
-    WorkItemsAsserter<Void> assertGetWorkItems(@NotNull String caseOid) throws CommonException {
+    CaseWorkItemsAsserter<Void, CaseWorkItemType> assertGetWorkItems(@NotNull String caseOid) throws CommonException {
         CaseType aCase = getObject(CaseType.class, caseOid).asObjectable();
         return assertWorkItems(aCase.getWorkItem(), "after");
     }

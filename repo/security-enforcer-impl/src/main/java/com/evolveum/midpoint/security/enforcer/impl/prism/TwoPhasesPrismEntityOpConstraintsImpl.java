@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -104,11 +105,11 @@ public abstract class TwoPhasesPrismEntityOpConstraintsImpl<OC extends SinglePha
         }
 
         public void applyAuthorization(
-                @NotNull PrismValue object, @NotNull AuthorizationEvaluation evaluation)
+                @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
-            request.applyAuthorization(object, evaluation);
-            execution.applyAuthorization(object, evaluation);
+            request.applyAuthorization(value, evaluation);
+            execution.applyAuthorization(value, evaluation);
         }
 
         @Override

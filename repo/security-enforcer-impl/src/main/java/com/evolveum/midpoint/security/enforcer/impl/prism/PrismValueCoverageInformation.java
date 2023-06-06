@@ -11,11 +11,14 @@ import static com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCove
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.security.enforcer.impl.TopDownSpecification;
+import com.evolveum.midpoint.security.enforcer.impl.ObjectSpecParser;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameKeyedMap;
@@ -79,16 +82,17 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
 
     /** Returns `null` if the authorization is irrelevant for the current object. */
     static @Nullable PrismValueCoverageInformation forAuthorization(
-            PrismValue value, @NotNull AuthorizationEvaluation evaluation)
+            PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
-        Collection<SelectorChainSegment> roots = SelectorChainSegment.createSelectorChains(value, evaluation);
-        if (!roots.isEmpty()) {
+        Collection<TopDownSpecification> specs = ObjectSpecParser.forAutzAndValue(value, evaluation);
+        if (!specs.isEmpty()) {
             PrismValueCoverageInformation merged = PrismValueCoverageInformation.noCoverage();
-            for (SelectorChainSegment root : roots) {
+            int i = 0;
+            for (TopDownSpecification spec : specs) {
                 merged.merge(
-                        forSegment(value, value, root, evaluation));
+                        forTopDownSpec(String.valueOf(i++), value, value, spec, evaluation));
             }
             return merged;
         } else {
@@ -96,31 +100,38 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         }
     }
 
-    private static PrismValueCoverageInformation forSegment(
+    private static PrismValueCoverageInformation forTopDownSpec(
+            @NotNull String id,
             @NotNull PrismValue value,
             @NotNull PrismValue rootValue,
-            @NotNull SelectorChainSegment segment,
+            @NotNull TopDownSpecification objectSpec,
             @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
 
-        if (!evaluation.isSelectorApplicable(segment.selector, value, Set.of(), "TODO")) {
+        ValueSelector selector = objectSpec.getSelector();
+        assert selector.getParentClause() == null;
+
+        if (!evaluation.isSelectorApplicable(id, selector, value, Set.of(), "TODO")) {
             return PrismValueCoverageInformation.noCoverage();
         }
 
-        if (!segment.positives.isEmpty() || segment.next != null) {
-            var coverage = forPositivePaths(segment.positives);
-            if (segment.next != null) {
-                coverage.merge(forNextSegment(segment.path, segment.next, value, rootValue, evaluation));
+        PathSet positives = objectSpec.getPositives();
+        PathSet negatives = objectSpec.getNegatives();
+        var linkToChild = objectSpec.getLinkToChild();
+        if (!positives.isEmpty() || linkToChild != null) {
+            var coverage = forPositivePaths(positives);
+            if (linkToChild != null) {
+                coverage.merge(forChildSpec(id + "v", linkToChild, value, rootValue, evaluation));
             }
             return coverage;
         } else {
-            return forNegativePaths(segment.negatives);
+            return forNegativePaths(negatives);
         }
     }
 
-    private static PrismValueCoverageInformation forNextSegment(
-            ItemPath path,
-            SelectorChainSegment nextSegment,
+    private static PrismValueCoverageInformation forChildSpec(
+            String id,
+            TopDownSpecification.Link linkToChild,
             PrismValue parentValue,
             PrismValue rootValue,
             AuthorizationEvaluation evaluation)
@@ -129,19 +140,20 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         if (!(parentValue instanceof PrismContainerValue<?>)) {
             return PrismValueCoverageInformation.noCoverage();
         }
+        ItemPath childPath = linkToChild.getItemPath();
         var pcv = (PrismContainerValue<?>) parentValue;
-        var item = pcv.findItem(path);
+        Item<?, ?> item = pcv.findItem(childPath);
         if (item == null) {
             // Item is not present in the PCV, the coverage needs no update.
             return PrismValueCoverageInformation.noCoverage();
         }
 
-        var root = PrismValueCoverageInformation.noCoverage();
-        var itemCoverageInformation = createItemCoverageInformationObject(root, path); // TODO evaluate lazily
+        var parentCoverage = PrismValueCoverageInformation.noCoverage();
+        var itemCoverageInformation = createItemCoverageInformationObject(parentCoverage, childPath); // TODO evaluate lazily
 
         for (PrismValue itemValue : item.getValues()) {
             PrismValueCoverageInformation subValueCoverage =
-                    forSegment(itemValue, rootValue, nextSegment, evaluation);
+                    forTopDownSpec(id, itemValue, rootValue, linkToChild.getChild(), evaluation);
             if (subValueCoverage.getCoverage() != NONE) {
                 itemCoverageInformation.addForValue(itemValue, subValueCoverage);
             }
@@ -149,11 +161,10 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         if (itemCoverageInformation.getCoverage() == NONE) {
             return PrismValueCoverageInformation.noCoverage(); // to avoid useless root->item chain
         } else {
-            return root;
+            return parentCoverage;
         }
     }
 
-    // TODO explain
     private static PrismItemCoverageInformation createItemCoverageInformationObject(
             PrismValueCoverageInformation root, ItemPath path) {
         var current = root;

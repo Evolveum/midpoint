@@ -9,10 +9,13 @@ package com.evolveum.midpoint.security.enforcer.impl;
 
 import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.*;
 import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.FILTER_TRACE_ENABLED;
+import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
 import java.util.List;
+
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -33,7 +36,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 
 /**
  * Operation that computes a "security filter", i.e. additional restrictions to be applied in a given filtering/searching
@@ -130,10 +132,12 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             queryItemsSpec.addRequiredItems(origFilter); // MID-3916
             tracePartialOperationStart();
 
+            int i = 0;
             for (Authorization authorization : getAuthorizations()) {
 
                 AuthorizationFilterEvaluation<T> autzEvaluation;
                 autzEvaluation = new AuthorizationFilterEvaluation<>(
+                        String.valueOf(i++),
                         filterType,
                         origFilter,
                         authorization,
@@ -143,11 +147,14 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         EnforcerFilterOperation.this,
                         result);
 
+                autzEvaluation.traceStart();
+
                 if (!autzEvaluation.isApplicableToActions(operationUrls)
-                        || !autzEvaluation.isApplicableToPhase(phaseSelector)
                         || !autzEvaluation.isApplicableToLimitations(limitAuthorizationAction, operationUrls)
+                        || !autzEvaluation.isApplicableToPhase(phaseSelector)
                         || !autzEvaluation.isApplicableToOrderConstraints(paramOrderConstraints)
                         || !preProcessor.isApplicable(autzEvaluation)) {
+                    autzEvaluation.traceEndNotApplicable();
                     continue;
                 }
 
@@ -161,12 +168,14 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                     // The authorization is applicable to this situation. Now we can process the decision.
                     if (authorization.isAllow()) {
                         securityFilterAllow = gizmo.or(securityFilterAllow, autzSecurityFilter);
-                        traceFilter(EnforcerFilterOperation.this, "after 'allow' authorization", authorization, securityFilterAllow, gizmo);
+                        traceIntermediary("after 'allow' authorization", securityFilterAllow);
                         if (!gizmo.isNone(autzSecurityFilter)) {
+                            // TODO resolve for shifted authorizations!
                             queryItemsSpec.collectItems(authorization);
                         }
                     } else { // "deny" type authorization
                         if (authorization.hasItemSpecification()) {
+                            // TODO resolve for shifted authorizations!
                             // This is a tricky situation. We have deny authorization, but it only denies access to
                             // some items. Therefore we need to find the objects and then filter out the items.
                             // Therefore do not add this authorization into the filter.
@@ -174,14 +183,14 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                             // This is "deny all". We cannot have anything stronger than that.
                             // There is no point in continuing the evaluation.
                             F secFilter = gizmo.createDenyAll();
-                            tracePhaseOperationEnd(secFilter, "deny all");
+                            tracePartialOperationEnd(secFilter, "deny all");
                             return secFilter;
                         } else {
                             securityFilterDeny = gizmo.or(securityFilterDeny, autzSecurityFilter);
                         }
                     }
                 }
-                trace(authorization);
+                trace();
             }
 
             traceDetails();
@@ -190,49 +199,63 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             if (!unsatisfiedItems.isEmpty()) {
                 F secFilter = gizmo.createDenyAll();
                 // TODO lazy string concatenation?
-                tracePhaseOperationEnd(secFilter, "deny because items " + unsatisfiedItems + " are not allowed");
+                tracePartialOperationEnd(secFilter, "deny because items " + unsatisfiedItems + " are not allowed");
                 return secFilter;
             }
             securityFilterAllow = gizmo.simplify(securityFilterAllow);
             if (securityFilterAllow == null) {
                 // Nothing has been allowed. This means default deny.
                 F secFilter = gizmo.createDenyAll();
-                tracePhaseOperationEnd(secFilter, "default deny");
+                tracePartialOperationEnd(secFilter, "default deny");
                 return secFilter;
             } else if (securityFilterDeny == null) {
                 // Nothing has been denied. We have "allow" filter only.
-                tracePhaseOperationEnd(securityFilterAllow, "allow");
+                tracePartialOperationEnd(securityFilterAllow, "allow");
                 return securityFilterAllow;
             } else {
                 // Both "allow" and "deny" filters
                 F secFilter = gizmo.and(securityFilterAllow, gizmo.not(securityFilterDeny));
-                tracePhaseOperationEnd(secFilter, "allow with deny clauses");
+                tracePartialOperationEnd(secFilter, "allow with deny clauses");
                 return secFilter;
             }
         }
 
-        void trace(Authorization autz) {
-            traceFilter(EnforcerFilterOperation.this, "(total 'allow') after authorization", autz, securityFilterAllow, gizmo);
-            traceFilter(EnforcerFilterOperation.this, "(total 'deny') after authorization", autz, securityFilterDeny, gizmo);
+        void trace() {
+            traceIntermediary("total 'allow' after authorization", securityFilterAllow);
+            traceIntermediary("total 'deny' after authorization", securityFilterDeny);
             tracePaths("after authorization", queryItemsSpec);
         }
 
         void traceDetails() {
-            traceFilter(EnforcerFilterOperation.this, "(total 'allow') after all authorizations", "", securityFilterAllow, gizmo);
-            traceFilter(EnforcerFilterOperation.this, "(total 'deny') after all authorizations", "", securityFilterDeny, gizmo);
+            traceIntermediary( "(total 'allow') after all authorizations", securityFilterAllow);
+            traceIntermediary( "(total 'deny') after all authorizations", securityFilterDeny);
             tracePaths("after all authorizations", queryItemsSpec);
         }
 
         private void tracePartialOperationStart() {
             if (traceEnabled) {
-                LOGGER.trace("  phase={}, initial query items specification: {}", phaseSelector, queryItemsSpec.shortDumpLazily());
+                LOGGER.trace("{} Starting partial filter determination ({}) for phase={}, initial query items specification: {}",
+                        OP_START, desc, phaseSelector, queryItemsSpec.shortDumpLazily());
             }
         }
 
-        private void tracePhaseOperationEnd(F secFilter, String reason) {
+        private void tracePartialOperationEnd(F secFilter, String comment) {
             if (traceEnabled) {
-                // TODO message formatting
-                traceFilter(EnforcerFilterOperation.this, desc + ": for whole phase (reason: " + reason + ")", phaseSelector, secFilter, gizmo);
+                LOGGER.trace("{} Finished partial filter determination ({}) for phase={}: {}\n{}",
+                        OP_END, desc, phaseSelector, comment, gizmo.debugDumpFilter(secFilter, 1));
+            }
+        }
+
+        private void traceIntermediary(String message, F filter) {
+            if (FILTER_TRACE_ENABLED && traceEnabled) {
+                LOGGER.trace("{} filter {}:\n{}",
+                        OP, message, gizmo.debugDumpFilter(filter, 1));
+            }
+        }
+
+        private void tracePaths(String message, QueryAutzItemPaths paths) {
+            if (FILTER_TRACE_ENABLED && traceEnabled) {
+                LOGGER.trace("{} paths {}: {}", OP, message, paths.shortDump());
             }
         }
     }
@@ -241,35 +264,17 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         if (traceEnabled) {
             // TODO desc?
             LOGGER.trace(
-                    "AUTZ: computing security filter principal={}, searchResultType={}, searchType={}: orig filter {}",
-                    username, TracingUtil.getTypeName(filterType), preProcessor, origFilter);
+                    "{} computing security filter principal={}, searchResultType={}, searchType={}: orig filter {}",
+                    SEC_START, username, TracingUtil.getTypeName(filterType), preProcessor, origFilter);
         }
     }
 
     private void traceOperationEnd(F securityFilter) {
         if (traceEnabled) {
             // TODO desc?
-            LOGGER.trace("AUTZ: computed security filter principal={}, searchResultType={}: {}\n{}",
-                    username, TracingUtil.getTypeName(filterType),
+            LOGGER.trace("{} computed security filter principal={}, searchResultType={}: {}\n{}",
+                    SEC_END, username, TracingUtil.getTypeName(filterType),
                     securityFilter, DebugUtil.debugDump(securityFilter, 1));
-        }
-    }
-
-    static void traceFilter(EnforcerOperation ctx, String message, Object forObj, ObjectFilter filter) {
-        if (FILTER_TRACE_ENABLED && ctx.traceEnabled) {
-            LOGGER.trace("FILTER {} {}:\n{}", message, TracingUtil.describe(forObj), DebugUtil.debugDump(filter, 1));
-        }
-    }
-
-    static <F> void traceFilter(EnforcerOperation ctx, String message, Object forObj, F filter, FilterGizmo<F> gizmo) {
-        if (FILTER_TRACE_ENABLED && ctx.traceEnabled) {
-            LOGGER.trace("FILTER {} {}:\n{}", message, TracingUtil.describe(forObj), gizmo.debugDumpFilter(filter, 1));
-        }
-    }
-
-    private void tracePaths(String message, QueryAutzItemPaths paths) {
-        if (FILTER_TRACE_ENABLED && traceEnabled) {
-            LOGGER.trace("PATHS {} {}", message, paths.shortDump());
         }
     }
 
@@ -288,7 +293,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             return new ForTarget(object);
         }
 
-        abstract List<? extends OwnedObjectSelectorType> getSelectors(Authorization authorization);
+        abstract List<ValueSelector> getSelectors(Authorization authorization) throws ConfigurationException;
 
         abstract String getSelectorLabel();
 
@@ -299,8 +304,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         static class ForObject extends AuthorizationPreProcessor {
 
             @Override
-            List<? extends OwnedObjectSelectorType> getSelectors(Authorization authorization) {
-                return authorization.getObjectSelectors();
+            List<ValueSelector> getSelectors(Authorization authorization) throws ConfigurationException {
+                return authorization.getParsedObjectSelectors();
             }
 
             @Override
@@ -327,8 +332,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
 
             @Override
-            List<? extends OwnedObjectSelectorType> getSelectors(Authorization authorization) {
-                return authorization.getTargetSelectors();
+            List<ValueSelector> getSelectors(Authorization authorization) throws ConfigurationException {
+                return authorization.getParsedTargetSelectors();
             }
 
             @Override

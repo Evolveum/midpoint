@@ -17,8 +17,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -44,7 +43,10 @@ import com.evolveum.midpoint.util.exception.*;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.shortDumpOrderConstraintsList;
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_ALL_URL;
 import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.prettyActionUrl;
+import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import static java.util.Collections.emptySet;
@@ -61,6 +63,9 @@ public class AuthorizationEvaluation {
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
+    /** TODO describe, decide */
+    @NotNull private final String id;
+
     @NotNull final Authorization authorization;
     @NotNull private final Lazy<String> lazyDescription;
 
@@ -71,9 +76,11 @@ public class AuthorizationEvaluation {
     @NotNull final OperationResult result;
 
     AuthorizationEvaluation(
+            @Nullable String id,
             @NotNull Authorization authorization,
             @NotNull EnforcerOperation op,
             @NotNull OperationResult result) {
+        this.id = Objects.requireNonNullElse(id, "");
         this.authorization = authorization;
         this.op = op;
         this.principal = op.principal;
@@ -81,8 +88,6 @@ public class AuthorizationEvaluation {
         this.task = op.task;
         this.result = result;
         this.lazyDescription = Lazy.from(() -> this.authorization.getHumanReadableDesc());
-
-        traceStart();
     }
 
     public @NotNull Authorization getAuthorization() {
@@ -91,51 +96,37 @@ public class AuthorizationEvaluation {
 
     boolean isApplicableToAction(@NotNull String operationUrl) {
         List<String> autzActions = authorization.getAction();
-        if (autzActions.contains(operationUrl) || autzActions.contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+        if (autzActions.contains(operationUrl) || autzActions.contains(AUTZ_ALL_URL)) {
+            traceAutzApplicableToAction(operationUrl);
             return true;
+        } else {
+            traceAutzNotApplicableToAction(operationUrl);
+            return false;
         }
-        if (op.traceEnabled) {
-            LOGGER.trace("      Authorization not applicable for operation {}", prettyActionUrl(operationUrl));
-        }
-        return false;
     }
 
     boolean isApplicableToActions(String[] requiredActions) {
         List<String> autzActions = authorization.getAction();
-        if (autzActions.contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+        if (autzActions.contains(AUTZ_ALL_URL)) {
+            traceAutzApplicableToAnyAction();
             return true;
         }
         for (String requiredAction : requiredActions) {
             if (autzActions.contains(requiredAction)) {
+                traceAutzApplicableToAction(requiredAction);
                 return true;
             }
         }
-        if (op.traceEnabled) {
-            LOGGER.trace("      Authorization not applicable for operation {}", prettyActionUrl(requiredActions));
-        }
-        return false;
-    }
-
-    /** No AUTZ_ALL exception here! */
-    boolean isApplicableToActions(Collection<String> requiredActions) {
-        List<String> autzActions = authorization.getAction();
-        for (String requiredAction : requiredActions) {
-            if (autzActions.contains(requiredAction)) {
-                return true;
-            }
-        }
-        if (op.traceEnabled) {
-            LOGGER.trace("      Authorization not applicable for operation {}", prettyActionUrl(requiredActions));
-        }
+        traceAutzNotApplicableToActions(requiredActions);
         return false;
     }
 
     boolean isApplicableToPhase(@NotNull PhaseSelector phaseSelector) {
         if (phaseSelector.matches(authorization.getPhase())) {
-            LOGGER.trace("      Authorization is applicable for phase filter '{}' (continuing evaluation)", phaseSelector);
+            traceAutzApplicableToPhase(phaseSelector);
             return true;
         } else {
-            LOGGER.trace("      Authorization is not applicable for phase filter '{}'", phaseSelector);
+            traceAutzNotApplicableToPhase(phaseSelector);
             return false;
         }
     }
@@ -152,25 +143,21 @@ public class AuthorizationEvaluation {
         if (autzLimitationsActions.isEmpty() || autzLimitationsActions.contains(limitAuthorizationAction)) {
             return true;
         }
-        if (op.traceEnabled) {
-            LOGGER.trace("      Authorization is limited to other action, not applicable for operation {}",
-                    prettyActionUrl(operationUrls));
-        }
+        traceAutzNotApplicableToLimitations(operationUrls);
         return false;
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isApplicableToOrderConstraints(List<OrderConstraintsType> paramOrderConstraints) {
         var applies = getOrderConstraintsApplicability(paramOrderConstraints);
-        if (!applies && op.traceEnabled) {
-            LOGGER.trace("      Authorization not applicable for orderConstraints {}",
-                    SchemaDebugUtil.shortDumpOrderConstraintsList(paramOrderConstraints));
+        if (!applies) {
+            traceAutzNotApplicableToOrderConstraints(paramOrderConstraints);
         }
         return applies;
     }
 
     private boolean getOrderConstraintsApplicability(List<OrderConstraintsType> paramOrderConstraints) {
-        if (authorization.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+        if (authorization.getAction().contains(AUTZ_ALL_URL)) {
             // #all is always applicable
             // Compatibility note: in fact, this not really correct. We should not make
             // any special case for #all action - except for the fact that it applies to
@@ -256,21 +243,20 @@ public class AuthorizationEvaluation {
         if (autzRelation.isEmpty() || QNameUtil.contains(autzRelation, relation)) {
             return true;
         } else {
-            LOGGER.trace("      Authorization is not applicable for relation {}", relation);
+            traceAutzNotApplicableToRelation(relation);
             return false;
         }
     }
 
-    <O extends ObjectType> boolean isApplicableToObject(ObjectDeltaObject<O> odo)
+    <O extends ObjectType> boolean isApplicableToObjectOperation(ObjectDeltaObject<O> odo)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         var anyObject = odo != null ? odo.getAnyObject() : null;
         if (isApplicableToObjectDeltaObjectInternal(odo)) {
-            LOGGER.trace("    Authorization is applicable for object {} (continuing evaluation)", anyObject);
+            traceAutzApplicableToObjectOperation(anyObject);
             return true;
         } else {
-            LOGGER.trace("    Authorization is not applicable for object {}, none of the object specifications match (breaking evaluation)",
-                    anyObject);
+            traceAutzNotApplicableToObjectOperation(anyObject);
             return false;
         }
     }
@@ -278,69 +264,48 @@ public class AuthorizationEvaluation {
     private <O extends ObjectType> boolean isApplicableToObjectDeltaObjectInternal(ObjectDeltaObject<O> odo)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        List<? extends OwnedObjectSelectorType> objectSelectors = authorization.getObjectSelectors();
+        List<ValueSelector> objectSelectors = authorization.getParsedObjectSelectors();
         if (!objectSelectors.isEmpty()) {
             if (odo == null) {
-                if (op.traceEnabled) {
-                    LOGGER.trace("  object not applicable for null {}", getDesc());
-                }
+                traceAutzNotApplicableToNullOperation();
                 return false;
             }
             ObjectDelta<O> objectDelta = odo.getObjectDelta();
             if (objectDelta != null && objectDelta.isModify()) {
                 if (authorization.keepZoneOfControl()) {
-                    PrismObject<O> oldObject = odo.getOldObject();
-                    if (oldObject == null) {
-                        throw new IllegalStateException("No old object in odo " + odo);
-                    }
-                    if (!areSelectorsApplicable(objectSelectors, oldObject, "object(old)")) {
-                        return false;
-                    }
-                    PrismObject<O> newObject = odo.getNewObject();
-                    if (newObject == null) {
-                        throw new IllegalStateException("No new object in odo " + odo);
-                    }
-                    return areSelectorsApplicable(objectSelectors, newObject, "object(new)");
+                    return areSelectorsApplicable(objectSelectors, odo.getOldObjectRequired(), "object(old)")
+                            && areSelectorsApplicable(objectSelectors, odo.getNewObjectRequired(), "object(new)");
                 } else {
-                    PrismObject<O> object = odo.getOldObject();
-                    if (object == null) {
-                        throw new IllegalStateException("No old object in odo " + odo);
-                    }
-                    return areSelectorsApplicable(objectSelectors, object, "object(old)");
+                    return areSelectorsApplicable(objectSelectors, odo.getOldObjectRequired(), "object(old)");
                 }
             } else {
                 // Old and new object should be the same. Or there is just one of them. Any one of them will do.
-                PrismObject<O> object = odo.getAnyObject();
-                if (object == null) {
-                    throw new IllegalStateException("No object in odo " + odo);
-                }
-                return areSelectorsApplicable(objectSelectors, object, "object");
+                return areSelectorsApplicable(objectSelectors, odo.getAnyObjectRequired(), "object");
             }
         } else {
-            LOGGER.trace("    {}: No object specification in authorization (authorization is applicable)", getDesc());
+            traceAutzApplicableBecauseNoObjectSpecification();
             return true;
         }
     }
 
     private <O extends ObjectType> boolean areSelectorsApplicable(
-            @NotNull List<? extends OwnedObjectSelectorType> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
+            @NotNull List<ValueSelector> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (!selectors.isEmpty()) {
             if (object == null) {
-                if (op.traceEnabled) {
-                    LOGGER.trace("  Authorization is not applicable for null {}", desc);
-                }
+                traceSelectorsNotApplicableForNullObject(desc);
                 return false;
             }
-            for (OwnedObjectSelectorType selector : selectors) {
-                if (isSelectorApplicable(selector, object, emptySet(), desc)) {
+            int i = 0;
+            for (ValueSelector selector : selectors) {
+                if (isSelectorApplicable(String.valueOf(i++), selector, object.getValue(), emptySet(), desc)) {
                     return true;
                 }
             }
             return false;
         } else {
-            LOGGER.trace("    Authorization: No {} specification in authorization (authorization is applicable)", desc);
+            traceNoSelectorsPresent(desc);
             return true;
         }
     }
@@ -348,12 +313,11 @@ public class AuthorizationEvaluation {
     <T extends ObjectType> boolean isApplicableToObject(PrismObject<T> object)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (areSelectorsApplicable(authorization.getObjectSelectors(), object, "object")) {
-            LOGGER.trace("    applicable for object {} (continuing evaluation)", object);
+        if (areSelectorsApplicable(authorization.getParsedObjectSelectors(), object, "object")) {
+            traceAutzApplicableToObject(object);
             return true;
         } else {
-            LOGGER.trace("    not applicable for object {}, none of the object specifications match (breaking evaluation)",
-                    object);
+            traceAutzNotApplicableToObject(object);
             return false;
         }
     }
@@ -361,12 +325,11 @@ public class AuthorizationEvaluation {
     <T extends ObjectType> boolean isApplicableToTarget(PrismObject<T> target)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (areSelectorsApplicable(authorization.getTargetSelectors(), target, "target")) {
-            LOGGER.trace("    applicable for target {} (continuing evaluation)", target);
+        if (areSelectorsApplicable(authorization.getParsedTargetSelectors(), target, "target")) {
+            traceAutzApplicableToTarget(target);
             return true;
         } else {
-            LOGGER.trace("    not applicable for target {}, none of the target specifications match (breaking evaluation)",
-                    target);
+            traceAutzNotApplicableToTarget(target);
             return false;
         }
     }
@@ -438,7 +401,8 @@ public class AuthorizationEvaluation {
             if (subject != null) {
                 def = subject.getDefinition();
                 if (def == null) {
-                    def = b.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(subject.asObjectable().getClass());
+                    def = b.prismContext.getSchemaRegistry()
+                            .findObjectDefinitionByCompileTimeClass(subject.asObjectable().getClass());
                 }
                 variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject, def);
             } else {
@@ -455,40 +419,168 @@ public class AuthorizationEvaluation {
         return lazyDescription.get();
     }
 
-    /**
-     * TODO move elsewhere?
-     *
-     * @param otherSelfOids Which OIDs should match "self" in addition to the current principal OID. Usually these could be
-     * some or all of delegators' OIDs, i.e. people that delegated privileges to the current principal.
-     * The reason is that if we want to match assignee or requestor (probably targetObject and owner as well)
-     * we want to give appropriate privileges also to assignee/requestor delegates.
-     */
     public boolean isSelectorApplicable(
-            @NotNull SubjectedObjectSelectorType selector,
-            @Nullable PrismObject<? extends ObjectType> object,
+            @NotNull String id,
+            @NotNull ValueSelector selector,
+            @NotNull PrismValue value,
             @NotNull Collection<String> otherSelfOids,
             @NotNull String desc)
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        var value = object != null ? object.getValue() : null;
-        return new ObjectSelectorEvaluation<>(selector, value, otherSelfOids, desc, this, result)
+        return new SelectorEvaluation(id, selector, value, otherSelfOids, desc, this, result)
                 .isSelectorApplicable();
     }
 
-    public boolean isSelectorApplicable(
-            @NotNull SubjectedObjectSelectorType selector,
-            @Nullable PrismValue value,
-            @NotNull Collection<String> otherSelfOids,
-            @NotNull String desc)
-            throws SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return new ObjectSelectorEvaluation<>(selector, value, otherSelfOids, desc, this, result)
-                .isSelectorApplicable();
-    }
-
-    private void traceStart() {
+    void traceStart() {
         if (op.traceEnabled) {
-            LOGGER.trace("    Evaluating {}", getDesc());
+            LOGGER.trace("{} Evaluating {}", start(), getDesc());
         }
+    }
+
+    void traceEndNotApplicable() {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Result: {}: not applicable", end(), getDesc());
+        }
+    }
+
+    private void traceAutzNotApplicableToAction(@NotNull String operationUrl) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization not applicable for operation {}", cont(), prettyActionUrl(operationUrl));
+        }
+    }
+
+    private void traceAutzApplicableToAction(@NotNull String operationUrl) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is applicable for operation {} (continuing evaluation)",
+                    cont(), prettyActionUrl(operationUrl));
+        }
+    }
+
+    private void traceAutzApplicableToAnyAction() {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is applicable for all operations (continuing evaluation)", cont());
+        }
+    }
+
+    private void traceAutzNotApplicableToActions(String[] requiredActions) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization not applicable for operation(s) {}", cont(), prettyActionUrl(requiredActions));
+        }
+    }
+
+    private void traceAutzNotApplicableToPhase(@NotNull PhaseSelector phaseSelector) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is not applicable for phase filter '{}'", cont(), phaseSelector);
+        }
+    }
+
+    private void traceAutzApplicableToPhase(@NotNull PhaseSelector phaseSelector) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is applicable for phase filter '{}' (continuing evaluation)",
+                    cont(), phaseSelector);
+        }
+    }
+
+    private void traceAutzNotApplicableToLimitations(String[] operationUrls) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is limited to other action, not applicable for operation {}",
+                    cont(), prettyActionUrl(operationUrls));
+        }
+    }
+
+    private void traceAutzNotApplicableToOrderConstraints(List<OrderConstraintsType> paramOrderConstraints) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization not applicable for orderConstraints {}",
+                    cont(), shortDumpOrderConstraintsList(paramOrderConstraints));
+        }
+    }
+
+    private void traceAutzNotApplicableToRelation(QName relation) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is not applicable for relation {}", cont(), relation);
+        }
+    }
+
+    private void traceAutzNotApplicableToObjectOperation(PrismObject<? extends ObjectType> anyObject) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is not applicable for object {}, none of the object specifications match",
+                    cont(), anyObject);
+        }
+    }
+
+    private void traceAutzApplicableToObjectOperation(PrismObject<? extends ObjectType> anyObject) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is applicable for object {} (continuing evaluation)", cont(), anyObject);
+        }
+    }
+
+    private void traceAutzNotApplicableToNullOperation() {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is not applicable for null object operation info", cont());
+        }
+    }
+
+    private void traceAutzApplicableBecauseNoObjectSpecification() {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is applicable, because there is no object specification (continuing evaluation)",
+                    cont());
+        }
+    }
+
+    private void traceAutzApplicableToObject(PrismObject<? extends ObjectType> object) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is applicable to object {} (continuing evaluation)", cont(), object);
+        }
+    }
+
+    private void traceAutzNotApplicableToObject(PrismObject<? extends ObjectType> object) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is not applicable to object {}, none of the object specifications match",
+                    cont(), object);
+        }
+    }
+
+    private void traceAutzNotApplicableToTarget(PrismObject<? extends ObjectType> target) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is not applicable to target {}, none of the target specifications match",
+                    cont(), target);
+        }
+    }
+
+    private void traceAutzApplicableToTarget(PrismObject<? extends ObjectType> target) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is applicable to target {} (continuing evaluation)", cont(), target);
+        }
+    }
+
+    private void traceSelectorsNotApplicableForNullObject(@NotNull String desc) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is not applicable for null {}", SELECTORS, desc);
+        }
+    }
+
+    private void traceNoSelectorsPresent(@NotNull String desc) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} No {} selectors in authorization (authorization is applicable)", SELECTORS, desc);
+        }
+    }
+
+    private String start() {
+        return AUTZ + id + START;
+    }
+
+    private String cont() {
+        return AUTZ + id + CONT;
+    }
+
+    String end() {
+        return AUTZ + id + END;
     }
 }

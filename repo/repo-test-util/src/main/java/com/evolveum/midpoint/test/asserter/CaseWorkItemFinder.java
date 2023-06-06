@@ -8,9 +8,12 @@ package com.evolveum.midpoint.test.asserter;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
+
+import java.util.function.Consumer;
 
 public class CaseWorkItemFinder<RA, WI extends AbstractWorkItemType> {
 
@@ -38,7 +41,16 @@ public class CaseWorkItemFinder<RA, WI extends AbstractWorkItemType> {
         return this;
     }
 
+    public CaseWorkItemsAsserter<RA, WI> find(Consumer<CaseWorkItemAsserter<?, WI>> consumer) {
+        consumer.accept(find());
+        return workItemsAsserter;
+    }
+
     public CaseWorkItemAsserter<CaseWorkItemsAsserter<RA, WI>, WI> find() {
+        return workItemsAsserter.forWorkItem(findInternal());
+    }
+
+    private @NotNull WI findInternal() {
         WI found = null;
         for (WI workItem: workItemsAsserter.getWorkItems()) {
             if (matches(workItem)) {
@@ -52,7 +64,7 @@ public class CaseWorkItemFinder<RA, WI extends AbstractWorkItemType> {
         if (found == null) {
             throw new AssertionError("Found no work item that matches search criteria");
         } else {
-            return workItemsAsserter.forWorkItem(found);
+            return found;
         }
     }
 

@@ -369,10 +369,10 @@ public class ObjectRetriever {
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         boolean assignments = AssignmentType.class.equals(type);
-        boolean cases = AccessCertificationCaseType.class.equals(type);
+        boolean accCertCases = AccessCertificationCaseType.class.equals(type);
         boolean accCertWorkItems = AccessCertificationWorkItemType.class.equals(type);
         boolean caseWorkItems = CaseWorkItemType.class.equals(type);
-        if (!cases && !accCertWorkItems && !caseWorkItems && !assignments) {
+        if (!accCertCases && !accCertWorkItems && !caseWorkItems && !assignments) {
             throw new UnsupportedOperationException(
                     "Only AccessCertificationCaseType or AccessCertificationWorkItemType"
                             + " or CaseWorkItemType or Assignments is supported here now.");
@@ -389,7 +389,7 @@ public class ObjectRetriever {
 
             if (assignments) {
                 processAssignmentsQuery(list, rQuery);
-            } else if (cases) {
+            } else if (accCertCases) {
                 @SuppressWarnings({ "unchecked", "raw" })
                 List<GetContainerableResult> items = rQuery.list();
                 LOGGER.trace("Found {} items (cases), translating to JAXB.", items.size());

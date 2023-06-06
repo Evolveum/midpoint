@@ -20,8 +20,10 @@ import org.jetbrains.annotations.NotNull;
 public interface PrismEntityOpConstraints extends DebugDumpable {
 
     /**
-     * Returns the access decision for the current element: either definite ({@link AccessDecision#ALLOW}
-     * or {@link AccessDecision#DENY}) or not definite ({@link AccessDecision#DEFAULT}.
+     * Returns the access decision for the current element:
+     *
+     * - either definite ({@link AccessDecision#ALLOW} or {@link AccessDecision#DENY})
+     * - or not definite ({@link AccessDecision#DEFAULT}.
      */
     @NotNull AccessDecision getDecision();
 

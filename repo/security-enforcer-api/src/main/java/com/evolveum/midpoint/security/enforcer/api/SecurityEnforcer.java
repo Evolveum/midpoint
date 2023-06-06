@@ -6,13 +6,15 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
-import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.context.SecurityContext;
+
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -22,16 +24,11 @@ import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.security.core.context.SecurityContext;
 
 /**
  * @author Radovan Semancik
@@ -49,7 +46,7 @@ public interface SecurityEnforcer {
     <O extends ObjectType, T extends ObjectType> boolean isAuthorized(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O,T> params,
+            @NotNull AuthorizationParameters<O, T> params,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -102,7 +99,7 @@ public interface SecurityEnforcer {
     default <O extends ObjectType, T extends ObjectType> void authorize(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O,T> params,
+            @NotNull AuthorizationParameters<O, T> params,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Task task,
             @NotNull OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
@@ -128,8 +125,7 @@ public interface SecurityEnforcer {
     @Experimental
     default void authorizeAll(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        authorize(
-                AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+        authorize(AuthorizationConstants.AUTZ_ALL_URL, task, result);
     }
 
     /**
@@ -166,20 +162,26 @@ public interface SecurityEnforcer {
      */
     @Deprecated // to be replaced by value-based variant
     <O extends ObjectType> @NotNull ObjectOperationConstraints compileOperationConstraints(
-            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
-            @NotNull Collection<String> actionUrls,
-            @NotNull Task task, @NotNull OperationResult result)
+            @NotNull PrismObject<O> object,
+            @Nullable OwnerResolver ownerResolver,
+            @NotNull String[] actionUrls,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
     /**
      * TODO
+     *
+     * Note that the `value` is currently always {@link PrismObjectValue}. In the future we may lift this restriction,
+     * and allow arbitrary {@link PrismValue} instances here. But this is simpler with respect to application of authorizations
+     * to these values.
      */
     @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
-            @NotNull PrismValue object,
+            @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull Collection<String> actionUrls,
+            @NotNull String[] actionUrls,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
@@ -198,7 +200,7 @@ public interface SecurityEnforcer {
      * @param limitAuthorizationAction only consider authorizations that are not limited with respect to this action.
      * If null then all authorizations are considered.
      */
-    <T extends ObjectType> @Nullable ObjectFilter preProcessObjectFilter(
+    <T> @Nullable ObjectFilter preProcessObjectFilter(
             String[] operationUrls,
             AuthorizationPhaseType phase,
             Class<T> searchResultType,

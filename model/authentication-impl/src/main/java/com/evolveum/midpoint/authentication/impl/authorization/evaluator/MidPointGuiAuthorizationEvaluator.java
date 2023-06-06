@@ -16,7 +16,8 @@ import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderI
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.impl.util.EndPointsUrlMapping;
 
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.api.*;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
@@ -31,9 +32,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -330,7 +328,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     @Override
     public @NotNull <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
             @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
-            @NotNull Collection<String> actionUrls,
+            @NotNull String[] actionUrls,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -339,10 +337,10 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
-            @NotNull PrismValue value,
+            @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull Collection<String> actionUrls,
+            @NotNull String[] actionUrls,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
@@ -351,7 +349,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public @Nullable <T extends ObjectType> ObjectFilter preProcessObjectFilter(
+    public @Nullable <T> ObjectFilter preProcessObjectFilter(
             String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType,
             @Nullable ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints,
             Task task, OperationResult result)

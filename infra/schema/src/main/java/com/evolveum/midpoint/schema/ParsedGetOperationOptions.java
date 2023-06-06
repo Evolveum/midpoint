@@ -41,7 +41,7 @@ public class ParsedGetOperationOptions {
 
     private ParsedGetOperationOptions() {
         this.originalCollection = List.of();
-        this.rootOptions.get(); // to resolve it
+        this.rootOptions.get(); // to resolve it (as it is used for the EMPTY constant)
     }
 
     private ParsedGetOperationOptions(@Nullable Collection<SelectorOptions<GetOperationOptions>> originalCollection) {

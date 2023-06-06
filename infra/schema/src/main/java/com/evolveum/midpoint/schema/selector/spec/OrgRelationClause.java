@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.security.enforcer.impl.clauses;
+package com.evolveum.midpoint.schema.selector.spec;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -14,8 +14,11 @@ import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -27,61 +30,65 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
-/**
- * Evaluates "orgRelation" object selector clause.
- */
-public class OrgRelation extends AbstractSelectorClauseEvaluation {
+public class OrgRelationClause extends SelectorClause {
 
-    @NotNull
-    private final OrgRelationObjectSpecificationType selectorOrgRelation;
+    @NotNull private final OrgRelationObjectSpecificationType bean;
 
-    public OrgRelation(
-            @NotNull OrgRelationObjectSpecificationType selectorOrgRelation, @NotNull ClauseEvaluationContext ctx) {
-        super(ctx);
-        this.selectorOrgRelation = selectorOrgRelation;
+    /** Immutable. */
+    private OrgRelationClause(@NotNull OrgRelationObjectSpecificationType bean) {
+        this.bean = bean;
+        bean.freeze();
     }
 
-    public boolean isApplicable(PrismValue value) throws SchemaException {
+    static OrgRelationClause of(@NotNull OrgRelationObjectSpecificationType bean) {
+        return new OrgRelationClause(bean);
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return "orgRelation";
+    }
+
+    @Override
+    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         var object = asObjectTypeIfPossible(value);
         if (object == null) {
-            return false; // TODO log?
+            traceNotApplicable(ctx, "not an object");
+            return false;
         }
-        boolean match = false;
         var principalFocus = ctx.getPrincipalFocus();
         if (principalFocus != null) {
             for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
-                if (matchesOrgRelation(object, subjectParentOrgRef)) {
-                    LOGGER.trace("    org applicable for {}, object OID {} because subject org {} matches",
-                            ctx.getDesc(), object.getOid(), subjectParentOrgRef.getOid());
-                    match = true;
-                    break;
+                if (matchesOrgRelation(object, subjectParentOrgRef, ctx)) {
+                    traceApplicable(ctx, "subject org matches: %s", subjectParentOrgRef.getOid());
+                    return true;
                 }
             }
         }
-        if (!match) {
-            LOGGER.trace("    org not applicable for {}, object OID {} because none of the subject orgs matches",
-                    ctx.getDesc(), object.getOid());
-        }
-        return match;
+        traceNotApplicable(ctx, "none of the subject orgs match");
+        return false;
     }
 
-    private boolean matchesOrgRelation(ObjectType object, ObjectReferenceType subjectParentOrgRef)
+    private boolean matchesOrgRelation(
+            ObjectType object, ObjectReferenceType subjectParentOrgRef, @NotNull ClauseMatchingContext ctx)
             throws SchemaException {
-        if (!PrismContext.get().relationMatches(selectorOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
+        if (!PrismContext.get().relationMatches(bean.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
             return false;
         }
-        if (BooleanUtils.isTrue(selectorOrgRelation.isIncludeReferenceOrg())
+        if (BooleanUtils.isTrue(bean.isIncludeReferenceOrg())
                 && subjectParentOrgRef.getOid().equals(object.getOid())) {
             return true;
         }
-        OrgScopeType scope = Objects.requireNonNullElse(selectorOrgRelation.getScope(), OrgScopeType.ALL_DESCENDANTS);
+        OrgScopeType scope = Objects.requireNonNullElse(bean.getScope(), OrgScopeType.ALL_DESCENDANTS);
         switch (scope) {
             case ALL_DESCENDANTS:
-                return ctx.getRepositoryService().isDescendant(object.asPrismObject(), subjectParentOrgRef.getOid());
+                return ctx.orgTreeEvaluator.isDescendant(object.asPrismObject(), subjectParentOrgRef.getOid());
             case DIRECT_DESCENDANTS:
                 return hasParentOrgRef(object.asPrismObject(), subjectParentOrgRef.getOid());
             case ALL_ANCESTORS:
-                return ctx.getRepositoryService().isAncestor(object.asPrismObject(), subjectParentOrgRef.getOid());
+                return ctx.orgTreeEvaluator.isAncestor(object.asPrismObject(), subjectParentOrgRef.getOid());
             default:
                 throw new UnsupportedOperationException("Unknown orgRelation scope " + scope);
         }
@@ -97,16 +104,17 @@ public class OrgRelation extends AbstractSelectorClauseEvaluation {
         return false;
     }
 
-    public void applyFilter() {
-        ObjectFilter increment = null;
-        QName subjectRelation = selectorOrgRelation.getSubjectRelation();
+    @Override
+    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) throws SchemaException {
+        ObjectFilter conjunct = null;
+        QName subjectRelation = bean.getSubjectRelation();
         FocusType principalFocus = ctx.getPrincipalFocus();
         if (principalFocus != null) {
             for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
                 if (PrismContext.get().relationMatches(subjectRelation, subjectParentOrgRef.getRelation())) {
                     S_FilterEntryOrEmpty q = PrismContext.get().queryFor(ObjectType.class);
                     S_FilterExit q2;
-                    OrgScopeType scope = selectorOrgRelation.getScope();
+                    OrgScopeType scope = bean.getScope();
                     if (scope == null || scope == OrgScopeType.ALL_DESCENDANTS) {
                         q2 = q.isChildOf(subjectParentOrgRef.getOid());
                     } else if (scope == OrgScopeType.DIRECT_DESCENDANTS) {
@@ -116,17 +124,23 @@ public class OrgRelation extends AbstractSelectorClauseEvaluation {
                     } else {
                         throw new UnsupportedOperationException("Unknown orgRelation scope " + scope);
                     }
-                    if (Boolean.TRUE.equals(selectorOrgRelation.isIncludeReferenceOrg())) {
+                    if (Boolean.TRUE.equals(bean.isIncludeReferenceOrg())) {
                         q2 = q2.or().id(subjectParentOrgRef.getOid());
                     }
-                    increment = ObjectQueryUtil.filterOr(increment, q2.buildFilter());
+                    conjunct = ObjectQueryUtil.filterOr(conjunct, q2.buildFilter());
                 }
             }
         }
-        if (increment == null) {
-            increment = FilterCreationUtil.createNone();
+        if (conjunct == null) {
+            conjunct = FilterCreationUtil.createNone();
         }
-        fCtx.addConjunction(increment);
-        LOGGER.trace("      applying orgRelation filter {}", increment);
+        addConjunct(ctx, conjunct);
+        return true; // Todo false if "none" ?
+    }
+
+    @Override
+    void addDebugDumpContent(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "specification", bean, indent + 1);
     }
 }

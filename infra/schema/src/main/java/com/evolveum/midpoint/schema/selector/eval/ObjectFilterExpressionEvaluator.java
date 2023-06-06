@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2017 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.api.query;
+package com.evolveum.midpoint.schema.selector.eval;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.CommunicationException;

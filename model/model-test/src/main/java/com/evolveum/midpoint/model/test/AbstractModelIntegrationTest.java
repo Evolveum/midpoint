@@ -7264,10 +7264,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
-    protected WorkItemsAsserter<Void> assertWorkItems(
+    protected CaseWorkItemsAsserter<Void, CaseWorkItemType> assertWorkItems(
             Collection<CaseWorkItemType> workItems, String message) {
         return initializeAsserter(
-                WorkItemsAsserter.forWorkItems(workItems, message));
+                CaseWorkItemsAsserter.forWorkItems(workItems, message));
     }
 
     // TODO will we need this method?
@@ -7286,23 +7286,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return new ArrayList<>( // to assure modifiable result list
                 modelService.searchContainers(CaseWorkItemType.class,
                         ObjectQueryUtil.openItemsQuery(), options, task, result));
-    }
-
-    // TODO will we need this method?
-    protected WorkItemsAsserter<Void> assertOpenWorkItems(String message)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        return assertWorkItems(
-                getOpenWorkItemsResolved(getTestTask(), getTestOperationResult()),
-                message);
-    }
-
-    // TODO will we need this method?
-    protected WorkItemsAsserter<Void> assertOpenWorkItemsAfter()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        return assertOpenWorkItems("after")
-                .display();
     }
 
     protected CaseAsserter<Void> assertReferencedCase(OperationResult result, String message)

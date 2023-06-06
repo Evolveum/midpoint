@@ -6,19 +6,23 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author semancik
@@ -30,8 +34,15 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @NotNull private final AuthorizationType authorizationBean;
     private String sourceDescription;
 
+    @NotNull private final Lazy<PathSet> itemsLazy;
+    @NotNull private final Lazy<PathSet> exceptItemsLazy;
+    private List<ValueSelector> parsedObjectSelectors;
+    private List<ValueSelector> parsedTargetSelectors;
+
     public Authorization(@NotNull AuthorizationType authorizationBean) {
         this.authorizationBean = authorizationBean;
+        itemsLazy = Lazy.from(() -> parseItems(this.authorizationBean.getItem()));
+        exceptItemsLazy = Lazy.from(() -> parseItems(this.authorizationBean.getExceptItem()));
     }
 
     @Override
@@ -88,8 +99,37 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
     }
 
-    public @NotNull List<AuthorizationObjectSelectorType> getObjectSelectors() {
+    private @NotNull List<AuthorizationObjectSelectorType> getObjectSelectors() {
         return authorizationBean.getObject();
+    }
+
+    public @NotNull synchronized List<ValueSelector> getParsedObjectSelectors() throws ConfigurationException {
+        var cached = parsedObjectSelectors;
+        if (cached != null) {
+            return cached;
+        } else {
+            parsedObjectSelectors = parseSelectors(getObjectSelectors());
+            return parsedObjectSelectors;
+        }
+    }
+
+    public @NotNull synchronized List<ValueSelector> getParsedTargetSelectors() throws ConfigurationException {
+        var cached = parsedTargetSelectors;
+        if (cached != null) {
+            return cached;
+        } else {
+            parsedTargetSelectors = parseSelectors(getTargetSelectors());
+            return parsedTargetSelectors;
+        }
+    }
+
+    private List<ValueSelector> parseSelectors(List<? extends OwnedObjectSelectorType> selectorBeans)
+            throws ConfigurationException {
+        List<ValueSelector> parsed = new ArrayList<>();
+        for (OwnedObjectSelectorType selectorBean : selectorBeans) {
+            parsed.add(ValueSelector.parse(selectorBean));
+        }
+        return parsed;
     }
 
     @NotNull
@@ -102,39 +142,29 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return authorizationBean.getExceptItem();
     }
 
-    @NotNull
-    public List<ItemPath> getItems() {
-        List<ItemPathType> itemPaths = getItem();
-        // TODO: maybe we can cache the itemPaths here?
-        List<ItemPath> items = new ArrayList<>(itemPaths.size());
-        for (ItemPathType itemPathType: itemPaths) {
-            items.add(itemPathType.getItemPath());
-        }
-        return items;
+    public @NotNull PathSet getItems() {
+        return itemsLazy.get();
     }
 
-    @NotNull
-    public List<ItemPath> getExceptItems() {
-        List<ItemPathType> itemPaths = getExceptItem();
-        // TODO: maybe we can cache the itemPaths here?
-        List<ItemPath> items = new ArrayList<>(itemPaths.size());
-        for (ItemPathType itemPathType: itemPaths) {
-            items.add(itemPathType.getItemPath());
-        }
-        return items;
+    public @NotNull PathSet getExceptItems() {
+        return exceptItemsLazy.get();
     }
 
-    public @NotNull List<ItemValueSelectorType> getItemValueSelectors() {
-        return authorizationBean.getItemValue();
+    private @NotNull PathSet parseItems(@NotNull List<ItemPathType> beans) {
+        var set = new PathSet();
+        for (ItemPathType bean : beans) {
+            set.add(bean.getItemPath());
+        }
+        set.freeze();
+        return set;
     }
 
     public boolean hasItemSpecification() {
         return !getItem().isEmpty()
-                || !getExceptItem().isEmpty()
-                || !getItemValueSelectors().isEmpty();
+                || !getExceptItem().isEmpty();
     }
 
-    public @NotNull List<OwnedObjectSelectorType> getTargetSelectors() {
+    private @NotNull List<OwnedObjectSelectorType> getTargetSelectors() {
         return authorizationBean.getTarget();
     }
 

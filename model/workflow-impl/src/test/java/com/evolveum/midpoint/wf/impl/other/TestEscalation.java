@@ -368,8 +368,11 @@ public class TestEscalation extends AbstractWfTestPolicy {
                 .getWorkItems();
         // @formatter:on
 
-        assertEquals("The work item deadlines differ after escalation",
-                workItems.get(0).getDeadline(), workItems.get(1).getDeadline());
+        var iterator = workItems.iterator();
+        CaseWorkItemType first = iterator.next();
+        CaseWorkItemType second = iterator.next();
+
+        assertEquals("The work item deadlines differ after escalation", first.getDeadline(), second.getDeadline());
     }
 
     /**

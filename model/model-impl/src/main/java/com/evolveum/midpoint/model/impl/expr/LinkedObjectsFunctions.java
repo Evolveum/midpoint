@@ -259,7 +259,8 @@ public class LinkedObjectsFunctions {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         return selector == null ||
-                repositoryService.selectorMatches(selector, targetObject.asPrismObject(), null, LOGGER, "");
+                repositoryService.selectorMatches(
+                        selector, targetObject.asPrismObject(), null, LOGGER, "");
     }
 
     @Experimental // todo clean up!

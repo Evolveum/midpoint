@@ -8,7 +8,8 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,14 +20,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType
  */
 public class CaseWorkItemsAsserter<RA, WI extends AbstractWorkItemType> extends AbstractAsserter<RA> {
 
-    @NotNull private final List<WI> workItems;
+    @NotNull private final Collection<WI> workItems;
 
-    public CaseWorkItemsAsserter(@NotNull RA parentAsserter, @NotNull List<WI> workItems, String details) {
+    CaseWorkItemsAsserter(RA parentAsserter, @NotNull Collection<WI> workItems, String details) {
         super(parentAsserter, details);
         this.workItems = workItems;
     }
 
-    public @NotNull List<WI> getWorkItems() {
+    public static <WI extends AbstractWorkItemType> CaseWorkItemsAsserter<Void, WI> forWorkItems(
+            Collection<WI> workItems, String details) {
+        return new CaseWorkItemsAsserter<>(null, workItems, details);
+    }
+
+    public @NotNull Collection<WI> getWorkItems() {
         return workItems;
     }
 
@@ -48,7 +54,12 @@ public class CaseWorkItemsAsserter<RA, WI extends AbstractWorkItemType> extends 
 
     public CaseWorkItemAsserter<CaseWorkItemsAsserter<RA, WI>, WI> single() {
         assertWorkItems(1);
-        return forWorkItem(getWorkItems().get(0));
+        return forWorkItem(getWorkItems().iterator().next());
+    }
+
+    public CaseWorkItemsAsserter<RA, WI> single(Consumer<CaseWorkItemAsserter<?, WI>> consumer) {
+        consumer.accept(single());
+        return this;
     }
 
     @Override

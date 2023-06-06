@@ -292,7 +292,8 @@ public class ClockworkAuditHelper {
             return true;
         }
         for (ObjectSelectorType targetSelector : targetSelectors) {
-            if (repositoryService.selectorMatches(targetSelector, primaryObject, null, LOGGER, "target selector")) {
+            if (repositoryService.selectorMatches(
+                    targetSelector, primaryObject, null, LOGGER, "target selector")) {
                 return true;
             }
         }

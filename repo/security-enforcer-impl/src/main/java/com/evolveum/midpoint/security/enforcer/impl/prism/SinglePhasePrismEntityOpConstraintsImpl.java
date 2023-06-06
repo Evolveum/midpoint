@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -134,7 +135,7 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
         }
 
         public void applyAuthorization(
-                @NotNull PrismValue value, @NotNull AuthorizationEvaluation evaluation)
+                @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
             var authorization = evaluation.getAuthorization();

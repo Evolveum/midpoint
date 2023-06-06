@@ -50,7 +50,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -648,11 +647,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         final boolean isOperationExecution;
         final boolean isProcessedObject;
         final ObjectManager manager;
-        final ObjectQuery refinedQuery;
+        final ObjectQuery securityRestrictedQuery;
         private final boolean isAssignment;
 
         // TODO: task and result here are ugly and probably wrong
-        ContainerSearchLikeOpContext(Class<T> type, ObjectQuery query, Task task, OperationResult result)
+        ContainerSearchLikeOpContext(
+                Class<T> type, ObjectQuery origQuery, ParsedGetOperationOptions options, Task task, OperationResult result)
                 throws SchemaException, SecurityViolationException, ObjectNotFoundException,
                 ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
@@ -668,39 +668,39 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             }
 
             manager = ObjectManager.REPOSITORY;
-            if (isCertCase) {
-                refinedQuery = preProcessSubObjectQuerySecurity(
-                        AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
-            } else {
-                refinedQuery = query;
-            }
+            securityRestrictedQuery = preProcessQuerySecurity(type, origQuery, options.getRootOptions(), task, result);
         }
     }
 
     @Override
     public <T extends Containerable> SearchResultList<T> searchContainers(
-            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
-            Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery origQuery,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 
         Validate.notNull(type, "Container value type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
-        if (query != null) {
-            ModelImplUtils.validatePaging(query.getPaging());
+        if (origQuery != null) {
+            ModelImplUtils.validatePaging(origQuery.getPaging());
         }
 
         OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS)
                 .addParam(OperationResult.PARAM_TYPE, type)
-                .addParam(OperationResult.PARAM_QUERY, query);
+                .addParam(OperationResult.PARAM_QUERY, origQuery);
 
         try {
-            var ctx = new ContainerSearchLikeOpContext<>(type, query, task, result);
-
-            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+            var rawOptionsReadWrite = GetOperationOptions.updateToReadWriteSafe(rawOptions);
+            var parsedOptions = preProcessOptionsSecurity(rawOptionsReadWrite, task, result);
             var options = parsedOptions.getCollection();
+
+            var ctx = new ContainerSearchLikeOpContext<>(type, origQuery, parsedOptions, task, result);
+
             GetOperationOptions rootOptions = parsedOptions.getRootOptions();
 
-            query = ctx.refinedQuery;
+            ObjectQuery query = ctx.securityRestrictedQuery;
 
             if (isFilterNone(query, result)) {
                 return new SearchResultList<>(new ArrayList<>());
@@ -737,17 +737,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             } finally {
                 exitModelMethod();
             }
-
-            if (ctx.isCertCase) {
-                return schemaTransformer.applySchemasAndSecurityToContainerValues(
-                        list, AccessCertificationCampaignType.class, AccessCertificationCampaignType.F_CASE,
-                        parsedOptions, task, result);
-            } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment || ctx.isProcessedObject) {
-                // TODO implement security post processing for CaseWorkItems
-                return list;
+            if (ctx.isAssignment) {
+                LOGGER.debug("Assignments do not have security constraints applied yet");
             } else {
-                throw new IllegalStateException();
+                schemaTransformer.applySchemasAndSecurityToContainerValues(list, parsedOptions, task, result);
             }
+            return list;
         } finally {
             result.close();
             result.cleanup();
@@ -768,10 +763,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            var ctx = new ContainerSearchLikeOpContext<>(type, query, task, result);
             var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
-            var options = parsedOptions.getCollection();
-            query = ctx.refinedQuery;
+            var ctx = new ContainerSearchLikeOpContext<>(type, query, parsedOptions, task, result);
+            query = ctx.securityRestrictedQuery;
 
             if (isFilterNone(query, result)) {
                 return 0;
@@ -781,6 +775,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             try {
                 logQuery(query);
 
+                var options = parsedOptions.getCollection();
                 //noinspection SwitchStatementWithTooFewBranches
                 switch (ctx.manager) {
                     case REPOSITORY:
@@ -1640,8 +1635,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(
-            Class<O> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result)
+    private <T> ObjectQuery preProcessQuerySecurity(
+            Class<T> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectFilter origFilter = origQuery != null ? origQuery.getFilter() : null;
@@ -1651,41 +1646,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType,
                 origFilter, null, null, task, result);
         return updateObjectQuery(origQuery, secFilter);
-    }
-
-    // we expect that objectType is a direct parent of containerType
-    @SuppressWarnings("SameParameterValue")
-    private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubObjectQuerySecurity(
-            Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-        // Search containers is an operation on one object. Therefore even if it works with a search filter, it requires GET authorizations
-        ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
-                null,
-                objectType,
-                null,
-                null,
-                null,
-                task,
-                result);
-        if (secParentFilter == null || secParentFilter instanceof AllFilter) {
-            return origQuery; // no need to update the query
-        }
-        ObjectFilter secChildFilter;
-        if (secParentFilter instanceof NoneFilter) {
-            secChildFilter = FilterCreationUtil.createNone();
-        } else {
-            ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
-            ObjectFilter secChildFilterParentPart = prismContext.queryFactory().createExists(ItemName.fromQName(PrismConstants.T_PARENT), // fixme
-                    containerType, prismContext, secParentFilter);
-            if (origChildFilter == null) {
-                secChildFilter = secChildFilterParentPart;
-            } else {
-                secChildFilter = prismContext.queryFactory().createAnd(origChildFilter, secChildFilterParentPart);
-            }
-        }
-        return updateObjectQuery(origQuery, secChildFilter);
     }
 
     private ObjectQuery updateObjectQuery(ObjectQuery origQuery, ObjectFilter updatedFilter) {

@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +27,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -59,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * - enforcer operation layer: see {@link EnforcerOperation} and its children
  * - single authorization evaluation layer: see {@link AuthorizationEvaluation} and its child
- * - object selector evaluation layer: see {@link ObjectSelectorEvaluation} and its child
+ * - object selector evaluation layer: see {@link SelectorEvaluation} and its child
  * - object selector clause evaluation layer, see `clauses` package
  *
  * @author Radovan Semancik
@@ -202,7 +201,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     @Override
     public @NotNull <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
             @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
-            @NotNull Collection<String> actionUrls, @NotNull Task task, @NotNull OperationResult result)
+            @NotNull String[] actionUrls, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return new OtherEnforcerOperation<O>(getMidPointPrincipal(), ownerResolver, beans, task)
@@ -211,23 +210,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public @NotNull  PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
-            @NotNull PrismValue object,
+            @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull Collection<String> actionUrls,
+            @NotNull String[] actionUrls,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return new OtherEnforcerOperation<>(getMidPointPrincipal(), ownerResolver, beans, task)
-                .compileValueOperationConstraints(object, phase, actionUrls, result);
+                .compileValueOperationConstraints(value, phase, actionUrls, result);
     }
 
     @Override
-    public @Nullable <O extends ObjectType> ObjectFilter preProcessObjectFilter(
+    public @Nullable <T> ObjectFilter preProcessObjectFilter(
             String[] operationUrls,
             AuthorizationPhaseType phase,
-            Class<O> filterType,
+            Class<T> filterType,
             @Nullable ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
@@ -240,7 +239,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 limitAuthorizationAction, paramOrderConstraints, gizmo, "filter pre-processing",
                 task, result);
         ObjectFilter finalFilter = gizmo.and(origFilter, securityFilter);
-        LOGGER.trace("AUTZ: pre-processed object filter (combined with the original one):\n{}",
+        LOGGER.trace("SEC: pre-processed object filter (combined with the original one):\n{}",
                 DebugUtil.debugDumpLazily(finalFilter, 1));
         if (finalFilter instanceof AllFilter) {
             return null; // compatibility
@@ -269,7 +268,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 task, result);
     }
 
-    private <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilterInternal(
+    private <T, F> F computeSecurityFilterInternal(
             @NotNull String[] operationUrls,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Class<T> filterType,
@@ -347,13 +346,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
         EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, null, beans, task);
         ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
+        int i = 0;
         for (Authorization autz : ctx.getAuthorizations()) {
-            var evaluation = new AuthorizationEvaluation(autz, ctx, result);
+            var evaluation = new AuthorizationEvaluation(String.valueOf(i++), autz, ctx, result);
+            evaluation.traceStart();
             if (evaluation.isApplicableToAction(operationUrl)
                     && evaluation.isApplicableToPhase(nonStrict(REQUEST))
                     && evaluation.isApplicableToObject(object)
                     && evaluation.isApplicableToTarget(target)) {
                 itemConstraints.collectItems(autz);
+            } else {
+                evaluation.traceEndNotApplicable();
             }
         }
         return itemConstraints;

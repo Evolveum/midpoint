@@ -8064,6 +8064,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" minOccurs="0" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the selector (for troubleshooting).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectSelectorType.name</a:displayName>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>

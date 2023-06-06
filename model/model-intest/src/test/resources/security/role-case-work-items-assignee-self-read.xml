@@ -22,6 +22,7 @@
                 <special>self</special>
             </assignee>
         </object>
+        <exceptItem>createTimestamp</exceptItem>
     </authorization>
     <delegable>true</delegable>
 </role>

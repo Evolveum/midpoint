@@ -10,13 +10,15 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
-import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -107,7 +109,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author Radovan Semancik
  * @version 3.1.1
  */
-public interface RepositoryService {
+public interface RepositoryService extends OrgTreeEvaluator {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
 
@@ -508,46 +510,6 @@ public interface RepositoryService {
             @NotNull OperationResult parentResult) throws SchemaException;
 
     /**
-     * Returns `true` if the `object` is under the organization identified with `ancestorOrgOid`.
-     * The `object` can either be an Org or any other object in which case all the targets
-     * of its `parentOrgRefs` are tested.
-     *
-     * Examples (from the perspective of the first parameter):
-     *
-     * * User belonging to Org with `ancestorOrgOid` returns true.
-     * * Organization under Org with `ancestorOrgOid` returns true (in any depth).
-     * * User belonging to Org under another Org with `ancestorOrgOid` returns true (any depth).
-     * * Organization with `ancestorOrgOid` returns `false`, as it is not considered
-     * to be its own descendant.
-     *
-     * @param object object of any type tested to belong under Org with `ancestorOrgOid`
-     * @param ancestorOrgOid identifier of ancestor organization
-     */
-    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
-            throws SchemaException;
-
-    /**
-     * Returns `true` if the `object` is above organization identified with `descendantOrgOid`.
-     * Despite type parameter, only `PrismObject<OrgType>` can return `true`.
-     *
-     * Examples (from the perspective of the first parameter):
-     *
-     * * Any other type than `Org` used for `object` returns `false`.
-     * * Organization being a parent of another organization with `descendantOrgOid` returns `true`.
-     * This means that Organization with `descendantOrgOid` has `parentOrgRef` to `object`.
-     * * Organization higher in the organization hierarchy than Org with `descendantOrgOid`
-     * returns `true`, for any number of levels between them as long as it's possible to traverse
-     * from Org identified by `descendantOrgOid` to `object` using any number of `parentOrgRefs`.
-     * * Organization with `descendantOrgOid` returns `false`, as it is not considered
-     * to be its own ancestor.
-     *
-     * @param object potential ancestor organization
-     * @param descendantOrgOid identifier of potential descendant organization
-     */
-    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
-            throws SchemaException;
-
-    /**
      * <p>Returns the object representing owner of specified shadow.</p>
      * <p>
      * Implements the backward "owns" association between account shadow and
@@ -685,8 +647,12 @@ public interface RepositoryService {
      */
     RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 
-    default <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
-            ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
+    default <O extends ObjectType> boolean selectorMatches(
+            @Nullable ObjectSelectorType objectSelector,
+            @Nullable PrismObject<O> object,
+            @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
+            @NotNull Trace logger,
+            @NotNull String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return selectorMatches(
@@ -697,12 +663,17 @@ public interface RepositoryService {
                 logMessagePrefix);
     }
 
-    default boolean selectorMatches(ObjectSelectorType objectSelector, PrismValue value,
-            ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
+    default boolean selectorMatches(
+            @Nullable ObjectSelectorType objectSelector,
+            @Nullable PrismValue value,
+            @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
+            @NotNull Trace logger,
+            @NotNull String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return ObjectSelectorMatcher.selectorMatches(
-                objectSelector, value, filterEvaluator, logger, logMessagePrefix, this);
+                objectSelector, value,
+                filterEvaluator, logger, logMessagePrefix, this);
     }
 
     void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch);

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.*;
@@ -32,7 +33,7 @@ public interface UpdatablePrismEntityOpConstraints extends PrismEntityOpConstrai
         @Override
         @NotNull UpdatablePrismEntityOpConstraints.ForItemContent getItemConstraints(@NotNull ItemName name);
 
-        void applyAuthorization(@NotNull PrismValue object, @NotNull AuthorizationEvaluation evaluation)
+        void applyAuthorization(@NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException;
     }

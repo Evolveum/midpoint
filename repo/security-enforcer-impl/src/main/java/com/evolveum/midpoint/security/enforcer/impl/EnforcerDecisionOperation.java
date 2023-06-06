@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -85,19 +85,22 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
 
         tracePhasedDecisionOperationStart(phase);
 
-        // Step 1: Iterating through authentications, computing the overall decision and the items we are allowed to touch.
+        // Step 1: Iterating through authorizations, computing the overall decision and the items we are allowed to touch.
         // (They will be used in step 2.)
 
         AccessDecision overallDecision = AccessDecision.DEFAULT;
         AutzItemPaths allowedItems = new AutzItemPaths();
+        int i = 0;
         for (Authorization authorization : getAuthorizations()) {
-            var evaluation = new AuthorizationEvaluation(authorization, this, result);
+            var evaluation = new AuthorizationEvaluation(String.valueOf(i++), authorization, this, result);
+            evaluation.traceStart();
             if (!evaluation.isApplicableToAction(operationUrl)
                     || !evaluation.isApplicableToPhase(nonStrict(phase))
                     || !evaluation.isApplicableToRelation(params.getRelation())
                     || !evaluation.isApplicableToOrderConstraints(params.getOrderConstraints())
-                    || !evaluation.isApplicableToObject(params.getOdo())
+                    || !evaluation.isApplicableToObjectOperation(params.getOdo())
                     || !evaluation.isApplicableToTarget(params.getTarget())) {
+                evaluation.traceEndNotApplicable();
                 continue;
             }
 
@@ -144,7 +147,7 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
 
     private void tracePhasedDecisionOperationStart(AuthorizationPhaseType phase) {
         if (traceEnabled) {
-            LOGGER.trace("AUTZ: START access decision for principal={}, op={}, phase={}, {}",
+            LOGGER.trace("SEC: START access decision for principal={}, op={}, phase={}, {}",
                     username, prettyActionUrl(operationUrl), phase, params.shortDump());
         }
     }

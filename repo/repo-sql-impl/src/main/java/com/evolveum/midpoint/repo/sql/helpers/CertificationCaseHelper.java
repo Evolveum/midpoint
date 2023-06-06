@@ -310,7 +310,8 @@ public class CertificationCaseHelper {
     }
 
     // TODO find a better name
-    public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject<AccessCertificationCampaignType>> ownersMap,
+    public AccessCertificationCaseType updateLoadedCertificationCase(
+            GetContainerableResult result, Map<String, PrismObject<AccessCertificationCampaignType>> ownersMap,
             Collection<SelectorOptions<GetOperationOptions>> options,
             Session session, OperationResult operationResult) throws SchemaException {
 

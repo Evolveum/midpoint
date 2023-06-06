@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.common.expression;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.QueryInterpretationOfNoValueType.FILTER_EQUAL_NULL;
 
 import java.util.*;
 import java.util.function.Function;
@@ -637,7 +638,7 @@ public class ExpressionUtil {
                 if (expressionResult == null || expressionResult.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
-                    return createFilterForNoValue(filter, valueExpression, prismContext);
+                    return createFilterForNoValue(filter, valueExpression);
                 }
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", shortDesc, expressionResult);
@@ -665,7 +666,7 @@ public class ExpressionUtil {
                 if (expressionResult == null || expressionResult.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
-                    return createFilterForNoValue(filter, valueExpression, prismContext);
+                    return createFilterForNoValue(filter, valueExpression);
                 }
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -720,7 +721,7 @@ public class ExpressionUtil {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
 
-                    return createFilterForNoValue(valueFilter, valueExpression, prismContext);
+                    return createFilterForNoValue(valueFilter, valueExpression);
                 }
 
                 // TODO: log more context
@@ -808,12 +809,10 @@ public class ExpressionUtil {
         return (ExpressionType) expressionWrapper.getExpression();
     }
 
-    private static @NotNull ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression,
-            PrismContext prismContext) throws ExpressionEvaluationException {
-        QueryInterpretationOfNoValueType queryInterpretationOfNoValue = valueExpression.getQueryInterpretationOfNoValue();
-        if (queryInterpretationOfNoValue == null) {
-            queryInterpretationOfNoValue = QueryInterpretationOfNoValueType.FILTER_EQUAL_NULL;
-        }
+    private static @NotNull ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression)
+            throws ExpressionEvaluationException {
+        var queryInterpretationOfNoValue =
+                Objects.requireNonNullElse(valueExpression.getQueryInterpretationOfNoValue(), FILTER_EQUAL_NULL);
 
         switch (queryInterpretationOfNoValue) {
 

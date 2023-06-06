@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.function.Consumer;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -16,6 +15,9 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.CaseWorkItemAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests the security functions related to sub-object structures, like:
@@ -56,12 +58,15 @@ public class TestSecurityItemValues extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_CASE_WORK_ITEMS_ASSIGNEE_SELF_READ.oid);
         assignRole(USER_JACK_OID, ROLE_CASE_WORK_ITEMS_EVENT_APPROVED_READ.oid);
-
-        when();
         login(USER_JACK_USERNAME);
 
         then("can see all cases (because of 'all cases' object selector)");
-        assertReadCases(CASE1.oid, CASE2.oid, CASE3.oid, CASE4.oid);
+        assertSearchCases(CASE1.oid, CASE2.oid, CASE3.oid, CASE4.oid);
+
+        Consumer<CaseWorkItemAsserter<?,CaseWorkItemType>> workItemAsserter =
+                a -> a.assertAssignees(USER_JACK_OID)
+                        .assertItemsPresent(CaseWorkItemType.F_STAGE_NUMBER) // just one of the expected items
+                        .assertNoItem(CaseWorkItemType.F_CREATE_TIMESTAMP); // this one is specifically excluded
 
         and("but not all their work items");
         // @formatter:off
@@ -79,17 +84,13 @@ public class TestSecurityItemValues extends AbstractSecurityTest {
                     .assertEvents(1); // only single is approved
         assertCase(CASE3.oid, "after")
                 .workItems()
-                    .single()
-                        .assertAssignees(USER_JACK_OID)
-                    .end()
+                    .single(workItemAsserter)
                 .end()
                 .events()
                     .assertEvents(1); // only single is approved
         assertCase(CASE4.oid, "after")
                 .workItems()
-                    .single()
-                        .assertAssignees(USER_JACK_OID)
-                    .end()
+                    .single(workItemAsserter)
                 .end()
                 .events()
                     .assertNone(); // none is approved
@@ -105,7 +106,11 @@ public class TestSecurityItemValues extends AbstractSecurityTest {
         assertCaseAfter(CASE4.oid)
                 .assertItems(CaseType.F_NAME, CaseType.F_WORK_ITEM);
 
-        // TODO continue
+        and("only allowed work items are returned by the search");
+        var workItems = assertSearchWorkItems(2);
+        assertWorkItems(workItems, "after")
+                .by().workItemId(4L).find(workItemAsserter) // in case-3
+                .by().workItemId(5L).find(workItemAsserter); // in case-4
     }
 
     @Test
@@ -118,7 +123,7 @@ public class TestSecurityItemValues extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         then("can see all cert campaigns (because of 'all cases' object selector)");
-        assertReadCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid);
+        assertSearchCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid);
 
         and("but only allowed items are visible");
         // @formatter:off
@@ -169,7 +174,7 @@ public class TestSecurityItemValues extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         then("can see all cert campaigns (because of 'all cases' object selector)");
-        assertReadCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid);
+        assertSearchCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid);
 
         and("but only allowed items are visible");
         // @formatter:off

@@ -7,32 +7,31 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import static java.util.Collections.emptySet;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.Delegation;
 import com.evolveum.midpoint.schema.util.SchemaDeputyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 
 /**
  * Represents a {@link SecurityEnforcer} operation: access determination or filter building.
@@ -97,12 +96,30 @@ class EnforcerOperation {
         return principal != null ? principal.getFocus() : null;
     }
 
-    Collection<String> getDelegatorsForRequestor() {
-        return getDelegators(OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS);
+    Set<String> getAllSelfOids(@NotNull Set<String> known, @Nullable Delegation delegation) {
+        if (delegation == null) {
+            return known;
+        } else if (delegation == Delegation.RELATED_OBJECT) {
+            // Beware: This is called for both tasks and cases.
+            // We do not allow delegators here. Each user should see only cases and tasks related to him (personally).
+            return known;
+        } else {
+            Set<String> all = new HashSet<>(known);
+            ItemName limitationItemName;
+            switch (delegation) {
+                case ASSIGNEE:
+                case REQUESTOR:
+                    limitationItemName = F_CASE_MANAGEMENT_WORK_ITEMS;
+                    break;
+                default:
+                    throw new AssertionError(delegation);
+            }
+            all.addAll(getDelegators(limitationItemName));
+            return all;
+        }
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private Collection<String> getDelegators(ItemName... limitationItemNames) {
+    public Collection<String> getDelegators(ItemName... limitationItemNames) {
         Collection<String> rv = new HashSet<>();
         if (principal != null) {
             for (DelegatorWithOtherPrivilegesLimitations delegator :
@@ -116,25 +133,5 @@ class EnforcerOperation {
             }
         }
         return rv;
-    }
-
-    Collection<String> getDelegatorsForRelatedObjects() {
-        // Beware: This is called for both tasks and cases.
-        // We do not allow delegators here. Each user should see only cases and tasks related to him (personally).
-        return emptySet();
-    }
-
-    Collection<String> getDelegatorsForAssignee() {
-        return getDelegators(OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS);
-    }
-
-    String[] getSelfAndOtherOids(Collection<String> otherOids) {
-        if (principal == null) {
-            return new String[0];
-        }
-        List<String> rv = new ArrayList<>(otherOids.size() + 1);
-        CollectionUtils.addIgnoreNull(rv, getPrincipalOid());
-        rv.addAll(otherOids);
-        return rv.toArray(new String[0]);
     }
 }

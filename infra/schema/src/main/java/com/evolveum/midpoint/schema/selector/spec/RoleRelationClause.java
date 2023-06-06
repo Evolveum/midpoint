@@ -5,15 +5,22 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.security.enforcer.impl.clauses;
+package com.evolveum.midpoint.schema.selector.spec;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -27,57 +34,58 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
-/**
- * Evaluates "roleRelation" object selector clause.
- *
- * See {@link OrgRelation}.
- */
-public class RoleRelation extends AbstractSelectorClauseEvaluation {
+public class RoleRelationClause extends SelectorClause {
 
-    @NotNull
-    private final RoleRelationObjectSpecificationType selectorRoleRelation;
+    /** Immutable. */
+    @NotNull private final RoleRelationObjectSpecificationType bean;
 
-    public RoleRelation(
-            @NotNull RoleRelationObjectSpecificationType selectorRoleRelation, @NotNull ClauseEvaluationContext ctx) {
-        super(ctx);
-        this.selectorRoleRelation = selectorRoleRelation;
+    private RoleRelationClause(@NotNull RoleRelationObjectSpecificationType bean) {
+        this.bean = bean;
+        bean.freeze();
     }
 
-    public boolean isApplicable(@NotNull PrismValue value) {
+    static RoleRelationClause of(@NotNull RoleRelationObjectSpecificationType bean) {
+        return new RoleRelationClause(bean);
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return "roleRelation";
+    }
+
+    @Override
+    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         var object = asObjectTypeIfPossible(value);
         if (object == null) {
-            return false; // TODO log?
+            traceNotApplicable(ctx, "not an object");
+            return false;
         }
-        boolean match = false;
         var principalFocus = ctx.getPrincipalFocus();
         if (principalFocus != null) {
             for (ObjectReferenceType subjectRoleMembershipRef : principalFocus.getRoleMembershipRef()) {
                 if (matchesRoleRelation(object, subjectRoleMembershipRef)) {
-                    LOGGER.trace("    applicable for {}, object OID {} because subject role relation {} matches",
-                            ctx.getDesc(), object.getOid(), subjectRoleMembershipRef.getOid());
-                    match = true;
-                    break;
+                    traceApplicable(ctx, "subject role matches: %s", subjectRoleMembershipRef.getOid());
+                    return true;
                 }
             }
         }
-        if (!match) {
-            LOGGER.trace("    not applicable for {}, object OID {} because none of the subject roles matches",
-                    ctx.getDesc(), object.getOid());
-        }
-        return match;
+        traceNotApplicable(ctx, "none of the subject roles match");
+        return false;
     }
 
     private boolean matchesRoleRelation(ObjectType object, ObjectReferenceType subjectRoleMembershipRef) {
         PrismContext prismContext = PrismContext.get();
         if (!prismContext.relationMatches(
-                selectorRoleRelation.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
+                bean.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
             return false;
         }
-        if (BooleanUtils.isTrue(selectorRoleRelation.isIncludeReferenceRole())
+        if (BooleanUtils.isTrue(bean.isIncludeReferenceRole())
                 && subjectRoleMembershipRef.getOid().equals(object.getOid())) {
             return true;
         }
-        if (!BooleanUtils.isFalse(selectorRoleRelation.isIncludeMembers())) {
+        if (!BooleanUtils.isFalse(bean.isIncludeMembers())) {
             if (!(object instanceof FocusType)) {
                 return false;
             }
@@ -86,7 +94,7 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
                     continue;
                 }
                 if (!prismContext.relationMatches(
-                        selectorRoleRelation.getObjectRelation(), objectRoleMembershipRef.getRelation())) {
+                        bean.getObjectRelation(), objectRoleMembershipRef.getRelation())) {
                     continue;
                 }
                 return true;
@@ -95,48 +103,48 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
         return false;
     }
 
-    public boolean applyFilter() {
-        ObjectFilter filter = processRoleRelationFilter();
-        ObjectFilter increment;
+    @Override
+    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+        ObjectFilter filter = processRoleRelationFilter(ctx);
+        ObjectFilter conjunct;
         if (filter != null) {
-            increment = filter;
+            conjunct = filter;
         } else {
-            if (fCtx.maySkipOnSearch()) {
-                LOGGER.trace("      not applying roleRelation filter because it is not efficient and maySkipOnSearch is set");
+            if (ctx.maySkipOnSearch()) {
+                traceNotApplicable(ctx, "filter is not efficient and maySkipOnSearch is set");
                 return false;
             } else {
-                increment = FilterCreationUtil.createNone();
+                conjunct = FilterCreationUtil.createNone();
             }
         }
-        fCtx.addConjunction(increment);
-        LOGGER.trace("      applying roleRelation filter {}", increment);
-        return true;
+        addConjunct(ctx, conjunct);
+        return true; // TODO false if none?
     }
 
     /**
      * Very rudimentary and experimental implementation.
      */
-    private ObjectFilter processRoleRelationFilter() {
+    private ObjectFilter processRoleRelationFilter(@NotNull ClauseFilteringContext ctx) {
 
-        if (BooleanUtils.isTrue(selectorRoleRelation.isIncludeReferenceRole())) {
+        if (BooleanUtils.isTrue(bean.isIncludeReferenceRole())) {
             // This could mean that we will need to add filters for all roles in
             // subject's roleMembershipRef. There may be thousands of these.
-            if (!fCtx.maySkipOnSearch()) {
+            if (!ctx.maySkipOnSearch()) {
                 throw new UnsupportedOperationException("Inefficient roleRelation search (includeReferenceRole=true) is not supported yet");
             }
         }
 
-        if (!BooleanUtils.isFalse(selectorRoleRelation.isIncludeMembers())) {
-            List<PrismReferenceValue> queryRoleRefs = getRoleOidsFromFilter(fCtx.getOriginalFilter());
+        if (!BooleanUtils.isFalse(bean.isIncludeMembers())) {
+            List<PrismReferenceValue> queryRoleRefs = getRoleOidsFromFilter(ctx.getOriginalFilter());
             if (queryRoleRefs == null || queryRoleRefs.isEmpty()) {
                 // Cannot find specific role OID in original query. This could mean that we
                 // will need to add filters for all roles in subject's roleMembershipRef.
                 // There may be thousands of these.
-                if (!fCtx.maySkipOnSearch()) {
+                if (!ctx.maySkipOnSearch()) {
                     throw new UnsupportedOperationException("Inefficient roleRelation search (includeMembers=true without role in the original query) is not supported yet");
                 }
             } else {
-                List<QName> subjectRelation = selectorRoleRelation.getSubjectRelation();
+                List<QName> subjectRelation = bean.getSubjectRelation();
                 boolean isRoleOidOk = false;
                 for (ObjectReferenceType subjectRoleMembershipRef : ctx.getPrincipalFocus().getRoleMembershipRef()) {
                     if (!PrismContext.get().relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {
@@ -180,5 +188,11 @@ public class RoleRelation extends AbstractSelectorClauseEvaluation {
             }
         }
         return null;
+    }
+
+    @Override
+    void addDebugDumpContent(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "specification", bean, indent + 1);
     }
 }
