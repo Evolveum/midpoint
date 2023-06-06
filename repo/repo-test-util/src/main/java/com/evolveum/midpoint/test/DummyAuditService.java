@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 
 import com.google.common.collect.Sets;
@@ -212,6 +213,20 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assert executionRecord != null : "The " + index + "th audit execution record is null";
         assert executionRecord.getEventStage() == stage : "The " + index + "th audit execution record is not execution, it is " + executionRecord;
         return executionRecord;
+    }
+
+    public synchronized AuditEventRecord assertRecordsStartsWithDiscovery() {
+        AuditEventRecord record = records.get(0);
+        assert record.getEventType() == AuditEventType.DISCOVER_OBJECT;
+        assert record.getEventStage() == AuditEventStage.RESOURCE;
+
+        return record;
+    }
+
+    public synchronized List<AuditEventRecord> getDiscoveryRecords() {
+        return records.stream()
+                .filter(r -> r.getEventStage() == AuditEventStage.RESOURCE && r.getEventType() == AuditEventType.DISCOVER_OBJECT)
+                .collect(Collectors.toList());
     }
 
     public synchronized List<AuditEventRecord> getExecutionRecords() {
