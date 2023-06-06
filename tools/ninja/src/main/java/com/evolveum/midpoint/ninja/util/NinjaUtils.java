@@ -9,17 +9,25 @@ package com.evolveum.midpoint.ninja.util;
 import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.sql.DataSource;
 
 import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.FileSystemResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
+import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
@@ -29,6 +37,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -213,5 +223,40 @@ public class NinjaUtils {
         Collections.sort(types);
 
         return types;
+    }
+
+    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull File... scripts) throws SQLException {
+        executeSqlScripts(dataSource, Arrays.asList(scripts));
+    }
+
+    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            boolean autocommit = connection.getAutoCommit();
+            connection.setAutoCommit(true);
+
+            try {
+                ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+                populator.setSeparator(";;");
+                populator.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
+
+                for (File script : scripts) {
+                    FileSystemResourceLoader loader = new FileSystemResourceLoader();
+                    Resource resource = loader.getResource("file:" + script.getAbsolutePath());
+
+                    populator.addScript(resource);
+                }
+
+                populator.populate(connection);
+            } finally {
+                connection.setAutoCommit(autocommit);
+            }
+        }
+    }
+
+    public static DataSource getAuditDataSourceBean(ApplicationContext applicationContext) throws IllegalAccessException {
+        AuditServiceProxy auditProxy = applicationContext.getBean(AuditServiceProxy.class);
+        SqaleAuditService auditService = auditProxy.getImplementation(SqaleAuditService.class);
+        SqaleRepoContext repoContext = auditService.sqlRepoContext();
+        return (DataSource) FieldUtils.readField(repoContext, "dataSource", true);
     }
 }
