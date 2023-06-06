@@ -32,6 +32,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+
 public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<ExportMiningOptions, FocusType> {
 
     OperationResult operationResult = new OperationResult(DOT_CLASS + "searchObjectByCondition");
@@ -139,8 +143,20 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())
-                    && filterAllowedOrg(targetRef.getOid())) {
+
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(OrgType.class.getSimpleName())
+                    && filterAllowedOrg(oid)) {
                 org.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, encryptKey));
             }
         }
@@ -160,13 +176,23 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
 
-            if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
-                    && filterAllowedRole(targetRef.getOid())) {
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(RoleType.class.getSimpleName())
+                    && filterAllowedRole(oid)) {
                 user.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, encryptKey));
             }
 
-            if (orgAllowed && targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())
-                    && filterAllowedOrg(targetRef.getOid())) {
+            if (orgAllowed && objectType.equals(OrgType.class.getSimpleName()) && filterAllowedOrg(oid)) {
                 user.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, encryptKey));
             }
 
@@ -192,26 +218,46 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
         for (AssignmentType inducementObject : inducement) {
             ObjectReferenceType targetRef = inducementObject.getTargetRef();
-            if (targetRef != null
-                    && targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
-                    && filterAllowedRole(targetRef.getOid())) {
-                role.getInducement().add(encryptObjectReference(inducementObject, securityMode, encryptKey));
 
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(RoleType.class.getSimpleName()) && filterAllowedRole(oid)) {
+                role.getInducement().add(encryptObjectReference(inducementObject, securityMode, encryptKey));
             }
         }
 
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(ArchetypeType.class.getSimpleName())) {
+
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(ArchetypeType.class.getSimpleName())) {
                 AssignmentType assignmentType = new AssignmentType();
-                if (targetRef.getOid().equals(applicationArchetypeOid)) {
+                if (oid.equals(applicationArchetypeOid)) {
                     identifier = APPLICATION_ROLE_IDENTIFIER;
-                    assignmentType.targetRef(assignmentObject.getTargetRef());
+                    assignmentType.targetRef(targetRef);
                     role.getAssignment().add(assignmentType);
-                } else if (targetRef.getOid().equals(businessArchetypeOid)) {
+                } else if (oid.equals(businessArchetypeOid)) {
                     identifier = BUSINESS_ROLE_IDENTIFIER;
-                    assignmentType.targetRef(assignmentObject.getTargetRef());
+                    assignmentType.targetRef(targetRef);
                     role.getAssignment().add(assignmentType);
                 }
             }
@@ -281,5 +327,15 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         this.applicationRoleSuffix = options.getApplicationRoleSuffix();
         this.businessRolePrefix = options.getBusinessRolePrefix();
         this.businessRoleSuffix = options.getBusinessRoleSuffix();
+    }
+
+    private @Nullable String getObjectType(@NotNull ObjectReferenceType targetRef) {
+        QName type = targetRef.getType();
+
+        if (type != null) {
+            return type.getLocalPart();
+        }
+
+        return null;
     }
 }
