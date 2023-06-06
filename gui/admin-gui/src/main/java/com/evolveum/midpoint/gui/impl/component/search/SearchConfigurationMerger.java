@@ -58,10 +58,6 @@ public class SearchConfigurationMerger {
             mergedConfig.setDefaultMode(customizedConfig.getDefaultMode());
         }
 
-        if (customizedConfig.getDefaultObjectType() != null) {
-            mergedConfig.setDefaultObjectType(customizedConfig.getDefaultObjectType());
-        }
-
         if (customizedConfig.getObjectTypeConfiguration() != null) {
             mergedConfig.setObjectTypeConfiguration(customizedConfig.getObjectTypeConfiguration());
         }

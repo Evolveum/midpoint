@@ -1882,6 +1882,12 @@
                     <a:operation>removed</a:operation>
                     <a:comment>Use scopeConfiguration.defaultValue instead</a:comment>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:defaultObjectType</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use objectTypeConfiguration.defaultValue instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1977,24 +1983,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="defaultObjectType" type="xsd:QName" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Default type of object for search boxes that support object type selection.
-                        E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
-                        Type selection may not be applicable to all types of lists/views.
-                        E.g. it does not make sense for lists that only contain objects of a single type.
-                        Therefore some views may not even display object type selection at all.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
-                        <a:since>3.9</a:since>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.3</a:deprecatedSince>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
+           <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The list of searchable properties which should be displayed on the search panel.
