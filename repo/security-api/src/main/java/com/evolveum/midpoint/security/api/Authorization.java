@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -34,15 +33,15 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @NotNull private final AuthorizationType authorizationBean;
     private String sourceDescription;
 
-    @NotNull private final Lazy<PathSet> itemsLazy;
-    @NotNull private final Lazy<PathSet> exceptItemsLazy;
+    @NotNull private final PathSet items;
+    @NotNull private final PathSet exceptItems;
     private List<ValueSelector> parsedObjectSelectors;
     private List<ValueSelector> parsedTargetSelectors;
 
     public Authorization(@NotNull AuthorizationType authorizationBean) {
         this.authorizationBean = authorizationBean;
-        itemsLazy = Lazy.from(() -> parseItems(this.authorizationBean.getItem()));
-        exceptItemsLazy = Lazy.from(() -> parseItems(this.authorizationBean.getExceptItem()));
+        items = parseItems(this.authorizationBean.getItem());
+        exceptItems = parseItems(this.authorizationBean.getExceptItem());
     }
 
     @Override
@@ -143,11 +142,11 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     }
 
     public @NotNull PathSet getItems() {
-        return itemsLazy.get();
+        return items;
     }
 
     public @NotNull PathSet getExceptItems() {
-        return exceptItemsLazy.get();
+        return exceptItems;
     }
 
     private @NotNull PathSet parseItems(@NotNull List<ItemPathType> beans) {
