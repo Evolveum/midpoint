@@ -117,6 +117,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
             return;
         }
 
+        getPageBase().removeLastBreadcrumb();
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, getAssignmentHolderDetailsModel().getObjectType().getOid());
         getPageBase().navigateToNext(detailPage, parameters);

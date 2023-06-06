@@ -1774,7 +1774,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private boolean credentialsResetPolicyMatch(CredentialsResetPolicyType policy, String identifier) {
-        return StringUtils.equals(policy.getIdentifier(), identifier) || StringUtils.equals(policy.getName(), identifier);
+        return StringUtils.equals(policy.getIdentifier(), identifier);
     }
 
     @Override

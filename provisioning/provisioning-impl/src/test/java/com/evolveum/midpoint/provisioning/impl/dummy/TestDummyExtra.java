@@ -6,23 +6,21 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.test.IntegrationTestTools.createDetitleDelta;
 import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
-
+import java.util.List;
+import java.util.concurrent.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -30,20 +28,27 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+
+import org.w3c.dom.Element;
 
 /**
  * Almost the same as TestDummy but with some extra things, such as:
@@ -252,6 +257,57 @@ public class TestDummyExtra extends TestDummy {
         assertNoDummyAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
 
         assertSteadyResource();
+    }
+
+    /** MID-8860. Here we try to reproduce the bug by repeated parsing of a connector schema. */
+    @Test
+    public void test990ParseConnectorSchemaMultithreaded() throws CommonException, InterruptedException, ExecutionException, TimeoutException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        final int THREADS = 10;
+
+        given("caching the connector search result");
+        getCsvConnector(result);
+
+        when("retrieving and parsing the schema repeatedly");
+        CountDownLatch latch = new CountDownLatch(1);
+        ExecutorService executorService = Executors.newFixedThreadPool(THREADS);
+        List<Future<Boolean>> futures = new ArrayList<>();
+        for (int i = 0; i < THREADS; i++) {
+            futures.add(
+                    executorService.submit(() -> {
+                        try {
+                            latch.await();
+                            long time = System.nanoTime();
+                            ConnectorType connector = getCsvConnector(result);
+                            var hasSchema = ConnectorTypeUtil.parseConnectorSchema(connector) != null;
+                            Element elem = ConnectorTypeUtil.getConnectorXsdSchema(connector);
+                            System.out.println(time + ": " + Thread.currentThread().getId() + ": " + System.identityHashCode(elem));
+                            return hasSchema;
+                        } catch (SchemaException e) {
+                            throw new AssertionError(e);
+                        }
+                    }));
+        }
+        latch.countDown();
+
+        then("everything is OK");
+        for (Future<Boolean> future : futures) {
+            assertThat(future.get(30, TimeUnit.SECONDS)).isTrue();
+        }
+    }
+
+    private @NotNull ConnectorType getCsvConnector(OperationResult result) throws SchemaException {
+        var connectors = repositoryService.searchObjects(
+                ConnectorType.class,
+                PrismContext.get().queryFor(ConnectorType.class)
+                        .item(ConnectorType.F_CONNECTOR_TYPE)
+                        .eq("com.evolveum.polygon.connector.csv.CsvConnector")
+                        .build(),
+                null,
+                result);
+        return MiscUtil.extractSingletonRequired(connectors).asObjectable();
     }
 
     @Override

@@ -30,6 +30,8 @@ public class VerticalFormPrismPropertyHeaderPanel<T> extends PrismPropertyHeader
 
     private static final long serialVersionUID = 1L;
 
+    private boolean isRequiredTagVisibleInHeaderPanel = false;
+
 
     /**
      * @param id
@@ -42,7 +44,11 @@ public class VerticalFormPrismPropertyHeaderPanel<T> extends PrismPropertyHeader
     @Override
     protected void createRequired(String id) {
         WebMarkupContainer required = new WebMarkupContainer(id);
-        required.add(new VisibleBehaviour(() -> false));
+        required.add(new VisibleBehaviour(() -> isRequiredTagVisibleInHeaderPanel));
         add(required);
+    }
+
+    public void setRequiredTagVisibleInHeaderPanel(boolean requiredTagVisibleInHeaderPanel) {
+        isRequiredTagVisibleInHeaderPanel = requiredTagVisibleInHeaderPanel;
     }
 }
