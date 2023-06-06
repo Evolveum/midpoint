@@ -45,9 +45,9 @@ public enum Command {
 
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
 
-    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class);
+    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
 
-    // todo reencrypt, modify, bulk, etc
+    SETUP_DATABASE("setup-database", SetupDatabaseSchemaOptions.class, SetupDatabaseSchemaAction.class);
 
     private final String commandName;
 
