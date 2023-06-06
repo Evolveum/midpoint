@@ -289,7 +289,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAdd(ROLE_SELF_TASK_OWNER, initResult);
         repoAdd(ROLE_PERSONA_MANAGEMENT, initResult);
         repoAdd(ROLE_END_USER_REQUESTABLE_ABSTRACTROLES, initResult);
-        add(ROLE_PERSONA_ADMIN, initTask, initResult);
+        addObject(ROLE_PERSONA_ADMIN, initTask, initResult);
         repoAdd(ROLE_ORDINARY, initResult);
         repoAdd(ROLE_UNINTERESTING, initResult);
         repoAdd(ROLE_READ_SELF_MODIFY_ORG_UNIT, initResult);
