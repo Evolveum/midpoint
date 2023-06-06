@@ -19,9 +19,11 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,6 +58,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     private static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
     private static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
 
+    private static final TestTask TASK_CUSTOM_VALIDITY_SCAN = TestTask.file(
+            TEST_DIR, "task-custom-validity-scan.xml", "45c36aa1-c3ad-48c4-9d61-e8d67ce85f11");
+
     private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 0, 0);
 
     private XMLGregorianCalendar drakeValidFrom;
@@ -65,7 +70,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-
         if (areMarksSupported()) {
             repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
             repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
@@ -73,6 +77,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, initResult);
         repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, initResult);
+
+        initTestObjects(initTask, initResult, TASK_CUSTOM_VALIDITY_SCAN);
+        TASK_CUSTOM_VALIDITY_SCAN.rerun(initResult); // just to have "last scan timestamp"
     }
 
     @Override
@@ -1760,7 +1767,74 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertLiveLinks(user, 0);
     }
 
-    private void modifyAssignmentAdministrativeStatus(String userOid, long assignmentId, ActivationStatusType status, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    @Test
+    public void test350CustomValidityScan() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("Users with different property timestamps");
+        clock.resetOverride();
+
+        // Intentionally using repo in order to see the effects of recomputation
+
+        UserType u1 = new UserType()
+                .name("user350-u1")
+                .employeeNumber("AA1"); // to be matched by the task
+        // Not setting extension/funeralTimestamp for this one.
+        repoAddObject(u1.asPrismObject(), result); // outside scanning range (no value)
+
+        UserType u2 = new UserType()
+                .name("user350-u2")
+                .employeeNumber("AA2");
+        setFuneralTimestamp(u2, "-PT1M"); // outside scanning range (too early)
+        repoAddObject(u2.asPrismObject(), result);
+
+        UserType u3 = new UserType()
+                .name("user350-u3")
+                .employeeNumber("AA3");
+        setFuneralTimestamp(u3, "P1D"); // inside scanning range
+        repoAddObject(u3.asPrismObject(), result);
+
+        UserType u4 = new UserType()
+                .name("user350-u4")
+                .employeeNumber("AA4");
+        setFuneralTimestamp(u2, "P2D"); // outside scanning range (too late)
+        repoAddObject(u4.asPrismObject(), result);
+
+        when("custom validity scanner is run");
+        TASK_CUSTOM_VALIDITY_SCAN.rerun(result);
+
+        then("relevant users are recomputed");
+        TASK_CUSTOM_VALIDITY_SCAN.assertAfter()
+                .assertProgress(1);
+        assertNotRecomputed(u1);
+        assertNotRecomputed(u2);
+        assertRecomputed(u3);
+        assertNotRecomputed(u4);
+    }
+
+    private void assertNotRecomputed(UserType u1) throws CommonException {
+        assertUserAfter(u1.getOid())
+                .objectMetadata()
+                .assertNone();
+    }
+
+    private void assertRecomputed(UserType user) throws CommonException {
+        assertUserAfter(user.getOid())
+                .objectMetadata()
+                .assertPresent();
+    }
+
+    private void setFuneralTimestamp(UserType user, String durationSpec) throws SchemaException {
+        ObjectTypeUtil.setExtensionPropertyRealValues(
+                user.asPrismContainerValue(),
+                PIRACY_FUNERAL_TIMESTAMP,
+                XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), durationSpec));
+    }
+
+    private void modifyAssignmentAdministrativeStatus(
+            String userOid, long assignmentId, ActivationStatusType status, Task task, OperationResult result)
+            throws CommonException {
         if (status == null) {
             modifyObjectReplaceProperty(UserType.class, userOid,
                     ItemPath.create(

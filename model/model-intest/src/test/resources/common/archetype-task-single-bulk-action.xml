@@ -29,14 +29,28 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <container>
-                    <display>
-                        <label>SingleBulkActionTask.bulkAction</label>
-                    </display>
-                    <item>
-                        <c:path>extension/scext:executeScript</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-noniterative-scripting</identifier>
+                            <path>activity/work/nonIterativeScripting</path>
+                        </container>
+                    </panel>
+                </panel>
+                <panel>
+                    <identifier>taskBasic</identifier>
+                    <container>
+                        <identifier>bulk-action</identifier>
+                        <display>
+                            <label>SingleBulkActionTask.bulkAction</label>
+                        </display>
+                        <item>
+                            <c:path>extension/scext:executeScript</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
@@ -54,19 +68,6 @@
                 </expression>
                 <target>
                     <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>BulkActions</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
                 </target>
             </mapping>
         </focusMappings>

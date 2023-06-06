@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +19,6 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -67,13 +65,13 @@ public final class ResourceObjectsReconciliationActivityRun
 
     // Ignoring configured search options. TODO ok?
     @Override
-    public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
+    public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
         // This is necessary to give ItemProcessingGatekeeper a chance to "see" errors in preprocessing.
         // At the same time, it ensures that an exception in preprocessing does not kill the whole searchObjectsIterative call.
-        return getBeans().schemaService.getOperationOptionsBuilder()
-                .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
-                .build();
+        searchSpecification.setSearchOptions(
+                getBeans().schemaService.getOperationOptionsBuilder()
+                        .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                        .build());
     }
 
     @Override

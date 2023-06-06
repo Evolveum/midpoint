@@ -879,7 +879,7 @@ public abstract class PageBase extends PageAdminLTE {
         }
     }
 
-    protected void removeLastBreadcrumb() {
+    public void removeLastBreadcrumb() {
         List<Breadcrumb> breadcrumbs = getBreadcrumbs();
         if (canRedirectBack(DEFAULT_BREADCRUMB_STEP)) {
             Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - DEFAULT_BREADCRUMB_STEP);

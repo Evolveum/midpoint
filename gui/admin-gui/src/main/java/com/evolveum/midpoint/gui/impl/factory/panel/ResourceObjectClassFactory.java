@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -15,13 +17,15 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.Collection;
 
 @Component
 public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
@@ -45,5 +49,26 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
         }
         return wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS)
                 || wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_AUXILIARY_OBJECT_CLASS);
+    }
+
+    @Override
+    protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
+        InputPanel panel = super.getPanel(panelCtx);
+
+        if (panelCtx.getRealValueModel().getObject() != null) {
+            return panel;
+        }
+
+        if (!panelCtx.unwrapWrapperModel().getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS)) {
+            return panel;
+        }
+
+        if (panel instanceof AutoCompleteQNamePanel) {
+            Collection<QName> choices = ((AutoCompleteQNamePanel<QName>) panel).loadChoices();
+            if (choices != null && choices.size() == 1) {
+                panelCtx.getRealValueModel().setObject(choices.iterator().next());
+            }
+        }
+        return panel;
     }
 }

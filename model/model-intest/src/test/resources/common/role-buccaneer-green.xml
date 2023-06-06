@@ -45,13 +45,17 @@
             <targetUrl>http://example.com/swashbuckle</targetUrl>
             <label>Swashbuckle</label>
         </userDashboardLink>
-        <objectForms>
-            <objectForm>
+        <objectDetails>
+            <objectDetailsPage>
                 <type>UserType</type>
-                <formSpecification>
-                    <panelClass>com.piracy.form.PirateUserPanel</panelClass>
-                </formSpecification>
-            </objectForm>
-        </objectForms>
+                <panel>
+                    <identifier>com.piracy.form.PirateUserPanel</identifier>
+                    <panelType>basic</panelType>
+                    <display>
+                        <label>PirateUserPanel</label>
+                    </display>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
 </role>

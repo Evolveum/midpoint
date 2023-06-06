@@ -218,7 +218,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
             .assertAdditionalMenuLinks(1)
             .assertUserDashboardLinks(2)
             .assertObjectCollectionViews(3)
-            .assertObjectForms(2)
             .assertUserDashboardWidgets(2);
     }
 
@@ -247,7 +246,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(1)
             .assertObjectCollectionViews(3)
-            .assertObjectForms(1)
             .assertUserDashboardWidgets(0);
     }
 

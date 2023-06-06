@@ -19,7 +19,6 @@
     <executionStatus>suspended</executionStatus>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
-    <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>
         <interval>20</interval>

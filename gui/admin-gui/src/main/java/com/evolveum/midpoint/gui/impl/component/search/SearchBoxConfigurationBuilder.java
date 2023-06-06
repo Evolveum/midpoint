@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -201,18 +201,23 @@ public class SearchBoxConfigurationBuilder {
         SearchItemType searchItemType = new SearchItemType();
         searchItemType.setParameter(parameter);
         searchItemType.setVisibleByDefault(true);
-        DisplayType displayType = parameter.getDisplay();
-        searchItemType.setDisplayName(getSearchItemDisplayName(displayType, parameter));
+        DisplayType displayType = getSearchItemDisplayName(parameter);
+        searchItemType.setDisplay(displayType);
         searchItemType.setDescription(GuiDisplayTypeUtil.getHelp(displayType));
         return searchItemType;
     }
 
-    private PolyStringType getSearchItemDisplayName(DisplayType displayType, SearchFilterParameterType parameter) {
+    private DisplayType getSearchItemDisplayName(SearchFilterParameterType parameter) {
+        if (parameter == null || parameter.getDisplay() == null) {
+            return new DisplayType();
+        }
+        DisplayType displayType = parameter.getDisplay();
         PolyStringType searchItemDisplayType = GuiDisplayTypeUtil.getLabel(displayType);
         if (searchItemDisplayType == null) {
-            searchItemDisplayType = new PolyStringType(parameter.getName());
+            displayType.setLabel(new PolyStringType(parameter.getName()));
+
         }
-        return searchItemDisplayType;
+        return displayType;
     }
 
     private void processFilterToSearchItem(List<SearchItemType> searchItems, ObjectFilter filter) {

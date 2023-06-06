@@ -8,14 +8,14 @@
 package com.evolveum.midpoint.authentication.impl.saml;
 
 import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
 
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
+import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;

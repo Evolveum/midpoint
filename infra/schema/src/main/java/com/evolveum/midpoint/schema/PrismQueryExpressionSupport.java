@@ -2,7 +2,7 @@ package com.evolveum.midpoint.schema;
 
 import java.util.Map;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ExpressionWrapper;

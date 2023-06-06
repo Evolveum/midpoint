@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.security.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -135,33 +135,6 @@ public class SecurityUtils {
         return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 
-    /**
-     * name attribute is deprecated, getSequenceByIdentifier should be used instead
-     * @param name
-     * @param authenticationPolicy
-     * @return
-     */
-    @Deprecated
-    public static AuthenticationSequenceType getSequenceByName(String name, AuthenticationsPolicyType authenticationPolicy) {
-        if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
-                || authenticationPolicy.getSequence().isEmpty()) {
-            return null;
-        }
-
-        Validate.notBlank(name, "Name for searching of sequence is blank");
-        for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
-            if (sequence != null) {
-                if (name.equals(sequence.getName()) || name.equals(sequence.getIdentifier())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                        return null;
-                    }
-                    return sequence;
-                }
-            }
-        }
-        return null;
-    }
-
     public static AuthenticationSequenceType getSequenceByIdentifier(String identifier, AuthenticationsPolicyType authenticationPolicy) {
         if (authenticationPolicy == null || CollectionUtils.isEmpty(authenticationPolicy.getSequence())) {
             return null;
@@ -192,6 +165,6 @@ public class SecurityUtils {
     }
 
     public static boolean sequenceExists(AuthenticationsPolicyType policy, String identifier) {
-        return getSequenceByIdentifier(identifier, policy) != null || getSequenceByName(identifier, policy) != null;
+        return getSequenceByIdentifier(identifier, policy) != null;
     }
 }

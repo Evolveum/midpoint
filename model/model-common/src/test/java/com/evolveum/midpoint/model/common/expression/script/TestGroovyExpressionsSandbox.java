@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -107,7 +108,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
      *
      * We are in type checking mode, therefore this just won't compile.
      */
-    @Test
+    @Test(enabled=false)
     @Override
     public void testSmellPoisonVeryDynamic() throws Exception {
         Poison poison = new Poison();

@@ -22,16 +22,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterMethod;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 
 public abstract class TestAbstractAuthentication extends AbstractRestServiceInitializer {
 
+    protected static final File MIDPOINT_HOME = new File("target/midpoint-home");
     protected static final File BASE_AUTHENTICATION_DIR = new File("src/test/resources/authentication/");
-    protected static final File BASE_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
+    protected static final File BASE_AUTH_REPO_DIR = new File(BASE_AUTHENTICATION_DIR,"repo/");
 
-    public static final File SECURITY_POLICY_DEFAULT = new File(BASE_REPO_DIR, "security-policy-default.xml");
+    public static final File SECURITY_POLICY_DEFAULT = new File(BASE_AUTH_REPO_DIR, "security-policy-default.xml");
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
@@ -80,6 +81,14 @@ public abstract class TestAbstractAuthentication extends AbstractRestServiceInit
     }
 
     protected void replaceSecurityPolicy(File securityPolicy) throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        PrismObject<SecurityPolicyType> secPolicy = parseObject(securityPolicy);
+        addObject(secPolicy, executeOptions().overwrite(), task, result);
+        getDummyAuditService().clear();
+    }
+
+    protected void replaceSecurityPolicy(String securityPolicy) throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<SecurityPolicyType> secPolicy = parseObject(securityPolicy);

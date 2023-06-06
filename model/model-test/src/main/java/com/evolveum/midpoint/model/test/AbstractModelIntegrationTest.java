@@ -5697,14 +5697,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // Use this when you want to start the task manually.
-    protected void reimportWithNoSchedule(String taskOid, File taskFile, Task opTask, OperationResult result)
+    protected void reimportRecurringWithNoSchedule(String taskOid, File taskFile, Task opTask, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException,
             PolicyViolationException {
         taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
         addObject(taskFile, opTask, result, taskObject ->
                 ((TaskType) taskObject.asObjectable())
-                        .schedule(null)
+                        .schedule(new ScheduleType().recurrence(TaskRecurrenceType.RECURRING))
                         .binding(TaskBindingType.LOOSE)); // tightly-bound tasks must have interval set
     }
 
@@ -5726,29 +5726,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <F extends FocusType, P extends FocusType> PrismObject<P> assertLinkedPersona(
-            PrismObject<F> focus, Class<P> personaClass, String subtype)
+            PrismObject<F> focus, Class<P> personaClass, String archetypeOid)
             throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertLinkedPersona");
         for (ObjectReferenceType personaRef : focus.asObjectable().getPersonaRef()) {
             PrismObject<P> persona = repositoryService.getObject(
                     ObjectTypes.getObjectTypeFromTypeQName(personaRef.getType()).getClassDefinition(),
                     personaRef.getOid(), null, result);
-            if (isTypeAndSubtype(persona, personaClass, subtype)) {
+            if (isTypeAndArchetype(persona, personaClass, archetypeOid)) {
                 return persona;
             }
         }
-        fail("No persona " + personaClass.getSimpleName() + "/" + subtype + " in " + focus);
+        fail("No persona " + personaClass.getSimpleName() + "/" + archetypeOid + " in " + focus);
         return null; // not reached
     }
 
-    protected <F extends FocusType> boolean isTypeAndSubtype(PrismObject<F> focus, Class<F> expectedType, String subtype) {
-        if (!expectedType.isAssignableFrom(focus.getCompileTimeClass())) {
+    protected <F extends FocusType> boolean isTypeAndArchetype(PrismObject<F> focus, Class<F> expectedType, String archetypeOid) {
+        if (!expectedType.isAssignableFrom(focus.asObjectable().getClass())) {
             return false;
         }
-        if (!FocusTypeUtil.hasSubtype(focus, subtype)) {
-            return false;
-        }
-        return true;
+        return archetypeOid != null && ObjectTypeUtil.hasArchetypeRef(focus, archetypeOid);
     }
 
     protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

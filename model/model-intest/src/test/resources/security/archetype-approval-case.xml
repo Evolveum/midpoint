@@ -20,12 +20,30 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <forms>
-                    <formSpecification>
-                        <panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabOverviewApproval</panelUri>
-                    </formSpecification>
-                    <includeDefaultForms>true</includeDefaultForms>
-                </forms>
+                <panel>
+                    <identifier>caseWorkItems</identifier>
+                    <display>
+                        <label>Workitems</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>caseWorkItems</panelType>
+                    <type>c:CaseType</type>
+                </panel>
+                <panel>
+                    <identifier>approvalCase</identifier>
+                    <display>
+                        <label>Approvals</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>1</displayOrder>
+                    <panelType>approvalCase</panelType>
+                    <type>c:CaseType</type>
+                    <default>true</default>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

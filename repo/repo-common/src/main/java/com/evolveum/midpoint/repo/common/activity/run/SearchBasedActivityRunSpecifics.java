@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -16,10 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -59,12 +55,13 @@ public interface SearchBasedActivityRunSpecifics<C extends Containerable>
         return null;
     }
 
+    // TODO we may consider merging `customizeQuery` and `customizeSearchOptions`
+
     /**
      * Customizes a query present in the original search specification (usually derived from the task configuration).
      * The activity can either add specific clauses here, or rewrite the query altogether.
      */
-    default ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) throws CommonException {
-        return configuredQuery;
+    default void customizeQuery(SearchSpecification<C> searchSpecification, OperationResult result) throws CommonException {
     }
 
     /**
@@ -72,9 +69,8 @@ public interface SearchBasedActivityRunSpecifics<C extends Containerable>
      * The activity can either add or modify some options in the provided object - if it's not null - or
      * replace the whole object by its own version.
      */
-    default Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) throws CommonException {
-        return configuredOptions;
+    default void customizeSearchOptions(SearchSpecification<C> searchSpecification, OperationResult result)
+            throws CommonException {
     }
 
     /**

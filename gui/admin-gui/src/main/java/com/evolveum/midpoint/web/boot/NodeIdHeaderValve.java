@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.boot;
 
 import java.io.IOException;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import com.evolveum.midpoint.task.api.TaskManager;
 

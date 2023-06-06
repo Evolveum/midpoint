@@ -67,7 +67,12 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
      * @param connEnv
      * @param authnCtx
      * @return token with {@link com.evolveum.midpoint.security.api.MidPointPrincipal}
+     * @throws DisabledException when object found by authentication identifier is disabled
+     * @throws AuthenticationServiceException when occur some internal server error during authentication
+     * @throws UsernameNotFoundException when object not found by authentication identifier
      */
-    <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AC authnCtx);
+    <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(
+            ConnectionEnvironment connEnv, AC authnCtx)
+            throws DisabledException, AuthenticationServiceException, UsernameNotFoundException;
 
 }

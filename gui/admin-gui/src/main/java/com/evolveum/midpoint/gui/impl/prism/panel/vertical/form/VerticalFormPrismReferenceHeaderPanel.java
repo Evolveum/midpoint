@@ -30,6 +30,8 @@ public class VerticalFormPrismReferenceHeaderPanel<R extends Referencable> exten
 
     private static final long serialVersionUID = 1L;
 
+    private boolean isRequiredTagVisibleInHeaderPanel = false;
+
     public VerticalFormPrismReferenceHeaderPanel(String id, IModel<PrismReferenceWrapper<R>> model) {
         super(id, model);
     }
@@ -37,7 +39,11 @@ public class VerticalFormPrismReferenceHeaderPanel<R extends Referencable> exten
     @Override
     protected void createRequired(String id) {
         WebMarkupContainer required = new WebMarkupContainer(id);
-        required.add(new VisibleBehaviour(() -> false));
+        required.add(new VisibleBehaviour(() -> isRequiredTagVisibleInHeaderPanel));
         add(required);
+    }
+
+    public void setRequiredTagVisibleInHeaderPanel(boolean requiredTagVisibleInHeaderPanel) {
+        isRequiredTagVisibleInHeaderPanel = requiredTagVisibleInHeaderPanel;
     }
 }

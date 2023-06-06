@@ -94,15 +94,6 @@
                     <path>name</path>
                 </target>
             </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>AsynchronousUpdate</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
         </focusMappings>
     </inducement>
     <inducement>

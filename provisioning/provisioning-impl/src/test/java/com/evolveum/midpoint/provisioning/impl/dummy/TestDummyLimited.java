@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
  * - no paging
  * - no count simulation using sequential search
  * - no runAs
- * - legacy AddRemoveAttributeValuesCapabilityType
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik

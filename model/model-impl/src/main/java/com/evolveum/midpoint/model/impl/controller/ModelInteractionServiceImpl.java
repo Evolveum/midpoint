@@ -990,6 +990,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public  <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
+            Task task, OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        ValuePolicyType policy = null;
+
+        if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
+            PrismObject<ValuePolicyType> valuePolicy = cacheRepositoryService.getObject(ValuePolicyType.class,
+                    noncePolicy.getValuePolicyRef().getOid(), null, result);
+            policy = valuePolicy.asObjectable();
+        }
+
+        return generateValue(policy,
+                24, false, (PrismObject<O>) null, "nonce generation", task, result);
+    }
+
+    @Override
     public <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
             PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         return policyProcessor.generate(null, policy, defaultLength, generateMinimalSize, createOriginResolver(object, parentResult), shortDesc, task, parentResult);
@@ -1769,7 +1786,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private boolean credentialsResetPolicyMatch(CredentialsResetPolicyType policy, String identifier) {
-        return StringUtils.equals(policy.getIdentifier(), identifier) || StringUtils.equals(policy.getName(), identifier);
+        return StringUtils.equals(policy.getIdentifier(), identifier);
     }
 
     @Override

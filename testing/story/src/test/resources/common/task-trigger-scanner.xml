@@ -20,7 +20,6 @@
     <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
-    <recurrence>recurring</recurrence>
     <binding>tight</binding>
     <schedule>
         <interval>1</interval>

@@ -27,7 +27,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 import java.util.Map;
 
 /**
@@ -110,7 +110,9 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory {
         configuration.setSequenceSuffix(sequenceSuffix);
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        if (resourceServer.getNameOfUsernameClaim() != null) {
+        if (resourceServer.getJwt() != null && resourceServer.getJwt().getNameOfUsernameClaim() != null) {
+            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getJwt().getNameOfUsernameClaim());
+        } else if (resourceServer.getNameOfUsernameClaim() != null) {
             jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getNameOfUsernameClaim());
         }
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(

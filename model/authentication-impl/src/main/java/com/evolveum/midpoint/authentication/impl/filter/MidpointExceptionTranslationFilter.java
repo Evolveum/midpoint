@@ -7,11 +7,15 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
@@ -50,6 +54,9 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
         if (!AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
             requestCache.saveRequest(request, response);
         }
+        if (reason != null) {
+            LOGGER.debug(reason.getMessage());
+        }
         LOGGER.debug("Calling Authentication entry point.");
         getAuthenticationEntryPoint().commence(request, response, reason);
         if (authentication instanceof MidpointAuthentication){
@@ -57,15 +64,19 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
             ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken
                     && !mpAuthentication.hasSucceededAuthentication()) {
+                AuthenticationSequenceChannelType channel = mpAuthentication.getSequence() != null ?
+                        mpAuthentication.getSequence().getChannel() : null;
                 moduleAuthentication.setAuthentication(
-                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication()));
+                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication(),
+                                channel));
                 mpAuthentication.setPrincipal(null);
             }
             SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
         }
     }
 
-    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
+    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication,
+            AuthenticationSequenceChannelType channel) {
         return null;
     }
 

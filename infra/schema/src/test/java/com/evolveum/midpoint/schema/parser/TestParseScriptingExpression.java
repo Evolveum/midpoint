@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequence
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 import org.testng.annotations.Test;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 

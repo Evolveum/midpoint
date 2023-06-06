@@ -570,11 +570,6 @@ public class LensUtil {
         for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
             processItemConstraint(focusContext, focusDelta, focusObjectNew, itemConstraintType);
         }
-        // Deprecated
-        for (ItemConstraintType itemConstraintType : archetypePolicy.getPropertyConstraint()) {
-            processItemConstraint(focusContext, focusDelta, focusObjectNew, itemConstraintType);
-        }
-
     }
 
     private static <F extends ObjectType> void processItemConstraint(LensFocusContext<F> focusContext, ObjectDelta<F> focusDelta, PrismObject<F> focusObjectNew, ItemConstraintType itemConstraintType) throws PolicyViolationException {
@@ -803,10 +798,6 @@ public class LensUtil {
         }
 
         for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
-            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, prismContext, focusNew, itemConstraintType);
-        }
-        // Deprecated
-        for (ItemConstraintType itemConstraintType : archetypePolicy.getPropertyConstraint()) {
             applyObjectPolicyItemConstraint(focusContext, archetypePolicy, prismContext, focusNew, itemConstraintType);
         }
     }

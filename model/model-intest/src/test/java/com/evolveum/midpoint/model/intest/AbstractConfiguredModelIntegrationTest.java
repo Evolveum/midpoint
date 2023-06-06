@@ -234,6 +234,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final File ROLE_DRINKER_FILE = new File(COMMON_DIR, "role-drinker.xml");
     protected static final String ROLE_DRINKER_OID = "0abbde4c-ab3f-11e6-910d-d7dabf5f09f0";
 
+    protected static final TestObject<ArchetypeType> ARCHETYPE_ADMIN = TestObject.file(
+            COMMON_DIR, "archetype-admin.xml", "0d7acb30-db34-49fa-9dae-28a84e2ab9a1");
+
+    protected static final TestObject<ArchetypeType> ARCHETYPE_PERSONA_ROLE = TestObject.file(
+            COMMON_DIR, "archetype-persona-role.xml", "9791927e-9a84-41ae-a689-4f6715a8327a");
+
     protected static final File ROLE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "role-persona-admin.xml");
     protected static final TestObject<RoleType> ROLE_PERSONA_ADMIN = TestObject.file(COMMON_DIR, "role-persona-admin.xml", "16813ae6-2c0a-11e7-91fc-8333c244329e");
 

@@ -7,27 +7,39 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.dialect.PostgreSQL95Dialect;
-import org.hibernate.type.descriptor.sql.LongVarbinaryTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.boot.model.TypeContributions;
+import org.hibernate.dialect.DatabaseVersion;
+import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.service.ServiceRegistry;
+import org.hibernate.type.SqlTypes;
+import org.hibernate.type.descriptor.jdbc.LongVarbinaryJdbcType;
+import org.hibernate.type.descriptor.sql.internal.DdlTypeImpl;
 
 import java.sql.Types;
 
 /**
  * @author lazyman
  */
-public class MidPointPostgreSQLDialect extends PostgreSQL95Dialect {
+public class MidPointPostgreSQLDialect extends PostgreSQLDialect {
 
     public MidPointPostgreSQLDialect() {
-        registerColumnType(Types.BLOB, "bytea");
+        super( DatabaseVersion.make( 9, 5 ) );
     }
 
     @Override
-    public SqlTypeDescriptor getSqlTypeDescriptorOverride(int sqlCode) {
-        if (Types.BLOB == sqlCode) {
-            return LongVarbinaryTypeDescriptor.INSTANCE;
-        }
-
-        return super.getSqlTypeDescriptorOverride(sqlCode);
+    public void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
+        super.registerColumnTypes(typeContributions, serviceRegistry);
+        var blobBytea = new DdlTypeImpl(SqlTypes.BLOB, "bytea", this);
+        typeContributions.getTypeConfiguration().getDdlTypeRegistry().addDescriptor(blobBytea);
+        typeContributions.getTypeConfiguration().getJdbcTypeRegistry().addDescriptor(Types.BLOB, LongVarbinaryJdbcType.INSTANCE);
     }
+
+    @Override
+    protected String columnType(int sqlTypeCode) {
+        if (SqlTypes.BLOB == sqlTypeCode) {
+            return "bytea";
+        }
+        return super.columnType(sqlTypeCode);
+    }
+
 }

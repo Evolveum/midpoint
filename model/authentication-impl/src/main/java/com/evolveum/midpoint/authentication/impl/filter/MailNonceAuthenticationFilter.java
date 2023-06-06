@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.MailNonceAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationServiceException;

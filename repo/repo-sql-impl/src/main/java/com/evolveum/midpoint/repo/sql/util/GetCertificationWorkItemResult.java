@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.ResultTransformer;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +20,7 @@ public class GetCertificationWorkItemResult implements Serializable {
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
         @Override
         public ResultTransformer getResultTransformer() {
-            return new BasicTransformerAdapter() {
+            return new ResultTransformer() {
                 @Override
                 public Object transformTuple(Object[] tuple, String[] aliases) {
                     return new GetCertificationWorkItemResult((String) tuple[0], (Integer) tuple[1], (Integer) tuple[2]);

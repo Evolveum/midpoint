@@ -53,10 +53,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -534,7 +534,7 @@ public class ProgressPanel extends BasePanel {
         ProgressReporter reporter = reporterModel.getProcessData();
         int refreshInterval = reporter.getRefreshInterval();
 
-        refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(refreshInterval)) {
+        refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(refreshInterval)) {
 
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {

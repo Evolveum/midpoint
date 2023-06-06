@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.dialog.*;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
@@ -62,10 +64,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -403,6 +401,58 @@ public class PageDebugList extends PageAdminConfiguration {
                     }
                 };
             }
+        });
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("roleMiningExportPanel.operation.button.title")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new HeaderMenuAction(PageDebugList.this) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        var list = get(ID_MAIN_FORM)
+                                .getBehaviors(PageDebugDownloadBehaviour.class);
+                        var downloadBehaviour = list.get(0);
+                        ExportMiningPanel dialog = new ExportMiningPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                                createStringResource("roleMiningExportPanel.panel.message"), downloadBehaviour) {
+                            @Override
+                            public HashMap<String, String> getArchetypeObjectsList() {
+                                String string = DOT_CLASS + "filterArchetypeObjects";
+                                OperationResult result = new OperationResult(string);
+
+                                List<PrismObject<ArchetypeType>> archetypeObjectList = null;
+                                try {
+                                    archetypeObjectList = getMidpointApplication().getRepositoryService()
+                                            .searchObjects(ArchetypeType.class, null, null, result);
+                                } catch (CommonException e) {
+                                    e.printStackTrace();
+                                }
+
+                                if (archetypeObjectList != null) {
+                                    archetypeObjectList.sort(Comparator.comparing(p -> p.getName().toString()));
+                                }
+
+                                HashMap<String, String> hashMap = new HashMap<>();
+                                assert archetypeObjectList != null;
+                                for (PrismObject<ArchetypeType> archetypeTypePrismObject : archetypeObjectList) {
+                                    hashMap.put(String.valueOf(archetypeTypePrismObject.getName()), archetypeTypePrismObject.getOid());
+                                }
+                                return hashMap;
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(dialog, target);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(true);
+            }
+
         });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"), true) {

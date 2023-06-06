@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 
 import java.util.Objects;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.NotFound;

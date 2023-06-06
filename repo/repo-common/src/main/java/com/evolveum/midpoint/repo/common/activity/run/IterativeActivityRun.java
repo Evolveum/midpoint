@@ -161,8 +161,7 @@ public abstract class IterativeActivityRun<
         this.shortName = shortName;
         this.contextDescription = "";
         this.beans = taskRun.getBeans();
-        this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(getActivity(), getRunningTask(),
-                getDefaultErrorAction(), beans);
+        this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(getActivity(), getDefaultErrorAction(), beans);
         this.globalConnIdOperationsListener = new GlobalConnIdOperationsListener();
 
         getReportingDefinition().applyDefaults(reportingCharacteristics);

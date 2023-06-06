@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.api.config;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.*;
 
@@ -107,7 +107,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (sequence == null) {
             return null;
         }
-        return StringUtils.isNotEmpty(sequence.getIdentifier()) ? sequence.getIdentifier() : sequence.getName();
+        return sequence.getIdentifier();
     }
 
     public void setSequence(AuthenticationSequenceType sequence) {
@@ -318,7 +318,10 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (module == null) {
             return null;
         }
-        String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
+        String moduleIdentifier = module.getIdentifier();
+        if (moduleIdentifier == null) {
+            return null;
+        }
         for (ModuleAuthentication authentication : getAuthentications()) {
             if (authentication.getModuleIdentifier().equals(moduleIdentifier)) {
                 return authentication;

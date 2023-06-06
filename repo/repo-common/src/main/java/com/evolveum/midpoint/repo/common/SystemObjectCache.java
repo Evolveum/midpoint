@@ -8,8 +8,8 @@ package com.evolveum.midpoint.repo.common;
 
 import java.util.Collection;
 import java.util.Collections;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 

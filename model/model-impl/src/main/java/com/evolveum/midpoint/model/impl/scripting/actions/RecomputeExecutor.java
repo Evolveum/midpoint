@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.RecomputeActionExp
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Executes "recompute" action.

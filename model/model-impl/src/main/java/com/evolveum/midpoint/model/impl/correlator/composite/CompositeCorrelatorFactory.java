@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.composite;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;

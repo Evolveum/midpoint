@@ -371,6 +371,10 @@ public interface ModelInteractionService {
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
+    <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException;
+
     /**
      * TEMPORARY. Need to find out better way how to deal with generated values
      *

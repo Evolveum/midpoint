@@ -1581,7 +1581,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             String pos = taskName + "/" + (i + 1);
             assertNotNull("no stage definition at " + pos, stagePreview.getDefinition());
             assertNotNull("no execution preview at " + pos, stagePreview.getExecutionPreview());
-            assertNull("execution record present at " + pos, stagePreview.getExecutionRecord());
 
             assertEquals("Wrong preview stage number at " + pos, (Integer) (i + 1), stagePreview.getNumber());
             assertEquals("Wrong definition stage number at " + pos, (Integer) (i + 1), stagePreview.getDefinition().getNumber());

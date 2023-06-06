@@ -206,35 +206,29 @@ public abstract class SearchBasedActivityRun<
     /**
      * Customizes the configured search specification. Almost fully delegated to the plugin.
      */
-    private void customizeSearchSpecification(SearchSpecification<C> searchSpecification, OperationResult result)
+    private void customizeSearchSpecification(@NotNull SearchSpecification<C> searchSpecification, OperationResult result)
             throws CommonException {
-
-        searchSpecification.setQuery(
-                customizeQuery(searchSpecification.getQuery(), result));
-
-        searchSpecification.setSearchOptions(
-                customizeSearchOptions(searchSpecification.getSearchOptions(), result));
-
-        searchSpecification.setUseRepository(
-                customizeUseRepository(searchSpecification.getUseRepository(), result));
+        customizeQuery(searchSpecification, result);
+        customizeSearchOptions(searchSpecification, result);
+        customizeUseRepository(searchSpecification, result);
     }
 
-    private Boolean customizeUseRepository(Boolean configuredValue, OperationResult result)
+    private void customizeUseRepository(SearchSpecification<C> searchSpecification, OperationResult result)
             throws CommonException {
+        Boolean configuredValue = searchSpecification.getUseRepository();
         if (doesRequireDirectRepositoryAccess()) {
             if (Boolean.FALSE.equals(configuredValue)) {
                 LOGGER.warn("Ignoring 'useRepository' value of 'false' because the activity requires direct repository access");
             }
-            return true;
-        } else if (configuredValue != null) {
+            searchSpecification.setUseRepository(true);
+        } else if (configuredValue == null) {
+            searchSpecification.setUseRepository(false); // this is the default
+        } else {
             // if we requested this mode explicitly we need to have appropriate authorization
             if (configuredValue) {
                 beans.getAdvancedActivityRunSupport()
                         .checkRawAuthorization(getRunningTask(), result);
             }
-            return configuredValue;
-        } else {
-            return false;
         }
     }
 
@@ -372,10 +366,11 @@ public abstract class SearchBasedActivityRun<
     }
 
     private void resolveExpressionsInQuery(OperationResult result) throws CommonException {
-        if (ExpressionUtil.hasExpressions(searchSpecification.getQuery().getFilter())) {
+        ObjectQuery query = searchSpecification.getQuery();
+        if (query != null && ExpressionUtil.hasExpressions(query.getFilter())) {
             searchSpecification.setQuery(
                     beans.getAdvancedActivityRunSupport().evaluateQueryExpressions(
-                            searchSpecification.getQuery(), null, getRunningTask(), result));
+                            query, null, getRunningTask(), result));
         }
     }
 
@@ -524,6 +519,7 @@ public abstract class SearchBasedActivityRun<
         return requireNonNull(searchSpecification, "no search specification");
     }
 
+    /** Precondition: search specification must already exist. */
     protected final Class<C> getItemType() {
         return getSearchSpecificationRequired().getType();
     }

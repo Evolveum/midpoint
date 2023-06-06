@@ -57,6 +57,7 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
                 authenticationToken = oidcProvider.authenticate(oidcAuthenticationToken);
             } catch (AuthenticationException e) {
                 getAuditProvider().auditLoginFailure(null, null, createConnectEnvironment(getChannel()), e.getMessage());
+                LOGGER.debug("Unexpected exception in oidc module", e);
                 throw e;
             }
 

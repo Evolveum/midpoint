@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.util.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -16,6 +16,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
+import org.hibernate.query.criteria.JpaCriteriaQuery;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -239,8 +241,8 @@ public class CertificationCaseHelper {
                 long id = checkPathSanity(deltaPath, casesAddedOrDeleted);
 
                 Query<?> query = session.getNamedQuery("get.campaignCase");
-                query.setString("ownerOid", campaignOid);
-                query.setInteger("id", (int) id);
+                query.setParameter("ownerOid", campaignOid);
+                query.setParameter("id", (int) id);
 
                 byte[] fullObject = (byte[]) query.uniqueResult();
                 if (fullObject == null) {
@@ -273,7 +275,7 @@ public class CertificationCaseHelper {
         if (RepoModifyOptions.isForceReindex(modifyOptions)) {
             //noinspection unchecked
             Query<Object> query = session.getNamedQuery("get.campaignCases");
-            query.setString("ownerOid", campaignOid);
+            query.setParameter("ownerOid", campaignOid);
             List<Object> cases = query.list();
             for (Object o : cases) {
                 if (!(o instanceof byte[])) {
@@ -395,8 +397,8 @@ public class CertificationCaseHelper {
 
         LOGGER.debug("Loading certification campaign cases.");
 
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<RAccessCertificationCase> cq = cb.createQuery(RAccessCertificationCase.class);
+        HibernateCriteriaBuilder cb = session.getCriteriaBuilder();
+        JpaCriteriaQuery<RAccessCertificationCase> cq = cb.createQuery(RAccessCertificationCase.class);
         cq.where(cb.equal(cq.from(RAccessCertificationCase.class).get("ownerOid"), object.getOid()));
 
         Query<RAccessCertificationCase> query = session.createQuery(cq);

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<securityPolicy oid="28bf845a-b107-11e3-85bc-001e8c717e5b"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Security Policy</name>
+    <authentication>
+        <modules>
+            <loginForm>
+                <identifier>internalLoginForm</identifier>
+                <description>Internal username/password authentication, default user password, login form</description>
+            </loginForm>
+            <oidc>
+                <identifier>oidcResourceServer</identifier>
+                <resourceServer>
+                    <opaqueToken>
+                        <userInfoUri>||userInfoUri||</userInfoUri>
+                        <nameOfUsernameClaim>||nameOfUsernameClaim||</nameOfUsernameClaim>
+                    </opaqueToken>
+                </resourceServer>
+            </oidc>
+        </modules>
+        <sequence>
+            <identifier>admin-gui-default</identifier>
+            <description>
+                Default GUI authentication sequence.
+            </description>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>gui-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>internalLoginForm</identifier>
+                <order>30</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        <sequence>
+            <identifier>rest</identifier>
+            <description>
+                Authentication sequence for REST service.
+                We want just OIDC auth here, HTTP basic as fallback.
+                There is also HTTP SecQ authorization used by custom GUI front end. However, that SecQ
+                authorization can be used only to reset a password.
+                All modules have the same order. Therefore they are both advertised in HTTP WWW-Authentication
+                header. The client can decide which one to use.
+            </description>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>oidcResourceServer</identifier>
+                <order>10</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+    </authentication>
+    <credentials>
+        <password>
+            <maxAge>P30D</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <historyLength>3</historyLength>
+            <valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffb" type="ValuePolicyType"/>
+        </password>
+    </credentials>
+</securityPolicy>

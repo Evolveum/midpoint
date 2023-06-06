@@ -58,20 +58,12 @@ public class SearchConfigurationMerger {
             mergedConfig.setDefaultMode(customizedConfig.getDefaultMode());
         }
 
-        if (customizedConfig.getDefaultObjectType() != null) {
-            mergedConfig.setDefaultObjectType(customizedConfig.getDefaultObjectType());
-        }
-
         if (customizedConfig.getObjectTypeConfiguration() != null) {
             mergedConfig.setObjectTypeConfiguration(customizedConfig.getObjectTypeConfiguration());
         }
 
         if (customizedConfig.getRelationConfiguration() != null) {
             mergedConfig.setRelationConfiguration(customizedConfig.getRelationConfiguration());
-        }
-
-        if (customizedConfig.getDefaultScope() != null) {
-            mergedConfig.setDefaultScope(customizedConfig.getDefaultScope());
         }
 
         SearchItemsType mergedSearchItems = combineSearchItems(mergedConfig.getSearchItems(), customizedConfig.getSearchItems(), pageBase);
@@ -156,8 +148,8 @@ public class SearchConfigurationMerger {
         if (customItem.getDescription() != null) {
             item.setDescription(customItem.getDescription());
         }
-        if (customItem.getDisplayName() != null) {
-            item.setDisplayName(customItem.getDisplayName());
+        if (customItem.getDisplay() != null) {
+            item.setDisplay(customItem.getDisplay());
         }
         if (customItem.getParameter() != null) {
             item.setParameter(customItem.getParameter());

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.component.input.dto;
 
 import java.io.Serializable;
 import java.util.Objects;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

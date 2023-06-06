@@ -6,6 +6,14 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.nimbusds.jose.util.Base64URL;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -16,14 +24,21 @@ import java.security.interfaces.RSAPublicKey;
 
 public class OidcAdditionalConfiguration implements Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(OidcAdditionalConfiguration.class);
+
     private final String singingAlg;
     private final RSAPublicKey publicKey;
     private final RSAPrivateKey privateKey;
+    private final Base64URL thumbprint;
+    private final Base64URL thumbprint256;
 
-    private OidcAdditionalConfiguration(String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey) {
+    private OidcAdditionalConfiguration(
+            String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey, String thumbprint, String thumbprint256) {
         this.singingAlg = singingAlg;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
+        this.thumbprint = thumbprint != null ? createBase64(thumbprint) : null;
+        this.thumbprint256 = thumbprint256 != null ? createBase64(thumbprint256) : null;
     }
 
     public String getSingingAlg() {
@@ -38,6 +53,23 @@ public class OidcAdditionalConfiguration implements Serializable {
         return publicKey;
     }
 
+    public Base64URL getThumbprint() {
+        return thumbprint;
+    }
+
+    public Base64URL getThumbprint256() {
+        return thumbprint256;
+    }
+
+    private Base64URL createBase64(@NotNull String thumbprint) {
+        try {
+            return Base64URL.encode(Hex.decodeHex(thumbprint.toUpperCase()));
+        } catch (DecoderException e) {
+            LOGGER.error("Couldn't decode thumbprint " + thumbprint, e);
+        }
+        return null;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -47,6 +79,9 @@ public class OidcAdditionalConfiguration implements Serializable {
         private String singingAlg;
         private RSAPublicKey publicKey;
         private RSAPrivateKey privateKey;
+
+        private String thumbprint;
+        private String thumbprint256;
 
         private Builder() {
         }
@@ -66,8 +101,19 @@ public class OidcAdditionalConfiguration implements Serializable {
             return this;
         }
 
+        public Builder thumbprint(String thumbprint) {
+            this.thumbprint = thumbprint;
+            return this;
+        }
+
+        public Builder thumbprint256(String thumbprint256) {
+            this.thumbprint256 = thumbprint256;
+            return this;
+        }
+
         public OidcAdditionalConfiguration build(){
-            return new OidcAdditionalConfiguration(this.singingAlg, this.publicKey, this.privateKey);
+            return new OidcAdditionalConfiguration(
+                    this.singingAlg, this.publicKey, this.privateKey, this.thumbprint, this.thumbprint256);
         }
     }
 }

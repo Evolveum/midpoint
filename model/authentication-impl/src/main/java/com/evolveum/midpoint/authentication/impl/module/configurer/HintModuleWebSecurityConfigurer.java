@@ -30,7 +30,7 @@ public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurit
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         HintAuthenticationFilter hintFilter = new HintAuthenticationFilter();
-        http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
+        http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointAttributeConfigurer<>(hintFilter))
                 .loginPage("/hint")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")

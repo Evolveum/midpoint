@@ -93,9 +93,9 @@ public class GuiDisplayNameUtil {
         return value.getItemPath().stripVariableSegment().toString();
     }
 
-    public static String getDisplayName(ItemConstraintType propertyConstraintType) {
-        if (propertyConstraintType.getPath() != null) {
-            return propertyConstraintType.getPath().getItemPath().toString();
+    public static String getDisplayName(ItemConstraintType constraint) {
+        if (constraint.getPath() != null) {
+            return constraint.getPath().getItemPath().toString();
         }
         return null;
     }
@@ -133,7 +133,7 @@ public class GuiDisplayNameUtil {
         if (objectClass != null) {
             boolean isNotDisplayNameEmpty = StringUtils.isNotEmpty(sb.toString());
             if (isNotDisplayNameEmpty) {
-                sb.append("(");
+                sb.append(" (");
             }
             sb.append(objectClass.getLocalPart());
             if (isNotDisplayNameEmpty) {

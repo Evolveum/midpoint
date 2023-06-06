@@ -11,12 +11,13 @@ import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import java.nio.file.AccessDeniedException;
 import javax.naming.AuthenticationException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -110,7 +111,7 @@ public class RestExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> handleResponseStatusException(
             ResponseStatusException ex, HttpServletRequest request) {
-        return errorResponse(ex.getStatus(), request, ex);
+        return errorResponse(ex.getStatusCode(), request, ex);
     }
 
     @ExceptionHandler(Exception.class)
@@ -121,13 +122,13 @@ public class RestExceptionHandler {
     }
 
     private ResponseEntity<?> errorResponse(
-            HttpStatus status, HttpServletRequest request, Throwable ex) {
+            HttpStatusCode status, HttpServletRequest request, Throwable ex) {
         String message = ex.getMessage();
         LOGGER.debug("HTTP error status {} with message: {}", status.value(), message);
 
         OperationResult result = new OperationResult(request.getRequestURI())
-                .addParam("status", status.value())
-                .addParam("error", status.getReasonPhrase());
+                .addParam("status", status.value());
+        //        .addParam("error", status.);
         result.recordFatalError(ex);
 
         return ResponseEntity.status(status).body(result.createOperationResultType());

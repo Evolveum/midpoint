@@ -322,6 +322,11 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.7</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:executionRecord</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -337,14 +342,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of this approval stage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="executionRecord" type="c:ApprovalStageExecutionRecordType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Approvers that are expected to be part of this stage.
-                        (Some might be "for sure" and some might be "expected", but currently we do not distinguish between these.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -400,39 +397,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Error message if preview couldn't be computed. (TODO)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="ApprovalStageExecutionRecordType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Record of an actual execution of an approval stage.
-                Note that this structure is deprecated. Everything we need can be found in the case object
-                attached to (enclosing) ApprovalSchemaExecutionInformationType.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.7</a:since>
-                <a:deprecated>true</a:deprecated>
-                <a:deprecatedSince>4.1</a:deprecatedSince>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="event" type="c:CaseEventType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Events related to this stage. Currently might contain WorkItemEventType and StageCompletionEventType instances.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="workItem" type="c:CaseWorkItemType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Currently active work items.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -625,6 +589,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:useLegacyApproversSpecification</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -638,23 +607,6 @@
                     <xsd:appinfo>
                         <a:displayName>WfConfigurationType.modelHookEnabled</a:displayName>
                         <a:displayOrder>100</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="useLegacyApproversSpecification" minOccurs="0" type="tns:LegacyApproversSpecificationUsageType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,
-                        automaticallyApproved items in AbstractRoleType? The default is "ifNoExplicitApprovalPolicyAction", that
-                        means these items are applied only if no explicit approval policy action is encountered.
-
-                        DEPRECATED. Not used anymore. Legacy approvers specification were already removed.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>WfConfigurationType.useLegacyApproversSpecification</a:displayName>
-                        <a:displayOrder>120</a:displayOrder>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1379,10 +1331,7 @@
             </xsd:element>
             <xsd:element name="title" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                    </xsd:appinfo>
+                    <xsd:documentation>Simpler (plain string) form of "localizableTitle".</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="part" type="tns:InformationPartType" minOccurs="0" maxOccurs="unbounded" />
@@ -1406,10 +1355,7 @@
             </xsd:element>
             <xsd:element name="text" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                    </xsd:appinfo>
+                    <xsd:documentation>Simpler (plain string) form of "localizableText".</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="hasMarkup" type="xsd:boolean" minOccurs="0" />

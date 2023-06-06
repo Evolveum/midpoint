@@ -237,9 +237,6 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         if (ScriptCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-code";
         }
-        if (AddRemoveAttributeValuesCapabilityType.class.isAssignableFrom(capability)) {
-            return "fa fa-pen-to-square";
-        }
         if (ReadCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-book";
         }

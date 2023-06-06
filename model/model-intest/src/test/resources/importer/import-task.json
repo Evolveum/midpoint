@@ -16,7 +16,6 @@
         "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
       },
       "executionState": "runnable",
-      "recurrence": "single",
       "binding": "tight"
     }
   }

@@ -24,7 +24,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +67,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
         OidcClientModuleWebSecurityConfigurer<OidcClientModuleWebSecurityConfiguration> module = getObjectObjectPostProcessor().postProcess(
                 new OidcClientModuleWebSecurityConfigurer<>(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
+        module.setPublicUrlPrefix(getPublicUrlPrefix(request));
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 

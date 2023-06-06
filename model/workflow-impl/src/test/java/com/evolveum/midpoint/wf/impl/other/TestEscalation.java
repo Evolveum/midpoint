@@ -284,7 +284,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
         dummyTransport.clearMessages();
         clock.resetOverride();
-        reimportWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, task, result);
+        reimportRecurringWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, task, result);
 
         when();
         assignRole(USER_JACK.oid, ROLE_E2_OID, task, result); // should start approval process

@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.testing.rest;
 
 import java.io.File;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 

@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.ForeignKey;

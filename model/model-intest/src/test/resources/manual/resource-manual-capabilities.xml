@@ -130,8 +130,8 @@
             </cap:create>
             <cap:update>
                 <cap:manual>true</cap:manual>
+                <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
             </cap:update>
-            <cap:addRemoveAttributeValues/>
             <cap:delete>
                 <cap:manual>true</cap:manual>
             </cap:delete>

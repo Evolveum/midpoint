@@ -16,7 +16,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.markup.html.form.Form;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 

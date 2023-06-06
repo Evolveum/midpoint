@@ -408,16 +408,6 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options != null ? options.tracingProfile : null;
     }
 
-    // TEMPORARY
-    public ModelExecuteOptions reconcileAffected(Boolean value) {
-        content.setReconcileAffected(value);
-        return this;
-    }
-
-    public static boolean isReconcileAffected(ModelExecuteOptions options) {
-        return is(options, F_RECONCILE_AFFECTED);
-    }
-
     public SimulationOptionsType getSimulationOptions() {
         return content.getSimulation();
     }

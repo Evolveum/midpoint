@@ -147,18 +147,11 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
     }
 
     private ResourceObjectTypeDefinitionType getResourceObjectType(PrismPropertyWrapper<VariableBindingDefinitionType> propertyWrapper) {
-
-        if (propertyWrapper != null
-                && propertyWrapper.getParent() != null
-                && propertyWrapper.getParent().getParent() != null
-                && propertyWrapper.getParent().getParent().getParent() != null
-                && propertyWrapper.getParent().getParent().getParent().getParent() != null) {
-            PrismContainerValueWrapper containerValue = propertyWrapper.getParent().getParent().getParent().getParent().getParent();
-
-            if (containerValue != null && containerValue.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
-                return (ResourceObjectTypeDefinitionType) containerValue.getRealValue();
-            }
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> containerValue = propertyWrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        if (containerValue != null && containerValue.getRealValue() != null) {
+            return containerValue.getRealValue();
         }
+
         return null;
     }
 }
