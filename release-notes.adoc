@@ -77,7 +77,7 @@ Please see _Upgrade_ section below for details.
 
 == Changes With Respect To Version 4.4 LTS
 
-* TODO
+* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xref:/midpoint/reference/repository/native-postgresql/[PostgreSQL native repository]. 
 
 
 ++++
@@ -207,10 +207,7 @@ H2 is intended only for development, demo and similar use cases.
 It is *not* supported for any production use.
 Also, upgrade of deployments based on H2 database are not supported.
 
-* PostgreSQL 15, 14, 13, 12, and 11
-
 * Oracle 21c
-
 * Microsoft SQL Server 2019
 
 Support for xref:/midpoint/reference/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
