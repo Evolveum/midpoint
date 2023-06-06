@@ -2326,6 +2326,12 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:displayName</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use SearchItemType.display.label instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

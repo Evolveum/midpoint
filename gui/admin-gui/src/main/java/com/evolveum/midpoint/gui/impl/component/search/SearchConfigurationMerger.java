@@ -148,8 +148,8 @@ public class SearchConfigurationMerger {
         if (customItem.getDescription() != null) {
             item.setDescription(customItem.getDescription());
         }
-        if (customItem.getDisplayName() != null) {
-            item.setDisplayName(customItem.getDisplayName());
+        if (customItem.getDisplay() != null) {
+            item.setDisplay(customItem.getDisplay());
         }
         if (customItem.getParameter() != null) {
             item.setParameter(customItem.getParameter());
