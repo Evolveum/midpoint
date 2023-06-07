@@ -49,8 +49,8 @@ public class AuditFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditFactory.class);
 
-    private static final String CONF_AUDIT_SERVICE = "auditService";
-    private static final String CONF_AUDIT_SERVICE_FACTORY = "auditServiceFactoryClass";
+    public static final String CONF_AUDIT_SERVICE = "auditService";
+    public static final String CONF_AUDIT_SERVICE_FACTORY = "auditServiceFactoryClass";
 
     @Autowired private AutowireCapableBeanFactory autowireCapableBeanFactory;
     @Autowired private MidpointConfiguration midpointConfiguration;

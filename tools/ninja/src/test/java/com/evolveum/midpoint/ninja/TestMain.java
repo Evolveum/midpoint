@@ -47,7 +47,7 @@ public class TestMain {
 
 //        input = "-h setup-database".split(" ");
 
-        input = "-v --offline -m ../../_mess/create0 setup-database --scripts-directory ../../config/sql/native-new".split(" "); // mo
+        input = "-v --offline -m ../../_mess/create0 setup-database --scripts-directory ../../config/sql/native-new".split(" ");
 
         Main.main(input);
 
