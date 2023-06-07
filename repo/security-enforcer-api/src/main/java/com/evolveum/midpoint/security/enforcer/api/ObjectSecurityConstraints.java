@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,4 +63,15 @@ public interface ObjectSecurityConstraints extends DebugDumpable {
      */
     @Nullable AuthorizationDecisionType findItemDecision(
             @NotNull ItemPath nameOnlyItemPath, @NotNull String actionUrl, @Nullable AuthorizationPhaseType phase);
+
+    @Contract("_, _, !null, _ -> !null")
+    default AuthorizationDecisionType computeItemDecision(
+            @NotNull ItemPath nameOnlyItemPath,
+            @NotNull String[] actionUrls,
+            @Nullable AuthorizationDecisionType defaultDecision,
+            @Nullable AuthorizationPhaseType phase) {
+        AuthorizationDecisionType explicitDecision = findItemDecision(nameOnlyItemPath, actionUrls, phase);
+        return explicitDecision != null ? explicitDecision : defaultDecision;
+    }
+
 }

@@ -5,8 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.controller;
+package com.evolveum.midpoint.model.impl.controller.transformer;
 
+import com.evolveum.midpoint.model.impl.controller.SchemaTransformer;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -40,12 +41,12 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * (by removing invisible items and values).
  */
 @Component
-public class ReadConstraintsApplicator {
+public class DataAccessProcessor {
 
     /** Using this logger for compatibility reasons. */
     private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
 
-    <O extends ObjectType> PrismObject<O> applyReadConstraints(
+    public <O extends ObjectType> PrismObject<O> applyReadConstraints(
             @NotNull PrismObject<O> object, @NotNull PrismEntityOpConstraints.ForValueContent constraints)
             throws SecurityViolationException {
         return applyReadConstraints(object.getValue(), constraints)
@@ -131,7 +132,7 @@ public class ReadConstraintsApplicator {
         }
     }
 
-    @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent applyReadConstraints(
+    public @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent applyReadConstraints(
             LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints)
             throws AuthorizationException {
         var decision = readConstraints.getDecision();

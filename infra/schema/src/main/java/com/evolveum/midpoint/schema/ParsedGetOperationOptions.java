@@ -92,4 +92,16 @@ public class ParsedGetOperationOptions {
                 GetOperationOptions.getDefinitionUpdate(getRootOptions()),
                 DefinitionUpdateOption.NONE); // temporary default (for experiments)
     }
+
+    public boolean isRaw() {
+        return GetOperationOptions.isRaw(getRootOptions());
+    }
+
+    public boolean isTolerateRawData() {
+        return GetOperationOptions.isTolerateRawData(getRootOptions());
+    }
+
+    public boolean isExecutionPhase() {
+        return GetOperationOptions.isExecutionPhase(getRootOptions());
+    }
 }

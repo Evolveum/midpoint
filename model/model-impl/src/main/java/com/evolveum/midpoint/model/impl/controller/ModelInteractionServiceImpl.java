@@ -403,22 +403,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 //        }
 
         AuthorizationDecisionType attributesReadDecision =
-                schemaTransformer.computeItemDecision(
-                        securityConstraints,
+                securityConstraints.computeItemDecision(
                         SchemaConstants.PATH_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase),
                         phase);
         AuthorizationDecisionType attributesAddDecision =
-                schemaTransformer.computeItemDecision(
-                        securityConstraints,
+                securityConstraints.computeItemDecision(
                         SchemaConstants.PATH_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
                         phase);
         AuthorizationDecisionType attributesModifyDecision =
-                schemaTransformer.computeItemDecision(
-                        securityConstraints,
+                securityConstraints.computeItemDecision(
                         SchemaConstants.PATH_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
@@ -437,14 +434,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision =
-                    schemaTransformer.computeItemDecision(
-                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
+                    securityConstraints.computeItemDecision(
+                            attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
             AuthorizationDecisionType attributeAddDecision =
-                    schemaTransformer.computeItemDecision(
-                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
+                    securityConstraints.computeItemDecision(
+                            attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
             AuthorizationDecisionType attributeModifyDecision =
-                    schemaTransformer.computeItemDecision(
-                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
+                    securityConstraints.computeItemDecision(
+                            attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
             LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getItemName(), attributeReadDecision,
                     attributeAddDecision, attributeModifyDecision);
 
@@ -486,10 +483,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 "getting items with provenance support for " + object, task, result);
 
         LOGGER.trace(
-                "getMetadataSupportSpec for {} in {}:\n"
-                        + " - archetypePolicy = {}\n"
-                        + " - templateRef = {}\n"
-                        + " - processingSpec = \n{}",
+                """
+                        getMetadataSupportSpec for {} in {}:
+                         - archetypePolicy = {}
+                         - templateRef = {}
+                         - processingSpec =
+                        {}""",
                 metadataItemPath, object, archetypePolicy, templateRef,
                 DebugUtil.debugDumpLazily(processingSpec, 1));
 
