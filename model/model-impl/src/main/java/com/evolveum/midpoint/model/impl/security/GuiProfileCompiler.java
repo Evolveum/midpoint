@@ -635,21 +635,6 @@ public class GuiProfileCompiler {
         return reference.getOid();
     }
 
-    private void mergeWidget(CompiledGuiProfile composite, DashboardWidgetType newWidget) {
-        String newWidgetIdentifier = newWidget.getIdentifier();
-        DashboardWidgetType compositeWidget = composite.findUserDashboardWidget(newWidgetIdentifier);
-        if (compositeWidget == null) {
-            composite.getUserDashboard().getWidget().add(newWidget.clone());
-        } else {
-            mergeWidget(compositeWidget, newWidget);
-        }
-    }
-
-    private void mergeWidget(DashboardWidgetType compositeWidget, DashboardWidgetType newWidget) {
-        mergeFeature(compositeWidget, newWidget, UserInterfaceElementVisibilityType.VACANT);
-        // merge other widget properties (in the future)
-    }
-
     private void mergeFeature(CompiledGuiProfile composite, UserInterfaceFeatureType newFeature) {
         String newIdentifier = newFeature.getIdentifier();
         UserInterfaceFeatureType compositeFeature = composite.findFeature(newIdentifier);
