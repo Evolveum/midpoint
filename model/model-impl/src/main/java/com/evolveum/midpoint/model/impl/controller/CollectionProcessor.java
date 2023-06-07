@@ -611,12 +611,6 @@ public class CollectionProcessor {
         SearchBoxConfigurationType oldSearchBoxConfig = existingView.getSearchBoxConfiguration();
         if (oldSearchBoxConfig == null || replaceIfExist) {
             if (oldSearchBoxConfig != null) {
-                if (newSearchBoxConfig.getDefaultObjectType() == null) {
-                    newSearchBoxConfig.setDefaultObjectType(oldSearchBoxConfig.getDefaultObjectType());
-                }
-                if (newSearchBoxConfig.getDefaultScope() == null) {
-                    newSearchBoxConfig.setDefaultScope(oldSearchBoxConfig.getDefaultScope());
-                }
                 if (newSearchBoxConfig.getSearchItems() == null) {
                     newSearchBoxConfig.setSearchItems(oldSearchBoxConfig.getSearchItems());
                 }

@@ -1711,7 +1711,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         AuthenticationSequenceModuleType module = invitationAuthSequence.getModule().get(0);
-        String moduleIdentifier = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
+        String moduleIdentifier = module.getIdentifier();
         if (StringUtils.isEmpty(moduleIdentifier)) {
             return null;
         }
@@ -1728,11 +1728,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private boolean sequenceIdentifierMatch(AuthenticationSequenceType seq, String sequenceIdentifier) {
-        return sequenceIdentifier.equals(seq.getName()) || sequenceIdentifier.equals(seq.getIdentifier());
+        if (sequenceIdentifier == null) {
+            return false;
+        }
+        return sequenceIdentifier.equals(seq.getIdentifier());
     }
 
     private boolean moduleIdentifierMatch(MailNonceAuthenticationModuleType module, String moduleIdentifier) {
-        String mailNonceModuleId = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
+        if (moduleIdentifier == null) {
+            return false;
+        }
+        String mailNonceModuleId = module.getIdentifier();
         return moduleIdentifier.equals(mailNonceModuleId);
     }
 

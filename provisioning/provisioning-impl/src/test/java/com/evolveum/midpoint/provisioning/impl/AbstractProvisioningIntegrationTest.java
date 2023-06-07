@@ -83,6 +83,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        // We need to switch off the encryption checks. Some values cannot be encrypted as we do not have a definition.
         InternalsConfig.encryptionChecks = false;
         repositoryService.postInit(initResult); // initialize caches here
         provisioningService.postInit(initResult);
