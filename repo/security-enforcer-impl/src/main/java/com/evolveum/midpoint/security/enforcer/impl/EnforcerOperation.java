@@ -119,13 +119,13 @@ class EnforcerOperation {
         }
     }
 
-    public Collection<String> getDelegators(ItemName... limitationItemNames) {
+    private Collection<String> getDelegators(ItemName... limitationItemNames) {
         Collection<String> rv = new HashSet<>();
         if (principal != null) {
             for (DelegatorWithOtherPrivilegesLimitations delegator :
                     principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
                 for (ItemName limitationItemName : limitationItemNames) {
-                    if (SchemaDeputyUtil.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
+                    if (delegator.limitationsAllow(limitationItemName)) {
                         rv.add(delegator.getDelegator().getOid());
                         break;
                     }

@@ -17,6 +17,10 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,7 +36,6 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -303,11 +306,27 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, CommunicationException {
-        S_FilterExit q = QueryUtils
-                .filterForAssignees(prismContext.queryFor(CaseWorkItemType.class), SecurityUtil.getPrincipal(),
-                        OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
-        q = q.and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull();
-        List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, q.build(), null, task, result);
+        checkVisibleWorkItemInternal(true, expectedWorkItem, count, task, result);
+        checkVisibleWorkItemInternal(false, expectedWorkItem, count, task, result);
+    }
+
+    private void checkVisibleWorkItemInternal(
+            boolean explicitQuery, ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+        S_FilterEntry builder;
+        if (explicitQuery) {
+            // This is the standard filter used e.g. by GUI
+            builder = QueryUtils.filterForCaseAssignees(
+                            prismContext.queryFor(CaseWorkItemType.class),
+                            SecurityUtil.getPrincipal())
+                    .and();
+        } else {
+            // This is "all" filter. Here we rely on authorizations to provide only relevant work items.
+            builder = prismContext.queryFor(CaseWorkItemType.class);
+        }
+        ObjectQuery query = builder.item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
+        List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, query, null, task, result);
         long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();
         assertEquals("Wrong # of matching work items", count, found);
     }

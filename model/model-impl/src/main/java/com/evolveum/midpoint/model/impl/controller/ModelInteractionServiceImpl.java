@@ -1541,7 +1541,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(
-                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS,
+                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS,
                     task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
@@ -1619,7 +1619,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     }
                 }
             } catch (CommonException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't verify 'deputy' relation between {} and {} for work item {}; assignment: {}",
+                LoggingUtils.logUnexpectedException(
+                        LOGGER, "Couldn't verify 'deputy' relation between {} and {} for work item {}; assignment: {}",
                         e, potentialDeputy, assignees, workItem, assignmentType);
             }
         }
@@ -1632,7 +1633,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         MidPointPrincipal attorneyPrincipal = securityContextManager.getPrincipal();
         MidPointPrincipal donorPrincipal = securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
 

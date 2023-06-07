@@ -8455,6 +8455,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <!-- Note: it was deprecated, but the midPoint still used it up to (excluding) 4.8 -->
                         <a:deprecatedSince>4.0</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>

@@ -11,6 +11,8 @@ import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 public class ExpectedWorkItem {
 
     final String assigneeOid;
@@ -27,7 +29,7 @@ public class ExpectedWorkItem {
         if (!assigneeOid.equals(actualWorkItem.getOriginalAssigneeRef().getOid())) {
             return false;
         }
-        if (targetOid != null && !targetOid.equals(ApprovalContextUtil.getTargetRef(actualWorkItem).getOid())) {
+        if (targetOid != null && !targetOid.equals(getOid(ApprovalContextUtil.getTargetRef(actualWorkItem)))) {
             return false;
         }
         CaseType actualCase = CaseTypeUtil.getCaseRequired(actualWorkItem);

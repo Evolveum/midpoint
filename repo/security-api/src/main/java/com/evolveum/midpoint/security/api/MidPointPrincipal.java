@@ -199,7 +199,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     protected void debugDumpInternal(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "Focus", focus.asPrismObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations",
+                delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney == null ? null : attorney.asPrismObject(), indent + 1);
     }
 
