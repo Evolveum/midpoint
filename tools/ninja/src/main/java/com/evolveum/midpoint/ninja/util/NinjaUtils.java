@@ -12,8 +12,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.sql.DataSource;
@@ -22,11 +26,7 @@ import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.FileSystemResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.impl.Command;
@@ -226,26 +226,20 @@ public class NinjaUtils {
         return types;
     }
 
-    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts, @Nullable String querySeparator) throws SQLException {
+    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws IOException, SQLException {
         try (Connection connection = dataSource.getConnection()) {
             boolean autocommit = connection.getAutoCommit();
             connection.setAutoCommit(true);
 
             try {
-                ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-                if (querySeparator != null) {
-                    populator.setSeparator(querySeparator);
-                }
-                populator.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
-
                 for (File script : scripts) {
-                    FileSystemResourceLoader loader = new FileSystemResourceLoader();
-                    Resource resource = loader.getResource("file:" + script.getAbsolutePath());
+                    Statement stmt = connection.createStatement();
 
-                    populator.addScript(resource);
+                    String sql = FileUtils.readFileToString(script, StandardCharsets.UTF_8);
+                    stmt.execute(sql);
+
+                    stmt.close();
                 }
-
-                populator.populate(connection);
             } finally {
                 connection.setAutoCommit(autocommit);
             }

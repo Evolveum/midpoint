@@ -1,9 +1,15 @@
 package com.evolveum.midpoint.ninja.action;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
+
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 
 import org.springframework.context.ApplicationContext;
 
@@ -14,26 +20,42 @@ public class SetupDatabaseSchemaAction extends RepositoryAction<SetupDatabaseSch
 
     @Override
     public void execute() throws Exception {
+        // this is manual setup of datasource for midpoint, can't be done via spring application context initialization with repository
+        // because sqale repository during initialization loads data from m_uri and m_ext_item (not yet existing)
         final ApplicationContext applicationContext = context.getApplicationContext();
 
-        final File scriptsDirectory = options.getScriptsDirectory();
+        final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);
 
-        // upgrade midpoint repository
-        final DataSource dataSource = applicationContext.getBean(DataSource.class);
-        executeScripts(dataSource, scriptsDirectory, options.getScripts());
+        SqaleRepositoryConfiguration repositoryConfiguration = new SqaleRepositoryConfiguration(
+                midpointConfiguration.getConfiguration(
+                        MidpointConfiguration.REPOSITORY_CONFIGURATION));
+        repositoryConfiguration.init();
+        DataSourceFactory dataSourceFactory = new DataSourceFactory(repositoryConfiguration);
+        try {
 
-        // upgrade audit database
-        if (!options.isNoAudit()) {
-            final DataSource auditDataSource = NinjaUtils.getAuditDataSourceBean(applicationContext);
-            executeScripts(auditDataSource, scriptsDirectory, options.getAuditScripts());
+            final File scriptsDirectory = options.getScriptsDirectory();
+
+            // upgrade midpoint repository
+            final DataSource dataSource = dataSourceFactory.createDataSource("ninja-repository");
+            executeScripts(dataSource, scriptsDirectory, options.getScripts());
+
+            // upgrade audit database
+            if (!options.isNoAudit()) {
+                // todo figure out how to initialize datasource for audit, it's a mess
+
+                final DataSource auditDataSource = NinjaUtils.getAuditDataSourceBean(applicationContext);
+                executeScripts(auditDataSource, scriptsDirectory, options.getAuditScripts());
+            }
+        } finally {
+            dataSourceFactory.destroy();
         }
     }
 
-    private void executeScripts(DataSource dataSource, File scriptsDirectory, List<File> scripts) throws SQLException {
+    private void executeScripts(DataSource dataSource, File scriptsDirectory, List<File> scripts) throws IOException, SQLException {
         List<File> files = scripts.stream()
                 .map(script -> scriptsDirectory != null ? new File(scriptsDirectory, script.getPath()) : script)
                 .toList();
 
-        NinjaUtils.executeSqlScripts(dataSource, files, options.getQuerySeparator());
+        NinjaUtils.executeSqlScripts(dataSource, files);
     }
 }

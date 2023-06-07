@@ -56,11 +56,11 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
         // upgrade midpoint repository
         final DataSource dataSource = applicationContext.getBean(DataSource.class);
-        NinjaUtils.executeSqlScripts(dataSource, List.of(new File(distributionDirectory, MIDPOINT_DB_UPGRADE_FILE)), ";;");
+        NinjaUtils.executeSqlScripts(dataSource, List.of(new File(distributionDirectory, MIDPOINT_DB_UPGRADE_FILE)));
 
         // upgrade audit database
         final DataSource auditDataSource = NinjaUtils.getAuditDataSourceBean(applicationContext);
-        NinjaUtils.executeSqlScripts(auditDataSource, List.of(new File(distributionDirectory, AUDIT_DB_UPGRADE_FILE)), ";;");
+        NinjaUtils.executeSqlScripts(auditDataSource, List.of(new File(distributionDirectory, AUDIT_DB_UPGRADE_FILE)));
 
         return new StepResult() {
 

@@ -28,8 +28,6 @@ Perhaps you have separate audit database?', current_database(), current_schema()
     END
 $$;
 
-;; -- sql statements delimiter, used by ninja
-
 -- SCHEMA-COMMIT 4.4: commit 69e8c29b
 
 -- changes for 4.4.1
@@ -93,8 +91,6 @@ BEGIN
 END $$;
 $aac$);
 
-;;
-
 -- SCHEMA-COMMIT 4.4.1: commit de18c14f
 
 -- changes for 4.5
@@ -104,8 +100,6 @@ call apply_audit_change(2, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
 $aa$);
 
-;;
-
 -- SCHEMA-COMMIT 4.6: commit 71f2df50
 
 -- changes for 4.7
@@ -114,8 +108,6 @@ call apply_audit_change(3, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
 $aa$);
-
-;;
 
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
