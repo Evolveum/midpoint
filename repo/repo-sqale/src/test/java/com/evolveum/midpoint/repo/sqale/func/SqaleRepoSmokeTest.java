@@ -83,6 +83,24 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test001RepositoryDiag() {
+        when("repository diag is called");
+        RepositoryDiag diag = repositoryService.getRepositoryDiag();
+
+        expect("diag object with labeled values");
+        assertThat(diag).isNotNull();
+
+        List<LabeledString> details = diag.getAdditionalDetails();
+        assertThat(details)
+                .isNotNull()
+                .isNotEmpty();
+
+        LabeledString schemaChangeNumber = details.stream().filter(ls -> "schemaChangeNumber".equals(ls.getLabel())).findFirst().orElse(null);
+        assertThat(schemaChangeNumber)
+                .isNotNull();
+    }
+
+    @Test
     public void test010RepositorySelfTest() {
         OperationResult result = createOperationResult();
 
