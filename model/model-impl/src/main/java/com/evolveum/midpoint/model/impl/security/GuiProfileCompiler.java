@@ -266,15 +266,6 @@ public class GuiProfileCompiler {
                 joinResourceDetails(composite.getObjectDetails(), resourceDetails, detailForAllResources, result);
             }
         }
-        if (adminGuiConfiguration.getUserDashboard() != null) {
-            if (composite.getUserDashboard() == null) {
-                composite.setUserDashboard(adminGuiConfiguration.getUserDashboard().clone());
-            } else {
-                for (DashboardWidgetType widget : adminGuiConfiguration.getUserDashboard().getWidget()) {
-                    mergeWidget(composite, widget);
-                }
-            }
-        }
 
         if (!adminGuiConfiguration.getConfigurableUserDashboard().isEmpty()) {
             for (ConfigurableUserDashboardType configurableUserDashboard : adminGuiConfiguration.getConfigurableUserDashboard()) {
