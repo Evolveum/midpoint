@@ -10,6 +10,7 @@ package com.evolveum.midpoint.security.enforcer.impl.prism;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.PrismEntityOpConstraints;
 import com.evolveum.midpoint.security.enforcer.impl.AuthorizationEvaluation;
@@ -102,6 +103,13 @@ public abstract class TwoPhasesPrismEntityOpConstraintsImpl<OC extends SinglePha
             return new TwoPhasesPrismEntityOpConstraintsImpl.ForItemContent(
                     request.getItemConstraints(name),
                     execution.getItemConstraints(name));
+        }
+
+        @Override
+        public @NotNull TwoPhasesPrismEntityOpConstraintsImpl.ForValueContent getValueConstraints(@NotNull ItemPath nameOnlyPath) {
+            return new TwoPhasesPrismEntityOpConstraintsImpl.ForValueContent(
+                    request.getValueConstraints(nameOnlyPath),
+                    execution.getValueConstraints(nameOnlyPath));
         }
 
         public void applyAuthorization(

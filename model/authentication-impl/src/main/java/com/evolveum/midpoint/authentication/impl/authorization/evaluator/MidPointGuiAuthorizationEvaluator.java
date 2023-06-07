@@ -326,26 +326,17 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public @NotNull <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
-            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
-            @NotNull String[] actionUrls,
-            @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileOperationConstraints(object, ownerResolver, actionUrls, task, result);
-    }
-
-    @Override
-    public @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+    public PrismEntityOpConstraints.@NotNull ForValueContent compileOperationConstraints(
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
+            @NotNull CompileConstraintsOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileOperationConstraints(value, phase, ownerResolver, actionUrls, task, result);
+        return securityEnforcer.compileOperationConstraints(value, phase, ownerResolver, actionUrls, options, task, result);
     }
 
     @Override

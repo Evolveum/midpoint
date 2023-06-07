@@ -1708,7 +1708,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      * MID-4204
      */
     @Test
-    public void test250AssignRequestableSelfOtherApporver() throws Exception {
+    public void test250AssignRequestableSelfOtherApprover() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER.oid);
@@ -1800,7 +1800,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      * MID-4204
      */
     @Test
-    public void test252AssignRequestableSelfOtherApporverEmptyDelta() throws Exception {
+    public void test252AssignRequestableSelfOtherApproverEmptyDelta() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER.oid);

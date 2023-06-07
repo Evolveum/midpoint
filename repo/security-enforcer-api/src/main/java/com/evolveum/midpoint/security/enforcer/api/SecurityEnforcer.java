@@ -155,22 +155,6 @@ public interface SecurityEnforcer {
             ConfigurationException, SecurityViolationException;
 
     /**
-     * Compiles relevant single-operation security constraints ({@link ObjectOperationConstraints}) for a current principal
-     * against given `object`.
-     *
-     * We merge information from all `actionUrls`, considering them equivalent.
-     */
-    @Deprecated // to be replaced by value-based variant
-    <O extends ObjectType> @NotNull ObjectOperationConstraints compileOperationConstraints(
-            @NotNull PrismObject<O> object,
-            @Nullable OwnerResolver ownerResolver,
-            @NotNull String[] actionUrls,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
-
-    /**
      * TODO
      *
      * Note that the `value` is currently always {@link PrismObjectValue}. In the future we may lift this restriction,
@@ -182,6 +166,7 @@ public interface SecurityEnforcer {
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
+            @NotNull CompileConstraintsOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,

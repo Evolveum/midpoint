@@ -101,7 +101,7 @@ public class Specification {
     }
 
     // Later, we can take the original filter into account.
-    <T> Specification adjust(@NotNull Class<T> filterType) throws SchemaException, ConfigurationException {
+    <T> Specification adjust(@NotNull Class<T> filterType) throws SchemaException {
 
         Class<?> selectorType = selector.getTypeOrDefault();
         if (selectorType.isAssignableFrom(filterType)) {
@@ -162,7 +162,7 @@ public class Specification {
         return candidates.isEmpty() ? null : candidates.get(candidates.size() - 1);
     }
 
-    @Nullable TopDownSpecification asTopDown(@NotNull Class<? extends Objectable> rootType) throws ConfigurationException {
+    @Nullable TopDownSpecification asTopDown(@NotNull Class<? extends Objectable> rootType) {
 
         if (ObjectTypeUtil.isObjectable(selector.getTypeOrDefault())) {
             // No parent expected here
@@ -229,43 +229,35 @@ public class Specification {
                 '}';
     }
 
-    private static class Adjustment {
+    private record Adjustment(@NotNull QName typeName, @NotNull ItemPath path) {
 
-        // Adjustment to root should be the last one
+            // Adjustment to root should be the last one
 
-        static final List<Adjustment> ADJUSTMENTS_FOR_ASSIGNMENT =
-                List.of(new Adjustment(
-                        AssignmentHolderType.COMPLEX_TYPE,
-                        AssignmentHolderType.F_ASSIGNMENT));
+            static final List<Adjustment> ADJUSTMENTS_FOR_ASSIGNMENT =
+                    List.of(new Adjustment(
+                            AssignmentHolderType.COMPLEX_TYPE,
+                            AssignmentHolderType.F_ASSIGNMENT));
 
-        static final List<Adjustment> ADJUSTMENTS_FOR_CASE_WORK_ITEM =
-                List.of(new Adjustment(
-                        CaseType.COMPLEX_TYPE,
-                        CaseType.F_WORK_ITEM));
+            static final List<Adjustment> ADJUSTMENTS_FOR_CASE_WORK_ITEM =
+                    List.of(new Adjustment(
+                            CaseType.COMPLEX_TYPE,
+                            CaseType.F_WORK_ITEM));
 
-        static final List<Adjustment> ADJUSTMENTS_FOR_CERT_CASE =
-                List.of(new Adjustment(
-                        AccessCertificationCampaignType.COMPLEX_TYPE,
-                        AccessCertificationCampaignType.F_CASE));
+            static final List<Adjustment> ADJUSTMENTS_FOR_CERT_CASE =
+                    List.of(new Adjustment(
+                            AccessCertificationCampaignType.COMPLEX_TYPE,
+                            AccessCertificationCampaignType.F_CASE));
 
-        static final List<Adjustment> ADJUSTMENTS_FOR_CERT_WORK_ITEM =
-                List.of(
-                        new Adjustment(
-                                AccessCertificationCaseType.COMPLEX_TYPE,
-                                AccessCertificationCaseType.F_WORK_ITEM),
-                        new Adjustment(
-                                AccessCertificationCampaignType.COMPLEX_TYPE,
-                                AccessCertificationCampaignType.F_CASE.append(AccessCertificationCaseType.F_WORK_ITEM)));
+            static final List<Adjustment> ADJUSTMENTS_FOR_CERT_WORK_ITEM =
+                    List.of(
+                            new Adjustment(
+                                    AccessCertificationCaseType.COMPLEX_TYPE,
+                                    AccessCertificationCaseType.F_WORK_ITEM),
+                            new Adjustment(
+                                    AccessCertificationCampaignType.COMPLEX_TYPE,
+                                    AccessCertificationCampaignType.F_CASE.append(AccessCertificationCaseType.F_WORK_ITEM)));
 
-        static final List<Adjustment> NO_ADJUSTMENTS = List.of();
-
-        @NotNull private final QName typeName;
-        @NotNull private final ItemPath path;
-
-        private Adjustment(@NotNull QName typeName, @NotNull ItemPath path) {
-            this.typeName = typeName;
-            this.path = path;
-        }
+            static final List<Adjustment> NO_ADJUSTMENTS = List.of();
 
         @Override
         public String toString() {

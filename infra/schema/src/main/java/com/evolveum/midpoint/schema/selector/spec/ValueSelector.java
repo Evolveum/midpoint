@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.selector.spec;
 
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 import java.util.ArrayList;
@@ -17,17 +16,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.prism.Objectable;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -212,8 +211,7 @@ public class ValueSelector implements DebugDumpable {
         }
 
         ParentClause parentClause;
-        if (bean instanceof AuthorizationObjectSelectorType) {
-            var aBean = (AuthorizationObjectSelectorType) bean;
+        if (bean instanceof AuthorizationObjectSelectorType aBean) {
 
             var parent = aBean.getParent();
             if (parent != null) {
@@ -296,7 +294,7 @@ public class ValueSelector implements DebugDumpable {
         return parentClause;
     }
 
-    public @NotNull Class<?> getTypeOrDefault() throws ConfigurationException {
+    public @NotNull Class<?> getTypeOrDefault() {
         if (typeClause != null) {
             return typeClause.getTypeClass();
         } else {
@@ -410,5 +408,9 @@ public class ValueSelector implements DebugDumpable {
                             .collect(Collectors.toList()),
                     null);
         }
+    }
+
+    public boolean isSubObject() {
+        return !Objectable.class.isAssignableFrom(getTypeOrDefault());
     }
 }

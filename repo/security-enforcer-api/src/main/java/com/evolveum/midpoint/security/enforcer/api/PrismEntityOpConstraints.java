@@ -10,6 +10,7 @@ package com.evolveum.midpoint.security.enforcer.api;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AccessDecision;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -39,5 +40,12 @@ public interface PrismEntityOpConstraints extends DebugDumpable {
 
         /** Returns compiled constraints for given sub-item of the current container value. */
         @NotNull PrismEntityOpConstraints.ForItemContent getItemConstraints(@NotNull ItemName name);
+
+        /**
+         * Returns compiled constraints for given item, ignoring differences between values.
+         * Temporary/experimental: useful for cases where we do not have the knowledge about specific values.
+         * See {@link CompileConstraintsOptions#skipSubObjectSelectors}.
+         */
+        @NotNull PrismEntityOpConstraints.ForValueContent getValueConstraints(@NotNull ItemPath nameOnlyPath);
     }
 }

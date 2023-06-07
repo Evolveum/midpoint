@@ -9,6 +9,8 @@ package com.evolveum.midpoint.security.enforcer.impl;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.security.enforcer.api.CompileConstraintsOptions;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.enforcer.api.ObjectOperationConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.PrismEntityOpConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -29,18 +30,22 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/** Covers {@link SecurityEnforcer} operations other than access decision or security filter computation. */
-class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation {
+/** Covers {@link SecurityEnforcer} operations dealing with compiling constraints for given operation or operations. */
+class CompileConstraintsOperation<O extends ObjectType> extends EnforcerOperation {
 
-    OtherEnforcerOperation(
+    @NotNull private final CompileConstraintsOptions options;
+
+    CompileConstraintsOperation(
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Beans beans,
+            @NotNull CompileConstraintsOptions options,
             @NotNull Task task) {
         super(principal, ownerResolver, beans, task);
+        this.options = options;
     }
 
-    ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OperationResult result)
+    @NotNull ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException{
         argCheck(object != null, "Cannot compile security constraints of null object");
@@ -63,33 +68,6 @@ class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation {
                     username, object, objectSecurityConstraints.debugDump(1));
         }
         return objectSecurityConstraints;
-    }
-
-    ObjectOperationConstraints compileOperationConstraints(
-            @NotNull PrismObject<O> object, String[] actionUrls, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-        argCheck(object != null, "Cannot compile security constraints of null object");
-        if (traceEnabled) {
-            LOGGER.trace("SEC: evaluating operation security constraints principal={}, object={}", username, object);
-        }
-        var constraints = new ObjectOperationConstraintsImpl();
-        int i = 0;
-        for (Authorization autz : getAuthorizations()) {
-            var evaluation = new AuthorizationEvaluation(String.valueOf(i++), autz, this, result);
-            evaluation.traceStart();
-            if (evaluation.isApplicableToActions(actionUrls)
-                    && evaluation.isApplicableToObject(object)) {
-                constraints.applyAuthorization(autz);
-            } else {
-                evaluation.traceEndNotApplicable();
-            }
-        }
-        if (traceEnabled) {
-            LOGGER.trace("SEC: evaluated security constraints principal={}, object={}:\n{}",
-                    username, object, constraints.debugDump(1));
-        }
-        return constraints;
     }
 
     @NotNull PrismEntityOpConstraints.ForValueContent compileValueOperationConstraints(
@@ -122,5 +100,9 @@ class OtherEnforcerOperation<O extends ObjectType> extends EnforcerOperation {
                     username, value, constraints.debugDump(1));
         }
         return constraints;
+    }
+
+    public @NotNull CompileConstraintsOptions getOptions() {
+        return options;
     }
 }

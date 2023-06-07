@@ -194,31 +194,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        return new OtherEnforcerOperation<O>(getMidPointPrincipal(), ownerResolver, beans, task)
+        return new CompileConstraintsOperation<O>(
+                getMidPointPrincipal(), ownerResolver, beans, CompileConstraintsOptions.defaultOnes(), task)
                 .compileSecurityConstraints(object, result);
     }
 
     @Override
-    public @NotNull <O extends ObjectType> ObjectOperationConstraints compileOperationConstraints(
-            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
-            @NotNull String[] actionUrls, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-        return new OtherEnforcerOperation<O>(getMidPointPrincipal(), ownerResolver, beans, task)
-                .compileOperationConstraints(object, actionUrls, result);
-    }
-
-    @Override
-    public @NotNull  PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+    public PrismEntityOpConstraints.@NotNull ForValueContent compileOperationConstraints(
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
+            @NotNull CompileConstraintsOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return new OtherEnforcerOperation<>(getMidPointPrincipal(), ownerResolver, beans, task)
+        return new CompileConstraintsOperation<>(getMidPointPrincipal(), ownerResolver, beans, options, task)
                 .compileValueOperationConstraints(value, phase, actionUrls, result);
     }
 

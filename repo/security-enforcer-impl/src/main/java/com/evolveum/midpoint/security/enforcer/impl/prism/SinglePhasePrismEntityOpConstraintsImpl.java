@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.impl.AuthorizationEvaluation;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 /**
@@ -132,6 +132,15 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
                     phase,
                     allowed.getItemCoverageInformation(name),
                     denied.getItemCoverageInformation(name));
+        }
+
+        @Override
+        public @NotNull SinglePhasePrismEntityOpConstraintsImpl.ForValueContent getValueConstraints(
+                @NotNull ItemPath nameOnlyPath) {
+            return new SinglePhasePrismEntityOpConstraintsImpl.ForValueContent(
+                    phase,
+                    allowed.getValueCoverageInformation(nameOnlyPath),
+                    denied.getValueCoverageInformation(nameOnlyPath));
         }
 
         public void applyAuthorization(

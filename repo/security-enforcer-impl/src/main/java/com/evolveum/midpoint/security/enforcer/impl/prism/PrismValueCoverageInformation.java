@@ -80,9 +80,18 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         return positive ? PrismItemCoverageInformation.noCoverage() : PrismItemCoverageInformation.fullCoverage();
     }
 
+    @NotNull PrismValueCoverageInformation getValueCoverageInformation(@NotNull ItemPath nameOnlyPath) {
+        if (nameOnlyPath.isEmpty()) {
+            return this;
+        } else {
+            var itemInfo = getItemCoverageInformation(nameOnlyPath.firstNameOrFail());
+            return itemInfo.getOtherValueCoverageInformation().getValueCoverageInformation(nameOnlyPath.rest());
+        }
+    }
+
     /** Returns `null` if the authorization is irrelevant for the current object. */
     static @Nullable PrismValueCoverageInformation forAuthorization(
-            PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
+            @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
@@ -137,11 +146,10 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        if (!(parentValue instanceof PrismContainerValue<?>)) {
+        if (!(parentValue instanceof PrismContainerValue<?> pcv)) {
             return PrismValueCoverageInformation.noCoverage();
         }
         ItemPath childPath = linkToChild.getItemPath();
-        var pcv = (PrismContainerValue<?>) parentValue;
         Item<?, ?> item = pcv.findItem(childPath);
         if (item == null) {
             // Item is not present in the PCV, the coverage needs no update.

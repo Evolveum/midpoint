@@ -419,6 +419,14 @@ public class AuthorizationEvaluation {
         return lazyDescription.get();
     }
 
+    boolean shouldSkipSubObjectSelectors() {
+        if (op instanceof CompileConstraintsOperation<?> cop) {
+            return cop.getOptions().isSkipSubObjectSelectors();
+        } else {
+            return false;
+        }
+    }
+
     public boolean isSelectorApplicable(
             @NotNull String id,
             @NotNull ValueSelector selector,

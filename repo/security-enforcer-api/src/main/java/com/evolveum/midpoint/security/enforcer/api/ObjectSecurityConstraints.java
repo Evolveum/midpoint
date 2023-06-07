@@ -20,10 +20,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Extracted relevant security constraints related to given object.
- * Unlike {@link ObjectOperationConstraints}, this one covers all operations (represented by action URLs).
+ * Unlike {@link PrismEntityOpConstraints}, this one covers all operations (represented by action URLs).
  *
  * @see SecurityEnforcer#compileSecurityConstraints(PrismObject, OwnerResolver, Task, OperationResult)
- * @see ObjectOperationConstraints
+ * @see PrismEntityOpConstraints
  */
 public interface ObjectSecurityConstraints extends DebugDumpable {
 

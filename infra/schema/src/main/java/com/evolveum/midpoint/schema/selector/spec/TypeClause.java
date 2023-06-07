@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -21,13 +22,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
-import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
-import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 public class TypeClause extends SelectorClause {
 
     /** Qualified. */
     @NotNull private final QName typeName;
+
+    transient private TypeDefinition typeDefinition;
 
     /** Lazily evaluated. */
     private Class<?> typeClass;
@@ -38,8 +40,13 @@ public class TypeClause extends SelectorClause {
 
     static @NotNull TypeClause of(@NotNull QName typeName) throws ConfigurationException {
         try {
-            return new TypeClause(
+            var clause = new TypeClause(
                     PrismContext.get().getSchemaRegistry().qualifyTypeName(typeName));
+            configCheck(
+                    clause.getTypeDefinition() != null,
+                    "Unknown object type %s",
+                    clause.typeName); // TODO context
+            return clause;
         } catch (SchemaException e) {
             throw new ConfigurationException("Couldn't resolve unqualified type name in object selector: " + typeName, e);
         }
@@ -62,6 +69,17 @@ public class TypeClause extends SelectorClause {
     @Override
     public @NotNull String getName() {
         return "type";
+    }
+
+    private TypeDefinition getTypeDefinition() {
+        if (typeDefinition == null) {
+            typeDefinition = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(typeName);
+        }
+        return typeDefinition;
+    }
+
+    private @NotNull TypeDefinition getTypeDefinitionRequired() {
+        return stateNonNull(getTypeDefinition(), () -> "No type definition in " + this);
     }
 
     @Override
@@ -106,13 +124,10 @@ public class TypeClause extends SelectorClause {
         }
     }
 
-    synchronized @NotNull Class<?> getTypeClass() throws ConfigurationException {
+    synchronized @NotNull Class<?> getTypeClass() {
         if (typeClass == null) {
-            var typeDef = configNonNull(
-                    PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(typeName),
-                    () -> "Unknown object type " + typeName); // TODO context
             typeClass = requireNonNull(
-                    typeDef.getCompileTimeClass(),
+                    getTypeDefinitionRequired().getCompileTimeClass(),
                     () -> new UnsupportedOperationException(String.format(
                             "Only statically defined types are supported in authorizations."
                                     + "Type '%s' is not statically defined", typeName))); // TODO context
