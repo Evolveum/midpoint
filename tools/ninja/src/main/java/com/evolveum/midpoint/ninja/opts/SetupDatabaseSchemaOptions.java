@@ -13,6 +13,7 @@ public class SetupDatabaseSchemaOptions {
     public static final String P_SCRIPTS_LONG = "--scripts";
     public static final String P_AUDIT_SCRIPTS_LONG = "--audit-scripts";
     public static final String P_NO_AUDIT_LONG = "--no-audit";
+    public static final String P_QUERY_SEPARATOR = "--query-separator";
 
     @Parameter(names = { P_SCRIPTS_DIRECTORY_LONG }, descriptionKey = "setupDatabase.scriptsDirectory")
     private File scriptsDirectory = new File("./doc/config/sql/native-new");
@@ -30,6 +31,9 @@ public class SetupDatabaseSchemaOptions {
 
     @Parameter(names = { P_NO_AUDIT_LONG }, descriptionKey = "setupDatabase.noAudit")
     private boolean noAudit;
+
+    @Parameter(names = { P_QUERY_SEPARATOR }, descriptionKey = "setupDatabase.querySeparator")
+    private String querySeparator = ";";
 
     public File getScriptsDirectory() {
         return scriptsDirectory;
@@ -61,5 +65,13 @@ public class SetupDatabaseSchemaOptions {
 
     public void setAuditScripts(List<File> auditScripts) {
         this.auditScripts = auditScripts;
+    }
+
+    public String getQuerySeparator() {
+        return querySeparator;
+    }
+
+    public void setQuerySeparator(String querySeparator) {
+        this.querySeparator = querySeparator;
     }
 }

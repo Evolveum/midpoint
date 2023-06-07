@@ -22,6 +22,7 @@ import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
@@ -225,18 +226,16 @@ public class NinjaUtils {
         return types;
     }
 
-    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull File... scripts) throws SQLException {
-        executeSqlScripts(dataSource, Arrays.asList(scripts));
-    }
-
-    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws SQLException {
+    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts, @Nullable String querySeparator) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             boolean autocommit = connection.getAutoCommit();
             connection.setAutoCommit(true);
 
             try {
                 ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-                populator.setSeparator(";;");
+                if (querySeparator != null) {
+                    populator.setSeparator(querySeparator);
+                }
                 populator.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
 
                 for (File script : scripts) {

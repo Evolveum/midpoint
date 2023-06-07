@@ -11,20 +11,18 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import javax.sql.DataSource;
 
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
-import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
@@ -58,16 +56,11 @@ public class DatabaseSchemaStep implements UpgradeStep<StepResult> {
 
         // upgrade midpoint repository
         final DataSource dataSource = applicationContext.getBean(DataSource.class);
-
-        executeUpgradeScript(new File(distributionDirectory, MIDPOINT_DB_UPGRADE_FILE), dataSource);
+        NinjaUtils.executeSqlScripts(dataSource, List.of(new File(distributionDirectory, MIDPOINT_DB_UPGRADE_FILE)), ";;");
 
         // upgrade audit database
-        AuditServiceProxy auditProxy = applicationContext.getBean(AuditServiceProxy.class);
-        SqaleAuditService auditService = auditProxy.getImplementation(SqaleAuditService.class);
-        SqaleRepoContext repoContext = auditService.sqlRepoContext();
-        final DataSource auditDataSource = (DataSource) FieldUtils.readField(repoContext, "dataSource", true);
-
-        executeUpgradeScript(new File(distributionDirectory, AUDIT_DB_UPGRADE_FILE), auditDataSource);
+        final DataSource auditDataSource = NinjaUtils.getAuditDataSourceBean(applicationContext);
+        NinjaUtils.executeSqlScripts(auditDataSource, List.of(new File(distributionDirectory, AUDIT_DB_UPGRADE_FILE)), ";;");
 
         return new StepResult() {
 

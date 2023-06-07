@@ -34,6 +34,6 @@ public class SetupDatabaseSchemaAction extends RepositoryAction<SetupDatabaseSch
                 .map(script -> scriptsDirectory != null ? new File(scriptsDirectory, script.getPath()) : script)
                 .toList();
 
-        NinjaUtils.executeSqlScripts(dataSource, files);
+        NinjaUtils.executeSqlScripts(dataSource, files, options.getQuerySeparator());
     }
 }
