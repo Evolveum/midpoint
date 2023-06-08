@@ -51,12 +51,14 @@ public class TestMain {
 
 //        input = "-v --offline -m ../../_mess/create0 download-distribution".split(" ");
 
-//        Main.main(input);
+        input = "-h".split(" ");
 
-        System.out.println("Starting process");
-        new ProcessBuilder(
-                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
-        ).inheritIO().start();
-        System.out.println("Finished main");
+        Main.main(input);
+
+//        System.out.println("Starting process");
+//        new ProcessBuilder(
+//                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
+//        ).inheritIO().start();
+//        System.out.println("Finished main");
     }
 }

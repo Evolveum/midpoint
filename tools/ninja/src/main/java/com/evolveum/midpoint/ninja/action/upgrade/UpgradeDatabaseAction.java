@@ -1,11 +1,7 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.DataSourceAction;
 
-public class UpgradeDatabaseAction extends Action<UpgradeDatabaseOptions> {
+public class UpgradeDatabaseAction extends DataSourceAction<UpgradeDatabaseOptions> {
 
-    @Override
-    public void execute() throws Exception {
-
-    }
 }

@@ -21,6 +21,11 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         installationAction.execute();
 
         UpgradeDatabaseOptions databaseOptions = new UpgradeDatabaseOptions();
+//        databaseOptions.setAuditOnly();
+//        databaseOptions.setNoAudit();
+//        databaseOptions.setScripts();
+//        databaseOptions.setScriptsDirectory();
+//        databaseOptions.setAuditScripts();
         // todo options
 
         UpgradeDatabaseAction databaseAction = new UpgradeDatabaseAction();

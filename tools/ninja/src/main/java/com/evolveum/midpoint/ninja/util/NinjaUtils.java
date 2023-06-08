@@ -9,10 +9,6 @@ package com.evolveum.midpoint.ninja.util;
 import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,15 +16,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.sql.DataSource;
 
 import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationContext;
 
-import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
@@ -38,8 +29,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -224,32 +213,5 @@ public class NinjaUtils {
         Collections.sort(types);
 
         return types;
-    }
-
-    public static void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws IOException, SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            boolean autocommit = connection.getAutoCommit();
-            connection.setAutoCommit(true);
-
-            try {
-                for (File script : scripts) {
-                    Statement stmt = connection.createStatement();
-
-                    String sql = FileUtils.readFileToString(script, StandardCharsets.UTF_8);
-                    stmt.execute(sql);
-
-                    stmt.close();
-                }
-            } finally {
-                connection.setAutoCommit(autocommit);
-            }
-        }
-    }
-
-    public static DataSource getAuditDataSourceBean(ApplicationContext applicationContext) throws IllegalAccessException {
-        AuditServiceProxy auditProxy = applicationContext.getBean(AuditServiceProxy.class);
-        SqaleAuditService auditService = auditProxy.getImplementation(SqaleAuditService.class);
-        SqaleRepoContext repoContext = auditService.sqlRepoContext();
-        return (DataSource) FieldUtils.readField(repoContext, "dataSource", true);
     }
 }
