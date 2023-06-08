@@ -170,26 +170,15 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use AbstractAuthenticationModuleType/identifier instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique name of the authentication module. This name is fact a short identifier.
-                        It is supposed to give some idea about nature of the module to system administrator.
-                        But it is not supposed to be used as a user-friendly label for the module.
-                        Module name must be unique.
-                        <p>
-                            Deprecated, use identifier instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1638,26 +1627,15 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use AuthenticationSequenceType/identifier instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique name of the authentication sequence. This name is fact a short identifier.
-                        It is supposed to give some idea about purpose of the sequence to system administrator.
-                        But it is not supposed to be used as a user-friendly label.
-                        Sequence name must be unique.
-                        <p>
-                            Deprecated, use identifier instead
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1853,25 +1831,15 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use AuthenticationSequenceModuleType/identifier instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to the authentication module name. Value of this element must match name of
-                        existing authentication module.
-                        <p>
-                            Deprecated, use identifier instead.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2105,24 +2073,15 @@
                     <a:operation>removed</a:operation>
                     <a:comment>Use flexible authentication sequence instead.</a:comment>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.8</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use CredentialsResetPolicyType/identifier instead</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the password reset scheme. This is a short name that acts both as an
-                        identifier of the scheme and also as a short name used for diagnostics.
-
-                        DEPRECATED: use identifier attribute instead of name
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7.1</a:since>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>

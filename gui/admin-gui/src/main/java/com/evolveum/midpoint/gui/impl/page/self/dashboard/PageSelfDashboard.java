@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,9 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initStatisticWidgets(Form mainForm) {
-         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
+        List<PreviewContainerPanelConfigurationType> statisticWidgets = getStatisticWidgetList();
+         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL,
+                 statisticWidgets) {
 
              private static final long serialVersionUID = 1L;
 
@@ -110,16 +113,14 @@ public class PageSelfDashboard extends PageSelf {
              }
          };
          statisticWidgetsPanel.setOutputMarkupId(true);
-         statisticWidgetsPanel.add(new VisibleBehaviour(() -> {
-             UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-             return WebComponentUtil.getElementVisibility(visibility);
-         }));
+         statisticWidgetsPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(statisticWidgets)));
          mainForm.add(statisticWidgetsPanel);
 
      }
 
      private void initPreviewWidgets(Form mainForm) {
-         ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::getNonStatisticWidgetList) {
+         List<PreviewContainerPanelConfigurationType> previewWidgets = getNonStatisticWidgetList();
+         ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, previewWidgets) {
 
              @Override
              protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
@@ -130,10 +131,7 @@ public class PageSelfDashboard extends PageSelf {
              }
          };
          viewWidgetsPanel.setOutputMarkupId(true);
-         viewWidgetsPanel.add(new VisibleBehaviour(() -> {
-            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
-            return getCompiledGuiProfile().getHomePage() != null && WebComponentUtil.getElementVisibility(visibility);
-         }));
+         viewWidgetsPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(previewWidgets)));
          mainForm.add(viewWidgetsPanel);
      }
 
@@ -160,9 +158,10 @@ public class PageSelfDashboard extends PageSelf {
          HomePageType homePageType = getCompiledGuiProfile().getHomePage();
          List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
          if (allWidgetList == null) {
-             return null;
+             return Collections.emptyList();
          }
-         return allWidgetList.stream().filter(w -> !LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+         return allWidgetList.stream().filter(w -> w.getPanelType() != null &&
+                 !LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
     private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
@@ -215,24 +214,23 @@ public class PageSelfDashboard extends PageSelf {
 
     private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId) {
         CompiledGuiProfile compiledGuiProfile = getCompiledGuiProfile();
-        if (compiledGuiProfile.getUserDashboard() == null) {
+        if (compiledGuiProfile.getHomePage() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-        List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
+        List<PreviewContainerPanelConfigurationType> widgetsList = compiledGuiProfile.getHomePage().getWidget();
         if (CollectionUtils.isEmpty(widgetsList)) {
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        HomePageType homePage = compiledGuiProfile.getHomePage();
-        List<PreviewContainerPanelConfigurationType> containerPanelWidgets = homePage == null ? null : compiledGuiProfile.getHomePage().getWidget();
-        if (CollectionUtils.isEmpty(containerPanelWidgets)) {
+        String widgetIdentifier = componentId.getIdentifier();
+        PreviewContainerPanelConfigurationType widget = widgetsList
+                .stream()
+                .filter(w -> widgetIdentifier.equals(w.getIdentifier()))
+                .findFirst()
+                .orElse(null);
+        if (widget == null) {
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
-        if (widget == null || widget.getVisibility() == null) {
-            return UserInterfaceElementVisibilityType.HIDDEN;
-        } else {
-            return widget.getVisibility();
-        }
+        return widget.getVisibility();
     }
 
     private List<RichHyperlinkType> loadLinksList() {

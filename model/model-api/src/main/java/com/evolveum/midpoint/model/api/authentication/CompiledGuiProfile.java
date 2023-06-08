@@ -57,7 +57,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
     private List<CompiledShadowCollectionView> shadowCollectionViews = new ArrayList<>();
     private CompiledObjectCollectionView defaultObjectCollectionView = null;
-    private DashboardLayoutType userDashboard;
     private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
     private GuiExportSettingsType defaultExportSettings;
     private GuiObjectDetailsSetType objectDetails;
@@ -129,19 +128,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     @NotNull
     public List<RichHyperlinkType> getUserDashboardLink() {
         return userDashboardLink;
-    }
-
-    /**
-     * Very likely to change in the future (for "flexible dashboards" feature).
-     */
-    @Experimental
-    public DashboardLayoutType getUserDashboard() {
-        return userDashboard;
-    }
-
-    @Experimental
-    public void setUserDashboard(DashboardLayoutType userDashboard) {
-        this.userDashboard = userDashboard;
     }
 
     public List<CompiledDashboardType> getConfigurableDashboards() {
@@ -481,14 +467,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return false;
     }
 
-    @Experimental
-    public DashboardWidgetType findUserDashboardWidget(String widgetIdentifier) {
-        if (userDashboard == null) {
-            return null;
-        }
-        return findFeature(userDashboard.getWidget(), widgetIdentifier);
-    }
-
     // TODO: later: information about menu structure
 
     public AccessRequestType getAccessRequest() {
@@ -510,7 +488,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelLn(sb, "userDashboardLink", userDashboardLink, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectCollectionViews", objectCollectionViews, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "defaultObjectCollectionView", defaultObjectCollectionView, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "userDashboard", userDashboard, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "homePage", homePage, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "defaultExportSettings", defaultExportSettings, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectDetails", objectDetails, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "feedbackMessagesHook", feedbackMessagesHook, indent + 1);

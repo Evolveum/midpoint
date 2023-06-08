@@ -267,15 +267,6 @@ public class GuiProfileCompiler {
                 joinResourceDetails(composite.getObjectDetails(), resourceDetails, detailForAllResources, result);
             }
         }
-        if (adminGuiConfiguration.getUserDashboard() != null) {
-            if (composite.getUserDashboard() == null) {
-                composite.setUserDashboard(adminGuiConfiguration.getUserDashboard().clone());
-            } else {
-                for (DashboardWidgetType widget : adminGuiConfiguration.getUserDashboard().getWidget()) {
-                    mergeWidget(composite, widget);
-                }
-            }
-        }
 
         if (!adminGuiConfiguration.getConfigurableUserDashboard().isEmpty()) {
             for (ConfigurableUserDashboardType configurableUserDashboard : adminGuiConfiguration.getConfigurableUserDashboard()) {
@@ -643,21 +634,6 @@ public class GuiProfileCompiler {
                     "resolving connector reference", false, result);
         }
         return reference.getOid();
-    }
-
-    private void mergeWidget(CompiledGuiProfile composite, DashboardWidgetType newWidget) {
-        String newWidgetIdentifier = newWidget.getIdentifier();
-        DashboardWidgetType compositeWidget = composite.findUserDashboardWidget(newWidgetIdentifier);
-        if (compositeWidget == null) {
-            composite.getUserDashboard().getWidget().add(newWidget.clone());
-        } else {
-            mergeWidget(compositeWidget, newWidget);
-        }
-    }
-
-    private void mergeWidget(DashboardWidgetType compositeWidget, DashboardWidgetType newWidget) {
-        mergeFeature(compositeWidget, newWidget, UserInterfaceElementVisibilityType.VACANT);
-        // merge other widget properties (in the future)
     }
 
     private void mergeFeature(CompiledGuiProfile composite, UserInterfaceFeatureType newFeature) {

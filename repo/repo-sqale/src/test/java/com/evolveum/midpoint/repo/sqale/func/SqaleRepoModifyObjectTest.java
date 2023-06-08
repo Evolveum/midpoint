@@ -3793,8 +3793,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with widget addition for user 1 using container add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_USER_DASHBOARD,
-                        DashboardLayoutType.F_WIDGET).add(new DashboardWidgetType())
+                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_HOME_PAGE,
+                        HomePageType.F_WIDGET).add(new PreviewContainerPanelConfigurationType())
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -3807,7 +3807,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(userObject.getAdminGuiConfiguration().getUserDashboard().getWidget()).isNotEmpty();
+        assertThat(userObject.getAdminGuiConfiguration().getHomePage()).isNotEmpty();
+        assertThat(userObject.getAdminGuiConfiguration().getHomePage().get(0).getWidget()).isNotEmpty();
 
         and("externalized version is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
