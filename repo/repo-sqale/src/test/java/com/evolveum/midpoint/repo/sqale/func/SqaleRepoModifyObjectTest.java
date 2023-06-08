@@ -3793,11 +3793,22 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with widget addition for user 1 using container add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_HOME_PAGE,
-                        HomePageType.F_WIDGET).add(new PreviewContainerPanelConfigurationType())
+                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_HOME_PAGE)
+                .add(new HomePageType().id(1L))
                 .asObjectDelta(user1Oid);
 
-        when("modifyObject is called");
+        when("modifyObject to add homePage container is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_HOME_PAGE, 1L, HomePageType.F_WIDGET)
+                .add(new PreviewContainerPanelConfigurationType())
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject to add widget container is called");
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
         then("operation is successful");
