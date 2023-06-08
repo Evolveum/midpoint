@@ -9,23 +9,27 @@ package com.evolveum.midpoint.security.enforcer.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Extracted relevant security constraints related to given object.
- * Unlike {@link ObjectOperationConstraints}, this one covers all operations (represented by action URLs).
+ * Unlike {@link PrismEntityOpConstraints}, this one covers all operations (represented by action URLs).
  *
  * @see SecurityEnforcer#compileSecurityConstraints(PrismObject, OwnerResolver, Task, OperationResult)
- * @see ObjectOperationConstraints
+ * @see PrismEntityOpConstraints
  */
 public interface ObjectSecurityConstraints extends DebugDumpable {
+
+    /** Are there any constraints defined? */
+    boolean isEmpty();
 
     /**
      * A variant of {@link #findAllItemsDecision(String, AuthorizationPhaseType)} that considers several equivalent action URLs,
@@ -59,4 +63,15 @@ public interface ObjectSecurityConstraints extends DebugDumpable {
      */
     @Nullable AuthorizationDecisionType findItemDecision(
             @NotNull ItemPath nameOnlyItemPath, @NotNull String actionUrl, @Nullable AuthorizationPhaseType phase);
+
+    @Contract("_, _, !null, _ -> !null")
+    default AuthorizationDecisionType computeItemDecision(
+            @NotNull ItemPath nameOnlyItemPath,
+            @NotNull String[] actionUrls,
+            @Nullable AuthorizationDecisionType defaultDecision,
+            @Nullable AuthorizationPhaseType phase) {
+        AuthorizationDecisionType explicitDecision = findItemDecision(nameOnlyItemPath, actionUrls, phase);
+        return explicitDecision != null ? explicitDecision : defaultDecision;
+    }
+
 }

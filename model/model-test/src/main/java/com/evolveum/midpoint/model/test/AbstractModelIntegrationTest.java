@@ -6223,6 +6223,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected AccCertCampaignAsserter<Void> assertCampaignFull(String oid, String message) throws CommonException {
+        var campaign = getObject(
+                AccessCertificationCampaignType.class,
+                oid,
+                getOperationOptionsBuilder()
+                        .retrieve()
+                        .build());
+        AccCertCampaignAsserter<Void> asserter = AccCertCampaignAsserter.forCampaign(campaign, message);
+        initializeAsserter(asserter);
+        asserter.assertOid(oid);
+        return asserter;
+    }
+
+    protected AccCertCampaignAsserter<Void> assertCampaignFullAfter(String oid) throws CommonException {
+        return assertCampaignFull(oid, "after")
+                .display();
+    }
+
     protected CaseAsserter<Void> assertCase(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<CaseType> acase = getObject(CaseType.class, oid);
         CaseAsserter<Void> asserter = CaseAsserter.forCase(acase, message);
@@ -6512,17 +6530,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return objects;
     }
 
-    protected void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, null);
+    protected void assertAddDeny(TestObject<? extends ObjectType> testObject) throws CommonException, IOException {
+        assertAddDeny(testObject, null);
     }
 
-    protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, executeOptions().raw());
+    protected void assertAddDenyRaw(TestObject<? extends ObjectType> testObject) throws CommonException, IOException {
+        assertAddDeny(testObject, executeOptions().raw());
     }
 
-    protected <O extends ObjectType> void assertAddDeny(TestResource<O> testResource, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+    protected <O extends ObjectType> void assertAddDeny(TestObject<O> testObject, ModelExecuteOptions options)
+            throws CommonException, IOException {
         assertAddDeny(
-                testResource.get(),
+                testObject.get(),
                 options);
     }
 
@@ -6551,6 +6570,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddAllow(file, null);
     }
 
+    protected void assertAddAllow(TestObject<? extends ObjectType> testObject) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        assertAddAllow(testObject, null);
+    }
+
     protected OperationResult assertAddAllowTracing(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         return assertAddAllowTracing(file, null);
     }
@@ -6561,10 +6584,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddAllow(object, options);
     }
 
-    protected <O extends ObjectType> void assertAddAllow(TestResource<O> testResource, ModelExecuteOptions options)
+    protected <O extends ObjectType> void assertAddAllow(TestObject<O> testObject, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         assertAddAllow(
-                testResource.get(),
+                testObject.get(),
                 options);
     }
 
@@ -7238,10 +7261,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
-    protected WorkItemsAsserter<Void> assertWorkItems(
+    protected CaseWorkItemsAsserter<Void, CaseWorkItemType> assertWorkItems(
             Collection<CaseWorkItemType> workItems, String message) {
         return initializeAsserter(
-                WorkItemsAsserter.forWorkItems(workItems, message));
+                CaseWorkItemsAsserter.forWorkItems(workItems, message));
     }
 
     // TODO will we need this method?
@@ -7260,23 +7283,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return new ArrayList<>( // to assure modifiable result list
                 modelService.searchContainers(CaseWorkItemType.class,
                         ObjectQueryUtil.openItemsQuery(), options, task, result));
-    }
-
-    // TODO will we need this method?
-    protected WorkItemsAsserter<Void> assertOpenWorkItems(String message)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        return assertWorkItems(
-                getOpenWorkItemsResolved(getTestTask(), getTestOperationResult()),
-                message);
-    }
-
-    // TODO will we need this method?
-    protected WorkItemsAsserter<Void> assertOpenWorkItemsAfter()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        return assertOpenWorkItems("after")
-                .display();
     }
 
     protected CaseAsserter<Void> assertReferencedCase(OperationResult result, String message)
@@ -7323,10 +7329,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // FIXME does not call applySchemasAndSecurity!
-    public <O extends ObjectType> PrismObject<O> getObject(
+    public <O extends ObjectType> PrismObject<O> getObjectNoAutz(
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return createSimpleModelObjectResolver().getObject(type, oid, options, result);
+    }
+
+    public <O extends ObjectType> PrismObject<O> getObject(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws CommonException {
+        return modelService.getObject(type, oid, options, getTestTask(), getTestOperationResult());
     }
 
     protected @NotNull TestSimulationResult findTestSimulationResultRequired(OperationResult result)

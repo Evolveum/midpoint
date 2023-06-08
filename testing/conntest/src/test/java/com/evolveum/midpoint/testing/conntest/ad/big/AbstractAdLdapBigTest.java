@@ -186,8 +186,8 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_BIG_NAME), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass());
+        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_BIG_NAME));
 
         // WHEN
         when();

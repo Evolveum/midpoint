@@ -346,6 +346,19 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismItemAsserter<? extends Item<?, ?>, PrismObjectAsserter<O, RA>> item(ItemPath path) {
+        var asserter = new PrismItemAsserter<>(object.findItem(path), this, "item " + path + " in " + desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public PrismContainerAsserter<? extends Containerable, PrismObjectAsserter<O, RA>> container(ItemPath path) {
+        var asserter = new PrismContainerAsserter<>(
+                object.findContainer(path), this, "item " + path + " in " + desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     private int getExtensionItemsCount() {
         PrismContainer<?> extension = getObject().getExtension();
         return extension != null ? extension.getValue().size() : 0;

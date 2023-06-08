@@ -8,37 +8,53 @@
 package com.evolveum.midpoint.security.api;
 
 import java.util.List;
+import javax.xml.namespace.QName;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDeputyUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * TODO better name ;)
+ * TODO better name for the class
  */
 public class DelegatorWithOtherPrivilegesLimitations implements DebugDumpable {
 
     @NotNull private final UserType delegator;
     @NotNull private final List<OtherPrivilegesLimitationType> limitations;
 
-    public DelegatorWithOtherPrivilegesLimitations(@NotNull UserType delegator,
+    public DelegatorWithOtherPrivilegesLimitations(
+            @NotNull UserType delegator,
             @NotNull List<OtherPrivilegesLimitationType> limitations) {
         this.delegator = delegator;
         this.limitations = limitations;
     }
 
-    @NotNull
-    public UserType getDelegator() {
+    public @NotNull UserType getDelegator() {
         return delegator;
     }
 
-    @NotNull
-    public List<OtherPrivilegesLimitationType> getLimitations() {
+    /**
+     * Note that deprecated {@link OtherPrivilegesLimitationType#F_APPROVAL_WORK_ITEMS} are not present in the limitations.
+     */
+    @VisibleForTesting
+    public @NotNull List<OtherPrivilegesLimitationType> getLimitations() {
         return limitations;
+    }
+
+    /**
+     * We should not ask about deprecated {@link OtherPrivilegesLimitationType#F_APPROVAL_WORK_ITEMS};
+     * it is not in the limitations anyway.
+     */
+    public boolean limitationsAllow(@NotNull QName limitationItemName) {
+        Preconditions.checkArgument(!limitationItemName.equals(OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS));
+        return SchemaDeputyUtil.limitationsAllow(limitations, limitationItemName);
     }
 
     @Override

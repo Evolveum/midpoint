@@ -10,8 +10,11 @@
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 
     <name>security-approver-deputy</name>
-    <fullName>Security approver deputy</fullName>
     <assignment>
         <targetRef oid="00000001-d34d-b33f-f00d-5eca99000001" type="UserType" relation="deputy"/>
     </assignment>
+    <assignment> <!-- the approver role is not delegable here -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
+    <fullName>Security approver deputy</fullName>
 </user>

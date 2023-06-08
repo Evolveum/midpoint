@@ -41,7 +41,7 @@ public class ParsedGetOperationOptions {
 
     private ParsedGetOperationOptions() {
         this.originalCollection = List.of();
-        this.rootOptions.get(); // to resolve it
+        this.rootOptions.get(); // to resolve it (as it is used for the EMPTY constant)
     }
 
     private ParsedGetOperationOptions(@Nullable Collection<SelectorOptions<GetOperationOptions>> originalCollection) {
@@ -91,5 +91,17 @@ public class ParsedGetOperationOptions {
         return Objects.requireNonNullElse(
                 GetOperationOptions.getDefinitionUpdate(getRootOptions()),
                 DefinitionUpdateOption.NONE); // temporary default (for experiments)
+    }
+
+    public boolean isRaw() {
+        return GetOperationOptions.isRaw(getRootOptions());
+    }
+
+    public boolean isTolerateRawData() {
+        return GetOperationOptions.isTolerateRawData(getRootOptions());
+    }
+
+    public boolean isExecutionPhase() {
+        return GetOperationOptions.isExecutionPhase(getRootOptions());
     }
 }

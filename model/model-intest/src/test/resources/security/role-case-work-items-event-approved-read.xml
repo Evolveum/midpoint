@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="6b2af0ae-36a6-4e90-8cff-1f2172566956"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>case-work-items-event-approved-read</name>
+    <authorization>
+        <!-- HIGHLY EXPERIMENTAL. THIS MAY OR MAY NOT WORK. -->
+        <name>case-work-items-event-approved-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <enforcementStrategy>maySkipOnSearch</enforcementStrategy> <!-- event/outcome is not searchable -->
+        <object>
+            <type>WorkItemCompletionEventType</type>
+            <filter>
+                <q:equal>
+                    <q:path>output/outcome</q:path>
+                    <q:value>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</q:value>
+                </q:equal>
+            </filter>
+            <parent> <!-- This is necessary, because WorkItemCompletionEventType is not among "well-known" value types -->
+                <type>CaseType</type>
+                <path>event</path>
+            </parent>
+        </object>
+    </authorization>
+    <delegable>true</delegable>
+</role>

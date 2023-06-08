@@ -11,28 +11,23 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
+import com.evolveum.midpoint.util.DebugUtil;
 
 public class FilterGizmoObjectFilterImpl implements FilterGizmo<ObjectFilter> {
 
-    private final PrismContext prismContext;
-
-    public FilterGizmoObjectFilterImpl(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
     @Override
     public ObjectFilter and(ObjectFilter a, ObjectFilter b) {
-        return ObjectQueryUtil.filterAnd(a, b, prismContext);
+        return ObjectQueryUtil.filterAnd(a, b);
     }
 
     @Override
     public ObjectFilter or(ObjectFilter a, ObjectFilter b) {
-        return ObjectQueryUtil.filterOr(a, b, prismContext);
+        return ObjectQueryUtil.filterOr(a, b);
     }
 
     @Override
     public ObjectFilter not(ObjectFilter subfilter) {
-        return prismContext.queryFactory().createNot(subfilter);
+        return PrismContext.get().queryFactory().createNot(subfilter);
     }
 
     @Override
@@ -42,7 +37,7 @@ public class FilterGizmoObjectFilterImpl implements FilterGizmo<ObjectFilter> {
 
     @Override
     public ObjectFilter createDenyAll() {
-        return prismContext.queryFactory().createNone();
+        return PrismContext.get().queryFactory().createNone();
     }
 
     @Override
@@ -57,7 +52,7 @@ public class FilterGizmoObjectFilterImpl implements FilterGizmo<ObjectFilter> {
 
     @Override
     public ObjectFilter simplify(ObjectFilter filter) {
-        return ObjectQueryUtil.simplify(filter, prismContext);
+        return ObjectQueryUtil.simplify(filter);
     }
 
     @Override
@@ -67,6 +62,6 @@ public class FilterGizmoObjectFilterImpl implements FilterGizmo<ObjectFilter> {
 
     @Override
     public String debugDumpFilter(ObjectFilter filter, int indent) {
-        return filter==null ? null : filter.debugDump(indent);
+        return DebugUtil.debugDump(filter, indent);
     }
 }
