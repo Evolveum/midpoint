@@ -98,42 +98,6 @@ public interface CertificationManager {
     void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
-     * Returns a set of certification work items for currently logged-in user (or all users).
-     * Query argument for cases is the same as in the model.searchContainers(AccessCertificationCaseType...) call.
-     *
-     * @param caseQuery Specification of the cases to retrieve.
-     * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
-     *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
-     *                       the cleaner way is keep this knowledge inside certification module only.
-     * @param allItems If true, retrieves work items for all users. Requires root ("ALL") authorization.
-     * @param options Options to use (e.g. RESOLVE_NAMES).
-     * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations.
-     * @return A list of relevant certification cases.
-     *
-     */
-    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly, boolean allItems,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-
-    default List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return searchOpenWorkItems(caseQuery, notDecidedOnly, false, options, task, parentResult);
-    }
-
-    int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly, boolean allItems,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-
-    @SuppressWarnings("unused")
-    default int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return countOpenWorkItems(caseQuery, notDecidedOnly, false, options, task, parentResult);
-    }
-
-    /**
      * Records a particular decision of a reviewer.
      *  @param campaignOid OID of the campaign to which the decision belongs.
      * @param caseId ID of the certification case to which the decision belongs.

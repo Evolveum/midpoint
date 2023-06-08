@@ -98,7 +98,8 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             int revokedOk = 0;
             int revokedError = 0;
 
-            List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaignOid, norm(campaign.getIteration()), null, opResult);
+            List<AccessCertificationCaseType> caseList =
+                    queryHelper.getAllCurrentIterationCases(campaignOid, norm(campaign.getIteration()), opResult);
             for (AccessCertificationCaseType acase : caseList) {
                 if (OutcomeUtils.isRevoke(acase, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");

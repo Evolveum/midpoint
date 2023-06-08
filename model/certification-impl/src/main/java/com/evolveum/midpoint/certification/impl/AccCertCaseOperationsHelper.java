@@ -206,7 +206,8 @@ public class AccCertCaseOperationsHelper {
 
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
                 CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
-                null, false, null, result);
+                false,
+                result);
 
         if (workItems.isEmpty()) {
             LOGGER.debug("No work items, no escalation (campaign: {})", campaignOid);

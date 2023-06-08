@@ -10,7 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -26,6 +30,10 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_OUTPUT;
 
 /**
  * TODO move to more appropriate place (common for both wf and certifications)
@@ -145,5 +153,51 @@ public class QueryUtils {
                 .not()
                 .item(CaseType.F_STATE)
                 .eq(SchemaConstants.CASE_STATE_CLOSED);
+    }
+
+    private static ObjectFilter getReviewerAndEnabledFilterForWI(MidPointPrincipal principal) {
+        if (principal != null) {
+            return filterForCertificationAssignees(
+                        PrismContext.get().queryFor(AccessCertificationWorkItemType.class),
+                        principal)
+                    .and().item(F_CLOSE_TIMESTAMP).isNull()
+                    .buildFilter();
+        } else {
+            return PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                    .item(F_CLOSE_TIMESTAMP).isNull()
+                    .buildFilter();
+        }
+    }
+
+    public static ObjectQuery addFilter(ObjectQuery query, ObjectFilter additionalFilter) {
+        ObjectQuery newQuery;
+        QueryFactory queryFactory = PrismContext.get().queryFactory();
+        if (query == null) {
+            newQuery = queryFactory.createQuery(additionalFilter);
+        } else {
+            newQuery = query.clone();
+            if (query.getFilter() == null) {
+                newQuery.setFilter(additionalFilter);
+            } else {
+                newQuery.setFilter(queryFactory.createAnd(query.getFilter(), additionalFilter));
+            }
+        }
+        return newQuery;
+    }
+
+    public static ObjectQuery createQueryForOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal, boolean notDecidedOnly) {
+        ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
+
+        ObjectFilter filter;
+        if (notDecidedOnly) {
+            ObjectFilter noResponseFilter = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                    .item(F_OUTPUT, F_OUTCOME).isNull()
+                    .buildFilter();
+            filter = PrismContext.get().queryFactory().createAnd(reviewerAndEnabledFilter, noResponseFilter);
+        } else {
+            filter = reviewerAndEnabledFilter;
+        }
+        return addFilter(baseWorkItemsQuery, filter);
     }
 }

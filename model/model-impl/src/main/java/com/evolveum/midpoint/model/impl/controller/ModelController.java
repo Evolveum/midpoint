@@ -17,7 +17,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -2222,26 +2225,41 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectQuery baseWorkItemsQuery,
             boolean notDecidedOnly,
             boolean allItems,
-            Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            Collection<SelectorOptions<GetOperationOptions>> options,
             Task task,
-            OperationResult parentResult)
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException {
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                preProcessOptionsSecurity(rawOptions, task, parentResult)
-                        .getCollection();
-        return getCertificationManagerRequired()
-                .searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
+        return searchContainers(
+                AccessCertificationWorkItemType.class,
+                QueryUtils.createQueryForOpenWorkItems(
+                        baseWorkItemsQuery,
+                        allItems ? null : SecurityUtil.getPrincipalRequired(),
+                        notDecidedOnly),
+                options,
+                task,
+                result);
     }
 
     @Override
-    public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
-            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                preProcessOptionsSecurity(rawOptions, task, parentResult)
-                        .getCollection();
-        return getCertificationManagerRequired()
-                .countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
+    public int countOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery,
+            boolean notDecidedOnly,
+            boolean allItems,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        return countContainers(
+                AccessCertificationWorkItemType.class,
+                QueryUtils.createQueryForOpenWorkItems(
+                        baseWorkItemsQuery,
+                        allItems ? null : SecurityUtil.getPrincipalRequired(),
+                        notDecidedOnly),
+                options,
+                task,
+                result);
     }
 
     @Override
