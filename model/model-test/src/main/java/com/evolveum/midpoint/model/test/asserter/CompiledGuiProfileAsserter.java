@@ -8,13 +8,18 @@ package com.evolveum.midpoint.model.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HomePageType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PreviewContainerPanelConfigurationType;
 
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+
+import java.util.List;
 
 /**
  * @author semancik
@@ -49,16 +54,22 @@ public class CompiledGuiProfileAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public CompiledGuiProfileAsserter<RA> assertUserDashboardWidgets(int expectedWidgetws) {
-        if ( compiledGuiProfile.getUserDashboard() == null) {
-            if (expectedWidgetws != 0) {
-                fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
-                        + expectedWidgetws + " but there was none");
-            }
-        } else {
-            assertEquals("Wrong number of user dashboard widgets in " + desc(), expectedWidgetws, getCompiledGuiProfile().getUserDashboard().getWidget().size());
-        }
+    public CompiledGuiProfileAsserter<RA> assertUserDashboardWidgets(int expectedWidgets) {
+        int userDashboardWidgetsCount = countUserDashboardWidgets();
+        assertEquals("Wrong number of user dashboard widgets in " + desc(), expectedWidgets, userDashboardWidgetsCount);
         return this;
+    }
+
+    public int countUserDashboardWidgets() {
+        HomePageType homePage = compiledGuiProfile.getHomePage();
+        if (homePage == null) {
+            return 0;
+        }
+        List<PreviewContainerPanelConfigurationType> widgets = homePage.getWidget();
+        if (widgets == null) {
+            return 0;
+        }
+        return widgets.size();
     }
 
     public CompiledGuiProfileAsserter<RA> assertObjectCollectionViews(int expectedViews) {

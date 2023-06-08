@@ -171,6 +171,9 @@
         <homePage>
             <type>UserType</type>
             <widget>
+                <identifier>search</identifier>
+            </widget>
+            <widget>
                 <identifier>myAccesses</identifier>
                 <display>
                     <label>
