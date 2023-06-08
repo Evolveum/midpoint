@@ -11,6 +11,11 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.ValueSelector;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author semancik
  */
@@ -63,6 +68,28 @@ public class PrismContainerAsserter<C extends Containerable, RA> extends PrismIt
                 new PrismContainerValueAsserter<>(getItem().getAnyValue(selector), this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public PrismContainerValueAsserter<C, ? extends PrismContainerAsserter<C, RA>> valueWithId(long id) {
+        return value(v -> v.getId() == id);
+    }
+
+    public PrismContainerAsserter<C,RA> assertNoValueWithId(Long... id) {
+        assertThat(getValuesIds()).as("values IDs").doesNotContain(id);
+        return this;
+    }
+
+    public PrismContainerAsserter<C, RA> assertValuesIds(Long... ids) {
+        assertThat(getValuesIds())
+                .as("values IDs")
+                .containsExactlyInAnyOrder(ids);
+        return this;
+    }
+
+    private Set<Long> getValuesIds() {
+        return getItem().getValues().stream()
+                .map(v -> v.getId())
+                .collect(Collectors.toSet());
     }
 
     protected String desc() {

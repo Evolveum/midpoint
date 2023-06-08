@@ -64,7 +64,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
         // WHEN
         when();
-        assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN.oid, task, result);
 
         // THEN
         then();
@@ -326,7 +326,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
         // WHEN
         when();
-        unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN.oid, task, result);
 
         // THEN
         then();

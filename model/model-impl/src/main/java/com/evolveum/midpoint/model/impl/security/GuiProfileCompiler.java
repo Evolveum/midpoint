@@ -121,9 +121,10 @@ public class GuiProfileCompiler {
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
                 if (target.isValid() && target.getTarget().asObjectable() instanceof UserType
                         && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-                    List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-                    principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-                            (UserType) target.getTarget().asObjectable(), limitations));
+                    principal.addDelegatorWithOtherPrivilegesLimitations(
+                            new DelegatorWithOtherPrivilegesLimitations(
+                                    (UserType) target.getTarget().asObjectable(),
+                                    DeputyUtils.extractLimitations(target.getAssignmentPath())));
                 }
             }
         }
@@ -633,21 +634,6 @@ public class GuiProfileCompiler {
                     "resolving connector reference", false, result);
         }
         return reference.getOid();
-    }
-
-    private void mergeWidget(CompiledGuiProfile composite, DashboardWidgetType newWidget) {
-        String newWidgetIdentifier = newWidget.getIdentifier();
-        DashboardWidgetType compositeWidget = composite.findUserDashboardWidget(newWidgetIdentifier);
-        if (compositeWidget == null) {
-            composite.getUserDashboard().getWidget().add(newWidget.clone());
-        } else {
-            mergeWidget(compositeWidget, newWidget);
-        }
-    }
-
-    private void mergeWidget(DashboardWidgetType compositeWidget, DashboardWidgetType newWidget) {
-        mergeFeature(compositeWidget, newWidget, UserInterfaceElementVisibilityType.VACANT);
-        // merge other widget properties (in the future)
     }
 
     private void mergeFeature(CompiledGuiProfile composite, UserInterfaceFeatureType newFeature) {

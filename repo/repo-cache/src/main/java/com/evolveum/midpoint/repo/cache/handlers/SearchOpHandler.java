@@ -338,7 +338,7 @@ public class SearchOpHandler extends CachedOpHandler {
         }
     }
 
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
+    public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.subresult(OP_SEARCH_CONTAINERS)

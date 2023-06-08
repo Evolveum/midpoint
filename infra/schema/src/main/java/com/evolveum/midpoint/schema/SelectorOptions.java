@@ -12,10 +12,13 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.PathSet;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -146,6 +149,41 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         }
         updater.accept(rootOptions);
         return options;
+    }
+
+    /**
+     * As {@link #updateRootOptions(Collection, Consumer, Supplier)} but does not modify the original options
+     * (and checks whether the update is needed at all).
+     */
+    @Experimental
+    static <T> @Nullable Collection<SelectorOptions<T>> updateRootOptionsSafe(
+            @Nullable Collection<SelectorOptions<T>> originalOptions,
+            @NotNull Predicate<T> predicate,
+            @NotNull Consumer<T> updater,
+            Supplier<T> newValueSupplier) {
+        T originalRootOptions = findRootOptions(originalOptions);
+        if (!predicate.test(originalRootOptions)) {
+            return originalOptions;
+        }
+
+        Collection<SelectorOptions<T>> newOptions = new ArrayList<>();
+
+        T newRootOptions;
+        if (originalRootOptions == null) {
+            newRootOptions = newValueSupplier.get();
+        } else {
+            newRootOptions = CloneUtil.clone(originalRootOptions);
+        }
+        updater.accept(newRootOptions);
+        newOptions.add(new SelectorOptions<>(newRootOptions));
+
+        for (SelectorOptions<T> originalOption : emptyIfNull(originalOptions)) {
+            if (!originalOption.isRoot()) {
+                newOptions.add(originalOption);
+            }
+        }
+
+        return newOptions;
     }
 
     /**

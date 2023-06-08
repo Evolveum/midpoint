@@ -23,20 +23,14 @@ public enum PredefinedDashboardWidgetId {
     PREVIEW_WIDGETS("previewWidgets"),
     MY_ACCOUNTS("myAccounts");
 
-    private final QName qname;
-    private final String uri;
+    private final String identifier;
 
-    PredefinedDashboardWidgetId(String localPart) {
-        this.qname = new QName(ComponentConstants.NS_DASHBOARD_WIDGET, localPart);
-        this.uri = QNameUtil.qNameToUri(qname);
+    PredefinedDashboardWidgetId(String identifier) {
+        this.identifier = identifier;
     }
 
-    public QName getQname() {
-        return qname;
-    }
-
-    public String getUri() {
-        return uri;
+    public String getIdentifier() {
+        return identifier;
     }
 
 }

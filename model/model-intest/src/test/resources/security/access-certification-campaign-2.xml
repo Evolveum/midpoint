@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="8c0027d6-9074-4ab0-bb60-03c29c3e8130">
+    <name>All user assignments 2 (jack)</name>
+    <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
+    <definitionRef oid="068e0a87-b456-47c7-811a-5fd9b6f78099"
+            type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"><!-- administrator --></ownerRef>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <iteration>1</iteration> <!-- TODO this is from AssignmentHolderType due to historical reasons and is probably wrong -->
+    <stageDefinition>
+        <number>1</number>
+        <name>Administrator's review</name>
+        <description>In this stage, the administrator has to review all the assignments of all users.</description>
+        <duration>P14D</duration>
+        <reviewerSpecification>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></defaultReviewerRef>
+        </reviewerSpecification>
+    </stageDefinition>
+    <startTimestamp>2015-12-04T00:38:03.031+01:00</startTimestamp>
+    <state>inReviewStage</state>
+    <stageNumber>1</stageNumber>
+    <stage>
+        <number>1</number>
+        <name>Administrator's review</name>
+        <description>In this stage, the administrator has to review all the assignments of all users.</description>
+        <startTimestamp>2015-12-04T00:38:00.708+01:00</startTimestamp>
+        <endTimestamp>2015-12-18T23:59:59.999+01:00</endTimestamp>
+    </stage>
+    <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
+        <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
+        <workItem>
+            <stageNumber>1</stageNumber>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
+            <outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageOutcome>accept</currentStageOutcome>
+        <assignment>
+            <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
+        <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
+        <workItem>
+            <stageNumber>1</stageNumber>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+            </output>
+            <outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageOutcome>noResponse</currentStageOutcome>
+        <assignment>
+            <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+</accessCertificationCampaign>

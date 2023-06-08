@@ -1,0 +1,101 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="2ce049c4-fd83-44d5-b5eb-19b4a156c262"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>acc-cert-campaign-complex-read</name>
+    <!-- Designed to test the composition of value-level authorizations -->
+    <authorization>
+        <name>campaign-name-and-case-outcome</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCampaignType</type>
+        </object>
+        <item>name</item>
+        <item>case/outcome</item> <!-- applies to all cases (1..8 in campaign-3) but #1 and #6 are overridden by deny autz  -->
+    </authorization>
+    <authorization>
+        <!-- applies to cases 5, 6, 7, 8 in campaign-3 -->
+        <name>campaign-case-iteration-for-object-ann</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCaseType</type>
+            <filter>
+                <q:ref>
+                    <q:path>objectRef</q:path>
+                    <q:value oid="9e0105e1-c601-4265-b71b-3077e04a3b61"/> <!-- ann -->
+                </q:ref>
+            </filter>
+            <!-- no need to specify the parent, as this is a well-known type -->
+        </object>
+        <item>iteration</item>
+    </authorization>
+    <authorization>
+        <!-- applies to case 6 in campaign-3 -->
+        <name>no-campaign-case-outcome-and-iteration-for-target-approver</name>
+        <decision>deny</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCaseType</type>
+            <filter>
+                <q:ref>
+                    <q:path>targetRef</q:path>
+                    <q:value oid="00000000-0000-0000-0000-00000000000a"/> <!-- approver -->
+                </q:ref>
+            </filter>
+        </object>
+        <item>iteration</item>
+        <item>outcome</item>
+    </authorization>
+    <authorization>
+        <!-- applies to case 1 in campaign-3 -->
+        <name>no-campaign-case-for-object-administrator</name>
+        <decision>deny</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCaseType</type>
+            <filter>
+                <q:ref>
+                    <q:path>objectRef</q:path>
+                    <q:value oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
+                </q:ref>
+            </filter>
+        </object>
+    </authorization>
+    <authorization>
+        <!-- campaign-3 applicability: -->
+        <!-- applies to work items 1.1, 2.1, 3.1, 4.1, 5.1, 6.2, 7.1, 8.1 -->
+        <!-- does not apply to: 6.1, 7.2 -->
+        <name>campaign-work-items-assigned-to-administrator</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationWorkItemType</type>
+            <filter>
+                <q:ref>
+                    <q:path>assigneeRef</q:path>
+                    <q:value oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
+                </q:ref>
+            </filter>
+        </object>
+        <item>assigneeRef</item>
+    </authorization>
+    <authorization>
+        <!-- applies to 8.1 -->
+        <name>campaign-extra-work-item</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationWorkItemType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>extra</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <exceptItem>stageNumber</exceptItem>
+    </authorization>
+</role>

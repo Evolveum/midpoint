@@ -114,8 +114,9 @@ abstract class ObjectSet<IO extends PrismValue> {
     private boolean currentObjectMatches(PrismObject<?> object, ObjectSelectorType selector) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        //noinspection unchecked
-        return actx.beans.repositoryService.selectorMatches(selector, (PrismObject) object, null, LOGGER, "current object");
+        //noinspection unchecked,rawtypes
+        return actx.beans.repositoryService.selectorMatches(
+                selector, (PrismObject) object, null, LOGGER, "current object");
     }
 
     void addObjects(Collection<PrismObject<? extends ObjectType>> objects) {

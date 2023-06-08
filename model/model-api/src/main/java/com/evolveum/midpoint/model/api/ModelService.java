@@ -335,11 +335,22 @@ public interface ModelService {
     /**
      * Search for "sub-object" structures, i.e. containers.
      * Supported types are: AccessCertificationCaseType, CaseWorkItemType, OperationExecutionType and AssignmentType.
+     *
+     * The current implementation ignores the `readOnly` option because of the way how security constraints are applied.
+     *
+     * Currently, the objects are returned in the context of their parent values, up to the level of prism objects.
+     * (In the future, we may make this behavior configurable.)
+     *
+     * The security is applied to all levels - from the parent objects downwards.
      */
     <T extends Containerable> SearchResultList<T> searchContainers(
-            Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException;
 
     <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)

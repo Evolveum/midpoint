@@ -6,19 +6,22 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author semancik
@@ -30,8 +33,15 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @NotNull private final AuthorizationType authorizationBean;
     private String sourceDescription;
 
+    @NotNull private final PathSet items;
+    @NotNull private final PathSet exceptItems;
+    private List<ValueSelector> parsedObjectSelectors;
+    private List<ValueSelector> parsedTargetSelectors;
+
     public Authorization(@NotNull AuthorizationType authorizationBean) {
         this.authorizationBean = authorizationBean;
+        items = parseItems(this.authorizationBean.getItem());
+        exceptItems = parseItems(this.authorizationBean.getExceptItem());
     }
 
     @Override
@@ -58,12 +68,21 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
                 AuthorizationDecisionType.ALLOW);
     }
 
+    public boolean isAllow() {
+        return getDecision() == AuthorizationDecisionType.ALLOW;
+    }
+
     public @NotNull List<String> getAction() {
         return authorizationBean.getAction();
     }
 
     public @Nullable AuthorizationPhaseType getPhase() {
         return authorizationBean.getPhase();
+    }
+
+    public boolean matchesPhase(@Nullable AuthorizationPhaseType phase) {
+        var autzPhase = getPhase();
+        return autzPhase == null || autzPhase == phase;
     }
 
     public AuthorizationEnforcementStrategyType getEnforcementStrategy() {
@@ -79,8 +98,37 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
     }
 
-    public List<OwnedObjectSelectorType> getObject() {
+    private @NotNull List<AuthorizationObjectSelectorType> getObjectSelectors() {
         return authorizationBean.getObject();
+    }
+
+    public @NotNull synchronized List<ValueSelector> getParsedObjectSelectors() throws ConfigurationException {
+        var cached = parsedObjectSelectors;
+        if (cached != null) {
+            return cached;
+        } else {
+            parsedObjectSelectors = parseSelectors(getObjectSelectors());
+            return parsedObjectSelectors;
+        }
+    }
+
+    public @NotNull synchronized List<ValueSelector> getParsedTargetSelectors() throws ConfigurationException {
+        var cached = parsedTargetSelectors;
+        if (cached != null) {
+            return cached;
+        } else {
+            parsedTargetSelectors = parseSelectors(getTargetSelectors());
+            return parsedTargetSelectors;
+        }
+    }
+
+    private List<ValueSelector> parseSelectors(List<? extends OwnedObjectSelectorType> selectorBeans)
+            throws ConfigurationException {
+        List<ValueSelector> parsed = new ArrayList<>();
+        for (OwnedObjectSelectorType selectorBean : selectorBeans) {
+            parsed.add(ValueSelector.parse(selectorBean));
+        }
+        return parsed;
     }
 
     @NotNull
@@ -93,33 +141,29 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return authorizationBean.getExceptItem();
     }
 
-    @NotNull
-    public List<ItemPath> getItems() {
-        List<ItemPathType> itemPaths = getItem();
-        // TODO: maybe we can cache the itemPaths here?
-        List<ItemPath> items = new ArrayList<>(itemPaths.size());
-        for (ItemPathType itemPathType: itemPaths) {
-            items.add(itemPathType.getItemPath());
-        }
+    public @NotNull PathSet getItems() {
         return items;
     }
 
-    @NotNull
-    public List<ItemPath> getExceptItems() {
-        List<ItemPathType> itemPaths = getExceptItem();
-        // TODO: maybe we can cache the itemPaths here?
-        List<ItemPath> items = new ArrayList<>(itemPaths.size());
-        for (ItemPathType itemPathType: itemPaths) {
-            items.add(itemPathType.getItemPath());
+    public @NotNull PathSet getExceptItems() {
+        return exceptItems;
+    }
+
+    private @NotNull PathSet parseItems(@NotNull List<ItemPathType> beans) {
+        var set = new PathSet();
+        for (ItemPathType bean : beans) {
+            set.add(bean.getItemPath());
         }
-        return items;
+        set.freeze();
+        return set;
     }
 
     public boolean hasItemSpecification() {
-        return !getItem().isEmpty() || !getExceptItem().isEmpty();
+        return !getItem().isEmpty()
+                || !getExceptItem().isEmpty();
     }
 
-    public List<OwnedObjectSelectorType> getTarget() {
+    private @NotNull List<OwnedObjectSelectorType> getTargetSelectors() {
         return authorizationBean.getTarget();
     }
 
@@ -151,6 +195,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
             sb.append("unnamed authorization");
         }
         if (sourceDescription != null) {
+            Long id = authorizationBean.getId();
+            if (id != null) {
+                sb.append(" (#").append(id).append(")");
+            }
             sb.append(" in ");
             sb.append(sourceDescription);
         }

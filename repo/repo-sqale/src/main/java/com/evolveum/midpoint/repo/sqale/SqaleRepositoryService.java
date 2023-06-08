@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
@@ -46,7 +45,6 @@ import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
@@ -72,15 +70,10 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -1279,9 +1272,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
-    public <T extends Containerable> SearchResultList<T> searchContainers(
-            Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+    public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(
+            @NotNull Class<T> type, @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult)
             throws SchemaException {
 
         Objects.requireNonNull(type, "Container type must not be null.");
@@ -1312,8 +1305,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <T extends Containerable> SearchResultList<T> executeSearchContainers(Class<T> type,
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+    private @NotNull <T extends Containerable> SearchResultList<T> executeSearchContainers(
+            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
             throws RepositoryException, SchemaException {
 
         long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS, type);
@@ -1929,112 +1922,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } finally {
             registerOperationFinish(opHandle);
         }
-    }
-
-    @Override
-    public <O extends ObjectType> boolean selectorMatches(
-            ObjectSelectorType objectSelector, PrismObject<O> object,
-            ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-        // this code is taken from old repo virtually as-was
-        if (objectSelector == null) {
-            logger.trace("{} null object specification", logMessagePrefix);
-            return false;
-        }
-
-        if (object == null) {
-            logger.trace("{} null object", logMessagePrefix);
-            return false;
-        }
-
-        SearchFilterType specFilterType = objectSelector.getFilter();
-        ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
-        QName specTypeQName = objectSelector.getType(); // now it does not matter if it's unqualified
-        PrismObjectDefinition<O> objectDefinition = object.getDefinition();
-
-        // Type
-        if (specTypeQName != null && !object.canRepresent(specTypeQName)) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("{} type mismatch, expected {}, was {}",
-                        logMessagePrefix,
-                        PrettyPrinter.prettyPrint(specTypeQName),
-                        PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
-            }
-            return false;
-        }
-
-        // Subtype
-        String specSubtype = objectSelector.getSubtype();
-        if (specSubtype != null) {
-            Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
-            if (!actualSubtypeValues.contains(specSubtype)) {
-                logger.trace("{} subtype mismatch, expected {}, was {}",
-                        logMessagePrefix, specSubtype, actualSubtypeValues);
-                return false;
-            }
-        }
-
-        // Archetype
-        List<ObjectReferenceType> specArchetypeRefs = objectSelector.getArchetypeRef();
-        if (!specArchetypeRefs.isEmpty()) {
-            if (object.canRepresent(AssignmentHolderType.class)) {
-                boolean match = false;
-                List<ObjectReferenceType> actualArchetypeRefs =
-                        ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
-                for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
-                    for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
-                        if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {
-                            match = true;
-                            break;
-                        }
-                    }
-                }
-                if (!match) {
-                    logger.trace("{} archetype mismatch, expected {}, was {}",
-                            logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
-                    return false;
-                }
-            } else {
-                logger.trace("{} archetype mismatch, expected {} but object has none (it is not of AssignmentHolderType)",
-                        logMessagePrefix, specArchetypeRefs);
-                return false;
-            }
-        }
-
-        // Filter
-        if (specFilterType != null) {
-            ObjectFilter specFilter = object.getPrismContext().getQueryConverter()
-                    .createObjectFilter(object.getCompileTimeClass(), specFilterType);
-            if (filterEvaluator != null) {
-                specFilter = filterEvaluator.evaluate(specFilter);
-            }
-            ObjectTypeUtil.normalizeFilter(specFilter, sqlRepoContext.relationRegistry()); // we assume object is already normalized
-            if (specFilter != null) {
-                ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
-            }
-            try {
-                if (specFilter != null
-                        && !ObjectQuery.match(object, specFilter, sqlRepoContext.matchingRuleRegistry())) {
-                    logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
-                    return false;
-                }
-            } catch (SchemaException ex) {
-                throw new SchemaException(logMessagePrefix + "could not apply for " + object + ": "
-                        + ex.getMessage(), ex);
-            }
-        }
-
-        // Org
-        if (specOrgRef != null) {
-            if (!isDescendant(object, specOrgRef.getOid())) {
-                logger.trace("{} object OID {} (org={})",
-                        logMessagePrefix, object.getOid(), specOrgRef.getOid());
-                return false;
-            }
-        }
-
-        return true;
     }
 
     @Override

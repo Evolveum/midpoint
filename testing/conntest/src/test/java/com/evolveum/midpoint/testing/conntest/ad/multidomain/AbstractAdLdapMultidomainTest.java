@@ -448,7 +448,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass());
-        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
+        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);

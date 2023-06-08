@@ -41,14 +41,21 @@ public enum AccessDecision {
         return authorizationDecisionType;
     }
 
+    /**
+     * Rules:
+     *
+     * - `null` values are ignored,
+     * - any {@link AccessDecision#DENY} means {@link AccessDecision#DENY},
+     * - any {@link AccessDecision#DEFAULT} means {@link AccessDecision#DEFAULT},
+     * - otherwise, only {@link AccessDecision#ALLOW} remains, leading to {@link AccessDecision#ALLOW}.
+     *
+     * This also means that this operation is associative.
+     */
     public static AccessDecision combine(AccessDecision oldDecision, AccessDecision newDecision) {
-        if (oldDecision == null && newDecision == null) {
-            return null;
-        }
-        if (oldDecision == null && newDecision != null) {
+        if (oldDecision == null) {
             return newDecision;
         }
-        if (oldDecision != null && newDecision == null) {
+        if (newDecision == null) {
             return oldDecision;
         }
         if (oldDecision == DENY || newDecision == DENY) {
@@ -60,7 +67,7 @@ public enum AccessDecision {
         if (oldDecision == ALLOW || newDecision == ALLOW) {
             return ALLOW;
         }
-        throw new IllegalStateException("Unexpected combine "+oldDecision+"+"+newDecision);
+        throw new IllegalStateException("Unexpected combine " + oldDecision + "+" + newDecision);
     }
 
     public static AccessDecision translate(AuthorizationDecisionType authorizationDecisionType) {
@@ -73,8 +80,7 @@ public enum AccessDecision {
             case DENY:
                 return DENY;
             default:
-                throw new IllegalStateException("Unknown AuthorizationDecisionType "+authorizationDecisionType);
+                throw new IllegalStateException("Unknown AuthorizationDecisionType " + authorizationDecisionType);
         }
     }
-
 }

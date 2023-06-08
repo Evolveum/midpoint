@@ -31,17 +31,28 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateOwnWorkItems</action>
     </authorization>
-    <!-- TODO:
     <authorization>
-        <name>workitems-read</name>
-        <description>
-            ...
-        </description>
+        <name>assigned-workitems-read-complete</name> <!-- TODO finish this authorization -->
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>WorkItemType</type>
+            <type>CaseWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
         </object>
-    </authorization> -->
+    </authorization>
+    <authorization>
+        <name>assigned-cases-read-some</name> <!-- TODO finish this authorization; e.g. what about searching? -->
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>CaseType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+        <!-- We probably don't want to show all work items. TODO do we want to restrict also other things? -->
+        <exceptItem>workItem</exceptItem>
+    </authorization>
     <authorization>
         <name>cases-read</name>
         <description>

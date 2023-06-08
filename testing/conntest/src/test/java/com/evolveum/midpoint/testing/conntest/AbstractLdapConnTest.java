@@ -229,7 +229,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, getNumberOfAllAccounts(), task, result);
 
@@ -252,7 +252,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         when();
         Integer count = modelService.countObjects(ShadowType.class, query, null, task, result);
@@ -275,7 +275,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(50);
@@ -306,7 +306,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(222);
@@ -337,7 +337,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(getNumberOfAllAccounts() - 150);
@@ -366,7 +366,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(getNumberOfAllAccounts() + 50);
@@ -398,7 +398,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(0);
@@ -432,7 +432,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(20, 50);
         query.setPaging(paging);
@@ -461,7 +461,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(20, 222);
         query.setPaging(paging);
@@ -490,7 +490,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(20, 50);
         paging.setOrdering(getAttributePath("uid"), OrderDirection.ASCENDING);
@@ -523,7 +523,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(20, 222);
         paging.setOrdering(getAttributePath("uid"), OrderDirection.ASCENDING);
@@ -555,7 +555,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
         query.setAllowPartialResults(true);
 
         SearchResultList<PrismObject<ShadowType>> resultList = doSearch(query, getSearchSizeLimit(), task, result);
@@ -581,7 +581,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         // WHEN
         when();
@@ -1139,8 +1139,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_EVIL_CN), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass());
+        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_EVIL_CN));
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
