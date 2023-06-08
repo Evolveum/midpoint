@@ -538,11 +538,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         then(typeName + "(s) " + description + " are returned");
         assertThatOperationResult(operationResult).isSuccess();
 
-        if (!AssignmentType.class.isAssignableFrom(type)) {
+        if (!AssignmentType.class.isAssignableFrom(type)
+                && !SimulationResultProcessedObjectType.class.isAssignableFrom(type)) {
             and("all have their owning objects");
             getRootsForContainerables(result); // checks the owners
         } else {
-            // This is not implemented for assignment search yet
+            // This is not implemented for assignment and processed object search yet
         }
 
         return result;

@@ -19,6 +19,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -252,7 +253,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     @NotNull
     private VariablesMap createVariables(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException {
-        PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
+        PrismObject<SystemConfigurationType> systemConfiguration =
+                ModelBeans.get().systemObjectCache.getSystemConfiguration(result);
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 segment.source, null, null, asObjectable(systemConfiguration));
         variables.put(ExpressionConstants.VAR_SOURCE, segment.source, ObjectType.class);

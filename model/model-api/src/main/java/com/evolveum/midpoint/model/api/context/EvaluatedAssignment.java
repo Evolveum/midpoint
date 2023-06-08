@@ -43,7 +43,7 @@ public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Seria
 
     Long getAssignmentId();
 
-    Collection<Authorization> getAuthorizations();
+    @NotNull Collection<Authorization> getAuthorizations();
 
     Collection<AdminGuiConfigurationType> getAdminGuiConfigurations();
 

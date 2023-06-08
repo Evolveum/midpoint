@@ -12,11 +12,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,6 +48,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -80,7 +84,12 @@ public class GuiProfileCompiler {
 
     private static final String STATISTIC_WIDGET_PANEL_TYPE = "statisticWidget";
 
-    public void compileFocusProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
+    void compileFocusProfile(
+            GuiProfiledPrincipal principal,
+            PrismObject<SystemConfigurationType> systemConfiguration,
+            AuthorizationTransformer authorizationTransformer,
+            Task task,
+            OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         LOGGER.debug("Going to compile focus profile for {}", principal.getName());
@@ -105,21 +114,28 @@ public class GuiProfileCompiler {
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 
-    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, Set<String> consideredOids, GuiProfiledPrincipal principal, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
+    private void collect(
+            List<AdminGuiConfigurationType> adminGuiConfigurations,
+            Set<String> consideredOids,
+            GuiProfiledPrincipal principal,
+            AuthorizationTransformer authorizationTransformer,
+            Task task,
+            OperationResult result) throws SchemaException {
         FocusType focusType = principal.getFocus();
 
-        Collection<? extends EvaluatedAssignment> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
-        Collection<Authorization> authorizations = principal.getAuthorities();
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments =
+                assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 // TODO: Should we add also invalid assignments?
                 consideredOids.addAll(assignment.getAdminGuiDependencies());
 
-                addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
+                addAuthorizations(principal, assignment.getAuthorizations(), authorizationTransformer);
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
             }
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
-                if (target.isValid() && target.getTarget().asObjectable() instanceof UserType
+                if (target.isValid()
+                        && target.getTarget().asObjectable() instanceof UserType
                         && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
                     principal.addDelegatorWithOtherPrivilegesLimitations(
                             new DelegatorWithOtherPrivilegesLimitations(
@@ -137,17 +153,16 @@ public class GuiProfileCompiler {
         }
     }
 
-    private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
-        if (sourceCollection == null) {
-            return;
-        }
+    private void addAuthorizations(
+            @NotNull MidPointPrincipal principal,
+            @NotNull Collection<Authorization> sourceCollection,
+            @Nullable AuthorizationTransformer authorizationTransformer) {
         for (Authorization autz : sourceCollection) {
             if (authorizationTransformer == null) {
-                targetCollection.add(autz.clone());
+                principal.addAuthorization(autz.clone());
             } else {
-                Collection<Authorization> transformedAutzs = authorizationTransformer.transform(autz);
-                if (transformedAutzs != null) {
-                    targetCollection.addAll(transformedAutzs);
+                for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
+                    principal.addAuthorization(transformedAutz);
                 }
             }
         }

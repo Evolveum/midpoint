@@ -312,14 +312,15 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.tenantOid = tenantOid;
     }
 
-    @NotNull
     @Override
-    public Collection<Authorization> getAuthorizations() {
+    public @NotNull Collection<Authorization> getAuthorizations() {
         return authorizations;
     }
 
-    void addAuthorization(Authorization authorization) {
-        authorizations.add(authorization);
+    void addAuthorization(@NotNull Authorization authorization) {
+        if (!authorizations.contains(authorization)) {
+            authorizations.add(authorization);
+        }
     }
 
     @Override
@@ -329,7 +330,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
-        adminGuiConfigurations.add(adminGuiConfiguration);
+        if (!adminGuiConfigurations.contains(adminGuiConfiguration)) {
+            adminGuiConfigurations.add(adminGuiConfiguration);
+        }
     }
 
     @Override

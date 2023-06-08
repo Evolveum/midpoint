@@ -365,7 +365,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(RoleType.class, null, 0);
         // The search with ResourceObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 2); // user + case2
+        assertSearch(ObjectType.class, null, 3); // user + case3 + case4 (see below)
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY.oid);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN.oid);
@@ -389,10 +389,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertGetDeny(CaseType.class, CASE1.oid);
         assertGetDeny(CaseType.class, CASE2.oid);
-        assertGetAllow(CaseType.class, CASE3.oid);
-        assertGetDeny(CaseType.class, CASE4.oid);
+        assertGetAllow(CaseType.class, CASE3.oid); // jack is current assignee
+        assertGetAllow(CaseType.class, CASE4.oid); // jack is assignee whose work item was completed
         assertReadCertCasesDeny();
-        assertSearchCases(CASE3.oid);
+        assertSearchCases(CASE3.oid, CASE4.oid);
 
         assertGlobalStateUntouched();
     }
@@ -424,7 +424,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertSearch(RoleType.class, null, 0);
             // The search with ResourceObjectClass is important. It is a very different case
             // than searching just for UserType
-            assertSearch(ObjectType.class, null, 2); // user + case2
+            assertSearch(ObjectType.class, null, 3); // user + case3 + case4
 
             assertGetDeny(RoleType.class, ROLE_ORDINARY.oid);
             assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN.oid);
@@ -453,13 +453,13 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             assertGetDeny(CaseType.class, CASE1.oid);
             assertGetDeny(CaseType.class, CASE2.oid);
             assertGetAllow(CaseType.class, CASE3.oid);
-            assertGetDeny(CaseType.class, CASE4.oid);
+            assertGetAllow(CaseType.class, CASE4.oid); // see previous test
             assertReadCertCasesDeny();
-            assertSearchCases(CASE3.oid);
+            assertSearchCases(CASE3.oid, CASE4.oid);
 
             assertGlobalStateUntouched();
         } finally {
-            deleteObjectRepo(UserType.class, USER_DEPUTY_1.oid);        // faster than attempting to do this in each cleanup; todo reconsider
+            deleteObjectRepo(UserType.class, USER_DEPUTY_1.oid); // faster than attempting to do this in each cleanup; todo reconsider
         }
     }
 

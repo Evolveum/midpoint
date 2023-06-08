@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -15,13 +16,16 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.function.Consumer;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
@@ -211,81 +215,76 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     public void test050SearchDecisionsAdministrator() throws Exception {
         // GIVEN
         login(userAdministrator.asPrismObject());
+
+        // Expected cases - phase 1:
+        //
+        //   COO-Dummy:                administrator
+        //   COO-DummyBlack:           administrator
+        //   COO-Superuser:            administrator
+
+        executeWorkItemsSearchTest(workItems -> {
+            display("workItems", workItems);
+            assertEquals("Wrong number of certification work items", 3, workItems.size());
+            checkWorkItemSanity(workItems, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo);
+            checkWorkItemSanity(workItems, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo);
+            checkWorkItemSanity(workItems, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo);
+        });
+    }
+
+    private void executeWorkItemsSearchTest(Consumer<Collection<AccessCertificationWorkItemType>> workItemsChecker)
+            throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        when();
+        when("searching for work items via certification service");
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
+                certificationService.searchOpenWorkItems(null, false, null, task, result);
 
-        /* Expected cases - phase 1:
+        then("result is OK");
+        assertSuccess(result);
+        workItemsChecker.accept(workItems);
 
-        COO-Dummy:                administrator
-        COO-DummyBlack:           administrator
-        COO-Superuser:            administrator
-         */
+        when("searching for work items via model API");
+        List<AccessCertificationWorkItemType> workItems2 =
+                modelService.searchContainers(
+                        AccessCertificationWorkItemType.class,
+                        QueryUtils.filterForCertificationAssignees(
+                                        prismContext.queryFor(AccessCertificationWorkItemType.class),
+                                        SecurityUtil.getPrincipalRequired())
+                                .and().item(F_CLOSE_TIMESTAMP).isNull()
+                                .build(),
+                        null, task, result);
 
-        // THEN
-        then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        display("workItems", workItems);
-        assertEquals("Wrong number of certification work items", 3, workItems.size());
-        checkWorkItemSanity(workItems, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo);
-        checkWorkItemSanity(workItems, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo);
-        checkWorkItemSanity(workItems, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo);
+        then("result is OK");
+        result.recomputeStatus();
+        assertSuccess(result);
+        workItemsChecker.accept(workItems2);
     }
 
     @Test
     public void test051SearchDecisionsElaine() throws Exception {
-        // GIVEN
         login(userElaine.asPrismObject());
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
-        // WHEN
-        when();
-        List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
+        // Expected cases - phase 1:
+        //
+        // CEO-Dummy:                elaine
 
-        /* Expected cases - phase 1:
-
-        CEO-Dummy:                elaine
-         */
-
-        // THEN
-        then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        display("caseList", workItems);
-        assertEquals("Wrong number of work items", 1, workItems.size());
-        checkWorkItemSanity(workItems, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo);
+        executeWorkItemsSearchTest(workItems -> {
+            display("workItems", workItems);
+            assertEquals("Wrong number of work items", 1, workItems.size());
+            checkWorkItemSanity(workItems, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo);        });
     }
 
     @Test
     public void test052SearchDecisionsJack() throws Exception {
-        // GIVEN
         login(userJack.asPrismObject());
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
-        // WHEN
-        when();
-        List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
+        // Expected cases - phase 1: NONE
 
-        /* Expected cases - phase 1: NONE */
-
-        // THEN
-        then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        display("workItems", workItems);
-        assertEquals("Wrong number of certification work items", 0, workItems.size());
+        executeWorkItemsSearchTest(workItems -> {
+            display("workItems", workItems);
+            assertEquals("Wrong number of certification work items", 0, workItems.size());
+        });
     }
 
     /*

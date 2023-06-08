@@ -161,14 +161,13 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
         when("processed objects are retrieved explicitly");
 
         // And we search TEST_TAG_1 owned by created result
-
-        ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
-                .ownerId(simulationOid)
-                .and()
-                .item(SimulationResultProcessedObjectType.F_EVENT_MARK_REF).ref(TEST_TAG_1)
-                .build();
         SearchResultList<SimulationResultProcessedObjectType> processedObjects =
-                repositoryService.searchContainers(SimulationResultProcessedObjectType.class, query, null, result);
+                searchContainerTest(
+                        "by event mark",
+                        SimulationResultProcessedObjectType.class,
+                        f -> f.ownerId(simulationOid)
+                                .and()
+                                .item(SimulationResultProcessedObjectType.F_EVENT_MARK_REF).ref(TEST_TAG_1));
 
         then("they are present");
         assertNotNull(processedObjects);

@@ -36,6 +36,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
+import com.evolveum.midpoint.security.api.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -130,10 +132,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -4721,13 +4719,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         loginSuperUser(principal);
     }
 
-    protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
-        AuthorizationType superAutzBean = new AuthorizationType();
-        prismContext.adopt(superAutzBean, RoleType.class, RoleType.F_AUTHORIZATION);
-        superAutzBean.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-        Authorization superAutz = new Authorization(superAutzBean);
-        Collection<Authorization> authorities = principal.getAuthorities();
-        authorities.add(superAutz);
+    protected void loginSuperUser(MidPointPrincipal principal) {
+        principal.addAuthorization(SecurityUtil.createPrivilegedAuthorization());
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(createMpAuthentication(authentication));
@@ -4825,7 +4818,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong attroney OID in principal", attotrneyOid, attorney.getOid());
     }
 
-    protected Collection<Authorization> getSecurityContextAuthorizations() {
+    private Collection<Authorization> getSecurityContextAuthorizations() {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
         if (midPointPrincipal == null) {
             return null;
@@ -5306,7 +5299,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertNoAuthorizations(MidPointPrincipal principal) {
-        if (principal.getAuthorities() != null && !principal.getAuthorities().isEmpty()) {
+        if (!principal.getAuthorities().isEmpty()) {
             AssertJUnit.fail("Unexpected authorizations in " + principal + ": " + principal.getAuthorities());
         }
     }

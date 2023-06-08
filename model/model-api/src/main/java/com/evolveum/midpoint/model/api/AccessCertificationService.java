@@ -123,13 +123,24 @@ public interface AccessCertificationService {
      * @return A list of relevant certification cases.
      *
      */
-    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+    List<AccessCertificationWorkItemType> searchOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery,
+            boolean notDecidedOnly,
+            boolean allItems,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            CommunicationException, ExpressionEvaluationException;
 
-    default List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    default List<AccessCertificationWorkItemType> searchOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery,
+            boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            CommunicationException, ExpressionEvaluationException {
         return searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
     }
 

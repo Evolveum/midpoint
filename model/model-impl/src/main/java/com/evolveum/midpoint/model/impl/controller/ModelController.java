@@ -642,13 +642,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     private class ContainerSearchLikeOpContext<T extends Containerable> {
-        final boolean isCertCase;
-        final boolean isCaseMgmtWorkItem;
-        final boolean isOperationExecution;
-        final boolean isProcessedObject;
         final ObjectManager manager;
         final ObjectQuery securityRestrictedQuery;
-        private final boolean isAssignment;
+        private final boolean skipSecurityPostProcessing;
 
         // TODO: task and result here are ugly and probably wrong
         ContainerSearchLikeOpContext(
@@ -656,19 +652,24 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 throws SchemaException, SecurityViolationException, ObjectNotFoundException,
                 ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
-            isCertCase = AccessCertificationCaseType.class.equals(type);
-            isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
-            isOperationExecution = OperationExecutionType.class.equals(type);
-            isAssignment = AssignmentType.class.equals(type);
-            isProcessedObject = SimulationResultProcessedObjectType.class.equals(type);
+            var isAssignment = AssignmentType.class.equals(type);
+            var isProcessedObject = SimulationResultProcessedObjectType.class.equals(type);
 
-            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment && !isProcessedObject) {
-                throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only "
-                        + "for AccessCertificationCaseType, CaseWorkItemType, SimulationResultProcessedObjectType and AssignmentType classes");
+            if (!AccessCertificationCaseType.class.equals(type)
+                    && !AccessCertificationWorkItemType.class.equals(type)
+                    && !CaseWorkItemType.class.equals(type)
+                    && !OperationExecutionType.class.equals(type)
+                    && !isAssignment
+                    && !isProcessedObject) {
+                throw new UnsupportedOperationException(
+                        "searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType,"
+                                + " AccessCertificationWorkItemType, CaseWorkItemType, OperationExecutionType, AssignmentType,"
+                                + " and SimulationResultProcessedObjectType objects");
             }
 
             manager = ObjectManager.REPOSITORY;
             securityRestrictedQuery = preProcessQuerySecurity(type, origQuery, options.getRootOptions(), task, result);
+            skipSecurityPostProcessing = isAssignment || isProcessedObject;
         }
     }
 
@@ -737,8 +738,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             } finally {
                 exitModelMethod();
             }
-            if (ctx.isAssignment) {
-                LOGGER.debug("Assignments do not have security constraints applied yet");
+            if (ctx.skipSecurityPostProcessing) {
+                LOGGER.debug("Objects of type '{}' do not have security constraints applied yet", type.getSimpleName());
             } else {
                 schemaTransformer.applySchemasAndSecurityToContainerValues(list, parsedOptions, task, result);
             }
@@ -2217,8 +2218,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
-            boolean allItems, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+    public List<AccessCertificationWorkItemType> searchOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery,
+            boolean notDecidedOnly,
+            boolean allItems,
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            Task task,
+            OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException {
         Collection<SelectorOptions<GetOperationOptions>> options =

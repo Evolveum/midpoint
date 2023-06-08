@@ -336,9 +336,15 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
-            boolean allItems, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public List<AccessCertificationWorkItemType> searchOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery,
+            boolean notDecidedOnly,
+            boolean allItems,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_OPEN_WORK_ITEMS);
         try {
