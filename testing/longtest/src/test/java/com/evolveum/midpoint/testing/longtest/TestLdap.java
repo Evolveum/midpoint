@@ -288,8 +288,9 @@ public class TestLdap extends AbstractLongTest {
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
+                RESOURCE_OPENDJ_OID,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"));
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -451,8 +452,9 @@ public class TestLdap extends AbstractLongTest {
     }
 
     private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
+                RESOURCE_OPENDJ_OID,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"));
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {

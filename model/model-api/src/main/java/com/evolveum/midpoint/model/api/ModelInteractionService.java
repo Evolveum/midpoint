@@ -193,8 +193,11 @@ public interface ModelInteractionService {
      * @param assignmentOrder order=0 means assignment, order>0 means inducement
      */
     <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(
-            PrismObject<H> assignmentHolder, Class<R> targetType, int assignmentOrder,
-            Task task, OperationResult parentResult)
+            @NotNull PrismObject<H> assignmentHolder,
+            Class<R> targetType,
+            int assignmentOrder,
+            Task task,
+            OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
@@ -222,15 +225,13 @@ public interface ModelInteractionService {
             CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
-     * TODO
-     * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
      *
      * @param includeSpecial include special authorizations, such as "self". If set to false those authorizations
      * will be ignored. This is a good way to avoid interference of "self" when checking for
      * authorizations such as ability to display role members.
      */
     <T extends ObjectType, O extends ObjectType> boolean canSearch(
-            Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial,
+            Class<T> resultType, Class<O> objectType, boolean includeSpecial,
             ObjectQuery query, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException;

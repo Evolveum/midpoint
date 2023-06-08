@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -1337,6 +1338,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return updateRootOptions(originalOptions, opt -> opt.setReadOnly(false));
     }
 
+    /** As {@link #updateToReadWrite(Collection)} but does not modify the original options. */
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToReadWriteSafe(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
+        return updateRootOptionsSafe(
+                originalOptions,
+                opt -> GetOperationOptions.isReadOnly(opt),
+                opt -> opt.setReadOnly(false));
+    }
+
     public static Collection<SelectorOptions<GetOperationOptions>> updateToReadOnly(
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
         return updateRootOptions(originalOptions, opt -> opt.setReadOnly(true));
@@ -1350,5 +1360,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     public static Collection<SelectorOptions<GetOperationOptions>> updateRootOptions(
             Collection<SelectorOptions<GetOperationOptions>> options, Consumer<GetOperationOptions> updater) {
         return SelectorOptions.updateRootOptions(options, updater, GetOperationOptions::new);
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateRootOptionsSafe(
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Predicate<GetOperationOptions> predicate,
+            Consumer<GetOperationOptions> updater) {
+        return SelectorOptions.updateRootOptionsSafe(options, predicate, updater, GetOperationOptions::new);
     }
 }

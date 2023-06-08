@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -20,34 +22,19 @@ import java.util.List;
 
 public class FilterGizmoAssignableRoles implements FilterGizmo<RoleSelectionSpecification> {
 
-    private final PrismContext prismContext;
-
-    public FilterGizmoAssignableRoles(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
     @Override
     public RoleSelectionSpecification and(RoleSelectionSpecification a, RoleSelectionSpecification b) {
-        if (a == null) {
-            return b;
-        }
-        return a.and(b, prismContext);
+        return a != null ? a.and(b) : b;
     }
 
     @Override
     public RoleSelectionSpecification or(RoleSelectionSpecification a, RoleSelectionSpecification b) {
-        if (a == null) {
-            return b;
-        }
-        return a.or(b, prismContext);
+        return a != null ? a.or(b) : b;
     }
 
     @Override
     public RoleSelectionSpecification not(RoleSelectionSpecification a) {
-        if (a == null) {
-            return null;
-        }
-        return a.not(prismContext);
+        return a != null ? a.not() : null;
     }
 
     @Override
@@ -72,32 +59,23 @@ public class FilterGizmoAssignableRoles implements FilterGizmo<RoleSelectionSpec
     @Override
     public RoleSelectionSpecification createDenyAll() {
         RoleSelectionSpecification spec = new RoleSelectionSpecification();
-        spec.setGlobalFilter(prismContext.queryFactory().createNone());
+        spec.setGlobalFilter(PrismContext.get().queryFactory().createNone());
         return spec;
     }
 
     @Override
     public boolean isAll(RoleSelectionSpecification spec) {
-        if (spec == null) {
-            return true;
-        }
-        return spec.isAll();
+        return spec == null || spec.isAll();
     }
 
     @Override
     public boolean isNone(RoleSelectionSpecification spec) {
-        if (spec == null) {
-            return false;
-        }
-        return spec.isNone();
+        return spec != null && spec.isNone();
     }
 
     @Override
     public RoleSelectionSpecification simplify(RoleSelectionSpecification spec) {
-        if (spec == null) {
-            return null;
-        }
-        return spec.simplify(prismContext);
+        return spec != null ? spec.simplify() : null;
     }
 
     @Override
@@ -107,7 +85,7 @@ public class FilterGizmoAssignableRoles implements FilterGizmo<RoleSelectionSpec
 
     @Override
     public String debugDumpFilter(RoleSelectionSpecification filter, int indent) {
-        return filter == null ? null : filter.debugDump(indent);
+        return DebugUtil.debugDump(filter, indent);
     }
 
 }

@@ -387,8 +387,8 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         return asserter;
     }
 
-    public CaseWorkItemsAsserter<RA> workItems() {
-        CaseWorkItemsAsserter<RA> asserter = new CaseWorkItemsAsserter<>(this, getObjectable().getWorkItem(), getDetails());
+    public CaseWorkItemsAsserter<CaseAsserter<RA>, CaseWorkItemType> workItems() {
+        var asserter = new CaseWorkItemsAsserter<>(this, getObjectable().getWorkItem(), getDetails());
         copySetupTo(asserter);
         return asserter;
     }

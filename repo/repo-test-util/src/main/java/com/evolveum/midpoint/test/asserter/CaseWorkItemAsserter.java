@@ -16,6 +16,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -27,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 /**
  * Asserts about CaseWorkItemType.
  */
-public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWorkItemType, RA> {
+public class CaseWorkItemAsserter<RA, WI extends AbstractWorkItemType> extends PrismContainerValueAsserter<WI, RA> {
 
     private static final int DEADLINE_TOLERANCE = 60000;
 
@@ -41,63 +43,63 @@ public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWo
         super(workItem.asPrismContainerValue(), details);
     }
 
-    public CaseWorkItemAsserter(CaseWorkItemType workItem, RA returnAsserter, String details) {
+    public CaseWorkItemAsserter(WI workItem, RA returnAsserter, String details) {
         //noinspection unchecked
         super(workItem.asPrismContainerValue(), returnAsserter, details);
     }
 
     @NotNull
-    private CaseWorkItemType getWorkItem() {
+    private WI getWorkItem() {
         return getPrismValue().asContainerable();
     }
 
-    public CaseWorkItemAsserter<RA> assertOriginalAssigneeRef(String oid, QName typeName) {
+    public CaseWorkItemAsserter<RA, WI> assertOriginalAssigneeRef(String oid, QName typeName) {
         MidPointAsserts.assertThatReferenceMatches(getWorkItem().getOriginalAssigneeRef(), "originalAssigneeRef", oid, typeName);
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertPerformerRef(String oid, QName typeName) {
+    public CaseWorkItemAsserter<RA, WI> assertPerformerRef(String oid, QName typeName) {
         MidPointAsserts.assertThatReferenceMatches(getWorkItem().getPerformerRef(), "performerRef", oid, typeName);
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertAssignees(String... oids) {
+    public CaseWorkItemAsserter<RA, WI> assertAssignees(String... oids) {
         PrismAsserts.assertReferenceValues(getWorkItem().getAssigneeRef(), oids);
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertStageNumber(Integer expected) {
+    public CaseWorkItemAsserter<RA, WI> assertStageNumber(Integer expected) {
         assertThat(getWorkItem().getStageNumber()).as("stage number").isEqualTo(expected);
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertOutcome(String expected) {
+    public CaseWorkItemAsserter<RA, WI> assertOutcome(String expected) {
         AbstractWorkItemOutputType output = getWorkItem().getOutput();
         assertThat(output).as("output").isNotNull();
         MidPointAsserts.assertUriMatches(output.getOutcome(), "outcome", expected);
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertNameOrig(String expected) {
+    public CaseWorkItemAsserter<RA, WI> assertNameOrig(String expected) {
         assertThat(getWorkItem().getName().getOrig()).as("name.orig").isEqualTo(expected);
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertRejected() {
+    public CaseWorkItemAsserter<RA, WI> assertRejected() {
         return assertOutcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
     }
 
-    public CaseWorkItemAsserter<RA> assertClosed() {
+    public CaseWorkItemAsserter<RA, WI> assertClosed() {
         assertThat(getWorkItem().getCloseTimestamp()).as("closeTimestamp").isNotNull();
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertNotClosed() {
+    public CaseWorkItemAsserter<RA, WI> assertNotClosed() {
         assertThat(getWorkItem().getCloseTimestamp()).as("closeTimestamp").isNull();
         return this;
     }
 
-    public CaseWorkItemAsserter<RA> assertEscalationLevelNumber(int expected) {
+    public CaseWorkItemAsserter<RA, WI> assertEscalationLevelNumber(int expected) {
         assertThat(getEscalationLevelNumber()).as("escalation level number").isEqualTo(expected);
         return this;
     }
@@ -107,7 +109,7 @@ public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWo
                 getWorkItem());
     }
 
-    public CaseWorkItemAsserter<RA> assertDeadlineApproximately(String duration) {
+    public CaseWorkItemAsserter<RA, WI> assertDeadlineApproximately(String duration) {
         if (duration == null) {
             assertThat(getDeadline()).as("deadline").isNull();
         } else {
@@ -129,7 +131,7 @@ public class CaseWorkItemAsserter<RA> extends PrismContainerValueAsserter<CaseWo
         return XmlTypeConverter.toMillis(getDeadline());
     }
 
-    public CaseWorkItemType getRealValue() {
+    public WI getRealValue() {
         return getWorkItem();
     }
 }

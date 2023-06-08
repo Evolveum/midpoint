@@ -491,7 +491,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected ObjectQuery createUidQuery(String uid) {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
-        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("uid", uid), prismContext);
+        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("uid", uid));
         return query;
     }
 

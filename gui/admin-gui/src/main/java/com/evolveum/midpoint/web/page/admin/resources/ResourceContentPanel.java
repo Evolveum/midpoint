@@ -679,8 +679,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 if (objectClass == null) {
                     return null;
                 }
-                return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceModel.getObject().getOid(),
-                        objectClass, getPageBase().getPrismContext());
+                return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceModel.getObject().getOid(), objectClass);
             }
 
             ResourceObjectDefinition rOcDef = getDefinitionByKind();

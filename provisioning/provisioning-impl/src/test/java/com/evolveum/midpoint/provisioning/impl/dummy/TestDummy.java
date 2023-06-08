@@ -1379,7 +1379,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
-                        .buildFilter(), prismContext);
+                        .buildFilter());
 
         syncServiceMock.reset();
 
@@ -1490,7 +1490,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
-                        .buildFilter(), prismContext);
+                        .buildFilter());
 
         syncServiceMock.reset();
 
@@ -1694,7 +1694,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
-                        .buildFilter(), prismContext);
+                        .buildFilter());
 
         syncServiceMock.reset();
 
@@ -1808,7 +1808,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
-                        .buildFilter(), prismContext);
+                        .buildFilter());
 
         syncServiceMock.reset();
 
@@ -1988,7 +1988,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test198SearchNone() throws Exception {
-        ObjectFilter attrFilter = FilterCreationUtil.createNone(prismContext);
+        ObjectFilter attrFilter = FilterCreationUtil.createNone();
         testSearchIterative(attrFilter, null, true, true, false);
     }
 

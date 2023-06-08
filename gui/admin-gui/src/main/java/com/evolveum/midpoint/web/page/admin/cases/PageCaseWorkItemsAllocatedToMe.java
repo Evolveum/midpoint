@@ -42,10 +42,11 @@ public class PageCaseWorkItemsAllocatedToMe extends PageCaseWorkItems {
     }
 
     @Override
-    protected ObjectFilter getCaseWorkItemsFilter(){
-        return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                AuthUtil.getPrincipalUser(),
-                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+    protected ObjectFilter getCaseWorkItemsFilter() {
+        return QueryUtils.filterForNotClosedStateAndAssignees(
+                        getPrismContext().queryFor(CaseWorkItemType.class),
+                        AuthUtil.getPrincipalUser(),
+                        OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS)
                 .desc(F_CREATE_TIMESTAMP)
                 .buildFilter();
     }

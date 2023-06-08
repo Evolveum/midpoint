@@ -98,7 +98,9 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
         }
     }
 
-    protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task, AuthorizationParameters<? extends ObjectType, ? extends ObjectType> parameters) {
+    private void decideInternal(
+            MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task,
+            AuthorizationParameters<? extends ObjectType, ? extends ObjectType> parameters) {
         AccessDecision decision;
         try {
             decision = decideAccess(principal, requiredActions, parameters, task, task.getResult());

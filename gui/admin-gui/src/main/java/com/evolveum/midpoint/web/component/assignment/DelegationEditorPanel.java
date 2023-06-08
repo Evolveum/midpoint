@@ -344,36 +344,46 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         labelContainer.add(limitPrivilegesButton);
 
         AjaxCheckBox approvalRights = new AjaxCheckBox(ID_DELEGATE_APPROVAL_WI,
-                new IModel<Boolean>(){
+                new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public Boolean getObject(){
+                    public Boolean getObject() {
                         AssignmentEditorDto dto = getModelObject();
-                        if (dto.getPrivilegesLimitation() == null ||
-                                dto.getPrivilegesLimitation().getApprovalWorkItems() == null ||
-                                dto.getPrivilegesLimitation().getApprovalWorkItems().isAll() == null){
+                        OtherPrivilegesLimitationType limitation = dto.getPrivilegesLimitation();
+                        if (limitation == null) {
                             return false;
                         }
-                        return dto.getPrivilegesLimitation().getApprovalWorkItems().isAll();
+                        var newForm = limitation.getCaseManagementWorkItems();
+                        if (newForm != null) {
+                            return Boolean.TRUE.equals(newForm.isAll());
+                        }
+                        var legacyForm = limitation.getApprovalWorkItems();
+                        if (legacyForm != null) {
+                            return Boolean.TRUE.equals(legacyForm.isAll());
+                        } else {
+                            return false;
+                        }
                     }
 
                     @Override
-                    public void setObject(Boolean value){
+                    public void setObject(Boolean value) {
                         AssignmentEditorDto dto = getModelObject();
                         OtherPrivilegesLimitationType limitations = dto.getPrivilegesLimitation();
-                        if (limitations == null ){
+                        if (limitations == null) {
                             limitations = new OtherPrivilegesLimitationType();
                             dto.setPrivilegesLimitation(limitations);
                         }
 
-                        WorkItemSelectorType workItemSelector = new WorkItemSelectorType();
-                        workItemSelector.all(value);
-                        limitations.setApprovalWorkItems(workItemSelector);
+                        // "approval work items" item is deprecated, "case management" is the replacement
+                        limitations.setCaseManagementWorkItems(
+                                new WorkItemSelectorType()
+                                        .all(value));
+                        limitations.setApprovalWorkItems(null); // removing the legacy form
                     }
 
                     @Override
-                    public void detach(){
+                    public void detach() {
                     }
                 }) {
             private static final long serialVersionUID = 1L;
@@ -398,36 +408,36 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(approvalRights);
 
         AjaxCheckBox certificationRights = new AjaxCheckBox(ID_DELEGATE_CERTIFICATION_WI,
-                new IModel<Boolean>(){
+                new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public Boolean getObject(){
+                    public Boolean getObject() {
                         AssignmentEditorDto dto = getModelObject();
                         if (dto.getPrivilegesLimitation() == null ||
                                 dto.getPrivilegesLimitation().getCertificationWorkItems() == null ||
-                                dto.getPrivilegesLimitation().getCertificationWorkItems().isAll() == null){
+                                dto.getPrivilegesLimitation().getCertificationWorkItems().isAll() == null) {
                             return false;
                         }
                         return dto.getPrivilegesLimitation().getCertificationWorkItems().isAll();
                     }
 
                     @Override
-                    public void setObject(Boolean value){
+                    public void setObject(Boolean value) {
                         AssignmentEditorDto dto = getModelObject();
                         OtherPrivilegesLimitationType limitations = dto.getPrivilegesLimitation();
-                        if (limitations == null ){
+                        if (limitations == null) {
                             limitations = new OtherPrivilegesLimitationType();
                             dto.setPrivilegesLimitation(limitations);
                         }
 
-                        WorkItemSelectorType workItemSelector = new WorkItemSelectorType();
-                        workItemSelector.all(value);
-                        limitations.setCertificationWorkItems(workItemSelector);
+                        limitations.setCertificationWorkItems(
+                                new WorkItemSelectorType()
+                                        .all(value));
                     }
 
                     @Override
-                    public void detach(){
+                    public void detach() {
                     }
                 }) {
             private static final long serialVersionUID = 1L;

@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.QueryMetadata;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
@@ -328,13 +329,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     private @NotNull Expression<?>[] buildSelectExpressions(Q entity, SQLQuery<?> query) {
         Path<?>[] defaultExpressions = entityPathMapping.selectExpressions(entity, options);
-        if (!query.getMetadata().isDistinct() || query.getMetadata().getOrderBy().isEmpty()) {
+        QueryMetadata metadata = query.getMetadata();
+        if (!metadata.isDistinct() || metadata.getOrderBy().isEmpty()) {
             return defaultExpressions;
         }
 
         // If DISTINCT is used with ORDER BY then anything in ORDER BY must be in SELECT too
         List<Expression<?>> expressions = new ArrayList<>(Arrays.asList(defaultExpressions));
-        for (OrderSpecifier<?> orderSpecifier : query.getMetadata().getOrderBy()) {
+        for (OrderSpecifier<?> orderSpecifier : metadata.getOrderBy()) {
             Expression<?> orderPath = orderSpecifier.getTarget();
             if (!expressions.contains(orderPath)) {
                 expressions.add(orderPath);

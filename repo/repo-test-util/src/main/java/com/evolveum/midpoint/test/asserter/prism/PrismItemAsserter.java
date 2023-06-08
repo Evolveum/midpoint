@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 /**
  * @author semancik
  */
-public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsserter<RA> {
+public class PrismItemAsserter<I extends Item<?, ?>, RA> extends AbstractAsserter<RA> {
 
     private final I item;
 
@@ -47,7 +47,7 @@ public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsse
 
     public <T> Collection<T> getRealValues() {
         //noinspection unchecked
-        return item != null ? item.getRealValues() : null;
+        return item != null ? (Collection<T>) item.getRealValues() : null;
     }
 
     public PrismItemAsserter<I, RA> assertSize(int expected) {

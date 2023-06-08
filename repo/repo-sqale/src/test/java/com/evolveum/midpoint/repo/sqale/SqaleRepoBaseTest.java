@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getRootsForContainerables;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 
@@ -16,6 +18,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
@@ -533,6 +537,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
         then(typeName + "(s) " + description + " are returned");
         assertThatOperationResult(operationResult).isSuccess();
+
+        if (!AssignmentType.class.isAssignableFrom(type)) {
+            and("all have their owning objects");
+            getRootsForContainerables(result); // checks the owners
+        } else {
+            // This is not implemented for assignment search yet
+        }
+
         return result;
     }
 
@@ -578,7 +590,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             queryRecorder.clearBufferAndStartRecording();
         }
         try {
-            return repositoryService.searchReferences(query, selectorOptions, operationResult);
+            var result = repositoryService.searchReferences(query, selectorOptions, operationResult);
+            ObjectTypeUtil.getRootsForReferences(result); // checks that each value has a parent
+            return result;
         } finally {
             if (record) {
                 queryRecorder.stopRecording();

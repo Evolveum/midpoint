@@ -121,9 +121,10 @@ public class GuiProfileCompiler {
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
                 if (target.isValid() && target.getTarget().asObjectable() instanceof UserType
                         && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-                    List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-                    principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-                            (UserType) target.getTarget().asObjectable(), limitations));
+                    principal.addDelegatorWithOtherPrivilegesLimitations(
+                            new DelegatorWithOtherPrivilegesLimitations(
+                                    (UserType) target.getTarget().asObjectable(),
+                                    DeputyUtils.extractLimitations(target.getAssignmentPath())));
                 }
             }
         }

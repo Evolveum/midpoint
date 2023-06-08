@@ -63,16 +63,34 @@ public class DeputyUtils {
         return true;
     }
 
+    /** Deprecated "approval work items" item is not present in the returned list. */
     public static List<OtherPrivilegesLimitationType> extractLimitations(AssignmentPath assignmentPath) {
         List<OtherPrivilegesLimitationType> rv = new ArrayList<>();
         for (AssignmentPathSegment segment : assignmentPath.getSegments()) {
-            CollectionUtils.addIgnoreNull(rv, segment.getAssignment().getLimitOtherPrivileges());
+            OtherPrivilegesLimitationType limitation = segment.getAssignment().getLimitOtherPrivileges();
+            if (limitation != null) {
+                rv.add(migrate(limitation));
+            }
         }
         return rv;
     }
 
-    public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName,
-            AbstractWorkItemType workItem) {
-        return SchemaDeputyUtil.limitationsAllow(limitations, itemName);            // temporary solution; we do not use work items selectors yet
+    private static @NotNull OtherPrivilegesLimitationType migrate(@NotNull OtherPrivilegesLimitationType limitation) {
+        WorkItemSelectorType legacy = limitation.getApprovalWorkItems();
+        if (legacy == null) {
+            return limitation; // nothing to migrate
+        }
+        OtherPrivilegesLimitationType migrated = limitation.clone();
+        if (migrated.getCaseManagementWorkItems() == null) {
+            migrated.setCaseManagementWorkItems(legacy.clone());
+        }
+        migrated.setApprovalWorkItems(null);
+        return migrated;
+    }
+
+    public static boolean limitationsAllow(
+            List<OtherPrivilegesLimitationType> limitations, QName itemName, AbstractWorkItemType workItem) {
+        // temporary solution; we do not use work items selectors yet
+        return SchemaDeputyUtil.limitationsAllow(limitations, itemName);
     }
 }

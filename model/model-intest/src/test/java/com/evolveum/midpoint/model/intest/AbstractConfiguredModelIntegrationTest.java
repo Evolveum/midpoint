@@ -69,7 +69,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String USER_TEMPLATE_CARTHESIAN_OID = "8e47c2b2-dde6-44a9-a7c0-de21a14cb70d";
 
     protected static final File OBJECT_TEMPLATE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "object-template-persona-admin.xml");
-    protected static final String OBJECT_TEMPLATE_PERSONA_ADMIN_OID = "894ea1a8-2c0a-11e7-a950-ff2047b0c053";
+    protected static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_PERSONA_ADMIN = TestObject.file(COMMON_DIR, "object-template-persona-admin.xml", "894ea1a8-2c0a-11e7-a950-ff2047b0c053");
 
     protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR + "/connector-ldap.xml";
 
@@ -241,7 +241,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
             COMMON_DIR, "archetype-persona-role.xml", "9791927e-9a84-41ae-a689-4f6715a8327a");
 
     protected static final File ROLE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "role-persona-admin.xml");
-    protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
+    protected static final TestObject<RoleType> ROLE_PERSONA_ADMIN = TestObject.file(COMMON_DIR, "role-persona-admin.xml", "16813ae6-2c0a-11e7-91fc-8333c244329e");
 
     protected static final File ROLE_AUTOMATIC_FILE = new File(COMMON_DIR, "role-automatic.xml");
     protected static final String ROLE_AUTOMATIC_OID = "8fdb56d8-e3f3-11e6-8be9-cb9862ab7c04";
@@ -262,7 +262,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57f15";
 
     protected static final File ROLE_END_USER_FILE = new File(COMMON_DIR, "role-end-user.xml");
-    protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-00000000aa0f";
+    protected static final TestObject<RoleType> ROLE_END_USER = TestObject.file(COMMON_DIR, "role-end-user.xml", "00000000-0000-0000-0000-00000000aa0f");
 
     public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
     public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -307,6 +307,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     // Herman has a validity dates set in the activation part
     protected static final File USER_HERMAN_FILE = new File(COMMON_DIR, "user-herman.xml");
     protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
+    protected static final TestObject<UserType> USER_HERMAN = TestObject.file(COMMON_DIR, "user-herman.xml", USER_HERMAN_OID);
     protected static final String USER_HERMAN_USERNAME = "herman";
     protected static final String USER_HERMAN_GIVEN_NAME = "Herman";
     protected static final String USER_HERMAN_FAMILY_NAME = "Toothrot";
@@ -348,6 +349,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     public static final File ACCOUNT_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-jack-dummy.xml");
     public static final File ACCOUNT_JACK_DUMMY_RED_FILE = new File(COMMON_DIR, "account-jack-dummy-red.xml");
+    public static final TestObject<ShadowType> ACCOUNT_JACK_DUMMY_RED = TestObject.file(ACCOUNT_JACK_DUMMY_RED_FILE);
     public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
     public static final String ACCOUNT_JACK_DUMMY_FULLNAME = "Jack Sparrow";
 
@@ -361,6 +363,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     public static final String ACCOUNT_GUYBRUSH_DUMMY_FULLNAME = "Guybrush Threepwood";
     public static final String ACCOUNT_GUYBRUSH_DUMMY_LOCATION = "Melee Island";
     public static final File ACCOUNT_GUYBRUSH_DUMMY_FILE = new File(COMMON_DIR, "account-guybrush-dummy.xml");
+    public static final TestObject<ShadowType> ACCOUNT_GUYBRUSH_DUMMY = TestObject.file(ACCOUNT_GUYBRUSH_DUMMY_FILE);
     public static final File ACCOUNT_GUYBRUSH_DUMMY_RED_FILE = new File(COMMON_DIR, "account-guybrush-dummy-red.xml");
 
     public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-jack-dummy.xml";

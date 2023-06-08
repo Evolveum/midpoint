@@ -7,11 +7,26 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -20,17 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
 @Component
 public class AccCertQueryHelper {
@@ -39,7 +44,6 @@ public class AccCertQueryHelper {
     private static final Trace LOGGER = TraceManager.getTrace(AccCertQueryHelper.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private RelationRegistry relationRegistry;
     @Autowired protected AccCertGeneralHelper helper;
     @Autowired @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -86,8 +90,8 @@ public class AccCertQueryHelper {
         return repositoryService.searchContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
     }
 
-    private ObjectQuery createQueryForOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
-            boolean notDecidedOnly) throws SchemaException {
+    private ObjectQuery createQueryForOpenWorkItems(
+            ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal, boolean notDecidedOnly) {
         ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
 
         ObjectFilter filter;
@@ -104,8 +108,7 @@ public class AccCertQueryHelper {
 
     // principal == null => take all work items
     int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
-            boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-            throws SchemaException {
+            boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
         ObjectQuery newQuery = createQueryForOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly);
         return repositoryService.countContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
     }
@@ -120,13 +123,11 @@ public class AccCertQueryHelper {
                     .buildFilter();
     }
 
-    private ObjectFilter getReviewerAndEnabledFilterForWI(MidPointPrincipal principal) throws SchemaException {
+    private ObjectFilter getReviewerAndEnabledFilterForWI(MidPointPrincipal principal) {
         if (principal != null) {
-            return QueryUtils.filterForAssignees(
+            return QueryUtils.filterForCertificationAssignees(
                         prismContext.queryFor(AccessCertificationWorkItemType.class),
-                        principal,
-                        OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS,
-                        relationRegistry)
+                        principal)
                     .and().item(F_CLOSE_TIMESTAMP).isNull()
                     .buildFilter();
         } else {

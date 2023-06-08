@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2014-2018 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.security.api;
+package com.evolveum.midpoint.schema.selector.eval;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.selector.spec.OwnerClause;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -15,9 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * This would be more appropriate in the security-impl. But we need it as low as this.
- * Otherwise there is a dependency cycle (task->security->repo-common->task)
- * Moving this to task yields better cohesion. So, it may in fact belong here.
+ * Resolves the owner referenced to by {@link OwnerClause}.
  *
  * @author semancik
  */

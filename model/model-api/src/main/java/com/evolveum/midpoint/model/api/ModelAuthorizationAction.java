@@ -8,12 +8,9 @@ package com.evolveum.midpoint.model.api;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import java.util.Set;
 
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
@@ -101,8 +98,6 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };
-    public static final Set<String> AUTZ_ACTIONS_URLS_GET_ALL =
-            Set.of(AuthorizationConstants.AUTZ_ALL_URL, READ.getUrl(), GET.getUrl());
     public static final String[] AUTZ_ACTIONS_URLS_ADD = new String[] { ADD.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_MODIFY = new String[] { MODIFY.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_ASSIGN = new String[] { ASSIGN.getUrl() };

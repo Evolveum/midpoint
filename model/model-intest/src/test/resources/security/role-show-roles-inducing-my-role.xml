@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="2c25f0b8-0f72-4fdd-95e7-1e2ec41f9a3b"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>show-roles-inducing-my-role</name>
+    <authorization>
+        <documentation>
+            Shows only roles that induce a role owned by me.
+        </documentation>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+            <!--
+                Select all roles R such that there is a role R1 that
+
+                    - principal has roleMembershipRef with (R1, owner)
+                    - R has inducement of (R1, any order)
+
+                Can we write a filter for this?
+            -->
+        </object>
+    </authorization>
+</role>
