@@ -7,7 +7,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "setupDatabase")
-public class SetupDatabaseSchemaOptions {
+public class SetupDatabaseOptions {
 
     public static final String P_SCRIPTS_DIRECTORY_LONG = "--scripts-directory";
     public static final String P_SCRIPTS_LONG = "--scripts";

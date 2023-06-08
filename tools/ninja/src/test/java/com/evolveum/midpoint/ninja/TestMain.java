@@ -45,10 +45,18 @@ public class TestMain {
 //                + "--temp-dir ../../_mess/mid8842/.upgrade-process")
 //                .split(" ");
 
-        input = "-h setup-database".split(" ");
+//        input = "-h setup-database".split(" ");
 //
 //        input = "-v --offline -m ../../_mess/create0 setup-database --scripts-directory ../../config/sql/native-new".split(" ");
 
-        Main.main(input);
+//        input = "-v --offline -m ../../_mess/create0 download-distribution".split(" ");
+
+//        Main.main(input);
+
+        System.out.println("Starting process");
+        new ProcessBuilder(
+                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
+        ).inheritIO().start();
+        System.out.println("Finished main");
     }
 }

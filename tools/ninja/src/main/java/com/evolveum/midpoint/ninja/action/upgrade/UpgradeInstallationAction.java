@@ -1,55 +1,26 @@
-/*
- * Copyright (C) 2010-2023 Evolveum and contributors
- *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
- */
-
-package com.evolveum.midpoint.ninja.action.upgrade.step;
+package com.evolveum.midpoint.ninja.action.upgrade;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
+import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 
-public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> {
+public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions> {
 
     private static final String VAR_DIRECTORY = "var";
 
-    private final UpgradeStepsContext context;
-
-    public UpgradeMidpointInstallationStep(@NotNull UpgradeStepsContext context) {
-        this.context = context;
-    }
-
     @Override
-    public String getIdentifier() {
-        return "upgradeMidpointInstallation";
-    }
+    public void execute() throws Exception {
+        final File distributionDirectory = options.getDistributionDirectory();
 
-    @Override
-    public String getPresentableName() {
-        return "upgrade midpoint installation";
-    }
+        final boolean backupFiles = options.isBackup();
 
-    public StepResult execute() throws Exception {
-        final DownloadDistributionResult distributionResult = context.getResult(DownloadDistributionResult.class);
-        final File distributionDirectory = distributionResult.getDistributionDirectory();
-
-        final UpgradeOptions upgradeOptions = context.getOptions();
-        final boolean backupFiles = BooleanUtils.isTrue(upgradeOptions.isBackupMidpointDirectory());
-
-        File midpointInstallation = upgradeOptions.getInstallationDirectory();
+        File midpointInstallation = options.getInstallationDirectory();
         if (midpointInstallation == null) {
-            final ConnectionOptions connectionOptions = context.getContext().getOptions(ConnectionOptions.class);
+            final ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
             midpointInstallation = new File(connectionOptions.getMidpointHome()).getParentFile();
         }
 
@@ -81,9 +52,6 @@ public class UpgradeMidpointInstallationStep implements UpgradeStep<StepResult> 
                 FileUtils.moveToDirectory(file, midpointInstallation, false);
             }
         }
-
-        return new StepResult() {
-        };
     }
 
     private File[] emptyIfNull(File[] files) {

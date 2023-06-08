@@ -19,14 +19,14 @@ import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.AuditFactory;
-import com.evolveum.midpoint.ninja.opts.SetupDatabaseSchemaOptions;
+import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 
-public class SetupDatabaseSchemaAction extends RepositoryAction<SetupDatabaseSchemaOptions> {
+public class SetupDatabaseAction extends RepositoryAction<SetupDatabaseOptions> {
 
     @Override
     public void execute() throws Exception {

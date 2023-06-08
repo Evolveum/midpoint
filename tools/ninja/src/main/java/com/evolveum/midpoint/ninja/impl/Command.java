@@ -14,8 +14,7 @@ import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeAction;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeOptions;
+import com.evolveum.midpoint.ninja.action.upgrade.*;
 import com.evolveum.midpoint.ninja.opts.*;
 
 /**
@@ -47,7 +46,15 @@ public enum Command {
 
     UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
 
-    SETUP_DATABASE("setup-database", SetupDatabaseSchemaOptions.class, SetupDatabaseSchemaAction.class);
+    SETUP_DATABASE("setup-database", SetupDatabaseOptions.class, SetupDatabaseAction.class),
+
+    DOWNLOAD_DISTRIBUTION("download-distribution", DownloadDistributionOptions.class, DownloadDistributionAction.class),
+
+    UPGRADE_DATABASE("upgrade-database", UpgradeDatabaseOptions.class, UpgradeDatabaseAction.class),
+
+    UPGRADE_INSTALLATION("upgrade-installation", UpgradeInstallationOptions.class, UpgradeInstallationAction.class),
+
+    UPGRADE_DISTRIBUTION("upgrade-distribution", UpgradeDistributionOptions.class, UpgradeDistributionAction.class);
 
     private final String commandName;
 
