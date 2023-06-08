@@ -72,7 +72,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     @Deprecated // use READ instead
     READ_OWN_CERTIFICATION_DECISIONS("readOwnCertificationDecisions", "Read own access certification decisions", "READ_OWN_CERTIFICATION_DECISIONS_HELP"),
 
-    @Deprecated // use DELEGATE_WORK_ITEM instead
+    @Deprecated // use COMPLETE_WORK_ITEM instead
     RECORD_CERTIFICATION_DECISION("recordCertificationDecision", "Record access certification decision", "RECORD_CERTIFICATION_DECISION_HELP"),
 
     @Deprecated // use COMPLETE_WORK_ITEM instead

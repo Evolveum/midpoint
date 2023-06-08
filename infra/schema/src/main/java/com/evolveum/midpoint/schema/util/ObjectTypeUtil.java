@@ -1202,6 +1202,10 @@ public class ObjectTypeUtil {
         return Objectable.class.isAssignableFrom(type);
     }
 
+    public static <O extends ObjectType> PrismObjectValue<O> getValue(PrismObject<O> object) {
+        return object != null ? object.getValue() : null;
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension

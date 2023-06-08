@@ -7,25 +7,24 @@
 package com.evolveum.midpoint.security.enforcer.api;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
- * @author semancik
+ * Object-related authorization parameters. The traditional ones.
  *
+ * @author semancik
  */
-public class AuthorizationParameters<O extends ObjectType, T extends ObjectType> implements ShortDumpable {
+public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
+        implements AbstractAuthorizationParameters {
 
     public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY =
             new AuthorizationParameters<>(null, null, null, null);
@@ -48,8 +47,13 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         return odo;
     }
 
-    public boolean hasObject() {
+    private boolean hasObject() {
         return odo != null && odo.hasAnyObject();
+    }
+
+    @Override
+    public boolean hasValue() {
+        return hasObject();
     }
 
     public PrismObject<O> getOldObject() {
@@ -66,7 +70,7 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         return odo.getNewObject();
     }
 
-    public PrismObjectValue<O> getAnyObjectValue() {
+    public PrismObjectValue<O> getValue() {
         PrismObject<O> object = odo.getAnyObject();
         return object != null ? object.getValue() : null;
     }

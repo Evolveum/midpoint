@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
@@ -124,10 +125,12 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
         for (AccessCertificationWorkItemType workItem : workItems) {
             AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCase(workItem);
             if (aCase == null || aCase.getId() == null || workItem.getId() == null) {
-                LOGGER.error("Couldn't auto-complete work item {} in case {}: some identifiers are missing", aCase, workItem);    // shouldn't occur
+                // shouldn't occur
+                LOGGER.error("Couldn't auto-complete work item {} in case {}: some identifiers are missing", aCase, workItem);
             } else {
-                certManager.recordDecision(campaign.getOid(), aCase.getId(), workItem.getId(),
-                        OutcomeUtils.fromUri(completeAction.getOutcome()), null, task, result);
+                certManager.recordDecision(
+                        AccessCertificationWorkItemId.of(campaign.getOid(), aCase.getId(), workItem.getId()),
+                        OutcomeUtils.fromUri(completeAction.getOutcome()), null, true, task, result);
             }
         }
     }

@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.certification.api;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -21,9 +18,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * BEWARE: CertificationManager is responsible for authorizing all actions carried out through it.
@@ -99,17 +93,22 @@ public interface CertificationManager {
 
     /**
      * Records a particular decision of a reviewer.
-     *  @param campaignOid OID of the campaign to which the decision belongs.
-     * @param caseId ID of the certification case to which the decision belongs.
-     * @param workItemId ID of the work item to which the decision belongs.
+     *
+     * @param workItemId Complex ID of the work item to which the decision belongs.
      * @param response The response.
      * @param comment Reviewer's comment.
+     * @param preAuthorized Is the request already authorized?
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations.
+     * @param result Result for the operations.
      */
-    void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
+    void recordDecision(
+            @NotNull AccessCertificationWorkItemId workItemId,
+            AccessCertificationResponseType response,
             String comment,
-            Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            boolean preAuthorized,
+            Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Provides statistical information about outcomes of cases in a given campaign.

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -2216,8 +2217,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
+    public void recordDecision(
+            String campaignOid,
+            long caseId,
+            long workItemId,
+            AccessCertificationResponseType response,
+            String comment,
+            Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        getCertificationManagerRequired().recordDecision(
+                AccessCertificationWorkItemId.of(campaignOid, caseId, workItemId),
+                response, comment, false, task, parentResult);
     }
 
     @Override

@@ -13,6 +13,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -331,20 +335,31 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void recordDecision(@NotNull String campaignOid, long caseId, long workItemId, @Nullable AccessCertificationResponseType response,
-            @Nullable String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    public void recordDecision(
+            @NotNull AccessCertificationWorkItemId workItemId,
+            @Nullable AccessCertificationResponseType response,
+            @Nullable String comment,
+            boolean preAuthorized,
+            Task task,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
-            securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
-                    AuthorizationParameters.EMPTY, null, task, result);
-            operationsHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
-            throw e;
+            var workItemInContext = queryHelper.getWorkItemInContext(workItemId, result);
+            if (!preAuthorized) {
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.COMPLETE_WORK_ITEM.getUrl(),
+                        null,
+                        new ValueAuthorizationParameters<>(workItemInContext.workItem().asPrismContainerValue()),
+                        null, task, result);
+            }
+            operationsHelper.recordDecision(workItemId, workItemInContext, response, comment, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

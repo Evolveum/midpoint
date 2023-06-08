@@ -122,18 +122,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
-            AuthorizationPhaseType phase, AuthorizationParameters<O, T> params,
+    public void failAuthorization(String operationUrl,
+            AuthorizationPhaseType phase, AbstractAuthorizationParameters params,
             OperationResult result) throws SecurityViolationException {
         securityEnforcer.failAuthorization(operationUrl, phase, params, result);
     }
 
     // MidPoint pages invoke this method (through PageBase)
     @Override
-    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(
+    public boolean isAuthorized(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O, T> params,
+            @NotNull AbstractAuthorizationParameters params,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Task task,
             @NotNull OperationResult result)

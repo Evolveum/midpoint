@@ -7,49 +7,56 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import static java.util.Collections.emptySet;
 
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-
-import javax.xml.namespace.QName;
-
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getValue;
 import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.shortDumpOrderConstraintsList;
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_ALL_URL;
 import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.prettyActionUrl;
 import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
-import static java.util.Collections.emptySet;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.enforcer.api.AbstractAuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * Evaluates given {@link Authorization} either for the applicability to the current situation, represented by action
@@ -238,7 +245,22 @@ public class AuthorizationEvaluation {
         return paramOrderMax <= autzOrderMax;
     }
 
-    boolean isApplicableToRelation(QName relation) {
+    boolean isApplicableToParameters(@NotNull AbstractAuthorizationParameters params)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (params instanceof AuthorizationParameters<?, ?> objectParams) {
+            return isApplicableToRelation(objectParams.getRelation())
+                    && isApplicableToOrderConstraints(objectParams.getOrderConstraints())
+                    && isApplicableToObjectOperation(objectParams.getOdo())
+                    && isApplicableToTarget(objectParams.getTarget());
+        } else if (params instanceof ValueAuthorizationParameters<?> valueParams){
+            return isApplicableToObjectValue(valueParams.getValue());
+        } else {
+            throw new NotHereAssertionError();
+        }
+    }
+
+    private boolean isApplicableToRelation(QName relation) {
         List<QName> autzRelation = authorization.getRelation();
         if (autzRelation.isEmpty() || QNameUtil.contains(autzRelation, relation)) {
             return true;
@@ -248,7 +270,7 @@ public class AuthorizationEvaluation {
         }
     }
 
-    <O extends ObjectType> boolean isApplicableToObjectOperation(ObjectDeltaObject<O> odo)
+    private boolean isApplicableToObjectOperation(ObjectDeltaObject<? extends ObjectType> odo)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         var anyObject = odo != null ? odo.getAnyObject() : null;
@@ -292,14 +314,22 @@ public class AuthorizationEvaluation {
             @NotNull List<ValueSelector> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
+        return areSelectorsApplicable(
+                selectors, getValue(object), desc);
+    }
+
+    private boolean areSelectorsApplicable(
+            @NotNull List<ValueSelector> selectors, @Nullable PrismValue value, @NotNull String desc)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (!selectors.isEmpty()) {
-            if (object == null) {
+            if (value == null) {
                 traceSelectorsNotApplicableForNullObject(desc);
                 return false;
             }
             int i = 0;
             for (ValueSelector selector : selectors) {
-                if (isSelectorApplicable(String.valueOf(i++), selector, object.getValue(), emptySet(), desc)) {
+                if (isSelectorApplicable(String.valueOf(i++), selector, value, emptySet(), desc)) {
                     return true;
                 }
             }
@@ -310,7 +340,7 @@ public class AuthorizationEvaluation {
         }
     }
 
-    <T extends ObjectType> boolean isApplicableToObject(PrismObject<T> object)
+    boolean isApplicableToObject(PrismObject<? extends ObjectType> object)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (areSelectorsApplicable(authorization.getParsedObjectSelectors(), object, "object")) {
@@ -318,6 +348,18 @@ public class AuthorizationEvaluation {
             return true;
         } else {
             traceAutzNotApplicableToObject(object);
+            return false;
+        }
+    }
+
+    private boolean isApplicableToObjectValue(@Nullable PrismValue value)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (areSelectorsApplicable(authorization.getParsedObjectSelectors(), value, "object")) {
+            traceAutzApplicableToValue(value);
+            return true;
+        } else {
+            traceAutzNotApplicableToValue(value);
             return false;
         }
     }
@@ -335,30 +377,43 @@ public class AuthorizationEvaluation {
     }
 
     // TODO name
-    <O extends ObjectType> boolean matchesItems(PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
-        List<ItemPathType> itemPaths = authorization.getItem();
-        if (itemPaths.isEmpty()) {
-            List<ItemPathType> exceptItems = authorization.getExceptItem();
-            if (exceptItems.isEmpty()) {
+    boolean matchesItems(AbstractAuthorizationParameters params) throws SchemaException {
+        if (params instanceof AuthorizationParameters<?, ?> objectParams) {
+            return matchesItems(getValue(objectParams.getOldObject()), objectParams.getDelta());
+        } else if (params instanceof ValueAuthorizationParameters<?> valueParams) {
+            return matchesItems(valueParams.getValue(), null);
+        } else {
+            throw new NotHereAssertionError();
+        }
+    }
+
+    private boolean matchesItems(PrismValue value, ObjectDelta<? extends ObjectType> delta)
+            throws SchemaException {
+        var positive = authorization.getItems();
+        if (positive.isEmpty()) {
+            var negative = authorization.getExceptItems();
+            if (negative.isEmpty()) {
                 // No item constraints. Applicable for all items.
                 LOGGER.trace("  items empty");
                 return true;
             } else {
-                return matchesItems(object, delta, exceptItems, false);
+                return matchesItems(value, delta, negative, false);
             }
         } else {
-            return matchesItems(object, delta, itemPaths, true);
+            return matchesItems(value, delta, positive, true);
         }
     }
 
-    private static <O extends ObjectType> boolean matchesItems(
-            PrismObject<O> object, ObjectDelta<O> delta, List<ItemPathType> itemPaths, boolean positive)
+    private static boolean matchesItems(
+            PrismValue value,
+            ObjectDelta<? extends ObjectType> delta,
+            PathSet itemPaths,
+            boolean positive)
             throws SchemaException {
-        for (ItemPathType itemPathType : itemPaths) {
-            ItemPath itemPath = itemPathType.getItemPath();
+        for (ItemPath itemPath : itemPaths) {
             if (delta == null) {
-                if (object != null) {
-                    if (object.containsItem(itemPath, false)) {
+                if (value != null) {
+                    if (containsItem(value, itemPath)) {
                         if (positive) {
                             LOGGER.trace("  applicable object item {}", itemPath);
                             return true;
@@ -387,6 +442,16 @@ public class AuthorizationEvaluation {
         } else {
             LOGGER.trace("  no excluded item");
             return true;
+        }
+    }
+
+    private static boolean containsItem(@NotNull PrismValue value, @NotNull ItemPath itemPath) throws SchemaException {
+        if (itemPath.isEmpty()) {
+            return true;
+        } else if (value instanceof PrismContainerValue<?> pcv) {
+            return pcv.containsItem(itemPath, false);
+        } else {
+            return false;
         }
     }
 
@@ -551,6 +616,21 @@ public class AuthorizationEvaluation {
             LOGGER.trace(
                     "{} Authorization is not applicable to object {}, none of the object specifications match",
                     cont(), object);
+        }
+    }
+
+    private void traceAutzApplicableToValue(PrismValue value) {
+        if (op.traceEnabled) {
+            LOGGER.trace("{} Authorization is applicable to object (continuing evaluation): {}",
+                    cont(), MiscUtil.getDiagInfo(value));
+        }
+    }
+
+    private void traceAutzNotApplicableToValue(PrismValue value) {
+        if (op.traceEnabled) {
+            LOGGER.trace(
+                    "{} Authorization is not applicable to object; none of the object specifications match: {}",
+                    cont(), MiscUtil.getDiagInfo(value));
         }
     }
 
