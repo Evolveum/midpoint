@@ -25,8 +25,6 @@ import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.commons.lang3.BooleanUtils;
-
 /**
  * @author Radovan Semancik
  */
@@ -77,16 +75,21 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
             }
         }
 
-        if (BooleanUtils.isTrue(options.isCreateReport())) {
+        File report = options.getReport();
+        if (report != null) {
+            if (report.exists()) {
+                report.delete();
+            }
+
             CSVFormat csv = createCsvFormat();
 
             try {
-                File file = new File("./target/" + System.currentTimeMillis() + ".csv");
-                file.createNewFile();
-                Writer writer = new BufferedWriter(new FileWriter(file, context.getCharset()));
-                reportWriter = csv.print(writer);
+                report.createNewFile();
+                try (Writer writer = new BufferedWriter(new FileWriter(report, context.getCharset()))) {
+                    reportWriter = csv.print(writer);
 
-                reportWriter.printRecord(REPORT_HEADER);
+                    reportWriter.printRecord(REPORT_HEADER);
+                }
             } catch (IOException ex) {
                 ex.printStackTrace(); // todo handle exception
             }
@@ -113,7 +116,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
             writeValidationItem(writer, prismObject, validationItem);
         }
 
-        if (BooleanUtils.isTrue(options.isCreateReport())) {
+        if (options.getReport() != null) {
             for (ValidationItem item : validationResult.getItems()) {
                 reportWriter.printRecord(createReportRecord(item, prismObject));
             }

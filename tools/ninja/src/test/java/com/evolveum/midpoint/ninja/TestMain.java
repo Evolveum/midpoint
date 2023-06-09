@@ -53,13 +53,14 @@ public class TestMain {
 
 //        input = "-h".split(" ");
 
-        input = ("-v --offline -m ../../_mess/upgrade/midpoint/var "
-                + "upgrade-distribution "
-                + "--temp-directory ../../_mess/upgrade/midpoint/.upgrade "
-                + "--distribution-archive ../../_mess/upgrade/midpoint-latest-dist.zip "
+//        input = ("-v --offline -m ../../_mess/upgrade/midpoint/var "
+//                + "upgrade-distribution "
+//                + "--temp-directory ../../_mess/upgrade/midpoint/.upgrade "
+//                + "--distribution-archive ../../_mess/upgrade/midpoint-latest-dist.zip "
 //                + "--backup-midpoint-directory"
-               ).split(" ");
+//               ).split(" ");
 
+        input = "-v -m ../../_mess/upgrade/midpoint-48/var verify --report ../../_mess/upgrade/midpoint-48/verify-report.csv".split(" ");
 
         Main.main(input);
 

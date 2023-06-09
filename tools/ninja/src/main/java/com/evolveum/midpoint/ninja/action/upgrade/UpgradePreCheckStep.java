@@ -5,19 +5,14 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade.step;
+package com.evolveum.midpoint.ninja.action.upgrade;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
-
 import org.fusesource.jansi.Ansi;
-import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -25,29 +20,15 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
-public class UpgradePreCheckStep implements UpgradeStep<UpgradePreCheckResult> {
+/**
+ * todo remove
+ */
+@Deprecated
+public class UpgradePreCheckStep {
 
-    private UpgradeStepsContext context;
-
-    public UpgradePreCheckStep(@NotNull UpgradeStepsContext context) {
-        this.context = context;
-    }
-
-    @Override
-    public String getIdentifier() {
-        return "versionCheck";
-    }
-
-    @Override
-    public String getPresentableName() {
-        return "version check";
-    }
-
-    // todo check database schema version + audit db schema version
-    @Override
-    public UpgradePreCheckResult execute() throws Exception {
-        final Log log = context.getContext().getLog();
-        final RepositoryService repository = context.getContext().getRepository();
+    public void execute() throws Exception {
+        final Log log = null;
+        final RepositoryService repository = null;
 
         if (!repository.isNative()) {
             // todo error, this midpoint installation doesn't run on top of native repository
@@ -89,9 +70,6 @@ public class UpgradePreCheckStep implements UpgradeStep<UpgradePreCheckResult> {
             ex.printStackTrace();
         }
 
-        String version = "";
         // todo implement midPoint version check, also implement midpoint version support in midpoint sqale db
-        return new UpgradePreCheckResult()
-                .currentVersion(version);
     }
 }

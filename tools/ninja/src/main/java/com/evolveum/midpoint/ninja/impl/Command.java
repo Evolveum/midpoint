@@ -52,7 +52,9 @@ public enum Command {
 
     UPGRADE_INSTALLATION("upgrade-installation", UpgradeInstallationOptions.class, UpgradeInstallationAction.class),
 
-    UPGRADE_DISTRIBUTION("upgrade-distribution", UpgradeDistributionOptions.class, UpgradeDistributionAction.class);
+    UPGRADE_DISTRIBUTION("upgrade-distribution", UpgradeDistributionOptions.class, UpgradeDistributionAction.class),
+
+    UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class);
 
     private final String commandName;
 

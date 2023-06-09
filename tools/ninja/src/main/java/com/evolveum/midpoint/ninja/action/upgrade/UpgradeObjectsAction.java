@@ -1,28 +1,17 @@
-package com.evolveum.midpoint.ninja.action.upgrade.step;
+package com.evolveum.midpoint.ninja.action.upgrade;
 
 import java.lang.reflect.Modifier;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.ninja.Main;
-import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectProcessor;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
+import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.util.ClassPathUtil;
 
-public abstract class UpgradeObjectsStep implements UpgradeStep<StepResult> {
-
-    private final UpgradeStepsContext context;
-
-    public UpgradeObjectsStep(@NotNull UpgradeStepsContext context) {
-        this.context = context;
-    }
+public abstract class UpgradeObjectsAction extends Action<UpgradeObjectsOptions, Void> {
 
     @Override
-    public StepResult execute() throws Exception {
+    public Void execute() throws Exception {
 //        final VerifyResult verifyResult = context.getResult(VerifyResult.class);
 //
 //        final File output = verifyResult.getOutput();

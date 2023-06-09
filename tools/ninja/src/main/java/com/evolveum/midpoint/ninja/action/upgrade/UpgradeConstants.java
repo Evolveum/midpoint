@@ -2,7 +2,7 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 public class UpgradeConstants {
 
-    public static final String SUPPORTED_VERSION_LTS = "4.4.4";
+    public static final String SUPPORTED_VERSION_LTS = "4.4.5";
 
     public static final String SUPPORTED_VERSION_FEATURE = "4.7.1";
 
@@ -11,6 +11,4 @@ public class UpgradeConstants {
     public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE, "4.8-SNAPSHOT" }; // todo remove viliam
 
     public static final String UPGRADE_TEMP_DIRECTORY = ".upgrade";
-
-    public static final String VERIFY_OUTPUT_FILE = "verify-output.csv";
 }
