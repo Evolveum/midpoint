@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
+import java.io.Serial;
+import java.util.*;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.Validate;
@@ -31,12 +30,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  */
 public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpable {
-    private static final long serialVersionUID = 8299738301872077768L;
+    @Serial private static final long serialVersionUID = 8299738301872077768L;
 
     // Focus should not be final in case of session refresh, we need new focus object.
     @NotNull private FocusType focus;
     private Locale preferredLocale;
-    @NotNull private Collection<Authorization> authorizations = new ArrayList<>();
+    @NotNull private final List<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private SecurityPolicyType applicableSecurityPolicy;
     // TODO: or a set?
@@ -51,7 +50,15 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     @Override
     public @NotNull Collection<Authorization> getAuthorities() {
-        return authorizations;
+        return Collections.unmodifiableList(authorizations);
+    }
+
+    public void addAuthorization(@NotNull Authorization authorization) {
+        authorizations.add(authorization);
+    }
+
+    public void clearAuthorizations() {
+        authorizations.clear();
     }
 
     @Override
@@ -174,6 +181,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     /**
      * Semi-shallow clone.
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public MidPointPrincipal clone() {
         MidPointPrincipal clone = new MidPointPrincipal(this.focus);
@@ -183,7 +191,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     protected void copyValues(MidPointPrincipal clone) {
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
-        clone.authorizations = new ArrayList<>(authorizations);
+        clone.authorizations.addAll(authorizations);
         clone.effectiveActivationStatus = this.effectiveActivationStatus;
         clone.delegatorWithOtherPrivilegesLimitationsCollection.addAll(this.delegatorWithOtherPrivilegesLimitationsCollection);
     }

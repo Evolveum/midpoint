@@ -49,7 +49,6 @@ import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -58,8 +57,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
@@ -152,8 +149,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ModelService modelService;
     @Autowired private ModelCrudService modelCrudService;
     @Autowired private SecurityHelper securityHelper;
-    @Autowired private MappingFactory mappingFactory;
-    @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private GuiProfiledPrincipalManager guiProfiledPrincipalManager;
@@ -163,7 +158,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
-    @Autowired private ContextLoader contextLoader;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
@@ -1575,16 +1569,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 new AssignmentEvaluator.Builder<UserType>()
                         .referenceResolver(referenceResolver)
                         .focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy, potentialDeputy.getDefinition()))
-                        .channel(null)
-                        .modelBeans(modelBeans)
-                        .objectResolver(objectResolver)
-                        .systemObjectCache(systemObjectCache)
-                        .relationRegistry(relationRegistry)
-                        .prismContext(prismContext)
-                        .mappingFactory(mappingFactory)
-                        .mappingEvaluator(mappingEvaluator)
-                        .contextLoader(contextLoader)
-                        .activationComputer(activationComputer)
                         .now(clock.currentTimeXMLGregorianCalendar())
                         .loginMode(true)
                         // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder

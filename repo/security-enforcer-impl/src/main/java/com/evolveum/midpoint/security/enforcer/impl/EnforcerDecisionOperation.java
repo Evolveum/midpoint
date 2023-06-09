@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Authorization
 
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.security.enforcer.api.AbstractAuthorizationParameters;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,12 +42,12 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
     @NotNull private final String operationUrl;
-    @NotNull private final AuthorizationParameters<O, T> params;
+    @NotNull private final AbstractAuthorizationParameters params;
     @Nullable private final Consumer<Authorization> applicableAutzConsumer;
 
     EnforcerDecisionOperation(
             @NotNull String operationUrl,
-            @NotNull AuthorizationParameters<O, T> params,
+            @NotNull AbstractAuthorizationParameters params,
             @Nullable Consumer<Authorization> applicableAutzConsumer,
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
@@ -96,10 +97,7 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
             evaluation.traceStart();
             if (!evaluation.isApplicableToAction(operationUrl)
                     || !evaluation.isApplicableToPhase(nonStrict(phase))
-                    || !evaluation.isApplicableToRelation(params.getRelation())
-                    || !evaluation.isApplicableToOrderConstraints(params.getOrderConstraints())
-                    || !evaluation.isApplicableToObjectOperation(params.getOdo())
-                    || !evaluation.isApplicableToTarget(params.getTarget())) {
+                    || !evaluation.isApplicableToParameters(params)) {
                 evaluation.traceEndNotApplicable();
                 continue;
             }
@@ -115,7 +113,7 @@ class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
                 overallDecision = AccessDecision.ALLOW;
                 // Do NOT break here. Other authorization statements may still deny the operation
             } else { // "deny" authorization
-                if (evaluation.matchesItems(params.getOldObject(), params.getDelta())) {
+                if (evaluation.matchesItems(params)) {
                     traceAuthorizationDenyRelevant();
                     overallDecision = AccessDecision.DENY;
                     break; // Break right here. Deny cannot be overridden by allow. This decision cannot be changed.

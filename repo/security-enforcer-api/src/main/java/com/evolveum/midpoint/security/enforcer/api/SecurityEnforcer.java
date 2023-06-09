@@ -43,10 +43,10 @@ public interface SecurityEnforcer {
      *
      * @param phase check authorization for a specific phase. If null then all phases are checked.
      */
-    <O extends ObjectType, T extends ObjectType> boolean isAuthorized(
+    boolean isAuthorized(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O, T> params,
+            @NotNull AbstractAuthorizationParameters params,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -94,12 +94,12 @@ public interface SecurityEnforcer {
      *
      * @param phase check authorization for a specific phase. If null then all phases are checked.
      *
-     * @see #isAuthorized(String, AuthorizationPhaseType, AuthorizationParameters, OwnerResolver, Task, OperationResult)
+     * @see #isAuthorized(String, AuthorizationPhaseType, AbstractAuthorizationParameters, OwnerResolver, Task, OperationResult)
      */
-    default <O extends ObjectType, T extends ObjectType> void authorize(
+    default void authorize(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O, T> params,
+            @NotNull AbstractAuthorizationParameters params,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Task task,
             @NotNull OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
@@ -110,8 +110,8 @@ public interface SecurityEnforcer {
     }
 
     /**
-     * Convenience variant of {@link #authorize(String, AuthorizationPhaseType, AuthorizationParameters, OwnerResolver, Task,
-     * OperationResult)} that is to be used when there is no object, target, nor other parameters.
+     * Convenience variant of {@link #authorize(String, AuthorizationPhaseType, AbstractAuthorizationParameters, OwnerResolver,
+     * Task, OperationResult)} that is to be used when there is no object, target, nor other parameters.
      */
     default void authorize(
             @NotNull String operationUrl,
@@ -132,8 +132,8 @@ public interface SecurityEnforcer {
      * Produces authorization error with proper message and logs it using proper logger.
      */
     @Contract("_, _, _, _ -> fail")
-    <O extends ObjectType, T extends ObjectType> void failAuthorization(
-            String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OperationResult result)
+    void failAuthorization(
+            String operationUrl, AuthorizationPhaseType phase, AbstractAuthorizationParameters params, OperationResult result)
             throws SecurityViolationException;
 
     /**

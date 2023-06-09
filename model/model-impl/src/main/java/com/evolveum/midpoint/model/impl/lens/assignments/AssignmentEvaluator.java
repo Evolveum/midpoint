@@ -13,14 +13,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -31,10 +29,10 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -65,7 +63,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     final ObjectDeltaObject<AH> focusOdoAbsolute;
     final ObjectDeltaObject<AH> focusOdoRelative;
     final LifecycleStateModelType focusStateModel;
-    final String channel;
     final XMLGregorianCalendar now;
     final PrismObject<SystemConfigurationType> systemConfiguration;
     /**
@@ -76,16 +73,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     // Spring beans and bean-like objects used
 
-    final ModelBeans beans;
     final ReferenceResolver referenceResolver;
-    final ObjectResolver objectResolver;
-    final SystemObjectCache systemObjectCache;
-    final RelationRegistry relationRegistry;
-    final PrismContext prismContext;
-    final MappingFactory mappingFactory;
-    final ActivationComputer activationComputer;
-    final MappingEvaluator mappingEvaluator;
-    final ContextLoader contextLoader;
+    final RelationRegistry relationRegistry = SchemaService.get().relationRegistry();
+    final PrismContext prismContext = PrismContext.get();
+    final MappingFactory mappingFactory = ModelBeans.get().mappingFactory;
+    final ActivationComputer activationComputer = ModelBeans.get().activationComputer;
+    final MappingEvaluator mappingEvaluator = ModelBeans.get().mappingEvaluator;
 
     // Evaluation state
 
@@ -97,19 +90,9 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         focusOdoAbsolute = builder.focusOdoAbsolute;
         focusOdoRelative = builder.focusOdoRelative;
         lensContext = builder.lensContext;
-        channel = builder.channel;
-        beans = builder.modelBeans;
-        objectResolver = builder.objectResolver;
-        systemObjectCache = builder.systemObjectCache;
-        relationRegistry = builder.relationRegistry;
-        prismContext = builder.prismContext;
-        mappingFactory = builder.mappingFactory;
-        activationComputer = builder.activationComputer;
         now = builder.now;
-        contextLoader = builder.contextLoader;
         loginMode = builder.loginMode;
         systemConfiguration = builder.systemConfiguration;
-        mappingEvaluator = builder.mappingEvaluator;
         evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
         memberOfEngine = new MemberOfEngine();
 
@@ -261,19 +244,9 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         private ObjectDeltaObject<AH> focusOdoAbsolute;
         private ObjectDeltaObject<AH> focusOdoRelative;
         private LensContext<AH> lensContext;
-        private String channel;
-        private ModelBeans modelBeans;
-        private ObjectResolver objectResolver;
-        private SystemObjectCache systemObjectCache;
-        private RelationRegistry relationRegistry;
-        private PrismContext prismContext;
-        private MappingFactory mappingFactory;
-        private ActivationComputer activationComputer;
         private XMLGregorianCalendar now;
-        private ContextLoader contextLoader;
         private boolean loginMode = false;
         private PrismObject<SystemConfigurationType> systemConfiguration;
-        private MappingEvaluator mappingEvaluator;
 
         public Builder() {
         }
@@ -304,53 +277,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
             return this;
         }
 
-        public Builder<AH> channel(String val) {
-            channel = val;
-            return this;
-        }
-
-        public Builder<AH> objectResolver(ObjectResolver val) {
-            objectResolver = val;
-            return this;
-        }
-
-        public Builder<AH> modelBeans(ModelBeans val) {
-            modelBeans = val;
-            return this;
-        }
-
-        public Builder<AH> systemObjectCache(SystemObjectCache val) {
-            systemObjectCache = val;
-            return this;
-        }
-
-        public Builder<AH> relationRegistry(RelationRegistry val) {
-            relationRegistry = val;
-            return this;
-        }
-
-        public Builder<AH> prismContext(PrismContext val) {
-            prismContext = val;
-            return this;
-        }
-
-        public Builder<AH> mappingFactory(MappingFactory val) {
-            mappingFactory = val;
-            return this;
-        }
-
-        public Builder<AH> activationComputer(ActivationComputer val) {
-            activationComputer = val;
-            return this;
-        }
-
         public Builder<AH> now(XMLGregorianCalendar val) {
             now = val;
-            return this;
-        }
-
-        public Builder<AH> contextLoader(ContextLoader val) {
-            contextLoader = val;
             return this;
         }
 
@@ -361,11 +289,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         public Builder<AH> systemConfiguration(PrismObject<SystemConfigurationType> val) {
             systemConfiguration = val;
-            return this;
-        }
-
-        public Builder<AH> mappingEvaluator(MappingEvaluator val) {
-            mappingEvaluator = val;
             return this;
         }
 

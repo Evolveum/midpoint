@@ -56,19 +56,37 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     READ_THREADS("readThreads", "Read threads", "READ_THREADS_HELP"),
 
+    /** Ability to complete a work item (case- or certification- related). */
+    COMPLETE_WORK_ITEM("completeWorkItem", "Complete work item", "COMPLETE_WORK_ITEM_HELP"),
+
+    /** Ability to delegate a work item (case- or certification- related). */
+    DELEGATE_WORK_ITEM("delegateWorkItem", "Delegate work item", "DELEGATE_WORK_ITEM_HELP"),
+
     CREATE_CERTIFICATION_CAMPAIGN("createCertificationCampaign", "Create a certification campaign", "CREATE_CERTIFICATION_CAMPAIGN_HELP"),
     OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE("openCertificationCampaignReviewStage", "Open access certification campaign review stage", "OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE_HELP"),
     CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE("closeCertificationCampaignReviewStage", "Close access certification campaign review stage", "CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE_HELP"),
     START_CERTIFICATION_REMEDIATION("startCertificationRemediation", "Start certification campaign results remediation", "START_CERTIFICATION_REMEDIATION_HELP"),
     CLOSE_CERTIFICATION_CAMPAIGN("closeCertificationCampaign", "Close certification campaign", "CLOSE_CERTIFICATION_CAMPAIGN_HELP"),
     REITERATE_CERTIFICATION_CAMPAIGN("reiterateCertificationCampaign", "Reiterate certification campaign", "REITERATE_CERTIFICATION_CAMPAIGN_HELP"),
+
+    @Deprecated // use READ instead
     READ_OWN_CERTIFICATION_DECISIONS("readOwnCertificationDecisions", "Read own access certification decisions", "READ_OWN_CERTIFICATION_DECISIONS_HELP"),
+
+    @Deprecated // use COMPLETE_WORK_ITEM instead
     RECORD_CERTIFICATION_DECISION("recordCertificationDecision", "Record access certification decision", "RECORD_CERTIFICATION_DECISION_HELP"),
 
+    @Deprecated // use COMPLETE_WORK_ITEM instead
     COMPLETE_ALL_WORK_ITEMS("completeAllWorkItems", "Complete all work items", "COMPLETE_ALL_WORK_ITEMS_HELP"),
+
+    @Deprecated // use DELEGATE_WORK_ITEM instead
     DELEGATE_ALL_WORK_ITEMS("delegateAllWorkItems", "Delegate all work items", "DELEGATE_ALL_WORK_ITEMS_HELP"),
+
+    @Deprecated // use DELEGATE_WORK_ITEM instead
     DELEGATE_OWN_WORK_ITEMS("delegateOwnWorkItems", "Delegate own work items", "DELEGATE_OWN_WORK_ITEMS_HELP"),
-    READ_ALL_WORK_ITEMS("readAllWorkItems", "Read all work items", "READ_ALL_WORK_ITEMS_HELP"),        // currently not implemented seriously
+
+    @Deprecated // use READ instead (actually, this one was not used at all)
+    READ_ALL_WORK_ITEMS("readAllWorkItems", "Read all work items", "READ_ALL_WORK_ITEMS_HELP"),
+
     STOP_APPROVAL_PROCESS_INSTANCE("stopApprovalProcessInstance", "Stop approval process instance", "STOP_APPROVAL_PROCESS_INSTANCE_HELP"),
     CLEANUP_PROCESS_INSTANCES("cleanupProcessInstances", "Cleanup process instances", "CLEANUP_PROCESS_INSTANCES_HELP"),
     CANCEL_CASE("cancelCase", "Cancel case", "CANCEL_CASE_HELP"),

@@ -375,7 +375,7 @@ public class AccCertOpenerHelper {
 
     private void assertNoExistingCases(AccessCertificationCampaignType campaign, OperationResult result)
             throws SchemaException {
-        List<AccessCertificationCaseType> existingCases = queryHelper.searchCases(campaign.getOid(), null, null, result);
+        List<AccessCertificationCaseType> existingCases = queryHelper.searchCases(campaign.getOid(), null, result);
         if (!existingCases.isEmpty()) {
             throw new IllegalStateException("Unexpected " + existingCases.size() + " certification case(s) in campaign object "
                     + toShortString(campaign) + ". At this time there should be none.");
@@ -425,7 +425,7 @@ public class AccCertOpenerHelper {
         int iteration = norm(campaign.getIteration());
         LOGGER.trace("Updating cases in {}; current stage = {}, stageToBe = {}, iteration = {}", toShortStringLazy(campaign),
                 campaign.getStageNumber(), stageToBe, iteration);
-        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), iteration, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), iteration, result);
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
                 reviewersHelper.findReviewersSpecification(campaign, stageToBe);
@@ -615,8 +615,8 @@ public class AccCertOpenerHelper {
         ObjectQuery unresolvedCasesQuery = prismContext.queryFor(AccessCertificationCaseType.class)
                 .item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
                 .build();
-        List<AccessCertificationCaseType> unresolvedCases = queryHelper
-                .searchCases(campaign.getOid(), unresolvedCasesQuery, null, result);
+        List<AccessCertificationCaseType> unresolvedCases =
+                queryHelper.searchCases(campaign.getOid(), unresolvedCasesQuery, result);
         for (AccessCertificationCaseType aCase : unresolvedCases) {
             modifications.add(
                     prismContext.deltaFor(AccessCertificationCampaignType.class)

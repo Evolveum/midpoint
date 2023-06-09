@@ -7,17 +7,40 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNull;
+import static com.evolveum.midpoint.certification.api.OutcomeUtils.toUri;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ESCALATION_LEVEL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
+
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseRelatedUtils;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
@@ -31,22 +54,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-
-import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ESCALATION_LEVEL;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Logic for certification operations like decision recording, case creation or advancement.
@@ -68,29 +75,24 @@ public class AccCertCaseOperationsHelper {
     /**
      * Records a decision. Updates necessary items like the outcomes.
      */
-    void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
-            String comment, Task task, OperationResult result) throws SecurityViolationException, ObjectNotFoundException,
+    void recordDecision(
+            AccessCertificationWorkItemId complexWorkItemId,
+            WorkItemInContext workItemInContext,
+            AccessCertificationResponseType response,
+            String comment,
+            Task task,
+            OperationResult result) throws SecurityViolationException, ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException {
-        AccessCertificationCaseType acase = queryHelper.getCase(campaignOid, caseId, task, result);
-        if (acase == null) {
-            throw new ObjectNotFoundException(
-                    "Case " + caseId + " was not found in campaign " + campaignOid,
-                    AccessCertificationCaseType.class,
-                    campaignOid + ":" + caseId);
-        }
-        AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(acase);
-        if (campaign == null) {
-            throw new IllegalStateException("No owning campaign present in case " + acase);
-        }
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(acase, workItemId);
-        if (workItem == null) {
-            throw new ObjectNotFoundException(
-                    "Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId,
-                    AccessCertificationWorkItemType.class,
-                    campaignOid + ":" + workItemId);
-        }
 
-        ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getFocus(), prismContext);
+        var complexCaseId = complexWorkItemId.caseId();
+        long workItemId = complexWorkItemId.workItemId();
+        long caseId = complexCaseId.caseId();
+        String campaignOid = complexCaseId.campaignOid();
+
+        AccessCertificationCampaignType campaign = workItemInContext.campaign();
+        AccessCertificationCaseType aCase = workItemInContext.aCase();
+
+        ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getFocus());
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         ItemPath workItemPath = ItemPath.create(F_CASE, caseId, F_WORK_ITEM, workItemId);
         Collection<ItemDelta<?,?>> deltaList = prismContext.deltaFor(AccessCertificationCampaignType.class)
@@ -103,8 +105,10 @@ public class AccCertCaseOperationsHelper {
                 .asItemDeltas();
         ItemDeltaCollectionsUtil.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
 
-        AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(acase, campaign, campaign.getStageNumber());
-        AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(acase, campaign, campaign.getStageNumber(), newCurrentOutcome);
+        AccessCertificationResponseType newCurrentOutcome =
+                computationHelper.computeOutcomeForStage(aCase, campaign, campaign.getStageNumber());
+        AccessCertificationResponseType newOverallOutcome =
+                computationHelper.computeOverallOutcome(aCase, campaign, campaign.getStageNumber(), newCurrentOutcome);
         deltaList.addAll(prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(newCurrentOutcome))
                 .item(F_CASE, caseId, F_OUTCOME).replace(toUri(newOverallOutcome))
@@ -206,7 +210,8 @@ public class AccCertCaseOperationsHelper {
 
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
                 CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
-                null, false, null, result);
+                false,
+                result);
 
         if (workItems.isEmpty()) {
             LOGGER.debug("No work items, no escalation (campaign: {})", campaignOid);

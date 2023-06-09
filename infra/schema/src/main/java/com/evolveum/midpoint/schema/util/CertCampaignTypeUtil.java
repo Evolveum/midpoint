@@ -349,17 +349,28 @@ public class CertCampaignTypeUtil {
     }
 
     // TODO use this also from GUI and maybe notifications
-    @SuppressWarnings("unused")         // used by certification cases report
+    @SuppressWarnings("unused")  // used by certification cases report
     public static List<ObjectReferenceType> getCurrentlyAssignedReviewers(PrismContainerValue<AccessCertificationCaseType> pcv) {
-        AccessCertificationCaseType aCase = pcv.asContainerable();
+        return getCurrentlyAssignedReviewers(pcv.asContainerable());
+    }
+
+    public @NotNull static List<ObjectReferenceType> getCurrentlyAssignedReviewers(@NotNull AccessCertificationCaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
                 if (workItem.getCloseTimestamp() == null
-                        && java.util.Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
+                        && Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
                     rv.add(assigneeRef);
                 }
             }
+        }
+        return rv;
+    }
+
+    public @NotNull static List<ObjectReferenceType> getAllAssignees(@NotNull AccessCertificationCaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+            rv.addAll(workItem.getAssigneeRef());
         }
         return rv;
     }

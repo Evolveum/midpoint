@@ -44,6 +44,12 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         exceptItems = parseItems(this.authorizationBean.getExceptItem());
     }
 
+    public static Authorization create(@NotNull AuthorizationType authorizationBean, String sourceDescription) {
+        var autz = new Authorization(authorizationBean);
+        autz.setSourceDescription(sourceDescription);
+        return autz;
+    }
+
     @Override
     public String getAuthority() {
         // this is complex authority. Just return null

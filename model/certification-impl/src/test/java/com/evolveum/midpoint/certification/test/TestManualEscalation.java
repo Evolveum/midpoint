@@ -197,7 +197,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         // WHEN
@@ -211,7 +211,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCases(caseList);
 
@@ -244,7 +244,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCases(caseList);
 
@@ -290,7 +290,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCases(caseList);
 
@@ -326,7 +326,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case", ceoCase);
 
@@ -344,7 +344,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCases(caseList);
 

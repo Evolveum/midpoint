@@ -7,6 +7,24 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
 import com.evolveum.midpoint.certification.api.AccessCertificationEventListener;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
@@ -17,17 +35,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.*;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,19 +49,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 
 /**
  * All operations carried out by CertificationManager have to be authorized by it. ModelController does NOT execute
@@ -84,8 +85,6 @@ public class CertificationManagerImpl implements CertificationManager {
     private static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
     private static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
     private static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
-    private static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
-    private static final String OPERATION_COUNT_OPEN_WORK_ITEMS = INTERFACE_DOT + "countOpenWorkItems";
     private static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
     private static final String OPERATION_REITERATE_CAMPAIGN = INTERFACE_DOT + "reiterateCampaign";
     private static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
@@ -107,7 +106,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
     @Autowired private AccessCertificationClosingTaskHandler closingTaskHandler;
 
-    private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
+    private final Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
     public void registerHandler(String handlerUri, CertificationHandler handler) {
         if (registeredHandlers.containsKey(handlerUri)) {
@@ -336,75 +335,31 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
-            boolean allItems, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-
-        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_OPEN_WORK_ITEMS);
-        try {
-            MidPointPrincipal principal = getAuthorizedPrincipal(allItems, task, result);
-            return queryHelper.searchOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly, options, result);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
-            throw e;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    @Nullable
-    private MidPointPrincipal getAuthorizedPrincipal(boolean allItems, Task task, OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        if (allItems) {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
-                    AuthorizationParameters.EMPTY, null, task, result);
-            return null;
-        } else {
-            securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
-                    AuthorizationParameters.EMPTY, null, task, result);
-            MidPointPrincipal principal = SecurityUtil.getPrincipal();
-            if (principal == null) {
-                throw new IllegalStateException("No principal");
-            } else {
-                return principal;
-            }
-        }
-    }
-
-    @Override
-    public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-
-        OperationResult result = parentResult.createSubresult(OPERATION_COUNT_OPEN_WORK_ITEMS);
-
-        try {
-            MidPointPrincipal principal = getAuthorizedPrincipal(allItems, task, result);
-            return queryHelper.countOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly, options, result);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
-            throw e;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    @Override
-    public void recordDecision(@NotNull String campaignOid, long caseId, long workItemId, @Nullable AccessCertificationResponseType response,
-            @Nullable String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    public void recordDecision(
+            @NotNull AccessCertificationWorkItemId workItemId,
+            @Nullable AccessCertificationResponseType response,
+            @Nullable String comment,
+            boolean preAuthorized,
+            Task task,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
-            securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
-                    AuthorizationParameters.EMPTY, null, task, result);
-            operationsHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
-            throw e;
+            var workItemInContext = queryHelper.getWorkItemInContext(workItemId, result);
+            if (!preAuthorized) {
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.COMPLETE_WORK_ITEM.getUrl(),
+                        null,
+                        new ValueAuthorizationParameters<>(workItemInContext.workItem().asPrismContainerValue()),
+                        null, task, result);
+            }
+            operationsHelper.recordDecision(workItemId, workItemInContext, response, comment, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

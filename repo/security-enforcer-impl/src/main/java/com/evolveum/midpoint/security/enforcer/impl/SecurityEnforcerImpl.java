@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,10 +79,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     private SecurityContextManager securityContextManager;
 
     @Override
-    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(
+    public boolean isAuthorized(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O, T> params,
+            @NotNull AbstractAuthorizationParameters params,
             @Nullable OwnerResolver ownerResolver,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -119,13 +121,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     @Override
-    public <O extends ObjectType, T extends ObjectType> void failAuthorization(
-            String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params, OperationResult result)
+    public void failAuthorization(
+            String operationUrl, AuthorizationPhaseType phase, AbstractAuthorizationParameters params, OperationResult result)
             throws SecurityViolationException {
         MidPointPrincipal principal = securityContextManager.getPrincipal();
         String username = getQuotedUsername(principal);
-        PrismObject<T> target = params.getTarget();
-        PrismObject<O> object = params.getAnyObject();
+        Object object;
+        PrismObject<?> target;
+        if (params instanceof AuthorizationParameters<?, ?> ap) {
+            object = ap.getAnyObject();
+            target = ap.getTarget();
+        } else if (params instanceof ValueAuthorizationParameters<?> vp) {
+            PrismValue value = vp.getValue();
+            object = value != null ? MiscUtil.getDiagInfo(value) : null; // TODO better name
+            target = null;
+        } else {
+            throw new NotHereAssertionError();
+        }
         String message;
         // TODO are double quotes around username intentional?
         if (target == null && object == null) {
@@ -150,11 +162,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
     }
 
-    private <O extends ObjectType, T extends ObjectType> @NotNull AccessDecision decideAccessInternal(
+    private @NotNull AccessDecision decideAccessInternal(
             @Nullable MidPointPrincipal principal,
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
-            @NotNull AuthorizationParameters<O, T> params,
+            @NotNull AbstractAuthorizationParameters params,
             @Nullable OwnerResolver ownerResolver,
             @Nullable Consumer<Authorization> applicableAutzConsumer,
             @NotNull Task task,
