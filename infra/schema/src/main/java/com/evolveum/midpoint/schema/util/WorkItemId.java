@@ -53,6 +53,10 @@ public class WorkItemId implements Serializable {
         return create(CaseTypeUtil.getCaseRequired(workItem).getOid(), workItem.getId());
     }
 
+    public static WorkItemId of(@NotNull String caseOid, long id) {
+        return new WorkItemId(caseOid, id);
+    }
+
     @NotNull
     public String getCaseOid() {
         return caseOid;

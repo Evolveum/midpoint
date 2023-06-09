@@ -31,9 +31,10 @@ import static java.util.Map.entry;
 @Component
 public class AuthorizationMigrator {
 
-    private static final Map<String, ActionMigrator> migratorsMap = Map.ofEntries(
+    private static final Map<String, ActionMigrator> MIGRATORS_MAP = Map.ofEntries(
             entry(
                     ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(),
+
                     (migrated, original) -> {
                         add(migrated, original, new AuthorizationType()
                                 .action(ModelAuthorizationAction.READ.getUrl())
@@ -50,10 +51,20 @@ public class AuthorizationMigrator {
 
             entry(
                     ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(),
+
                     (migrated, original) -> add(migrated, original, new AuthorizationType()
                             .action(ModelAuthorizationAction.COMPLETE_WORK_ITEM.getUrl())
                             .object(new AuthorizationObjectSelectorType()
                                     .type(AccessCertificationWorkItemType.COMPLEX_TYPE)
+                                    .assignee(self())))),
+
+            entry(
+                    ModelAuthorizationAction.DELEGATE_OWN_WORK_ITEMS.getUrl(),
+
+                    (migrated, original) -> add(migrated, original, new AuthorizationType()
+                            .action(ModelAuthorizationAction.DELEGATE_WORK_ITEM.getUrl())
+                            .object(new AuthorizationObjectSelectorType()
+                                    .type(CaseWorkItemType.COMPLEX_TYPE)
                                     .assignee(self()))))
     );
 
@@ -70,7 +81,7 @@ public class AuthorizationMigrator {
         migrated.add(original);
 
         List<String> actions = original.getAction();
-        for (Map.Entry<String, ActionMigrator> entry : migratorsMap.entrySet()) {
+        for (Map.Entry<String, ActionMigrator> entry : MIGRATORS_MAP.entrySet()) {
             if (actions.contains(entry.getKey())) {
                 entry.getValue().migrate(migrated, original);
             }

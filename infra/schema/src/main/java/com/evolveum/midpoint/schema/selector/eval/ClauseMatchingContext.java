@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.selector.eval;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.Delegation;
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /** Keeps everything needed to evaluate whether a clause matches given value. */
 public class ClauseMatchingContext {
@@ -33,7 +34,7 @@ public class ClauseMatchingContext {
     @Nullable public final OwnerResolver ownerResolver;
     @Nullable final ObjectResolver objectResolver;
     @NotNull final ClauseProcessingContextDescription description;
-    @Nullable final Delegation delegation; // TODO
+    @NotNull final DelegatorSelection delegatorSelection;
 
     public ClauseMatchingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
@@ -43,7 +44,7 @@ public class ClauseMatchingContext {
             @Nullable OwnerResolver ownerResolver,
             @Nullable ObjectResolver objectResolver,
             @NotNull ClauseProcessingContextDescription description,
-            @Nullable Delegation delegation) {
+            @NotNull DelegatorSelection delegatorSelection) {
         this.filterEvaluator = filterEvaluator;
         this.tracer = tracer;
         this.orgTreeEvaluator = orgTreeEvaluator;
@@ -51,7 +52,7 @@ public class ClauseMatchingContext {
         this.ownerResolver = ownerResolver;
         this.objectResolver = objectResolver;
         this.description = description;
-        this.delegation = delegation;
+        this.delegatorSelection = delegatorSelection;
     }
 
     public @Nullable String getPrincipalOid() {
@@ -62,20 +63,28 @@ public class ClauseMatchingContext {
         return subjectedEvaluationContext != null ? subjectedEvaluationContext.getPrincipalFocus() : null;
     }
 
-    public @NotNull Collection<String> getSelfOids() {
-        return subjectedEvaluationContext != null ? subjectedEvaluationContext.getSelfOids(delegation) : List.of();
+    public @NotNull Set<String> getSelfOids() {
+        return subjectedEvaluationContext != null ? subjectedEvaluationContext.getSelfOids(delegatorSelection) : Set.of();
     }
 
-    public @NotNull String[] getSelfOidsArray(Delegation delegation) {
-        return getSelfOids(delegation).toArray(new String[0]);
+    public @NotNull Set<String> getSelfPlusRolesOids(@NotNull DelegatorSelection delegatorSelectionMode) {
+        return subjectedEvaluationContext != null ?
+                subjectedEvaluationContext.getSelfPlusRolesOids(delegatorSelectionMode) : Set.of();
     }
 
-    private @NotNull Collection<String> getSelfOids(Delegation delegation) {
-        return subjectedEvaluationContext != null ? subjectedEvaluationContext.getSelfOids(delegation) : List.of();
+    public @NotNull String[] getSelfOidsArray(DelegatorSelection delegation) {
+        Collection<String> selfOids =
+                subjectedEvaluationContext != null ? subjectedEvaluationContext.getSelfOids(delegation) : List.of();
+        return selfOids.toArray(new String[0]);
+    }
+
+    public @NotNull String[] getSelfPlusRolesOidsArray(DelegatorSelection delegatorSelectionMode) {
+        Collection<String> oids = getSelfPlusRolesOids(delegatorSelectionMode);
+        return oids.toArray(new String[0]);
     }
 
     public @NotNull ClauseMatchingContext next(
-            @Nullable Delegation delegation, @NotNull String idDelta, @NotNull String textDelta) {
+            @NotNull DelegatorSelection delegatorSelection, @NotNull String idDelta, @NotNull String textDelta) {
         return new ClauseMatchingContext(
                 filterEvaluator,
                 tracer,
@@ -84,7 +93,7 @@ public class ClauseMatchingContext {
                 ownerResolver,
                 objectResolver,
                 description.child(idDelta, textDelta),
-                delegation);
+                delegatorSelection);
     }
 
     public @NotNull ClauseMatchingContext next(@NotNull String idDelta, @NotNull String textDelta) {
@@ -96,7 +105,7 @@ public class ClauseMatchingContext {
                 ownerResolver,
                 objectResolver,
                 description.child(idDelta, textDelta),
-                delegation);
+                delegatorSelection);
     }
 
     public PrismObject<? extends ObjectType> resolveReference(

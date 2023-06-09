@@ -65,7 +65,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @SuppressWarnings({ "unused", "WeakerAccess", "SameParameterValue", "UnusedReturnValue" })
-public abstract class AbstractSecurityTest extends AbstractInitializedModelIntegrationTest {
+public abstract class AbstractInitializedSecurityTest extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/security");
 
@@ -455,7 +455,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
             unassignAllRoles(userOid);
         }
 
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".cleanupAutzTest");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".cleanupAutzTest");
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -556,11 +556,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         }
     }
 
-    protected void assertVisibleUsers(int expectedNumAllUsers) throws Exception {
-        assertSearch(UserType.class, null, expectedNumAllUsers);
-
-    }
-
     protected void assertReadDeny() throws Exception {
         assertReadDeny(0);
         assertReadDenyRaw();
@@ -580,26 +575,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected void assertReadCasesAllow() throws Exception {
         assertSearchCases(4);
-    }
-
-    protected void assertSearchCertCases(int expectedNumber) throws CommonException {
-        assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
-    }
-
-    protected void assertSearchCases(int expectedNumber) throws Exception {
-        assertSearch(CaseType.class, null, expectedNumber);
-    }
-
-    protected List<CaseWorkItemType> assertSearchWorkItems(int expectedNumber) throws CommonException {
-        return assertContainerSearch(CaseWorkItemType.class, null, expectedNumber);
-    }
-
-    protected void assertSearchCases(String... expectedOids) throws Exception {
-        assertSearch(CaseType.class, null, expectedOids);
-    }
-
-    protected void assertSearchCampaigns(String... expectedOids) throws Exception {
-        assertSearch(AccessCertificationCampaignType.class, null, expectedOids);
     }
 
     protected void assertReadDeny(int expectedNumAllUsers) throws Exception {
@@ -705,37 +680,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertDeleteAllow(UserType.class, USER_LECHUCK.oid, executeOptions().raw());
     }
 
-    protected <C extends Containerable> List<C> assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults)
-            throws CommonException {
-        return assertContainerSearch(type, query, null, expectedResults);
-    }
-
-    protected <C extends Containerable>
-    List<C> assertContainerSearch(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws CommonException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchContainers");
-        OperationResult result = task.getResult();
-        try {
-            logAttempt("searchContainers", type, query);
-            List<C> objects = modelService.searchContainers(type, query, options, task, result);
-            displayValue("Search returned", objects.toString());
-            if (objects.size() > expectedResults) {
-                failDeny("search", type, query, expectedResults, objects.size());
-            } else if (objects.size() < expectedResults) {
-                failAllow("search", type, query, expectedResults, objects.size());
-            }
-            result.computeStatus();
-            TestUtil.assertSuccess(result);
-            return objects;
-        } catch (SecurityViolationException e) {
-            // this should not happen
-            result.computeStatus();
-            TestUtil.assertFailure(result);
-            failAllow("search", type, query, e);
-            throw new NotHereAssertionError();
-        }
-    }
-
     protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
         assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
@@ -789,7 +733,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
             Class<O> type, String oid, ItemDelta<?, ?> itemDelta, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyDeny");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertModifyDeny");
         OperationResult result = task.getResult();
         ObjectDelta<O> objectDelta =
                 prismContext.deltaFactory().object()
@@ -818,7 +762,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyAllow");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertModifyAllow");
         OperationResult result = task.getResult();
         ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(type, oid, itemPath, newRealValue);
@@ -835,7 +779,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertImportDeny(File file) throws FileNotFoundException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertImportDeny");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertImportDeny");
         OperationResult result = task.getResult();
         // This does not throw exception, failure is indicated in the result
         modelService.importObjectsFromFile(file, null, task, result);
@@ -844,7 +788,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertImportAllow(File file) throws FileNotFoundException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertImportAllow");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertImportAllow");
         OperationResult result = task.getResult();
         modelService.importObjectsFromFile(file, null, task, result);
         result.computeStatus();
@@ -852,7 +796,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertImportStreamDeny(File file) throws FileNotFoundException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertImportStreamDeny");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertImportStreamDeny");
         OperationResult result = task.getResult();
         InputStream stream = new FileInputStream(file);
         // This does not throw exception, failure is indicated in the result
@@ -862,7 +806,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertImportStreamAllow(File file) throws FileNotFoundException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertImportStreamAllow");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertImportStreamAllow");
         OperationResult result = task.getResult();
         InputStream stream = new FileInputStream(file);
         modelService.importObjectsFromStream(stream, PrismContext.LANG_XML, null, task, result);
@@ -891,7 +835,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
         boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
         assertTrue("Expected isAuthorized for " + QNameUtil.uriToQName(operationUrl).getLocalPart() + " with " + params + ", but we are not authorized", authorized);
@@ -900,7 +844,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <O extends ObjectType, T extends ObjectType> void assertIsNotAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
+        Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
         boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
         assertFalse("Expected not isAuthorized for " + QNameUtil.uriToQName(operationUrl).getLocalPart() + " with " + params + ", but we are authorized", authorized);

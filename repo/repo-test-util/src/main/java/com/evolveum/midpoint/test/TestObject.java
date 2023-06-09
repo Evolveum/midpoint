@@ -234,6 +234,11 @@ public class TestObject<T extends ObjectType> {
         commonInit(test, task, result);
     }
 
+    public void initRaw(AbstractIntegrationTest test, OperationResult result) throws Exception {
+        test.registerTestObjectUsed(this);
+        test.repositoryService.addObject(get(), null, result);
+    }
+
     void commonInit(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
         test.registerTestObjectUsed(this);
         importObject(task, result);

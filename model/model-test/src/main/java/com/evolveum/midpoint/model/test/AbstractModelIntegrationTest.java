@@ -1757,7 +1757,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assign(type, focusOid, assignmentType, task, result);
     }
 
-    protected void assign(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
+    protected void assign(TestObject<?> assignee, TestObject<?> assigned, QName relation, ModelExecuteOptions options,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<UserType> delta = deltaFor(assignee.getType())
@@ -1767,7 +1767,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         executeChanges(delta, options, task, result);
     }
 
-    protected void unassignIfSingle(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
+    protected void unassignIfSingle(TestObject<?> assignee, TestObject<?> assigned, QName relation, ModelExecuteOptions options,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         List<AssignmentType> assignments = ((AssignmentHolderType) assignee.getObjectable()).getAssignment().stream()
@@ -6341,11 +6341,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     // SECURITY
 
-    protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws CommonException {
         assertGetDeny(type, oid, null);
     }
 
-    protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> void assertGetDeny(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws CommonException {
         Task task = createPlainTask("assertGetDeny");
         OperationResult result = task.getResult();
         try {
@@ -6360,12 +6361,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws CommonException {
         assertGetAllow(type, oid, createReadOnly());
         return assertGetAllow(type, oid, null);
     }
 
-    protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> PrismObject<O> assertGetAllow(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws CommonException {
         Task task = createPlainTask("assertGetAllow");
         OperationResult result = task.getResult();
         logAttempt("get", type, oid, null);
@@ -6383,6 +6385,70 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
         assertSearch(type, query, null, expectedResults);
         return assertSearch(type, query, createReadOnly(), expectedResults);
+    }
+
+    protected void assertVisibleUsers(int expectedNumAllUsers) throws Exception {
+        assertSearch(UserType.class, null, expectedNumAllUsers);
+    }
+
+    protected void assertSearchCases(String... expectedOids) throws Exception {
+        assertSearch(CaseType.class, null, expectedOids);
+    }
+
+    protected void assertSearchCampaigns(String... expectedOids) throws Exception {
+        assertSearch(AccessCertificationCampaignType.class, null, expectedOids);
+    }
+
+    protected <C extends Containerable> List<C> assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults)
+            throws CommonException {
+        return assertContainerSearch(type, query, null, expectedResults);
+    }
+
+    protected <C extends Containerable>
+    List<C> assertContainerSearch(Class<C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        try {
+            logAttempt("searchContainers", type, query);
+            List<C> objects = modelService.searchContainers(type, query, options, task, result);
+            displayValue("Search returned", objects.toString());
+            if (objects.size() > expectedResults) {
+                failDeny("search", type, query, expectedResults, objects.size());
+            } else if (objects.size() < expectedResults) {
+                failAllow("search", type, query, expectedResults, objects.size());
+            }
+            result.computeStatus();
+            TestUtil.assertSuccess(result);
+            return objects;
+        } catch (SecurityViolationException e) {
+            // this should not happen
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+            failAllow("search", type, query, e);
+            throw new NotHereAssertionError();
+        }
+    }
+
+    protected void assertSearchCertCases(int expectedNumber) throws CommonException {
+        assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
+    }
+
+    protected void assertSearchCases(int expectedNumber) throws Exception {
+        assertSearch(CaseType.class, null, expectedNumber);
+    }
+
+    protected List<CaseWorkItemType> assertSearchWorkItems(int expectedNumber) throws CommonException {
+        return assertContainerSearch(CaseWorkItemType.class, null, expectedNumber);
+    }
+
+    protected List<CaseWorkItemType> assertSearchWorkItems(WorkItemId... expectedIdentifiers) throws CommonException {
+        var workItems = assertContainerSearch(CaseWorkItemType.class, null, expectedIdentifiers.length);
+        var identifiers = workItems.stream()
+                .map(wi -> WorkItemId.of(wi))
+                .toList();
+        assertThat(identifiers).as("work item identifiers").containsExactlyInAnyOrder(expectedIdentifiers);
+        return workItems;
     }
 
     @NotNull

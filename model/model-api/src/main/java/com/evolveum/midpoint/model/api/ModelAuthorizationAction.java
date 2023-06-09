@@ -79,7 +79,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     COMPLETE_ALL_WORK_ITEMS("completeAllWorkItems", "Complete all work items", "COMPLETE_ALL_WORK_ITEMS_HELP"),
 
     @Deprecated // use DELEGATE_WORK_ITEM instead
-    DELEGATE_ALL_WORK_ITEMS("delegateAllWorkItems", "Delegate all work items", "DELEGATE_ALL_WORK_ITEMS_HELP"),
+    DELEGATE_ALL_WORK_ITEMS("#", "Delegate all work items", "DELEGATE_ALL_WORK_ITEMS_HELP"),
 
     @Deprecated // use DELEGATE_WORK_ITEM instead
     DELEGATE_OWN_WORK_ITEMS("delegateOwnWorkItems", "Delegate own work items", "DELEGATE_OWN_WORK_ITEMS_HELP"),

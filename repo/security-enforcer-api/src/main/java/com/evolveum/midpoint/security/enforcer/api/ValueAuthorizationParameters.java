@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.security.enforcer.api;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -24,6 +26,11 @@ public class ValueAuthorizationParameters<V extends PrismValue> implements Abstr
 
     public ValueAuthorizationParameters(@Nullable V value) {
         this.value = value;
+    }
+
+    public static <C extends Containerable> ValueAuthorizationParameters<PrismContainerValue<C>> of(@Nullable C c) {
+        //noinspection unchecked
+        return new ValueAuthorizationParameters<>(c != null ? (PrismContainerValue<C>) c.asPrismContainerValue() : null);
     }
 
     public @Nullable V getValue() {

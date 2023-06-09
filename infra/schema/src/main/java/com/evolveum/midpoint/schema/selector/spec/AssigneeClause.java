@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.Delegation;
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -53,7 +53,7 @@ public class AssigneeClause extends SelectorClause {
         }
         var assignees = getAssignees(realValue, ctx);
         if (!assignees.isEmpty()) {
-            ClauseMatchingContext nextCtx = ctx.next(Delegation.ASSIGNEE, "a", "assignee");
+            ClauseMatchingContext nextCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee");
             for (PrismObject<? extends ObjectType> assignee : assignees) {
                 assert assignee != null;
                 if (selector.matches(assignee.getValue(), nextCtx)) {
@@ -64,6 +64,18 @@ public class AssigneeClause extends SelectorClause {
         }
         traceNotApplicable(ctx, "no assignee matches (assignees=%s)", assignees);
         return false;
+    }
+
+    static @NotNull DelegatorSelection getDelegatorSelectionMode(Object object) {
+        if (object instanceof CaseType
+                || object instanceof CaseWorkItemType) {
+            return DelegatorSelection.CASE_MANAGEMENT;
+        } else if (object instanceof AccessCertificationCaseType
+                || object instanceof AccessCertificationWorkItemType) {
+            return DelegatorSelection.ACCESS_CERTIFICATION;
+        } else {
+            return DelegatorSelection.NO_DELEGATOR;
+        }
     }
 
     @NotNull
@@ -90,6 +102,14 @@ public class AssigneeClause extends SelectorClause {
 
     @Override
     public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+
+        // TODO allow empty selector as well
+
+        if (!selector.isPureSelf()) {
+            // TODO we could create something like embedded "ref" filter here
+            throw new UnsupportedOperationException("Only 'self' selector is supported for 'assignee' clause when searching");
+        }
+
         Class<?> type = ctx.getRestrictedType();
         if (CaseType.class.isAssignableFrom(type)) {
             addConjunct(
@@ -98,7 +118,7 @@ public class AssigneeClause extends SelectorClause {
                             .exists(CaseType.F_WORK_ITEM)
                             .block()
                             .item(CaseWorkItemType.F_ASSIGNEE_REF)
-                            .ref(ctx.getSelfOidsArray(Delegation.ASSIGNEE))
+                            .ref(ctx.getSelfOidsArray(DelegatorSelection.CASE_MANAGEMENT))
                             .endBlock()
                             .buildFilter());
             return true;
@@ -109,7 +129,7 @@ public class AssigneeClause extends SelectorClause {
                             .exists(CaseType.F_WORK_ITEM)
                             .block()
                             .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF)
-                            .ref(ctx.getSelfOidsArray(Delegation.ASSIGNEE))
+                            .ref(ctx.getSelfOidsArray(DelegatorSelection.ACCESS_CERTIFICATION))
                             .endBlock()
                             .buildFilter());
             return true;
@@ -118,7 +138,7 @@ public class AssigneeClause extends SelectorClause {
                     ctx,
                     PrismContext.get().queryFor(CaseWorkItemType.class)
                             .item(CaseWorkItemType.F_ASSIGNEE_REF)
-                            .ref(ctx.getSelfOidsArray(Delegation.ASSIGNEE))
+                            .ref(ctx.getSelfOidsArray(DelegatorSelection.CASE_MANAGEMENT))
                             .buildFilter());
             return true;
         } else if (AccessCertificationWorkItemType.class.isAssignableFrom(type)) {
@@ -126,7 +146,7 @@ public class AssigneeClause extends SelectorClause {
                     ctx,
                     PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                             .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF)
-                            .ref(ctx.getSelfOidsArray(Delegation.ASSIGNEE))
+                            .ref(ctx.getSelfOidsArray(DelegatorSelection.ACCESS_CERTIFICATION))
                             .buildFilter());
             return true;
         } else {

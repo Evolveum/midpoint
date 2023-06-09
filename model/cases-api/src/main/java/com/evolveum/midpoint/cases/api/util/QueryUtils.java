@@ -24,12 +24,15 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
@@ -41,19 +44,20 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkI
 public class QueryUtils {
 
     /**
-     * The call to {@link #filterForAssignees(S_FilterEntryOrEmpty, MidPointPrincipal, QName)},
+     * The call to {@link #filterForAssignees(S_FilterEntryOrEmpty, MidPointPrincipal, OtherPrivilegesLimitations.Type)},
      * for case management work items.
      */
-    public static S_FilterExit filterForCaseAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal) {
-        return filterForAssignees(q, principal, OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS);
+    public static S_FilterExit filterForCaseAssignees(@NotNull S_FilterEntryOrEmpty q, @Nullable MidPointPrincipal principal) {
+        return filterForAssignees(q, principal, OtherPrivilegesLimitations.Type.CASES);
     }
 
     /**
-     * The call to {@link #filterForAssignees(S_FilterEntryOrEmpty, MidPointPrincipal, QName)},
+     * The call to {@link #filterForAssignees(S_FilterEntryOrEmpty, MidPointPrincipal, OtherPrivilegesLimitations.Type)},
      * for access certification work items.
      */
-    public static S_FilterExit filterForCertificationAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal) {
-        return filterForAssignees(q, principal, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS);
+    public static S_FilterExit filterForCertificationAssignees(
+            @NotNull S_FilterEntryOrEmpty q, @Nullable MidPointPrincipal principal) {
+        return filterForAssignees(q, principal, OtherPrivilegesLimitations.Type.ACCESS_CERTIFICATION);
     }
 
     /**
@@ -64,22 +68,26 @@ public class QueryUtils {
      */
     @SuppressWarnings("WeakerAccess") // for compatibility purposes
     public static S_FilterExit filterForAssignees(
-            S_FilterEntryOrEmpty q, MidPointPrincipal principal, QName limitationItemName) {
+            @NotNull S_FilterEntryOrEmpty q,
+            @Nullable MidPointPrincipal principal,
+            @NotNull OtherPrivilegesLimitations.Type limitationType) {
         if (principal == null) {
             return q.none();
         } else {
             return q.item(CaseWorkItemType.F_ASSIGNEE_REF)
-                    .ref(getPotentialAssigneesForUser(principal, limitationItemName));
+                    .ref(getPotentialAssigneesForUser(principal, limitationType));
         }
     }
 
     public static S_FilterExit filterForNotClosedStateAndAssignees(
-            S_FilterEntryOrEmpty q, MidPointPrincipal principal, QName limitationItemName) {
+            @NotNull S_FilterEntryOrEmpty q,
+            @Nullable MidPointPrincipal principal,
+            @NotNull OtherPrivilegesLimitations.Type limitationType) {
         if (principal == null) {
             return q.none();
         } else {
             return q.item(CaseWorkItemType.F_ASSIGNEE_REF)
-                    .ref(getPotentialAssigneesForUser(principal, limitationItemName))
+                    .ref(getPotentialAssigneesForUser(principal, limitationType))
                     .and()
                     .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
                     .isNull();
@@ -100,17 +108,20 @@ public class QueryUtils {
     }
 
     private static List<PrismReferenceValue> getPotentialAssigneesForUser(
-            MidPointPrincipal principal, QName limitationItemName) {
+            @NotNull MidPointPrincipal principal, @NotNull OtherPrivilegesLimitations.Type limitationType) {
         // As for relations, WorkItem.assigneeRef should contain only the default ones.
         QName defaultRelation = SchemaService.get().relationRegistry().getDefaultRelation();
         List<PrismReferenceValue> rv = new ArrayList<>();
-        rv.add(ObjectTypeUtil.createObjectRef(principal.getOid(), ObjectTypes.USER).relation(defaultRelation).asReferenceValue());
-        for (DelegatorWithOtherPrivilegesLimitations delegator : principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
-            if (delegator.limitationsAllow(limitationItemName)) {
-                rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator(), defaultRelation).asReferenceValue());
-            }
-        }
+        rv.add(createUserRef(principal.getOid(), defaultRelation));
+        principal.getDelegatorsFor(limitationType).forEach(
+                oid -> rv.add(createUserRef(oid, defaultRelation)));
         return rv;
+    }
+
+    private static PrismReferenceValue createUserRef(String oid, QName relation) {
+        return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER)
+                .relation(relation)
+                .asReferenceValue();
     }
 
     /**

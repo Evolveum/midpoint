@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityBasic extends AbstractSecurityTest {
+public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

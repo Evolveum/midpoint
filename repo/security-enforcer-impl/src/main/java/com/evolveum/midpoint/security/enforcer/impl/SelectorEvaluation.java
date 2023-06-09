@@ -11,9 +11,6 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createAllowNotFou
 import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,14 +48,12 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
     @NotNull final AuthorizationEvaluation authorizationEvaluation;
     @NotNull private final EnforcerOperation enforcerOp;
     @NotNull final Beans b;
-    @NotNull private final Set<String> selfOids;
     @NotNull private final OperationResult result;
 
     SelectorEvaluation(
             @NotNull String id,
             @NotNull ValueSelector selector,
             @Nullable PrismValue value,
-            @NotNull Collection<String> otherSelfOids,
             @NotNull String desc,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) {
@@ -69,18 +64,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
         this.authorizationEvaluation = authorizationEvaluation;
         this.enforcerOp = authorizationEvaluation.op;
         this.b = enforcerOp.b;
-        this.selfOids = computeSelfOids(otherSelfOids);
         this.result = result;
-    }
-
-    @NotNull
-    private Set<String> computeSelfOids(@NotNull Collection<String> otherSelfOids) {
-        Set<String> allSelfOids = new HashSet<>(otherSelfOids);
-        String principalOid = getPrincipalOid();
-        if (principalOid != null) {
-            allSelfOids.add(principalOid);
-        }
-        return Collections.unmodifiableSet(allSelfOids);
     }
 
     boolean isSelectorApplicable()
@@ -95,7 +79,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
                 enforcerOp.ownerResolver,
                 this,
                 ClauseProcessingContextDescription.defaultOne(id, desc),
-                null);
+                DelegatorSelection.NO_DELEGATOR);
 
         assert value != null;
         return selector.matches(value, ctx);
@@ -120,13 +104,13 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
     }
 
     @Override
-    public @NotNull Collection<String> getSelfOids() {
-        return selfOids;
+    public @NotNull Set<String> getSelfOids(@NotNull DelegatorSelection delegatorSelection) {
+        return enforcerOp.getAllSelfOids(delegatorSelection);
     }
 
     @Override
-    public @NotNull Collection<String> getSelfOids(@Nullable Delegation delegation) {
-        return enforcerOp.getAllSelfOids(selfOids, delegation);
+    public @NotNull Set<String> getSelfPlusRolesOids(@NotNull DelegatorSelection delegatorSelection) {
+        return enforcerOp.getAllSelfPlusRolesOids(delegatorSelection);
     }
 
     public String getAutzDesc() {

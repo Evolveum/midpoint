@@ -686,9 +686,4 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected Object getQuote(String description, String fullName) {
         return description + " -- " + fullName;
     }
-
-    protected void loginAdministrator() throws SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        login(userAdministrator);
-    }
 }

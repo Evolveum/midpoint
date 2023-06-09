@@ -4510,7 +4510,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     public void initTestObjects(Task task, OperationResult result, TestObject<?>... objects) throws Exception {
         for (TestObject<?> object : objects) {
-            object.init(this, getTestTask(), getTestOperationResult());
+            object.init(this, task, result);
+        }
+    }
+
+    public void initTestObjectsRaw(OperationResult result, TestObject<?>... objects) throws Exception {
+        for (TestObject<?> object : objects) {
+            object.initRaw(this, result);
         }
     }
 }

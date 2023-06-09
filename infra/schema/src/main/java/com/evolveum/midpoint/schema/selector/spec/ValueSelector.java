@@ -196,6 +196,13 @@ public class ValueSelector implements DebugDumpable {
                                 ValueSelector.parse(assignee)));
             }
 
+            var candidateAssignee = oBean.getCandidateAssignee();
+            if (candidateAssignee != null) {
+                clauses.add(
+                        CandidateAssigneeClause.of(
+                                ValueSelector.parse(candidateAssignee)));
+            }
+
             var relatedObject = oBean.getRelatedObject();
             if (relatedObject != null) {
                 clauses.add(
@@ -412,5 +419,10 @@ public class ValueSelector implements DebugDumpable {
 
     public boolean isSubObject() {
         return !Objectable.class.isAssignableFrom(getTypeOrDefault());
+    }
+
+    @SuppressWarnings({ "WeakerAccess", "BooleanMethodIsAlwaysInverted" })
+    public boolean isPureSelf() {
+        return clauses.size() == 1 && clauses.get(0) instanceof SelfClause;
     }
 }

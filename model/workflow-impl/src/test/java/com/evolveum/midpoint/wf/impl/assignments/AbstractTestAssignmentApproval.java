@@ -564,8 +564,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     }
 
     private void importLead1Deputies(Task task, OperationResult result) throws Exception {
+        var origChannel = task.getChannel();
+        task.setChannel(SchemaConstants.CHANNEL_INIT_URI); // To avoid approvals
         USER_LEAD1_DEPUTY_1.init(this, task, result);
         USER_LEAD1_DEPUTY_2.init(this, task, result);
+        task.setChannel(origChannel);
+
         lead1DeputiesLoaded = true;
     }
 

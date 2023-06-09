@@ -137,8 +137,7 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(USER_PIRATE_OWNER_OID, null, expectedTask);
         modifyObject(descriptionDelta, false, true, USER_PIRATE_OWNER_OID,
                 Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
-                () -> {
-                },
+                () -> {},
                 () -> assertNull("Description is modified", getRoleSimple(rolePirateOid).getDescription()),
                 () -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(rolePirateOid).getDescription()));
 

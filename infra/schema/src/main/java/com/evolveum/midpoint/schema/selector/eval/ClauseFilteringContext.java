@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.selector.eval;
 
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +48,7 @@ public class ClauseFilteringContext extends ClauseMatchingContext {
             @Nullable OwnerResolver ownerResolver,
             @Nullable ObjectResolver objectResolver,
             @NotNull ClauseProcessingContextDescription description,
-            @Nullable SubjectedEvaluationContext.Delegation delegation) {
+            @NotNull DelegatorSelection delegatorSelection) {
         super(
                 filterEvaluator,
                 tracer,
@@ -55,7 +57,7 @@ public class ClauseFilteringContext extends ClauseMatchingContext {
                 ownerResolver,
                 objectResolver,
                 description,
-                delegation);
+                delegatorSelection);
         this.filterType = filterType;
         this.restrictedType = restrictedType;
         this.originalFilter = originalFilter;
@@ -136,7 +138,7 @@ public class ClauseFilteringContext extends ClauseMatchingContext {
                 ownerResolver,
                 objectResolver,
                 description.child(idDelta, textDelta),
-                delegation);
+                delegatorSelection);
     }
 
     public boolean isClauseApplicable(SelectorClause clause) {

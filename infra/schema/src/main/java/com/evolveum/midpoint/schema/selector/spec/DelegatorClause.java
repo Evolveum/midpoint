@@ -52,7 +52,8 @@ public class DelegatorClause extends SelectorClause {
             traceNotApplicable(ctx, "Not an object");
             return false;
         }
-        if (!isSelfSelector()) {
+        if (!selector.isPureSelf()) {
+            // Currently, we support only "self" delegator selector clause
             throw new UnsupportedOperationException("Unsupported non-self delegator clause");
         }
         if (!(object instanceof UserType)) {
@@ -85,12 +86,6 @@ public class DelegatorClause extends SelectorClause {
 
         traceNotApplicable(ctx, "delegator does not match");
         return false;
-    }
-
-    // Currently, we support only "self" delegator selector clause
-    private boolean isSelfSelector() {
-        List<SelectorClause> clauses = selector.getClauses();
-        return clauses.size() == 1 && clauses.get(0) instanceof SelfClause;
     }
 
     @Override

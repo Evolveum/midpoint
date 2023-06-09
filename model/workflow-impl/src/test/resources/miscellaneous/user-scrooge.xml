@@ -12,5 +12,8 @@
     <assignment>
         <targetRef oid="f6f95936-8714-4c7d-abdf-6cd3e6d2d6cc" type="RoleType" relation="approver"/> <!-- vault-access -->
     </assignment>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
     <fullName>Scrooge McDuck</fullName>
 </user>

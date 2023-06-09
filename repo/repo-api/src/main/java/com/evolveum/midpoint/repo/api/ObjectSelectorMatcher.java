@@ -8,10 +8,7 @@
 package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
-import com.evolveum.midpoint.schema.selector.eval.MatchingTracer;
-import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.eval.*;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -19,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection.NO_DELEGATOR;
 
 /**
  * This code is independent on particular repository implementation; hence, it is part of the API package.
@@ -59,6 +58,6 @@ class ObjectSelectorMatcher {
                         null,
                         null,
                         new ClauseProcessingContextDescription.Default(),
-                        null));
+                        NO_DELEGATOR));
     }
 }
