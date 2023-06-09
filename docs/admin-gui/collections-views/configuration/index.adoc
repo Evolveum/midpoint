@@ -400,13 +400,14 @@ The example of search panel configuration for Users list page:
                 <displayName>Email address filter</displayName>
             </searchItem>
             <searchItem>
-                <path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:telephoneNumber</c:path>
+                <path>telephoneNumber</path>
                 <description>Search item for search by telephone number</description>
                 <displayName>Tel. number</displayName>
             </searchItem>
         </searchItems>
     </searchBoxConfiguration>
     <type>c:UserType</type>
+    <identifier>allUsers</identifier>
 </objectCollectionView>
 ----
 
