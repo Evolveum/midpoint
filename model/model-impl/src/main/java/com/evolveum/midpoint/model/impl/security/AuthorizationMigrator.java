@@ -31,7 +31,7 @@ import static java.util.Map.entry;
 @Component
 public class AuthorizationMigrator {
 
-    private static final Map<String, ActionMigrator> migratorsMap = Map.ofEntries(
+    private static final Map<String, ActionMigrator> MIGRATORS_MAP = Map.ofEntries(
             entry(
                     ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(),
                     (migrated, original) -> {
@@ -70,7 +70,7 @@ public class AuthorizationMigrator {
         migrated.add(original);
 
         List<String> actions = original.getAction();
-        for (Map.Entry<String, ActionMigrator> entry : migratorsMap.entrySet()) {
+        for (Map.Entry<String, ActionMigrator> entry : MIGRATORS_MAP.entrySet()) {
             if (actions.contains(entry.getKey())) {
                 entry.getValue().migrate(migrated, original);
             }
