@@ -51,7 +51,9 @@ public class TestMain {
 
 //        input = "-v --offline -m ../../_mess/create0 download-distribution".split(" ");
 
-        input = "-h".split(" ");
+//        input = "-h".split(" ");
+
+        input = "-v --offline -m ../../_mess/upgrade/midpoint/var upgrade-distribution --temp-directory ../../_mess/upgrade/midpoint/.upgrade".split(" ");
 
         Main.main(input);
 
