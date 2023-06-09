@@ -19,18 +19,14 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.AuditFactory;
-import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.opts.DataSourceOptions;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 
@@ -40,6 +36,8 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
     public Void execute() throws Exception {
         // this is manual setup of datasource for midpoint, can't be done via spring application context initialization with repository
         // because sqale repository during initialization loads data from m_uri and m_ext_item (not yet existing)
+        log.info("Initializing application context");
+
         final ApplicationContext applicationContext = context.getApplicationContext();
         final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);
 
@@ -61,7 +59,7 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
                 if (auditDataSource != null) {
                     executeScripts(auditDataSource, scriptsDirectory, options.getAuditScripts());
                 } else {
-                    // todo log error
+                    log.error("Audit configuration not found in <midpoint-home>/config.xml");
                 }
             }
         } finally {
@@ -109,6 +107,7 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
     }
 
     private DataSource createDataSource(Configuration configuration, String name) throws RepositoryServiceFactoryException {
+        log.info("Creating connection for " + name);
         SqaleRepositoryConfiguration repositoryConfiguration = new SqaleRepositoryConfiguration(configuration);
         repositoryConfiguration.init();
         DataSourceFactory dataSourceFactory = new DataSourceFactory(repositoryConfiguration);
@@ -123,6 +122,8 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
 
             try {
                 for (File script : scripts) {
+                    log.info("Executing script {}", script.getPath());
+
                     Statement stmt = connection.createStatement();
 
                     String sql = FileUtils.readFileToString(script, StandardCharsets.UTF_8);
@@ -134,13 +135,6 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
                 connection.setAutoCommit(autocommit);
             }
         }
-    }
-
-    private DataSource getAuditDataSourceBean(ApplicationContext applicationContext) throws IllegalAccessException {
-        AuditServiceProxy auditProxy = applicationContext.getBean(AuditServiceProxy.class);
-        SqaleAuditService auditService = auditProxy.getImplementation(SqaleAuditService.class);
-        SqaleRepoContext repoContext = auditService.sqlRepoContext();
-        return (DataSource) FieldUtils.readField(repoContext, "dataSource", true);
     }
 
     private void closeQuietly(DataSource dataSource) {

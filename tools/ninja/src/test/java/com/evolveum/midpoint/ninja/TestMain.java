@@ -53,7 +53,13 @@ public class TestMain {
 
 //        input = "-h".split(" ");
 
-        input = "-v --offline -m ../../_mess/upgrade/midpoint/var upgrade-distribution --temp-directory ../../_mess/upgrade/midpoint/.upgrade".split(" ");
+        input = ("-v --offline -m ../../_mess/upgrade/midpoint/var "
+                + "upgrade-distribution "
+                + "--temp-directory ../../_mess/upgrade/midpoint/.upgrade "
+                + "--distribution-archive ../../_mess/upgrade/midpoint-latest-dist.zip "
+//                + "--backup-midpoint-directory"
+               ).split(" ");
+
 
         Main.main(input);
 

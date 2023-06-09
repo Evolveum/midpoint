@@ -28,6 +28,8 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         if (backupFiles) {
             backupDirectory = new File(midpointInstallation, ".backup-" + System.currentTimeMillis());
             backupDirectory.mkdir();
+
+            log.info("Backing up installation directory to: {}", backupDirectory.getAbsolutePath());
         }
 
         for (File file : emptyIfNull(distributionDirectory.listFiles())) {
@@ -49,6 +51,9 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
             if (VAR_DIRECTORY.equals(fileName)) {
                 copyFiles(file, new File(midpointInstallation, fileName), new File(backupDirectory, fileName), backupFiles);
             } else {
+                File targetFile = new File(midpointInstallation, fileName);
+                deleteExisting(targetFile);
+
                 FileUtils.moveToDirectory(file, midpointInstallation, false);
             }
         }
@@ -62,6 +67,18 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         }
 
         return files;
+    }
+
+    private void deleteExisting(File targetFile) throws IOException {
+        if (!targetFile.exists()) {
+            return;
+        }
+
+        if (targetFile.isDirectory()) {
+            FileUtils.deleteDirectory(targetFile);
+        } else {
+            targetFile.delete();
+        }
     }
 
     private void copyFiles(File srcDir, File dstDir, File backupDir, boolean backup) throws IOException {
@@ -80,6 +97,7 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
                 }
             }
 
+            deleteExisting(new File(dstDir, fileName));
             FileUtils.moveToDirectory(file, dstDir, false);
         }
     }

@@ -29,13 +29,13 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
 
             distributionZipFile = manager.downloadDistribution(UpgradeConstants.SUPPORTED_VERSION_TARGET, listener);
         } else {
-            log.info(Ansi.ansi().fgGreen().a("Distribution zip already downloaded here: " + distributionZipFile.getAbsolutePath()).reset().toString());
+            log.info("Distribution zip already downloaded.");
         }
 
         File distributionDirectory = unzipDistribution(distributionZipFile);
 
         log.info(Ansi.ansi().a("Distribution zip: ").a(distributionZipFile.getAbsolutePath()).reset().toString());
-        log.info(Ansi.ansi().a("Distribution directory: ").fgGreen().a(distributionDirectory.getAbsolutePath()).reset().toString());
+        log.info(Ansi.ansi().a("Distribution directory: ").a(distributionDirectory.getAbsolutePath()).reset().toString());
 
         return new DownloadDistributionResult(distributionZipFile, distributionDirectory);
     }
