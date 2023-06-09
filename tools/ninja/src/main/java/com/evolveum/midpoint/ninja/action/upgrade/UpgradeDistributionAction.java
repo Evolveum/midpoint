@@ -4,6 +4,8 @@ import com.evolveum.midpoint.ninja.action.Action;
 
 import com.evolveum.midpoint.ninja.action.DataSourceAction;
 
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -38,7 +40,8 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
         // upgrade database
         UpgradeDatabaseOptions databaseOptions = new UpgradeDatabaseOptions();
-        databaseOptions.setScriptsDirectory(new File(options.getInstallationDirectory(), databaseOptions.getScriptsDirectory().getPath()));
+        File installationDirectory = NinjaUtils.computeInstallationDirectory(options.getInstallationDirectory(), context);
+        databaseOptions.setScriptsDirectory(new File(installationDirectory, databaseOptions.getScriptsDirectory().getPath()));
 
         UpgradeDatabaseAction databaseAction = new UpgradeDatabaseAction();
         databaseAction.init(context, databaseOptions);

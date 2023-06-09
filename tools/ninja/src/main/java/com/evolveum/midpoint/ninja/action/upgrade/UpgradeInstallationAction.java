@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions, Void> {
 
@@ -18,11 +18,7 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
 
         final boolean backupFiles = options.isBackup();
 
-        File midpointInstallation = options.getInstallationDirectory();
-        if (midpointInstallation == null) {
-            final ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
-            midpointInstallation = new File(connectionOptions.getMidpointHome()).getParentFile();
-        }
+        File midpointInstallation = NinjaUtils.computeInstallationDirectory(options.getInstallationDirectory(), context);
 
         File backupDirectory = null;
         if (backupFiles) {

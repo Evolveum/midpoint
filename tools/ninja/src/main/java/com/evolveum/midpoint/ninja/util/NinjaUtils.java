@@ -214,4 +214,19 @@ public class NinjaUtils {
 
         return types;
     }
+
+    public static File computeInstallationDirectory(File installationDirectory, NinjaContext context) {
+        final ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
+        File midpointHomeDirectory = new File(connectionOptions.getMidpointHome());
+
+        return computeInstallationDirectory(installationDirectory, midpointHomeDirectory);
+    }
+
+    public static File computeInstallationDirectory(File installationDirectory, File midpointHomeDirectory) {
+        if (installationDirectory != null) {
+            return installationDirectory;
+        }
+
+        return midpointHomeDirectory.getParentFile();
+    }
 }
