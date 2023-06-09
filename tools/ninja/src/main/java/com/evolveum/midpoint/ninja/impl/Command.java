@@ -44,8 +44,6 @@ public enum Command {
 
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
 
-    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
-
     SETUP_DATABASE("setup-database", SetupDatabaseOptions.class, SetupDatabaseAction.class),
 
     DOWNLOAD_DISTRIBUTION("download-distribution", DownloadDistributionOptions.class, DownloadDistributionAction.class),
@@ -60,9 +58,9 @@ public enum Command {
 
     private final Class<?> options;
 
-    private final Class<? extends Action<?>> action;
+    private final Class<? extends Action<?, ?>> action;
 
-    <T> Command(String commandName, Class<T> options, Class<? extends Action<T>> action) {
+    <T> Command(String commandName, Class<T> options, Class<? extends Action<T, ?>> action) {
         this.commandName = commandName;
         this.options = options;
         this.action = action;
@@ -80,7 +78,7 @@ public enum Command {
         }
     }
 
-    public static <T> Action<T> createAction(String command) {
+    public static <T> Action<T, ?> createAction(String command) {
         Command cmd = findCommand(command);
         if (cmd == null) {
             return null;
@@ -92,7 +90,7 @@ public enum Command {
             }
 
             //noinspection unchecked
-            return (Action<T>) cmd.action.getDeclaredConstructor().newInstance();
+            return (Action<T, ?>) cmd.action.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * {@link AbstractRepositorySearchAction} because we need containers here and objects are quite
  * deeply embedded in the existing classes.
  */
-public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOptions> {
+public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOptions, Void> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -44,7 +44,7 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus operation = new OperationStatus(context, result);
 
@@ -83,6 +83,8 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
         }
 
         handleResultOnFinish(operation, "Finished " + OPERATION_SHORT_NAME);
+
+        return null;
     }
 
     @Override

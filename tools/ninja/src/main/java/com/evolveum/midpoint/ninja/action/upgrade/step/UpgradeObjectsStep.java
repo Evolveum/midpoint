@@ -1,19 +1,17 @@
 package com.evolveum.midpoint.ninja.action.upgrade.step;
 
+import java.lang.reflect.Modifier;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.Main;
 import com.evolveum.midpoint.ninja.action.upgrade.StepResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectProcessor;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStep;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeStepsContext;
-
 import com.evolveum.midpoint.util.ClassPathUtil;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.lang.reflect.Modifier;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public abstract class UpgradeObjectsStep implements UpgradeStep<StepResult> {
 
@@ -25,9 +23,9 @@ public abstract class UpgradeObjectsStep implements UpgradeStep<StepResult> {
 
     @Override
     public StepResult execute() throws Exception {
-        final VerifyResult verifyResult = context.getResult(VerifyResult.class);
-
-        final File output = verifyResult.getOutput();
+//        final VerifyResult verifyResult = context.getResult(VerifyResult.class);
+//
+//        final File output = verifyResult.getOutput();
 
         // todo load CSV, only OIDs + state (whether to update)
         // go through all oids that need to be updated

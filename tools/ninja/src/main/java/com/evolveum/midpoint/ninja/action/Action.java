@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  *
  * @param <O> options class
  */
-public abstract class Action<O> {
+public abstract class Action<O, R> {
 
     protected Log log;
 
@@ -83,5 +83,5 @@ public abstract class Action<O> {
         }
     }
 
-    public abstract void execute() throws Exception;
+    public abstract R execute() throws Exception;
 }

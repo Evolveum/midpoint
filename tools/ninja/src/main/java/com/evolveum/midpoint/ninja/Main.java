@@ -75,7 +75,7 @@ public class Main {
 
         NinjaContext context = null;
         try {
-            Action<T> action = Command.createAction(parsedCommand);
+            Action<T, ?> action = Command.createAction(parsedCommand);
 
             if (action == null) {
                 System.err.println("Action for command '" + parsedCommand + "' not found");

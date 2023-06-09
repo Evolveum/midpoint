@@ -1,15 +1,16 @@
 package com.evolveum.midpoint.ninja.action;
 
-import java.io.File;
-import javax.sql.DataSource;
-
-import org.apache.commons.configuration2.Configuration;
-import org.springframework.context.ApplicationContext;
-
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
 
+/**
+ * Intentionally empty class, as this is just an alias with different defaults for options
+ *
+ * @see SetupDatabaseOptions
+ * @see com.evolveum.midpoint.ninja.action.upgrade.UpgradeDatabaseAction
+ * @see com.evolveum.midpoint.ninja.action.upgrade.UpgradeDatabaseOptions
+ * @see DataSourceAction
+ * @see com.evolveum.midpoint.ninja.opts.DataSourceOptions
+ */
 public class SetupDatabaseAction extends DataSourceAction<SetupDatabaseOptions> {
-
 
 }

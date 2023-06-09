@@ -14,10 +14,10 @@ import org.fusesource.jansi.Ansi;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.util.Log;
 
-public class DownloadDistributionAction extends Action<DownloadDistributionOptions> {
+public class DownloadDistributionAction extends Action<DownloadDistributionOptions, DownloadDistributionResult> {
 
     @Override
-    public void execute() throws Exception {
+    public DownloadDistributionResult execute() throws Exception {
         final Log log = context.getLog();
 
         final File tempDirectory = options.getTempDirectory();
@@ -37,7 +37,7 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
         log.info(Ansi.ansi().a("Distribution zip: ").a(distributionZipFile.getAbsolutePath()).reset().toString());
         log.info(Ansi.ansi().a("Distribution directory: ").fgGreen().a(distributionDirectory.getAbsolutePath()).reset().toString());
 
-//        return new DownloadDistributionResult(distributionZipFile, distributionDirectory);  // todo pass result somewhere
+        return new DownloadDistributionResult(distributionZipFile, distributionDirectory);
     }
 
     private File unzipDistribution(File distributionZip) throws IOException {

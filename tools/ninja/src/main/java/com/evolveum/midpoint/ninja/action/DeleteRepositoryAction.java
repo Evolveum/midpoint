@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
+public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions, Void> {
 
     private static final String DOT_CLASS = DeleteRepositoryAction.class.getName() + ".";
 
@@ -45,12 +45,12 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         String oid = options.getOid();
 
         if (oid != null) {
             deleteByOid();
-            return;
+            return null;
         }
 
         ObjectTypes type = options.getType();
@@ -60,6 +60,8 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
         ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context, type.getClassDefinition());
         deleteByFilter(query);
+
+        return null;
     }
 
     private void deleteByOid() throws SchemaException {

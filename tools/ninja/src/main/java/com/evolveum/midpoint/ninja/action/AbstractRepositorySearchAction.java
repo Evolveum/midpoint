@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @param <O> options class
  */
-public abstract class AbstractRepositorySearchAction<O extends ExportOptions> extends RepositoryAction<O> {
+public abstract class AbstractRepositorySearchAction<O extends ExportOptions> extends RepositoryAction<O, Void> {
 
     private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
 
@@ -60,7 +60,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(getOperationName());
         OperationStatus operation = new OperationStatus(context, result);
 
@@ -98,6 +98,8 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
         }
 
         handleResultOnFinish(operation, "Finished " + getOperationShortName());
+
+        return null;
     }
 
     @Override

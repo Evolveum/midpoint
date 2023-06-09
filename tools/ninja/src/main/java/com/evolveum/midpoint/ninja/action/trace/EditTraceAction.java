@@ -29,14 +29,14 @@ import org.apache.commons.lang3.ObjectUtils;
 /**
  * TODO
  */
-public class EditTraceAction extends RepositoryAction<EditTraceOptions> {
+public class EditTraceAction extends RepositoryAction<EditTraceOptions, Void> {
 
     private static final String DEFAULT_OUTPUT = "output.zip";
 
     private int killed;
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         TracingOutputType trace = parseInput();
         if (options.isPrintStat() || options.isPrintStatExtra()) {
             printStatistics(trace);
@@ -47,6 +47,8 @@ public class EditTraceAction extends RepositoryAction<EditTraceOptions> {
             applyKill(trace);
             writeTrace(trace);
         }
+
+        return null;
     }
 
     private TracingOutputType parseInput() throws IOException, SchemaException {

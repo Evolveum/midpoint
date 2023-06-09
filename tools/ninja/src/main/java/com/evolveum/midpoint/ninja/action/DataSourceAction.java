@@ -34,10 +34,10 @@ import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 
-public abstract class DataSourceAction<O extends DataSourceOptions> extends Action<O> {
+public abstract class DataSourceAction<O extends DataSourceOptions> extends Action<O, Void> {
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         // this is manual setup of datasource for midpoint, can't be done via spring application context initialization with repository
         // because sqale repository during initialization loads data from m_uri and m_ext_item (not yet existing)
         final ApplicationContext applicationContext = context.getApplicationContext();
@@ -68,6 +68,8 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
             closeQuietly(repositoryDataSource);
             closeQuietly(auditDataSource);
         }
+
+        return null;
     }
 
     private void executeScripts(DataSource dataSource, File scriptsDirectory, List<File> scripts) throws IOException, SQLException {

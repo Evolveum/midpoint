@@ -8,12 +8,12 @@ import org.apache.commons.io.FileUtils;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 
-public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions> {
+public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions, Void> {
 
     private static final String VAR_DIRECTORY = "var";
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         final File distributionDirectory = options.getDistributionDirectory();
 
         final boolean backupFiles = options.isBackup();
@@ -52,6 +52,8 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
                 FileUtils.moveToDirectory(file, midpointInstallation, false);
             }
         }
+
+        return null;
     }
 
     private File[] emptyIfNull(File[] files) {

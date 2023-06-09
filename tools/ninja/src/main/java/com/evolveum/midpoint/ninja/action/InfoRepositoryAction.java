@@ -16,10 +16,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 /**
  * Short information about the currently used environment, including repository diagnostics.
  */
-public class InfoRepositoryAction extends RepositoryAction<InfoOptions> {
+public class InfoRepositoryAction extends RepositoryAction<InfoOptions, Void> {
 
     @Override
-    public void execute() {
+    public Void execute() {
         MidpointConfiguration config = context.getMidpointConfiguration();
         System.out.println("MidPoint home: " + config.getMidpointHome());
         System.out.println("Java home: " + System.getProperty("java.home"));
@@ -46,5 +46,7 @@ public class InfoRepositoryAction extends RepositoryAction<InfoOptions> {
             // Fatal crash during Ninja start is more likely than this, but just to be sure...
             System.err.println("Unexpected problem during repo diag: " + e);
         }
+
+        return null;
     }
 }

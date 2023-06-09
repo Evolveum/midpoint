@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CountRepositoryAction extends RepositoryAction<CountOptions> {
+public class CountRepositoryAction extends RepositoryAction<CountOptions, Void> {
 
     private static final String DOT_CLASS = CountRepositoryAction.class.getName() + ".";
 
@@ -35,7 +35,7 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         RepositoryService repository = context.getRepository();
 
         FileReference fileReference = options.getFilter();
@@ -59,5 +59,7 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
         }
 
         log.info("===\nTotal:\t{}", total);
+
+        return null;
     }
 }

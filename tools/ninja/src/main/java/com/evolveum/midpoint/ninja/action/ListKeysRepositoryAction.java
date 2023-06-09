@@ -24,7 +24,7 @@ import java.util.Enumeration;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> {
+public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions, Void> {
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
@@ -34,7 +34,7 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 
@@ -65,6 +65,7 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
         }
 
         // todo implement dump other keys from keystore
+        return null;
     }
 
     private void describeAlias(KeyStore keyStore, String alias, Protector protector)
