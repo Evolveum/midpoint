@@ -409,7 +409,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         USER_DEPUTY_1.init(this, task, result);
         try {
-            login(USER_DEPUTY_1.getNameOrig());
+            login(USER_DEPUTY_1);
 
             // WHEN
             when();
@@ -475,7 +475,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         addObject(USER_DEPUTY_2, task, result);
         try {
-            login(USER_DEPUTY_2.getNameOrig());
+            login(USER_DEPUTY_2);
 
             // WHEN
             when();

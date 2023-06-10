@@ -69,26 +69,26 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     CLOSE_CERTIFICATION_CAMPAIGN("closeCertificationCampaign", "Close certification campaign", "CLOSE_CERTIFICATION_CAMPAIGN_HELP"),
     REITERATE_CERTIFICATION_CAMPAIGN("reiterateCertificationCampaign", "Reiterate certification campaign", "REITERATE_CERTIFICATION_CAMPAIGN_HELP"),
 
-    @Deprecated // use READ instead
+    /** Replaced by {@link #READ}, see AuthorizationMigrator. No longer used in the production code. */
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated
     READ_OWN_CERTIFICATION_DECISIONS("readOwnCertificationDecisions", "Read own access certification decisions", "READ_OWN_CERTIFICATION_DECISIONS_HELP"),
 
-    @Deprecated // use COMPLETE_WORK_ITEM instead
+    /** Replaced by {@link #COMPLETE_WORK_ITEM}. No longer used in the production code. */
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated
     RECORD_CERTIFICATION_DECISION("recordCertificationDecision", "Record access certification decision", "RECORD_CERTIFICATION_DECISION_HELP"),
 
-    @Deprecated // use COMPLETE_WORK_ITEM instead
+    /** Replaced by {@link #COMPLETE_WORK_ITEM}. No longer used in the production code. */
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated
     COMPLETE_ALL_WORK_ITEMS("completeAllWorkItems", "Complete all work items", "COMPLETE_ALL_WORK_ITEMS_HELP"),
 
-    @Deprecated // use DELEGATE_WORK_ITEM instead
-    DELEGATE_ALL_WORK_ITEMS("#", "Delegate all work items", "DELEGATE_ALL_WORK_ITEMS_HELP"),
+    /** Replaced by {@link #DELEGATE_WORK_ITEM}. No longer used in the production code. */
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated // use DELEGATE_WORK_ITEM instead
+    DELEGATE_ALL_WORK_ITEMS("delegateAllWorkItems", "Delegate all work items", "DELEGATE_ALL_WORK_ITEMS_HELP"),
 
-    @Deprecated // use DELEGATE_WORK_ITEM instead
+    /** Replaced by {@link #DELEGATE_WORK_ITEM}. No longer used in the production code. */
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated
     DELEGATE_OWN_WORK_ITEMS("delegateOwnWorkItems", "Delegate own work items", "DELEGATE_OWN_WORK_ITEMS_HELP"),
 
-    @Deprecated // use READ instead (actually, this one was not used at all)
-    READ_ALL_WORK_ITEMS("readAllWorkItems", "Read all work items", "READ_ALL_WORK_ITEMS_HELP"),
-
-    STOP_APPROVAL_PROCESS_INSTANCE("stopApprovalProcessInstance", "Stop approval process instance", "STOP_APPROVAL_PROCESS_INSTANCE_HELP"),
-    CLEANUP_PROCESS_INSTANCES("cleanupProcessInstances", "Cleanup process instances", "CLEANUP_PROCESS_INSTANCES_HELP"),
     CANCEL_CASE("cancelCase", "Cancel case", "CANCEL_CASE_HELP"),
 
     AUDIT_READ("auditRead", "Audit Read", "AUDIT_READ_HELP"),

@@ -74,7 +74,7 @@ public class QueryUtils {
         if (principal == null) {
             return q.none();
         } else {
-            return q.item(CaseWorkItemType.F_ASSIGNEE_REF)
+            return q.item(AbstractWorkItemType.F_ASSIGNEE_REF)
                     .ref(getPotentialAssigneesForUser(principal, limitationType));
         }
     }

@@ -273,7 +273,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_LECHUCK.oid, 1);
         assignRole(USER_LECHUCK.oid, ROLE_PERSONA_MANAGEMENT.oid);
-        login(USER_LECHUCK.getNameOrig());
+        login(USER_LECHUCK);
 
         // WHEN
         when();

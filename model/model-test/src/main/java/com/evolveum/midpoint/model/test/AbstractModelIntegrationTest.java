@@ -38,6 +38,8 @@ import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.security.api.*;
 
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -4594,6 +4596,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         login(principal);
     }
 
+    protected void login(TestObject<UserType> testObject) throws CommonException {
+        login(testObject.getNameOrig());
+    }
+
     protected void login(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         login(principal);
@@ -6378,6 +6384,135 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return object;
     }
 
+    protected void assertCompleteAndDelegateAllow(@NotNull WorkItemId id) throws CommonException {
+        assertCompleteAllow(id);
+        assertDelegateAllow(id);
+    }
+
+    protected void assertCompleteAndDelegateAllow(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertCompleteAllow(id);
+        assertDelegateAllow(id);
+    }
+
+    private void assertCompleteAllow(@NotNull WorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    protected void assertCompleteAllow(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    private void assertDelegateAllow(@NotNull WorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    protected void assertDelegateAllow(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    private void assertActionAllow(WorkItemId id, ModelAuthorizationAction modelAuthorizationAction) throws CommonException {
+        Task task = createPlainTask("assertActionAllow");
+        OperationResult result = task.getResult();
+        var workItem = repositoryService.getWorkItem(id, null, result); // using repo to avoid checking read authorizations
+        attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+        result.recomputeStatus();
+        assertSuccess(result);
+        logAllow(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+    }
+
+    private void attemptWorkItemAction(
+            CaseWorkItemType workItem, WorkItemId id, ModelAuthorizationAction modelAuthorizationAction,
+            Task task, OperationResult result) throws CommonException {
+        logAttempt(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+        securityEnforcer.authorize(
+                modelAuthorizationAction.getUrl(),
+                null,
+                ValueAuthorizationParameters.of(workItem),
+                null,
+                task, result);
+    }
+
+    private void assertActionAllow(AccessCertificationWorkItemId id, ModelAuthorizationAction modelAuthorizationAction) throws CommonException {
+        Task task = createPlainTask("assertActionAllow");
+        OperationResult result = task.getResult();
+        var workItem = repositoryService.getAccessCertificationWorkItem(id, null, result); // using repo to avoid checking read authorizations
+        attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+        result.recomputeStatus();
+        assertSuccess(result);
+        logAllow(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+    }
+
+    private void attemptWorkItemAction(
+            AccessCertificationWorkItemType workItem, AccessCertificationWorkItemId id,
+            ModelAuthorizationAction modelAuthorizationAction,
+            Task task, OperationResult result) throws CommonException {
+        logAttempt(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+        securityEnforcer.authorize(
+                modelAuthorizationAction.getUrl(),
+                null,
+                ValueAuthorizationParameters.of(workItem),
+                null,
+                task, result);
+    }
+
+    protected void assertCompleteAndDelegateDeny(@NotNull WorkItemId id) throws CommonException {
+        assertCompleteDeny(id);
+        assertDelegateDeny(id);
+    }
+
+    protected void assertCompleteAndDelegateDeny(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertCompleteDeny(id);
+        assertDelegateDeny(id);
+    }
+
+    private void assertCompleteDeny(@NotNull WorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    protected void assertCompleteDeny(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    private void assertDelegateDeny(@NotNull WorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    protected void assertDelegateDeny(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    private void assertActionDeny(WorkItemId id, ModelAuthorizationAction modelAuthorizationAction) throws CommonException {
+        Task task = createPlainTask("assertActionDeny");
+        OperationResult result = task.getResult();
+        var workItem = repositoryService.getWorkItem(id, null, result); // using repo to avoid checking read authorizations
+        try {
+            attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+            failDeny(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+        } catch (SecurityViolationException e) {
+            // this is expected
+            logDeny(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+            result.recomputeStatus();
+            assertFailure(result);
+        }
+    }
+
+    private void assertActionDeny(AccessCertificationWorkItemId id, ModelAuthorizationAction modelAuthorizationAction)
+            throws CommonException {
+        Task task = createPlainTask("assertActionDeny");
+        OperationResult result = task.getResult();
+        // using repo to avoid checking read authorizations
+        var workItem = repositoryService.getAccessCertificationWorkItem(id, null, result);
+        try {
+            attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+            failDeny(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+        } catch (SecurityViolationException e) {
+            // this is expected
+            logDeny(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+            result.recomputeStatus();
+            assertFailure(result);
+        }
+    }
+
     protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
         assertSearch(type, prismContext.queryFactory().createQuery(filter), null, expectedResults);
     }
@@ -6430,8 +6565,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void assertSearchCertCases(int expectedNumber) throws CommonException {
-        assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
+    protected List<AccessCertificationCaseType> assertSearchCertCases(int expectedNumber) throws CommonException {
+        return assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
+    }
+
+    protected void assertCertCasesSearch(AccessCertificationCaseId... ids) throws CommonException {
+        var cases = assertSearchCertCases(ids.length);
+        var realIds = AccessCertificationCaseId.of(cases);
+        assertThat(realIds).as("certification cases IDs").containsExactlyInAnyOrder(ids);
+    }
+
+    protected void assertCertWorkItemsSearch(AccessCertificationWorkItemId... ids) throws CommonException {
+        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, null, ids.length);
+        var realIds = AccessCertificationWorkItemId.of(workItems);
+        assertThat(realIds).as("certification work items IDs").containsExactlyInAnyOrder(ids);
     }
 
     protected void assertSearchCases(int expectedNumber) throws Exception {

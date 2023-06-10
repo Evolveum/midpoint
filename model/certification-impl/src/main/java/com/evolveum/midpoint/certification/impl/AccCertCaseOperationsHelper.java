@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;

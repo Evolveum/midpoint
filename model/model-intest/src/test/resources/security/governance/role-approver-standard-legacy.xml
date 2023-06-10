@@ -25,7 +25,7 @@
             This was implicitly allowed before 4.8; now it must be specified explicitly.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#complete</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
         <object>
             <type>CaseWorkItemType</type>
             <assignee>

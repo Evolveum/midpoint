@@ -22,7 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
-import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
 import com.evolveum.midpoint.security.api.SecurityUtil;

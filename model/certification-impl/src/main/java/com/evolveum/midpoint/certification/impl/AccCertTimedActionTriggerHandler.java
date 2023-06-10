@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
@@ -135,7 +135,8 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
         }
     }
 
-    private void executeDelegateAction(AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
+    private void executeDelegateAction(
+            AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
             Task task, OperationResult result)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
