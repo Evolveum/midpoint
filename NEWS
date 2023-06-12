@@ -1,12 +1,12 @@
-MidPoint 4.7 "Johnson"
-----------------------
+MidPoint 4.7.1 "Johnson" Update 1
+---------------------------------
 
-Release 4.7 is a forty-fifth midPoint release code-named Johnson.
-The 4.7 release brings simulation and preview features, object marks and improvements to identity governance reporting, password reset and user experience.
+Release 4.7.1 is a forty-seventh midPoint release code-named Johnson.
+The 4.7.1 release brings simulation and preview features, object marks and improvements to identity governance reporting, password reset and user experience.
 
-Release date: 14th April 2023
-Release type: Feature release
+Release date: 5th Jun 2023
+Release type: Maintenance release
 End of support: 14th April 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.7/
+https://docs.evolveum.com/midpoint/release/4.7.1/
