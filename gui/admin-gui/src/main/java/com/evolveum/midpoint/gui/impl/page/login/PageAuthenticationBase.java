@@ -14,8 +14,6 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.web.page.error.PageError;
-
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -238,17 +236,4 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
     }
 
     protected abstract DynamicFormPanel<UserType> getDynamicForm();
-
-    protected SecurityPolicyType resolveUserSecurityPolicy(UserType user) {
-        if (user == null) {
-            getSession().error(getString("User not found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
-        if (securityPolicy == null) {
-            getSession().error(getString("Security policy not found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        return securityPolicy;
-    }
 }

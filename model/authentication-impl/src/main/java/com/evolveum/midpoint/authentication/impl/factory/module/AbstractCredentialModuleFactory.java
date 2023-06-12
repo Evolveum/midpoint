@@ -103,7 +103,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         if (!usedPolicy.getClass().equals(supportedClass())) {
-            String moduleIdentifier = moduleType.getIdentifier();
+            String moduleIdentifier = StringUtils.isNotEmpty(moduleType.getIdentifier()) ? moduleType.getIdentifier() : moduleType.getName();
             String message = "Module " + moduleIdentifier + "support only " + supportedClass() + " type of credential";
             IllegalArgumentException e = new IllegalArgumentException(message);
             LOGGER.error(message);
@@ -111,6 +111,10 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         return getObjectObjectPostProcessor().postProcess(createProvider(usedPolicy));
+    }
+
+    private String getCredentialAuthModuleIdentifier(AbstractCredentialAuthenticationModuleType module) {
+        return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
     }
 
     protected abstract ModuleAuthenticationImpl createEmptyModuleAuthentication(
