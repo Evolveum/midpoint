@@ -1728,17 +1728,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private boolean sequenceIdentifierMatch(AuthenticationSequenceType seq, String sequenceIdentifier) {
-        if (sequenceIdentifier == null) {
-            return false;
-        }
-        return sequenceIdentifier.equals(seq.getIdentifier());
+        return sequenceIdentifier.equals(seq.getName()) || sequenceIdentifier.equals(seq.getIdentifier());
     }
 
     private boolean moduleIdentifierMatch(MailNonceAuthenticationModuleType module, String moduleIdentifier) {
-        if (moduleIdentifier == null) {
-            return false;
-        }
-        String mailNonceModuleId = module.getIdentifier();
+        String mailNonceModuleId = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
         return moduleIdentifier.equals(mailNonceModuleId);
     }
 
