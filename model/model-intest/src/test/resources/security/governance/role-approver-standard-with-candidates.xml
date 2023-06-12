@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="509ce515-35ff-45f6-bf49-0d5b81af515e"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>approver-standard-with-candidates</name>
+    <description>The new variant of a standard approver role, with the visibility of "candidates" work items</description>
+    <inducement>
+        <targetRef oid="9d06e3c7-a182-4b61-b3b0-5c181eaf6955" type="RoleType"/>
+    </inducement>
+    <authorization>
+        <name>own-workitems-read-complete-delegate-also-candidates</name>
+        <description>
+            Allows reading, completion, and delegation of own work items, including candidates.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateWorkItem</action>
+        <object>
+            <type>CaseWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+        <object>
+            <type>CaseWorkItemType</type>
+            <candidateAssignee>
+                <special>self</special>
+            </candidateAssignee>
+        </object>
+    </authorization>
+    <authorization>
+        <name>cases-read</name>
+        <description>
+            Allows to see parts of the cases containing work items assigned to the user.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+        <object>
+            <type>CaseType</type>
+            <candidateAssignee>
+                <special>self</special>
+            </candidateAssignee>
+        </object>
+        <exceptItem>event</exceptItem> <!-- TODO what about events relevant to the approver? -->
+        <exceptItem>workItem</exceptItem>
+    </authorization>
+</role>

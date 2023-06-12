@@ -911,16 +911,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         return new AssignmentEvaluator.Builder<UserType>()
                 .referenceResolver(referenceResolver)
                 .focusOdo(focusOdo)
-                .modelBeans(modelBeans)
-                .objectResolver(objectResolver)
-                .systemObjectCache(systemObjectCache)
-                .relationRegistry(relationRegistry)
-                .prismContext(prismContext)
-                .activationComputer(activationComputer)
                 .now(clock.currentTimeXMLGregorianCalendar())
-                .mappingFactory(mappingFactory)
-                .mappingEvaluator(mappingEvaluator)
-                .contextLoader(contextLoader)
                 .lensContext(lensContext)
                 .build();
     }

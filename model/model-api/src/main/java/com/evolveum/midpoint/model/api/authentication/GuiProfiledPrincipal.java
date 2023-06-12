@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.api.authentication;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import java.io.Serial;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author Radovan Semancik
  */
 public class GuiProfiledPrincipal extends MidPointPrincipal {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private CompiledGuiProfile compiledGuiProfile;
 
@@ -47,6 +48,7 @@ public class GuiProfiledPrincipal extends MidPointPrincipal {
     /**
      * Semi-shallow clone.
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public GuiProfiledPrincipal clone() {
         GuiProfiledPrincipal clone = new GuiProfiledPrincipal(this.getFocus());

@@ -54,13 +54,11 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
 
         String typeKey = null;
         PrismContainerValue root = value.getRootValue();
-        if (root != null) {
-            Class clazz = root.getCompileTimeClass();
-            if (clazz != null && ObjectType.class.isAssignableFrom(clazz)) {
-                typeKey = "ObjectTypes." + ObjectTypes.getObjectType(clazz).name();
-            } else {
-                typeKey = root.getDefinition() != null ? root.getDefinition().getDisplayName() : null;
-            }
+        Class clazz = root.getCompileTimeClass();
+        if (clazz != null && ObjectType.class.isAssignableFrom(clazz)) {
+            typeKey = "ObjectTypes." + ObjectTypes.getObjectType(clazz).name();
+        } else {
+            typeKey = root.getDefinition() != null ? root.getDefinition().getDisplayName() : null;
         }
 
         if (typeKey == null) {

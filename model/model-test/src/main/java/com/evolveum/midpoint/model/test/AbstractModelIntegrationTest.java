@@ -36,6 +36,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
+import com.evolveum.midpoint.security.api.*;
+
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -130,10 +134,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -1759,7 +1759,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assign(type, focusOid, assignmentType, task, result);
     }
 
-    protected void assign(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
+    protected void assign(TestObject<?> assignee, TestObject<?> assigned, QName relation, ModelExecuteOptions options,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<UserType> delta = deltaFor(assignee.getType())
@@ -1769,7 +1769,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         executeChanges(delta, options, task, result);
     }
 
-    protected void unassignIfSingle(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
+    protected void unassignIfSingle(TestObject<?> assignee, TestObject<?> assigned, QName relation, ModelExecuteOptions options,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         List<AssignmentType> assignments = ((AssignmentHolderType) assignee.getObjectable()).getAssignment().stream()
@@ -4596,6 +4596,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         login(principal);
     }
 
+    protected void login(TestObject<UserType> testObject) throws CommonException {
+        login(testObject.getNameOrig());
+    }
+
     protected void login(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         login(principal);
@@ -4721,13 +4725,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         loginSuperUser(principal);
     }
 
-    protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
-        AuthorizationType superAutzBean = new AuthorizationType();
-        prismContext.adopt(superAutzBean, RoleType.class, RoleType.F_AUTHORIZATION);
-        superAutzBean.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-        Authorization superAutz = new Authorization(superAutzBean);
-        Collection<Authorization> authorities = principal.getAuthorities();
-        authorities.add(superAutz);
+    protected void loginSuperUser(MidPointPrincipal principal) {
+        principal.addAuthorization(SecurityUtil.createPrivilegedAuthorization());
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(createMpAuthentication(authentication));
@@ -4825,7 +4824,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong attroney OID in principal", attotrneyOid, attorney.getOid());
     }
 
-    protected Collection<Authorization> getSecurityContextAuthorizations() {
+    private Collection<Authorization> getSecurityContextAuthorizations() {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
         if (midPointPrincipal == null) {
             return null;
@@ -5306,7 +5305,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertNoAuthorizations(MidPointPrincipal principal) {
-        if (principal.getAuthorities() != null && !principal.getAuthorities().isEmpty()) {
+        if (!principal.getAuthorities().isEmpty()) {
             AssertJUnit.fail("Unexpected authorizations in " + principal + ": " + principal.getAuthorities());
         }
     }
@@ -6223,6 +6222,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected AccCertCampaignAsserter<Void> assertCampaignFull(String oid, String message) throws CommonException {
+        var campaign = getObject(
+                AccessCertificationCampaignType.class,
+                oid,
+                getOperationOptionsBuilder()
+                        .retrieve()
+                        .build());
+        AccCertCampaignAsserter<Void> asserter = AccCertCampaignAsserter.forCampaign(campaign, message);
+        initializeAsserter(asserter);
+        asserter.assertOid(oid);
+        return asserter;
+    }
+
+    protected AccCertCampaignAsserter<Void> assertCampaignFullAfter(String oid) throws CommonException {
+        return assertCampaignFull(oid, "after")
+                .display();
+    }
+
     protected CaseAsserter<Void> assertCase(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<CaseType> acase = getObject(CaseType.class, oid);
         CaseAsserter<Void> asserter = CaseAsserter.forCase(acase, message);
@@ -6330,11 +6347,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     // SECURITY
 
-    protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws CommonException {
         assertGetDeny(type, oid, null);
     }
 
-    protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> void assertGetDeny(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws CommonException {
         Task task = createPlainTask("assertGetDeny");
         OperationResult result = task.getResult();
         try {
@@ -6349,12 +6367,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws CommonException {
         assertGetAllow(type, oid, createReadOnly());
         return assertGetAllow(type, oid, null);
     }
 
-    protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> PrismObject<O> assertGetAllow(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws CommonException {
         Task task = createPlainTask("assertGetAllow");
         OperationResult result = task.getResult();
         logAttempt("get", type, oid, null);
@@ -6365,6 +6384,135 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return object;
     }
 
+    protected void assertCompleteAndDelegateAllow(@NotNull WorkItemId id) throws CommonException {
+        assertCompleteAllow(id);
+        assertDelegateAllow(id);
+    }
+
+    protected void assertCompleteAndDelegateAllow(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertCompleteAllow(id);
+        assertDelegateAllow(id);
+    }
+
+    private void assertCompleteAllow(@NotNull WorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    protected void assertCompleteAllow(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    private void assertDelegateAllow(@NotNull WorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    protected void assertDelegateAllow(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionAllow(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    private void assertActionAllow(WorkItemId id, ModelAuthorizationAction modelAuthorizationAction) throws CommonException {
+        Task task = createPlainTask("assertActionAllow");
+        OperationResult result = task.getResult();
+        var workItem = repositoryService.getWorkItem(id, null, result); // using repo to avoid checking read authorizations
+        attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+        result.recomputeStatus();
+        assertSuccess(result);
+        logAllow(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+    }
+
+    private void attemptWorkItemAction(
+            CaseWorkItemType workItem, WorkItemId id, ModelAuthorizationAction modelAuthorizationAction,
+            Task task, OperationResult result) throws CommonException {
+        logAttempt(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+        securityEnforcer.authorize(
+                modelAuthorizationAction.getUrl(),
+                null,
+                ValueAuthorizationParameters.of(workItem),
+                null,
+                task, result);
+    }
+
+    private void assertActionAllow(AccessCertificationWorkItemId id, ModelAuthorizationAction modelAuthorizationAction) throws CommonException {
+        Task task = createPlainTask("assertActionAllow");
+        OperationResult result = task.getResult();
+        var workItem = repositoryService.getAccessCertificationWorkItem(id, null, result); // using repo to avoid checking read authorizations
+        attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+        result.recomputeStatus();
+        assertSuccess(result);
+        logAllow(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+    }
+
+    private void attemptWorkItemAction(
+            AccessCertificationWorkItemType workItem, AccessCertificationWorkItemId id,
+            ModelAuthorizationAction modelAuthorizationAction,
+            Task task, OperationResult result) throws CommonException {
+        logAttempt(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+        securityEnforcer.authorize(
+                modelAuthorizationAction.getUrl(),
+                null,
+                ValueAuthorizationParameters.of(workItem),
+                null,
+                task, result);
+    }
+
+    protected void assertCompleteAndDelegateDeny(@NotNull WorkItemId id) throws CommonException {
+        assertCompleteDeny(id);
+        assertDelegateDeny(id);
+    }
+
+    protected void assertCompleteAndDelegateDeny(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertCompleteDeny(id);
+        assertDelegateDeny(id);
+    }
+
+    private void assertCompleteDeny(@NotNull WorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    protected void assertCompleteDeny(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.COMPLETE_WORK_ITEM);
+    }
+
+    private void assertDelegateDeny(@NotNull WorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    protected void assertDelegateDeny(@NotNull AccessCertificationWorkItemId id) throws CommonException {
+        assertActionDeny(id, ModelAuthorizationAction.DELEGATE_WORK_ITEM);
+    }
+
+    private void assertActionDeny(WorkItemId id, ModelAuthorizationAction modelAuthorizationAction) throws CommonException {
+        Task task = createPlainTask("assertActionDeny");
+        OperationResult result = task.getResult();
+        var workItem = repositoryService.getWorkItem(id, null, result); // using repo to avoid checking read authorizations
+        try {
+            attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+            failDeny(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+        } catch (SecurityViolationException e) {
+            // this is expected
+            logDeny(modelAuthorizationAction.name(), CaseType.class, id.caseOid, id.asItemPath());
+            result.recomputeStatus();
+            assertFailure(result);
+        }
+    }
+
+    private void assertActionDeny(AccessCertificationWorkItemId id, ModelAuthorizationAction modelAuthorizationAction)
+            throws CommonException {
+        Task task = createPlainTask("assertActionDeny");
+        OperationResult result = task.getResult();
+        // using repo to avoid checking read authorizations
+        var workItem = repositoryService.getAccessCertificationWorkItem(id, null, result);
+        try {
+            attemptWorkItemAction(workItem, id, modelAuthorizationAction, task, result);
+            failDeny(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+        } catch (SecurityViolationException e) {
+            // this is expected
+            logDeny(modelAuthorizationAction.name(), AccessCertificationCampaignType.class, id.campaignOid(), id.asItemPath());
+            result.recomputeStatus();
+            assertFailure(result);
+        }
+    }
+
     protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
         assertSearch(type, prismContext.queryFactory().createQuery(filter), null, expectedResults);
     }
@@ -6372,6 +6520,82 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
         assertSearch(type, query, null, expectedResults);
         return assertSearch(type, query, createReadOnly(), expectedResults);
+    }
+
+    protected void assertVisibleUsers(int expectedNumAllUsers) throws Exception {
+        assertSearch(UserType.class, null, expectedNumAllUsers);
+    }
+
+    protected void assertSearchCases(String... expectedOids) throws Exception {
+        assertSearch(CaseType.class, null, expectedOids);
+    }
+
+    protected void assertSearchCampaigns(String... expectedOids) throws Exception {
+        assertSearch(AccessCertificationCampaignType.class, null, expectedOids);
+    }
+
+    protected <C extends Containerable> List<C> assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults)
+            throws CommonException {
+        return assertContainerSearch(type, query, null, expectedResults);
+    }
+
+    protected <C extends Containerable>
+    List<C> assertContainerSearch(Class<C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        try {
+            logAttempt("searchContainers", type, query);
+            List<C> objects = modelService.searchContainers(type, query, options, task, result);
+            displayValue("Search returned", objects.toString());
+            if (objects.size() > expectedResults) {
+                failDeny("search", type, query, expectedResults, objects.size());
+            } else if (objects.size() < expectedResults) {
+                failAllow("search", type, query, expectedResults, objects.size());
+            }
+            result.computeStatus();
+            TestUtil.assertSuccess(result);
+            return objects;
+        } catch (SecurityViolationException e) {
+            // this should not happen
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+            failAllow("search", type, query, e);
+            throw new NotHereAssertionError();
+        }
+    }
+
+    protected List<AccessCertificationCaseType> assertSearchCertCases(int expectedNumber) throws CommonException {
+        return assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
+    }
+
+    protected void assertCertCasesSearch(AccessCertificationCaseId... ids) throws CommonException {
+        var cases = assertSearchCertCases(ids.length);
+        var realIds = AccessCertificationCaseId.of(cases);
+        assertThat(realIds).as("certification cases IDs").containsExactlyInAnyOrder(ids);
+    }
+
+    protected void assertCertWorkItemsSearch(AccessCertificationWorkItemId... ids) throws CommonException {
+        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, null, ids.length);
+        var realIds = AccessCertificationWorkItemId.of(workItems);
+        assertThat(realIds).as("certification work items IDs").containsExactlyInAnyOrder(ids);
+    }
+
+    protected void assertSearchCases(int expectedNumber) throws Exception {
+        assertSearch(CaseType.class, null, expectedNumber);
+    }
+
+    protected List<CaseWorkItemType> assertSearchWorkItems(int expectedNumber) throws CommonException {
+        return assertContainerSearch(CaseWorkItemType.class, null, expectedNumber);
+    }
+
+    protected List<CaseWorkItemType> assertSearchWorkItems(WorkItemId... expectedIdentifiers) throws CommonException {
+        var workItems = assertContainerSearch(CaseWorkItemType.class, null, expectedIdentifiers.length);
+        var identifiers = workItems.stream()
+                .map(wi -> WorkItemId.of(wi))
+                .toList();
+        assertThat(identifiers).as("work item identifiers").containsExactlyInAnyOrder(expectedIdentifiers);
+        return workItems;
     }
 
     @NotNull
@@ -6512,17 +6736,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return objects;
     }
 
-    protected void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, null);
+    protected void assertAddDeny(TestObject<? extends ObjectType> testObject) throws CommonException, IOException {
+        assertAddDeny(testObject, null);
     }
 
-    protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, executeOptions().raw());
+    protected void assertAddDenyRaw(TestObject<? extends ObjectType> testObject) throws CommonException, IOException {
+        assertAddDeny(testObject, executeOptions().raw());
     }
 
-    protected <O extends ObjectType> void assertAddDeny(TestResource<O> testResource, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+    protected <O extends ObjectType> void assertAddDeny(TestObject<O> testObject, ModelExecuteOptions options)
+            throws CommonException, IOException {
         assertAddDeny(
-                testResource.get(),
+                testObject.get(),
                 options);
     }
 
@@ -6551,6 +6776,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddAllow(file, null);
     }
 
+    protected void assertAddAllow(TestObject<? extends ObjectType> testObject) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        assertAddAllow(testObject, null);
+    }
+
     protected OperationResult assertAddAllowTracing(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         return assertAddAllowTracing(file, null);
     }
@@ -6561,10 +6790,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddAllow(object, options);
     }
 
-    protected <O extends ObjectType> void assertAddAllow(TestResource<O> testResource, ModelExecuteOptions options)
+    protected <O extends ObjectType> void assertAddAllow(TestObject<O> testObject, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         assertAddAllow(
-                testResource.get(),
+                testObject.get(),
                 options);
     }
 
@@ -7238,10 +7467,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ProcessedObjectsAsserter.forObjects(objects, message));
     }
 
-    protected WorkItemsAsserter<Void> assertWorkItems(
+    protected CaseWorkItemsAsserter<Void, CaseWorkItemType> assertWorkItems(
             Collection<CaseWorkItemType> workItems, String message) {
         return initializeAsserter(
-                WorkItemsAsserter.forWorkItems(workItems, message));
+                CaseWorkItemsAsserter.forWorkItems(workItems, message));
     }
 
     // TODO will we need this method?
@@ -7260,23 +7489,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return new ArrayList<>( // to assure modifiable result list
                 modelService.searchContainers(CaseWorkItemType.class,
                         ObjectQueryUtil.openItemsQuery(), options, task, result));
-    }
-
-    // TODO will we need this method?
-    protected WorkItemsAsserter<Void> assertOpenWorkItems(String message)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        return assertWorkItems(
-                getOpenWorkItemsResolved(getTestTask(), getTestOperationResult()),
-                message);
-    }
-
-    // TODO will we need this method?
-    protected WorkItemsAsserter<Void> assertOpenWorkItemsAfter()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        return assertOpenWorkItems("after")
-                .display();
     }
 
     protected CaseAsserter<Void> assertReferencedCase(OperationResult result, String message)
@@ -7323,10 +7535,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // FIXME does not call applySchemasAndSecurity!
-    public <O extends ObjectType> PrismObject<O> getObject(
+    public <O extends ObjectType> PrismObject<O> getObjectNoAutz(
             Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return createSimpleModelObjectResolver().getObject(type, oid, options, result);
+    }
+
+    public <O extends ObjectType> PrismObject<O> getObject(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws CommonException {
+        return modelService.getObject(type, oid, options, getTestTask(), getTestOperationResult());
     }
 
     protected @NotNull TestSimulationResult findTestSimulationResultRequired(OperationResult result)

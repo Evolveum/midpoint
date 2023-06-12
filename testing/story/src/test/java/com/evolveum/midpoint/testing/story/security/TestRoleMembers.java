@@ -211,7 +211,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         OperationResult result = task.getResult();
         ObjectQuery query = createMembersQuery(ROLE_PIRATE_OID);
         // Object is null here by purpose. Maybe the object does not really makes any sense in canSearch() ?
-        boolean canSearch = modelInteractionService.canSearch(UserType.class, null, null, false, query, task, result);
+        boolean canSearch = modelInteractionService.canSearch(UserType.class, null, false, query, task, result);
         assertSuccess(result);
         return canSearch;
     }

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -142,7 +141,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 
         // Try to reuse the original identity as much as possible. All we need to is add AUTZ_ALL
         // to the list of authorities
-        Authorization privilegedAuthorization = createPrivilegedAuthorization();
+        Authorization privilegedAuthorization = SecurityUtil.createPrivilegedAuthorization();
         Object newPrincipal = null;
 
         if (origAuthentication != null) {
@@ -154,7 +153,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
                 if (origPrincipal != null) {
                     if (origPrincipal instanceof MidPointPrincipal) {
                         MidPointPrincipal newMidPointPrincipal = ((MidPointPrincipal)origPrincipal).clone();
-                        newMidPointPrincipal.getAuthorities().add(privilegedAuthorization);
+                        newMidPointPrincipal.addAuthorization(privilegedAuthorization);
                         newPrincipal = newMidPointPrincipal;
                     }
                 }
@@ -180,12 +179,6 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
             LOGGER.trace("Security context after privileged operation: {}", SecurityContextHolder.getContext());
         }
 
-    }
-
-    private Authorization createPrivilegedAuthorization() {
-        AuthorizationType authorizationBean = new AuthorizationType();
-        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-        return new Authorization(authorizationBean);
     }
 
     @Override

@@ -116,6 +116,11 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         return rerunTaskErrorsOk(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
     }
 
+    protected void loginAdministrator() throws SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        login(userAdministrator);
+    }
+
     protected void setRecordEnhancedShadowChanges(boolean enable, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {

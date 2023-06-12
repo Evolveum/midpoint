@@ -213,6 +213,64 @@ public class ClockworkAuditHelper {
         }
     }
 
+    private <F extends ObjectType> void evaluateAuditRecordProperty(SystemConfigurationAuditEventRecordingPropertyType propertyDef,
+            AuditEventRecord auditRecord, PrismObject<? extends ObjectType> primaryObject, LensContext<F> context, Task task,
+            OperationResult parentResult) {
+        String name = propertyDef.getName();
+        OperationResult result = parentResult.subresult(OP_EVALUATE_AUDIT_RECORD_PROPERTY)
+                .addParam("name", name)
+                .setMinor()
+                .build();
+        try {
+            if (StringUtils.isBlank(name)) {
+                throw new IllegalArgumentException("Name of SystemConfigurationAuditEventRecordingPropertyType is empty or null in " + propertyDef);
+            }
+            if (!targetSelectorMatches(propertyDef.getTargetSelector(), primaryObject)) {
+                result.recordNotApplicable();
+                return;
+            }
+            ExpressionType expression = propertyDef.getExpression();
+            if (expression != null) {
+                VariablesMap variables = new VariablesMap();
+                variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
+                variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
+                String shortDesc = "value for custom column of audit table";
+                Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression,
+                        context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
+                if (values == null || values.isEmpty()) {
+                    // nothing to do
+                } else if (values.size() == 1) {
+                    auditRecord.getCustomColumnProperty().put(name, values.iterator().next());
+                } else {
+                    throw new IllegalArgumentException("Collection of expression result contains more than one value");
+                }
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit record property expression {}", t, name);
+            // Intentionally not throwing the exception. The error is marked as partial.
+            // (It would be better to mark it as fatal and to derive overall result as partial, but we aren't that far yet.)
+            result.recordPartialError(t);
+        } finally {
+            result.recordSuccessIfUnknown();
+        }
+    }
+
+    private boolean targetSelectorMatches(List<ObjectSelectorType> targetSelectors,
+            PrismObject<? extends ObjectType> primaryObject) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        if (targetSelectors.isEmpty()) {
+            return true;
+        }
+        for (ObjectSelectorType targetSelector : targetSelectors) {
+            if (repositoryService.selectorMatches(
+                    targetSelector, primaryObject, null, LOGGER, "target selector")) {
+                return true;
+            }
+        }
+        LOGGER.debug("No selector matches for {}", primaryObject);
+        return false;
+    }
+
     @NotNull
     private AuditEventType determineEventType(ObjectDelta<? extends ObjectType> primaryDelta) {
         AuditEventType eventType;

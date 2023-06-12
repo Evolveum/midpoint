@@ -20,15 +20,15 @@ import com.evolveum.midpoint.task.api.TaskManager;
 /**
  * @author skublik
  */
-
 public class MidpointAllowAllAuthorizationEvaluator extends MidPointGuiAuthorizationEvaluator {
 
-    public MidpointAllowAllAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager,
-                                                  TaskManager taskManager) {
+    public MidpointAllowAllAuthorizationEvaluator(
+            SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager, TaskManager taskManager) {
         super(securityEnforcer, securityContextManager, taskManager);
     }
 
     @Override
-    public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
+    public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes)
+            throws AccessDeniedException, InsufficientAuthenticationException {
     }
 }

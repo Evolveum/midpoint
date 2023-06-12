@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="c548f9ee-4986-4ddd-b1c9-19d1a07ae567"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>approver-standard-legacy</name>
+    <description>"Legacy" variant of a standard approver role</description>
+    <inducement>
+        <targetRef oid="9d06e3c7-a182-4b61-b3b0-5c181eaf6955" type="RoleType"/>
+    </inducement>
+    <authorization>
+        <name>own-workitems-delegate</name>
+        <description>
+            Allow delegation of own work items.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateOwnWorkItems</action>
+    </authorization>
+    <authorization> <!-- NEW -->
+        <name>own-workitems-read-and-complete</name>
+        <description>
+            Allows reading and completion of own work items.
+            This was implicitly allowed before 4.8; now it must be specified explicitly.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
+        <object>
+            <type>CaseWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+    <authorization>
+        <name>cases-read</name>
+        <description>
+            Allow to see the requester of the operation that is being approved and the current delta.
+            In order for the approver to see other properties (e.g. history of the approvals) please allow read access
+            to other items as well.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+        </object>
+        <item>requestorRef</item>
+        <item>approvalContext</item>
+    </authorization>
+</role>

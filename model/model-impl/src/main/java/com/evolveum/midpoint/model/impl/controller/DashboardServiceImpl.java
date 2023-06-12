@@ -329,7 +329,7 @@ public class DashboardServiceImpl implements DashboardService {
             } else {
                 ObjectFilter baseFilterFromCollection = prismContext.getQueryConverter().parseFilter(baseCollection.asObjectable().getFilter(), AuditEventRecordType.class);
                 ObjectFilter baseObjectFilter = prismContext.getQueryConverter().parseFilter(filter, AuditEventRecordType.class);
-                ObjectQueryUtil.filterAnd(baseFilterFromCollection, baseObjectFilter, prismContext);
+                ObjectQueryUtil.filterAnd(baseFilterFromCollection, baseObjectFilter);
                 return prismContext.getQueryConverter().parseFilter(filter, AuditEventRecordType.class);
             }
         }

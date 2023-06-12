@@ -9,5 +9,8 @@
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 
     <name>security-approver</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
     <fullName>Security approver</fullName>
 </user>

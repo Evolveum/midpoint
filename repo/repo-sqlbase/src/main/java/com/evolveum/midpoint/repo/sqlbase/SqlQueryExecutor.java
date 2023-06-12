@@ -50,7 +50,7 @@ public class SqlQueryExecutor {
         }
     }
 
-    public <S, Q extends FlexibleRelationalPathBase<R>, R> SearchResultList<S> list(
+    public @NotNull <S, Q extends FlexibleRelationalPathBase<R>, R> SearchResultList<S> list(
             @NotNull SqlQueryContext<S, Q, R> context,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)

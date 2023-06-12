@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="26224a3a-3b78-4cc0-8c4c-368193eb575c"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>reviewer-common-parts</name>
+    <authorization>
+        <name>users-read</name>
+        <description>
+            Allow to read basic user properties.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
+        <item>givenName</item>
+        <item>familyName</item>
+        <item>fullName</item>
+        <item>employeeType</item>
+        <item>employeeNumber</item>
+    </authorization>
+    <authorization>
+        <name>roles-read</name>
+        <description>
+            Allow to read basic role properties.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>roleType</item>
+    </authorization>
+    <authorization>
+        <name>orgs-read</name>
+        <description>
+            Allow to read basic org properties.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>orgType</item>
+    </authorization>
+    <authorization>
+        <name>services-read</name>
+        <description>
+            Allow to read basic service properties.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>serviceType</item>
+    </authorization>
+    <authorization>
+        <description>
+            Special hack to search through all campaigns and get only "own" cases.
+            The reading of cases is provided via standard authorizations (legacy/new).
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+        <object>
+            <type>AccessCertificationCampaignType</type>
+        </object>
+        <item>name</item> <!-- we need to specify just any item to avoid providing all cases and work items -->
+    </authorization>
+</role>

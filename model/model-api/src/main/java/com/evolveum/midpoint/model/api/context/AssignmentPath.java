@@ -10,14 +10,13 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -113,4 +112,14 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable,
      * Preliminary (limited) implementation. To be used to compare paths pointing to the same target object. Use with care.
      */
     boolean equivalent(AssignmentPath other);
+
+    default boolean containsDelegation() {
+        return getSegments().stream()
+                .anyMatch(seg -> seg.isDelegation());
+    }
+
+    /**
+     * Returns the limitation for "other" privileges that are delegated through this path.
+     */
+    @NotNull OtherPrivilegesLimitations.Limitation getOtherPrivilegesLimitation();
 }

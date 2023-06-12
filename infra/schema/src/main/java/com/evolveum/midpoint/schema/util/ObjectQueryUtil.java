@@ -254,8 +254,7 @@ public class ObjectQueryUtil {
      * *Please note: If provided `origFilter` is {@link AndFilter} it will be modified!*
      * TODO consider moving to QueryFactory
      */
-    public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter,
-            PrismContext prismContext) {
+    public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter) {
         if (origFilter == additionalFilter) {
             // AND with itself
             return origFilter;
@@ -284,7 +283,7 @@ public class ObjectQueryUtil {
             }
             return origFilter;
         }
-        return prismContext.queryFactory().createAnd(origFilter, additionalFilter);
+        return PrismContext.get().queryFactory().createAnd(origFilter, additionalFilter);
     }
 
     /**
@@ -336,8 +335,7 @@ public class ObjectQueryUtil {
      * *Please note: If provided `origFilter` is {@link OrFilter} it will be modified!*
      * TODO consider moving to QueryFactory
      */
-    public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter,
-            PrismContext prismContext) {
+    public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter) {
         if (origFilter == additionalFilter) {
             // OR with itself
             return origFilter;
@@ -366,7 +364,7 @@ public class ObjectQueryUtil {
             }
             return origFilter;
         }
-        return prismContext.queryFactory().createOr(origFilter, additionalFilter);
+        return PrismContext.get().queryFactory().createOr(origFilter, additionalFilter);
     }
 
     /**
@@ -425,12 +423,6 @@ public class ObjectQueryUtil {
      * This always returns cloned filter which can be freely modify later.
      */
     public static ObjectFilter simplify(ObjectFilter filter) {
-        return simplify(filter, PrismContext.get());
-    }
-
-    /** DEPRECATED - replace with simplify(filter) and make private when not used. */
-    @Deprecated
-    public static ObjectFilter simplify(ObjectFilter filter, PrismContext prismContext) {
         if (filter == null) {
             return null;
         }
@@ -440,18 +432,18 @@ public class ObjectQueryUtil {
             for (ObjectFilter subfilter : conditions) {
                 if (subfilter instanceof NoneFilter) {
                     // AND with "false"
-                    return FilterCreationUtil.createNone(prismContext);
+                    return FilterCreationUtil.createNone();
                 } else if (subfilter instanceof AllFilter || subfilter instanceof UndefinedFilter) {
                     // AND with "true", just skip it
                 } else {
-                    ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
+                    ObjectFilter simplifiedSubfilter = simplify(subfilter);
                     if (simplifiedSubfilter instanceof AndFilter) {
                         // Unwrap AND filter to parent and
                         for (ObjectFilter condition : ((AndFilter) simplifiedSubfilter).getConditions()) {
                             simplifiedFilter.addCondition(condition);
                         }
                     } else if (simplifiedSubfilter instanceof NoneFilter) {
-                        return FilterCreationUtil.createNone(prismContext);
+                        return FilterCreationUtil.createNone();
                     } else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
                         // skip
                     } else {
@@ -460,7 +452,7 @@ public class ObjectQueryUtil {
                 }
             }
             if (simplifiedFilter.isEmpty()) {
-                return FilterCreationUtil.createAll(prismContext);
+                return FilterCreationUtil.createAll();
             } else if (simplifiedFilter.getConditions().size() == 1) {
                 return simplifiedFilter.getConditions().iterator().next();
             } else {
@@ -474,20 +466,20 @@ public class ObjectQueryUtil {
                     // OR with "false", just skip it
                 } else if (subfilter instanceof AllFilter) {
                     // OR with "true"
-                    return FilterCreationUtil.createAll(prismContext);
+                    return FilterCreationUtil.createAll();
                 } else {
-                    ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
+                    ObjectFilter simplifiedSubfilter = simplify(subfilter);
                     if (simplifiedSubfilter instanceof NoneFilter) {
                         // skip
                     } else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
-                        return FilterCreationUtil.createNone(prismContext);
+                        return FilterCreationUtil.createNone();
                     } else {
                         simplifiedFilter.addCondition(simplifiedSubfilter);
                     }
                 }
             }
             if (simplifiedFilter.isEmpty()) {
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
             } else if (simplifiedFilter.getConditions().size() == 1) {
                 return simplifiedFilter.getConditions().iterator().next();
             } else {
@@ -495,11 +487,11 @@ public class ObjectQueryUtil {
             }
         } else if (filter instanceof NotFilter) {
             ObjectFilter subfilter = ((NotFilter) filter).getFilter();
-            ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
+            ObjectFilter simplifiedSubfilter = simplify(subfilter);
             if (simplifiedSubfilter instanceof NoneFilter) {
-                return FilterCreationUtil.createAll(prismContext);
+                return FilterCreationUtil.createAll();
             } else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
             } else {
                 NotFilter simplifiedFilter = ((NotFilter) filter).cloneEmpty();
                 simplifiedFilter.setFilter(simplifiedSubfilter);
@@ -507,22 +499,22 @@ public class ObjectQueryUtil {
             }
         } else if (filter instanceof TypeFilter) {
             ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
-            ObjectFilter simplifiedSubfilter = simplify(subFilter, prismContext);
+            ObjectFilter simplifiedSubfilter = simplify(subFilter);
             if (simplifiedSubfilter instanceof AllFilter) {
                 simplifiedSubfilter = null;
             } else if (simplifiedSubfilter instanceof NoneFilter) {
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
             }
             TypeFilter simplifiedFilter = ((TypeFilter) filter).cloneEmpty();
             simplifiedFilter.setFilter(simplifiedSubfilter);
             return simplifiedFilter;
         } else if (filter instanceof ExistsFilter) {
             ObjectFilter subFilter = ((ExistsFilter) filter).getFilter();
-            ObjectFilter simplifiedSubfilter = simplify(subFilter, prismContext);
+            ObjectFilter simplifiedSubfilter = simplify(subFilter);
             if (simplifiedSubfilter instanceof AllFilter) {
                 simplifiedSubfilter = null;
             } else if (simplifiedSubfilter instanceof NoneFilter) {
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
             }
             ExistsFilter simplifiedFilter = ((ExistsFilter) filter).cloneEmpty();
             simplifiedFilter.setFilter(simplifiedSubfilter);
@@ -537,7 +529,7 @@ public class ObjectQueryUtil {
                 // As a general rule we can assume that these filters would always yield zero records
                 // so they can be replaced by None filter. Should this assumption turn out to be invalid,
                 // remove this optimization and implement correct behavior in repo query interpreter.
-                return FilterCreationUtil.createNone(prismContext);
+                return FilterCreationUtil.createNone();
             } else {
                 return filter.clone();
             }

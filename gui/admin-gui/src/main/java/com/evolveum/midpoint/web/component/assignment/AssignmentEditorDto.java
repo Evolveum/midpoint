@@ -151,15 +151,14 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
         dto.setDelegationOwner(delegationOwner);
         if (pageBase.getRelationRegistry().isDelegation(relation)) {
-            OtherPrivilegesLimitationType limitations = new OtherPrivilegesLimitationType();
-
-            WorkItemSelectorType approvalWorkItemSelector = new WorkItemSelectorType();
-            approvalWorkItemSelector.all(Boolean.TRUE);
-            limitations.setApprovalWorkItems(approvalWorkItemSelector);
-
-            WorkItemSelectorType certificationWorkItemSelector = new WorkItemSelectorType();
-            certificationWorkItemSelector.all(Boolean.TRUE);
-            limitations.setCertificationWorkItems(certificationWorkItemSelector);
+            OtherPrivilegesLimitationType limitations = new OtherPrivilegesLimitationType()
+                    // "approval work items" item is deprecated, "case management" is the replacement
+                    .caseManagementWorkItems(
+                            new WorkItemSelectorType()
+                                    .all(true))
+                    .certificationWorkItems(
+                            new WorkItemSelectorType()
+                                    .all(true));
 
             dto.setPrivilegesLimitation(limitations);
 

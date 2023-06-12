@@ -457,4 +457,10 @@ public class SecurityUtil {
         return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
                 credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
     }
+
+    public static @NotNull Authorization createPrivilegedAuthorization() {
+        AuthorizationType authorizationBean = new AuthorizationType();
+        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+        return new Authorization(authorizationBean);
+    }
 }

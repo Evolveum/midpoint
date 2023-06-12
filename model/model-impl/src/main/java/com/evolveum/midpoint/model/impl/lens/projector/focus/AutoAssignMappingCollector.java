@@ -94,7 +94,8 @@ public class AutoAssignMappingCollector {
             return true;
         }
         try {
-            return cacheRepositoryService.selectorMatches(selector, focusContext.getObjectAny(), null, LOGGER, "");
+            return cacheRepositoryService.selectorMatches(
+                    selector, focusContext.getObjectAny(), null, LOGGER, "");
         } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ObjectNotFoundException | ConfigurationException e) {
             LOGGER.error("Failed to evaluate selector constraints, selector {}, focusContext {}\nReason: {}", selector, focusContext, e.getMessage(), e);
             result.recordFatalError("Failed to evaluate selector constrains, selector: " + selector + ", focusContext: " + focusContext + "\nReason: " + e.getMessage(), e);

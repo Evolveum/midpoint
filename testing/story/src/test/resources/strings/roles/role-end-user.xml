@@ -54,6 +54,19 @@
         </object>
     </authorization>
 
+    <!-- This is a standard authorization -->
+    <authorization>
+        <name>assigned-workitems-read-complete</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
+        <object>
+            <type>CaseWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+
     <requestable>false</requestable>
     <delegable>false</delegable>
     <subtype>system</subtype>

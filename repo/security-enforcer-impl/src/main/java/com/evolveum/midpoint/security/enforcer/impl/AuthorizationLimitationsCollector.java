@@ -29,7 +29,7 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
     private static final Trace LOGGER = TraceManager.getTrace(AuthorizationLimitationsCollector.class);
 
     private boolean unlimited = false;
-    private List<String> limitActions = new ArrayList<>();
+    private final List<String> limitActions = new ArrayList<>();
 
     /**
      * Parsing limitation from the authorization.
@@ -58,7 +58,7 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
      */
     @Override
     public Collection<Authorization> transform(Authorization autz) {
-        if (unlimited || allActionsAlloved(autz)) {
+        if (unlimited || allActionsAllowed(autz)) {
             return Arrays.asList(autz);
         }
         Authorization limitedAutz = autz.clone();
@@ -75,7 +75,7 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
         return Arrays.asList(limitedAutz);
     }
 
-    private boolean allActionsAlloved(Authorization autz) {
+    private boolean allActionsAllowed(Authorization autz) {
         for (String autzAction: autz.getAction()) {
             if (!limitActions.contains(autzAction)) {
                 return false;

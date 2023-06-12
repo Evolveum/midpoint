@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.query.*;
  * Helper class to {@link SecurityEnforcerImpl}, used to evaluate query item authorizations.
  * It checks whether we are authorized to use all items that are present in given search filter(s).
  *
+ * TODO consider using composition instead of inheritance
+ *
  * @author semancik
  */
 public class QueryAutzItemPaths extends AutzItemPaths {
@@ -102,6 +104,7 @@ public class QueryAutzItemPaths extends AutzItemPaths {
         sb.append("required: ");
         dumpItems(sb, requiredItems);
         sb.append("; ");
+        sb.append("authorized: ");
         super.shortDump(sb);
     }
 

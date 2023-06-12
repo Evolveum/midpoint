@@ -6,13 +6,15 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
+import java.io.Serial;
+import java.util.*;
+
+import com.evolveum.midpoint.prism.PrismObject;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -31,16 +33,18 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  */
 public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpable {
-    private static final long serialVersionUID = 8299738301872077768L;
+    @Serial private static final long serialVersionUID = 8299738301872077768L;
 
     // Focus should not be final in case of session refresh, we need new focus object.
     @NotNull private FocusType focus;
     private Locale preferredLocale;
-    @NotNull private Collection<Authorization> authorizations = new ArrayList<>();
+    @NotNull private final List<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private SecurityPolicyType applicableSecurityPolicy;
-    // TODO: or a set?
-    @NotNull private final Collection<DelegatorWithOtherPrivilegesLimitations> delegatorWithOtherPrivilegesLimitationsCollection = new ArrayList<>();
+
+    /** Delegations with privileges limitations; TODO better name */
+    @NotNull private final OtherPrivilegesLimitations otherPrivilegesLimitations = new OtherPrivilegesLimitations();
+
     private FocusType attorney;
     private MidPointPrincipal previousPrincipal;
 
@@ -51,7 +55,15 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     @Override
     public @NotNull Collection<Authorization> getAuthorities() {
-        return authorizations;
+        return Collections.unmodifiableList(authorizations);
+    }
+
+    public void addAuthorization(@NotNull Authorization authorization) {
+        authorizations.add(authorization);
+    }
+
+    public void clearAuthorizations() {
+        authorizations.clear();
     }
 
     @Override
@@ -113,7 +125,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     public void replaceFocus(FocusType newFocus) {
         focus = newFocus;
-        // Efective activation status is derived from focus and its cached
+        // Effective activation status is derived from focus and its cached
         effectiveActivationStatus = null;
     }
 
@@ -162,18 +174,10 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         this.applicableSecurityPolicy = applicableSecurityPolicy;
     }
 
-    @NotNull
-    public Collection<DelegatorWithOtherPrivilegesLimitations> getDelegatorWithOtherPrivilegesLimitationsCollection() {
-        return delegatorWithOtherPrivilegesLimitationsCollection;
-    }
-
-    public void addDelegatorWithOtherPrivilegesLimitations(DelegatorWithOtherPrivilegesLimitations value) {
-        delegatorWithOtherPrivilegesLimitationsCollection.add(value);
-    }
-
     /**
      * Semi-shallow clone.
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public MidPointPrincipal clone() {
         MidPointPrincipal clone = new MidPointPrincipal(this.focus);
@@ -183,9 +187,9 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     protected void copyValues(MidPointPrincipal clone) {
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
-        clone.authorizations = new ArrayList<>(authorizations);
+        clone.authorizations.addAll(authorizations);
         clone.effectiveActivationStatus = this.effectiveActivationStatus;
-        clone.delegatorWithOtherPrivilegesLimitationsCollection.addAll(this.delegatorWithOtherPrivilegesLimitationsCollection);
+        clone.otherPrivilegesLimitations.copyValuesFrom(this.otherPrivilegesLimitations);
     }
 
     @Override
@@ -199,7 +203,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     protected void debugDumpInternal(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "Focus", focus.asPrismObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Other privilege limitations", otherPrivilegesLimitations, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney == null ? null : attorney.asPrismObject(), indent + 1);
     }
 
@@ -268,5 +272,38 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     public void setPreferredLocale(Locale preferredLocale) {
         this.preferredLocale = preferredLocale;
+    }
+
+    public @NotNull OtherPrivilegesLimitations getOtherPrivilegesLimitations() {
+        return otherPrivilegesLimitations;
+    }
+
+    /**
+     * Registers an information about "membership delegation", i.e. that this principal is a delegate of given user(s)
+     * or - indirectly - it obtains a delegated abstract role membership. The information on other privileges limitations
+     * is attached as well.
+     */
+    public void addDelegationTarget(
+            @NotNull PrismObject<? extends AssignmentHolderType> target,
+            @NotNull OtherPrivilegesLimitations.Limitation limitation) {
+        otherPrivilegesLimitations.addDelegationTarget(target, limitation);
+    }
+
+    /**
+     * TODO (null means we don't care about limitations)
+     */
+    public Set<String> getDelegatorsFor(
+            @Nullable OtherPrivilegesLimitations.Type limitationType) {
+        return otherPrivilegesLimitations.getDelegatorsFor(limitationType);
+    }
+
+    /**
+     * Includes the delegators themselves.
+     *
+     * Later we may extend this to full references (not only OIDs).
+     */
+    public Set<String> getDelegatedMembershipFor(
+            @Nullable OtherPrivilegesLimitations.Type limitationType) {
+        return otherPrivilegesLimitations.getDelegatedMembershipFor(limitationType);
     }
 }

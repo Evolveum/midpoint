@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -179,7 +181,8 @@ public class AccCertUpdateHelper {
     //endregion
 
     void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
-        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(
+                campaign.getOid(), norm(campaign.getIteration()), result);
         Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
         for (String reviewerOid : reviewers) {
             List<AccessCertificationCaseType> cases = queryHelper.getOpenCasesForReviewer(campaign, reviewerOid, result);
@@ -204,7 +207,7 @@ public class AccCertUpdateHelper {
         reviewerOrDeputiesRef.add(actualReviewerRef);
         reviewerOrDeputiesRef.addAll(
                 modelInteractionService.getDeputyAssignees(
-                        actualReviewerRef, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS, task, result));
+                        actualReviewerRef, OtherPrivilegesLimitations.Type.ACCESS_CERTIFICATION, task, result));
         return reviewerOrDeputiesRef;
     }
 

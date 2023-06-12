@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
@@ -42,10 +43,11 @@ public class PageCaseWorkItemsAllocatedToMe extends PageCaseWorkItems {
     }
 
     @Override
-    protected ObjectFilter getCaseWorkItemsFilter(){
-        return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                AuthUtil.getPrincipalUser(),
-                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+    protected ObjectFilter getCaseWorkItemsFilter() {
+        return QueryUtils.filterForNotClosedStateAndAssignees(
+                        getPrismContext().queryFor(CaseWorkItemType.class),
+                        AuthUtil.getPrincipalUser(),
+                        OtherPrivilegesLimitations.Type.CASES)
                 .desc(F_CREATE_TIMESTAMP)
                 .buildFilter();
     }

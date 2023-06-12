@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="89e19cff-183c-4890-be65-ad404aeac405"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>super-standard-legacy</name>
+    <description>"Legacy" variant of an approver role that can complete and delegate any item</description>
+    <inducement>
+        <targetRef oid="9d06e3c7-a182-4b61-b3b0-5c181eaf6955" type="RoleType"/>
+    </inducement>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeAllWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateAllWorkItems</action>
+    </authorization>
+</role>

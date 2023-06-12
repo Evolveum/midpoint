@@ -21,42 +21,38 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
-import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
-import com.evolveum.midpoint.wf.impl.util.ComputationResult;
-import com.evolveum.midpoint.cases.api.temporary.VariablesProvider;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
+import com.evolveum.midpoint.cases.api.temporary.VariablesProvider;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.wf.impl.util.ComputationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -69,11 +65,7 @@ public class StageComputeHelper {
 
     @Autowired private ExpressionEvaluationHelper evaluationHelper;
     @Autowired private PrismContext prismContext;
-    @Autowired private MiscHelper miscHelper;
-    @Autowired private CaseMiscHelper caseMiscHelper;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private SystemObjectCache systemObjectCache;
 
     // TODO method name
@@ -115,7 +107,7 @@ public class StageComputeHelper {
                     }
                     rv.approverRefs.addAll(evaluationHelper.evaluateRefExpressions(stageDef.getApproverExpression(), variablesMap,
                             "resolving approver expression", opTask, opResult));
-                } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                } catch (CommonException | RuntimeException e) {
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
             }
@@ -207,8 +199,7 @@ public class StageComputeHelper {
     private Set<ObjectReferenceType> expandGroups(Set<ObjectReferenceType> approverRefs) {
         Set<ObjectReferenceType> rv = new HashSet<>();
         for (ObjectReferenceType approverRef : approverRefs) {
-            @SuppressWarnings({ "unchecked", "raw" })
-            Class<? extends Containerable> clazz = (Class<? extends Containerable>)
+            Class<? extends Containerable> clazz =
                     prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(approverRef.getType());
             if (clazz == null) {
                 throw new IllegalStateException("Unknown object type " + approverRef.getType());
@@ -231,9 +222,9 @@ public class StageComputeHelper {
                 .build();
         try {
             return repositoryService
-                    .searchObjects(UserType.class, query, null, new OperationResult("dummy"))
+                    .searchObjects(UserType.class, query, null, new OperationResult("dummy")) // FIXME op. result!!
                     .stream()
-                    .map(o -> ObjectTypeUtil.createObjectRef(o, prismContext))
+                    .map(o -> ObjectTypeUtil.createObjectRef(o))
                     .collect(Collectors.toList());
         } catch (SchemaException e) {
             throw new SystemException("Couldn't resolve " + approverRef + ": " + e.getMessage(), e);

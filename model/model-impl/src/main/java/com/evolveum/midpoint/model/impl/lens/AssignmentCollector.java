@@ -92,16 +92,6 @@ public class AssignmentCollector {
                     new AssignmentEvaluator.Builder<AH>()
                             .referenceResolver(referenceResolver)
                             .focusOdo(new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition()))
-                            .channel(null)
-                            .modelBeans(modelBeans)
-                            .objectResolver(objectResolver)
-                            .systemObjectCache(systemObjectCache)
-                            .relationRegistry(relationRegistry)
-                            .prismContext(prismContext)
-                            .mappingFactory(mappingFactory)
-                            .mappingEvaluator(mappingEvaluator)
-                            .contextLoader(contextLoader)
-                            .activationComputer(activationComputer)
                             .now(clock.currentTimeXMLGregorianCalendar())
                             // We do need only authorizations + gui config. Therefore we not need to evaluate
                             // constructions and the like, so switching it off makes the evaluation run faster.

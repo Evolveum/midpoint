@@ -127,7 +127,7 @@ jack->CTO                   none (A) -> A
         display("campaign in stage 1", campaign);
         assertSanityAfterCampaignStart(campaign, certificationDefinition, 6);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("unexpected # of cases", 6, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -173,7 +173,7 @@ jack->CTO                   none (A) -> A
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
 
         // WHEN
         when();
@@ -188,7 +188,7 @@ jack->CTO                   none (A) -> A
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
 
         assertEquals("unexpected # of cases", 6, caseList.size());
@@ -229,7 +229,7 @@ jack->CTO                   none (A) -> A
 
         assertSanityAfterStageClose(campaign, certificationDefinition, 1);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("unexpected # of cases", 6, caseList.size());
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
@@ -267,7 +267,7 @@ jack->CTO                   none (A) -> A
         display("campaign in stage 2", campaign);
         assertSanityAfterStageOpen(campaign, certificationDefinition, 2);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -349,7 +349,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
 
         // WHEN
         when();
@@ -392,7 +392,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
 
         elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
@@ -474,7 +474,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         display("campaign after closing stage 2", campaign);
         assertSanityAfterStageClose(campaign, certificationDefinition, 2);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 2);
@@ -517,7 +517,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         display("campaign in stage 3", campaign);
         assertSanityAfterStageOpen(campaign, certificationDefinition, 3);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -576,7 +576,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         dummyTransport.clearMessages();
 
         // WHEN
@@ -615,7 +615,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 3", campaign);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
 
         elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
@@ -695,7 +695,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign after closing stage 3", campaign);
         assertSanityAfterStageClose(campaign, certificationDefinition, 3);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
 
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
@@ -758,7 +758,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign in stage 4", campaign);
         assertSanityAfterStageOpen(campaign, certificationDefinition, 4);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -816,7 +816,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
 
         // WHEN
         when();
@@ -855,7 +855,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 4", campaign);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
 
         elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
@@ -933,7 +933,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign after closing stage 4", campaign);
         assertSanityAfterStageClose(campaign, certificationDefinition, 4);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
 
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
@@ -1011,7 +1011,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 4, campaign.getStage().size());
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -1189,7 +1189,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign in stage 2", campaign);
         assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 5); // stage 1 in iteration 2 was skipped
 
-        List<AccessCertificationCaseType> caseList = new ArrayList<>(queryHelper.searchCases(campaignOid, null, null, result));
+        List<AccessCertificationCaseType> caseList = new ArrayList<>(queryHelper.searchCases(campaignOid, null, result));
         caseList.removeIf(c -> norm(c.getIteration()) != 2);
         assertEquals("Wrong number of certification cases", 3, caseList.size());
         AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);

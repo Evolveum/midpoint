@@ -62,7 +62,6 @@ public class AccCertCloserHelper {
     @Autowired private ModelService modelService;
     @Autowired private AccCertGeneralHelper generalHelper;
     @Autowired protected AccCertQueryHelper queryHelper;
-    @Autowired private AccCertCaseOperationsHelper operationsHelper;
     @Autowired private Clock clock;
     @Autowired private AccCertResponseComputationHelper computationHelper;
     @Autowired private AccCertUpdateHelper updateHelper;
@@ -108,7 +107,7 @@ public class AccCertCloserHelper {
             return emptySet();
         }
         if (queryHelper.hasNoResponseCases(campaign.getOid(), result)) {
-            TriggerType trigger = new TriggerType(prismContext);
+            TriggerType trigger = new TriggerType();
             XMLGregorianCalendar triggerTime = clock.currentTimeXMLGregorianCalendar();
             triggerTime.add(campaign.getReiterationDefinition().getStartsAfter());
             trigger.setTimestamp(triggerTime);
@@ -127,7 +126,7 @@ public class AccCertCloserHelper {
     private void createWorkItemsCloseDeltas(AccessCertificationCampaignType campaign, ModificationsToExecute modifications,
             XMLGregorianCalendar now, OperationResult result) throws SchemaException {
         ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext);
-        List<AccessCertificationWorkItemType> openWorkItems = queryHelper.searchOpenWorkItems(query, null, false, null, result);
+        List<AccessCertificationWorkItemType> openWorkItems = queryHelper.searchOpenWorkItems(query, false, result);
         LOGGER.debug("There are {} open work items for {}", openWorkItems.size(), ObjectTypeUtil.toShortString(campaign));
         for (AccessCertificationWorkItemType workItem : openWorkItems) {
             AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCaseChecked(workItem);
@@ -167,7 +166,7 @@ public class AccCertCloserHelper {
             List<AccessCertificationResponseType> outcomesToStopOn,
             OperationResult result) throws SchemaException {
         LOGGER.debug("Updating current outcome for cases in {}", toShortStringLazy(campaign));
-        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), result);
         for (AccessCertificationCaseType aCase : caseList) {
             long caseId = aCase.getId();
             if (aCase.getReviewFinishedTimestamp() != null) {
@@ -183,7 +182,7 @@ public class AccCertCloserHelper {
                             .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)
                             .item(F_CASE, caseId, F_OUTCOME).replace(newOverallOutcomeUri)
                             .item(F_CASE, caseId, F_EVENT).add(
-                                    new StageCompletionEventType(prismContext)
+                                    new StageCompletionEventType()
                                             .timestamp(clock.currentTimeXMLGregorianCalendar())
                                             .stageNumber(campaign.getStageNumber())
                                             .iteration(campaign.getIteration())
@@ -200,7 +199,8 @@ public class AccCertCloserHelper {
         }
     }
 
-    private ItemDelta createStageEndTimeDelta(AccessCertificationCampaignType campaign, XMLGregorianCalendar now) throws SchemaException {
+    private ItemDelta<?, ?> createStageEndTimeDelta(AccessCertificationCampaignType campaign, XMLGregorianCalendar now)
+            throws SchemaException {
         AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
         Long stageId = stage.asPrismContainerValue().getId();
         assert stageId != null;

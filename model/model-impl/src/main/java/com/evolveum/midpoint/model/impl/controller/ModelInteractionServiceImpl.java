@@ -24,6 +24,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -58,8 +59,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
@@ -152,8 +151,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ModelService modelService;
     @Autowired private ModelCrudService modelCrudService;
     @Autowired private SecurityHelper securityHelper;
-    @Autowired private MappingFactory mappingFactory;
-    @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private GuiProfiledPrincipalManager guiProfiledPrincipalManager;
@@ -163,7 +160,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
-    @Autowired private ContextLoader contextLoader;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
@@ -271,11 +267,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ObjectSecurityConstraints securityConstraints =
                     securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
-            if (securityConstraints == null) {
-                // Nothing allowed => everything denied
-                result.recordNotApplicable();
-                return null;
-            } else {
+//            if (securityConstraints.isEmpty()) {
+//                // Nothing allowed => everything denied
+//                // TODO this was not originally reachable, reconsider
+//                result.recordNotApplicable();
+//                return null;
+//            } else
+//            {
                 TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
                 applyArchetypePolicy(objectDefinition, object, task, result);
                 schemaTransformer.applySecurityConstraintsToItemDef(objectDefinition, securityConstraints, phase);
@@ -283,7 +281,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     applyObjectClassDefinition(objectDefinition, object, phase, task, result);
                 }
                 return objectDefinition;
-            }
+//            }
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
             result.recordFatalError(e);
             throw e;
@@ -395,27 +393,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectSecurityConstraints securityConstraints =
                 securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
         LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
-        if (securityConstraints == null) {
-            return null;
-        }
+//        if (securityConstraints.isEmpty()) {
+//            // TODO this was not originally reachable, reconsider
+//            return null;
+//        }
 
         AuthorizationDecisionType attributesReadDecision =
-                schemaTransformer.computeItemDecision(
-                        securityConstraints,
+                securityConstraints.computeItemDecision(
                         SchemaConstants.PATH_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase),
                         phase);
         AuthorizationDecisionType attributesAddDecision =
-                schemaTransformer.computeItemDecision(
-                        securityConstraints,
+                securityConstraints.computeItemDecision(
                         SchemaConstants.PATH_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
                         phase);
         AuthorizationDecisionType attributesModifyDecision =
-                schemaTransformer.computeItemDecision(
-                        securityConstraints,
+                securityConstraints.computeItemDecision(
                         SchemaConstants.PATH_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
@@ -434,14 +430,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision =
-                    schemaTransformer.computeItemDecision(
-                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
+                    securityConstraints.computeItemDecision(
+                            attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
             AuthorizationDecisionType attributeAddDecision =
-                    schemaTransformer.computeItemDecision(
-                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
+                    securityConstraints.computeItemDecision(
+                            attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
             AuthorizationDecisionType attributeModifyDecision =
-                    schemaTransformer.computeItemDecision(
-                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
+                    securityConstraints.computeItemDecision(
+                            attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
             LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getItemName(), attributeReadDecision,
                     attributeAddDecision, attributeModifyDecision);
 
@@ -483,10 +479,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 "getting items with provenance support for " + object, task, result);
 
         LOGGER.trace(
-                "getMetadataSupportSpec for {} in {}:\n"
-                        + " - archetypePolicy = {}\n"
-                        + " - templateRef = {}\n"
-                        + " - processingSpec = \n{}",
+                """
+                        getMetadataSupportSpec for {} in {}:
+                         - archetypePolicy = {}
+                         - templateRef = {}
+                         - processingSpec =
+                        {}""",
                 metadataItemPath, object, archetypePolicy, templateRef,
                 DebugUtil.debugDumpLazily(processingSpec, 1));
 
@@ -522,8 +520,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    public <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(
+            @NotNull PrismObject<H> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
 
         ObjectSecurityConstraints securityConstraints;
@@ -535,11 +535,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throw e;
         }
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}", focus, securityConstraints == null ? null : securityConstraints.debugDump(1));
+            LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}",
+                    focus, securityConstraints.debugDump(1));
         }
-        if (securityConstraints == null) {
-            return null;
-        }
+//        if (securityConstraints.isEmpty()) {
+//            // TODO this was not originally reachable, reconsider
+//            return null;
+//        }
 
         // Global decisions: processing #modify authorizations: allow/deny for all items or allow/deny for assignment/inducement item.
         ItemPath assignmentPath;
@@ -584,35 +586,40 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
         orderConstraintsList.add(orderConstraints);
 
-        FilterGizmo<RoleSelectionSpecification> gizmo = new FilterGizmoAssignableRoles(prismContext);
+        FilterGizmo<RoleSelectionSpecification> gizmo = new FilterGizmoAssignableRoles();
 
         try {
-
-            RoleSelectionSpecification spec = securityEnforcer.computeSecurityFilter(principal, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN, AuthorizationPhaseType.REQUEST,
-                    targetType, focus, prismContext.queryFactory().createAll(), null, orderConstraintsList, gizmo, task, result);
-
-            result.recordSuccess();
-            return spec;
-
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException e) {
-            result.recordFatalError(e);
-            throw e;
+            return securityEnforcer.computeTargetSecurityFilter(
+                    principal, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN, AuthorizationPhaseType.REQUEST,
+                    targetType, focus, prismContext.queryFactory().createAll(), null, orderConstraintsList,
+                    gizmo, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
     @Override
-    public <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType, null, origFilter, targetAuthorizationAction, null, task, parentResult);
+    public <T extends ObjectType> ObjectFilter getDonorFilter(
+            Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction,
+            Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return securityEnforcer.preProcessObjectFilter(
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType,
+                origFilter, targetAuthorizationAction, null, task, parentResult);
     }
 
     @Override
     public <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType,
-            Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<O> object = null;
-        if (objectOid != null) {
-            object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, createReadOnlyCollection(), task, result).asPrismObject();
-        }
-        return securityEnforcer.canSearch(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, resultType, object, includeSpecial, query.getFilter(), task, result);
+            Class<O> objectType, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return securityEnforcer.canSearch(
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, resultType, includeSpecial,
+                query.getFilter(), task, result);
     }
 
     @Override
@@ -1491,7 +1498,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @NotNull
     @Override
     public List<ObjectReferenceType> getDeputyAssignees(
-            ObjectReferenceType assigneeRef, QName limitationItemName, Task task, OperationResult parentResult)
+            ObjectReferenceType assigneeRef,
+            OtherPrivilegesLimitations.Type limitationType,
+            Task task,
+            OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
@@ -1499,13 +1509,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Set<String> oidsToSkip = new HashSet<>();
             oidsToSkip.add(assigneeRef.getOid());
             List<ObjectReferenceType> deputies = new ArrayList<>();
-            getDeputyAssigneesNoWorkItem(deputies, assigneeRef, limitationItemName, oidsToSkip, task, result);
-            result.computeStatusIfUnknown();
+            getDeputyAssigneesNoWorkItem(deputies, assigneeRef, limitationType, oidsToSkip, task, result);
             return deputies;
         } catch (Throwable t) {
-            result.recordFatalError(t.getMessage(), t);
+            result.recordException(t);
             throw t;
         } finally {
+            result.close();
             RepositoryCache.exitLocalCaches();
         }
     }
@@ -1529,8 +1539,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(
-                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS,
-                    task, result)) {
+                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitations.Type.CASES, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
@@ -1539,7 +1548,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     private void getDeputyAssigneesNoWorkItem(
             List<ObjectReferenceType> deputies, ObjectReferenceType assigneeRef,
-            QName limitationItemName, Set<String> oidsToSkip,
+            OtherPrivilegesLimitations.Type limitationType, Set<String> oidsToSkip,
             Task task, OperationResult result) throws SchemaException {
         PrismReferenceValue assigneeReferenceToQuery = assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue();
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -1551,29 +1560,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
-            if (determineDeputyValidity(potentialDeputy, Collections.singletonList(assigneeRef), null, limitationItemName, task, result)) {
+            if (determineDeputyValidity(
+                    potentialDeputy, List.of(assigneeRef), null, limitationType, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
     }
 
-    private boolean determineDeputyValidity(PrismObject<UserType> potentialDeputy, List<ObjectReferenceType> assignees,
-            @Nullable AbstractWorkItemType workItem, QName privilegeLimitationItemName, Task task, OperationResult result) {
+    private boolean determineDeputyValidity(
+            PrismObject<UserType> potentialDeputy,
+            List<ObjectReferenceType> assignees,
+            @Nullable AbstractWorkItemType workItem,
+            @NotNull OtherPrivilegesLimitations.Type limitationType,
+            Task task,
+            OperationResult result) {
         AssignmentEvaluator.Builder<UserType> builder =
                 new AssignmentEvaluator.Builder<UserType>()
                         .referenceResolver(referenceResolver)
                         .focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy, potentialDeputy.getDefinition()))
-                        .channel(null)
-                        .modelBeans(modelBeans)
-                        .objectResolver(objectResolver)
-                        .systemObjectCache(systemObjectCache)
-                        .relationRegistry(relationRegistry)
-                        .prismContext(prismContext)
-                        .mappingFactory(mappingFactory)
-                        .mappingEvaluator(mappingEvaluator)
-                        .contextLoader(contextLoader)
-                        .activationComputer(activationComputer)
                         .now(clock.currentTimeXMLGregorianCalendar())
                         .loginMode(true)
                         // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
@@ -1596,18 +1601,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     continue;
                 }
                 for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
-                    if (target.getTarget().getOid() != null
-                            && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)
-                            && ObjectTypeUtil.containsOid(assignees, target.getTarget().getOid())) {
-                        List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-                        if (workItem != null && DeputyUtils.limitationsAllow(limitations, privilegeLimitationItemName, workItem)
-                                || workItem == null && SchemaDeputyUtil.limitationsAllow(limitations, privilegeLimitationItemName)) {
-                            return true;
-                        }
+                    String targetOid = target.getTarget().getOid();
+                    if (targetOid != null
+                            && ObjectTypeUtil.containsOid(assignees, targetOid)
+                            && target.getAssignmentPath().containsDelegation()
+                            && target.getAssignmentPath().getOtherPrivilegesLimitation().allows(limitationType)) {
+                        return true;
                     }
                 }
             } catch (CommonException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't verify 'deputy' relation between {} and {} for work item {}; assignment: {}",
+                LoggingUtils.logUnexpectedException(
+                        LOGGER, "Couldn't verify 'deputy' relation between {} and {} for work item {}; assignment: {}",
                         e, potentialDeputy, assignees, workItem, assignmentType);
             }
         }
@@ -1620,7 +1624,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         MidPointPrincipal attorneyPrincipal = securityContextManager.getPrincipal();
         MidPointPrincipal donorPrincipal = securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
 
@@ -1694,7 +1700,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
-        ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType(prismContext);
+        ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
 
         String resetMethod = executeCredentialResetRequest.getResetMethod();
         if (StringUtils.isBlank(resetMethod)) {

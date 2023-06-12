@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="3a17b131-82c2-4669-a491-791081be9c04"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>show-my-requesters</name>
+    <authorization>
+        <documentation>
+            Shows only users that request my roles.
+        </documentation>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>UserType</type>
+            <!--
+                There exists a CaseType c and RoleType r such that:
+                    c.requester == this user
+                    c.target == r
+                    principal has roleMembershipRef with (r, owner)
+
+                 Can we write a filter for this?
+            -->
+        </object>
+    </authorization>
+</role>
