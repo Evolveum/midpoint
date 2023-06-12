@@ -26,7 +26,7 @@
             </oidc>
         </modules>
         <sequence>
-            <name>admin-gui-default</name>
+            <identifier>admin-gui-default</identifier>
             <description>
                 Default GUI authentication sequence.
             </description>
@@ -36,13 +36,13 @@
                 <urlSuffix>gui-default</urlSuffix>
             </channel>
             <module>
-                <name>internalLoginForm</name>
+                <identifier>internalLoginForm</identifier>
                 <order>30</order>
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
         <sequence>
-            <name>rest</name>
+            <identifier>rest</identifier>
             <description>
                 Authentication sequence for REST service.
                 We want just OIDC auth here, HTTP basic as fallback.
@@ -57,7 +57,7 @@
                 <urlSuffix>rest-default</urlSuffix>
             </channel>
             <module>
-                <name>oidcResourceServer</name>
+                <identifier>oidcResourceServer</identifier>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>
