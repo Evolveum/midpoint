@@ -346,6 +346,38 @@ public class AuthSequenceUtil {
         return null;
     }
 
+    /**
+     * starting from 4.7 identifier should be used instead of name
+     * leaving this method just to support old config working (until deprecated name attribute is removed at all)
+     * @param name
+     * @param authenticationModulesType
+     * @return
+     */
+    private static AbstractAuthenticationModuleType getModuleByName(
+            String name, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer)) {
+                return;
+            }
+
+            PrismContainer<?> c = (PrismContainer<?>) v;
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
+        });
+
+        for (AbstractAuthenticationModuleType module : modules) {
+            if (module.getName() != null && module.getName().equals(name)) {
+                return module;
+            }
+        }
+        return null;
+    }
+
     private static AbstractAuthenticationModuleType getModuleByIdentifier(String identifier, AuthenticationModulesType authenticationModulesType) {
         PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
         List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
@@ -363,7 +395,7 @@ public class AuthSequenceUtil {
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
-            String moduleIdentifier = module.getIdentifier();
+            String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
             if (moduleIdentifier != null && StringUtils.equals(moduleIdentifier, identifier)) {
                 return module;
             }

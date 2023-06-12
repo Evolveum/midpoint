@@ -106,7 +106,7 @@ public class SecurityPolicyUtil {
                 new AuthenticationsPolicyType()
                         .beginModules()
                             .beginLoginForm()
-                                .identifier(DEFAULT_MODULE_IDENTIFIER)
+                                .name(DEFAULT_MODULE_IDENTIFIER)
                             .<AuthenticationModulesType>end()
                         .<AuthenticationsPolicyType>end()
                         .sequence(createDefaultSequence());
