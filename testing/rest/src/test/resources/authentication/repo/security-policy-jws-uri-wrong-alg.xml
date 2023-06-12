@@ -48,7 +48,7 @@
                 <urlSuffix>gui-default</urlSuffix>
             </channel>
             <module>
-                <identifier>internalLoginForm</identifier>
+                <name>internalLoginForm</name>
                 <order>30</order>
                 <necessity>sufficient</necessity>
             </module>
@@ -69,17 +69,17 @@
                 <urlSuffix>rest-default</urlSuffix>
             </channel>
             <module>
-                <identifier>oidcResourceServer</identifier>
+                <name>oidcResourceServer</name>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>
             <module>
-                <identifier>internalBasic</identifier>
+                <name>internalBasic</name>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>
             <module>
-                <identifier>httpSecQ</identifier>
+                <name>httpSecQ</name>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>

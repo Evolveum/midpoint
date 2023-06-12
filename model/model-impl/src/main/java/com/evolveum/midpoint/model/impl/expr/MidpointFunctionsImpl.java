@@ -1711,7 +1711,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         AuthenticationSequenceModuleType module = invitationAuthSequence.getModule().get(0);
-        String moduleIdentifier = module.getIdentifier();
+        String moduleIdentifier = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
         if (StringUtils.isEmpty(moduleIdentifier)) {
             return null;
         }

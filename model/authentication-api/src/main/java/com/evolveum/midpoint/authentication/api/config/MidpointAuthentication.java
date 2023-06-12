@@ -318,10 +318,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (module == null) {
             return null;
         }
-        String moduleIdentifier = module.getIdentifier();
-        if (moduleIdentifier == null) {
-            return null;
-        }
+        String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
         for (ModuleAuthentication authentication : getAuthentications()) {
             if (authentication.getModuleIdentifier().equals(moduleIdentifier)) {
                 return authentication;

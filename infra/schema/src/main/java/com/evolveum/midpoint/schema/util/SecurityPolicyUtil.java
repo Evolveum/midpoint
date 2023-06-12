@@ -129,7 +129,7 @@ public class SecurityPolicyUtil {
                     .urlSuffix("gui-default")
                 .<AuthenticationSequenceType>end()
                 .beginModule()
-                    .identifier(DEFAULT_MODULE_IDENTIFIER)
+                    .name(DEFAULT_MODULE_IDENTIFIER)
                     .order(1)
                     .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT)
                 .end();
