@@ -121,7 +121,7 @@ public class SecurityPolicyUtil {
 
     public static AuthenticationSequenceType createDefaultSequence() {
         return new AuthenticationSequenceType()
-                .identifier(DEFAULT_SEQUENCE_IDENTIFIER)
+                .name(DEFAULT_SEQUENCE_IDENTIFIER)
                 .displayName(DEFAULT_SEQUENCE_DISPLAY_IDENTIFIER)
                 .beginChannel()
                     ._default(true)
@@ -156,7 +156,7 @@ public class SecurityPolicyUtil {
                 .getAuthentication()
                 .getSequence()
                 .stream()
-                .filter(s -> identifier.equals(s.getIdentifier()))
+                .filter(s -> identifier.equals(s.getIdentifier()) || identifier.equals(s.getName()))
                 .findFirst()
                 .orElse(null);
     }

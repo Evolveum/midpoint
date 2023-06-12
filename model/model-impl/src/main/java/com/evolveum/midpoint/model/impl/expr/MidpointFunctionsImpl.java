@@ -1796,7 +1796,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         AuthenticationSequenceType sequenceByName = null;
         AuthenticationSequenceType defaultSequence = null;
         for (AuthenticationSequenceType sequenceType : sequences) {
-            String sequenceIdentifier = sequenceType.getIdentifier();
+            String sequenceIdentifier = StringUtils.isNotEmpty(sequenceType.getIdentifier()) ? sequenceType.getIdentifier() : sequenceType.getName();
             if (StringUtils.equals(sequenceIdentifier, nameOfSequence)) {
                 sequenceByName = sequenceType;
                 break;

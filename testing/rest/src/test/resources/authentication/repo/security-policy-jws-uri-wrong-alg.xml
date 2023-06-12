@@ -38,7 +38,7 @@
             </httpSecQ>
         </modules>
         <sequence>
-            <identifier>admin-gui-default</identifier>
+            <name>admin-gui-default</name>
             <description>
                 Default GUI authentication sequence.
             </description>
@@ -54,7 +54,7 @@
             </module>
         </sequence>
         <sequence>
-            <identifier>rest</identifier>
+            <name>rest</name>
             <description>
                 Authentication sequence for REST service.
                 We want just OIDC auth here, HTTP basic as fallback.

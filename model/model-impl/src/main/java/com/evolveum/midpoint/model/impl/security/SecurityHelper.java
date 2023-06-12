@@ -416,8 +416,8 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     private boolean sequencesIdentifiersMatch(AuthenticationSequenceType sequence1, AuthenticationSequenceType sequence2) {
-        String identifier1 = sequence1.getIdentifier();
-        String identifier2 = sequence2.getIdentifier();
+        String identifier1 = StringUtils.isNotEmpty(sequence1.getIdentifier()) ? sequence1.getIdentifier() : sequence1.getName();
+        String identifier2 = StringUtils.isNotEmpty(sequence2.getIdentifier()) ? sequence2.getIdentifier() : sequence2.getName();
         return identifier1 != null && StringUtils.equals(identifier1, identifier2);
     }
 
