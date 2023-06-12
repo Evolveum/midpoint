@@ -7,11 +7,25 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.Collection;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -27,7 +41,6 @@ import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,7 +53,13 @@ public class ClockworkAuditHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkAuditHelper.class);
 
+    private static final String OP_EVALUATE_AUDIT_RECORD_PROPERTY =
+            ClockworkAuditHelper.class.getName() + ".evaluateAuditRecordProperty";
+
+    @Autowired private PrismContext prismContext;
     @Autowired private AuditHelper auditHelper;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     // "overallResult" covers the whole clockwork run
     // while "result" is - most of the time - related to the current clockwork click
