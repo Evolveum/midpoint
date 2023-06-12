@@ -26,11 +26,11 @@
                 </resourceServer>
             </oidc>
             <httpBasic>
-                <name>internalBasic</name>
+                <identifier>internalBasic</identifier>
                 <description>Internal username/password authentication, using HTTP basic auth</description>
             </httpBasic>
             <httpSecQ>
-                <name>httpSecQ</name>
+                <identifier>httpSecQ</identifier>
                 <description>
                     Special "HTTP SecQ" authentication based on security question answers.
                     It is used for REST service.
@@ -38,7 +38,7 @@
             </httpSecQ>
         </modules>
         <sequence>
-            <name>admin-gui-default</name>
+            <identifier>admin-gui-default</identifier>
             <description>
                 Default GUI authentication sequence.
             </description>
@@ -54,7 +54,7 @@
             </module>
         </sequence>
         <sequence>
-            <name>rest</name>
+            <identifier>rest</identifier>
             <description>
                 Authentication sequence for REST service.
                 We want just OIDC auth here, HTTP basic as fallback.
