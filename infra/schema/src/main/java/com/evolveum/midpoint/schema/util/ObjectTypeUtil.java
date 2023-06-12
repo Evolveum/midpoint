@@ -1167,6 +1167,13 @@ public class ObjectTypeUtil {
                         .map(c -> c.asPrismContainerValue()));
     }
 
+    /** Returns containerables that are not rooted in a {@link PrismObject}. */
+    public static @NotNull <C extends Containerable> List<C> getDetachedContainerables(@NotNull Collection<C> containerables) {
+        return containerables.stream()
+                .filter(c -> !c.asPrismContainerValue().getRootValue().isObjectable())
+                .collect(Collectors.toList());
+    }
+
     /**
      * As {@link #getRootsForContainerables(Collection)} but for {@link ObjectReferenceType} values.
      */
