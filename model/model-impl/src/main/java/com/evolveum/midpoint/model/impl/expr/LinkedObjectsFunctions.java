@@ -15,12 +15,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.query.LinkedSelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,7 +57,6 @@ public class LinkedObjectsFunctions {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MidpointFunctionsImpl midpointFunctions;
     @Autowired private LinkManager linkManager;
-    @Autowired private ExpressionFactory expressionFactory;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -108,13 +105,17 @@ public class LinkedObjectsFunctions {
             return List.of();
         }
         PrismReferenceValue focusReference = focusObjectReference.asReferenceValue();
-        LinkedSelectorToFilterTranslator translator = new LinkedSelectorToFilterTranslator(definition.getSelector(), focusReference,
-                "finding linked sources for " + focusContext, prismContext, expressionFactory,
-                currentTask, currentResult);
-        ObjectQuery query = prismContext.queryFactory().createQuery(translator.createFilter());
+        LinkedSelectorToFilterTranslator translator = new LinkedSelectorToFilterTranslator(
+                definition.getSelector(),
+                focusReference,
+                "finding linked sources for " + focusContext,
+                LOGGER,
+                currentTask);
+        ObjectQuery query = prismContext.queryFactory().createQuery(translator.createFilter(currentResult));
 
         //noinspection unchecked
-        return (List<T>) midpointFunctions.searchObjects(translator.getNarrowedTargetType(), query, null);
+        return (List<T>) midpointFunctions.searchObjects(
+                translator.getNarrowedTargetType(), query, null);
     }
 
     // Should be used after assignment evaluation!
@@ -142,7 +143,7 @@ public class LinkedObjectsFunctions {
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMemberRelation = membership.stream()
                 .filter(ref -> relationRegistry.isMember(ref.getRelation()) && objectTypeMatches(ref, type))
-                .collect(Collectors.toList());
+                .toList();
         // TODO deduplicate w.r.t. member/manager
         // TODO optimize matching
         List<T> objects = new ArrayList<>(assignedWithMemberRelation.size());
@@ -178,7 +179,7 @@ public class LinkedObjectsFunctions {
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMatchingRelation = membership.stream()
                 .filter(ref -> relationMatches(ref, definition.getSelector()) && objectTypeMatches(ref, expectedClasses))
-                .collect(Collectors.toList());
+                .toList();
         // TODO deduplicate w.r.t. member/manager
         // TODO optimize matching
         List<T> objects = new ArrayList<>(assignedWithMatchingRelation.size());

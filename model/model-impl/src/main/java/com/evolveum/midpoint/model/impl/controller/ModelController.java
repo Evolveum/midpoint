@@ -748,6 +748,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 schemaTransformer.applySchemasAndSecurityToContainerValues(list, parsedOptions, task, result);
             }
             return list;
+        } catch (Throwable e) {
+            result.recordException(e);
+            throw e;
         } finally {
             result.close();
             result.cleanup();

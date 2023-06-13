@@ -2835,6 +2835,19 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    protected <O extends ObjectType> void assertNoRepoObjects(Class<O> type) throws SchemaException {
+        OperationResult result = createSubresult("assertNoRepoObjects");
+        try {
+            var objects = repositoryService.searchObjects(type, null, null, result);
+            assertThat(objects).as(type.getSimpleName() + " objects").isEmpty();
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
     protected void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
         IntegrationTestTools.assertAssociation(shadow, associationName, entitlementOid);
     }

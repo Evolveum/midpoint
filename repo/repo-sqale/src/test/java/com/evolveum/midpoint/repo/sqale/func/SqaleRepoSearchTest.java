@@ -425,7 +425,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .iteration(1)
                                 .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(11)
-                                        .iteration(1))
+                                        .iteration(1)
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE))
                                 .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(12)
                                         .iteration(1)))
@@ -2390,6 +2391,20 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result)
                 .extracting(a -> a.getLifecycleState())
                 .containsExactly("assignment1-2", "assignment1-3-ext"); // in this order
+    }
+
+    @Test(enabled = false) // See MID-8894
+    public void test640SearchAccessCertificationCasesByAssignee() throws SchemaException {
+        SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
+                "by work item assignee", AccessCertificationCaseType.class,
+                f -> f.exists(CaseType.F_WORK_ITEM)
+                        .block()
+                        .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF)
+                        .ref(user1Oid, UserType.COMPLEX_TYPE)
+                        .endBlock());
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(1);
     }
 
     @Test
