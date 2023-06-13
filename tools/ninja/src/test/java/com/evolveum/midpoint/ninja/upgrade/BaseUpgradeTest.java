@@ -9,15 +9,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,6 +20,11 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
+import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.opts.BaseOptions;
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
@@ -74,7 +74,7 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         });
     }
 
-    protected void recreateSchema(File scriptsDirectory) throws Exception {
+    protected void recreateSchema(@NotNull File scriptsDirectory) throws Exception {
         runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public;"));
 
         BaseOptions baseOptions = new BaseOptions();
@@ -88,12 +88,13 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
         setupDatabaseOptions.setScriptsDirectory(scriptsDirectory);
 
-        NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions));
+        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions))) {
 
-        SetupDatabaseAction action = new SetupDatabaseAction();
-        action.init(context, setupDatabaseOptions);
+            SetupDatabaseAction action = new SetupDatabaseAction();
+            action.init(context, setupDatabaseOptions);
 
-        action.execute();
+            action.execute();
+        }
 
         Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
     }
@@ -110,14 +111,14 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         });
     }
 
-    protected void runWith(DataSource dataSource, Consumer<JdbcTemplate> consumer) throws SQLException {
+    protected void runWith(@NotNull DataSource dataSource, @NotNull Consumer<JdbcTemplate> consumer) throws SQLException {
         runWithResult(dataSource, (Function<JdbcTemplate, Void>) jdbcTemplate -> {
             consumer.accept(jdbcTemplate);
             return null;
         });
     }
 
-    protected <R> R runWithResult(DataSource dataSource, Function<JdbcTemplate, R> function) throws SQLException {
+    protected <R> R runWithResult(@NotNull DataSource dataSource, @NotNull Function<JdbcTemplate, R> function) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             boolean autocommit = connection.getAutoCommit();
             try {
@@ -136,7 +137,7 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
                 jdbcTemplate.queryForObject("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'", Long.class));
     }
 
-    protected String getGlobalMetadataValue(DataSource dataSource, String key) throws SQLException {
+    protected String getGlobalMetadataValue(@NotNull DataSource dataSource, @NotNull String key) throws SQLException {
         return runWithResult(dataSource, jdbcTemplate ->
                 jdbcTemplate.queryForObject("SELECT value FROM m_global_metadata WHERE name=?", new Object[] { key }, String.class));
     }

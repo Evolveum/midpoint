@@ -8,8 +8,11 @@ package com.evolveum.midpoint.ninja.impl;
 
 import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
+import java.io.Closeable;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurati
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class NinjaContext {
+public class NinjaContext implements Closeable {
 
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
     private static final String AUDIT_SERVICE_BEAN = "auditService";
@@ -69,14 +72,25 @@ public class NinjaContext {
 
     private SchemaService schemaService;
 
+    private Map<String, String> systemPropertiesBackup = new HashMap<>();
+
     public NinjaContext(@NotNull List<Object> options) {
         this.options = options;
     }
 
-    public void destroy() {
+    @Override
+    public void close() {
         if (context != null) {
             context.close();
         }
+
+        systemPropertiesBackup.forEach((k, v) -> {
+            if (v == null) {
+                System.clearProperty(k);
+            } else {
+                System.setProperty(k, v);
+            }
+        });
     }
 
     public void setLog(Log log) {
@@ -88,11 +102,11 @@ public class NinjaContext {
 
         log.info("Initializing using midpoint home; {} repository connection", connectRepo ? "with" : "WITHOUT");
 
-        System.setProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
+        backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
 
         String midpointHome = options.getMidpointHome();
 
-        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
+        backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
         overrideRepoConfiguration(options);
 
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
@@ -105,21 +119,28 @@ public class NinjaContext {
         updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
     }
 
+    private void backupAndUpdateSystemProperty(String key, String value) {
+        String oldValue = System.getProperty(key);
+        systemPropertiesBackup.put(key, oldValue);
+
+        System.setProperty(key, value);
+    }
+
     private void overrideRepoConfiguration(ConnectionOptions options) {
         if (options.getUrl() != null) {
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_URL,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_URL,
                     options.getUrl());
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_DATABASE,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_DATABASE,
                     getDatabase(options.getUrl()));
         }
 
         if (options.getUsername() != null) {
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_USERNAME,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_USERNAME,
                     options.getUsername());
         }
 
         if (options.getPassword() != null) {
-            System.setProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD,
+            backupAndUpdateSystemProperty(REPOSITORY_CONFIGURATION + '.' + JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD,
                     options.getPassword());
         }
 

@@ -118,7 +118,7 @@ public class Main {
     private void cleanupResources(BaseOptions opts, NinjaContext context) {
         try {
             if (context != null) {
-                context.destroy();
+                context.close();
             }
         } catch (Exception ex) {
             if (opts.isVerbose()) {

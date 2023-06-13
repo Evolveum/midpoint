@@ -35,12 +35,13 @@ public class SetupDatabaseTest extends BaseUpgradeTest{
         SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
         setupDatabaseOptions.setScriptsDirectory(new File("../../config/sql/native-new"));
 
-        NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions));
+        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions))) {
 
-        SetupDatabaseAction action = new SetupDatabaseAction();
-        action.init(context, setupDatabaseOptions);
+            SetupDatabaseAction action = new SetupDatabaseAction();
+            action.init(context, setupDatabaseOptions);
 
-        action.execute();
+            action.execute();
+        }
 
         Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
 
