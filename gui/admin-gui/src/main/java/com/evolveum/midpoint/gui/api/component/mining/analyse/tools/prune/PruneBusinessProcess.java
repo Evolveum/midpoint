@@ -50,7 +50,7 @@ public class PruneBusinessProcess implements PruneFunctionality {
     }
 
     //O(k * n^2) ?
-    public void process(double sigma, double tau, double omega) {
+    public void process(double sigma, double tau, double omega,List<List<RoleType>> roles,List<UrType> userRolesMemberList ) {
         LOGGER.info("START -> process()");
         candidateKeyUpStructureMap = new HashMap<>();
         rolesDegrees = new ArrayList<>();
@@ -60,8 +60,7 @@ public class PruneBusinessProcess implements PruneFunctionality {
         this.tau = tau;
         this.omega = omega;
 
-        List<List<RoleType>> roles = getRolesImport();
-        List<UrType> userRolesMemberList = getUserRolesList();
+
         // -1 administrator
         usersCount = getUsers().size() - 1;
         rolesCount = roles.size();
@@ -165,7 +164,7 @@ public class PruneBusinessProcess implements PruneFunctionality {
                         HashMap<Integer, Connection> parentConnections = new HashMap<>();
 
                         for (CandidateRole parentCandidateRole : mappedValues) {
-                            if (childrenRoles.containsAll(parentCandidateRole.getCandidateRoles())) {
+                            if (new HashSet<>(childrenRoles).containsAll(parentCandidateRole.getCandidateRoles())) {
 
                                 double confidence = new PruneTools().confidenceConnection(parentCandidateRole.getActualSupport(),
                                         actualSupport);
@@ -289,7 +288,7 @@ public class PruneBusinessProcess implements PruneFunctionality {
 
             List<RoleType> checkIf = new ArrayList<>(parentsRoles);
 
-            return checkIf.containsAll(candidateRole.getCandidateRoles());
+            return new HashSet<>(checkIf).containsAll(candidateRole.getCandidateRoles());
 
         }
         return false;
@@ -356,7 +355,7 @@ public class PruneBusinessProcess implements PruneFunctionality {
             if (removableRolesKeys.contains(entry.getKey())) {
                 continue;
             }
-            if (candidateRoles.containsAll(parentCandidateRoles)) {
+            if (new HashSet<>(candidateRoles).containsAll(parentCandidateRoles)) {
                 return false;
             }
         }
@@ -632,7 +631,7 @@ public class PruneBusinessProcess implements PruneFunctionality {
 
     public List<UrType> possibleAssign(List<UrType> userRoleMembersList, List<RoleType> candidateRole) {
         return IntStream.range(0, userRoleMembersList.size())
-                .filter(i -> userRoleMembersList.get(i).getRoleMembers()
+                .filter(i -> new HashSet<>(userRoleMembersList.get(i).getRoleMembers())
                         .containsAll(candidateRole)).mapToObj(userRoleMembersList::get)
                 .collect(Collectors.toList());
     }

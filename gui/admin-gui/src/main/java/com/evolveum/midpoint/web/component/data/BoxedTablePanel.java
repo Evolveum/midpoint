@@ -60,7 +60,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
-    boolean isRoleMining = false;
+    static boolean isRoleMining = false;
     private List<IColumn<T, String>> columns;
 
     //interval in seconds
@@ -361,6 +361,15 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             Form form = new MidpointForm(ID_FORM);
             footerContainer.add(form);
             PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
+
+                @Override
+                protected List<Integer> getPagingSizes() {
+
+                    if(isRoleMining){
+                        return List.of(new Integer[] { 50, 100, 200, 400 });
+                    }
+                    return super.getPagingSizes();
+                }
 
                 @Override
                 protected void onPageSizeChangePerformed(AjaxRequestTarget target) {

@@ -36,11 +36,23 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
     public static final String F_NAME_USER_TYPE = "userObjectType";
     public static final String F_NAME_ROLE_TYPE = "roleObjectType";
 
+    public static final String F_RATION = "groupOverlapRation";
+
+    public static final String F_GROUP = "groupIdentifier";
+
+    public static final String F_USER_SIZE = "users";
+
+    public static final String F_ID = "id";
+
     public RoleMiningProvider(Component component, IModel<List<T>> model, boolean sortable) {
         super(component);
         Validate.notNull(model);
         this.model = model;
         this.sortable = sortable;
+    }
+
+    public IModel<List<T>> getModel() {
+        return model;
     }
 
     @Override
@@ -79,6 +91,43 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
                     PrismObject<UserType> object2 = (PrismObject<UserType>) PropertyUtils.getProperty(o2, propertyName);
                     prop4 = String.valueOf(object2.getName());
 
+                } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+                }
+                int comparison = ObjectUtils.compare(prop3, prop4, true);
+                return sortParam.isAscending() ? comparison : -comparison;
+
+            });
+        } else if (F_ID.equals(propertyName)) {
+            list.sort((o1, o2) -> {
+
+                String prop3, prop4;
+                try {
+
+                    prop3 = String.valueOf(PropertyUtils.getProperty(o1, propertyName));
+                    prop4 = String.valueOf(PropertyUtils.getProperty(o2, propertyName));
+
+                } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+                }
+                int comparison = ObjectUtils.compare(prop3, prop4, true);
+                return sortParam.isAscending() ? comparison : -comparison;
+
+            });
+        } else if (F_GROUP.equals(propertyName) || F_RATION.equals(propertyName) || F_USER_SIZE.equals(propertyName)) {
+            list.sort((o1, o2) -> {
+
+                double prop3, prop4;
+                try {
+                    if (F_USER_SIZE.equals(propertyName)) {
+                        List<PrismObject<UserType>> object1 = (List<PrismObject<UserType>>) PropertyUtils.getProperty(o1, propertyName);
+                        List<PrismObject<UserType>> object2 = (List<PrismObject<UserType>>) PropertyUtils.getProperty(o2, propertyName);
+                        prop3 = Double.parseDouble(String.valueOf(object1.size()));
+                        prop4 = Double.parseDouble(String.valueOf(object2.size()));
+                    } else {
+                        prop3 = Double.parseDouble(String.valueOf(PropertyUtils.getProperty(o1, propertyName)));
+                        prop4 = Double.parseDouble(String.valueOf(PropertyUtils.getProperty(o2, propertyName)));
+                    }
                 } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
                 }

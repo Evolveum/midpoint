@@ -14,13 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -29,31 +32,34 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UrType;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class TableUR extends Panel {
+public class SimilarGroupDetailsPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
 
-    public TableUR(String id, List<UrType> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList,boolean sortable) {
+    public SimilarGroupDetailsPanel(String id, List<PrismObject<MiningType>> miningTypeList,
+            List<PrismObject<RoleType>> rolePrismObjectList, String targetOid, boolean sortable) {
         super(id);
-        add(generateTableRM(userRoleList, rolePrismObjectList,sortable));
+        BoxedTablePanel<PrismObject<MiningType>> components = generateTableRM(miningTypeList,
+                rolePrismObjectList, targetOid, sortable);
+        components.setOutputMarkupId(true);
+
+        add(components);
+
 
     }
 
@@ -61,49 +67,36 @@ public class TableUR extends Panel {
         return ((PageBase) getPage());
     }
 
-    public BoxedTablePanel<UrType> generateTableRM(List<UrType> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
+    public BoxedTablePanel<PrismObject<MiningType>> generateTableRM(List<PrismObject<MiningType>> groupsOid,
+            List<PrismObject<RoleType>> rolePrismObjectList, String targetOid, boolean sortable) {
 
-        RoleMiningProvider<UrType> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(userRoleList) {
+        RoleMiningProvider<PrismObject<MiningType>> provider = new RoleMiningProvider<>(
+                this, new ListModel<>(groupsOid) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<UrType> object) {
+            public void setObject(List<PrismObject<MiningType>> object) {
                 super.setObject(object);
             }
 
         }, sortable);
 
-        if(sortable) {
-            provider.setSort(UrType.F_NAME_USER_TYPE, SortOrder.ASCENDING);
+        if (sortable) {
+            provider.setSort(MiningType.F_ROLES.toString(), SortOrder.ASCENDING);
         }
-        BoxedTablePanel<UrType> table = new BoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumnsRM(rolePrismObjectList),
+        BoxedTablePanel<PrismObject<MiningType>> table = new BoxedTablePanel<>(
+                ID_DATATABLE, provider, initColumnsRM(rolePrismObjectList, targetOid),
                 null, true, true);
         table.setOutputMarkupId(true);
-        table.getDataTable().setItemsPerPage(30);
-        table.enableSavePageSize();
 
         return table;
     }
 
-    public List<IColumn<UrType, String>> initColumnsRM(List<PrismObject<RoleType>> rolePrismObjectList) {
+    public List<IColumn<PrismObject<MiningType>, String>> initColumnsRM(List<PrismObject<RoleType>> rolePrismObjectList,
+            String targetOid) {
 
-        List<IColumn<UrType, String>> columns = new ArrayList<>();
-
-        columns.add(new CheckBoxColumn<>(createStringResource(" ")) {
-            @Override
-            protected IModel<Boolean> getEnabled(IModel<UrType> rowModel) {
-                return () -> rowModel.getObject() != null;
-            }
-
-            @Override
-            public String getCssClass() {
-                return " role-mining-static-header";
-            }
-
-        });
+        List<IColumn<PrismObject<MiningType>, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
@@ -114,21 +107,21 @@ public class TableUR extends Panel {
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<UrType> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<PrismObject<MiningType>> rowModel) {
 
                 return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
             }
         });
 
-        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
+        columns.add(new AbstractExportableColumn<>(Model.of("Group")) {
 
             @Override
             public String getSortProperty() {
-                return UrType.F_NAME_USER_TYPE;
+                return MiningType.F_OID.getLocalPart();
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<UrType> iModel) {
+            public IModel<?> getDataModel(IModel<PrismObject<MiningType>> iModel) {
                 return null;
             }
 
@@ -138,31 +131,24 @@ public class TableUR extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<UrType>> item, String componentId,
-                    IModel<UrType> rowModel) {
+            public void populateItem(Item<ICellPopulator<PrismObject<MiningType>>> item, String componentId,
+                    IModel<PrismObject<MiningType>> rowModel) {
 
                 item.add(AttributeAppender.replace("class", " overflow-auto"));
                 item.add(new AttributeAppender("style", " width:150px"));
 
-                String header = rowModel.getObject().getUserObjectType().getName().toString();
-                if (header == null) {
-                    header = "unknown";
+                Label label = new Label(componentId, rowModel.getObject().getOid());
+                String oid = rowModel.getObject().getValue().getOid();
+                item.add(label);
+                if (oid.equals(targetOid)) {
+                    item.add(new AttributeAppender("class", " table-primary"));
                 }
 
-                item.add(new AjaxLinkPanel(componentId, createStringResource(header)) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        UserType object = rowModel.getObject().getUserObjectType();
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
-                        ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
-                    }
-                });
             }
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId, createStringResource("RoleMining.name.column")).add(
+                return new Label(componentId, Model.of("Group")).add(
                         new AttributeAppender("style",
                                 "  writing-mode: vertical-lr;  -webkit-transform: rotate(-270deg);"));
             }
@@ -173,22 +159,22 @@ public class TableUR extends Panel {
             }
         });
 
-        IColumn<UrType, String> column;
+        IColumn<PrismObject<MiningType>, String> column;
+        for (PrismObject<RoleType> roleTypePrismObject : rolePrismObjectList) {
+            RoleType roleType = roleTypePrismObject.asObjectable();
+            String oid = roleType.getOid();
+            String name = "" + roleType.getName().toString();
 
-        for (int i = 0; i < rolePrismObjectList.size(); i++) {
-            int finalI = i;
-
-            column = new AbstractExportableColumn<>(
-                    createStringResource(rolePrismObjectList.get(i).getName().toString())) {
+            column = new AbstractColumn<>(createStringResource(name)) {
 
                 @Override
-                public void populateItem(Item<ICellPopulator<UrType>> cellItem,
-                        String componentId, IModel<UrType> model) {
+                public void populateItem(Item<ICellPopulator<PrismObject<MiningType>>> cellItem,
+                        String componentId, IModel<PrismObject<MiningType>> model) {
 
                     tableStyle(cellItem);
 
-                    List<RoleType> roleMembers = model.getObject().getRoleMembers();
-                    if (roleMembers.contains(rolePrismObjectList.get(finalI).asObjectable())) {
+                    List<String> roleMembers = model.getObject().asObjectable().getRoles();
+                    if (roleMembers.contains(oid)) {
                         filledCell(cellItem, componentId);
                     } else {
                         emptyCell(cellItem, componentId);
@@ -196,29 +182,18 @@ public class TableUR extends Panel {
                 }
 
                 @Override
-                public IModel<String> getDataModel(IModel<UrType> rowModel) {
-                    return Model.of(" ");
-                }
-
-                @Override
                 public Component getHeader(String componentId) {
-                    String headerName;
-                    if (rolePrismObjectList.get(finalI).getName() == null) {
-                        headerName = "unknown";
-                    } else {
-                        headerName = rolePrismObjectList.get(finalI).getName().toString();
-                    }
 
                     DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(
                             WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
 
                     return new AjaxLinkTruncatePanel(componentId,
-                            createStringResource(headerName), createStringResource(headerName), displayType) {
+                            createStringResource(name), createStringResource(name), displayType) {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            RoleType object = rolePrismObjectList.get(finalI).asObjectable();
+
                             PageParameters parameters = new PageParameters();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+                            parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
                         }
 
@@ -237,19 +212,22 @@ public class TableUR extends Panel {
     }
 
     private void tableStyle(@NotNull Item<?> cellItem) {
-        cellItem.getParent().getParent().add(AttributeAppender.replace("class", " d-flex"));
-        cellItem.getParent().getParent().add(AttributeAppender.replace("style", " height:40px"));
-        cellItem.add(new AttributeAppender("style", " width:40px; height:40px; border: 1px solid #f4f4f4;"));
+        MarkupContainer parentContainer = cellItem.getParent().getParent();
+        parentContainer.add(AttributeAppender.replace("class", "d-flex"));
+        parentContainer.add(AttributeAppender.replace("style", "height:40px"));
+
+        cellItem.add(AttributeAppender.append("style", "width:40px; height:40px; border: 1px solid #f4f4f4;"));
         cellItem.add(AttributeAppender.remove("class"));
     }
 
+
     private void emptyCell(@NotNull Item<?> cellItem, String componentId) {
-        cellItem.add(new Label(componentId, " "));
+        cellItem.add(new EmptyPanel(componentId));
     }
 
     private void filledCell(@NotNull Item<?> cellItem, String componentId) {
         cellItem.add(new AttributeAppender("class", " table-dark"));
-        cellItem.add(new Label(componentId, " "));
+        cellItem.add(new EmptyPanel(componentId));
     }
 
 }

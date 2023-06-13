@@ -57,6 +57,7 @@ DO $$ BEGIN
         'REPORT_DATA',
         'RESOURCE',
         'ROLE',
+        'MINING',
         'SECURITY_POLICY',
         'SEQUENCE',
         'SERVICE',

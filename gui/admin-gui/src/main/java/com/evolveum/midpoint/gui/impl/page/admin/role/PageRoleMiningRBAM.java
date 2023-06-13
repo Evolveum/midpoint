@@ -8,18 +8,29 @@ package com.evolveum.midpoint.gui.impl.page.admin.role;
 
 import static com.evolveum.midpoint.gui.api.component.mining.DataStorage.fillRolesAndUsers;
 import static com.evolveum.midpoint.gui.api.component.mining.DataStorage.resetAll;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.sortUserSets;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.sortUserSetsJc;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper.Preparer.prepareMiningSet;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper.Preparer.prepareMiningSetIntersected;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.UrTypeGroup;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -29,10 +40,8 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.mining.RoleMiningFilter;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.RpType;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.RuType;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UpType;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UrType;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.*;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.UserSet;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.panels.GenerateDataPanelRBAM;
 import com.evolveum.midpoint.gui.impl.page.admin.role.panels.PrunePanel;
@@ -42,9 +51,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(
         urls = {
@@ -66,14 +72,18 @@ public class PageRoleMiningRBAM extends PageAdmin {
     private static final String ID_BASIC_TABLE_SELECTOR = "basic_table_selector";
     private static final String ID_PRUNE_PANEL = "prune_panel";
 
+    private static final String ID_FORM_THRESHOLDS = "thresholds_form";
     private static final String ID_FORM_TABLES = "table_dropdown";
     private static final String ID_DROPDOWN_TABLE = "dropdown_choice";
     private static final String ID_SUBMIT_DROPDOWN = "ajax_submit_link_dropdown";
 
     private static final String ID_DATATABLE_EXTRA = "datatable_extra";
 
-    private static final List<String> SEARCH_ENGINES = Arrays.asList("UR", "UP", "RP", "RU");
+    private static final List<String> SEARCH_ENGINES = Arrays.asList("UR", "UP", "RP", "RU", "JC", "JC2", "JCF", "ISF");
     public String selected = "UR";
+
+    double jcThreshold = 0.80;
+    int minIntersection = 5;
 
     public PageRoleMiningRBAM() {
         super();
@@ -85,20 +95,75 @@ public class PageRoleMiningRBAM extends PageAdmin {
 
         fillRolesAndUsers(getPageBase());
 
-        add(generatePanelSimpleAuthorization());
+        add(generateObjectsPanel());
 
         add(new BasicTableSelector(ID_BASIC_TABLE_SELECTOR, PageRoleMiningRBAM.this));
 
         add(new PrunePanel(ID_PRUNE_PANEL, JavaScriptHeaderItem.forReference(
                 new PackageResourceReference(PageRoleMiningRBAM.class, "js/network_graph_auth.js"))));
 
-
         add(choiceTableForm());
 
     }
 
+    public AjaxButton getGenerateMiningTypeButton() {
+        AjaxButton ajaxLinkAssign = new AjaxButton("id_generate_mining_set", Model.of("Import MiningType Objects")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                OperationResult result = new OperationResult("Generate miningType object");
+                try {
+
+                    importMiningGroups(result, getPageBase(), 15);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        };
+        ajaxLinkAssign.setOutputMarkupId(true);
+        return ajaxLinkAssign;
+
+    }
+
+    public AjaxButton getSimilarityTypeButton() {
+        AjaxButton ajaxLinkAssign = new AjaxButton("id_similarity_mining_set",
+                Model.of("Similarity MiningType Objects")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                OperationResult result = new OperationResult("Similarity miningType object");
+                try {
+                    similarityUpdaterIntersection(getPageBase(), 10);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        };
+        ajaxLinkAssign.setOutputMarkupId(true);
+        return ajaxLinkAssign;
+
+    }
+
+    public AjaxButton getDeleteMiningTypeButton() {
+        AjaxButton ajaxLinkAssign = new AjaxButton("id_delete_mining_set", Model.of("Delete Mining Objects")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                OperationResult result = new OperationResult("Delete miningType objects");
+                try {
+                    deleteMiningObjects(result, getPageBase());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        };
+        ajaxLinkAssign.setOutputMarkupId(true);
+        return ajaxLinkAssign;
+
+    }
+
     private @NotNull
-    AjaxButton generatePanelSimpleAuthorization() {
+    AjaxButton generateObjectsPanel() {
         AjaxButton ajaxLinkAssign = new AjaxButton(ID_GENERATE_DATA_PANEL, Model.of("Generate data")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -125,25 +190,168 @@ public class PageRoleMiningRBAM extends PageAdmin {
 
         formDropdown.add(new Label(ID_DATATABLE_EXTRA).setOutputMarkupId(true));
 
+        TextField<Double> thresholdField = new TextField<>("threshold_field", Model.of(jcThreshold));
+        thresholdField.setOutputMarkupId(true);
+        thresholdField.setOutputMarkupPlaceholderTag(true);
+        thresholdField.setVisible(false);
+        formDropdown.add(thresholdField);
+
+        TextField<Integer> minIntersectionField = new TextField<>("intersection_field", Model.of(minIntersection));
+        minIntersectionField.setOutputMarkupId(true);
+        minIntersectionField.setOutputMarkupPlaceholderTag(true);
+        minIntersectionField.setVisible(false);
+        formDropdown.add(minIntersectionField);
+
         AjaxSubmitLink ajaxSubmitDropdown = new AjaxSubmitLink(ID_SUBMIT_DROPDOWN, formDropdown) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
 
                 switch (selected) {
                     case "UR":
-                        getBoxedTableExtra().replaceWith(new TableUR(ID_DATATABLE_EXTRA, generateUR(), new RoleMiningFilter().filterRoles(getPageBase())));
+                        if (thresholdField.isVisible()) {
+                            thresholdField.setVisible(false);
+                        }
+
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+                        target.add(thresholdField);
+                        getBoxedTableExtra().replaceWith(new TableUR(ID_DATATABLE_EXTRA, generateUR(),
+                                new RoleMiningFilter().filterRoles(getPageBase()), true));
                         target.add(getBoxedTableExtra().setOutputMarkupId(true));
                         break;
                     case "UP":
+                        if (thresholdField.isVisible()) {
+                            thresholdField.setVisible(false);
+                        }
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+                        target.add(thresholdField);
                         getBoxedTableExtra().replaceWith(new TableUP(ID_DATATABLE_EXTRA, generateUP(), generatePermissions()));
                         target.add(getBoxedTableExtra().setOutputMarkupId(true));
                         break;
                     case "RP":
+                        if (thresholdField.isVisible()) {
+                            thresholdField.setVisible(false);
+                        }
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+                        target.add(thresholdField);
                         getBoxedTableExtra().replaceWith(new TableRP(ID_DATATABLE_EXTRA, generateRP(), generatePermissions()));
                         target.add(getBoxedTableExtra().setOutputMarkupId(true));
                         break;
                     case "RU":
-                        getBoxedTableExtra().replaceWith(new TableRU(ID_DATATABLE_EXTRA, generateRU(), new RoleMiningFilter().filterUsers(getPageBase())));
+                        if (thresholdField.isVisible()) {
+                            thresholdField.setVisible(false);
+                        }
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+                        target.add(thresholdField);
+
+                        getBoxedTableExtra().replaceWith(new TableRU(ID_DATATABLE_EXTRA, generateRU(),
+                                new RoleMiningFilter().filterUsers(getPageBase())));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    case "JC":
+                        if (!thresholdField.isVisible()) {
+                            thresholdField.setVisible(true);
+                        }
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+                        getBoxedTableExtra().replaceWith(new TableUR(ID_DATATABLE_EXTRA, generateJC(),
+                                new RoleMiningFilter().filterRoles(getPageBase()), false));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    case "JC2":
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+
+                        if (!thresholdField.isVisible()) {
+                            thresholdField.setVisible(true);
+                        }
+
+                        if (thresholdField.getModelObject() == null) {
+                            thresholdField.setDefaultModelObject(jcThreshold);
+                        }
+
+                        jcThreshold = thresholdField.getModelObject();
+
+                        target.add(thresholdField);
+                        getBoxedTableExtra().replaceWith(new TableJC(ID_DATATABLE_EXTRA, generateJC2(jcThreshold),
+                                new RoleMiningFilter().filterRoles(getPageBase()), false));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+
+                    case "JCF":
+
+                        if (minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(false);
+                        }
+
+                        if (!thresholdField.isVisible()) {
+                            thresholdField.setVisible(true);
+                        }
+
+                        if (thresholdField.getModelObject() == null) {
+                            thresholdField.setDefaultModelObject(jcThreshold);
+                        }
+
+                        jcThreshold = thresholdField.getModelObject();
+
+                        target.add(thresholdField);
+
+                        getBoxedTableExtra().replaceWith(new TableJCF(ID_DATATABLE_EXTRA, prepareMiningSet(
+                                new RoleMiningFilter().filterUsers(getPageBase()), jcThreshold),
+                                new RoleMiningFilter().filterRoles(getPageBase()), true, true)
+                                .add(new AbstractDefaultAjaxBehavior() {
+                                    @Override
+                                    protected void respond(AjaxRequestTarget target) {
+                                    }
+
+                                    @Override
+                                    public void renderHead(Component component, IHeaderResponse response) {
+                                        super.renderHead(component, response);
+                                        response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
+                                    }
+                                }));
+                        target.add(getBoxedTableExtra().setOutputMarkupId(true));
+                        break;
+                    case "ISF":
+                        if (thresholdField.isVisible()) {
+                            thresholdField.setVisible(false);
+                        }
+
+                        if (!minIntersectionField.isVisible()) {
+                            minIntersectionField.setVisible(true);
+                        }
+
+                        if (minIntersectionField.getModelObject() == null) {
+                            minIntersectionField.setDefaultModelObject(jcThreshold);
+                        }
+
+                        minIntersection = minIntersectionField.getModelObject();
+
+                        target.add(minIntersectionField);
+
+                        getBoxedTableExtra().replaceWith(new TableJCF(ID_DATATABLE_EXTRA, prepareMiningSetIntersected(
+                                new RoleMiningFilter().filterUsers(getPageBase()), minIntersection, jcThreshold),
+                                new RoleMiningFilter().filterRoles(getPageBase()), true, true)
+                                .add(new AbstractDefaultAjaxBehavior() {
+                                    @Override
+                                    protected void respond(AjaxRequestTarget target) {
+                                    }
+
+                                    @Override
+                                    public void renderHead(Component component, IHeaderResponse response) {
+                                        super.renderHead(component, response);
+                                        response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
+                                    }
+                                }));
                         target.add(getBoxedTableExtra().setOutputMarkupId(true));
                         break;
                     default:
@@ -179,6 +387,93 @@ public class PageRoleMiningRBAM extends PageAdmin {
 
             userRolesList.add(new UrType(userObject, userRoles));
         }
+        return userRolesList;
+    }
+
+    public List<UrType> generateJC() {
+        List<UserSet> userSets = sortUserSets(new RoleMiningFilter().filterUsers(getPageBase()));
+
+        List<PrismObject<UserType>> userList = new ArrayList<>();
+        for (UserSet userSet : userSets) {
+            userList.addAll(userSet.getUsers());
+        }
+
+        List<UrType> userRolesList = new ArrayList<>();
+        for (PrismObject<UserType> userTypePrismObject : userList) {
+            UserType userObject = userTypePrismObject.asObjectable();
+
+            if (userObject.getName().toString().equals("administrator")) {
+                userRolesList.add(new UrType(userObject, new ArrayList<>()));
+                continue;
+            }
+            List<RoleType> userRoles = new RoleMiningFilter().getUserRoles(userObject, getPageBase());
+
+            userRolesList.add(new UrType(userObject, userRoles));
+        }
+        return userRolesList;
+    }
+
+    private String getScaleScript() {
+        String script = "let div = document.querySelector('#myTable');" +
+                "let table = div.querySelector('table');" +
+                "let scale = 1;" +
+                "if (div && table) {" +
+                "  div.onwheel = function(e) {" +
+                "    e.preventDefault();" +
+                "    let rectBefore = table.getBoundingClientRect();" +
+                "    let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;" +
+                "    let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;" +
+                "    table.style.transformOrigin = 'left top';" +
+                "    if (e.deltaY < 0) {" +
+                "      console.log('Zooming in');" +
+                "      scale += 0.1;" +
+                "      let prevScale = scale - 0.1;" +
+                "      let scaleFactor = scale / prevScale;" +
+                "      let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);" +
+                "      let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);" +
+                "      table.style.transformOrigin = x + '%' + ' ' + y + '%';" +
+                "      table.style.transform = 'scale(' + scale + ')';" +
+                "      let rectAfter = table.getBoundingClientRect();" +
+                "      div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);" +
+                "      div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);" +
+                "    } else if (e.deltaY > 0) {" +
+                "      console.log('Zooming out');" +
+                "      scale -= 0.1;" +
+                "      scale = Math.max(0.1, scale);" +
+                "      table.style.transform = 'scale(' + scale + ')';" +
+                "      let rectAfter = table.getBoundingClientRect();" +
+                "      div.scrollLeft += (rectAfter.left - rectBefore.left);" +
+                "      div.scrollTop += (rectAfter.top - rectBefore.top);" +
+                "    }" +
+                "  };" +
+                "} else {" +
+                "  console.error('Div or table not found');" +
+                "}";
+        return script;
+    }
+
+    public List<UrTypeGroup> generateJC2(double jcThreshold) {
+        List<UserSet> userSets = sortUserSetsJc(new RoleMiningFilter().filterUsers(getPageBase()), jcThreshold);
+
+        List<UrTypeGroup> userRolesList = new ArrayList<>();
+
+        for (int i = 0; i < userSets.size(); i++) {
+            List<PrismObject<UserType>> arrayList = new ArrayList<>(userSets.get(i).getUsers());
+            for (PrismObject<UserType> userTypePrismObject : arrayList) {
+
+                UserType userObject = userTypePrismObject.asObjectable();
+
+                if (userObject.getName().toString().equals("administrator")) {
+                    userRolesList.add(new UrTypeGroup(userObject, new ArrayList<>(), i));
+                    continue;
+                }
+                List<RoleType> userRoles = new RoleMiningFilter().getUserRoles(userObject, getPageBase());
+
+                userRolesList.add(new UrTypeGroup(userObject, userRoles, i));
+
+            }
+        }
+
         return userRolesList;
     }
 

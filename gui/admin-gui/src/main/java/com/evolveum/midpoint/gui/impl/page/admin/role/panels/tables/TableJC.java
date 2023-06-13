@@ -7,29 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables;
 
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
-
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.gui.api.component.mining.analyse.structure.prune.UrType;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.UrTypeGroup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -47,13 +25,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class TableUR extends Panel {
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+
+public class TableJC extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
 
-    public TableUR(String id, List<UrType> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList,boolean sortable) {
+    public TableJC(String id, List<UrTypeGroup> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
         super(id);
-        add(generateTableRM(userRoleList, rolePrismObjectList,sortable));
+        add(generateTableRM(userRoleList, rolePrismObjectList, sortable));
 
     }
 
@@ -61,24 +61,24 @@ public class TableUR extends Panel {
         return ((PageBase) getPage());
     }
 
-    public BoxedTablePanel<UrType> generateTableRM(List<UrType> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
+    public BoxedTablePanel<UrTypeGroup> generateTableRM(List<UrTypeGroup> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
 
-        RoleMiningProvider<UrType> provider = new RoleMiningProvider<>(
+        RoleMiningProvider<UrTypeGroup> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(userRoleList) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<UrType> object) {
+            public void setObject(List<UrTypeGroup> object) {
                 super.setObject(object);
             }
 
         }, sortable);
 
-        if(sortable) {
-            provider.setSort(UrType.F_NAME_USER_TYPE, SortOrder.ASCENDING);
+        if (sortable) {
+            provider.setSort(UrTypeGroup.F_NAME_USER_TYPE, SortOrder.ASCENDING);
         }
-        BoxedTablePanel<UrType> table = new BoxedTablePanel<>(
+        BoxedTablePanel<UrTypeGroup> table = new BoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumnsRM(rolePrismObjectList),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -88,13 +88,13 @@ public class TableUR extends Panel {
         return table;
     }
 
-    public List<IColumn<UrType, String>> initColumnsRM(List<PrismObject<RoleType>> rolePrismObjectList) {
+    public List<IColumn<UrTypeGroup, String>> initColumnsRM(List<PrismObject<RoleType>> rolePrismObjectList) {
 
-        List<IColumn<UrType, String>> columns = new ArrayList<>();
+        List<IColumn<UrTypeGroup, String>> columns = new ArrayList<>();
 
         columns.add(new CheckBoxColumn<>(createStringResource(" ")) {
             @Override
-            protected IModel<Boolean> getEnabled(IModel<UrType> rowModel) {
+            protected IModel<Boolean> getEnabled(IModel<UrTypeGroup> rowModel) {
                 return () -> rowModel.getObject() != null;
             }
 
@@ -114,21 +114,21 @@ public class TableUR extends Panel {
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<UrType> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<UrTypeGroup> rowModel) {
 
                 return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
             }
         });
 
-        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
+        columns.add(new AbstractExportableColumn<>(Model.of("Group")) {
 
             @Override
             public String getSortProperty() {
-                return UrType.F_NAME_USER_TYPE;
+                return UrTypeGroup.F_GROUP;
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<UrType> iModel) {
+            public IModel<?> getDataModel(IModel<UrTypeGroup> iModel) {
                 return null;
             }
 
@@ -138,8 +138,48 @@ public class TableUR extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<UrType>> item, String componentId,
-                    IModel<UrType> rowModel) {
+            public void populateItem(Item<ICellPopulator<UrTypeGroup>> item, String componentId,
+                    IModel<UrTypeGroup> rowModel) {
+
+                item.add(AttributeAppender.replace("class", " overflow-auto"));
+                item.add(new AttributeAppender("style", " width:150px"));
+
+                item.add(new Label(componentId, rowModel.getObject().getGroupId()));
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(componentId, Model.of("Group")).add(
+                        new AttributeAppender("style",
+                                "  writing-mode: vertical-lr;  -webkit-transform: rotate(-270deg);"));
+            }
+
+            @Override
+            public String getCssClass() {
+                return "overflow-auto role-mining-static-row-header role-mining-static-header-name";
+            }
+        });
+
+        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
+
+            @Override
+            public String getSortProperty() {
+                return UrTypeGroup.F_NAME_USER_TYPE;
+            }
+
+            @Override
+            public IModel<?> getDataModel(IModel<UrTypeGroup> iModel) {
+                return null;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<UrTypeGroup>> item, String componentId,
+                    IModel<UrTypeGroup> rowModel) {
 
                 item.add(AttributeAppender.replace("class", " overflow-auto"));
                 item.add(new AttributeAppender("style", " width:150px"));
@@ -173,7 +213,7 @@ public class TableUR extends Panel {
             }
         });
 
-        IColumn<UrType, String> column;
+        IColumn<UrTypeGroup, String> column;
 
         for (int i = 0; i < rolePrismObjectList.size(); i++) {
             int finalI = i;
@@ -182,8 +222,8 @@ public class TableUR extends Panel {
                     createStringResource(rolePrismObjectList.get(i).getName().toString())) {
 
                 @Override
-                public void populateItem(Item<ICellPopulator<UrType>> cellItem,
-                        String componentId, IModel<UrType> model) {
+                public void populateItem(Item<ICellPopulator<UrTypeGroup>> cellItem,
+                        String componentId, IModel<UrTypeGroup> model) {
 
                     tableStyle(cellItem);
 
@@ -196,7 +236,7 @@ public class TableUR extends Panel {
                 }
 
                 @Override
-                public IModel<String> getDataModel(IModel<UrType> rowModel) {
+                public IModel<String> getDataModel(IModel<UrTypeGroup> rowModel) {
                     return Model.of(" ");
                 }
 

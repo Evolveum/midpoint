@@ -76,7 +76,7 @@ public class PrunePanel extends Panel {
     double modelProcessed = 0;
     long modelTime = 0;
 
-    boolean candidateSearch = true;
+    boolean candidateSearch = false;
 
     String javaScriptNetworkAuth;
     boolean containerVisibilityAuth = true;
@@ -226,8 +226,7 @@ public class PrunePanel extends Panel {
 
     private AjaxButton selectStory() {
 
-        AjaxButton ajaxButton = new AjaxButton(ID_STORY_MINING_TABLE, Model.of("Permission mining")) {
-            private static final long serialVersionUID = 1L;
+        AjaxButton ajaxButton = new AjaxButton(ID_STORY_MINING_TABLE, Model.of("Business role mining")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -298,8 +297,7 @@ public class PrunePanel extends Panel {
         double vC = 0;
 
         PruneBusinessProcess pruneRoleBusinessAlgorithm = new PruneBusinessProcess(getPageBase());
-
-        pruneRoleBusinessAlgorithm.process(weightSigma, weightTau, vC);
+        pruneRoleBusinessAlgorithm.process(weightSigma, weightTau, vC,getRolesImport(),getUserRolesList());
 
         // modelCost = apiary.getUpdatedModelCost();
         modelCostBasic = pruneRoleBusinessAlgorithm.calculateModelBasicCost();
@@ -356,22 +354,22 @@ public class PrunePanel extends Panel {
             protected void onSubmit(AjaxRequestTarget target) {
 
                 switch (selectedTable) {
-                    case "CR":
+                    case "CR" -> {
                         if (candidateSearch) {
                             if (getCandidateKeyUpStructureMapUP().size() != 0 && getRolesDegrees().size() != 0) {
                                 getBoxedTableExtraRBAC().replaceWith(new TableResultCost(ID_DATATABLE_EXTRA_RBAC,
-                                        generateCostResultUP(), true, false,true));
+                                        generateCostResultUP(), true, false, true));
                                 target.add(getBoxedTableExtraRBAC().setOutputMarkupId(true));
                             }
                         } else {
                             if (getCandidateKeyUpStructureMapUR().size() != 0 && getRolesDegrees().size() != 0) {
                                 getBoxedTableExtraRBAC().replaceWith(new TableResultCost(ID_DATATABLE_EXTRA_RBAC,
-                                        generateCostResultUR(), false, true,true));
+                                        generateCostResultUR(), false, true, true));
                                 target.add(getBoxedTableExtraRBAC().setOutputMarkupId(true));
                             }
                         }
-                        break;
-                    case "BR":
+                    }
+                    case "BR" -> {
                         if (getResultData().size() != 0) {
                             if (candidateSearch) {
                                 getBoxedTableExtraRBAC().replaceWith(new ResultTable(ID_DATATABLE_EXTRA_RBAC,
@@ -382,8 +380,9 @@ public class PrunePanel extends Panel {
                             }
                             target.add(getBoxedTableExtraRBAC().setOutputMarkupId(true));
                         }
-                        break;
-                    default:
+                    }
+                    default -> {
+                    }
                 }
             }
         };

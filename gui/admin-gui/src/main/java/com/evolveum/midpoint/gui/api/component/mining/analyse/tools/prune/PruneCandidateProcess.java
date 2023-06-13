@@ -170,7 +170,7 @@ public class PruneCandidateProcess implements PruneFunctionality {
                         HashMap<Integer, Connection> parentConnections = new HashMap<>();
 
                         for (CandidateRole parentCandidateRole : mappedValues) {
-                            if (childrenPermission.containsAll(parentCandidateRole.getCandidatePermissions())) {
+                            if (new HashSet<>(childrenPermission).containsAll(parentCandidateRole.getCandidatePermissions())) {
 
                                 double confidence = new PruneTools().confidenceConnection(parentCandidateRole.getActualSupport(),
                                         actualSupport);
@@ -293,7 +293,7 @@ public class PruneCandidateProcess implements PruneFunctionality {
 
             List<AuthorizationType> checkIf = new ArrayList<>(parentsPermissions);
 
-            return checkIf.containsAll(candidateRole.getCandidatePermissions());
+            return new HashSet<>(checkIf).containsAll(candidateRole.getCandidatePermissions());
 
         }
         return false;
@@ -361,7 +361,7 @@ public class PruneCandidateProcess implements PruneFunctionality {
             if (removableRolesKeys.contains(entry.getKey())) {
                 continue;
             }
-            if (candidatePermissions.containsAll(parentCandidatePermissions)) {
+            if (new HashSet<>(candidatePermissions).containsAll(parentCandidatePermissions)) {
                 return false;
             }
         }
@@ -628,7 +628,7 @@ public class PruneCandidateProcess implements PruneFunctionality {
     public List<UpType> possibleAssign(List<UpType> userPermissionList, List<AuthorizationType> candidatePermission) {
         List<UpType> partOfUsers = new ArrayList<>();
         for (UpType upType : userPermissionList) {
-            if (upType.getPermission().containsAll(candidatePermission)) {
+            if (new HashSet<>(upType.getPermission()).containsAll(candidatePermission)) {
                 partOfUsers.add(upType);
             }
         }

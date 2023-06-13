@@ -11,16 +11,18 @@
 
 <body>
 
-
 <wicket:extend>
     <wicket:child/>
 
-
     <div class="col-xl-12">
+
         <div class="col">
+            <div class="row">
                             <span class="btn btn-warning" wicket:id="generate_data_panel">
                             </span>
+            </div>
         </div>
+
         <br/>
         <div class="row">
             <div wicket:id="basic_table_selector"></div>
@@ -30,6 +32,12 @@
     <div class="border-top my-3 row justify-content-center"></div>
 
     <form wicket:id="table_dropdown">
+
+        <div class="d-flex flex-wrap gap-2 w-100 row">
+            <input type="text" style="width:200px" class="form-control form-control-sm mp-w-12" wicket:id="threshold_field">
+            <input type="text" style="width:200px" class="form-control form-control-sm mp-w-12" wicket:id="intersection_field">
+        </div>
+
         <div>
 
             <select class="btn btn-default dropdown-toggle" wicket:id="dropdown_choice" style="width: 200px"></select>
