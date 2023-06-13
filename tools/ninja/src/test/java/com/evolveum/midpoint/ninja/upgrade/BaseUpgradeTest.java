@@ -9,6 +9,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.opts.BaseOptions;
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
@@ -16,38 +22,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
-@ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
-@DirtiesContext
-@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class UpgradeTest extends AbstractIntegrationTest {
+public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
 
-    private static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
+    protected static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
 
     @Autowired
-    private DataSourceFactory dataSourceFactory;
+    protected DataSourceFactory dataSourceFactory;
 
     @Autowired
     @Qualifier("dataSource")
-    private DataSource midpointDatasource;
+    protected DataSource midpointDatasource;
 
-    private HikariDataSource ninjaTestDatabase;
+    protected HikariDataSource ninjaTestDatabase;
 
-    private String ninjaTestsJdbcUrl;
+    protected String ninjaTestsJdbcUrl;
 
     @BeforeClass
     public void beforeClass() throws SQLException {
@@ -69,7 +63,7 @@ public class UpgradeTest extends AbstractIntegrationTest {
         runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public CASCADE;"));
     }
 
-    private void recreateEmptyTestDatabase() throws SQLException {
+    protected void recreateEmptyTestDatabase() throws SQLException {
         runWith(midpointDatasource, jdbcTemplate -> {
             jdbcTemplate.execute("DROP DATABASE IF EXISTS " + NINJA_TESTS_USER + ";");
             jdbcTemplate.execute("DROP USER IF EXISTS " + NINJA_TESTS_USER + ";");
@@ -78,6 +72,30 @@ public class UpgradeTest extends AbstractIntegrationTest {
             jdbcTemplate.execute("CREATE DATABASE " + NINJA_TESTS_USER + " WITH OWNER = " + NINJA_TESTS_USER
                     + " ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1 TEMPLATE = template0");
         });
+    }
+
+    protected void recreateSchema(File scriptsDirectory) throws Exception {
+        runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public;"));
+
+        BaseOptions baseOptions = new BaseOptions();
+
+        ConnectionOptions connectionOptions = new ConnectionOptions();
+        connectionOptions.setMidpointHome("./target/midpoint-home");
+
+        Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
+        connectionOptions.setUrl(ninjaTestsJdbcUrl);
+
+        SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
+        setupDatabaseOptions.setScriptsDirectory(scriptsDirectory);
+
+        NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions));
+
+        SetupDatabaseAction action = new SetupDatabaseAction();
+        action.init(context, setupDatabaseOptions);
+
+        action.execute();
+
+        Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
     }
 
     @AfterClass(alwaysRun = true)
@@ -92,14 +110,14 @@ public class UpgradeTest extends AbstractIntegrationTest {
         });
     }
 
-    private void runWith(DataSource dataSource, Consumer<JdbcTemplate> consumer) throws SQLException {
+    protected void runWith(DataSource dataSource, Consumer<JdbcTemplate> consumer) throws SQLException {
         runWithResult(dataSource, (Function<JdbcTemplate, Void>) jdbcTemplate -> {
             consumer.accept(jdbcTemplate);
             return null;
         });
     }
 
-    private <R> R runWithResult(DataSource dataSource, Function<JdbcTemplate, R> function) throws SQLException {
+    protected <R> R runWithResult(DataSource dataSource, Function<JdbcTemplate, R> function) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             boolean autocommit = connection.getAutoCommit();
             try {
@@ -113,43 +131,13 @@ public class UpgradeTest extends AbstractIntegrationTest {
         }
     }
 
-    private Long countTablesInPublicSchema() throws SQLException {
+    protected Long countTablesInPublicSchema() throws SQLException {
         return runWithResult(ninjaTestDatabase, jdbcTemplate ->
-                jdbcTemplate.queryForObject("SELECT count(*) as count FROM information_schema.tables WHERE table_schema = 'public'", Long.class));
+                jdbcTemplate.queryForObject("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'", Long.class));
     }
 
-    private String getGlobalMetadataValue(DataSource dataSource, String key) throws SQLException {
+    protected String getGlobalMetadataValue(DataSource dataSource, String key) throws SQLException {
         return runWithResult(dataSource, jdbcTemplate ->
-                jdbcTemplate.queryForObject("select value from m_global_metadata where name=?", new Object[] { key }, String.class));
-    }
-
-    @Test
-    public void test100InitializeDatabase() throws Exception {
-        Assertions.assertThat(countTablesInPublicSchema()).isZero();
-
-        BaseOptions baseOptions = new BaseOptions();
-
-        ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome("./target/midpoint-home");
-
-        Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
-        connectionOptions.setUrl(ninjaTestsJdbcUrl);
-
-        SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
-        setupDatabaseOptions.setScriptsDirectory(new File("../../config/sql/native-new"));
-
-        NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions));
-
-        SetupDatabaseAction action = new SetupDatabaseAction();
-        action.init(context, setupDatabaseOptions);
-
-        action.execute();
-
-        Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
-
-        Assertions.assertThat(getGlobalMetadataValue(ninjaTestDatabase, "schemaChangeNumber"))
-                .isEqualTo("15");
-        Assertions.assertThat(getGlobalMetadataValue(ninjaTestDatabase, "schemaAuditChangeNumber"))
-                .isEqualTo("3");
+                jdbcTemplate.queryForObject("SELECT value FROM m_global_metadata WHERE name=?", new Object[] { key }, String.class));
     }
 }
