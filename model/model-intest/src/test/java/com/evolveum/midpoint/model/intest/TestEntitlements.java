@@ -2492,9 +2492,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Orange groups", getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).listGroups());
         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME);
         SearchResultList<PrismObject<ShadowType>> orangeGroupsShadows = modelService
-                .searchObjects(ShadowType.class, ObjectQueryUtil.createResourceAndObjectClassQuery(
-                        RESOURCE_DUMMY_ORANGE_OID, RI_GROUP_OBJECT_CLASS, prismContext), null, task,
-                        result);
+                .searchObjects(ShadowType.class,
+                        ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_ORANGE_OID, RI_GROUP_OBJECT_CLASS),
+                        null, task, result);
         display("Orange groups shadows", orangeGroupsShadows);
         System.out.println("--------------------------------------------- Orange End ----------------");
     }

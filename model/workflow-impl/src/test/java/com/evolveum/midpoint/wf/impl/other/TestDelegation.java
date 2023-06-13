@@ -103,9 +103,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
             caseService.delegateWorkItem(workItemId, request, task, result);
             fail("delegate succeeded even if it shouldn't");
         } catch (SecurityViolationException e) {
-            // ok
+            displayExpectedException(e);
         }
 
+        login(userAdministrator); // the work item is not visible to Keen
         CaseWorkItemType workItem = getWorkItem(task, result);
         PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID);
     }
@@ -126,11 +127,12 @@ public class TestDelegation extends AbstractWfTestPolicy {
         result.computeStatus();
         assertSuccess(result);
 
+        // Longshanks is still an assignee, so he should see the work item here.
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("work item", workItem);
 
         PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
-        display("task", aCase);
+        display("case", aCase);
 
         PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID, USER_GIRTH_OID);
         assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
@@ -157,6 +159,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
         result.computeStatus();
         assertSuccess(result);
 
+        // Longshanks is no longer an assignee. Let us check the work item as administrator then.
+        login(userAdministrator);
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("work item", workItem);
 
@@ -185,6 +189,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
         result.computeStatus();
         assertSuccess(result);
 
+        // Longshanks is no longer an assignee. Let us check the work item as administrator then.
+        login(userAdministrator);
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("work item", workItem);
 

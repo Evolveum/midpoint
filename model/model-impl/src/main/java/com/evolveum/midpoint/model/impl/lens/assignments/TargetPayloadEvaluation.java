@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.security.api.Authorization;
@@ -39,32 +41,27 @@ class TargetPayloadEvaluation<AH extends AssignmentHolderType> extends AbstractE
         assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();
 
-        ObjectType target = segment.getTarget();
-        if (target instanceof AbstractRoleType) {
+        if (segment.getTarget() instanceof AbstractRoleType target) {
             if (!segment.isMatchingOrder) {
-                LOGGER.trace("Not collecting payload from target of {} as it is of not matching order: {}", segment, segment.getEvaluationOrder());
+                LOGGER.trace("Not collecting payload from target of {} as it is of not matching order: {}",
+                        segment, segment.getEvaluationOrder());
             } else if (targetOverallConditionState.isNewFalse()) {
-                LOGGER.trace("Not collecting payload from target of {} as the target relativity mode is not non-negative: {}", segment, targetOverallConditionState);
+                LOGGER.trace("Not collecting payload from target of {} as the target relativity mode is not non-negative: {}",
+                        segment, targetOverallConditionState);
             } else {
-                for (AuthorizationType authorizationBean : ((AbstractRoleType) target).getAuthorization()) {
-                    Authorization authorization = createAuthorization(authorizationBean, target.toString());
-                    if (!ctx.evalAssignment.getAuthorizations().contains(authorization)) {
-                        ctx.evalAssignment.addAuthorization(authorization);
+                for (AuthorizationType authorizationBean : target.getAuthorization()) {
+                    var migratedBeans = ModelBeans.get().authorizationMigrator.migrate(authorizationBean);
+                    for (AuthorizationType migratedBean : migratedBeans) {
+                        ctx.evalAssignment.addAuthorization(
+                                Authorization.create(migratedBean, target.toString()));
                     }
                 }
-                AdminGuiConfigurationType adminGuiConfiguration = ((AbstractRoleType) target).getAdminGuiConfiguration();
+                AdminGuiConfigurationType adminGuiConfiguration = target.getAdminGuiConfiguration();
                 ctx.evalAssignment.addAdminGuiDependency(target.getOid());
-                if (adminGuiConfiguration != null &&
-                        !ctx.evalAssignment.getAdminGuiConfigurations().contains(adminGuiConfiguration)) {
+                if (adminGuiConfiguration != null) {
                     ctx.evalAssignment.addAdminGuiConfiguration(adminGuiConfiguration);
                 }
             }
         }
-    }
-
-    private Authorization createAuthorization(@NotNull AuthorizationType authorizationBean, String sourceDesc) {
-        Authorization authorization = new Authorization(authorizationBean);
-        authorization.setSourceDescription(sourceDesc);
-        return authorization;
     }
 }

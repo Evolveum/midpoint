@@ -187,7 +187,7 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = ItemPath.create(
             ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
     public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
-    public static final ItemPath PATH_ASSIGNMENT = ItemPath.create(FocusType.F_ASSIGNMENT);
+    public static final ItemPath PATH_ASSIGNMENT = FocusType.F_ASSIGNMENT;
     public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
     public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
 

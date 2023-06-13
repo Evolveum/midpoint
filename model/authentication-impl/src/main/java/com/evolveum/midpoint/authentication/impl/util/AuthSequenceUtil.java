@@ -242,7 +242,7 @@ public class AuthSequenceUtil {
                 sequencesWithSameChannel.add(sequence);
                 if (Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                        LOGGER.error("Found sequence " + sequence.getIdentifier() + "not contains configuration for module");
+                        LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
                         return null;
                     }
                     return sequence;
@@ -271,7 +271,7 @@ public class AuthSequenceUtil {
         for (AuthenticationSequenceType sequence : sequences) {
             if (sequence != null && sequence.getChannel() != null && urlSuffix.equals(sequence.getChannel().getUrlSuffix())) {
                 if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                    LOGGER.error("Found sequence " + sequence.getIdentifier() + "not contains configuration for module");
+                    LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
                     return null;
                 }
                 return sequence;
@@ -298,7 +298,8 @@ public class AuthSequenceUtil {
         List<AuthModule> authModules = new ArrayList<>();
         sequenceModules.forEach(sequenceModule -> {
             try {
-                String sequenceModuleIdentifier = sequenceModule.getIdentifier();
+                String sequenceModuleIdentifier = StringUtils.isNotEmpty(sequenceModule.getIdentifier()) ?
+                        sequenceModule.getIdentifier() : sequenceModule.getName();
                 AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
                 AbstractModuleFactory moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
@@ -346,6 +347,38 @@ public class AuthSequenceUtil {
         return null;
     }
 
+    /**
+     * starting from 4.7 identifier should be used instead of name
+     * leaving this method just to support old config working (until deprecated name attribute is removed at all)
+     * @param name
+     * @param authenticationModulesType
+     * @return
+     */
+    private static AbstractAuthenticationModuleType getModuleByName(
+            String name, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer)) {
+                return;
+            }
+
+            PrismContainer<?> c = (PrismContainer<?>) v;
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
+        });
+
+        for (AbstractAuthenticationModuleType module : modules) {
+            if (module.getName() != null && module.getName().equals(name)) {
+                return module;
+            }
+        }
+        return null;
+    }
+
     private static AbstractAuthenticationModuleType getModuleByIdentifier(String identifier, AuthenticationModulesType authenticationModulesType) {
         PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
         List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
@@ -363,7 +396,7 @@ public class AuthSequenceUtil {
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
-            String moduleIdentifier = module.getIdentifier();
+            String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
             if (moduleIdentifier != null && StringUtils.equals(moduleIdentifier, identifier)) {
                 return module;
             }
@@ -607,7 +640,7 @@ public class AuthSequenceUtil {
     }
 
     public static String getAuthSequenceIdentifier(@NotNull AuthenticationSequenceType seq) {
-        return seq.getIdentifier();
+        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
     }
 
     public static boolean isUrlForAuthProcessing(HttpServletRequest httpRequest) {

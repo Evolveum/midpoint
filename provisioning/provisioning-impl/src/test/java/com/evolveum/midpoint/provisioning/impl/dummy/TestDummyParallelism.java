@@ -701,7 +701,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)
                 .buildFilter();
 
-        query.setFilter(ObjectQueryUtil.filterAnd(query.getFilter(), nameFilter, prismContext));
+        query.setFilter(ObjectQueryUtil.filterAnd(query.getFilter(), nameFilter));
         return query;
     }
 

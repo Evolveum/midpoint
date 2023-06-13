@@ -22,9 +22,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -116,5 +114,10 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
 
     protected Task runTriggerScannerOnDemandErrorsOk(OperationResult result) throws CommonException {
         return rerunTaskErrorsOk(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
+    }
+
+    protected void loginAdministrator() throws SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        login(userAdministrator);
     }
 }

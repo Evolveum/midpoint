@@ -220,7 +220,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
 
         ResultHandler<ShadowType> handler = (shadow, lResult) -> {
             AssertJUnit.fail("handler called unexpectedly");
@@ -432,7 +432,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
 
         try {
 
@@ -457,7 +457,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
 
         ResultHandler<ShadowType> handler = (shadow, lResult) -> {
             AssertJUnit.fail("handler called unexpectedly");

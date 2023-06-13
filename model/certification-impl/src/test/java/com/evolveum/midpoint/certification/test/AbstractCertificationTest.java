@@ -22,6 +22,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -476,10 +478,12 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
                 .filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), realReviewerOid))
                 .filter(wi -> wi.getStageNumber() == aCase.getStageNumber())
                 .filter(wi -> norm(wi.getIteration()) == norm(aCase.getIteration()))
-                .collect(Collectors.toList());
+                .toList();
         assertEquals("Wrong # of current work items for " + realReviewerOid + " in " + aCase, 1, workItems.size());
         long id = aCase.asPrismContainerValue().getId();
-        certificationManager.recordDecision(campaignOid, id, workItems.get(0).getId(), response, comment, task, result);
+        certificationManager.recordDecision(
+                AccessCertificationWorkItemId.of(campaignOid, id, workItems.get(0).getId()),
+                response, comment, false, task, result);
         if (reviewerOid != null) {
             SecurityContextHolder.getContext().setAuthentication(originalAuthentication);
         }

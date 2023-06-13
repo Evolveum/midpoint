@@ -61,9 +61,10 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
 
         checkIfAlreadyEvaluated();
 
-        if (!isInducementApplicableToFocusType(inducement.getFocusType())) {
+        QName focusType = inducement.getFocusType();
+        if (!isInducementApplicableToFocusType(focusType)) {
             LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
-                    FocusTypeUtil.dumpAssignmentLazily(inducement), inducement.getFocusType(), ctx.ae.lensContext.getFocusClass());
+                    FocusTypeUtil.dumpAssignmentLazily(inducement), focusType, ctx.ae.lensContext.getFocusClass());
             return;
         }
 

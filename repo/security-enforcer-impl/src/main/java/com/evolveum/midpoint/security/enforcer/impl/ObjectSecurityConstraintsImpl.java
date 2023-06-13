@@ -47,6 +47,11 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
     }
 
     @Override
+    public boolean isEmpty() {
+        return actionMap.isEmpty();
+    }
+
+    @Override
     public @Nullable AuthorizationDecisionType findAllItemsDecision(
             @NotNull String @NotNull [] actionUrls, @Nullable AuthorizationPhaseType phase) {
         AuthorizationDecisionType decision = null;

@@ -805,7 +805,9 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         and("there are 'classification' processed objects");
-        Function<ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>, ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>> noOwner = po ->
+        Function<
+                ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>,
+                ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>> noOwner = po ->
                 po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
                         .assertSynchronizationSituationChangedTo(UNMATCHED)
                         .assertCorrelationSituationChangedTo(CorrelationSituationType.NO_OWNER);
@@ -1102,6 +1104,9 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertProcessedObjects(taskOid2, "")
                 .display()
                 .assertSize(0);
+
+        and("there are no correlation (nor other) cases as the reconciliation was simulated");
+        assertNoRepoObjects(CaseType.class);
     }
 
     /**

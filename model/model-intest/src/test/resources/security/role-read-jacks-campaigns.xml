@@ -6,11 +6,10 @@
   -->
 <role oid="00000000-0000-0000-0000-00000001aa00"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Read Campaigns of jack</name>
     <authorization>
+        <!-- Note that this also includes all cases and their work items in these campaigns! -->
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>AccessCertificationCampaignType</type>

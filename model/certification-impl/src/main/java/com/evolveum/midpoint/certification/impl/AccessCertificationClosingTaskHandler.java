@@ -96,7 +96,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         PrismObject<SystemConfigurationType> systemConfigurationObject;
         try {
             campaign = helper.getCampaign(campaignOid, null, task, opResult);
-            caseList = queryHelper.getAllCurrentIterationCases(campaignOid, norm(campaign.getIteration()), null, opResult);
+            caseList = queryHelper.getAllCurrentIterationCases(campaignOid, norm(campaign.getIteration()), opResult);
             systemConfigurationObject = objectCache.getSystemConfiguration(opResult);
         } catch (ObjectNotFoundException|SchemaException e) {
             opResult.computeStatus();

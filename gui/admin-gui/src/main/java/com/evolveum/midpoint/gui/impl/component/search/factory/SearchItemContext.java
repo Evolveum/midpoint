@@ -174,14 +174,7 @@ public class SearchItemContext implements Serializable {
     }
 
     public String getDisplayName() {
-        String name = null;
-        if (item.getDisplayName() != null) {
-            name = WebComponentUtil.getTranslatedPolyString(item.getDisplayName());
-        }
-        if (StringUtils.isNotEmpty(name)) {
-            return name;
-        }
-        name = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(item.getDisplay()));
+        String name = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(item.getDisplay()));
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }

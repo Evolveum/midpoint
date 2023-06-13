@@ -10,6 +10,9 @@
     <assignment>
         <targetRef oid="00000001-d34d-b33f-f00d-a00000000001" type="UserType" relation="deputy"/>
     </assignment>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
     <fullName>Lead1 Deputy1</fullName>
     <familyName>Lead1 Deputy1</familyName>
 </user>

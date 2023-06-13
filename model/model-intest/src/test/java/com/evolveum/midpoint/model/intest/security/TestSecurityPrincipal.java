@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityPrincipal extends AbstractSecurityTest {
+public class TestSecurityPrincipal extends AbstractInitializedSecurityTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -114,7 +114,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     public void test060GuybrushConditionalRoleFalse() throws Exception {
         login(USER_ADMINISTRATOR_USERNAME);
 
-        assignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
+        assignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL.oid);
 
         resetAuthentication();
 
@@ -170,7 +170,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     public void test062GuybrushConditionalRoleUnassign() throws Exception {
         login(USER_ADMINISTRATOR_USERNAME);
 
-        unassignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL.oid);
 
         resetAuthentication();
 
@@ -330,7 +330,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
 
-        assignRole(USER_JACK_OID, ROLE_INDIRECT_PIRATE_OID);
+        assignRole(USER_JACK_OID, ROLE_INDIRECT_PIRATE.oid);
 
         resetAuthentication();
 
@@ -346,7 +346,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
 
         login(USER_ADMINISTRATOR_USERNAME);
-        unassignRole(USER_JACK_OID, ROLE_INDIRECT_PIRATE_OID);
+        unassignRole(USER_JACK_OID, ROLE_INDIRECT_PIRATE.oid);
     }
 
     /**
@@ -361,7 +361,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
 
-        assignOrg(USER_JACK_OID, ORG_INDIRECT_PIRATE_OID);
+        assignOrg(USER_JACK_OID, ORG_INDIRECT_PIRATE.oid);
 
         resetAuthentication();
 
@@ -377,6 +377,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
 
         login(USER_ADMINISTRATOR_USERNAME);
-        unassignOrg(USER_JACK_OID, ORG_INDIRECT_PIRATE_OID);
+        unassignOrg(USER_JACK_OID, ORG_INDIRECT_PIRATE.oid);
     }
 }

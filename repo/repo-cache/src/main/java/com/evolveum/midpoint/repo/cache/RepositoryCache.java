@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
-import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -130,8 +128,11 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+    public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchContainers(type, query, options, parentResult);
     }
 
@@ -312,19 +313,6 @@ public class RepositoryCache implements RepositoryService, Cache {
         Long startTime = repoOpStart();
         try {
             return repositoryService.isAncestor(object, descendantOrgOid);
-        } finally {
-            repoOpEnd(startTime);
-        }
-    }
-
-    @Override
-    public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
-            PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        Long startTime = repoOpStart();
-        try {
-            return repositoryService.selectorMatches(objectSelector, object, filterEvaluator, logger, logMessagePrefix);
         } finally {
             repoOpEnd(startTime);
         }

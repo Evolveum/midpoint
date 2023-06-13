@@ -128,8 +128,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 try {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
                     S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
-                    ObjectQuery query = QueryUtils.filterForAssignees(q, getPageBase().getPrincipal(),
-                                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
+                    ObjectQuery query = QueryUtils.filterForCaseAssignees(q, getPageBase().getPrincipal())
                             .and()
                             .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
                             .isNull()

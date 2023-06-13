@@ -14,9 +14,11 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -1141,6 +1143,88 @@ public class ObjectTypeUtil {
             throw SystemException.unexpected(e, "when fixing " + objectable);
         }
         return (ObjectType) pov.asObjectable();
+    }
+
+    public static @Nullable ObjectType asObjectTypeIfPossible(@Nullable PrismValue value) {
+        if (value == null) {
+            return null;
+        }
+        // Intentionally not checking for instance-of PrismObjectValue, as some prism object values can come disguised
+        // as PrismContainerValue instances. (Hopefully to be fixed some day.)
+        Object realValue = value.getRealValueIfExists();
+        return realValue instanceof ObjectType ? (ObjectType) realValue : null;
+    }
+
+    /**
+     * Returns "identity collection" i.e. equivalent objects can be present there, differing in their identity.
+     *
+     * Throws an exception when a root object cannot be determined.
+     */
+    public static <C extends Containerable> Collection<PrismObject<? extends ObjectType>> getRootsForContainerables(
+            @NotNull Collection<C> containerables) {
+        return getRoots(
+                containerables.stream()
+                        .map(c -> c.asPrismContainerValue()));
+    }
+
+    /** Returns containerables that are not rooted in a {@link PrismObject}. */
+    public static @NotNull <C extends Containerable> List<C> getDetachedContainerables(@NotNull Collection<C> containerables) {
+        return containerables.stream()
+                .filter(c -> !c.asPrismContainerValue().getRootValue().isObjectable())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * As {@link #getRootsForContainerables(Collection)} but for {@link ObjectReferenceType} values.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static Collection<PrismObject<? extends ObjectType>> getRootsForReferences(
+            @NotNull Collection<ObjectReferenceType> references) {
+        return getRoots(
+                references.stream()
+                        .map(ref -> ref.asReferenceValue()));
+    }
+
+    /**
+     * As {@link #getRootsForContainerables(Collection)} but for arbitrary prism values.
+     */
+    @SuppressWarnings("unused")
+    public static Collection<PrismObject<? extends ObjectType>> getRootsForValues(@NotNull Collection<PrismValue> values) {
+        return getRoots(values.stream());
+    }
+
+    private static <C extends Containerable> Collection<PrismObject<? extends ObjectType>> getRoots(Stream<PrismValue> values) {
+        IdentityHashMap<PrismObject<? extends ObjectType>, Boolean> roots = new IdentityHashMap<>();
+        values.forEach(value -> {
+            var rootObject = asObjectTypeIfPossible(value.getRootValue());
+            if (rootObject != null) {
+                roots.put(rootObject.asPrismObject(), true);
+            } else {
+                throw new IllegalStateException("A value without root object: " + value);
+            }
+        });
+        return roots.keySet();
+    }
+
+    public static boolean isObjectable(@NotNull Class<?> type) {
+        return Objectable.class.isAssignableFrom(type);
+    }
+
+    public static <O extends ObjectType> PrismObjectValue<O> getValue(PrismObject<O> object) {
+        return object != null ? object.getValue() : null;
+    }
+
+    public static void checkIn(@NotNull Containerable c, @NotNull Class<?> expectedRootType) {
+        checkIn(c.asPrismContainerValue(), expectedRootType);
+    }
+
+    private static void checkIn(PrismValue value, @NotNull Class<?> expectedRootType) {
+        var rootValue = value.getRootValue().getRealValueIfExists();
+        if (rootValue == null || !expectedRootType.isAssignableFrom(rootValue.getClass())) {
+            throw new IllegalStateException(
+                    "Value not embedded within a %s but in '%s': %s"
+                            .formatted(expectedRootType.getSimpleName(), MiscUtil.getValueWithClass(rootValue), value));
+        }
     }
 
     @FunctionalInterface

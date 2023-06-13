@@ -94,6 +94,22 @@ public class CaseTypeUtil {
         return rv;
     }
 
+    public static @NotNull List<ObjectReferenceType> getAllAssignees(@NotNull CaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            rv.addAll(workItem.getAssigneeRef());
+        }
+        return rv;
+    }
+
+    public static @NotNull List<ObjectReferenceType> getAllCandidateAssignees(@NotNull CaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            rv.addAll(workItem.getCandidateRef());
+        }
+        return rv;
+    }
+
     public static boolean approvalSchemaExists(CaseType aCase) {
         return aCase != null
                 && aCase.getApprovalContext() != null

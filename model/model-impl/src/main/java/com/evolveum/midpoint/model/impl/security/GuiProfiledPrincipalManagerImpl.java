@@ -179,7 +179,10 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
         if (focus == null) {
             return null;
         }
@@ -313,7 +316,10 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         return list.get(0);
     }
 
-    private void initializePrincipalFromAssignments(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) {
+    private void initializePrincipalFromAssignments(
+            GuiProfiledPrincipal principal,
+            PrismObject<SystemConfigurationType> systemConfiguration,
+            AuthorizationTransformer authorizationTransformer) {
         Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
         try {
@@ -476,7 +482,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
             focusComputer.recompute(focus, lifecycleModel);
-            principal.getAuthorities().clear();
+            principal.clearAuthorizations();
             initializePrincipalFromAssignments(principal, systemConfiguration, null);
             return principal.getCompiledGuiProfile();
         } finally {

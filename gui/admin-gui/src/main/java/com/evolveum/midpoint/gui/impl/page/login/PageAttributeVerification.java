@@ -123,13 +123,18 @@ public class PageAttributeVerification extends PageAuthenticationBase {
             return null;
         }
         UserType user = userModel.getObject();
-        SecurityPolicyType securityPolicy = resolveUserSecurityPolicy(user);
-        if (securityPolicy.getAuthentication() == null || securityPolicy.getAuthentication().getModules() == null) {
-            return null;
+        if (user == null) {
+            getSession().error(getString("User not found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
+            getSession().error(getString("Security policy not found"));
+            throw new RestartResponseException(PageError.class);
         }
         return securityPolicy.getAuthentication().getModules().getAttributeVerification()
                 .stream()
-                .filter(m -> moduleIdentifier.equals(m.getIdentifier()))
+                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
                 .findFirst()
                 .orElse(null);
     }

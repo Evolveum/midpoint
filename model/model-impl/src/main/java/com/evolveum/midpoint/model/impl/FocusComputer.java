@@ -6,16 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -24,8 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class FocusComputer {
 
-    @Autowired(required = true)
-    private ActivationComputer activationComputer;
+    @Autowired private ActivationComputer activationComputer;
 
     public void recompute(PrismObject<? extends FocusType> user, LifecycleStateModelType lifecycleModel) {
         FocusType focusType = user.asObjectable();

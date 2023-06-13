@@ -288,6 +288,11 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return this;
     }
 
+    public PrismContainerValueAsserter<C, RA> assertId(Long expected) {
+        assertEquals("Wrong ID in " + desc(), expected, getPrismValue().getId());
+        return this;
+    }
+
     // TODO
 
     protected String desc() {

@@ -324,12 +324,15 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         OperationResult result = task.getResult();
         try {
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
-                            getPageBase().getCaseManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
-                                    getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
-                                    getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToComplete(getModelObject(), task, result) ||
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());
+            result.recordException(ex);
+        } finally {
+            result.close();
         }
         return false;
     }

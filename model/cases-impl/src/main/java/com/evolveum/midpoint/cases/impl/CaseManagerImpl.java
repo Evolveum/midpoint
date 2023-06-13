@@ -168,7 +168,7 @@ public class CaseManagerImpl implements CaseManager {
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result)
+    public boolean isCurrentUserAuthorizedToComplete(CaseWorkItemType workItem, Task task, OperationResult result)
             throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
         return authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.COMPLETE, task, result);

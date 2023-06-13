@@ -6,8 +6,6 @@
   -->
 <role oid="00000000-0000-0000-0000-00000000aa04"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Object Filter Modify Caribbean</name>
     <authorization>
@@ -16,6 +14,7 @@
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
         <object>
+            <type>FocusType</type> <!-- this is necessary to parse the filter -->
             <filter>
                 <q:equal>
                     <q:path>locality</q:path>

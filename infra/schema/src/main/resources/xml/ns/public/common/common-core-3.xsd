@@ -2616,7 +2616,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="hint" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="hint" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <xsd:documentation>
@@ -7625,7 +7625,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="object" type="tns:AuthorizationObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Object part from the (subject,action,object) authorization triple.
@@ -7677,6 +7677,19 @@
                     <xsd:appinfo>
                         <a:since>3.7.1</a:since>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemValue" type="tns:ItemValueSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Limits the authorization to specified values of specified items. For example,
+                        when providing an ability to read a work item, we may allow reading of those assigned
+                        to the current principal only.
+
+                        Cannot be combined with "exceptItem".
+
+                        TODO other limitations
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="target" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
@@ -7926,6 +7939,121 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="ItemValueSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Limits the authorization to specified values of specified items.
+
+                WORK IN PROGRESS.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ValueSelectorType.description</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item to which this selector applies.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemValueSelectorType.item</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="tns:ValueSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selectors for the values of the item.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemValueSelectorType.value</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exceptItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemValue" type="tns:ItemValueSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate> <!-- because of the recursion -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ValueSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ValueSelectorType.description</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Filter that the value must match to be considered selected by this statement.
+                        This filter MUST NOT contain organization unit clauses. It may only contain
+                        property clauses, logical operations and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ValueSelectorType.filter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignee" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The object matches the specification if it has a (current) assignee specified by this element.
+                        (So it is applicable only to case work items, certification cases and certification work items.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ValueSelectorType.filter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
     <xsd:complexType name="ObjectSelectorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -7936,6 +8064,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" minOccurs="0" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the selector (for troubleshooting).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectSelectorType.name</a:displayName>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -8131,10 +8270,25 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 The object matches the specification if it has a (current) assignee specified by this element.
-                                (So it is applicable only for cases and, in the future, work items.)
+                                (So it is applicable only for cases and work items.)
+
+                                LIMITATION: only "self" candidate assignee selector is supported when searching.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateAssignee" type="tns:SubjectedObjectSelectorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The object matches the specification if it has a candidate assignee
+                                specified by this element. (So it is applicable only for cases and work items.)
+
+                                LIMITATION: only "self" candidate assignee selector is supported now.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.8</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -8157,6 +8311,63 @@
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthorizationObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO TODO TODO specify the purpose
+
+                "Ultimately flexible specification of an authorization object that may be any prism value, not just prism object"
+
+                TODO Also, consider using more generalized name
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:OwnedObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="parent" type="tns:AuthorizationParentSelectorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthorizationParentSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuthorizationObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -8259,6 +8470,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <!-- Note: it was deprecated, but the midPoint still used it up to (excluding) 4.8 -->
                         <a:deprecatedSince>4.0</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>

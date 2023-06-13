@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="6d02142b-6256-4e0b-8f15-bac686d89552"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>show-delegation-assignments</name>
+    <authorization>
+        <documentation>
+            Selects assignments that delegate power of a user from O1 to a user from O2.
+        </documentation>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AssignmentType</type>
+            <parent>
+                <type>UserType</type>
+                <orgRef oid="25be8e90-4977-4357-8295-ea9cc13259ec"/> <!-- O2 -->
+                <path>assignment</path>
+            </parent>
+            <target> <!-- new clause (OK?) -->
+                <type>UserType</type>
+                <orgRef oid="49fd49a7-cd4e-4346-8094-a46880a0ed88"/> <!-- O1 -->
+            </target>
+            <filter> <!-- TODO check axiom filter syntax -->
+                <q:text>targetRef matches (relation = "org:deputy")</q:text>
+            </filter>
+        </object>
+    </authorization>
+</role>

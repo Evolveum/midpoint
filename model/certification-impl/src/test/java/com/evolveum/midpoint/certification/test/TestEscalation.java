@@ -193,7 +193,7 @@ public class TestEscalation extends AbstractCertificationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         // WHEN
@@ -208,7 +208,7 @@ public class TestEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCasesSanity(caseList);
 
@@ -245,7 +245,7 @@ public class TestEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCasesSanity(caseList);
 
@@ -311,7 +311,7 @@ public class TestEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         display("caseList", caseList);
         checkAllCasesSanity(caseList);
 

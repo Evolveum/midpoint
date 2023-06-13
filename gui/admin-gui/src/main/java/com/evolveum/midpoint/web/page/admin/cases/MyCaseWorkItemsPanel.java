@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -46,11 +47,11 @@ public class MyCaseWorkItemsPanel extends CaseWorkItemsPanel {
     }
 
     protected ObjectFilter getCaseWorkItemsFilter() {
-        return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+        return QueryUtils.filterForNotClosedStateAndAssignees(
+                        getPrismContext().queryFor(CaseWorkItemType.class),
                         AuthUtil.getPrincipalUser(),
-                        OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
+                        OtherPrivilegesLimitations.Type.CASES)
                 .desc(F_CREATE_TIMESTAMP)
                 .buildFilter();
     }
-
 }

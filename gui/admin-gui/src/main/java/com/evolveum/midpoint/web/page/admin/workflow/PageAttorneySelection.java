@@ -150,8 +150,8 @@ public class PageAttorneySelection extends PageBase {
         try {
             ObjectQuery query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
             // todo target authorization action
-            ObjectFilter filter = service.getDonorFilter(UserType.class, null, null,
-                    task, task.getResult());
+            ObjectFilter filter = service.getDonorFilter(
+                    UserType.class, null, null, task, task.getResult());
 
             query.addFilter(filter);
             return query;

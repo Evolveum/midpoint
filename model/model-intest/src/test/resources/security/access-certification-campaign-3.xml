@@ -1,0 +1,496 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<accessCertificationCampaign
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="cb88d128-20f9-450f-88f3-889c15f88a62">
+    <name>All assignments 1</name>
+    <trigger id="938405364">
+        <timestamp>2023-05-13T23:59:59.999+02:00</timestamp>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
+    </trigger>
+    <iteration>1</iteration>
+    <definitionRef oid="b5ee5205-e2b5-4fff-9ed0-52b8a9df9775" relation="org:default" type="c:AccessCertificationDefinitionType">
+        <!-- All assignments -->
+    </definitionRef>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="c:AccessCertificationAssignmentReviewScopeType">
+        <objectType>FocusType</objectType>
+        <includeAssignments>true</includeAssignments>
+        <includeInducements>false</includeInducements>
+        <includeResources>true</includeResources>
+        <includeRoles>true</includeRoles>
+        <includeOrgs>true</includeOrgs>
+        <includeServices>true</includeServices>
+        <includeUsers>true</includeUsers>
+        <enabledItemsOnly>true</enabledItemsOnly>
+    </scopeDefinition>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+    <stageDefinition id="2">
+        <number>1</number>
+        <name>Stage 1</name>
+        <notifyOnlyWhenNoDecision>false</notifyOnlyWhenNoDecision>
+        <reviewerSpecification>
+            <useTargetOwner>false</useTargetOwner>
+            <useTargetApprover>false</useTargetApprover>
+            <useObjectOwner>false</useObjectOwner>
+            <useObjectApprover>false</useObjectApprover>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </defaultReviewerRef>
+        </reviewerSpecification>
+    </stageDefinition>
+    <reviewStrategy>
+        <outcomeStrategy>oneDenyDenies</outcomeStrategy>
+    </reviewStrategy>
+    <startTimestamp>2023-05-13T16:30:25.941+02:00</startTimestamp>
+    <state>inReviewStage</state>
+    <stageNumber>1</stageNumber>
+    <stage id="938405365">
+        <iteration>1</iteration>
+        <number>1</number>
+        <name>Stage 1</name>
+        <startTimestamp>2023-05-13T16:30:25.920+02:00</startTimestamp>
+        <deadline>2023-05-13T23:59:59.999+02:00</deadline>
+    </stage>
+    <case id="6" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="9e0105e1-c601-4265-b71b-3077e04a3b61" relation="org:default" type="c:UserType">
+            <!-- ann -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" relation="org:default" type="c:RoleType">
+            <!-- Approver -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="c0c010c0-d34d-b33f-f00d-111111111111" relation="org:default" type="c:UserType">
+                <!-- jack -->
+            </assigneeRef>
+            <iteration>1</iteration>
+        </workItem>
+        <workItem id="2">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+        <assignment id="2">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:29:17.760+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:29:17.779+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-00000000000a" relation="org:default" type="c:RoleType">
+                <!-- Approver -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="7" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="9e0105e1-c601-4265-b71b-3077e04a3b61" relation="org:default" type="c:UserType">
+            <!-- ann -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-00000000000b" relation="org:default" type="c:RoleType">
+            <!-- Reviewer -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <name>some</name>
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <iteration>1</iteration>
+        </workItem>
+        <workItem id="2">
+            <name>any</name>
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="c0c010c0-d34d-b33f-f00d-111111111111" relation="org:default" type="c:UserType">
+                <!-- jack -->
+            </originalAssigneeRef>
+            <assigneeRef oid="c0c010c0-d34d-b33f-f00d-111111111111" relation="org:default" type="c:UserType">
+                <!-- jack -->
+            </assigneeRef>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+        <assignment id="3">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:29:17.760+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:29:17.779+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-00000000000b" relation="org:default" type="c:RoleType">
+                <!-- Reviewer -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="8" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="9e0105e1-c601-4265-b71b-3077e04a3b61" relation="org:default" type="c:UserType">
+            <!-- ann -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-00000000000c" relation="org:default" type="c:RoleType">
+            <!-- Delegator -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <name>extra</name>
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+        <assignment id="4">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:29:17.760+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:29:17.779+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-00000000000c" relation="org:default" type="c:RoleType">
+                <!-- Delegator -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="1" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+            <!-- administrator -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
+            <!-- Superuser -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <performerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </performerRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
+            <outputChangeTimestamp>2023-05-13T16:30:43.078+02:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+        <assignment id="1">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:21:43.489+02:00</requestTimestamp>
+                <createTimestamp>2023-05-13T16:21:43.516+02:00</createTimestamp>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
+                <!-- Superuser -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="2" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="081a0e42-805a-4816-bce4-713bf4b4d680" relation="org:default" type="c:UserType">
+            <!-- john -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
+            <!-- Superuser -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <performerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </performerRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            </output>
+            <outputChangeTimestamp>2023-05-13T16:30:50.616+02:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+        <assignment id="1">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:28:36.732+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:28:36.769+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
+                <!-- Superuser -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="3" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="2042a4db-c83d-4e67-ba42-21b13e36e60c" relation="org:default" type="c:UserType">
+            <!-- mary -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+            <!-- End user -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <performerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </performerRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            </output>
+            <outputChangeTimestamp>2023-05-13T16:30:51.349+02:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+        <assignment id="1">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:28:52.995+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:28:53.010+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+                <!-- End user -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="4" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="2042a4db-c83d-4e67-ba42-21b13e36e60c" relation="org:default" type="c:UserType">
+            <!-- mary -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-00000000000b" relation="org:default" type="c:RoleType">
+            <!-- Reviewer -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <performerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </performerRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            </output>
+            <outputChangeTimestamp>2023-05-13T16:30:52.115+02:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+        <assignment id="2">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:28:52.995+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:28:53.010+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-00000000000b" relation="org:default" type="c:RoleType">
+                <!-- Reviewer -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+    <case id="5" xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="9e0105e1-c601-4265-b71b-3077e04a3b61" relation="org:default" type="c:UserType">
+            <!-- ann -->
+        </objectRef>
+        <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+            <!-- End user -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem id="1">
+            <stageNumber>1</stageNumber>
+            <originalAssigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </originalAssigneeRef>
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </assigneeRef>
+            <performerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </performerRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
+            <outputChangeTimestamp>2023-05-13T16:30:54.759+02:00</outputChangeTimestamp>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2023-05-13T16:30:25.920+02:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2023-05-13T23:59:59.999+02:00</currentStageDeadline>
+        <currentStageOutcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</currentStageOutcome>
+        <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+        <assignment id="1">
+            <metadata>
+                <requestTimestamp>2023-05-13T16:29:17.760+02:00</requestTimestamp>
+                <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </requestorRef>
+                <createTimestamp>2023-05-13T16:29:17.779+02:00</createTimestamp>
+                <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                    <!-- administrator -->
+                </creatorRef>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+                <!-- End user -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <isInducement>false</isInducement>
+    </case>
+</accessCertificationCampaign>

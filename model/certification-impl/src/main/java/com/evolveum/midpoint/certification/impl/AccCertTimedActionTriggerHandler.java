@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
@@ -119,25 +120,30 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
                 CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
-                null, true, null, result);
+                true,
+                result);
         for (AccessCertificationWorkItemType workItem : workItems) {
             AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCase(workItem);
             if (aCase == null || aCase.getId() == null || workItem.getId() == null) {
-                LOGGER.error("Couldn't auto-complete work item {} in case {}: some identifiers are missing", aCase, workItem);    // shouldn't occur
+                // shouldn't occur
+                LOGGER.error("Couldn't auto-complete work item {} in case {}: some identifiers are missing", aCase, workItem);
             } else {
-                certManager.recordDecision(campaign.getOid(), aCase.getId(), workItem.getId(),
-                        OutcomeUtils.fromUri(completeAction.getOutcome()), null, task, result);
+                certManager.recordDecision(
+                        AccessCertificationWorkItemId.of(campaign.getOid(), aCase.getId(), workItem.getId()),
+                        OutcomeUtils.fromUri(completeAction.getOutcome()), null, true, task, result);
             }
         }
     }
 
-    private void executeDelegateAction(AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
+    private void executeDelegateAction(
+            AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
             Task task, OperationResult result)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
                 CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
-                null, true, null, result);
+                true,
+                result);
         certManager.delegateWorkItems(campaign.getOid(), workItems, delegateAction, task, result);
     }
 

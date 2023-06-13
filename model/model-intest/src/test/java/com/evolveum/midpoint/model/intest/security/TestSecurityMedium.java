@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.intest.security;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -26,19 +26,19 @@ import java.io.IOException;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityMedium extends AbstractSecurityTest {
+public class TestSecurityMedium extends AbstractInitializedSecurityTest {
 
     private static final File USER_EMPLOYEE_FRED_FILE = new File(TEST_DIR, "user-employee-fred.xml");
 
     private static final File ROLE_EMPLOYEE_MANAGER_FILE = new File(TEST_DIR, "role-employee-manager.xml");
     private static final String ROLE_EMPLOYEE_MANAGER_OID = "5549cb8e-d573-11e9-a61e-7f2eff22715a";
 
-    private static final TestResource<RoleType> ROLE_RESOURCE_NO_SUPER =
-            new TestResource<>(TEST_DIR, "role-resource-no-super.xml", "127e6393-371d-4a15-952f-e454748bfc09");
-    private static final TestResource<ResourceType> RESOURCE_NO_SUPER =
-            new TestResource<>(TEST_DIR, "resource-no-super.xml", "801c9610-5cb7-411f-af3f-a14b303154ca");
-    private static final TestResource<ResourceType> RESOURCE_WITH_SUPER =
-            new TestResource<>(TEST_DIR, "resource-with-super.xml", "9e785491-7207-4288-8d1e-7f7a21a6455f");
+    private static final TestObject<RoleType> ROLE_RESOURCE_NO_SUPER =
+            TestObject.file(TEST_DIR, "role-resource-no-super.xml", "127e6393-371d-4a15-952f-e454748bfc09");
+    private static final TestObject<ResourceType> RESOURCE_NO_SUPER =
+            TestObject.file(TEST_DIR, "resource-no-super.xml", "801c9610-5cb7-411f-af3f-a14b303154ca");
+    private static final TestObject<ResourceType> RESOURCE_WITH_SUPER =
+            TestObject.file(TEST_DIR, "resource-with-super.xml", "9e785491-7207-4288-8d1e-7f7a21a6455f");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -94,8 +94,8 @@ public class TestSecurityMedium extends AbstractSecurityTest {
 
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
-        assertGetDeny(UserType.class, USER_LECHUCK_OID);
-        assertGetDeny(UserType.class, USER_CHARLES_OID);
+        assertGetDeny(UserType.class, USER_LECHUCK.oid);
+        assertGetDeny(UserType.class, USER_CHARLES.oid);
 
         assertSearch(UserType.class, null, 0);
         assertSearch(ObjectType.class, null, 0);

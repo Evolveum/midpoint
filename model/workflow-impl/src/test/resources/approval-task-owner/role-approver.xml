@@ -32,6 +32,16 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateOwnWorkItems</action>
     </authorization>
+    <authorization id="13">
+        <name>assigned-workitems-read-complete</name> <!-- TODO finish this authorization -->
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
     <authorization id="3">
         <name>tasks-read</name>
         <description>

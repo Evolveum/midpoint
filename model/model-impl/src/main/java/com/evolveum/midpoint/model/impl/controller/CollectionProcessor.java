@@ -399,8 +399,8 @@ public class CollectionProcessor {
                 Collection<SelectorOptions<GetOperationOptions>> baseOptionFromCollection = existingView.getOptions();
                 compileObjectCollectionView(existingView, baseCollectionSpec, targetTypeClass, task, result);
                 ObjectFilter baseFilter = existingView.getFilter();
-                ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilterFromCollection, baseFilter, prismContext);
-                combinedFilter = ObjectQueryUtil.filterAnd(combinedFilter, collectionFilter, prismContext);
+                ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilterFromCollection, baseFilter);
+                combinedFilter = ObjectQueryUtil.filterAnd(combinedFilter, collectionFilter);
                 existingView.setFilter(combinedFilter);
                 GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder().setFrom(baseOptionFromCollection);
                 optionsBuilder.mergeFrom(existingView.getOptions());
@@ -439,7 +439,7 @@ public class CollectionProcessor {
 
     private void mergeCollectionFilterAndOptions(ObjectFilter objectFilter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options) {
         ObjectFilter baseFilter = existingView.getFilter();
-        ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, objectFilter, prismContext);
+        ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, objectFilter);
         existingView.setFilter(combinedFilter);
         GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder().setFrom(existingView.getOptions());
         optionsBuilder.mergeFrom(options);
@@ -611,12 +611,6 @@ public class CollectionProcessor {
         SearchBoxConfigurationType oldSearchBoxConfig = existingView.getSearchBoxConfiguration();
         if (oldSearchBoxConfig == null || replaceIfExist) {
             if (oldSearchBoxConfig != null) {
-                if (newSearchBoxConfig.getDefaultObjectType() == null) {
-                    newSearchBoxConfig.setDefaultObjectType(oldSearchBoxConfig.getDefaultObjectType());
-                }
-                if (newSearchBoxConfig.getDefaultScope() == null) {
-                    newSearchBoxConfig.setDefaultScope(oldSearchBoxConfig.getDefaultScope());
-                }
                 if (newSearchBoxConfig.getSearchItems() == null) {
                     newSearchBoxConfig.setSearchItems(oldSearchBoxConfig.getSearchItems());
                 }

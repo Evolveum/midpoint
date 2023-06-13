@@ -181,7 +181,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
 
         // THEN
         then();
@@ -270,7 +270,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
 
         // THEN
         then();
@@ -290,7 +290,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
 
         // WHEN
         when();
@@ -312,7 +312,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        caseList = queryHelper.searchCases(campaignOid, null, result);
         displayContainerablesCollection("caseList", caseList);
         checkAllCases(caseList);
 
@@ -359,7 +359,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertSanityAfterStageClose(campaign, certificationDefinition, 1);
         checkAllCases(campaign.getCase());
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
         AccessCertificationCaseType test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
         AccessCertificationCaseType test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
@@ -416,7 +416,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, result);
         assertEquals("wrong # of cases", 5, caseList.size());
         AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
         assertApproximateTime("test2aCase.remediedTimestamp", new Date(), test2aCase.getRemediedTimestamp());

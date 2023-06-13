@@ -31,6 +31,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+
 public class RoleMiningExportOperation implements Serializable {
 
     private static final String DOT_CLASS = PageDebugDownloadBehaviour.class.getName() + ".";
@@ -62,8 +66,20 @@ public class RoleMiningExportOperation implements Serializable {
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())
-                    && filterAllowedOrg(targetRef.getOid(), pageBase)) {
+
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(OrgType.class.getSimpleName())
+                    && filterAllowedOrg(oid, pageBase)) {
                 org.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, key));
             }
         }
@@ -82,13 +98,23 @@ public class RoleMiningExportOperation implements Serializable {
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
 
-            if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
-                    && filterAllowedRole(targetRef.getOid(), pageBase)) {
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(RoleType.class.getSimpleName())
+                    && filterAllowedRole(oid, pageBase)) {
                 user.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, key));
             }
 
-            if (orgExport && targetRef.getType().getLocalPart().equals(OrgType.class.getSimpleName())
-                    && filterAllowedOrg(targetRef.getOid(), pageBase)) {
+            if (orgExport && objectType.equals(OrgType.class.getSimpleName()) && filterAllowedOrg(oid, pageBase)) {
                 user.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, key));
             }
 
@@ -114,30 +140,49 @@ public class RoleMiningExportOperation implements Serializable {
 
         for (AssignmentType inducementObject : inducement) {
             ObjectReferenceType targetRef = inducementObject.getTargetRef();
-            if (targetRef != null
-                    && targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())
-                    && filterAllowedRole(targetRef.getOid(), pageBase)) {
-                role.getInducement().add(encryptObjectReference(inducementObject, securityMode, key));
 
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(RoleType.class.getSimpleName()) && filterAllowedRole(oid, pageBase)) {
+                role.getInducement().add(encryptObjectReference(inducementObject, securityMode, key));
             }
         }
 
         List<AssignmentType> assignment = object.getAssignment();
         for (AssignmentType assignmentObject : assignment) {
             ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-            if (targetRef.getType().getLocalPart().equals(ArchetypeType.class.getSimpleName())) {
+
+            if (targetRef == null) {
+                continue;
+            }
+
+            String objectType = getObjectType(targetRef);
+            String oid = targetRef.getOid();
+
+            if (objectType == null || oid == null) {
+                continue;
+            }
+
+            if (objectType.equals(ArchetypeType.class.getSimpleName())) {
                 AssignmentType assignmentType = new AssignmentType();
-                if (targetRef.getOid().equals(applicationArchetypeOid)) {
+                if (oid.equals(applicationArchetypeOid)) {
                     identifier = APPLICATION_ROLE_IDENTIFIER;
-                    assignmentType.targetRef(assignmentObject.getTargetRef());
+                    assignmentType.targetRef(targetRef);
                     role.getAssignment().add(assignmentType);
-                } else if (targetRef.getOid().equals(businessArchetypeOid)) {
+                } else if (oid.equals(businessArchetypeOid)) {
                     identifier = BUSINESS_ROLE_IDENTIFIER;
-                    assignmentType.targetRef(assignmentObject.getTargetRef());
+                    assignmentType.targetRef(targetRef);
                     role.getAssignment().add(assignmentType);
                 }
             }
-
         }
 
         if (!identifier.isEmpty()) {
@@ -309,6 +354,16 @@ public class RoleMiningExportOperation implements Serializable {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    private @Nullable String getObjectType(@NotNull ObjectReferenceType targetRef) {
+        QName type = targetRef.getType();
+
+        if (type != null) {
+            return type.getLocalPart();
+        }
+
+        return null;
     }
 
 }

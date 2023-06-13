@@ -1711,7 +1711,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         AuthenticationSequenceModuleType module = invitationAuthSequence.getModule().get(0);
-        String moduleIdentifier = module.getIdentifier();
+        String moduleIdentifier = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
         if (StringUtils.isEmpty(moduleIdentifier)) {
             return null;
         }
@@ -1790,7 +1790,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         AuthenticationSequenceType sequenceByName = null;
         AuthenticationSequenceType defaultSequence = null;
         for (AuthenticationSequenceType sequenceType : sequences) {
-            String sequenceIdentifier = sequenceType.getIdentifier();
+            String sequenceIdentifier = StringUtils.isNotEmpty(sequenceType.getIdentifier()) ? sequenceType.getIdentifier() : sequenceType.getName();
             if (StringUtils.equals(sequenceIdentifier, nameOfSequence)) {
                 sequenceByName = sequenceType;
                 break;

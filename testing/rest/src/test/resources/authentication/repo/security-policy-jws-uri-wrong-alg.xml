@@ -26,11 +26,11 @@
                 </resourceServer>
             </oidc>
             <httpBasic>
-                <name>internalBasic</name>
+                <identifier>internalBasic</identifier>
                 <description>Internal username/password authentication, using HTTP basic auth</description>
             </httpBasic>
             <httpSecQ>
-                <name>httpSecQ</name>
+                <identifier>httpSecQ</identifier>
                 <description>
                     Special "HTTP SecQ" authentication based on security question answers.
                     It is used for REST service.

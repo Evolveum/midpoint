@@ -3793,11 +3793,22 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with widget addition for user 1 using container add modification");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_USER_DASHBOARD,
-                        DashboardLayoutType.F_WIDGET).add(new DashboardWidgetType())
+                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_HOME_PAGE)
+                .add(new HomePageType().id(1L))
                 .asObjectDelta(user1Oid);
 
-        when("modifyObject is called");
+        when("modifyObject to add homePage container is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_HOME_PAGE, 1L, HomePageType.F_WIDGET)
+                .add(new PreviewContainerPanelConfigurationType())
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject to add widget container is called");
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
         then("operation is successful");
@@ -3806,12 +3817,13 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(userObject.getAdminGuiConfiguration().getUserDashboard().getWidget()).isNotEmpty();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 2)); // two updates there
+        assertThat(userObject.getAdminGuiConfiguration().getHomePage()).isNotEmpty();
+        assertThat(userObject.getAdminGuiConfiguration().getHomePage().get(0).getWidget()).isNotEmpty();
 
         and("externalized version is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.version).isEqualTo(originalRow.version + 2);
     }
     // endregion
 }
