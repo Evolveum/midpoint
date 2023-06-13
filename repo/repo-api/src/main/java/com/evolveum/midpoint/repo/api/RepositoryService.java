@@ -10,6 +10,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.repo.api.util.AccessCertificationSupportMixin;
+import com.evolveum.midpoint.repo.api.util.CaseSupportMixin;
 import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
 
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +111,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author Radovan Semancik
  * @version 3.1.1
  */
-public interface RepositoryService extends OrgTreeEvaluator {
+public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, AccessCertificationSupportMixin {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
 
@@ -695,4 +697,10 @@ public interface RepositoryService extends OrgTreeEvaluator {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
     PerformanceMonitor getPerformanceMonitor();
+
+    @Override
+    @NotNull
+    default RepositoryService repositoryService() {
+        return this;
+    }
 }

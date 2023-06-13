@@ -112,7 +112,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                     .correlate(correlationContext, result);
             return createCompleteResult(correlationResult, rootCorrelatorContext);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.close();

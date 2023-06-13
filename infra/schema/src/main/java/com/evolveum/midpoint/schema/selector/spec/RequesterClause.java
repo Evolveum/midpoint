@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.schema.selector.spec;
 
-import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.Delegation.REQUESTOR;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
+
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +58,7 @@ public class RequesterClause extends SelectorClause {
         boolean matches =
                 selector.matches(
                         requestor.getValue(),
-                        ctx.next(REQUESTOR, "req", "requestor"));
+                        ctx.next(DelegatorSelection.NO_DELEGATOR, "req", "requestor"));
         traceApplicability(ctx, matches, "requestor object (%s) matches: %s", requestor, matches);
         return matches;
     }
@@ -84,7 +85,7 @@ public class RequesterClause extends SelectorClause {
     private ObjectFilter createFilter(@NotNull ClauseFilteringContext ctx) {
         return PrismContext.get().queryFor(CaseType.class)
                 .item(CaseType.F_REQUESTOR_REF)
-                .ref(ctx.getSelfOidsArray(REQUESTOR))
+                .ref(ctx.getSelfOidsArray(DelegatorSelection.NO_DELEGATOR))
                 .buildFilter();
     }
 

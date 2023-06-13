@@ -8270,10 +8270,25 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 The object matches the specification if it has a (current) assignee specified by this element.
-                                (So it is applicable only for cases and, in the future, work items.)
+                                (So it is applicable only for cases and work items.)
+
+                                LIMITATION: only "self" candidate assignee selector is supported when searching.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateAssignee" type="tns:SubjectedObjectSelectorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The object matches the specification if it has a candidate assignee
+                                specified by this element. (So it is applicable only for cases and work items.)
+
+                                LIMITATION: only "self" candidate assignee selector is supported now.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.8</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

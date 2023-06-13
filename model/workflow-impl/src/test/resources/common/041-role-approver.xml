@@ -34,6 +34,7 @@
     <authorization>
         <name>assigned-workitems-read-complete</name> <!-- TODO finish this authorization -->
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
         <object>
             <type>CaseWorkItemType</type>
             <assignee>

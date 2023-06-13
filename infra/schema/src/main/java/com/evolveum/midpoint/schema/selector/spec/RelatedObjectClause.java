@@ -13,8 +13,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext;
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.Delegation;
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -59,7 +58,7 @@ public class RelatedObjectClause extends SelectorClause {
         }
         boolean matches = selector.matches(
                 relatedObject.getValue(),
-                ctx.next(Delegation.RELATED_OBJECT, "rel", "related object"));
+                ctx.next(DelegatorSelection.NO_DELEGATOR, "rel", "related object"));
         traceApplicability(ctx, matches, "related object (%s) matches: %s", relatedObject, matches);
         return matches;
     }
@@ -92,7 +91,7 @@ public class RelatedObjectClause extends SelectorClause {
         // we assume CaseType.F_OBJECT_REF == TaskType.F_OBJECT_REF here
         return PrismContext.get().queryFor(objectType)
                 .item(CaseType.F_OBJECT_REF)
-                .ref(ctx.getSelfOidsArray(Delegation.RELATED_OBJECT))
+                .ref(ctx.getSelfOidsArray(DelegatorSelection.NO_DELEGATOR))
                 .buildFilter();
     }
 

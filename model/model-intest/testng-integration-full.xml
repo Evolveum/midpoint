@@ -18,6 +18,7 @@
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityItemValues"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityGovernance"/>
         </classes>
     </test>
     <test name="Model Integration" preserve-order="true" parallel="none" verbose="10">

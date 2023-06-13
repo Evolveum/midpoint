@@ -18,6 +18,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Objectable;
 
+import com.evolveum.midpoint.prism.query.FilterCreationUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,12 +72,6 @@ public class ValueSelector implements DebugDumpable {
 
     public static @NotNull ValueSelector empty() {
         return new ValueSelector(null, null, List.of(), null);
-    }
-
-    /** Type name must be qualified. */
-    public static @NotNull ValueSelector emptyWithType(@NotNull QName typeName) {
-        TypeClause typeClause = TypeClause.ofQualified(typeName);
-        return new ValueSelector(typeClause, null, List.of(typeClause), null);
     }
 
     public static ValueSelector of(@NotNull TypeClause typeClause, @NotNull ParentClause parentClause) {
@@ -131,8 +128,7 @@ public class ValueSelector implements DebugDumpable {
             clauses.add(FilterClause.of(qTypeName, filter));
         }
 
-        if (bean instanceof SubjectedObjectSelectorType) {
-            SubjectedObjectSelectorType sBean = (SubjectedObjectSelectorType) bean;
+        if (bean instanceof SubjectedObjectSelectorType sBean) {
 
             var orgRelation = sBean.getOrgRelation();
             if (orgRelation != null) {
@@ -164,8 +160,7 @@ public class ValueSelector implements DebugDumpable {
             }
         }
 
-        if (bean instanceof OwnedObjectSelectorType) {
-            OwnedObjectSelectorType oBean = (OwnedObjectSelectorType) bean;
+        if (bean instanceof OwnedObjectSelectorType oBean) {
 
             var owner = oBean.getOwner();
             if (owner != null) {
@@ -194,6 +189,13 @@ public class ValueSelector implements DebugDumpable {
                 clauses.add(
                         AssigneeClause.of(
                                 ValueSelector.parse(assignee)));
+            }
+
+            var candidateAssignee = oBean.getCandidateAssignee();
+            if (candidateAssignee != null) {
+                clauses.add(
+                        CandidateAssigneeClause.of(
+                                ValueSelector.parse(candidateAssignee)));
             }
 
             var relatedObject = oBean.getRelatedObject();
@@ -245,10 +247,6 @@ public class ValueSelector implements DebugDumpable {
                 null);
     }
 
-    public @Nullable TypeClause getTypeClause() {
-        return typeClause;
-    }
-
     public @Nullable QName getTypeName() {
         return typeClause != null ? typeClause.getTypeName() : null;
     }
@@ -273,6 +271,16 @@ public class ValueSelector implements DebugDumpable {
         }
         ctx.traceMatchingEnd(this, value, true);
         return true;
+    }
+
+    public ObjectFilter computeFilter(@NotNull ClauseFilteringContext ctx)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (applyFilters(ctx)) {
+            return ctx.getFilterCollector().getFilter();
+        } else {
+            return FilterCreationUtil.createNone();
+        }
     }
 
     public boolean applyFilters(@NotNull ClauseFilteringContext ctx)
@@ -412,5 +420,10 @@ public class ValueSelector implements DebugDumpable {
 
     public boolean isSubObject() {
         return !Objectable.class.isAssignableFrom(getTypeOrDefault());
+    }
+
+    @SuppressWarnings({ "WeakerAccess", "BooleanMethodIsAlwaysInverted" })
+    public boolean isPureSelf() {
+        return clauses.size() == 1 && clauses.get(0) instanceof SelfClause;
     }
 }

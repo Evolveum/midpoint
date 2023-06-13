@@ -1,0 +1,215 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="5fece299-5463-4e33-b8ba-e299e8bf2b52">
+    <name>
+        <t:orig>Assigning role "role3" to user "user1"</t:orig>
+        <t:norm>assigning role role3 to user user1</t:norm>
+        <t:translation>
+            <t:key>DefaultPolicyConstraint.Short.assignmentModification.toBeAdded</t:key>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.RoleType</t:key>
+                            <t:fallback>RoleType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>role3</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.UserType</t:key>
+                            <t:fallback>UserType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>user1</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+        </t:translation>
+    </name>
+    <metadata>
+        <createTimestamp>2023-06-09T12:59:11.665+02:00</createTimestamp>
+    </metadata>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType"/>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType"/>
+    <parentRef oid="d0a72b38-3d12-4c98-b35b-c2d5bde1106f" relation="org:default" type="c:CaseType"/>
+    <objectRef oid="96dc9b60-6e02-4c30-a032-cb435d13a7f5" relation="org:default" type="c:UserType"/>
+    <targetRef oid="f2ce1520-cf71-42c5-962f-394217aa531e" relation="org:default" type="c:RoleType"/>
+    <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    <state>open</state>
+    <event id="3" xsi:type="c:CaseCreationEventType">
+        <timestamp>2023-06-09T12:59:11.665+02:00</timestamp>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    </event>
+    <workItem id="4">
+        <name>
+            <t:orig>Assigning role "role3" to user "user1"</t:orig>
+            <t:norm>assigning role role3 to user user1</t:norm>
+            <t:translation>
+                <t:key>DefaultPolicyConstraint.Short.assignmentModification.toBeAdded</t:key>
+                <t:argument>
+                    <t:translation>
+                        <t:key>ObjectSpecification</t:key>
+                        <t:argument>
+                            <t:translation>
+                                <t:key>ObjectTypeLowercase.RoleType</t:key>
+                                <t:fallback>RoleType</t:fallback>
+                            </t:translation>
+                        </t:argument>
+                        <t:argument>
+                            <t:value>role3</t:value>
+                        </t:argument>
+                    </t:translation>
+                </t:argument>
+                <t:argument>
+                    <t:translation>
+                        <t:key>ObjectSpecification</t:key>
+                        <t:argument>
+                            <t:translation>
+                                <t:key>ObjectTypeLowercase.UserType</t:key>
+                                <t:fallback>UserType</t:fallback>
+                            </t:translation>
+                        </t:argument>
+                        <t:argument>
+                            <t:value>user1</t:value>
+                        </t:argument>
+                    </t:translation>
+                </t:argument>
+            </t:translation>
+        </name>
+        <stageNumber>1</stageNumber>
+        <createTimestamp>2023-06-09T12:59:11.689+02:00</createTimestamp>
+        <candidateRef oid="2c76f1d8-34a9-4063-bffb-02bde8ee5569" relation="org:default" type="c:OrgType"/>
+    </workItem>
+    <approvalContext>
+        <changeAspect>com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect</changeAspect>
+        <deltasToApprove>
+            <focusPrimaryDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+                <t:oid>96dc9b60-6e02-4c30-a032-cb435d13a7f5</t:oid>
+                <t:itemDelta>
+                    <t:modificationType>add</t:modificationType>
+                    <t:path>c:assignment</t:path>
+                    <t:value xsi:type="c:AssignmentType">
+                        <targetRef oid="f2ce1520-cf71-42c5-962f-394217aa531e" relation="org:default" type="c:RoleType"/>
+                    </t:value>
+                </t:itemDelta>
+            </focusPrimaryDelta>
+        </deltasToApprove>
+        <immediateExecution>false</immediateExecution>
+        <approvalSchema>
+            <stage id="2">
+                <number>1</number>
+                <approverRef oid="2c76f1d8-34a9-4063-bffb-02bde8ee5569" relation="org:default" type="c:OrgType"/>
+                <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                <groupExpansion>byClaimingWorkItem</groupExpansion>
+            </stage>
+        </approvalSchema>
+        <policyRules>
+            <entry>
+                <stageMin>1</stageMin>
+                <stageMax>1</stageMax>
+                <rule>
+                    <assignmentPath xsi:type="c:AssignmentPathType">
+                        <segment>
+                            <segmentOrder>1</segmentOrder>
+                            <sourceRef oid="96dc9b60-6e02-4c30-a032-cb435d13a7f5" relation="org:default" type="c:UserType"/>
+                            <targetRef oid="f2ce1520-cf71-42c5-962f-394217aa531e" relation="org:default" type="c:RoleType"/>
+                            <matchingOrder>true</matchingOrder>
+                            <isAssignment>true</isAssignment>
+                        </segment>
+                        <segment>
+                            <segmentOrder>2</segmentOrder>
+                            <sourceRef oid="f2ce1520-cf71-42c5-962f-394217aa531e" relation="org:default" type="c:RoleType"/>
+                            <assignmentId>1</assignmentId>
+                            <matchingOrder>false</matchingOrder>
+                            <isAssignment>true</isAssignment>
+                        </segment>
+                    </assignmentPath>
+                    <directOwnerRef oid="f2ce1520-cf71-42c5-962f-394217aa531e" relation="org:default" type="c:RoleType" xsi:type="c:ObjectReferenceType">
+                        <targetName>role3</targetName>
+                    </directOwnerRef>
+                    <trigger xsi:type="c:EvaluatedModificationTriggerType">
+                        <constraintKind>assignmentModification</constraintKind>
+                        <message xsi:type="c:SingleLocalizableMessageType">
+                            <key>DefaultPolicyConstraint.assignmentModification.toBeAdded</key>
+                            <argument>
+                                <localizable xsi:type="c:SingleLocalizableMessageType">
+                                    <key>ObjectSpecification</key>
+                                    <argument>
+                                        <localizable xsi:type="c:SingleLocalizableMessageType">
+                                            <key>ObjectTypeLowercase.RoleType</key>
+                                            <fallbackMessage>RoleType</fallbackMessage>
+                                        </localizable>
+                                    </argument>
+                                    <argument>
+                                        <value>role3</value>
+                                    </argument>
+                                </localizable>
+                            </argument>
+                            <argument>
+                                <localizable xsi:type="c:SingleLocalizableMessageType">
+                                    <key>relation.default</key>
+                                </localizable>
+                            </argument>
+                        </message>
+                        <shortMessage xsi:type="c:SingleLocalizableMessageType">
+                            <key>DefaultPolicyConstraint.Short.assignmentModification.toBeAdded</key>
+                            <argument>
+                                <localizable xsi:type="c:SingleLocalizableMessageType">
+                                    <key>ObjectSpecification</key>
+                                    <argument>
+                                        <localizable xsi:type="c:SingleLocalizableMessageType">
+                                            <key>ObjectTypeLowercase.RoleType</key>
+                                            <fallbackMessage>RoleType</fallbackMessage>
+                                        </localizable>
+                                    </argument>
+                                    <argument>
+                                        <value>role3</value>
+                                    </argument>
+                                </localizable>
+                            </argument>
+                            <argument>
+                                <localizable xsi:type="c:SingleLocalizableMessageType">
+                                    <key>ObjectSpecification</key>
+                                    <argument>
+                                        <localizable xsi:type="c:SingleLocalizableMessageType">
+                                            <key>ObjectTypeLowercase.UserType</key>
+                                            <fallbackMessage>UserType</fallbackMessage>
+                                        </localizable>
+                                    </argument>
+                                    <argument>
+                                        <value>user1</value>
+                                    </argument>
+                                </localizable>
+                            </argument>
+                        </shortMessage>
+                    </trigger>
+                </rule>
+            </entry>
+        </policyRules>
+    </approvalContext>
+    <stageNumber>1</stageNumber>
+</case>

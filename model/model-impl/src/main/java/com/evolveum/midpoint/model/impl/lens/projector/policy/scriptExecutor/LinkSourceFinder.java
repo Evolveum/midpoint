@@ -113,10 +113,12 @@ class LinkSourceFinder implements AutoCloseable {
             throws SchemaException, ConfigurationException {
         List<LinkedObjectSelectorType> resolvedSelectors = new ArrayList<>();
         for (LinkSourceObjectSelectorType selector : selectors) {
-            if (selector.getLinkType() != null) {
-                LinkedObjectSelectorType resolvedSelector = resolveSourceSelector(selector.getLinkType());
-                LinkSourceObjectSelectorType mergedSelector = mergeSelectors(selector, resolvedSelector);
-                resolvedSelectors.add(mergedSelector);
+            String linkType = selector.getLinkType();
+            if (linkType != null) {
+                resolvedSelectors.add(
+                        mergeSelectors(
+                                selector,
+                                resolveSourceSelector(linkType)));
             } else {
                 resolvedSelectors.add(selector);
             }
@@ -155,29 +157,32 @@ class LinkSourceFinder implements AutoCloseable {
                 queryFactory.createOrOptimized(convertedSelectors));
     }
 
-    private ObjectFilter createFilter(LinkedObjectSelectorType sourceSelector) throws CommunicationException,
+    private ObjectFilter createFilter(@NotNull LinkedObjectSelectorType sourceSelector) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        SelectorToFilterTranslator translator = new SelectorToFilterTranslator(sourceSelector, AssignmentHolderType.class,
-                "link source selector in rule script executor", beans.prismContext, beans.expressionFactory,
-                actx.task, result);
-        ObjectFilter selectorFilter = translator.createFilter();
+        SelectorToFilterTranslator translator =
+                new SelectorToFilterTranslator(
+                        sourceSelector, AssignmentHolderType.class,
+                        "link source selector in rule script executor", LOGGER, actx.task);
         Class<? extends ObjectType> narrowedSourceType = translator.getNarrowedTargetType();
-        ObjectFilter allSourcesFilter = beans.prismContext.queryFor(narrowedSourceType)
-                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(createExpectedReferenceValues(sourceSelector))
-                .buildFilter();
-
         narrowedSourceTypes.add(narrowedSourceType);
-        return ObjectQueryUtil.simplify(queryFactory.createAnd(allSourcesFilter, selectorFilter));
+        return ObjectQueryUtil.simplify(
+                queryFactory.createAndOptimized(
+                        translator.createFilter(result),
+                        beans.prismContext.queryFor(narrowedSourceType)
+                                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                                .ref(createExpectedReferenceValues(sourceSelector))
+                                .buildFilter()));
     }
 
     @NotNull
     private List<PrismReferenceValue> createExpectedReferenceValues(LinkedObjectSelectorType sourceSelector) {
-        List<PrismReferenceValue> values = new ArrayList<>(sourceSelector.getRelation().size());
-        if (sourceSelector.getRelation().isEmpty()) {
+        List<QName> relations = sourceSelector.getRelation();
+        List<PrismReferenceValue> values = new ArrayList<>(relations.size());
+        if (relations.isEmpty()) {
             values.add(new ObjectReferenceType().oid(focusOid).asReferenceValue());
         } else {
-            for (QName relation : sourceSelector.getRelation()) {
+            for (QName relation : relations) {
                 values.add(new ObjectReferenceType().oid(focusOid).relation(relation).asReferenceValue());
             }
         }
@@ -196,7 +201,7 @@ class LinkSourceFinder implements AutoCloseable {
         List<PrismReferenceValue> references = new ArrayList<>();
         beans.repositoryService.searchObjectsIterative(completeQuery.getType(), completeQuery.getQuery(),
                 (object, parentResult) ->
-                        references.add(ObjectTypeUtil.createObjectRef(object, beans.prismContext).asReferenceValue()),
+                        references.add(ObjectTypeUtil.createObjectRef(object).asReferenceValue()),
                 completeQuery.getOptions(), false, result);
         return references;
     }

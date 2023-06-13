@@ -107,7 +107,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (sequence == null) {
             return null;
         }
-        return sequence.getIdentifier();
+        return StringUtils.isNotEmpty(sequence.getIdentifier()) ? sequence.getIdentifier() : sequence.getName();
     }
 
     public void setSequence(AuthenticationSequenceType sequence) {
@@ -318,10 +318,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (module == null) {
             return null;
         }
-        String moduleIdentifier = module.getIdentifier();
-        if (moduleIdentifier == null) {
-            return null;
-        }
+        String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
         for (ModuleAuthentication authentication : getAuthentications()) {
             if (authentication.getModuleIdentifier().equals(moduleIdentifier)) {
                 return authentication;

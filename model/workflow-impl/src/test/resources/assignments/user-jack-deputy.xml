@@ -6,13 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user oid="e44769f2-030b-4e9c-9ddf-76bb3a348f9c"
-        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>jack-deputy</name>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
     <fullName>Jack Deputy</fullName>
     <givenName>Jack</givenName>
     <familyName>Deputy</familyName>

@@ -87,11 +87,12 @@ class LinkTargetFinder implements AutoCloseable {
             return selector;
         } else {
             LinkTargetObjectSelectorType mergedSelector = new LinkTargetObjectSelectorType();
+            PrismContainerValue<?> mergedPcv = mergedSelector.asPrismContainerValue();
             LinkedObjectSelectorType linkSelector = resolveLinkTypeInternal(linkTypeName);
             if (linkSelector != null) {
-                ((PrismContainerValue<?>) mergedSelector.asPrismContainerValue()).mergeContent(linkSelector.asPrismContainerValue(), emptyList());
+                mergedPcv.mergeContent(linkSelector.asPrismContainerValue(), List.of());
             }
-            ((PrismContainerValue<?>) mergedSelector.asPrismContainerValue()).mergeContent(selector.asPrismContainerValue(), emptyList());
+            mergedPcv.mergeContent(selector.asPrismContainerValue(), List.of());
             mergedSelector.setLinkType(null);
             return mergedSelector;
         }
@@ -123,8 +124,9 @@ class LinkTargetFinder implements AutoCloseable {
         Set<PrismReferenceValue> links = new HashSet<>(getLinksInChangeSituation(selector));
         LOGGER.trace("Links matching change situation: {}", links);
 
-        if (!selector.getRelation().isEmpty()) {
-            applyRelationFilter(links, selector.getRelation());
+        List<QName> relations = selector.getRelation();
+        if (!relations.isEmpty()) {
+            applyRelationFilter(links, relations);
             LOGGER.trace("Links matching also relation(s): {}", links);
         }
 
@@ -138,9 +140,10 @@ class LinkTargetFinder implements AutoCloseable {
             LOGGER.trace("Links matching also policy constraints: {}", links);
         }
 
-        if (selector.getType() != null) {
+        QName typeName = selector.getType();
+        if (typeName != null) {
             // This is just to avoid resolving objects with non-matching type
-            applyObjectType(links, selector.getType());
+            applyObjectType(links, typeName);
             LOGGER.trace("Links matching also object type: {}", links);
         }
 
@@ -151,7 +154,8 @@ class LinkTargetFinder implements AutoCloseable {
         return matchingObjects;
     }
 
-    private List<PrismObject<? extends ObjectType>> getMatchingObjects(Collection<PrismObject<? extends ObjectType>> objects,
+    private List<PrismObject<? extends ObjectType>> getMatchingObjects(
+            Collection<PrismObject<? extends ObjectType>> objects,
             ObjectSelectorType selector) {
         List<PrismObject<? extends ObjectType>> matching = new ArrayList<>();
         for (PrismObject<? extends ObjectType> object : objects) {
@@ -160,7 +164,8 @@ class LinkTargetFinder implements AutoCloseable {
                     matching.add(object);
                 }
             } catch (CommonException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't match link target {} for {} when filtering link targets", e,
+                LoggingUtils.logUnexpectedException(
+                        LOGGER, "Couldn't match link target {} for {} when filtering link targets", e,
                         object, actx.focusContext.getObjectAny());
             }
         }
@@ -230,24 +235,15 @@ class LinkTargetFinder implements AutoCloseable {
 
     @NotNull
     private Set<PrismReferenceValue> getLinksInChangeSituation(LinkTargetObjectSelectorType selector) {
-        switch (defaultIfNull(selector.getChangeSituation(), LinkChangeSituationType.ALWAYS)) {
-            case ALWAYS:
-                return SetUtils.union(getLinkedOld(), getLinkedNew());
-            case ADDED:
-                return SetUtils.difference(getLinkedNew(), getLinkedOld());
-            case REMOVED:
-                return SetUtils.difference(getLinkedOld(), getLinkedNew());
-            case UNCHANGED:
-                return SetUtils.intersection(getLinkedOld(), getLinkedNew());
-            case CHANGED:
-                return SetUtils.disjunction(getLinkedOld(), getLinkedNew());
-            case IN_NEW:
-                return getLinkedNew();
-            case IN_OLD:
-                return getLinkedOld();
-            default:
-                throw new AssertionError(selector.getChangeSituation());
-        }
+        return switch (defaultIfNull(selector.getChangeSituation(), LinkChangeSituationType.ALWAYS)) {
+            case ALWAYS -> SetUtils.union(getLinkedOld(), getLinkedNew());
+            case ADDED -> SetUtils.difference(getLinkedNew(), getLinkedOld());
+            case REMOVED -> SetUtils.difference(getLinkedOld(), getLinkedNew());
+            case UNCHANGED -> SetUtils.intersection(getLinkedOld(), getLinkedNew());
+            case CHANGED -> SetUtils.disjunction(getLinkedOld(), getLinkedNew());
+            case IN_NEW -> getLinkedNew();
+            case IN_OLD -> getLinkedOld();
+        };
     }
 
     private Set<PrismReferenceValue> getLinkedOld() {

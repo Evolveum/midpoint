@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -1166,6 +1167,13 @@ public class ObjectTypeUtil {
                         .map(c -> c.asPrismContainerValue()));
     }
 
+    /** Returns containerables that are not rooted in a {@link PrismObject}. */
+    public static @NotNull <C extends Containerable> List<C> getDetachedContainerables(@NotNull Collection<C> containerables) {
+        return containerables.stream()
+                .filter(c -> !c.asPrismContainerValue().getRootValue().isObjectable())
+                .collect(Collectors.toList());
+    }
+
     /**
      * As {@link #getRootsForContainerables(Collection)} but for {@link ObjectReferenceType} values.
      */
@@ -1204,6 +1212,19 @@ public class ObjectTypeUtil {
 
     public static <O extends ObjectType> PrismObjectValue<O> getValue(PrismObject<O> object) {
         return object != null ? object.getValue() : null;
+    }
+
+    public static void checkIn(@NotNull Containerable c, @NotNull Class<?> expectedRootType) {
+        checkIn(c.asPrismContainerValue(), expectedRootType);
+    }
+
+    private static void checkIn(PrismValue value, @NotNull Class<?> expectedRootType) {
+        var rootValue = value.getRootValue().getRealValueIfExists();
+        if (rootValue == null || !expectedRootType.isAssignableFrom(rootValue.getClass())) {
+            throw new IllegalStateException(
+                    "Value not embedded within a %s but in '%s': %s"
+                            .formatted(expectedRootType.getSimpleName(), MiscUtil.getValueWithClass(rootValue), value));
+        }
     }
 
     @FunctionalInterface

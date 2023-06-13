@@ -95,7 +95,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             // TODO log
         } else {
             var evaluation = new SelectorFilterEvaluation<>(
-                    String.valueOf(i), adjusted, filterType, originalFilter, Set.of(), adjusted.getDescription(),
+                    String.valueOf(i), adjusted, filterType, originalFilter, adjusted.getDescription(),
                     selectorLabel, AuthorizationFilterEvaluation.this, result);
             if (evaluation.processFilter(includeSpecial)) {
                 autzFilter = ObjectQueryUtil.filterOr(autzFilter, evaluation.getSecurityFilter());

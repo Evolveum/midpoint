@@ -44,12 +44,11 @@ class SelectorFilterEvaluation<T>
             @NotNull Specification specification,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter originalFilter,
-            @NotNull Collection<String> otherSelfOids,
             @NotNull String desc,
             String selectorLabel,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException {
-        super(id, specification.getSelector(), null, otherSelfOids, desc, authorizationEvaluation, result);
+        super(id, specification.getSelector(), null, desc, authorizationEvaluation, result);
         this.searchType = filterType;
         this.originalFilter = originalFilter;
         this.selectorLabel = selectorLabel;
@@ -81,7 +80,7 @@ class SelectorFilterEvaluation<T>
                 getOwnerResolver(),
                 this,
                 ClauseProcessingContextDescription.defaultOne(),
-                null);
+                DelegatorSelection.NO_DELEGATOR);
 
         return selector.applyFilters(ctx);
     }

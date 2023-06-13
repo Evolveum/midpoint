@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityAdvanced extends AbstractSecurityTest {
+public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
     private static final String AUTHORIZATION_ACTION_WORKITEMS = "http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems";
     private static final String BIG_BADA_BOOM = "bigBadaBoom";
@@ -273,7 +273,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_LECHUCK.oid, 1);
         assignRole(USER_LECHUCK.oid, ROLE_PERSONA_MANAGEMENT.oid);
-        login(USER_LECHUCK.getNameOrig());
+        login(USER_LECHUCK);
 
         // WHEN
         when();

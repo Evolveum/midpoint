@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -167,30 +168,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
         } else
 
         if (getPredefinedFilter() != null) {
-            if (!applyPredefinedFilter()) {
-                return null;
-            }
-            filter = getPredefinedFilter();
-
-            if (isEnabled()) {
-
-                if (filter != null) {
-                    try {
-                        //noinspection unchecked
-                        if (parameterName != null && parameterValueType != null) {
-                            variables.put(parameterName, new TypedValue(getValue().getValue(), parameterValueType));
-                        }
-                        ObjectFilter convertedFilter = pageBase.getPrismContext().getQueryConverter().parseFilter(filter, type);
-                        convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
-                        if (convertedFilter != null) {
-                            return convertedFilter;
-                        }
-                    } catch (SchemaException e) {
-                        LOGGER.error("Unable to parse filter {}, {} ", filter, e);
-                    }
-                }
-            }
-            return null;
+            return evaluatePredefinedFilter(type, variables, pageBase);
         }
         if (getValue().getValue() == null) {
             return null;
@@ -235,4 +213,44 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
         }
         return null;
     }
+
+    protected ObjectFilter evaluatePredefinedFilter(Class type, VariablesMap variables, PageBase pageBase) {
+        if (!applyPredefinedFilter()) {
+            return null;
+        }
+        SearchFilterType filter = getPredefinedFilter();
+
+        if (isEnabled()) {
+
+            if (filter != null) {
+                try {
+                    //noinspection unchecked
+                    if (parameterName != null && parameterValueType != null) {
+                        if (variables == null) {
+                            variables = new VariablesMap();
+                        }
+
+                        // FIXME TODO cleanup needed. While cleaning up, look also at createFilter method.
+                        T realValue = getValue().getValue();
+                        if (realValue instanceof ObjectReferenceType) {
+                            if (((ObjectReferenceType) realValue).getOid() == null) {
+                                realValue = null;
+                            }
+                        }
+
+                        variables.put(parameterName, new TypedValue(realValue, parameterValueType));
+                    }
+                    ObjectFilter convertedFilter = pageBase.getPrismContext().getQueryConverter().parseFilter(filter, type);
+                    convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
+                    if (convertedFilter != null) {
+                        return convertedFilter;
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Unable to parse filter {}, {} ", filter, e);
+                }
+            }
+        }
+        return null;
+    }
+
 }

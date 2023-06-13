@@ -3817,13 +3817,13 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 2)); // two updates there
         assertThat(userObject.getAdminGuiConfiguration().getHomePage()).isNotEmpty();
         assertThat(userObject.getAdminGuiConfiguration().getHomePage().get(0).getWidget()).isNotEmpty();
 
         and("externalized version is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.version).isEqualTo(originalRow.version + 2);
     }
     // endregion
 }

@@ -7,25 +7,22 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.Delegation;
-import com.evolveum.midpoint.schema.util.SchemaDeputyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -96,42 +93,55 @@ class EnforcerOperation {
         return principal != null ? principal.getFocus() : null;
     }
 
-    Set<String> getAllSelfOids(@NotNull Set<String> known, @Nullable Delegation delegation) {
-        if (delegation == null) {
-            return known;
-        } else if (delegation == Delegation.RELATED_OBJECT) {
-            // Beware: This is called for both tasks and cases.
-            // We do not allow delegators here. Each user should see only cases and tasks related to him (personally).
-            return known;
+    /** TODO does the method belongs here? */
+    Set<String> getAllSelfOids(@NotNull DelegatorSelection delegation) {
+        Set<String> all = new HashSet<>();
+        CollectionUtils.addIgnoreNull(all, getPrincipalOid());
+        if (delegation != DelegatorSelection.NO_DELEGATOR) {
+            all.addAll(getDelegators(getLimitationType(delegation)));
+        }
+        return all;
+    }
+
+    /** TODO does the method belongs here? */
+    Set<String> getAllSelfPlusRolesOids(@NotNull DelegatorSelection delegation) {
+        RelationRegistry relationRegistry = SchemaService.get().relationRegistry();
+        Set<String> all = new HashSet<>();
+        var principal = getPrincipalFocus();
+        if (principal != null) {
+            principal.getRoleMembershipRef().stream()
+                    .filter(ref -> relationRegistry.isMember(ref.getRelation()))
+                    .forEach(ref -> all.add(Objects.requireNonNull(ref.getOid())));
+        }
+        if (delegation != DelegatorSelection.NO_DELEGATOR) {
+            all.addAll(getDelegatedMembership(getLimitationType(delegation)));
+        }
+        return all;
+    }
+
+    private static @NotNull OtherPrivilegesLimitations.Type getLimitationType(@NotNull DelegatorSelection delegation) {
+        return switch (delegation) {
+            case CASE_MANAGEMENT -> OtherPrivilegesLimitations.Type.CASES;
+            case ACCESS_CERTIFICATION -> OtherPrivilegesLimitations.Type.ACCESS_CERTIFICATION;
+            default -> throw new AssertionError(delegation);
+        };
+    }
+
+    private Set<String> getDelegators(
+            @Nullable OtherPrivilegesLimitations.Type limitationType) {
+        if (principal != null) {
+            return principal.getDelegatorsFor(limitationType);
         } else {
-            Set<String> all = new HashSet<>(known);
-            ItemName limitationItemName;
-            switch (delegation) {
-                case ASSIGNEE:
-                case REQUESTOR:
-                    limitationItemName = F_CASE_MANAGEMENT_WORK_ITEMS;
-                    break;
-                default:
-                    throw new AssertionError(delegation);
-            }
-            all.addAll(getDelegators(limitationItemName));
-            return all;
+            return Set.of();
         }
     }
 
-    private Collection<String> getDelegators(ItemName... limitationItemNames) {
-        Collection<String> rv = new HashSet<>();
+    private Set<String> getDelegatedMembership(
+            @Nullable OtherPrivilegesLimitations.Type limitationType) {
         if (principal != null) {
-            for (DelegatorWithOtherPrivilegesLimitations delegator :
-                    principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
-                for (ItemName limitationItemName : limitationItemNames) {
-                    if (delegator.limitationsAllow(limitationItemName)) {
-                        rv.add(delegator.getDelegator().getOid());
-                        break;
-                    }
-                }
-            }
+            return principal.getDelegatedMembershipFor(limitationType);
+        } else {
+            return Set.of();
         }
-        return rv;
     }
 }

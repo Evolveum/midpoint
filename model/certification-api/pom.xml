@@ -30,7 +30,6 @@
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>

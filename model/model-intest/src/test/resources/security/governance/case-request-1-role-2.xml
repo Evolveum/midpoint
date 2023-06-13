@@ -1,0 +1,134 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="d726fbcc-c00e-4bf8-aca3-3b8e92bd0903">
+    <name>
+        <t:orig>Assigning role "role2" to user "user1"</t:orig>
+        <t:norm>assigning role role2 to user user1</t:norm>
+        <t:translation>
+            <t:key>DefaultPolicyConstraint.Short.assignmentModification.toBeAdded</t:key>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.RoleType</t:key>
+                            <t:fallback>RoleType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>role2</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.UserType</t:key>
+                            <t:fallback>UserType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>user1</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+        </t:translation>
+    </name>
+    <metadata>
+        <createTimestamp>2023-06-09T11:43:15.817+02:00</createTimestamp>
+    </metadata>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType"/>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType"/>
+    <parentRef oid="578e1d81-7865-4e05-9975-0d144fb6e488" relation="org:default" type="c:CaseType"/>
+    <objectRef oid="96dc9b60-6e02-4c30-a032-cb435d13a7f5" relation="org:default" type="c:UserType"/>
+    <targetRef oid="0e1899bc-88d4-49cd-8a88-a290928a7510" relation="org:default" type="c:RoleType"/>
+    <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    <state>open</state>
+    <event id="3" xsi:type="c:CaseCreationEventType">
+        <timestamp>2023-06-09T11:43:15.817+02:00</timestamp>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    </event>
+    <workItem id="4">
+        <name>
+            <t:orig>Assigning role "role2" to user "user1"</t:orig>
+            <t:norm>assigning role role2 to user user1</t:norm>
+            <t:translation>
+                <t:key>DefaultPolicyConstraint.Short.assignmentModification.toBeAdded</t:key>
+                <t:argument>
+                    <t:translation>
+                        <t:key>ObjectSpecification</t:key>
+                        <t:argument>
+                            <t:translation>
+                                <t:key>ObjectTypeLowercase.RoleType</t:key>
+                                <t:fallback>RoleType</t:fallback>
+                            </t:translation>
+                        </t:argument>
+                        <t:argument>
+                            <t:value>role2</t:value>
+                        </t:argument>
+                    </t:translation>
+                </t:argument>
+                <t:argument>
+                    <t:translation>
+                        <t:key>ObjectSpecification</t:key>
+                        <t:argument>
+                            <t:translation>
+                                <t:key>ObjectTypeLowercase.UserType</t:key>
+                                <t:fallback>UserType</t:fallback>
+                            </t:translation>
+                        </t:argument>
+                        <t:argument>
+                            <t:value>user1</t:value>
+                        </t:argument>
+                    </t:translation>
+                </t:argument>
+            </t:translation>
+        </name>
+        <stageNumber>1</stageNumber>
+        <createTimestamp>2023-06-09T11:43:15.871+02:00</createTimestamp>
+        <originalAssigneeRef oid="83cb3fa9-d7bd-447f-a2e8-339a0fc9eff3" relation="org:default" type="c:UserType"/>
+        <assigneeRef oid="83cb3fa9-d7bd-447f-a2e8-339a0fc9eff3" relation="org:default" type="c:UserType"/>
+    </workItem>
+    <approvalContext>
+        <changeAspect>com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect</changeAspect>
+        <deltasToApprove>
+            <focusPrimaryDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+                <t:oid>96dc9b60-6e02-4c30-a032-cb435d13a7f5</t:oid>
+                <t:itemDelta>
+                    <t:modificationType>add</t:modificationType>
+                    <t:path>c:assignment</t:path>
+                    <t:value xsi:type="c:AssignmentType">
+                        <targetRef oid="0e1899bc-88d4-49cd-8a88-a290928a7510" relation="org:default" type="c:RoleType"/>
+                    </t:value>
+                </t:itemDelta>
+            </focusPrimaryDelta>
+        </deltasToApprove>
+        <immediateExecution>false</immediateExecution>
+        <approvalSchema>
+            <stage id="2">
+                <number>1</number>
+                <approverRef oid="83cb3fa9-d7bd-447f-a2e8-339a0fc9eff3" relation="org:default" type="c:UserType"/>
+                <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                <groupExpansion>byClaimingWorkItem</groupExpansion>
+            </stage>
+        </approvalSchema>
+        <policyRules/>
+    </approvalContext>
+    <stageNumber>1</stageNumber>
+</case>

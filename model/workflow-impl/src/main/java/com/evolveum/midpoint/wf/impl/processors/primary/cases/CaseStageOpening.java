@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.extensions.StageOpeningResult;
 import com.evolveum.midpoint.cases.api.temporary.ComputationMode;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.MidpointParsingMigrator;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -118,7 +117,7 @@ public class CaseStageOpening extends AbstractCaseStageProcessing {
             @Nullable XMLGregorianCalendar deadline,
             @NotNull ObjectReferenceType approverRef,
             @NotNull OperationResult result) {
-        CaseWorkItemType workItem = new CaseWorkItemType(PrismContext.get())
+        CaseWorkItemType workItem = new CaseWorkItemType()
                 .name(currentCase.getName())
                 .stageNumber(stageDef.getNumber())
                 .createTimestamp(createTimestamp)

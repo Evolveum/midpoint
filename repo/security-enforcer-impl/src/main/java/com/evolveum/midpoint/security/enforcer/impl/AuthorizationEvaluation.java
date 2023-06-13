@@ -16,7 +16,6 @@ import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.
 import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
@@ -253,7 +252,7 @@ public class AuthorizationEvaluation {
                     && isApplicableToOrderConstraints(objectParams.getOrderConstraints())
                     && isApplicableToObjectOperation(objectParams.getOdo())
                     && isApplicableToTarget(objectParams.getTarget());
-        } else if (params instanceof ValueAuthorizationParameters<?> valueParams){
+        } else if (params instanceof ValueAuthorizationParameters<?> valueParams) {
             return isApplicableToObjectValue(valueParams.getValue());
         } else {
             throw new NotHereAssertionError();
@@ -329,7 +328,7 @@ public class AuthorizationEvaluation {
             }
             int i = 0;
             for (ValueSelector selector : selectors) {
-                if (isSelectorApplicable(String.valueOf(i++), selector, value, emptySet(), desc)) {
+                if (isSelectorApplicable(String.valueOf(i++), selector, value, desc)) {
                     return true;
                 }
             }
@@ -496,11 +495,10 @@ public class AuthorizationEvaluation {
             @NotNull String id,
             @NotNull ValueSelector selector,
             @NotNull PrismValue value,
-            @NotNull Collection<String> otherSelfOids,
             @NotNull String desc)
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return new SelectorEvaluation(id, selector, value, otherSelfOids, desc, this, result)
+        return new SelectorEvaluation(id, selector, value, desc, this, result)
                 .isSelectorApplicable();
     }
 

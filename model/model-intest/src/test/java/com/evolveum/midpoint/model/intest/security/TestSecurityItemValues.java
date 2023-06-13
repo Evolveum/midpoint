@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityItemValues extends AbstractSecurityTest {
+public class TestSecurityItemValues extends AbstractInitializedSecurityTest {
 
     private static final TestObject<RoleType> ROLE_CASE_WORK_ITEMS_ASSIGNEE_SELF_READ = TestObject.file(
             TEST_DIR, "role-case-work-items-assignee-self-read.xml", "efa5620b-0cf1-492e-8aab-9de3358bb525");

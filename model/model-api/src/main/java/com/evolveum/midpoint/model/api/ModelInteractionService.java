@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -408,7 +410,8 @@ public interface ModelInteractionService {
             throws SchemaException;
 
     @NotNull
-    List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assignee, QName limitationItemName, Task task, OperationResult parentResult)
+    List<ObjectReferenceType> getDeputyAssignees(
+            ObjectReferenceType assignee, OtherPrivilegesLimitations.Type limitationType, Task task, OperationResult result)
             throws SchemaException;
 
     /**

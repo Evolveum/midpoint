@@ -120,7 +120,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         ValueSelector selector = objectSpec.getSelector();
         assert selector.getParentClause() == null;
 
-        if (!evaluation.isSelectorApplicable(id, selector, value, Set.of(), "TODO")) {
+        if (!evaluation.isSelectorApplicable(id, selector, value, "TODO")) {
             return PrismValueCoverageInformation.noCoverage();
         }
 
