@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.SetUtils;
@@ -117,7 +118,7 @@ class LinkTargetFinder implements AutoCloseable {
         return definition.getSelector();
     }
 
-    private List<PrismObject<? extends ObjectType>> getTargetsInternal(LinkTargetObjectSelectorType selector) {
+    private List<PrismObject<? extends ObjectType>> getTargetsInternal(LinkTargetObjectSelectorType selector) throws ConfigurationException {
         LOGGER.trace("Selecting matching link targets for {} with rule={}", selector, actx.rule);
 
         // We must create new set because we will remove links from it later.
@@ -147,20 +148,25 @@ class LinkTargetFinder implements AutoCloseable {
             LOGGER.trace("Links matching also object type: {}", links);
         }
 
-        Collection<PrismObject<? extends ObjectType>> resolvedObjects = resolveLinks(links);
-        List<PrismObject<? extends ObjectType>> matchingObjects = getMatchingObjects(resolvedObjects, selector);
+        var matchingObjects =
+                getMatchingObjects(
+                        resolveLinks(links),
+                        selector);
 
         LOGGER.trace("Final matching objects: {}", matchingObjects);
         return matchingObjects;
     }
 
     private List<PrismObject<? extends ObjectType>> getMatchingObjects(
-            Collection<PrismObject<? extends ObjectType>> objects,
-            ObjectSelectorType selector) {
+            @NotNull Collection<PrismObject<? extends ObjectType>> objects,
+            @NotNull ObjectSelectorType selector) throws ConfigurationException {
+        SelectorMatcher matcher =
+                SelectorMatcher.forSelector(selector)
+                        .withLogging(LOGGER);
         List<PrismObject<? extends ObjectType>> matching = new ArrayList<>();
         for (PrismObject<? extends ObjectType> object : objects) {
             try {
-                if (beans.repositoryService.selectorMatches(selector, object, null, LOGGER, "")) {
+                if (matcher.matches(object)) {
                     matching.add(object);
                 }
             } catch (CommonException e) {

@@ -170,7 +170,8 @@ public class ModelImplUtils {
                 ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
                 if (objectType == null) {
                     throw new ConfigurationException(
-                            "Unknown type " + typeQName + " in default object policy definition or object template definition in system configuration");
+                            "Unknown type " + typeQName + " in default object policy definition "
+                                    + "or object template definition in system configuration");
                 }
                 if (objectType.getClassDefinition() == objectClass) {
                     String aSubType = aPolicyConfigurationType.getSubtype();

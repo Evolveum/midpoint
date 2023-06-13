@@ -71,7 +71,7 @@ public class TypeClause extends SelectorClause {
         return "type";
     }
 
-    private TypeDefinition getTypeDefinition() {
+    private synchronized TypeDefinition getTypeDefinition() {
         if (typeDefinition == null) {
             typeDefinition = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(typeName);
         }

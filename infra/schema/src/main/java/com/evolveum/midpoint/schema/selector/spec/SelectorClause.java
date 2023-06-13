@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.selector.spec;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,10 @@ import com.evolveum.midpoint.util.exception.*;
 
 /**
  * A clause of a {@link ValueSelector}.
+ *
+ * Immutable.
  */
-public abstract class SelectorClause implements DebugDumpable {
+public abstract class SelectorClause implements DebugDumpable, Serializable {
 
     public abstract boolean matches(
             @NotNull PrismValue value,

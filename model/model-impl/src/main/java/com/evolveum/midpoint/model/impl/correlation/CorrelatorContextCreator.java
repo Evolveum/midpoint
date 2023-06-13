@@ -174,8 +174,9 @@ public class CorrelatorContextCreator {
                 .collect(Collectors.toList());
         CorrelatorConfiguration singleMatching = MiscUtil.extractSingleton(
                 matching,
-                () -> new ConfigurationException("Ambiguous correlator name: '" + name + "': "
-                        + matching.size() + " configurations found: " + CorrelatorConfiguration.identify(matching)));
+                () -> new ConfigurationException(
+                        "Ambiguous correlator name: '%s': %d configurations found: %s".formatted(
+                                name, matching.size(), CorrelatorConfiguration.identify(matching))));
         return singleMatching != null ? singleMatching.getConfigurationBean() : null;
     }
 

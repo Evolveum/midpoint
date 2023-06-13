@@ -14,23 +14,13 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.Objects;
-
-import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.query.LinkedSelectorToFilterTranslator;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -39,10 +29,18 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.common.query.LinkedSelectorToFilterTranslator;
+import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Functions related to "linked objects" functionality.
@@ -57,9 +55,6 @@ public class LinkedObjectsFunctions {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MidpointFunctionsImpl midpointFunctions;
     @Autowired private LinkManager linkManager;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
@@ -256,12 +251,13 @@ public class LinkedObjectsFunctions {
                 && (archetypeOid == null || hasArchetypeRef(targetObject, archetypeOid));
     }
 
-    private boolean objectMatches(AssignmentHolderType targetObject, ObjectSelectorType selector)
+    private boolean objectMatches(@NotNull AssignmentHolderType targetObject, @Nullable ObjectSelectorType selector)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         return selector == null ||
-                repositoryService.selectorMatches(
-                        selector, targetObject.asPrismObject(), null, LOGGER, "");
+                SelectorMatcher.forSelector(selector)
+                        .withLogging(LOGGER)
+                        .matches(targetObject.asPrismContainerValue());
     }
 
     @Experimental // todo clean up!

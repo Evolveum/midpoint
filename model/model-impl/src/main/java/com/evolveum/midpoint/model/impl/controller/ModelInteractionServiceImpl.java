@@ -2233,7 +2233,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private <T> Class<T> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
         if (compiledCollection.getTargetClass(prismContext) == null) {
             if (typeForFilter == null) {
-                LOGGER.error("Type of objects is null");
                 throw new ConfigurationException("Type of objects is null");
             }
             return prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
