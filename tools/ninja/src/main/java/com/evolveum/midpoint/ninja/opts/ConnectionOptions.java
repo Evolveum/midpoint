@@ -76,4 +76,28 @@ public class ConnectionOptions {
     public boolean isOffline() {
         return offline;
     }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setAskPassword(String askPassword) {
+        this.askPassword = askPassword;
+    }
+
+    public void setMidpointHome(String midpointHome) {
+        this.midpointHome = midpointHome;
+    }
+
+    public void setOffline(boolean offline) {
+        this.offline = offline;
+    }
 }

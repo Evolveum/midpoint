@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.util.List;
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -37,6 +39,10 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
         // this is manual setup of datasource for midpoint, can't be done via spring application context initialization with repository
         // because sqale repository during initialization loads data from m_uri and m_ext_item (not yet existing)
         log.info("Initializing application context");
+
+        ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
+        // force offline mode - when application context is initialized we don't want to have full initialization of sqale repository/audit service
+        connectionOptions.setOffline(true);
 
         final ApplicationContext applicationContext = context.getApplicationContext();
         final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);

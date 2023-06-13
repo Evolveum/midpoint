@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.common.configuration.api.MidpointConfigurati
 import java.nio.charset.Charset;
 import java.util.List;
 
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
@@ -24,6 +22,7 @@ import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.opts.PolyStringNormalizerOptions;
 import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -58,8 +57,6 @@ public class NinjaContext {
 
     private Log log;
 
-    private ConnectionOptions connectionOptions;
-
     private GenericXmlApplicationContext context;
 
     private MidpointConfiguration midpointConfiguration;
@@ -74,10 +71,6 @@ public class NinjaContext {
 
     public NinjaContext(@NotNull List<Object> options) {
         this.options = options;
-    }
-
-    public void init(@NotNull ConnectionOptions options) {
-        this.connectionOptions = options;
     }
 
     public void destroy() {
@@ -153,7 +146,11 @@ public class NinjaContext {
             return context;
         }
 
-        setupRepositoryViaMidPointHome(connectionOptions);
+        ConnectionOptions opts = getOptions(ConnectionOptions.class);
+        if (opts == null) {
+            throw new IllegalStateException("Couldn't setup application context, ConnectionOptions is not defined (null)");
+        }
+        setupRepositoryViaMidPointHome(opts);
 
         return context;
     }

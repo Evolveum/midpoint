@@ -6,12 +6,9 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
-import java.util.Objects;
-
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
@@ -39,9 +36,6 @@ public abstract class Action<O, R> {
         log = new Log(target, level);
 
         this.context.setLog(log);
-
-        ConnectionOptions connection = Objects.requireNonNull(this.context.getOptions(ConnectionOptions.class));
-        this.context.init(connection);
     }
 
     private Log.LogLevel getLogLevel(NinjaContext context) {

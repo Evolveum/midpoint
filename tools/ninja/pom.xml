@@ -220,6 +220,24 @@
             <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-quartz-impl</artifactId>
+            <version>${midpoint.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-test-util</artifactId>
+            <version>${midpoint.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-impl</artifactId>
+            <version>${midpoint.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>

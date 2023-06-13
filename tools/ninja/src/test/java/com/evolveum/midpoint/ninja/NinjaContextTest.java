@@ -19,6 +19,8 @@ import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import java.util.List;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -32,8 +34,7 @@ public class NinjaContextTest {
 
         ConnectionOptions options = NinjaUtils.getOptions(jc.getObjects(), ConnectionOptions.class);
 
-        NinjaContext ctx = new NinjaContext(null);
-        ctx.init(options);
+        NinjaContext ctx = new NinjaContext(List.of(options));
 
         RepositoryService service = ctx.getRepository();
 
