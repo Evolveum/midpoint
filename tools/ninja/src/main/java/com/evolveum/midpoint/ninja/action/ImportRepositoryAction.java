@@ -14,7 +14,6 @@ import com.evolveum.midpoint.ninja.action.worker.ImportProducerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ImportRepositoryConsumerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.query.InOidFilter;

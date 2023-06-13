@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.opts;
+package com.evolveum.midpoint.ninja.action;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;

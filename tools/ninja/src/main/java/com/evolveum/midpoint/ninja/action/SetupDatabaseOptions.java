@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.ninja.opts;
+package com.evolveum.midpoint.ninja.action;
 
 import java.io.File;
 import java.util.List;

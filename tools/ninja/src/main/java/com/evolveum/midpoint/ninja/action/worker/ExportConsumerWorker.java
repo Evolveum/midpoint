@@ -11,7 +11,7 @@ import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
+import com.evolveum.midpoint.ninja.action.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismSerializer;

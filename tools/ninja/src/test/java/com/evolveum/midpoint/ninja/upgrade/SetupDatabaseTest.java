@@ -2,9 +2,9 @@ package com.evolveum.midpoint.ninja.upgrade;
 
 import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.SetupDatabaseOptions;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;

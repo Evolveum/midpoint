@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.evolveum.midpoint.ninja.action.RepositoryAction;
-import com.evolveum.midpoint.ninja.opts.EditTraceOptions;
 
 import com.evolveum.midpoint.schema.traces.TraceParser;
 

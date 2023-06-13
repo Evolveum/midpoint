@@ -21,7 +21,7 @@ import org.fusesource.jansi.AnsiConsole;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {

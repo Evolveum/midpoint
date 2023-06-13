@@ -10,7 +10,7 @@ import com.beust.jcommander.JCommander;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;

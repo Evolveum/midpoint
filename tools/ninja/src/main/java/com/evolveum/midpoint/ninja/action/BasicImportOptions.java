@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.ninja.opts;
+package com.evolveum.midpoint.ninja.action;
 
 import java.io.File;
 import java.util.Set;

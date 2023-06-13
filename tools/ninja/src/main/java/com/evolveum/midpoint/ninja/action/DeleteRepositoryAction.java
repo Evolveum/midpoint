@@ -15,7 +15,6 @@ import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.ninja.opts.DeleteOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;

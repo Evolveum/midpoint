@@ -22,9 +22,9 @@ import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.opts.SetupDatabaseOptions;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.SetupDatabaseOptions;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 

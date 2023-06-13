@@ -13,8 +13,6 @@ import java.sql.Statement;
 import java.util.List;
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -26,7 +24,6 @@ import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.AuditFactory;
-import com.evolveum.midpoint.ninja.opts.DataSourceOptions;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;

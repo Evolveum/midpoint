@@ -21,9 +21,9 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.opts.PolyStringNormalizerOptions;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.PolyStringNormalizerOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;

@@ -9,8 +9,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeDatabaseAction;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeDatabaseOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 
 public abstract class UpgradeTest extends BaseUpgradeTest {
 

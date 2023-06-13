@@ -16,7 +16,7 @@ import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.IOUtils;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.VerifyOptions;
+import com.evolveum.midpoint.ninja.action.VerifyOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;

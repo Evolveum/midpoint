@@ -9,7 +9,6 @@ package com.evolveum.midpoint.ninja.action;
 import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 

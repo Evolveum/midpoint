@@ -8,7 +8,6 @@ package com.evolveum.midpoint.ninja.action;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;

@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.beust.jcommander.Parameters;
 
-import com.evolveum.midpoint.ninja.opts.DataSourceOptions;
+import com.evolveum.midpoint.ninja.action.DataSourceOptions;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "upgradeDatabase")
 public class UpgradeDatabaseOptions extends DataSourceOptions {

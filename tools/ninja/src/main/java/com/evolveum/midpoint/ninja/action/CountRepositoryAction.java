@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.CountOptions;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
