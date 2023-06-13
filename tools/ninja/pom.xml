@@ -30,11 +30,11 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
+            <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
+            <artifactId>spring-beans</artifactId>
         </dependency>
 
         <dependency>
@@ -108,6 +108,11 @@
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-log-impl</artifactId>
             <version>${midpoint.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -202,7 +207,16 @@
         </dependency>
 
         <!-- TEST DEPENDENCIES -->
-
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <!-- Required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>

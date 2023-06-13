@@ -1821,6 +1821,7 @@
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
+                                <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
 
                                 <!-- Testing dependencies are not troubling us from. -->
                                 <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
@@ -1828,7 +1829,7 @@
                                 <ignoredUsedUndeclaredDependency>org.javasimon:javasimon-core</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUsedUndeclaredDependency>
-                                
+
                             </ignoredNonTestScopedDependencies>
                         </configuration>
                     </execution>

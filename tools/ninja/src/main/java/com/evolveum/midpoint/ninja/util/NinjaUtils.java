@@ -20,18 +20,17 @@ import java.util.zip.ZipOutputStream;
 import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
 
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -136,16 +135,6 @@ public class NinjaUtils {
         return writer.toString();
     }
 
-    public static OperationResult parseResult(String result) {
-        if (result == null) {
-            return null;
-        }
-
-        //todo implement
-
-        return null;
-    }
-
     public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
         OutputStream os;
         if (output != null) {
@@ -162,7 +151,7 @@ public class NinjaUtils {
         if (zip) {
             ZipOutputStream zos = new ZipOutputStream(os);
 
-            String entryName = output.getName().replaceAll("\\.", "-") + ".xml";
+            String entryName = output != null ? output.getName().replaceAll("\\.", "-") + ".xml" : "objects.xml";
             ZipEntry entry = new ZipEntry(entryName);
             zos.putNextEntry(entry);
 

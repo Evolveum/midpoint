@@ -72,7 +72,7 @@ public class NinjaContext implements Closeable {
 
     private SchemaService schemaService;
 
-    private Map<String, String> systemPropertiesBackup = new HashMap<>();
+    private final Map<String, String> systemPropertiesBackup = new HashMap<>();
 
     public NinjaContext(@NotNull List<Object> options) {
         this.options = options;
