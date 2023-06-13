@@ -11,20 +11,39 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.logging.Trace;
 
-public interface MatchingTracer {
+/**
+ * Facilitates troubleshooting of selectors and their clauses.
+ * Crucial for authorizations: https://docs.evolveum.com/midpoint/reference/diag/troubleshooting/authorizations/.
+ */
+public interface SelectorProcessingTracer {
 
     boolean isEnabled();
 
     /** Called only if {@link #isEnabled()} is `true`. */
     void trace(@NotNull TraceEvent event);
 
-    class LoggerBased implements MatchingTracer {
+    /**
+     * Provides the default logger-based tracer.
+     *
+     * @param logger Logger to use. Necessary to e.g. group all authorization-related logging messages under common logger.
+     * @param logPrefix Text to prepend to each first line of a log record.
+     */
+    static SelectorProcessingTracer loggerBased(
+            @NotNull Trace logger, @NotNull String logPrefix) {
+        return new LoggerBased(logger, logPrefix);
+    }
+
+    static SelectorProcessingTracer loggerBased(@NotNull Trace logger) {
+        return loggerBased(logger, "");
+    }
+
+    class LoggerBased implements SelectorProcessingTracer {
 
         @NotNull final Trace logger;
         final String logPrefix;
         private final boolean enabled;
 
-        public LoggerBased(@NotNull Trace logger, String logPrefix) {
+        LoggerBased(@NotNull Trace logger, String logPrefix) {
             this.logger = logger;
             this.logPrefix = logPrefix;
             this.enabled = logger.isTraceEnabled();

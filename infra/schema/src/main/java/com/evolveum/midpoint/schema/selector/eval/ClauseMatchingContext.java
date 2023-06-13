@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -24,11 +25,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-/** Keeps everything needed to evaluate whether a clause matches given value. */
+/**
+ * Keeps everything needed to evaluate whether a clause matches given value.
+ *
+ * Most probably will be simplified in the future.
+ */
+@Experimental
 public class ClauseMatchingContext {
 
     @Nullable public final ObjectFilterExpressionEvaluator filterEvaluator;
-    @NotNull public final MatchingTracer tracer;
+    @NotNull public final SelectorProcessingTracer tracer;
     @NotNull public final OrgTreeEvaluator orgTreeEvaluator;
     @Nullable final SubjectedEvaluationContext subjectedEvaluationContext;
     @Nullable public final OwnerResolver ownerResolver;
@@ -38,7 +44,7 @@ public class ClauseMatchingContext {
 
     public ClauseMatchingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull MatchingTracer tracer,
+            @NotNull SelectorProcessingTracer tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,

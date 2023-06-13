@@ -147,7 +147,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
         return id;
     }
 
-    class LoggingTracer implements MatchingTracer {
+    class LoggingTracer implements SelectorProcessingTracer {
 
         @Override
         public boolean isEnabled() {

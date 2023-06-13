@@ -109,12 +109,12 @@ public class ObjectPolicyAspectPart {
                     ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
                     builder.setProcessSpecification(processSpecificationEntry);
                     for (ApprovalActionWithRule actionWithRule : processSpecificationEntry.actionsWithRules) {
-                        ApprovalPolicyActionType approvalAction = actionWithRule.approvalAction;
+                        ApprovalPolicyActionType approvalAction = actionWithRule.approvalAction();
                         builder.add(
                                 main.getSchemaFromAction(approvalAction),
                                 approvalAction,
                                 object,
-                                actionWithRule.policyRule);
+                                actionWithRule.policyRule());
                     }
                     buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
                 }

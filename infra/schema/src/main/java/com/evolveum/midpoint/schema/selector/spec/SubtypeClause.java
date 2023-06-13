@@ -19,7 +19,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/** TEMPORARY */
+/**
+ * Originally, this was used for evaluation of `subtype` on objects.
+ * This property is deprecated and will be eventually removed.
+ *
+ * However, there are still assignment subtypes that are alive and well, at least for now.
+ */
 public class SubtypeClause extends SelectorClause {
 
     @NotNull private final String subtype;
