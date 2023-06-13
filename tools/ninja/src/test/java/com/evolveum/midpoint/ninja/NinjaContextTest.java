@@ -30,7 +30,7 @@ public class NinjaContextTest {
         JCommander jc = NinjaUtils.setupCommandLineParser();
         jc.parse("-m", "./target/midpoint-home", "-U", "jdbc:postgresql://localhost/midpoint", "-u", "midpoint", "-p", "qwe123");
 
-        ConnectionOptions options = NinjaUtils.getOptions(jc, ConnectionOptions.class);
+        ConnectionOptions options = NinjaUtils.getOptions(jc.getObjects(), ConnectionOptions.class);
 
         NinjaContext ctx = new NinjaContext(null);
         ctx.init(options);

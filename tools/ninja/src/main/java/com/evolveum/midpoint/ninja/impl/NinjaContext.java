@@ -9,8 +9,10 @@ package com.evolveum.midpoint.ninja.impl;
 import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
 import java.nio.charset.Charset;
+import java.util.List;
 
-import com.beust.jcommander.JCommander;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +24,6 @@ import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.opts.PolyStringNormalizerOptions;
 import com.evolveum.midpoint.ninja.util.Log;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -53,7 +54,7 @@ public class NinjaContext {
             "classpath:ctx-configuration-no-repo.xml"
     };
 
-    private final JCommander jc;
+    private final List<Object> options;
 
     private Log log;
 
@@ -71,8 +72,8 @@ public class NinjaContext {
 
     private SchemaService schemaService;
 
-    public NinjaContext(JCommander jc) {
-        this.jc = jc;
+    public NinjaContext(@NotNull List<Object> options) {
+        this.options = options;
     }
 
     public void init(@NotNull ConnectionOptions options) {
@@ -166,8 +167,8 @@ public class NinjaContext {
         return password;
     }
 
-    public JCommander getJc() {
-        return jc;
+    public <T> T getOptions(Class<T> type) {
+        return NinjaUtils.getOptions(options, type);
     }
 
     public MidpointConfiguration getMidpointConfiguration() {
@@ -198,12 +199,12 @@ public class NinjaContext {
     }
 
     public boolean isVerbose() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         return base.isVerbose();
     }
 
     public Charset getCharset() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         String charset = base.getCharset();
 
         return Charset.forName(charset);
@@ -233,7 +234,7 @@ public class NinjaContext {
     }
 
     private PolyStringNormalizerConfigurationType createPolyStringNormalizerConfiguration() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         PolyStringNormalizerOptions opts = base.getPolyStringNormalizerOptions();
 
         PolyStringNormalizerConfigurationType config = new PolyStringNormalizerConfigurationType();
@@ -247,7 +248,7 @@ public class NinjaContext {
     }
 
     private boolean shouldUseCustomPolyStringNormalizer() {
-        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        BaseOptions base = getOptions(BaseOptions.class);
         PolyStringNormalizerOptions opts = base.getPolyStringNormalizerOptions();
 
         return StringUtils.isNotEmpty(opts.getPsnClassName()) ||
@@ -273,9 +274,5 @@ public class NinjaContext {
 
     public QueryConverter getQueryConverter() {
         return prismContext.getQueryConverter();
-    }
-
-    public <T> T getOptions(Class<T> type) {
-        return NinjaUtils.getOptions(jc, type);
     }
 }

@@ -28,6 +28,13 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         downloadAction.init(context, downloadOptions);
         DownloadDistributionResult downloadResult = downloadAction.execute();
 
+        // todo next actions should be executed from downloaded ninja (as not to replace ninja.jar that's currently running), or maybe not?
+//        log.info("Starting ninja");
+//        new ProcessBuilder(
+//                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
+//        ).inheritIO().start();
+//        System.out.println("Finished main");
+
         // upgrade installation
         UpgradeInstallationOptions installationOptions = new UpgradeInstallationOptions();
         installationOptions.setDistributionDirectory(downloadResult.getDistributionDirectory());

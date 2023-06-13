@@ -15,15 +15,14 @@ import java.util.Objects;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.fusesource.jansi.AnsiConsole;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.fusesource.jansi.AnsiConsole;
 
 public class Main {
 
@@ -45,8 +44,7 @@ public class Main {
 
         String parsedCommand = jc.getParsedCommand();
 
-        BaseOptions base = Objects.requireNonNull(
-                NinjaUtils.getOptions(jc, BaseOptions.class));
+        BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
         if (BooleanUtils.isTrue(base.isVersion())) {
             try {
@@ -85,7 +83,7 @@ public class Main {
             //noinspection unchecked
             T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
 
-            context = new NinjaContext(jc);
+            context = new NinjaContext(jc.getObjects());
 
             preInit(context);
 

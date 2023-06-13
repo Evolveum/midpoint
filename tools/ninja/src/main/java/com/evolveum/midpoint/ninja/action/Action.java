@@ -40,13 +40,12 @@ public abstract class Action<O, R> {
 
         this.context.setLog(log);
 
-        ConnectionOptions connection = Objects.requireNonNull(
-                NinjaUtils.getOptions(this.context.getJc(), ConnectionOptions.class));
+        ConnectionOptions connection = Objects.requireNonNull(this.context.getOptions(ConnectionOptions.class));
         this.context.init(connection);
     }
 
     private Log.LogLevel getLogLevel(NinjaContext context) {
-        BaseOptions base = NinjaUtils.getOptions(context.getJc(), BaseOptions.class);
+        BaseOptions base = context.getOptions(BaseOptions.class);
         if (base == null) {
             return Log.LogLevel.DEFAULT;
         }

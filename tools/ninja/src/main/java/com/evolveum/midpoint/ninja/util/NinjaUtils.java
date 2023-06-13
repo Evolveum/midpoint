@@ -81,9 +81,8 @@ public class NinjaUtils {
         return jc;
     }
 
-    public static <T> T getOptions(JCommander jc, Class<T> type) {
-        List<Object> objects = jc.getObjects();
-        for (Object object : objects) {
+    public static <T> T getOptions(List<Object> options, Class<T> type) {
+        for (Object object : options) {
             if (type.equals(object.getClass())) {
                 //noinspection unchecked
                 return (T) object;
