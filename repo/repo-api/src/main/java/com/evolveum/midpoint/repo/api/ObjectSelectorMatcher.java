@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.api;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.selector.eval.*;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
@@ -51,7 +52,7 @@ class ObjectSelectorMatcher {
                 value,
                 new MatchingContext(
                         filterEvaluator,
-                        SelectorProcessingTracer.loggerBased(logger, logMessagePrefix),
+                        ProcessingTracer.loggerBased(logger, logMessagePrefix),
                         repositoryService,
                         null,
                         null,

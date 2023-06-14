@@ -5,22 +5,27 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schema.selector.eval;
+package com.evolveum.midpoint.schema.traces.details;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.logging.Trace;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.logging.Trace;
-
 /**
- * Facilitates troubleshooting of selectors and their clauses.
- * Crucial for authorizations: https://docs.evolveum.com/midpoint/reference/diag/troubleshooting/authorizations/.
+ * Traces processing of low-level operations like selectors or authorizations processing.
+ *
+ * Useful when unstructured logging is not enough.
+ *
+ * Highly experimental. We'll see if it's of any use.
  */
-public interface SelectorProcessingTracer {
+@Experimental
+public interface ProcessingTracer<E extends AbstractTraceEvent> {
 
     boolean isEnabled();
 
     /** Called only if {@link #isEnabled()} is `true`. */
-    void trace(@NotNull TraceEvent event);
+    void trace(@NotNull E event);
 
     /**
      * Provides the default logger-based tracer.
@@ -28,16 +33,16 @@ public interface SelectorProcessingTracer {
      * @param logger Logger to use. Necessary to e.g. group all authorization-related logging messages under common logger.
      * @param logPrefix Text to prepend to each first line of a log record.
      */
-    static SelectorProcessingTracer loggerBased(
+    static <E extends AbstractTraceEvent> ProcessingTracer<E> loggerBased(
             @NotNull Trace logger, @NotNull String logPrefix) {
-        return new LoggerBased(logger, logPrefix);
+        return new LoggerBased<>(logger, logPrefix);
     }
 
-    static SelectorProcessingTracer loggerBased(@NotNull Trace logger) {
+    static <E extends AbstractTraceEvent> ProcessingTracer<E> loggerBased(@NotNull Trace logger) {
         return loggerBased(logger, "");
     }
 
-    class LoggerBased implements SelectorProcessingTracer {
+    class LoggerBased<E extends AbstractTraceEvent> implements ProcessingTracer<E> {
 
         @NotNull final Trace logger;
         final String logPrefix;
@@ -55,13 +60,13 @@ public interface SelectorProcessingTracer {
         }
 
         @Override
-        public void trace(@NotNull TraceEvent event) {
+        public void trace(@NotNull E event) {
             var record = event.defaultTraceRecord();
-            var nextLines = record.getNextLines();
+            var nextLines = record.nextLines();
             if (nextLines == null) {
-                logger.trace("{}", record.getFirstLine());
+                logger.trace("{}", record.firstLine());
             } else {
-                logger.trace("{}\n{}", record.getFirstLine(), nextLines);
+                logger.trace("{}\n{}", record.firstLine(), nextLines);
             }
         }
     }

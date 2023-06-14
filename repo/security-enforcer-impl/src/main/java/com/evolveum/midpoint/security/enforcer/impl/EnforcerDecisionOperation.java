@@ -8,27 +8,27 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.nonStrict;
-import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.prettyActionUrl;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
 import java.util.function.Consumer;
-
-import com.evolveum.midpoint.security.enforcer.api.AbstractAuthorizationParameters;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
+import com.evolveum.midpoint.security.enforcer.api.AbstractAuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PhasedDecisionOperationFinished;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PhasedDecisionOperationNote;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PhasedDecisionOperationStarted;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 /**
@@ -36,11 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
  */
 class EnforcerDecisionOperation extends EnforcerOperation {
 
-    /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
-    private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
-
-    @NotNull private final String operationUrl;
-    @NotNull private final AbstractAuthorizationParameters params;
+    @NotNull final String operationUrl;
+    @NotNull final AbstractAuthorizationParameters params;
     @Nullable private final Consumer<Authorization> applicableAutzConsumer;
 
     EnforcerDecisionOperation(
@@ -49,9 +46,10 @@ class EnforcerDecisionOperation extends EnforcerOperation {
             @Nullable Consumer<Authorization> applicableAutzConsumer,
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
+            @NotNull ProcessingTracer<SecurityTraceEvent> tracer,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, beans, task);
+        super(principal, ownerResolver, tracer, beans, task);
 
         this.operationUrl = operationUrl;
         this.params = params;
@@ -91,7 +89,7 @@ class EnforcerDecisionOperation extends EnforcerOperation {
         AutzItemPaths allowedItems = new AutzItemPaths();
         int i = 0;
         for (Authorization authorization : getAuthorizations()) {
-            var evaluation = new AuthorizationEvaluation(String.valueOf(i++), authorization, this, result);
+            var evaluation = new AuthorizationEvaluation(i++, authorization, this, result);
             evaluation.traceStart();
             if (!evaluation.isApplicableToAction(operationUrl)
                     || !evaluation.isApplicableToPhase(nonStrict(phase))
@@ -107,31 +105,35 @@ class EnforcerDecisionOperation extends EnforcerOperation {
             // The authorization is applicable to this situation. Now we can process the decision.
             if (authorization.isAllow()) {
                 allowedItems.collectItems(authorization);
-                traceAuthorizationAllow();
+                evaluation.traceAuthorizationAllow(operationUrl);
                 overallDecision = AccessDecision.ALLOW;
                 // Do NOT break here. Other authorization statements may still deny the operation
             } else { // "deny" authorization
-                if (evaluation.matchesItems(params)) {
-                    traceAuthorizationDenyRelevant();
+                var itemsMatchResult = evaluation.matchesItems(params);
+                if (itemsMatchResult.value()) {
+                    evaluation.traceAuthorizationDenyRelevant(operationUrl, itemsMatchResult);
                     overallDecision = AccessDecision.DENY;
                     break; // Break right here. Deny cannot be overridden by allow. This decision cannot be changed.
                 } else {
-                    traceAuthorizationDenyIrrelevant();
+                    evaluation.traceAuthorizationDenyIrrelevant(operationUrl, itemsMatchResult);
                 }
             }
+
+            // not recording evaluation end, because it was done in the code above
         }
 
         // Step 2: Checking the collected info on allowed items. We may still deny the operation.
 
         if (overallDecision == AccessDecision.ALLOW) {
             if (allowedItems.includesAllItems()) {
-                LOGGER.trace("  Empty list of allowed items, operation allowed");
+                tracePhasedDecisionOperationNote(phase, "Empty list of allowed items, operation allowed");
             } else {
                 // The object and delta must not contain any item that is not explicitly allowed.
-                LOGGER.trace("  Checking for allowed items: {}", allowedItems);
+                tracePhasedDecisionOperationNote(phase, "Checking for allowed items: %s", allowedItems);
                 var itemsDecision = new ItemDecisionOperation().onAllowedItems(allowedItems, phase, params);
                 if (itemsDecision != AccessDecision.ALLOW) {
-                    LOGGER.trace("    NOT ALLOWED operation because the item decision is {}", itemsDecision);
+                    tracePhasedDecisionOperationNote(
+                            phase, "NOT ALLOWED operation because the 'items' decision is %s", itemsDecision);
                     overallDecision = AccessDecision.DEFAULT;
                 }
             }
@@ -141,35 +143,24 @@ class EnforcerDecisionOperation extends EnforcerOperation {
         return overallDecision;
     }
 
-    private void tracePhasedDecisionOperationStart(AuthorizationPhaseType phase) {
-        if (traceEnabled) {
-            LOGGER.trace("SEC: START access decision for principal={}, op={}, phase={}, {}",
-                    username, prettyActionUrl(operationUrl), phase, params.shortDump());
+    private void tracePhasedDecisionOperationStart(@NotNull AuthorizationPhaseType phase) {
+        if (tracer.isEnabled()) {
+            tracer.trace(
+                    new PhasedDecisionOperationStarted(this, phase));
         }
     }
 
-    private void tracePhasedDecisionOperationEnd(AuthorizationPhaseType phase, AccessDecision decision) {
-        if (traceEnabled) {
-            LOGGER.trace("AUTZ END access decision: principal={}, op={}, phase={}: {}",
-                    username, prettyActionUrl(operationUrl), phase, decision);
+    private void tracePhasedDecisionOperationEnd(@NotNull AuthorizationPhaseType phase, AccessDecision decision) {
+        if (tracer.isEnabled()) {
+            tracer.trace(
+                    new PhasedDecisionOperationFinished(this, phase, decision));
         }
     }
 
-    private void traceAuthorizationAllow() {
-        if (traceEnabled) {
-            LOGGER.trace("    ALLOW operation {} => but continuing evaluation of other authorizations", operationUrl);
-        }
-    }
-
-    private void traceAuthorizationDenyIrrelevant() {
-        if (traceEnabled) {
-            LOGGER.trace("    DENY authorization not matching items => continuing evaluation of other authorizations");
-        }
-    }
-
-    private void traceAuthorizationDenyRelevant() {
-        if (traceEnabled) {
-            LOGGER.trace("    DENY authorization matching items => denying the whole operation: {}", operationUrl);
+    private void tracePhasedDecisionOperationNote(@NotNull AuthorizationPhaseType phase, String message, Object... arguments) {
+        if (tracer.isEnabled()) {
+            tracer.trace(
+                    new PhasedDecisionOperationNote(this, phase, message, arguments));
         }
     }
 }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.selector.eval;
 
 import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+
+import static com.evolveum.midpoint.schema.selector.eval.SelectorTraceEvent.*;
 
 /**
  * Keeps everything needed to produce a filter from given selector and clause.
@@ -57,7 +60,7 @@ public class FilteringContext extends SelectorProcessingContext {
             @Nullable ClauseApplicabilityPredicate clauseApplicabilityPredicate,
             @NotNull FilterCollector filterCollector,
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull SelectorProcessingTracer tracer,
+            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,
@@ -103,21 +106,21 @@ public class FilteringContext extends SelectorProcessingContext {
     private void traceConjunctAdded(@NotNull SelectorClause clause, ObjectFilter conjunct, String message, Object... arguments) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.ConjunctAdded(clause, conjunct, message, arguments, this));
+                    new ConjunctAdded(clause, conjunct, message, arguments, this));
         }
     }
 
     public void traceFilterProcessingStart(@NotNull ValueSelector selector) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.FilterProcessingStarted(selector, this));
+                    new FilterProcessingStarted(selector, this));
         }
     }
 
     public void traceFilterProcessingEnd(ValueSelector selector, boolean matched) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.FilterProcessingFinished(selector, matched, this));
+                    new FilterProcessingFinished(selector, matched, this));
         }
     }
 

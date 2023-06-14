@@ -19,18 +19,17 @@ public class TracingUtil {
     static final String END = "=";
     static final String CONT = "|";
 
-    static final String SEC_START = "SEC>";
-    static final String SEC_END = "SEC=";
-    static final String OP_START = " ".repeat(1) + "OP>";
-    static final String OP_END = " ".repeat(1) + "OP=";
-    static final String OP = " ".repeat(1) + "OP|";
-    static final String AUTZ = " ".repeat(2) + "AUTZ.";
-    static final String SELECTORS = " ".repeat(6) + "SELECTORS:";
-    static final String SEL = " ".repeat(6) + "SEL.";
+    // TODO resolve spacing somehow
+    static final String SEC = "SEC";
+    static final String PARTIAL_SEC = " ".repeat(1) + "PART";
+    static final String AUTZ_SPACE = " ".repeat(2);
+    static final String SEL_SPACE = " ".repeat(4);
+    static final String INTERIOR_SPACE = "  ";
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     public static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
+    // TODO what to do with this?!
     static String describe(Object object) {
         if (object instanceof Authorization) {
             return ((Authorization) object).getHumanReadableDesc();
@@ -45,11 +44,11 @@ public class TracingUtil {
         return type != null ? type.getSimpleName() : null;
     }
 
-    public static String getHumanReadableDesc(ValueSelector selector) {
+    static String getHumanReadableDesc(ValueSelector selector) {
         return getHumanReadableDesc(selector.getBean()); // FIXME temporary
     }
 
-    public static String getHumanReadableDesc(ObjectSelectorType selector) {
+    private static String getHumanReadableDesc(ObjectSelectorType selector) {
         if (selector == null) {
             return null;
         } else {
