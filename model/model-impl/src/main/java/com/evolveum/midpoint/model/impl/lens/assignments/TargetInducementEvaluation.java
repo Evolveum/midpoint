@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -53,7 +54,8 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
         this.archetypeHierarchy = archetypeHierarchy;
     }
 
-    void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+    void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
         assert ctx.assignmentPath.last() == segment;
         assert segment.isAssignmentActive() || segment.direct;
         assert targetOverallConditionState.isNotAllFalse();
@@ -155,7 +157,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
     private OrderAdjustment computeOrderAdjustment() {
         EvaluationOrder currentOrder = segment.getEvaluationOrder();
         EvaluationOrder currentTargetOrder = segment.getEvaluationOrderForTarget();
-        List<OrderConstraintsType> constraints = new ArrayList<>(inducement.getOrderConstraint());
+        List<OrderConstraintsType> constraints = new ArrayList<>(inducement.getOrderConstraint()); // will be modified
         Integer order = inducement.getOrder();
 
         if (constraints.isEmpty()) {
@@ -164,7 +166,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
             } else if (order <= 0) {
                 throw new IllegalStateException("Wrong inducement order: it must be positive but it is " + order + " instead");
             }
-            // converting legacy -> new specification
+            // converting legacy -> new specification (with resetTo)
             int currentSummary = currentOrder.getSummaryOrder();
             if (order > currentSummary) {
                 LOGGER.trace("order of the inducement ({}) is greater than the current evaluation order ({}), marking as undefined",
@@ -174,22 +176,13 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 // i.e. currentOrder >= order, i.e. currentOrder > order-1
                 int newOrder = currentSummary - (order - 1);
                 assert newOrder > 0;
-                constraints.add(new OrderConstraintsType(ctx.ae.prismContext)
+                constraints.add(new OrderConstraintsType()
                         .order(order)
                         .resetOrder(newOrder));
             }
         }
 
-        OrderConstraintsType summaryConstraints = getConstraintWithoutRelation(constraints);
-        Integer resetSummaryTo = summaryConstraints != null && summaryConstraints.getResetOrder() != null ?
-                summaryConstraints.getResetOrder() : null;
-
-        OrderAdjustment adjustment;
-        if (resetSummaryTo != null) {
-            adjustment = applyResetSummary(currentOrder, currentTargetOrder, constraints, resetSummaryTo);
-        } else {
-            adjustment = applyResetForRelations(currentOrder, currentTargetOrder, constraints);
-        }
+        OrderAdjustment adjustment = applyResetTo(currentOrder, currentTargetOrder, constraints);
 
         if (!adjustment.evaluationOrder.isDefined()) {
             return adjustment;
@@ -211,12 +204,28 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
         }
     }
 
-    private OrderAdjustment applyResetForRelations(EvaluationOrder currentOrder, EvaluationOrder currentTargetOrder,
-            List<OrderConstraintsType> constraints) {
+    private @NotNull OrderAdjustment applyResetTo(
+            EvaluationOrder currentOrder, EvaluationOrder currentTargetOrder, List<OrderConstraintsType> constraints) {
+        Integer resetSummaryTo = getResetSummaryTo(constraints);
+        if (resetSummaryTo != null) {
+            return applyResetSummary(currentOrder, currentTargetOrder, constraints, resetSummaryTo);
+        } else {
+            return applyResetForRelations(currentOrder, currentTargetOrder, constraints);
+        }
+    }
+
+    private @Nullable Integer getResetSummaryTo(List<OrderConstraintsType> constraints) {
+        OrderConstraintsType summaryConstraints = getConstraintWithoutRelation(constraints);
+        return summaryConstraints != null && summaryConstraints.getResetOrder() != null ?
+                summaryConstraints.getResetOrder() : null;
+    }
+
+    private OrderAdjustment applyResetForRelations(
+            EvaluationOrder currentOrder, EvaluationOrder currentTargetOrder, List<OrderConstraintsType> constraints) {
         EvaluationOrder updatedOrder = currentOrder;
         for (OrderConstraintsType constraint : constraints) {
             if (constraint.getResetOrder() != null) {
-                assert constraint.getRelation() != null;        // already processed above
+                assert constraint.getRelation() != null; // already processed above
                 int currentOrderForRelation = updatedOrder.getMatchingRelationOrder(constraint.getRelation());
                 int newOrderForRelation = constraint.getResetOrder();
                 if (newOrderForRelation > currentOrderForRelation) {

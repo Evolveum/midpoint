@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import static java.util.Collections.emptySet;
-
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getValue;
 import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.shortDumpOrderConstraintsList;
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_ALL_URL;
@@ -313,8 +311,7 @@ public class AuthorizationEvaluation {
             @NotNull List<ValueSelector> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return areSelectorsApplicable(
-                selectors, getValue(object), desc);
+        return areSelectorsApplicable(selectors, getValue(object), desc);
     }
 
     private boolean areSelectorsApplicable(

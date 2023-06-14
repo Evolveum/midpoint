@@ -10,13 +10,13 @@ package com.evolveum.midpoint.schema.selector.spec;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
@@ -44,7 +44,7 @@ public class CandidateAssigneeClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var realValue = value.getRealValueIfExists();
@@ -84,7 +84,7 @@ public class CandidateAssigneeClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         Class<?> type = ctx.getRestrictedType();
         if (CaseType.class.isAssignableFrom(type)) {
             addConjunct(

@@ -20,14 +20,19 @@ import com.evolveum.midpoint.util.MiscUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Something of interest during tracing selectors and their clauses processing (matching and filter evaluation).
+ *
+ * An abstract representation that will eventually get converted into a logfile entry, or CSV line, trace file item, and so on.
+ */
 public abstract class TraceEvent {
 
-    final @NotNull ClauseMatchingContext ctx;
+    final @NotNull SelectorProcessingContext ctx;
     final @Nullable String message;
     final @Nullable Object[] arguments;
 
     TraceEvent(
-            @NotNull ClauseMatchingContext ctx, @Nullable String message, @Nullable Object[] arguments) {
+            @NotNull SelectorProcessingContext ctx, @Nullable String message, @Nullable Object[] arguments) {
         this.ctx = ctx;
         this.message = message;
         this.arguments = arguments;
@@ -51,7 +56,7 @@ public abstract class TraceEvent {
 
         SelectorRelated(
                 @NotNull ValueSelector selector,
-                @NotNull ClauseMatchingContext ctx,
+                @NotNull SelectorProcessingContext ctx,
                 @Nullable String message,
                 @Nullable Object... arguments) {
             super(ctx, message, arguments);
@@ -66,7 +71,7 @@ public abstract class TraceEvent {
         MatchingStarted(
                 @NotNull ValueSelector selector,
                 @NotNull PrismValue value,
-                @NotNull ClauseMatchingContext ctx) {
+                @NotNull SelectorProcessingContext ctx) {
             super(selector, ctx, null);
             this.value = value;
         }
@@ -89,7 +94,7 @@ public abstract class TraceEvent {
                 @NotNull ValueSelector selector,
                 @NotNull PrismValue value,
                 boolean matches,
-                @NotNull ClauseMatchingContext ctx) {
+                @NotNull SelectorProcessingContext ctx) {
             super(selector, ctx, null);
             this.value = value;
             this.matches = matches;
@@ -113,7 +118,7 @@ public abstract class TraceEvent {
                 @NotNull SelectorClause clause,
                 @Nullable String message,
                 @Nullable Object[] arguments,
-                @NotNull ClauseMatchingContext ctx) {
+                @NotNull SelectorProcessingContext ctx) {
             super(ctx, message, arguments);
             this.clause = clause;
         }
@@ -123,7 +128,7 @@ public abstract class TraceEvent {
 
         FilterProcessingStarted(
                 @NotNull ValueSelector selector,
-                @NotNull ClauseMatchingContext ctx) {
+                @NotNull SelectorProcessingContext ctx) {
             super(selector, ctx, null);
         }
 
@@ -138,13 +143,13 @@ public abstract class TraceEvent {
 
     static class FilterProcessingFinished extends SelectorRelated implements SelectorProcessingFinished {
 
-        private final ClauseFilteringContext fCtx;
+        private final FilteringContext fCtx;
         private final boolean applicable;
 
         FilterProcessingFinished(
                 @NotNull ValueSelector selector,
                 boolean applicable,
-                @NotNull ClauseFilteringContext ctx) {
+                @NotNull FilteringContext ctx) {
             super(selector, ctx, null);
             this.fCtx = ctx;
             this.applicable = applicable;
@@ -171,7 +176,7 @@ public abstract class TraceEvent {
         ClauseApplicability(
                 @NotNull SelectorClause clause,
                 boolean applicable,
-                @NotNull ClauseMatchingContext ctx,
+                @NotNull SelectorProcessingContext ctx,
                 @Nullable String message,
                 @Nullable Object[] arguments) {
             super(clause, message, arguments, ctx);
@@ -202,7 +207,7 @@ public abstract class TraceEvent {
                 ObjectFilter conjunct,
                 @Nullable String message,
                 @Nullable Object[] arguments,
-                @NotNull ClauseFilteringContext ctx) {
+                @NotNull FilteringContext ctx) {
             super(clause, message, arguments, ctx);
             this.conjunct = conjunct;
         }
@@ -217,8 +222,8 @@ public abstract class TraceEvent {
                 messageFragment = "";
             }
             return new TraceRecord(
-                    String.format("clause '%s' provided filter conjunct%s: %s", clause.getName(), messageFragment, conjunct));
-
+                    String.format("clause '%s' provided filter conjunct%s: %s",
+                            clause.getName(), messageFragment, conjunct));
         }
     }
 }

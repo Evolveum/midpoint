@@ -9,8 +9,8 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -26,7 +26,7 @@ public class SelfClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var object = ObjectTypeUtil.asObjectTypeIfPossible(value);
@@ -55,7 +55,7 @@ public class SelfClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         if (!ObjectType.class.isAssignableFrom(ctx.getRestrictedType())) {
             traceNotApplicable(ctx, "not an object type");
             return false;

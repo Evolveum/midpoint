@@ -102,7 +102,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         return securityFilter;
     }
 
-    /** TODO */
+    /** Computes security filter for given {@link PhaseSelector}. */
     private class PartialOp {
 
         private final @NotNull PhaseSelector phaseSelector;

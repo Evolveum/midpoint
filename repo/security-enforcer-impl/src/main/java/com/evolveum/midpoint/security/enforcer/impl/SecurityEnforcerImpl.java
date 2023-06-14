@@ -173,7 +173,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        return new EnforcerDecisionOperation<>(
+        return new EnforcerDecisionOperation(
                 operationUrl, params, applicableAutzConsumer, principal, ownerResolver, beans, task)
                 .decideAccess(phase, result);
     }

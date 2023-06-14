@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,8 +21,8 @@ import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.SelectorProcessingContext;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -90,7 +91,7 @@ public class FilterClause extends SelectorClause {
     @Override
     public boolean matches(
             @NotNull PrismValue value,
-            @NotNull ClauseMatchingContext ctx)
+            @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!(value instanceof PrismContainerValue<?>)) {
@@ -116,14 +117,14 @@ public class FilterClause extends SelectorClause {
         }
     }
 
-    private ObjectFilter getEvaluatedFilter(@NotNull ClauseMatchingContext ctx)
+    private ObjectFilter getEvaluatedFilter(@NotNull SelectorProcessingContext ctx)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return ctx.filterEvaluator != null ? ctx.filterEvaluator.evaluate(filter) : filter;
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx)
+    public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         ObjectFilter conjunct = getEvaluatedFilter(ctx);

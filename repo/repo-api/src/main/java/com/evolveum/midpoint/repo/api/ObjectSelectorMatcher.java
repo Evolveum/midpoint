@@ -49,7 +49,7 @@ class ObjectSelectorMatcher {
 
         return ValueSelector.parse(selectorBean).matches(
                 value,
-                new ClauseMatchingContext(
+                new MatchingContext(
                         filterEvaluator,
                         SelectorProcessingTracer.loggerBased(logger, logMessagePrefix),
                         repositoryService,

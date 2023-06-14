@@ -14,8 +14,9 @@ import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.SelectorProcessingContext;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -51,7 +52,7 @@ public class OrgRelationClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var object = asObjectTypeIfPossible(value);
@@ -73,7 +74,7 @@ public class OrgRelationClause extends SelectorClause {
     }
 
     private boolean matchesOrgRelation(
-            ObjectType object, ObjectReferenceType subjectParentOrgRef, @NotNull ClauseMatchingContext ctx)
+            ObjectType object, ObjectReferenceType subjectParentOrgRef, @NotNull SelectorProcessingContext ctx)
             throws SchemaException {
         if (!PrismContext.get().relationMatches(bean.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
             return false;
@@ -106,7 +107,7 @@ public class OrgRelationClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) throws SchemaException {
+    public boolean toFilter(@NotNull FilteringContext ctx) throws SchemaException {
         ObjectFilter conjunct = null;
         QName subjectRelation = bean.getSubjectRelation();
         FocusType principalFocus = ctx.getPrincipalFocus();

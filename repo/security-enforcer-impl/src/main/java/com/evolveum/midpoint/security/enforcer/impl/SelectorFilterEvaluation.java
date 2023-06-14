@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import java.util.Collection;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
 import com.evolveum.midpoint.schema.selector.eval.FilterCollector;
 import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
@@ -59,7 +57,7 @@ class SelectorFilterEvaluation<T>
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        ClauseFilteringContext ctx = new ClauseFilteringContext(
+        FilteringContext ctx = new FilteringContext(
                 searchType,
                 selector.getTypeClass(searchType),
                 originalFilter,
@@ -82,7 +80,7 @@ class SelectorFilterEvaluation<T>
                 ClauseProcessingContextDescription.defaultOne(),
                 DelegatorSelection.NO_DELEGATOR);
 
-        return selector.applyFilters(ctx);
+        return selector.toFilter(ctx);
     }
 
     ObjectFilter getSecurityFilter() {
