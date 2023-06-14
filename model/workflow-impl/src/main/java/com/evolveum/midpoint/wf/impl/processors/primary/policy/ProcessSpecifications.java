@@ -10,7 +10,6 @@ package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -95,7 +94,7 @@ public class ProcessSpecifications implements DebugDumpable {
                 List<Map.Entry<WfProcessSpecificationType, List<ApprovalActionWithRule>>> matching =
                         collectedSpecifications.entrySet().stream()
                                 .filter(e -> e.getKey() != null && ref.equals(e.getKey().getName()))
-                                .collect(Collectors.toList());
+                                .toList();
                 if (matching.isEmpty()) {
                     throw new IllegalStateException(
                             "Process specification named '" + ref + "' referenced from an approval action couldn't be found");
@@ -186,13 +185,7 @@ public class ProcessSpecifications implements DebugDumpable {
         return sb.toString();
     }
 
-    static class ApprovalActionWithRule {
-        @NotNull final ApprovalPolicyActionType approvalAction;
-        @NotNull final AssociatedPolicyRule policyRule;
-
-        ApprovalActionWithRule(@NotNull ApprovalPolicyActionType approvalAction, @NotNull AssociatedPolicyRule policyRule) {
-            this.approvalAction = approvalAction;
-            this.policyRule = policyRule;
-        }
+    record ApprovalActionWithRule(
+            @NotNull ApprovalPolicyActionType approvalAction, @NotNull AssociatedPolicyRule policyRule) {
     }
 }

@@ -24,6 +24,7 @@ import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationCont
  *
  * (Currently, it is only a thin layer between repository service and the matching functionality in {@link ValueSelector}.)
  */
+@Deprecated // should be deleted after the method from repository API disappears
 class ObjectSelectorMatcher {
 
     static boolean selectorMatches(
@@ -46,13 +47,11 @@ class ObjectSelectorMatcher {
             return false;
         }
 
-        var tracer = new MatchingTracer.LoggerBased(logger, logMessagePrefix);
-        var selector = ValueSelector.parse(selectorBean);
-        return selector.matches(
+        return ValueSelector.parse(selectorBean).matches(
                 value,
                 new ClauseMatchingContext(
                         filterEvaluator,
-                        tracer,
+                        SelectorProcessingTracer.loggerBased(logger, logMessagePrefix),
                         repositoryService,
                         null,
                         null,

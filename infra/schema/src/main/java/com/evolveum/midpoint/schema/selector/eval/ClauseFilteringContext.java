@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.selector.eval;
 
 import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +18,12 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 
+/**
+ * Keeps everything needed to produce a filter from given clause.
+ *
+ * Most probably will be simplified in the future.
+ */
+@Experimental
 public class ClauseFilteringContext extends ClauseMatchingContext {
 
     /** The object/value type we are searching for. */
@@ -42,7 +50,7 @@ public class ClauseFilteringContext extends ClauseMatchingContext {
             @Nullable ClauseApplicabilityPredicate clauseApplicabilityPredicate,
             @NotNull FilterCollector filterCollector,
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull MatchingTracer tracer,
+            @NotNull SelectorProcessingTracer tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,

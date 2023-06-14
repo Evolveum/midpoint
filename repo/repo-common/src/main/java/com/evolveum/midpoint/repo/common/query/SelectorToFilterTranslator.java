@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Translates a selector ({@link ObjectSelectorType}) to appropriate {@link ObjectFilter}.
  *
  * Actually, uses {@link ValueSelector#computeFilter(ClauseFilteringContext)} to do that.
+ *
+ * @see SelectorMatcher
  */
 @Experimental
 public class SelectorToFilterTranslator {
@@ -79,7 +81,7 @@ public class SelectorToFilterTranslator {
                 (clause, ctx1) -> true,
                 filterCollector,
                 filterEvaluator,
-                new MatchingTracer.LoggerBased(logger, ""),
+                SelectorProcessingTracer.loggerBased(logger),
                 beans.repositoryService,
                 null,
                 null,

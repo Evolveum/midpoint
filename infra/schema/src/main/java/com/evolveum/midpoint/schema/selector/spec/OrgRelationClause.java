@@ -32,6 +32,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPos
 
 public class OrgRelationClause extends SelectorClause {
 
+    /** Immutable. */
     @NotNull private final OrgRelationObjectSpecificationType bean;
 
     /** Immutable. */
