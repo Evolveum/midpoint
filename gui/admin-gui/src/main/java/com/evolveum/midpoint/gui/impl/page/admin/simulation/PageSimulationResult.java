@@ -349,7 +349,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected IModel<String> createTitleModel() {
-                return PageSimulationResult.this.createTitleModel();
+                return PageSimulationResult.this.createPageTitleModel();
             }
 
             @Override
@@ -584,15 +584,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return () -> null;
-    }
-
-    private IModel<String> createTitleModel() {
         return () -> WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject());
     }
 
     @Override
     protected void createBreadcrumb() {
-        addBreadcrumb(new Breadcrumb(createTitleModel(), this.getClass(), getPageParameters()));
+        addBreadcrumb(new Breadcrumb(createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 }
