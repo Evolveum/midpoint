@@ -209,7 +209,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
         customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
-        customLogo.add(AttributeAppender.append("class", () -> logoModel.getObject().getCssClass()));
+        customLogo.add(AttributeAppender.append("class", () -> {
+            IconType icon = logoModel.getObject();
+            return StringUtils.isNotEmpty(icon.getImageUrl()) ? logoModel.getObject().getCssClass() : null;
+        }));
         customLogo.add(new VisibleBehaviour(() -> isCustomLogoVisible()));
         add(customLogo);
 

@@ -57,6 +57,8 @@ body.custom-hold-transition {
   }
 
   & > a.custom-logo {
+    height: 3.5rem;
+    max-height: 3.5rem;
 
     & > img {
       vertical-align: middle;
