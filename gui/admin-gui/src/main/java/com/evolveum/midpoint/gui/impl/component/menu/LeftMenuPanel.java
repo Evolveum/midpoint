@@ -13,10 +13,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +48,7 @@ import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,6 +73,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
@@ -185,6 +183,21 @@ public class LeftMenuPanel extends BasePanel<Void> {
         logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         add(logo);
 
+        IModel<IconType> logoModel = new IModel<>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IconType getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                if (info == null | info.getLogo() == null) {
+                    return new IconType();
+                }
+
+                return info.getLogo();
+            }
+        };
+
         AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
             private static final long serialVersionUID = 1L;
 
@@ -196,19 +209,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
         customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        customLogo.add(AttributeAppender.append("class", () -> logoModel.getObject().getCssClass()));
         customLogo.add(new VisibleBehaviour(() -> isCustomLogoVisible()));
         add(customLogo);
-
-        IModel<IconType> logoModel = new IModel<>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public IconType getObject() {
-                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-                return info != null ? info.getLogo() : null;
-            }
-        };
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC) {
 
@@ -217,20 +220,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 tag.put("src", WebComponentUtil.getIconUrlModel(logoModel.getObject()).getObject());
             }
         };
-        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
+        customLogoImgSrc.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(logoModel.getObject().getImageUrl())));
         customLogo.add(customLogoImgSrc);
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
-        customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
-        customLogoImgCss.add(new AttributeAppender("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return logoModel.getObject() != null ? logoModel.getObject().getCssClass() : null;
-            }
-        }));
+        customLogoImgCss.add(new VisibleBehaviour(() ->
+                StringUtils.isEmpty(logoModel.getObject().getImageUrl()) && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
+        customLogoImgCss.add(AttributeAppender.append("class", () -> logoModel.getObject().getCssClass()));
         customLogo.add(customLogoImgCss);
 
         logo.add(PageBase.createHeaderColorStyleModel(false));
@@ -410,7 +406,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
 
         resourceMenu.addMenuItemAtIndex(new MenuItem("PageAdmin.menu.top.resource.templates.list",
-                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class),1);
+                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class), 1);
 
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
