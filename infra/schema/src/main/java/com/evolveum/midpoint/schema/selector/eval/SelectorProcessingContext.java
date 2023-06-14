@@ -26,23 +26,47 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Keeps everything needed to evaluate whether a clause matches given value.
+ * Keeps everything needed to evaluate whether a clause matches given value or how is clause translated to a filter.
  *
  * Most probably will be simplified in the future.
  */
 @Experimental
-public class ClauseMatchingContext {
+public abstract class SelectorProcessingContext {
 
+    /** If provided, resolves expressions in filters. */
     @Nullable public final ObjectFilterExpressionEvaluator filterEvaluator;
+
+    /** Traces evaluation of selectors and clauses. Typically into standard log. */
     @NotNull public final SelectorProcessingTracer tracer;
+
+    /** Evaluates organization tree questions (is descendant, is ancestor). Usually it is the repository itself. */
     @NotNull public final OrgTreeEvaluator orgTreeEvaluator;
+
+    /** Provides information on the subject, i.e. the "self". */
     @Nullable final SubjectedEvaluationContext subjectedEvaluationContext;
+
+    /** Resolves the object owners, mainly for the `owner` clause. */
     @Nullable public final OwnerResolver ownerResolver;
+
+    /**
+     * Resolves the object references to full objects when needed.
+     *
+     * @see #resolveReference(ObjectReferenceType, Object, String)
+     */
     @Nullable final ObjectResolver objectResolver;
+
+    /** Description of the processing context, mainly for tracing and error reporting. */
     @NotNull final ClauseProcessingContextDescription description;
+
+    /**
+     * Interpretation of `self` clause for the current evaluation.
+     *
+     * @see MatchingContext#child(DelegatorSelection, String, String)
+     * @see #getSelfOids()
+     */
     @NotNull final DelegatorSelection delegatorSelection;
 
-    public ClauseMatchingContext(
+    public SelectorProcessingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
             @NotNull SelectorProcessingTracer tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
@@ -89,31 +113,12 @@ public class ClauseMatchingContext {
         return oids.toArray(new String[0]);
     }
 
-    public @NotNull ClauseMatchingContext next(
-            @NotNull DelegatorSelection delegatorSelection, @NotNull String idDelta, @NotNull String textDelta) {
-        return new ClauseMatchingContext(
-                filterEvaluator,
-                tracer,
-                orgTreeEvaluator,
-                subjectedEvaluationContext,
-                ownerResolver,
-                objectResolver,
-                description.child(idDelta, textDelta),
-                delegatorSelection);
-    }
-
-    public @NotNull ClauseMatchingContext next(@NotNull String idDelta, @NotNull String textDelta) {
-        return new ClauseMatchingContext(
-                filterEvaluator,
-                tracer,
-                orgTreeEvaluator,
-                subjectedEvaluationContext,
-                ownerResolver,
-                objectResolver,
-                description.child(idDelta, textDelta),
-                delegatorSelection);
-    }
-
+    /**
+     * Resolves reference to full object.
+     *
+     * TODO Note that this is not necessary in some cases (e.g. when comparing only with `self` clause).
+     *  So we should do this more lazily. See MID-8899.
+     */
     public PrismObject<? extends ObjectType> resolveReference(
             ObjectReferenceType ref, Object context, String referenceName) {
         if (objectResolver != null) {
@@ -124,6 +129,7 @@ public class ClauseMatchingContext {
         }
     }
 
+    //region Tracing
     public void traceMatchingStart(ValueSelector selector, @NotNull PrismValue value) {
         if (tracer.isEnabled()) {
             tracer.trace(
@@ -142,7 +148,6 @@ public class ClauseMatchingContext {
         if (tracer.isEnabled()) {
             tracer.trace(
                     new TraceEvent.ClauseApplicability(clause, false, this, message, arguments));
-
         }
     }
 
@@ -150,7 +155,7 @@ public class ClauseMatchingContext {
         if (tracer.isEnabled()) {
             tracer.trace(
                     new TraceEvent.ClauseApplicability(clause, true, this, message, arguments));
-
         }
     }
+    //endregion
 }

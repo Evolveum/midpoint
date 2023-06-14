@@ -17,8 +17,8 @@ import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -54,7 +54,7 @@ public class RoleRelationClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var object = asObjectTypeIfPossible(value);
@@ -104,7 +104,7 @@ public class RoleRelationClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         ObjectFilter filter = processRoleRelationFilter(ctx);
         ObjectFilter conjunct;
         if (filter != null) {
@@ -124,7 +124,7 @@ public class RoleRelationClause extends SelectorClause {
     /**
      * Very rudimentary and experimental implementation.
      */
-    private ObjectFilter processRoleRelationFilter(@NotNull ClauseFilteringContext ctx) {
+    private ObjectFilter processRoleRelationFilter(@NotNull FilteringContext ctx) {
 
         if (BooleanUtils.isTrue(bean.isIncludeReferenceRole())) {
             // This could mean that we will need to add filters for all roles in

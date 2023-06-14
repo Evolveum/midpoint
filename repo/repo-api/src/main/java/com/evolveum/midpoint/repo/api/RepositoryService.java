@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.repo.api.util.AccessCertificationSupportMixin;
 import com.evolveum.midpoint.repo.api.util.CaseSupportMixin;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
 
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
@@ -654,7 +654,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
 
     /**
      * Use `SelectorMatcher` in `repo-common` module instead.
-     * Or, call directly the {@link ValueSelector#matches(PrismValue, ClauseMatchingContext)} method.
+     * Or, call directly the {@link ValueSelector#matches(PrismValue, MatchingContext)} method.
      */
     @Deprecated
     default <O extends ObjectType> boolean selectorMatches(

@@ -24,13 +24,14 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
 
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -265,7 +266,8 @@ public class ValueSelector implements DebugDumpable, Serializable {
         return bean;
     }
 
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    /** Returns `true` if the `value` matches this selector. */
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ctx.traceMatchingStart(this, value);
@@ -279,22 +281,29 @@ public class ValueSelector implements DebugDumpable, Serializable {
         return true;
     }
 
-    public ObjectFilter computeFilter(@NotNull ClauseFilteringContext ctx)
+    /**
+     * Converts the clause into {@link ObjectFilter}. If not applicable, returns `none` filter.
+     */
+    public ObjectFilter computeFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (applyFilters(ctx)) {
+        if (toFilter(ctx)) {
             return ctx.getFilterCollector().getFilter();
         } else {
             return FilterCreationUtil.createNone();
         }
     }
 
-    public boolean applyFilters(@NotNull ClauseFilteringContext ctx)
+    /**
+     * Converts the selector into {@link ObjectFilter} (passed to {@link FilteringContext#filterCollector}).
+     * Returns `false` if the selector is not applicable to given situation.
+     */
+    public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
-            if (!ctx.isClauseApplicable(clause) || !clause.applyFilter(ctx)) {
+            if (!ctx.isClauseApplicable(clause) || !clause.toFilter(ctx)) {
                 ctx.traceFilterProcessingEnd(this, false);
                 return false;
             }

@@ -11,16 +11,14 @@ import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationCont
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.selector.eval.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
-import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.selector.eval.SelectorProcessingTracer;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -84,7 +82,7 @@ public class SelectorMatcher {
 
         return selector.matches(
                 value,
-                new ClauseMatchingContext(
+                new MatchingContext(
                         filterEvaluator,
                         Objects.requireNonNullElseGet(tracer, () -> SelectorProcessingTracer.loggerBased(LOGGER)),
                         CommonTaskBeans.get().repositoryService,

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Translates a selector ({@link ObjectSelectorType}) to appropriate {@link ObjectFilter}.
  *
- * Actually, uses {@link ValueSelector#computeFilter(ClauseFilteringContext)} to do that.
+ * Actually, uses {@link ValueSelector#computeFilter(FilteringContext)} to do that.
  *
  * @see SelectorMatcher
  */
@@ -73,7 +73,7 @@ public class SelectorToFilterTranslator {
                             beans.expressionFactory, PrismContext.get(),
                             "expression in " + contextDescription, task, result);
                 };
-        ClauseFilteringContext ctx = new ClauseFilteringContext(
+        FilteringContext ctx = new FilteringContext(
                 targetType,
                 getNarrowedTargetType(),
                 null,

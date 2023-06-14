@@ -30,13 +30,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Operation that determines {@link AccessDecision} for a given situation, described by operation URL, parameters, and so on.
  */
-class EnforcerDecisionOperation<O extends ObjectType, T extends ObjectType>
-        extends EnforcerOperation {
+class EnforcerDecisionOperation extends EnforcerOperation {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);

@@ -35,6 +35,7 @@ public interface SubjectedEvaluationContext {
      */
     @NotNull Set<String> getSelfPlusRolesOids(@NotNull DelegatorSelection delegatorSelection);
 
+    /** Mainly when looking for assignees/candidates, what delegators (and their abstract roles) are we interested in? */
     enum DelegatorSelection {
 
         /** We are not interested in any delegations. */

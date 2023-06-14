@@ -71,7 +71,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        var ctx = new ClauseMatchingContext(
+        var ctx = new MatchingContext(
                 createFilterEvaluator(),
                 new LoggingTracer(),
                 b.repositoryService,
@@ -111,10 +111,6 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
     @Override
     public @NotNull Set<String> getSelfPlusRolesOids(@NotNull DelegatorSelection delegatorSelection) {
         return enforcerOp.getAllSelfPlusRolesOids(delegatorSelection);
-    }
-
-    public String getAutzDesc() {
-        return authorizationEvaluation.getDesc();
     }
 
     public @Nullable OwnerResolver getOwnerResolver() {
