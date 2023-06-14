@@ -70,8 +70,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
-    static final boolean FILTER_TRACE_ENABLED = true;
-
     @Autowired private Beans beans;
 
     @Autowired
@@ -173,8 +171,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        var tracer = new LogBasedEnforcerTracer(); // TEMPORARY
         return new EnforcerDecisionOperation(
-                operationUrl, params, applicableAutzConsumer, principal, ownerResolver, beans, task)
+                operationUrl, params, applicableAutzConsumer, principal, ownerResolver, tracer, beans, task)
                 .decideAccess(phase, result);
     }
 
@@ -206,8 +205,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        var tracer = new LogBasedEnforcerTracer(); // FIXME TEMPORARY
         return new CompileConstraintsOperation<O>(
-                getMidPointPrincipal(), ownerResolver, beans, CompileConstraintsOptions.defaultOnes(), task)
+                getMidPointPrincipal(), ownerResolver, tracer, beans, CompileConstraintsOptions.defaultOnes(), task)
                 .compileSecurityConstraints(object, result);
     }
 
@@ -222,7 +222,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return new CompileConstraintsOperation<>(getMidPointPrincipal(), ownerResolver, beans, options, task)
+        var tracer = new LogBasedEnforcerTracer(); // FIXME TEMPORARY
+        return new CompileConstraintsOperation<>(getMidPointPrincipal(), ownerResolver, tracer, beans, options, task)
                 .compileValueOperationConstraints(value, phase, actionUrls, result);
     }
 
@@ -244,7 +245,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 task, result);
         ObjectFilter finalFilter = gizmo.and(origFilter, securityFilter);
         LOGGER.trace("SEC: pre-processed object filter (combined with the original one):\n{}",
-                DebugUtil.debugDumpLazily(finalFilter, 1));
+                DebugUtil.debugDumpLazily(finalFilter, 1)); // This is not a part of the flexible tracing
         if (finalFilter instanceof AllFilter) {
             return null; // compatibility
         } else {
@@ -287,9 +288,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        var tracer = new LogBasedEnforcerTracer(); // FIXME TEMPORARY
         return new EnforcerFilterOperation<>(
                 operationUrls, filterType, preProcessor, includeSpecial, origFilter, limitAuthorizationAction,
-                paramOrderConstraints, gizmo, desc, getMidPointPrincipal(), null, beans, task)
+                paramOrderConstraints, gizmo, desc, getMidPointPrincipal(), null, tracer, beans, task)
                 .computeSecurityFilter(phase, result);
     }
 
@@ -348,17 +350,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, null, beans, task);
+        var tracer = new LogBasedEnforcerTracer(); // TEMPORARY
+        EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, null, tracer, beans, task);
         ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
         int i = 0;
         for (Authorization autz : ctx.getAuthorizations()) {
-            var evaluation = new AuthorizationEvaluation(String.valueOf(i++), autz, ctx, result);
+            var evaluation = new AuthorizationEvaluation(i++, autz, ctx, result);
             evaluation.traceStart();
             if (evaluation.isApplicableToAction(operationUrl)
                     && evaluation.isApplicableToPhase(nonStrict(REQUEST))
                     && evaluation.isApplicableToObject(object)
                     && evaluation.isApplicableToTarget(target)) {
                 itemConstraints.collectItems(autz);
+                evaluation.traceEndApplied();
             } else {
                 evaluation.traceEndNotApplicable();
             }

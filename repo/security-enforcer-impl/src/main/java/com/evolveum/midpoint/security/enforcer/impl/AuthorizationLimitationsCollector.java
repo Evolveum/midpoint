@@ -6,18 +6,11 @@
  */
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
 
 /**
@@ -25,8 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitat
  *
  */
 public class AuthorizationLimitationsCollector implements Consumer<Authorization>, AuthorizationTransformer {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AuthorizationLimitationsCollector.class);
 
     private boolean unlimited = false;
     private final List<String> limitActions = new ArrayList<>();

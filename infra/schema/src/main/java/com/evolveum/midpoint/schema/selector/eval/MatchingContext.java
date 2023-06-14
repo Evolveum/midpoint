@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +28,7 @@ public class MatchingContext extends SelectorProcessingContext {
 
     public MatchingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull SelectorProcessingTracer tracer,
+            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,

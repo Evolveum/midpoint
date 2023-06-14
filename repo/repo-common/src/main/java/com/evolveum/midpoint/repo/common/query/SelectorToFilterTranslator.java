@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.query;
 
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -81,7 +83,7 @@ public class SelectorToFilterTranslator {
                 (clause, ctx1) -> true,
                 filterCollector,
                 filterEvaluator,
-                SelectorProcessingTracer.loggerBased(logger),
+                ProcessingTracer.loggerBased(logger),
                 beans.repositoryService,
                 null,
                 null,

@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 
+import com.evolveum.midpoint.schema.traces.details.AbstractTraceEvent;
+import com.evolveum.midpoint.schema.traces.details.TraceRecord;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -22,35 +24,28 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Something of interest during tracing selectors and their clauses processing (matching and filter evaluation).
- *
- * An abstract representation that will eventually get converted into a logfile entry, or CSV line, trace file item, and so on.
  */
-public abstract class TraceEvent {
+public abstract class SelectorTraceEvent extends AbstractTraceEvent {
 
     final @NotNull SelectorProcessingContext ctx;
-    final @Nullable String message;
-    final @Nullable Object[] arguments;
 
-    TraceEvent(
+    SelectorTraceEvent(
             @NotNull SelectorProcessingContext ctx, @Nullable String message, @Nullable Object[] arguments) {
+        super(message, arguments);
         this.ctx = ctx;
-        this.message = message;
-        this.arguments = arguments;
     }
 
-    public @NotNull ClauseProcessingContextDescription getDescription() {
-        return ctx.description;
+    public @NotNull String getId() {
+        return ctx.description.getId();
     }
 
-    public abstract @NotNull TraceRecord defaultTraceRecord();
+    /** Just a marker. */
+    public interface Start { }
 
     /** Just a marker. */
-    public interface SelectorProcessingStarted { }
+    public interface End { }
 
-    /** Just a marker. */
-    public interface SelectorProcessingFinished { }
-
-    static abstract class SelectorRelated extends TraceEvent {
+    static abstract class SelectorRelated extends SelectorTraceEvent {
 
         @NotNull final ValueSelector selector;
 
@@ -64,7 +59,7 @@ public abstract class TraceEvent {
         }
     }
 
-    static class MatchingStarted extends SelectorRelated implements SelectorProcessingStarted {
+    static class MatchingStarted extends SelectorRelated implements Start {
 
         @NotNull private final PrismValue value;
 
@@ -79,13 +74,13 @@ public abstract class TraceEvent {
         @Override
         @NotNull
         public TraceRecord defaultTraceRecord() {
-            return new TraceRecord(
+            return TraceRecord.of(
                     String.format("determining whether %s does match '%s'",
                             selector.getHumanReadableDesc(), MiscUtil.getDiagInfo(value)));
         }
     }
 
-    static class MatchingFinished extends SelectorRelated implements SelectorProcessingFinished {
+    static class MatchingFinished extends SelectorRelated implements End {
 
         @NotNull private final PrismValue value;
         private final boolean matches;
@@ -103,7 +98,7 @@ public abstract class TraceEvent {
         @Override
         @NotNull
         public TraceRecord defaultTraceRecord() {
-            return new TraceRecord(
+            return TraceRecord.of(
                     String.format(
                             "%s %s '%s'", selector.getHumanReadableDesc(),
                             matches ? "matches" : "DOES NOT match",
@@ -111,7 +106,7 @@ public abstract class TraceEvent {
         }
     }
 
-    static abstract class ClauseRelated extends TraceEvent {
+    static abstract class ClauseRelated extends SelectorTraceEvent {
         @NotNull final SelectorClause clause;
 
         ClauseRelated(
@@ -124,7 +119,7 @@ public abstract class TraceEvent {
         }
     }
 
-    static class FilterProcessingStarted extends SelectorRelated implements SelectorProcessingStarted {
+    static class FilterProcessingStarted extends SelectorRelated implements Start {
 
         FilterProcessingStarted(
                 @NotNull ValueSelector selector,
@@ -141,7 +136,7 @@ public abstract class TraceEvent {
         }
     }
 
-    static class FilterProcessingFinished extends SelectorRelated implements SelectorProcessingFinished {
+    static class FilterProcessingFinished extends SelectorRelated implements End {
 
         private final FilteringContext fCtx;
         private final boolean applicable;
@@ -159,11 +154,11 @@ public abstract class TraceEvent {
         @NotNull
         public TraceRecord defaultTraceRecord() {
             if (applicable) {
-                return new TraceRecord(
+                return TraceRecord.of(
                         String.format("finished deriving filter in %s (applicable)", ctx.description.getText()),
                         DebugUtil.debugDump(fCtx.filterCollector.getFilter(), 1));
             } else {
-                return new TraceRecord(
+                return TraceRecord.of(
                         String.format("finished deriving filter in %s: NOT applicable", ctx.description.getText()));
             }
         }
@@ -186,15 +181,11 @@ public abstract class TraceEvent {
         @Override
         @NotNull
         public TraceRecord defaultTraceRecord() {
-            String suffix;
-            if (message != null) {
-                suffix = ": " + String.format(message, arguments);
-            } else {
-                suffix = "";
-            }
-            return new TraceRecord(
+            return TraceRecord.of(
                     String.format("clause '%s' %sapplicable%s",
-                            clause.getName(), applicable ? "" : "NOT ", suffix));
+                            clause.getName(),
+                            applicable ? "" : "NOT ",
+                            getFormattedMessage(": ", "")));
         }
     }
 
@@ -215,15 +206,9 @@ public abstract class TraceEvent {
         @Override
         @NotNull
         public TraceRecord defaultTraceRecord() {
-            String messageFragment;
-            if (message != null) {
-                messageFragment = " [" + String.format(message, arguments) + "]";
-            } else {
-                messageFragment = "";
-            }
-            return new TraceRecord(
+            return TraceRecord.of(
                     String.format("clause '%s' provided filter conjunct%s: %s",
-                            clause.getName(), messageFragment, conjunct));
+                            clause.getName(), getFormattedMessage(" [", "]"), conjunct));
         }
     }
 }

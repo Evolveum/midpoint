@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -25,6 +26,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.evolveum.midpoint.schema.selector.eval.SelectorTraceEvent.*;
+
 /**
  * Keeps everything needed to evaluate whether a clause matches given value or how is clause translated to a filter.
  *
@@ -36,8 +39,13 @@ public abstract class SelectorProcessingContext {
     /** If provided, resolves expressions in filters. */
     @Nullable public final ObjectFilterExpressionEvaluator filterEvaluator;
 
-    /** Traces evaluation of selectors and clauses. Typically into standard log. */
-    @NotNull public final SelectorProcessingTracer tracer;
+    /**
+     * Traces evaluation of selectors and clauses, typically into standard log.
+     *
+     * Mainly used for troubleshooting of selectors and their clauses; especially important for
+     * https://docs.evolveum.com/midpoint/reference/diag/troubleshooting/authorizations.
+     */
+    @NotNull public final ProcessingTracer<SelectorTraceEvent> tracer;
 
     /** Evaluates organization tree questions (is descendant, is ancestor). Usually it is the repository itself. */
     @NotNull public final OrgTreeEvaluator orgTreeEvaluator;
@@ -68,7 +76,7 @@ public abstract class SelectorProcessingContext {
 
     public SelectorProcessingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull SelectorProcessingTracer tracer,
+            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,
@@ -133,28 +141,28 @@ public abstract class SelectorProcessingContext {
     public void traceMatchingStart(ValueSelector selector, @NotNull PrismValue value) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.MatchingStarted(selector, value, this));
+                    new MatchingStarted(selector, value, this));
         }
     }
 
     public void traceMatchingEnd(ValueSelector selector, @NotNull PrismValue value, boolean match) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.MatchingFinished(selector, value, match, this));
+                    new MatchingFinished(selector, value, match, this));
         }
     }
 
     public void traceClauseNotApplicable(@NotNull SelectorClause clause, @NotNull String message, Object... arguments) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.ClauseApplicability(clause, false, this, message, arguments));
+                    new ClauseApplicability(clause, false, this, message, arguments));
         }
     }
 
     public void traceClauseApplicable(@NotNull SelectorClause clause, @NotNull String message, Object... arguments) {
         if (tracer.isEnabled()) {
             tracer.trace(
-                    new TraceEvent.ClauseApplicability(clause, true, this, message, arguments));
+                    new ClauseApplicability(clause, true, this, message, arguments));
         }
     }
     //endregion

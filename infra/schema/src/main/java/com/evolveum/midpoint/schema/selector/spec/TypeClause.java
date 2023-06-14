@@ -88,7 +88,7 @@ public class TypeClause extends SelectorClause {
             @NotNull MatchingContext ctx) {
         if (!value.isOfType(typeName)) {
             if (ctx.tracer.isEnabled()) {
-                traceNotApplicable(ctx, "type mismatch, expected {}, was {}",
+                traceNotApplicable(ctx, "type mismatch, expected %s, was %s",
                         PrettyPrinter.prettyPrint(typeName),
                         PrettyPrinter.prettyPrint(value.getTypeName()));
             }
