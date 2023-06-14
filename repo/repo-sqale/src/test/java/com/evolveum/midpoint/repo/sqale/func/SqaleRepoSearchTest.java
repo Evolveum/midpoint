@@ -2393,7 +2393,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .containsExactly("assignment1-2", "assignment1-3-ext"); // in this order
     }
 
-    @Test(enabled = false) // See MID-8894
+    @Test // See
     public void test640SearchAccessCertificationCasesByAssignee() throws SchemaException {
         SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
                 "by work item assignee", AccessCertificationCaseType.class,
