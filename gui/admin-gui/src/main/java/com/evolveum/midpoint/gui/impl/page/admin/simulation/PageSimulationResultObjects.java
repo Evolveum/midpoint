@@ -136,12 +136,16 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
     @Override
     protected IModel<String> createPageTitleModel() {
+        return () -> null;
+    }
+
+    private IModel<String> createTitleModel() {
         return () -> getString("PageSimulationResultObjects.title");
     }
 
     @Override
     protected void createBreadcrumb() {
-        addBreadcrumb(new Breadcrumb(createPageTitleModel(), this.getClass(), getPageParameters()));
+        addBreadcrumb(new Breadcrumb(PageSimulationResultObjects.super.createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 
     private IModel<List<MarkType>> createNonEmptyMarksModel() {
@@ -176,7 +180,7 @@ public class PageSimulationResultObjects extends PageAdmin implements Simulation
 
             @Override
             protected IModel<String> createTitleModel() {
-                return PageSimulationResultObjects.this.createPageTitleModel();
+                return PageSimulationResultObjects.this.createTitleModel();
             }
 
             @Override
