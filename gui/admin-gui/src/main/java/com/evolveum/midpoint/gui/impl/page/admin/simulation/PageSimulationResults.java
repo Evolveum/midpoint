@@ -77,7 +77,7 @@ public class PageSimulationResults extends PageAdmin {
 
             @Override
             protected IModel<String> createTitleModel() {
-                return PageSimulationResults.super.createPageTitleModel();
+                return PageSimulationResults.this.createPageTitleModel();
             }
         };
         add(navigation);
@@ -89,11 +89,6 @@ public class PageSimulationResults extends PageAdmin {
         SimulationResultsPanel table = new SimulationResultsPanel(ID_TABLE, null);
         table.setOutputMarkupId(true);
         form.add(table);
-    }
-
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return () -> null;
     }
 
     @Override

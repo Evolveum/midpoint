@@ -299,7 +299,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
             @Override
             protected IModel<String> createTitleModel() {
-                return PageSimulationResultObject.this.createTitleModel();
+                return PageSimulationResultObject.this.createPageTitleModel();
             }
 
             @Override
@@ -451,21 +451,16 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return () -> null;
+        return () -> WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
+                + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
     }
 
     private void onBackPerformed() {
         redirectBack();
     }
 
-    private IModel<String> createTitleModel() {
-        return () ->
-                WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
-                        + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
-    }
-
     @Override
     protected void createBreadcrumb() {
-        addBreadcrumb(new Breadcrumb(createTitleModel(), this.getClass(), getPageParameters()));
+        addBreadcrumb(new Breadcrumb(createPageTitleModel(), this.getClass(), getPageParameters()));
     }
 }
