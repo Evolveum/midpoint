@@ -142,7 +142,7 @@ public class ShadowUpdater {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        repoModifications = List.copyOf(repoModifications);
+        repoModifications = new ArrayList<>(repoModifications);
 
         if (!repoModifications.isEmpty()) {
             MetadataUtil.addModificationMetadataDeltas((Collection<ItemDelta<?,?>>) repoModifications, repoShadow); // todo not very nice [viliam]
