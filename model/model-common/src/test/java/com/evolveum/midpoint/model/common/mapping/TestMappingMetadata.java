@@ -7,25 +7,16 @@
 package com.evolveum.midpoint.model.common.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.fail;
 
 import static com.evolveum.midpoint.model.common.mapping.MappingTestEvaluator.TEST_DIR;
-
-import static org.testng.AssertJUnit.fail;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +25,12 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
+import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -45,15 +39,16 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Tests how well mapping evaluation works with the value metadata.
@@ -83,7 +78,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: ADD object
      *
@@ -111,7 +106,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: none
      *
@@ -134,12 +129,12 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: add familyName Sparrow ("hr").
      *
      * Expected result:
-     *  - zero: user, rest, hr (because no real value is being added).
+     * - zero: user, rest, hr (because no real value is being added).
      *
      * See also the following test for deleting existing metadata.
      */
@@ -150,8 +145,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).add(sparrowHr)
@@ -172,7 +167,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Sparrow has acquisition origins: user
      * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: add familyName Sparrow ("hr").
      *
@@ -187,8 +182,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).add(sparrowHr)
@@ -210,7 +205,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: add familyName Sparrow ("user") - phantom add
      *
@@ -223,8 +218,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUserWithOriginRef.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).add(sparrowUserWithOriginRef)
@@ -246,7 +241,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Sparrow has acquisition origins: user
      * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: add familyName Sparrow ("user") - phantom add
      *
@@ -259,8 +254,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUserWithOriginRef.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).add(sparrowUserWithOriginRef)
@@ -282,7 +277,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: add givenName Jack (rest+timestamp).
      *
@@ -297,9 +292,9 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackRestWithTs.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("rest", ServiceType.COMPLEX_TYPE)
-                        .timestamp(now);
+                .beginAcquisition()
+                .originRef("rest", ServiceType.COMPLEX_TYPE)
+                .timestamp(now);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).add(jackRestWithTs)
@@ -328,7 +323,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Sparrow has acquisition origins: user
      * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: add givenName Jack (rest+timestamp).
      *
@@ -343,9 +338,9 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackRestWithTs.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("rest", ServiceType.COMPLEX_TYPE)
-                        .timestamp(now);
+                .beginAcquisition()
+                .originRef("rest", ServiceType.COMPLEX_TYPE)
+                .timestamp(now);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).add(jackRestWithTs)
@@ -374,7 +369,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace giveName Jack ("hr")
      *
@@ -387,8 +382,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackHr)
@@ -409,13 +404,13 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Sparrow has acquisition origins: user
      * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace giveName Jack ("hr")
      *
      * Expected result:
-     *  - zero: hr, user
-     *  - minus: user, rest
+     * - zero: hr, user
+     * - minus: user, rest
      */
     @Test
     public void testReplaceJackHrWithExisting() throws Exception {
@@ -424,8 +419,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackHr)
@@ -447,7 +442,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: delete givenName Jack ("rest")
      *
@@ -460,8 +455,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackRest.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("rest", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("rest", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).delete(jackRest)
@@ -481,7 +476,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: delete familyName Sparrow (user)
      *
@@ -495,8 +490,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).delete(sparrowUser)
@@ -517,7 +512,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Sparrow has acquisition origins: user
      * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: delete familyName Sparrow (user)
      *
@@ -530,8 +525,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).delete(sparrowUser)
@@ -552,7 +547,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: delete familyName Sparrow (custom) -- phantom delete
      *
@@ -565,8 +560,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("custom", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("custom", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).delete(sparrowUser)
@@ -586,7 +581,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: delete givenName Jack (no metadata = all values).
      *
@@ -615,7 +610,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: delete givenName Jack + delete familyName Sparrow (no metadata = all values).
      *
@@ -647,13 +642,13 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace giveName Jackie ("hr")
      *
      * Expected result:
-     *  - Jackie Sparrow: hr, user (plus set),
-     *  - Jack Sparrow: user, rest (minus set).
+     * - Jackie Sparrow: hr, user (plus set),
+     * - Jack Sparrow: user, rest (minus set).
      */
     @Test
     public void testReplaceJackieHr() throws Exception {
@@ -662,8 +657,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieHr)
@@ -684,13 +679,13 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace giveName Jackie ("hr"), replace familyName Sparrow ("hr")
      *
      * Expected result:
-     *  - Jackie Sparrow: hr (plus set),
-     *  - Jack Sparrow: user, rest (minus set).
+     * - Jackie Sparrow: hr (plus set),
+     * - Jack Sparrow: user, rest (minus set).
      */
     @Test
     public void testReplaceJackieHrReplaceSparrowHr() throws Exception {
@@ -699,16 +694,16 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         PrismPropertyValue<PolyString> sparrowHr =
                 evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieHr)
@@ -734,7 +729,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Delta: ADD object
      *
      * Expected result: user, rest (in plus set)
-     *
      */
     @Test
     public void testAsIsUserAdd() throws Exception {
@@ -754,13 +748,13 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     /**
      * Jack has acquisition origins: user, rest
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace givenName Jackie (user)
      *
      * Expected result:
-     *  - Jackie (user) in plus set
-     *  - Jack (no MD) in minus set
+     * - Jackie (user) in plus set
+     * - Jack (no MD) in minus set
      */
     @Test
     public void testAsIsDeleteSparrowUser() throws Exception {
@@ -769,8 +763,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieUser)
@@ -790,15 +784,15 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     /**
      * Jack has acquisition origins: user, rest
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace givenName Jackie (user)
      * Existing: Jack Sparrow (m:hr, user)
      *
      * Expected result:
-     *  - Jackie (user) in plus set
-     *  - Jack (no MD) in minus set
-     *  - Jack Sparrow (m:hr) in minus set (because of range)
+     * - Jackie (user) in plus set
+     * - Jack (no MD) in minus set
+     * - Jack Sparrow (m:hr) in minus set (because of range)
      */
     @Test
     public void testAsIsDeleteSparrowUserWithRangeAll() throws Exception {
@@ -808,21 +802,21 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         PrismPropertyValue<PolyString> jackSparrowHr =
                 evaluator.getPrismContext().itemFactory().createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"));
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .mappingSpecification(createMappingSpec())
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE)
-                    .<ProvenanceMetadataType>end()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE)
-                    .end();
+                .mappingSpecification(createMappingSpec())
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE)
+                .<ProvenanceMetadataType>end()
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE)
+                .end();
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieUser)
@@ -851,15 +845,15 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     /**
      * Jack has acquisition origins: user, rest
      *
-     *    (see user-jack-metadata.xml)
+     * (see user-jack-metadata.xml)
      *
      * Delta: replace givenName Jackie (user)
      * Existing: Jack Sparrow (m:hr, user)
      *
      * Expected result:
-     *  - Jackie (user) in plus set
-     *  - Jack (no MD) in minus set
-     *  - Jack Sparrow (m:hr) in minus set (because of range)
+     * - Jackie (user) in plus set
+     * - Jack (no MD) in minus set
+     * - Jack Sparrow (m:hr) in minus set (because of range)
      */
     @Test
     public void testAsIsDeleteSparrowUserWithRange() throws Exception {
@@ -868,21 +862,21 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE);
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE);
 
         PrismPropertyValue<PolyString> jackSparrowHr =
                 evaluator.getPrismContext().itemFactory().createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"));
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .mappingSpecification(createMappingSpec())
-                    .beginAcquisition()
-                        .originRef("hr", ServiceType.COMPLEX_TYPE)
-                    .<ProvenanceMetadataType>end()
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE)
-                    .end();
+                .mappingSpecification(createMappingSpec())
+                .beginAcquisition()
+                .originRef("hr", ServiceType.COMPLEX_TYPE)
+                .<ProvenanceMetadataType>end()
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE)
+                .end();
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieUser)
@@ -912,7 +906,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Delta: ADD object
      *
      * Expected result: user, rest (in plus set)
-     *
      */
     @Test
     public void testPathUserAdd() throws Exception {
@@ -935,7 +928,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Delta: ADD object
      *
      * Expected result: (no origins but mapping spec) (in zero set)
-     *
      */
     @Test
     public void testConstUserAdd() throws Exception {
@@ -958,7 +950,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Delta: ADD object
      *
      * Expected result: (no origins but mapping spec) (in zero set)
-     *
      */
     @Test
     public void testValueUserAdd() throws Exception {
@@ -981,7 +972,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Delta: ADD object
      *
      * Expected result: (no origins but mapping spec) (in zero set)
-     *
      */
     @Test
     public void testGenerateUserAdd() throws Exception {
@@ -1059,20 +1049,20 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         assertThat(realOrigins).as("real origins").containsExactlyInAnyOrder(origins);
     }
 
-        @NotNull
+    @NotNull
     private PrismPropertyValue<PolyString> createJackSparrowOriginal() {
         PrismPropertyValue<PolyString> jackSparrowOriginal =
                 evaluator.getPrismContext().itemFactory().createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"));
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowOriginal.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .mappingSpecification(createMappingSpec())
-                    .beginAcquisition()
-                        .originRef("user", ServiceType.COMPLEX_TYPE)
-                    .<ProvenanceMetadataType>end()
-                    .beginAcquisition()
-                        .originRef("rest", ServiceType.COMPLEX_TYPE)
-                    .end();
+                .mappingSpecification(createMappingSpec())
+                .beginAcquisition()
+                .originRef("user", ServiceType.COMPLEX_TYPE)
+                .<ProvenanceMetadataType>end()
+                .beginAcquisition()
+                .originRef("rest", ServiceType.COMPLEX_TYPE)
+                .end();
         return jackSparrowOriginal;
     }
 
@@ -1258,11 +1248,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             @Override
             public @NotNull TaskExecutionMode getTaskExecutionMode() {
                 return TaskExecutionMode.PRODUCTION;
-            }
-
-            @Override
-            public @NotNull ProvisioningOperationContext createProvisioningOperationContext(Task task, OperationResult result) {
-                return new ProvisioningOperationContext();
             }
         };
     }

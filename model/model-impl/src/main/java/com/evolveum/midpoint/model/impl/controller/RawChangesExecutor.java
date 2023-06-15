@@ -144,7 +144,7 @@ class RawChangesExecutor {
         if (auditEventRecordingExpression != null) {
             processedRecord = auditHelper.evaluateRecordingExpression(
                     auditEventRecordingExpression, originalRecord, null, null,
-                    (task, result) -> new ModelExpressionEnvironment<>(null, null, task, result), task, result);
+                    (sTask, sResult) -> new ModelExpressionEnvironment<>(null, null, sTask, sResult), task, result);
         } else {
             processedRecord = originalRecord;
         }
@@ -299,7 +299,8 @@ class RawChangesExecutor {
 
                     ProvisioningOperationContext ctx = new ProvisioningOperationContext()
                             .requestIdentifier(requestIdentifier)
-                            .expressionEnvironmentSupplier(() -> new ModelExpressionEnvironment<>(null, null, task, result));
+                            .expressionEnvironmentSupplier((sTask, sResult) ->
+                                    new ModelExpressionEnvironment<>(null, null, sTask, sResult));
 
                     provisioningService.deleteObject(
                             clazz, oid, ProvisioningOperationOptions.createRaw(), null, ctx, task, result);

@@ -318,7 +318,10 @@ public interface ProvisioningService {
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
-    /** todo javadoc [viliam] **/
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default @NotNull <T extends ObjectType> PrismObject<T> getObject(
             @NotNull Class<T> type,
             @NotNull String oid,
@@ -383,6 +386,10 @@ public interface ProvisioningService {
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default <T extends ObjectType> String addObject(
             @NotNull PrismObject<T> object,
             @Nullable OperationProvisioningScriptsType scripts,
@@ -444,6 +451,10 @@ public interface ProvisioningService {
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default @NotNull SynchronizationResult synchronize(
             @NotNull ResourceOperationCoordinates coordinates,
             @Nullable LiveSyncOptions options,
@@ -611,6 +622,10 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     @NotNull
     default <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
             @NotNull Class<T> type,
@@ -656,6 +671,10 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default <T extends ObjectType> Integer countObjects(
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
@@ -699,6 +718,10 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default <T extends ObjectType> SearchResultMetadata searchObjectsIterative(
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
@@ -759,6 +782,10 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default <T extends ObjectType> String modifyObject(
             @NotNull Class<T> type,
             @NotNull String oid,
@@ -804,6 +831,10 @@ public interface ProvisioningService {
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option,
             OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
@@ -978,6 +1009,10 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
@@ -1057,6 +1092,10 @@ public interface ProvisioningService {
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
 
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
     default ConstraintsCheckingResult checkConstraints(
             ResourceObjectDefinition objectTypeDefinition,
             PrismObject<ShadowType> shadowObject,

@@ -173,8 +173,9 @@ public class ClockworkAuditHelper {
 
         if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject,
-                    context.getPrivilegedExpressionProfile(), (t, r) -> new ModelExpressionEnvironment<>(context, null, t, r),
+            auditRecord = auditHelper.evaluateRecordingExpression(
+                    auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject, context.getPrivilegedExpressionProfile(),
+                    (sTask, sResult) -> new ModelExpressionEnvironment<>(context, null, sTask, sResult),
                     task, result);
         }
 
