@@ -46,8 +46,7 @@ public class QueryAutzItemPaths extends AutzItemPaths {
         } else if (filter instanceof ValueFilter) {
             requiredItems.add(
                     localRoot.append(((ValueFilter<?, ?>) filter).getFullPath()));
-        } else if (filter instanceof ExistsFilter) {
-            ExistsFilter existsFilter = (ExistsFilter) filter;
+        } else if (filter instanceof ExistsFilter existsFilter) {
             ItemPath existsRoot = localRoot.append(existsFilter.getFullPath());
             // Currently, we require also the root path to be authorized. This may be relaxed eventually
             // (but checking there is at least one item required by the inner filter). However, it is maybe safer

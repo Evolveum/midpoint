@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createAllowNotFoundCollection;
-import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 
 import java.util.Set;
@@ -36,12 +35,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  * Instantiated and used as part of an {@link EnforcerOperation}.
  */
-class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
+class SelectorEvaluation implements SubjectedEvaluationContext {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
-    @NotNull private final String id;
+    @NotNull final String id;
     @NotNull final ValueSelector selector;
     @Nullable private final PrismValue value;
     @NotNull final String desc;
@@ -71,13 +70,13 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        var ctx = new ClauseMatchingContext(
+        var ctx = new MatchingContext(
                 createFilterEvaluator(),
-                new LoggingTracer(),
+                new LogBasedSelectorTracer(),
                 b.repositoryService,
                 this,
                 enforcerOp.ownerResolver,
-                this,
+                this::resolveReference,
                 ClauseProcessingContextDescription.defaultOne(id, desc),
                 DelegatorSelection.NO_DELEGATOR);
 
@@ -99,7 +98,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
         return enforcerOp.getPrincipalFocus();
     }
 
-    public Object getDesc() {
+    public @NotNull String getDesc() {
         return desc;
     }
 
@@ -113,10 +112,6 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
         return enforcerOp.getAllSelfPlusRolesOids(delegatorSelection);
     }
 
-    public String getAutzDesc() {
-        return authorizationEvaluation.getDesc();
-    }
-
     public @Nullable OwnerResolver getOwnerResolver() {
         return enforcerOp.ownerResolver;
     }
@@ -126,7 +121,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
     }
 
     /** TODO */
-    public PrismObject<? extends ObjectType> resolveReference(
+    PrismObject<? extends ObjectType> resolveReference(
             ObjectReferenceType ref, Object context, String referenceName) {
         if (ref != null && ref.getOid() != null) {
             Class<? extends ObjectType> type = ref.getType() != null ?
@@ -140,41 +135,6 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
             }
         } else {
             return null;
-        }
-    }
-
-    public String getSelectorId() {
-        return id;
-    }
-
-    class LoggingTracer implements SelectorProcessingTracer {
-
-        @Override
-        public boolean isEnabled() {
-            return enforcerOp.traceEnabled;
-        }
-
-        @Override
-        public void trace(@NotNull TraceEvent event) {
-
-            String typeMark;
-            if (event instanceof TraceEvent.SelectorProcessingStarted) {
-                typeMark = START;
-            } else if (event instanceof TraceEvent.SelectorProcessingFinished) {
-                typeMark = END;
-            } else {
-                typeMark = CONT;
-            }
-
-            String prefix = SEL + event.getDescription().getId() + typeMark;
-
-            var record = event.defaultTraceRecord();
-            var nextLines = record.getNextLines();
-            if (nextLines == null) {
-                LOGGER.trace("{}{}", prefix, record.getFirstLine());
-            } else {
-                LOGGER.trace("{}{}\n{}", prefix, record.getFirstLine(), nextLines);
-            }
         }
     }
 }

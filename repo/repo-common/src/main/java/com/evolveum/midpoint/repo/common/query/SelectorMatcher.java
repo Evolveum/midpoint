@@ -11,16 +11,16 @@ import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationCont
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.selector.eval.*;
+
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
-import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.selector.eval.SelectorProcessingTracer;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,7 +42,7 @@ public class SelectorMatcher {
 
     @NotNull private final ValueSelector selector;
 
-    private SelectorProcessingTracer tracer;
+    private ProcessingTracer<SelectorTraceEvent> tracer;
 
     private ObjectFilterExpressionEvaluator filterEvaluator;
 
@@ -68,7 +68,7 @@ public class SelectorMatcher {
     }
 
     public SelectorMatcher withLogging(@NotNull Trace logger, @NotNull String logPrefix) {
-        this.tracer = SelectorProcessingTracer.loggerBased(logger, logPrefix);
+        this.tracer = ProcessingTracer.loggerBased(logger, logPrefix);
         return this;
     }
 
@@ -84,9 +84,9 @@ public class SelectorMatcher {
 
         return selector.matches(
                 value,
-                new ClauseMatchingContext(
+                new MatchingContext(
                         filterEvaluator,
-                        Objects.requireNonNullElseGet(tracer, () -> SelectorProcessingTracer.loggerBased(LOGGER)),
+                        Objects.requireNonNullElseGet(tracer, () -> ProcessingTracer.loggerBased(LOGGER)),
                         CommonTaskBeans.get().repositoryService,
                         null,
                         null,
