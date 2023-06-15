@@ -62,7 +62,7 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
                 if (auditDataSource != null) {
                     executeScripts(auditDataSource, scriptsDirectory, options.getAuditScripts());
                 } else {
-                    log.error("Audit configuration not found in <midpoint-home>/config.xml");
+                    log.error("Audit configuration not found in " + midpointConfiguration.getMidpointHome() + "/config.xml");
                 }
             }
         } finally {

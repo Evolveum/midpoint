@@ -1,10 +1,7 @@
 package com.evolveum.midpoint.ninja.upgrade;
 
-import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-import com.evolveum.midpoint.ninja.action.SetupDatabaseOptions;
+import java.io.File;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -12,13 +9,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.List;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
+import com.evolveum.midpoint.ninja.action.SetupDatabaseOptions;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
 @ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class SetupDatabaseTest extends BaseUpgradeTest{
+public class SetupDatabaseTest extends BaseUpgradeTest {
 
     @Test
     public void test100InitializeDatabase() throws Exception {
@@ -27,7 +27,7 @@ public class SetupDatabaseTest extends BaseUpgradeTest{
         BaseOptions baseOptions = new BaseOptions();
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome("./target/midpoint-home");
+        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
 
         Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
         connectionOptions.setUrl(ninjaTestsJdbcUrl);

@@ -34,7 +34,7 @@ public abstract class UpgradeTest extends BaseUpgradeTest {
         BaseOptions baseOptions = new BaseOptions();
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome("./target/midpoint-home");
+        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
 
         connectionOptions.setUrl(ninjaTestsJdbcUrl);
 

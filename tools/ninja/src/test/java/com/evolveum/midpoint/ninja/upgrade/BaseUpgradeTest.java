@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +21,19 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
-import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
 import com.evolveum.midpoint.ninja.action.SetupDatabaseOptions;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
 public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
 
     protected static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
+
+    protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
 
     @Autowired
     protected DataSourceFactory dataSourceFactory;
@@ -44,7 +47,10 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
     protected String ninjaTestsJdbcUrl;
 
     @BeforeClass
-    public void beforeClass() throws SQLException {
+    public void beforeClass() throws Exception {
+        FileUtils.forceMkdir(UPGRADE_MIDPOINT_HOME);
+        FileUtils.copyFileToDirectory(new File("./src/test/resources/upgrade/midpoint-home/config.xml"), UPGRADE_MIDPOINT_HOME);
+
         recreateEmptyTestDatabase();
 
         HikariConfig config = new HikariConfig();
@@ -80,7 +86,7 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         BaseOptions baseOptions = new BaseOptions();
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome("./target/midpoint-home");
+        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
 
         Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
         connectionOptions.setUrl(ninjaTestsJdbcUrl);
