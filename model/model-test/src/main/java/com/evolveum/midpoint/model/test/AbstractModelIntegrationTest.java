@@ -240,6 +240,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
+    private SystemConfigurationType systemConfiguration;
     private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
@@ -270,8 +271,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
 
-        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
-                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     @Override
@@ -279,6 +278,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (dummyResourceCollection != null) {
             dummyResourceCollection.resetResources();
         }
+        systemConfiguration = systemObjectCache.getSystemConfigurationBean(initResult);
+        assertNotNull("No systemConfiguration found after initSystem", systemConfiguration);
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(systemConfiguration);
     }
 
     protected boolean isAvoidLoggingChange() {
