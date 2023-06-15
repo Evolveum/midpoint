@@ -63,7 +63,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             @NotNull ShadowType repoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
-            ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,

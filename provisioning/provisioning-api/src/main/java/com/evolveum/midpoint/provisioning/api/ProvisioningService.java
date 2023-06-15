@@ -312,12 +312,13 @@ public interface ProvisioningService {
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** todo javadoc [viliam] **/
     default @NotNull <T extends ObjectType> PrismObject<T> getObject(
             @NotNull Class<T> type,
             @NotNull String oid,

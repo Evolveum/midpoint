@@ -227,12 +227,12 @@ public class LiveSynchronizer {
                 @NotNull Task task,
                 LiveSyncOptions options,
                 @NotNull LiveSyncTokenStorage tokenStorage,
-                @NotNull ProvisioningOperationContext context,
+                @NotNull ProvisioningOperationContext operationContext,
                 OperationResult result)
                 throws ObjectNotFoundException, SchemaException, ConfigurationException,
                 ExpressionEvaluationException {
             this.syncResult = new SynchronizationOperationResult();
-            this.context = ctxFactory.createForBulkOperation(coordinates, context, task, result);
+            this.context = ctxFactory.createForBulkOperation(coordinates, operationContext, task, result);
             this.task = task;
             this.options = options != null ? options : new LiveSyncOptions();
             this.tokenStorage = tokenStorage;

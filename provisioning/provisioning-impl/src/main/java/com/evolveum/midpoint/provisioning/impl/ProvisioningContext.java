@@ -129,6 +129,8 @@ public class ProvisioningContext {
      */
     private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
+    private ObjectReferenceType associationShadowRef;
+
     private ProvisioningOperationContext operationContext;
 
     /** Creating context from scratch. */
@@ -733,5 +735,13 @@ public class ProvisioningContext {
             sb.append(", ").append(connector.getHumanReadableDescription());
         }
         return sb.toString();
+    }
+
+    public ObjectReferenceType getAssociationShadowRef() {
+        return associationShadowRef;
+    }
+
+    public void setAssociationShadowRef(ObjectReferenceType associationShadowRef) {
+        this.associationShadowRef = associationShadowRef;
     }
 }

@@ -69,7 +69,7 @@ public class ShadowsFacade {
             @Nullable ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -83,7 +83,7 @@ public class ShadowsFacade {
             @NotNull ShadowType resourceObjectToAdd,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
-            ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
@@ -97,7 +97,7 @@ public class ShadowsFacade {
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,

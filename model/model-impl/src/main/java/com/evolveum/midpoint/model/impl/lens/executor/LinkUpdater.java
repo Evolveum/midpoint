@@ -457,7 +457,7 @@ class LinkUpdater<F extends FocusType> {
             ModelImplUtils.setRequestee(task, focusContext);
             ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
             options.setDoNotDiscovery(true);
-            ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
+            ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
             provisioningService.modifyObject(
                     ShadowType.class, projectionOid, syncSituationDeltas, null, options, ctx, task, result);
         } catch (ObjectNotFoundException ex) {

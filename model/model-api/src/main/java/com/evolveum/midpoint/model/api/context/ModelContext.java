@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -122,6 +121,4 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     ExpressionProfile getPrivilegedExpressionProfile();
 
     @NotNull TaskExecutionMode getTaskExecutionMode();
-
-    @NotNull ProvisioningOperationContext createProvisioningOperationContext(Task task, OperationResult result);
 }

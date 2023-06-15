@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
 
 import java.io.File;
@@ -121,14 +120,14 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         login(userAdministrator);
     }
 
-    protected void setRecordEnhancedShadowChanges(boolean enable, Task task, OperationResult result)
+    protected void setRecordResourceStageEnabled(boolean enable, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
 
         ItemPath path = ItemPath.create(
                 SystemConfigurationType.F_AUDIT,
                 SystemConfigurationAuditType.F_EVENT_RECORDING,
-                SystemConfigurationAuditEventRecordingType.F_RECORD_ENHANCED_SHADOW_CHANGES);
+                SystemConfigurationAuditEventRecordingType.F_RECORD_RESOURCE_STAGE_CHANGES);
 
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 path, task, result, enable);

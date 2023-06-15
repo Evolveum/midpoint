@@ -132,7 +132,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        setRecordEnhancedShadowChanges(true, initTask, initResult);
+        setRecordResourceStageEnabled(true, initTask, initResult);
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
@@ -2143,7 +2143,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 
-        setRecordEnhancedShadowChanges(false, task, result);
+        setRecordResourceStageEnabled(false, task, result);
     }
 
     @Test

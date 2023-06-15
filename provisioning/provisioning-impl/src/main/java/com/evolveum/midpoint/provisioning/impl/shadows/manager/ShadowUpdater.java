@@ -138,11 +138,14 @@ public class ShadowUpdater {
     public void executeRepoShadowModifications(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> repoModifications,
+            @NotNull Collection<? extends ItemDelta<?, ?>> repoModifications,   // todo this should be changed to Collection<ItemDelta<?, ?>> [viliam]
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
+
+        repoModifications = List.copyOf(repoModifications);
+
         if (!repoModifications.isEmpty()) {
-            MetadataUtil.addModificationMetadataDeltas((Collection<ItemDelta<?,?>>) repoModifications, repoShadow); // todo not very nice
+            MetadataUtil.addModificationMetadataDeltas((Collection<ItemDelta<?,?>>) repoModifications, repoShadow); // todo not very nice [viliam]
 
             LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(repoModifications, 1));
             try {

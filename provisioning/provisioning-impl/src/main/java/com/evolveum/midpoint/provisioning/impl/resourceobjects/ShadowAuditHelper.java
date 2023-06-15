@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -54,36 +54,27 @@ public class ShadowAuditHelper {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public void auditEvent(@NotNull AuditEventType event, @Nullable ShadowType shadow, @NotNull ProvisioningContext ctx,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result) throws SchemaException {
 
         auditEvent(event, shadow, null, ctx, result);
     }
 
     public void auditEvent(@NotNull AuditEventType event, @Nullable ShadowType shadow, @Nullable Collection<Operation> operationsWave,
-            @NotNull ProvisioningContext ctx, @NotNull OperationResult result) {
+            @NotNull ProvisioningContext ctx, @NotNull OperationResult result) throws SchemaException {
 
         Task task = ctx.getTask();
+        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
 
-        SystemConfigurationType systemConfiguration;
-        try {
-            systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
-        } catch (Exception ex) {
-            throw new SystemException("Couldn't load system configuration", ex);
-        }
-
-        if (!isEnhancedShadowAuditingEnabled(systemConfiguration)) {
+        if (!isRecordResourceStageEnabled(systemConfiguration)) {
             return;
         }
 
         ProvisioningOperationContext operationContext = ctx.getOperationContext();
-        if (operationContext == null) {
-            operationContext = new ProvisioningOperationContext();
-        }
 
         AuditEventRecord auditRecord = new AuditEventRecord(event, AuditEventStage.RESOURCE);
         auditRecord.setRequestIdentifier(operationContext.requestIdentifier());
-        if (shadow == null && operationContext.shadowRef() != null) {
-            ObjectReferenceType shadowRef = operationContext.shadowRef();
+        if (shadow == null && ctx.getAssociationShadowRef() != null) {
+            ObjectReferenceType shadowRef = ctx.getAssociationShadowRef();
             try {
                 shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result).asObjectable();
             } catch (Exception ex) {
@@ -170,12 +161,12 @@ public class ShadowAuditHelper {
         return delta != null ? new ObjectDeltaOperation<>(delta, result) : null;
     }
 
-    private boolean isEnhancedShadowAuditingEnabled(SystemConfigurationType config) {
+    private boolean isRecordResourceStageEnabled(SystemConfigurationType config) {
         if (config == null || config.getAudit() == null) {
             return false;
         }
 
         SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
-        return BooleanUtils.isTrue(eventRecording.isRecordEnhancedShadowChanges());
+        return BooleanUtils.isTrue(eventRecording.isRecordResourceStageChanges());
     }
 }

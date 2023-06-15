@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironmentSupplier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -146,7 +146,7 @@ public class AuditHelper {
 
     public AuditEventRecord evaluateRecordingExpression(ExpressionType expression, AuditEventRecord auditRecord,
             PrismObject<? extends ObjectType> primaryObject, ExpressionProfile expressionProfile,
-            Supplier<ExpressionEnvironment> expressionEnvironmentSupplier, Task task, OperationResult parentResult) {
+            ExpressionEnvironmentSupplier expressionEnvironmentSupplier, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
 
@@ -156,7 +156,7 @@ public class AuditHelper {
             variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
 
             if (expressionEnvironmentSupplier != null) {
-                ExpressionEnvironment env = expressionEnvironmentSupplier.get();
+                ExpressionEnvironment env = expressionEnvironmentSupplier.get(task, result);
                 ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
             }
 

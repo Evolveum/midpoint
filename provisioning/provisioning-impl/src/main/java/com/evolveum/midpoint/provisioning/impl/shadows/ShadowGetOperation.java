@@ -106,7 +106,7 @@ class ShadowGetOperation {
             @Nullable ShadowType providedRepositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull ShadowsLocalBeans localBeans)
@@ -223,7 +223,7 @@ class ShadowGetOperation {
     private static @NotNull ProvisioningContext createProvisioningContext(
             @NotNull ShadowType repositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext operationContext,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull ShadowsLocalBeans localBeans)
@@ -231,7 +231,7 @@ class ShadowGetOperation {
             ObjectNotFoundException {
         ProvisioningContext ctx = localBeans.ctxFactory.createForShadow(repositoryShadow, task, result);
         ctx.setGetOperationOptions(options);
-        ctx.setOperationContext(context);
+        ctx.setOperationContext(operationContext);
         return ctx;
     }
 

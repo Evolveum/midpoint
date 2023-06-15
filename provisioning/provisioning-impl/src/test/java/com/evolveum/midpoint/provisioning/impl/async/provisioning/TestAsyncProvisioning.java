@@ -184,7 +184,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         }
 
         assertRepoShadow(jackAccountOid)
-                .assertHasMetadataModifyTimestamp()
+                .assertHasMetadataCreateTimestamp()
                 .assertHasMetadataModifyTimestamp();
         assertShadowFuture(jackAccountOid)
                 .attributes()

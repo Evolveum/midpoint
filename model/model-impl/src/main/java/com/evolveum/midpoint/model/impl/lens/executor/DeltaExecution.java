@@ -542,7 +542,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ModelImplUtils.setRequestee(task, context);
         try {
             ProvisioningOperationOptions options = getProvisioningOptions();
-            ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
+            ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
 
             return b.provisioningService.addObject(object, scripts, options, ctx, task, result);
         } finally {
@@ -681,7 +681,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ModelImplUtils.setRequestee(task, context);
         try {
             ProvisioningOperationOptions options = getProvisioningOptions();
-            ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
+            ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
             String updatedOid =
                     b.provisioningService.modifyObject(
                             objectClass, oid, deltaForExecution.getModifications(), scripts, options, ctx, task, result);
@@ -828,7 +828,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
         ProvisioningOperationOptions options = getProvisioningOptions();
-        ProvisioningOperationContext ctx = context.createProvisioningOperationContext(task, result);
+        ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
 
         PrismObject<E> objectToDelete = null;
         try {

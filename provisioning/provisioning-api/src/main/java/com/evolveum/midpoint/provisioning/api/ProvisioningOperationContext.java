@@ -7,17 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-import java.util.function.Supplier;
-
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironmentSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class ProvisioningOperationContext {
 
+    /**
+     * Request identifier used through multiple audit records for complex operations. E.g. from DISCOVER_OBJECT,
+     * through REQUEST, EXECUTION RESOURCE stage.
+     */
     private String requestIdentifier;
 
-    private Supplier<ExpressionEnvironment> expressionEnvironmentSupplier;
+    private ExpressionEnvironmentSupplier expressionEnvironmentSupplier;
 
     private ExpressionProfile expressionProfile;
 
@@ -55,11 +57,11 @@ public class ProvisioningOperationContext {
         return this;
     }
 
-    public Supplier<ExpressionEnvironment> expressionEnvironmentSupplier() {
+    public ExpressionEnvironmentSupplier expressionEnvironmentSupplier() {
         return expressionEnvironmentSupplier;
     }
 
-    public ProvisioningOperationContext expressionEnvironmentSupplier(Supplier<ExpressionEnvironment> expressionEnvironment) {
+    public ProvisioningOperationContext expressionEnvironmentSupplier(ExpressionEnvironmentSupplier expressionEnvironment) {
         this.expressionEnvironmentSupplier = expressionEnvironment;
         return this;
     }

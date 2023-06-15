@@ -141,7 +141,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -199,7 +199,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull PrismObject<T> object,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
@@ -335,7 +335,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -372,7 +372,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
@@ -413,7 +413,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -742,7 +742,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ResultHandler<T> handler,
-            @Nullable ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -998,7 +998,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ResourceType resource, String shadowOid,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
-            ProvisioningOperationContext context,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException,

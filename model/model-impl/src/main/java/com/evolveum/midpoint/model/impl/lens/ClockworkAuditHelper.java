@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironmentSupplier;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -171,7 +174,7 @@ public class ClockworkAuditHelper {
         if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
             auditRecord = auditHelper.evaluateRecordingExpression(auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject,
-                    context.getPrivilegedExpressionProfile(), () -> new ModelExpressionEnvironment<>(context, null, task, result),
+                    context.getPrivilegedExpressionProfile(), (t, r) -> new ModelExpressionEnvironment<>(context, null, t, r),
                     task, result);
         }
 

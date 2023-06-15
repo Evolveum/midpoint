@@ -123,6 +123,7 @@ public final class LiveSyncActivityRun
         ActivityTokenStorageImpl tokenStorage = new ActivityTokenStorageImpl(this);
 
         ProvisioningOperationContext context = new ProvisioningOperationContext();
+        // todo set request identifier
 
         ModelImplUtils.clearRequestee(getRunningTask());
         getModelBeans().provisioningService

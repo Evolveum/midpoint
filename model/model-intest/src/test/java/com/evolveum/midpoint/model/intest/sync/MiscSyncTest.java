@@ -8,12 +8,8 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import java.io.File;
 import java.util.Date;
-import java.util.List;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-
-import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -91,7 +87,7 @@ public class MiscSyncTest extends AbstractInitializedModelIntegrationTest {
         TASK_LIVE_SYNC_DUMMY_BYZANTINE.init(this, initTask, initResult);
         TASK_LIVE_SYNC_DUMMY_BYZANTINE.rerun(initResult); // to get the token
 
-        setRecordEnhancedShadowChanges(true, initTask, initResult);
+        setRecordResourceStageEnabled(true, initTask, initResult);
     }
 
     /** MID-2149 */

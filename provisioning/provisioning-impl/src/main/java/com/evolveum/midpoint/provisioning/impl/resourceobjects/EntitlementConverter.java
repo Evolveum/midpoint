@@ -831,8 +831,8 @@ class EntitlementConverter {
         ResourceType resource = subjectCtx.getResource();
         ShadowAssociationType associationBean = associationValue.asContainerable();
         if (subjectCtx.getOperationContext() != null) {
-            ProvisioningOperationContext ctx = subjectCtx.getOperationContext();
-            ctx.shadowRef(associationBean.getShadowRef());
+            // todo this shouldn't be subjectCtx but the other one [viliam]
+            subjectCtx.setAssociationShadowRef(associationBean.getShadowRef());
         }
 
         QName associationName = associationBean.getName();
