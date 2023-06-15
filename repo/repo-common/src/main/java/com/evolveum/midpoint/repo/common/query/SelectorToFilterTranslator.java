@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.query;
 
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Translates a selector ({@link ObjectSelectorType}) to appropriate {@link ObjectFilter}.
  *
- * Actually, uses {@link ValueSelector#computeFilter(ClauseFilteringContext)} to do that.
+ * Actually, uses {@link ValueSelector#computeFilter(FilteringContext)} to do that.
  *
  * @see SelectorMatcher
  */
@@ -73,7 +75,7 @@ public class SelectorToFilterTranslator {
                             beans.expressionFactory, PrismContext.get(),
                             "expression in " + contextDescription, task, result);
                 };
-        ClauseFilteringContext ctx = new ClauseFilteringContext(
+        FilteringContext ctx = new FilteringContext(
                 targetType,
                 getNarrowedTargetType(),
                 null,
@@ -81,7 +83,7 @@ public class SelectorToFilterTranslator {
                 (clause, ctx1) -> true,
                 filterCollector,
                 filterEvaluator,
-                SelectorProcessingTracer.loggerBased(logger),
+                ProcessingTracer.loggerBased(logger),
                 beans.repositoryService,
                 null,
                 null,

@@ -11,8 +11,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.schema.selector.eval.FilterCollector;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -53,7 +53,7 @@ public class ParentClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         // TODO multiple levels
@@ -63,13 +63,13 @@ public class ParentClause extends SelectorClause {
             traceNotApplicable(ctx, "value has no parent");
             return false;
         }
-        boolean matches = parent.matches(parent2, ctx.next("p", "parent"));
+        boolean matches = parent.matches(parent2, ctx.child("p", "parent"));
         traceApplicability(ctx, matches, "parent specification matches: %s", matches);
         return matches;
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx)
+    public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         PrismContext prismContext = PrismContext.get();
@@ -87,14 +87,14 @@ public class ParentClause extends SelectorClause {
         }
 
         ObjectFilter conjunct;
-        var filterCollector = FilterCollector.defaultOne();
-        ClauseFilteringContext nextCtx = ctx.next(
+        var childCollector = FilterCollector.defaultOne();
+        FilteringContext childCtx = ctx.child(
                 parentClass,
-                filterCollector,
-                null, // the original filter is not interesting (should we look for parent there?)
+                childCollector,
+                null, // the original filter is not interesting (or, should we look for parent there?)
                 "p", "parent");
 
-        var applicable = parent.applyFilters(nextCtx);
+        var applicable = parent.toFilter(childCtx);
         if (!applicable) {
             traceNotApplicable(ctx, "parent selector not applicable");
             return false;
@@ -103,7 +103,7 @@ public class ParentClause extends SelectorClause {
         //noinspection unchecked
         conjunct = prismContext.queryFor((Class<? extends Containerable>) ctx.getRestrictedType())
                 .ownedBy((Class<? extends Containerable>) parentClass, path)
-                .filter(filterCollector.getFilter())
+                .filter(childCollector.getFilter())
                 .buildFilter();
 
         addConjunct(ctx, conjunct);

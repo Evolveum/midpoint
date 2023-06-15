@@ -12,9 +12,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/** Selects authorizations according to their specified phase. */
 public class PhaseSelector {
 
+    /** Phase value to select on. */
     @Nullable private final AuthorizationPhaseType phase;
+
+    /** If `true`, the phase value (including `null`) must match exactly. */
     private final boolean strict;
 
     private PhaseSelector(@Nullable AuthorizationPhaseType phase, boolean strict) {

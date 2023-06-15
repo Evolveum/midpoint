@@ -140,11 +140,13 @@ public class EvaluationOrderImpl implements EvaluationOrder {
         if (!newState.isDefined()) {
             throw new IllegalArgumentException("Cannot compute diff to undefined evaluation order");
         }
-        @SuppressWarnings({"unchecked", "raw"})
         Collection<QName> relations = CollectionUtils.union(getRelations(), newState.getRelations());
         Map<QName, Integer> rv = new HashMap<>();
         // relation is not null below
-        relations.forEach(relation -> rv.put(relation, newState.getMatchingRelationOrder(relation) - getMatchingRelationOrder(relation)));
+        relations.forEach(relation ->
+                rv.put(
+                        relation,
+                        newState.getMatchingRelationOrder(relation) - getMatchingRelationOrder(relation)));
         return rv;
     }
 

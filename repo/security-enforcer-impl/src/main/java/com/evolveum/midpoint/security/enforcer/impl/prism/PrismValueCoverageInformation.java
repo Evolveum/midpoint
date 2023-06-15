@@ -101,7 +101,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             int i = 0;
             for (TopDownSpecification spec : specs) {
                 merged.merge(
-                        forTopDownSpec(String.valueOf(i++), value, value, spec, evaluation));
+                        forTopDownSpec(evaluation.selectorId(i++), value, value, spec, evaluation));
             }
             return merged;
         } else {
@@ -159,9 +159,10 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         var parentCoverage = PrismValueCoverageInformation.noCoverage();
         var itemCoverageInformation = createItemCoverageInformationObject(parentCoverage, childPath); // TODO evaluate lazily
 
+        int valId = 0;
         for (PrismValue itemValue : item.getValues()) {
             PrismValueCoverageInformation subValueCoverage =
-                    forTopDownSpec(id, itemValue, rootValue, linkToChild.getChild(), evaluation);
+                    forTopDownSpec(id + ".val" + (valId++), itemValue, rootValue, linkToChild.getChild(), evaluation);
             if (subValueCoverage.getCoverage() != NONE) {
                 itemCoverageInformation.addForValue(itemValue, subValueCoverage);
             }

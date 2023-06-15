@@ -9,8 +9,8 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -44,7 +44,7 @@ public class OrgRefClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         Object realValue = value.getRealValueIfExists();
@@ -63,7 +63,7 @@ public class OrgRefClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) throws SchemaException {
+    public boolean toFilter(@NotNull FilteringContext ctx) throws SchemaException {
         addConjunct(
                 ctx,
                 PrismContext.get().queryFor(ObjectType.class)
