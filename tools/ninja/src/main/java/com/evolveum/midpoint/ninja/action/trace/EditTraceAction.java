@@ -36,7 +36,7 @@ public class EditTraceAction extends RepositoryAction<EditTraceOptions, Void> {
 
     @Override
     @NotNull
-    public NinjaApplicationContextLevel getApplicationContextLevel() {
+    public NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.NO_REPOSITORY;
     }
 

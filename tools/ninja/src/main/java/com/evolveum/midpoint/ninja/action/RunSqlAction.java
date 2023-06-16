@@ -13,35 +13,58 @@ import java.sql.Statement;
 import java.util.List;
 import javax.sql.DataSource;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.AuditFactory;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 
-public abstract class DataSourceAction<O extends DataSourceOptions> extends Action<O, Void> {
+// todo proper logging
+public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
     @Override
     public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
-        return NinjaApplicationContextLevel.NO_REPOSITORY;
+        ConnectionOptions opts = NinjaUtils.getOptions(allOptions, ConnectionOptions.class);
+        if (opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
+            // no midpoint-home option defined, custom jdbc url/username/password will be used
+            return NinjaApplicationContextLevel.NONE;
+        }
+
+        return NinjaApplicationContextLevel.STARTUP_CONFIGURATION;
     }
 
     @Override
     public Void execute() throws Exception {
-        // this is manual setup of datasource for midpoint, can't be done via spring application context initialization with repository
-        // because sqale repository during initialization loads data from m_uri and m_ext_item (not yet existing)
-        log.info("Initializing application context");
+        File scriptsDirectory = options.getScriptsDirectory();
+
+        ConnectionOptions opts = context.getOptions(ConnectionOptions.class);
+        if (opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
+            if (options.getScripts().isEmpty()) {
+                return null;
+            }
+
+            // setup custom datasource
+            try (HikariDataSource dataSource = setupCustomDataSource()) {
+                executeScripts(dataSource, scriptsDirectory, options.getScripts());
+            }
+
+            return null;
+        }
 
         final ApplicationContext applicationContext = context.getApplicationContext();
         final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);
@@ -49,13 +72,10 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
         DataSource repositoryDataSource = null;
         DataSource auditDataSource = null;
         try {
-            File scriptsDirectory = options.getScriptsDirectory();
-
             // upgrade midpoint repository
-            if (!options.isAuditOnly()) {
-                Configuration configuration = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
-                repositoryDataSource = createDataSource(configuration, "ninja-repository");
-
+            Configuration configuration = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
+            repositoryDataSource = createDataSource(configuration, "ninja-repository");
+            if (!options.isNoRepository()) {
                 executeScripts(repositoryDataSource, scriptsDirectory, options.getScripts());
             }
 
@@ -76,12 +96,30 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
         return null;
     }
 
-    private void executeScripts(DataSource dataSource, File scriptsDirectory, List<File> scripts) throws IOException, SQLException {
-        List<File> files = scripts.stream()
-                .map(script -> scriptsDirectory != null ? new File(scriptsDirectory, script.getPath()) : script)
-                .toList();
+    private HikariDataSource setupCustomDataSource() {
+        HikariConfig config = new HikariConfig();
 
-        executeSqlScripts(dataSource, files);
+        // todo validate jdbc inputs
+        config.setJdbcUrl(options.getJdbcUrl());
+        config.setUsername(options.getJdbcUsername());
+        config.setPassword(options.getPassword());
+
+        config.setDriverClassName("org.postgresql.Driver");
+        config.setAutoCommit(true);
+        config.setMinimumIdle(1);
+        config.setMaximumPoolSize(5);
+        config.setPoolName("ninja-custom-jdbc");
+
+        return new HikariDataSource(config);
+    }
+
+    private DataSource createDataSource(Configuration configuration, String name) throws RepositoryServiceFactoryException {
+        log.info("Creating connection for " + name);
+        SqaleRepositoryConfiguration repositoryConfiguration = new SqaleRepositoryConfiguration(configuration);
+        repositoryConfiguration.init();
+        DataSourceFactory dataSourceFactory = new DataSourceFactory(repositoryConfiguration);
+
+        return dataSourceFactory.createDataSource(name);
     }
 
     private DataSource createAuditDataSource(DataSource repositoryDataSource, MidpointConfiguration midpointConfiguration)
@@ -112,13 +150,12 @@ public abstract class DataSourceAction<O extends DataSourceOptions> extends Acti
         return createDataSource(auditServiceConfig, "ninja-audit");
     }
 
-    private DataSource createDataSource(Configuration configuration, String name) throws RepositoryServiceFactoryException {
-        log.info("Creating connection for " + name);
-        SqaleRepositoryConfiguration repositoryConfiguration = new SqaleRepositoryConfiguration(configuration);
-        repositoryConfiguration.init();
-        DataSourceFactory dataSourceFactory = new DataSourceFactory(repositoryConfiguration);
+    private void executeScripts(DataSource dataSource, File scriptsDirectory, List<File> scripts) throws IOException, SQLException {
+        List<File> files = scripts.stream()
+                .map(script -> scriptsDirectory != null ? new File(scriptsDirectory, script.getPath()) : script)
+                .toList();
 
-        return dataSourceFactory.createDataSource(name);
+        executeSqlScripts(dataSource, files);
     }
 
     private void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws IOException, SQLException {

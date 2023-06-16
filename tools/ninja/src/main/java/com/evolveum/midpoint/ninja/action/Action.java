@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
@@ -79,7 +81,7 @@ public abstract class Action<O, R> {
     }
 
     @NotNull
-    public NinjaApplicationContextLevel getApplicationContextLevel() {
+    public NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.FULL_REPOSITORY;
     }
 

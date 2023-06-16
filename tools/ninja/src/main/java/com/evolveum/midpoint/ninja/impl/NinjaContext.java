@@ -49,7 +49,7 @@ public class NinjaContext implements Closeable {
 
     private Log log;
 
-    private GenericXmlApplicationContext context;
+    private GenericXmlApplicationContext applicationContext;
 
     private MidpointConfiguration midpointConfiguration;
 
@@ -70,8 +70,8 @@ public class NinjaContext implements Closeable {
 
     @Override
     public void close() {
-        if (context != null) {
-            context.close();
+        if (applicationContext != null) {
+            applicationContext.close();
         }
 
         systemPropertiesBackup.forEach((k, v) -> {
@@ -106,7 +106,7 @@ public class NinjaContext implements Closeable {
         ctx.load(applicationContextLevel.contexts);
         ctx.refresh();
 
-        context = ctx;
+        applicationContext = ctx;
 
         if (applicationContextLevel.containsPrismInitialization()) {
             updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
@@ -157,8 +157,8 @@ public class NinjaContext implements Closeable {
     }
 
     public ApplicationContext getApplicationContext() {
-        if (context != null) {
-            return context;
+        if (applicationContext != null) {
+            return applicationContext;
         }
 
         ConnectionOptions opts = getOptions(ConnectionOptions.class);
@@ -167,7 +167,7 @@ public class NinjaContext implements Closeable {
         }
         setupRepositoryViaMidPointHome(opts);
 
-        return context;
+        return applicationContext;
     }
 
     private String getPassword(ConnectionOptions options) {
@@ -275,7 +275,7 @@ public class NinjaContext implements Closeable {
             return schemaService;
         }
 
-        schemaService = context.getBean(SchemaService.class);
+        schemaService = applicationContext.getBean(SchemaService.class);
 
         return schemaService;
     }

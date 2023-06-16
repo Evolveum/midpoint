@@ -27,9 +27,11 @@ public class VerifyFilesTest {
         verifyFilesOptions.setFiles(List.of(new File("./src/test/resources/upgrade/objects")));
         verifyFilesOptions.setReport(new File("./target/verify-files.csv"));
 
+        List<Object> options = List.of(baseOptions, connectionOptions, verifyFilesOptions);
+
         VerifyFilesAction action = new VerifyFilesAction();
 
-        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, verifyFilesOptions), action.getApplicationContextLevel())) {
+        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
             action.init(context, verifyFilesOptions);
 
             action.execute();

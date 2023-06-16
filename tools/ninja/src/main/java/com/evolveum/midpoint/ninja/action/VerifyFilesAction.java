@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class VerifyFilesAction extends Action<VerifyFilesOptions, Void> {
 
     @Override
-    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel() {
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.NO_REPOSITORY;
     }
 

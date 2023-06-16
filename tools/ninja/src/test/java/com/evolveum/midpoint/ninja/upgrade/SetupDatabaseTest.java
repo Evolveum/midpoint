@@ -35,9 +35,11 @@ public class SetupDatabaseTest extends BaseUpgradeTest {
         SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
         setupDatabaseOptions.setScriptsDirectory(new File("../../config/sql/native-new"));
 
+        List<Object> options = List.of(baseOptions, connectionOptions, setupDatabaseOptions);
+
         SetupDatabaseAction action = new SetupDatabaseAction();
 
-        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions), action.getApplicationContextLevel())) {
+        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
             action.init(context, setupDatabaseOptions);
 
             action.execute();

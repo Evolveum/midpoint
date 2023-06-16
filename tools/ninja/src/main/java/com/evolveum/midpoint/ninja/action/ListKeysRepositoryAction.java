@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja.action;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
+import java.util.List;
 import javax.crypto.SecretKey;
 
 import org.apache.commons.codec.binary.Base64;
@@ -35,7 +36,7 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
     }
 
     @Override
-    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel() {
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.NO_REPOSITORY;
     }
 

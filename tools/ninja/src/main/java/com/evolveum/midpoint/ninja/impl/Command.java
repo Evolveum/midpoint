@@ -48,6 +48,8 @@ public enum Command {
 
     DOWNLOAD_DISTRIBUTION("download-distribution", DownloadDistributionOptions.class, DownloadDistributionAction.class),
 
+    RUN_SQL("run-sql", RunSqlOptions.class, RunSqlAction.class),
+
     UPGRADE_DATABASE("upgrade-database", UpgradeDatabaseOptions.class, UpgradeDatabaseAction.class),
 
     UPGRADE_INSTALLATION("upgrade-installation", UpgradeInstallationOptions.class, UpgradeInstallationAction.class),
