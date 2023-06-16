@@ -48,6 +48,6 @@ public class SetupDatabaseTest extends BaseUpgradeTest {
         Assertions.assertThat(getGlobalMetadataValue(ninjaTestDatabase, "schemaChangeNumber"))
                 .isEqualTo("15");
         Assertions.assertThat(getGlobalMetadataValue(ninjaTestDatabase, "schemaAuditChangeNumber"))
-                .isEqualTo("3");
+                .isEqualTo("4");
     }
 }

@@ -6,24 +6,24 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.security.*;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
+import javax.crypto.SecretKey;
+
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.context.ApplicationContext;
+
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.context.ApplicationContext;
-
-import javax.crypto.SecretKey;
-import java.security.*;
-import java.security.cert.Certificate;
-import java.util.Enumeration;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions, Void> {
+public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
@@ -34,6 +34,10 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions, 
 
     @Override
     public Void execute() throws Exception {
+        ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
+        // force offline mode, this action just reads keystore
+        connectionOptions.setOffline(true);
+
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 
