@@ -54,7 +54,9 @@ public enum Command {
 
     UPGRADE_DISTRIBUTION("upgrade-distribution", UpgradeDistributionOptions.class, UpgradeDistributionAction.class),
 
-    UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class);
+    UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class),
+
+    VERIFY_FILES("verify-files", VerifyFilesOptions.class, VerifyFilesAction.class);
 
     private final String commandName;
 
