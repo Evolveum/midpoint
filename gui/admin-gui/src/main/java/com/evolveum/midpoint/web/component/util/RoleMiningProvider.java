@@ -44,6 +44,13 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
 
     public static final String F_ID = "id";
 
+
+    public static final String F_METRIC = "metric";
+
+    public static final String F_TYPE = "type";
+
+
+
     public RoleMiningProvider(Component component, IModel<List<T>> model, boolean sortable) {
         super(component);
         Validate.notNull(model);
@@ -98,7 +105,7 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
                 return sortParam.isAscending() ? comparison : -comparison;
 
             });
-        } else if (F_ID.equals(propertyName)) {
+        } else if (F_ID.equals(propertyName) || F_TYPE.equals(propertyName)) {
             list.sort((o1, o2) -> {
 
                 String prop3, prop4;
@@ -114,7 +121,7 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
                 return sortParam.isAscending() ? comparison : -comparison;
 
             });
-        } else if (F_GROUP.equals(propertyName) || F_RATION.equals(propertyName) || F_USER_SIZE.equals(propertyName)) {
+        } else if (F_GROUP.equals(propertyName) || F_RATION.equals(propertyName) || F_USER_SIZE.equals(propertyName) ||F_METRIC.equals(propertyName)) {
             list.sort((o1, o2) -> {
 
                 double prop3, prop4;

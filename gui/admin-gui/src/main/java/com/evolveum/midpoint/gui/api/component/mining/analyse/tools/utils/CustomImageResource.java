@@ -60,6 +60,7 @@ public class CustomImageResource extends DynamicImageResource {
                 graphics.fillRect(x, y, 1, 1);
             }
         }
+        System.out.println("Image generating end");
 
         graphics.dispose();
 

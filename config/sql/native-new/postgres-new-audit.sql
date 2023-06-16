@@ -58,6 +58,7 @@ DO $$ BEGIN
         'RESOURCE',
         'ROLE',
         'MINING',
+        'CLUSTER',
         'SECURITY_POLICY',
         'SEQUENCE',
         'SERVICE',

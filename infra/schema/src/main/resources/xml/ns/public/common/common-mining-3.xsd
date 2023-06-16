@@ -160,4 +160,189 @@
 
     <xsd:element name="miningType" type="tns:MiningType" substitutionGroup="tns:object"/>
 
+
+    <xsd:complexType name="ClusterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role mining object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AssignmentHolderType">
+                <xsd:sequence>
+
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object processed. Usually known, even for objects that are to be created.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.oid</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="roles" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Unique group of used roles.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="similarGroupsId" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Similar groups.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="members" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Group members.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+
+                    <xsd:element name="identifier" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Identifier.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.identifier</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Indication of the level of risk associated with the permissions that this role assigns.
+                                    This may be a numeric value, textual label are any other suitable machine-processable indication.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.riskLevel</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Indication role count in the group.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.roleCount</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="membersCount" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Indication member count in the group.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.memberCount</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="density" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Context of clustering refers to the measure of how tightly packed or concentrated the
+                                    data points are within a cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.density</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="mean" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Average number of roles per data point in a given cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.mean</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+
+
+
+                    <xsd:element name="minOccupation" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Minimum number of roles among the data points within a cluster. It represents the smallest
+                                    number of roles associated with any individual data point within that specific cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.minOccupation</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+
+                    <xsd:element name="maxOccupation" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Maximum number of roles among the data points within a cluster. It represents the highest
+                                    number of roles associated with any individual data point within that specific cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.maxOccupation</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="similarGroupsCount" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Indication similar groups count in the group.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.similarGroupCount</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+
+    </xsd:complexType>
+
+    <xsd:element name="clusterType" type="tns:ClusterType" substitutionGroup="tns:object"/>
 </xsd:schema>

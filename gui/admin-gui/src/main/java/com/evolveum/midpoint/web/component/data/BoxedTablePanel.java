@@ -244,6 +244,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             setItemsPerPage(Integer.MAX_VALUE);
         } else {
             setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
+            if(isRoleMining){
+                setItemsPerPage(100);
+            }
         }
     }
 
@@ -366,7 +369,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 protected List<Integer> getPagingSizes() {
 
                     if(isRoleMining){
-                        return List.of(new Integer[] { 50, 100, 200, 400 });
+                        return List.of(new Integer[] { 100, 200, 400 });
                     }
                     return super.getPagingSizes();
                 }

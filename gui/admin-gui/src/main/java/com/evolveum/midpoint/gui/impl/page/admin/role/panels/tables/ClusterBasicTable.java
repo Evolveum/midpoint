@@ -13,8 +13,8 @@ import java.util.List;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -32,14 +32,14 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 
-public class ClusterTable extends Panel {
+public class ClusterBasicTable extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
 
-    public ClusterTable(String id) {
+    public ClusterBasicTable(String id) {
         super(id);
     }
 
@@ -55,22 +55,22 @@ public class ClusterTable extends Panel {
         Form<?> form = new Form<>(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
-        form.add(miningTable());
+        form.add(clusterTable());
     }
 
     private ObjectQuery getCustomizeContentQuery() {
-        return ((PageBase) getPage()).getPrismContext().queryFor(MiningType.class).not()
-                .item(MiningType.F_SIMILAR_GROUPS_COUNT).eq(0)
+        return ((PageBase) getPage()).getPrismContext().queryFor(ClusterType.class).not()
+                .item(ClusterType.F_SIMILAR_GROUPS_COUNT).eq(0)
                 .build();
     }
 
-    protected MainObjectListPanel<?> miningTable() {
+    protected MainObjectListPanel<?> clusterTable() {
 
-        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, MiningType.class) {
+        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, ClusterType.class) {
 
             @Override
-            protected ISelectableDataProvider<SelectableBean<MiningType>> createProvider() {
-                SelectableBeanObjectDataProvider<MiningType> provider = createSelectableBeanObjectDataProvider(() ->
+            protected ISelectableDataProvider<SelectableBean<ClusterType>> createProvider() {
+                SelectableBeanObjectDataProvider<ClusterType> provider = createSelectableBeanObjectDataProvider(() ->
                         getCustomizeContentQuery(), null);
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
@@ -79,26 +79,30 @@ public class ClusterTable extends Panel {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<MiningType>, String>> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<ClusterType>, String>> createDefaultColumns() {
 
-                List<IColumn<SelectableBean<MiningType>, String>> columns = new ArrayList<>();
+                List<IColumn<SelectableBean<ClusterType>, String>> columns = new ArrayList<>();
 
-                IColumn<SelectableBean<MiningType>, String> column;
+                IColumn<SelectableBean<ClusterType>, String> column;
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("RoleMining.cluster.table.members.count")) {
+                column = new AbstractColumn<>(
+                        createStringResource("Cluster")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<MiningType>>> cellItem,
-                            String componentId, IModel<SelectableBean<MiningType>> model) {
-                        cellItem.add(new Label(componentId,
-                                model.getObject().getValue() != null && model.getObject().getValue().getMembersCount() != null ?
-                                        model.getObject().getValue().getMembersCount() : null));
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getIdentifier() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue().getIdentifier()));
+
+                        } else {
+                            cellItem.add(new Label(componentId,
+                                    (Integer) null));
+                        }
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<MiningType>> rowModel) {
-                        return Model.of("");
+                    public String getCssClass() {
+                        return "col-md-2 col-lg-1";
                     }
 
                     @Override
@@ -108,7 +112,62 @@ public class ClusterTable extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return MiningType.F_MEMBERS_COUNT.toString();
+                        return ClusterType.F_IDENTIFIER.toString();
+                    }
+                };
+                columns.add(column);
+
+                column = new AbstractColumn<>(
+                        createStringResource("Density")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getDensity() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue().getDensity()));
+
+                        } else {
+                            cellItem.add(new Label(componentId,
+                                    (Integer) null));
+                        }
+                    }
+
+                    @Override
+                    public String getCssClass() {
+                        return "col-md-2 col-lg-1";
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return ClusterType.F_DENSITY.toString();
+                    }
+                };
+                columns.add(column);
+
+                column = new AbstractColumn<>(
+                        createStringResource("RoleMining.cluster.table.members.count")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getMembersCount() != null ?
+                                        model.getObject().getValue().getMembersCount() : null));
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return ClusterType.F_MEMBERS_COUNT.toString();
                     }
 
                     @Override
@@ -118,12 +177,12 @@ public class ClusterTable extends Panel {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
+                column = new AbstractColumn<>(
                         createStringResource("RoleMining.cluster.table.roles.count")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<MiningType>>> cellItem,
-                            String componentId, IModel<SelectableBean<MiningType>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue().getRolesCount() != null) {
                             cellItem.add(new Label(componentId, model.getObject().getValue().getRolesCount()));
 
@@ -134,8 +193,35 @@ public class ClusterTable extends Panel {
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<MiningType>> rowModel) {
-                        return Model.of("");
+                    public String getCssClass() {
+                        return "col-md-2 col-lg-1";
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return ClusterType.F_ROLES_COUNT.toString();
+                    }
+                };
+                columns.add(column);
+
+                column = new AbstractColumn<>(
+                        createStringResource("Min roles")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getMinOccupation() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue().getMinOccupation()));
+
+                        } else {
+                            cellItem.add(new Label(componentId,
+                                    (Integer) null));
+                        }
                     }
 
                     @Override
@@ -150,26 +236,88 @@ public class ClusterTable extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return MiningType.F_ROLES_COUNT.toString();
+                        return ClusterType.F_MIN_OCCUPATION.toString();
                     }
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
+                column = new AbstractColumn<>(
+                        createStringResource("Max roles")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getMaxOccupation() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue().getMaxOccupation()));
+
+                        } else {
+                            cellItem.add(new Label(componentId,
+                                    (Integer) null));
+                        }
+                    }
+
+                    @Override
+                    public String getCssClass() {
+                        return "col-md-2 col-lg-1";
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return ClusterType.F_MAX_OCCUPATION.toString();
+                    }
+                };
+                columns.add(column);
+
+                column = new AbstractColumn<>(
+                        createStringResource("Mean")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getMean() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue().getMean()));
+
+                        } else {
+                            cellItem.add(new Label(componentId,
+                                    (Integer) null));
+                        }
+                    }
+
+                    @Override
+                    public String getCssClass() {
+                        return "col-md-2 col-lg-1";
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return ClusterType.F_MEAN.toString();
+                    }
+                };
+                columns.add(column);
+                column = new AbstractColumn<>(
                         createStringResource("RoleMining.cluster.table.similar.groups.count")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<MiningType>>> cellItem,
-                            String componentId, IModel<SelectableBean<MiningType>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue().getSimilarGroupsCount() != null) {
-//                            cellItem.add(new Label(componentId, model.getObject().getValue().getSimilarGroupsCount()));
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
                                     Model.of(String.valueOf(model.getObject().getValue().getSimilarGroupsCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     ClusterDetailsPanel detailsPanel = new ClusterDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Groups"), model.getObject().getValue().getSimilarGroupsId(), model.getObject().getValue().asPrismObject().getOid()) {
+                                            Model.of("Groups"), model.getObject().getValue().getSimilarGroupsId(), null) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);
@@ -192,11 +340,6 @@ public class ClusterTable extends Panel {
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<MiningType>> rowModel) {
-                        return Model.of("");
-                    }
-
-                    @Override
                     public String getCssClass() {
                         return "col-md-2 col-lg-1";
                     }
@@ -208,17 +351,17 @@ public class ClusterTable extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return MiningType.F_SIMILAR_GROUPS_COUNT.toString();
+                        return ClusterType.F_SIMILAR_GROUPS_COUNT.toString();
                     }
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
+                column = new AbstractColumn<>(
                         createStringResource("RoleMining.cluster.table.similar.image.popup")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<MiningType>>> cellItem,
-                            String componentId, IModel<SelectableBean<MiningType>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue().getSimilarGroupsCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
@@ -226,9 +369,7 @@ public class ClusterTable extends Panel {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), model.getObject().getValue().getSimilarGroupsId(),
-                                            model.getObject().getValue().asPrismObject().getOid(),
-                                            model.getObject().getValue().getIdentifier()) {
+                                            Model.of("Image"), model.getObject().getValue().getSimilarGroupsId(), null, model.getObject().getValue().getIdentifier()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);
@@ -251,11 +392,6 @@ public class ClusterTable extends Panel {
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<MiningType>> rowModel) {
-                        return Model.of("");
-                    }
-
-                    @Override
                     public String getCssClass() {
                         return "col-md-2 col-lg-1";
                     }
@@ -267,7 +403,7 @@ public class ClusterTable extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return MiningType.F_SIMILAR_GROUPS_COUNT.toString();
+                        return ClusterType.F_SIMILAR_GROUPS_COUNT.toString();
                     }
                 };
                 columns.add(column);
@@ -276,7 +412,7 @@ public class ClusterTable extends Panel {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.TABLE_MINING;
+                return UserProfileStorage.TableId.TABLE_CLUSTER;
             }
 
             @Override

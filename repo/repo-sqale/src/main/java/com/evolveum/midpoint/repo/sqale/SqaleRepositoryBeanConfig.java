@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterObjectMapping;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -175,6 +177,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(MiningType.COMPLEX_TYPE, QMiningObjectMapping.init(repositoryContext))
+                .register(ClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
                 .register(SecurityPolicyType.COMPLEX_TYPE,

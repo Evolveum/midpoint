@@ -33,6 +33,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
      * */
     public enum TableId {
         TABLE_MINING,
+        TABLE_CLUSTER,
         PAGE_USER_SELECTION,
         TABLE_ROLES,
         TABLE_CASES,

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterData;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.QMiningData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
@@ -78,6 +79,7 @@ public enum MObjectType {
     RESOURCE(QResource.class, ResourceType.class),
     ROLE(QRole.class, RoleType.class),
     MINING(QMiningData.class, MiningType.class),
+    CLUSTER(QClusterData.class, ClusterType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
     SEQUENCE(QSequence.class, SequenceType.class),
     SERVICE(QService.class, ServiceType.class),

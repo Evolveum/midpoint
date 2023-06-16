@@ -389,6 +389,22 @@ public class MiningObjectUtils {
         }
     }
 
+    public static List<PrismObject<MiningType>> filterMiningTypeObjects(PageBase pageBase) {
+
+        String string = DOT_CLASS + "filterMiningTypes";
+        OperationResult result = new OperationResult(string);
+
+        List<PrismObject<MiningType>> prismObjectList = null;
+        try {
+            prismObjectList = pageBase.getMidpointApplication().getRepositoryService()
+                    .searchObjects(MiningType.class, null, null, result);
+        } catch (CommonException e) {
+            e.printStackTrace();
+        }
+
+        return prismObjectList;
+    }
+
     public static PrismObject<RoleType> getRoleObject(@NotNull PageBase pageBase, String oid,
             OperationResult result) {
         try {

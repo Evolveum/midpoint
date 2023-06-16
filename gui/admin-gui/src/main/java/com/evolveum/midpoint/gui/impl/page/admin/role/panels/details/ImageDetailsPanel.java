@@ -42,13 +42,16 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
     private static final String ID_IMAGE = "image";
 
     List<String> similarGroupOid;
-    MiningType targetValue;
+    String targetValue;
+
+    String identifier;
 
     public ImageDetailsPanel(String id, IModel<String> messageModel,
-            List<String> similarGroupOid, MiningType targetValue) {
+            List<String> similarGroupOid, String targetValue, String identifier) {
         super(id, messageModel);
         this.similarGroupOid = similarGroupOid;
         this.targetValue = targetValue;
+        this.identifier = identifier;
     }
 
     @Override
@@ -69,8 +72,11 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
             miningTypeList.add(miningObject);
             rolesOid.addAll(miningObject.asObjectable().getRoles());
         }
-        miningTypeList.add(targetValue.asPrismObject());
-        rolesOid.addAll(targetValue.getRoles());
+        if (targetValue != null) {
+            PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), targetValue, result);
+            miningTypeList.add(miningObject);
+            rolesOid.addAll(miningObject.asObjectable().getRoles());
+        }
 
         List<PrismObject<RoleType>> rolePrismObjectList = new ArrayList<>();
         for (String oid : rolesOid) {
@@ -79,22 +85,24 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
                 rolePrismObjectList.add(roleObject);
             }
         }
+        CustomImageResource imageResource;
+        if (identifier != null && identifier.equals("outliers")) {
+            imageResource = new CustomImageResource(rolePrismObjectList, miningTypeList);
+        } else {
+            List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(miningTypeList);
 
-        List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(miningTypeList);
+            Map<PrismObject<RoleType>, Long> roleCountMap = rolePrismObjectList.stream()
+                    .collect(Collectors.toMap(Function.identity(),
+                            role -> jaccSortMiningSet.stream()
+                                    .filter(miningType -> miningType.asObjectable().getRoles().contains(role.getOid()))
+                                    .count()));
 
-        Map<PrismObject<RoleType>, Long> roleCountMap = rolePrismObjectList.stream()
-                .collect(Collectors.toMap(Function.identity(),
-                        role -> jaccSortMiningSet.stream()
-                                .filter(miningType -> miningType.asObjectable().getRoles().contains(role.getOid()))
-                                .count()));
-
-        List<PrismObject<RoleType>> sortedRolePrismObjectList = roleCountMap.entrySet().stream()
-                .sorted(Map.Entry.<PrismObject<RoleType>, Long>comparingByValue().reversed())
-                .map(Map.Entry::getKey)
-                .toList();
-
-        CustomImageResource imageResource = new CustomImageResource(sortedRolePrismObjectList, jaccSortMiningSet);
-
+            List<PrismObject<RoleType>> sortedRolePrismObjectList = roleCountMap.entrySet().stream()
+                    .sorted(Map.Entry.<PrismObject<RoleType>, Long>comparingByValue().reversed())
+                    .map(Map.Entry::getKey)
+                    .toList();
+            imageResource = new CustomImageResource(sortedRolePrismObjectList, jaccSortMiningSet);
+        }
         Image image = new Image(ID_IMAGE, imageResource);
 
         image.add(new AbstractDefaultAjaxBehavior() {

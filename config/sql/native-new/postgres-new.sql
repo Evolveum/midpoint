@@ -49,6 +49,7 @@ CREATE TYPE ContainerType AS ENUM (
     'TRIGGER');
 
 ALTER TYPE ObjectType ADD VALUE 'MINING';
+ALTER TYPE ObjectType ADD VALUE 'CLUSTER';
 -- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
@@ -77,6 +78,7 @@ CREATE TYPE ObjectType AS ENUM (
     'RESOURCE',
     'ROLE',
     'MINING',
+    'CLUSTER',
     'SECURITY_POLICY',
     'SEQUENCE',
     'SERVICE',
@@ -1185,6 +1187,37 @@ CREATE INDEX m_mining_table_rolesCount_idx ON m_mining_table (rolesCount);
 CREATE INDEX m_mining_table_membersCount_idx ON m_mining_table (membersCount);
 CREATE INDEX m_mining_table_similarGroupsCount_idx ON m_mining_table (similarGroupsCount);
 
+CREATE TABLE m_cluster_table (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('CLUSTER') STORED
+        CHECK (objectType = 'CLUSTER'),
+        identifier TEXT,
+        riskLevel TEXT,
+        roles TEXT[],
+        rolesCount INTEGER,
+        members TEXT[],
+        membersCount INTEGER,
+        similarGroups TEXT[],
+        similarGroupsCount INTEGER,
+        minOccupation INTEGER,
+        maxOccupation INTEGER,
+        mean TEXT,
+        density TEXT
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_cluster_table_oid_insert_tr BEFORE INSERT ON m_cluster_table
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_cluster_table_update_tr BEFORE UPDATE ON m_cluster_table
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_cluster_table_oid_delete_tr AFTER DELETE ON m_cluster_table
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_cluster_table_identifier_idx ON m_cluster_table (identifier);
+CREATE INDEX m_cluster_table_riskLevel_idx ON m_cluster_table (riskLevel);
+CREATE INDEX m_cluster_table_rolesCount_idx ON m_cluster_table (rolesCount);
+CREATE INDEX m_cluster_table_membersCount_idx ON m_cluster_table (membersCount);
+CREATE INDEX m_cluster_table_similarGroupsCount_idx ON m_cluster_table (similarGroupsCount);
 
 
 

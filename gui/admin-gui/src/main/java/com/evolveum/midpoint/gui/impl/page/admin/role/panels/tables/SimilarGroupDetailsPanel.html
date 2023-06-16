@@ -8,6 +8,31 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div id="myTable" wicket:id="datatable_extra" style="width:1600px; height:1000px"></div>
+
+    <div class="border-top my-3 row justify-content-center"></div>
+    <div>
+        <form
+                wicket:id="thresholds_form">
+
+            <div class="d-flex flex-wrap gap-2 w-100 row">
+                <input type="text" placeholder="Frequency" style="width:200px" class="form-control form-control-sm mp-w-12"
+                        wicket:id="threshold_frequency">
+
+                <input type="text" placeholder="Intersection" style="width:200px" class="form-control form-control-sm mp-w-12"
+                        wicket:id="threshold_frequency_2">
+
+                <input class="btn btn-default" type="submit" value="Update"
+                        wicket:id="ajax_submit_link_mn"/>
+            </div>
+        </form>
+
+    </div>
+
+
+    <div id="myTable" style="width:1600px; height:1000px;"
+            wicket:id="datatable_extra"></div>
+
+    <div style="width:1600px; height:1000px"
+            wicket:id="table_intersection"></div>
 </wicket:panel>
 </html>

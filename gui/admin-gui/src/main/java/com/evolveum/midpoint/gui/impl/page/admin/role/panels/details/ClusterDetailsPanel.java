@@ -41,10 +41,10 @@ public class ClusterDetailsPanel extends BasePanel<String> implements Popupable 
     private static final String ID_DATATABLE = "datatable_extra";
 
     List<String> similarGroupOid;
-    MiningType targetValue;
+    String targetValue;
 
     public ClusterDetailsPanel(String id, IModel<String> messageModel,
-            List<String> similarGroupOid, MiningType targetValue) {
+            List<String> similarGroupOid, String targetValue) {
         super(id, messageModel);
         this.similarGroupOid = similarGroupOid;
         this.targetValue = targetValue;
@@ -64,12 +64,15 @@ public class ClusterDetailsPanel extends BasePanel<String> implements Popupable 
         Set<String> rolesOid = new HashSet<>();
         for (String groupOid : similarGroupOid) {
             PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
-
             miningTypeList.add(miningObject);
             rolesOid.addAll(miningObject.asObjectable().getRoles());
         }
-        miningTypeList.add(targetValue.asPrismObject());
-        rolesOid.addAll(targetValue.getRoles());
+
+        if (targetValue != null) {
+            PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), targetValue, result);
+            miningTypeList.add(miningObject);
+            rolesOid.addAll(miningObject.asObjectable().getRoles());
+        }
 
         List<PrismObject<RoleType>> rolePrismObjectList = new ArrayList<>();
         for (String oid : rolesOid) {
@@ -92,9 +95,8 @@ public class ClusterDetailsPanel extends BasePanel<String> implements Popupable 
                 .map(Map.Entry::getKey)
                 .toList();
 
-
         Component table = new SimilarGroupDetailsPanel(ID_DATATABLE, jaccSortMiningSet, sortedRolePrismObjectList,
-                targetValue.asPrismObject().getOid(), false).add(new AbstractDefaultAjaxBehavior() {
+                targetValue, false).add(new AbstractDefaultAjaxBehavior() {
             @Override
             protected void respond(AjaxRequestTarget target) {
                 target.appendJavaScript(getScaleScript());
@@ -170,7 +172,6 @@ public class ClusterDetailsPanel extends BasePanel<String> implements Popupable 
     public StringResourceModel getTitle() {
         return new StringResourceModel("Details.panel");
     }
-
 
     private String getScaleScript() {
         return "let div = document.querySelector('#myTable');" +
