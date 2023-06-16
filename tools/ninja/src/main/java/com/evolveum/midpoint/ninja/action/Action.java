@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
@@ -73,6 +76,11 @@ public abstract class Action<O, R> {
                 log.error("Full result\n{}", result.debugDumpLazily());
             }
         }
+    }
+
+    @NotNull
+    public NinjaApplicationContextLevel getApplicationContextLevel() {
+        return NinjaApplicationContextLevel.FULL_REPOSITORY;
     }
 
     public abstract R execute() throws Exception;

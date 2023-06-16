@@ -13,17 +13,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.action.RepositoryAction;
-
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.schema.traces.TraceParser;
-
 import com.evolveum.midpoint.schema.traces.TraceWriter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingOutputType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * TODO
@@ -33,6 +33,12 @@ public class EditTraceAction extends RepositoryAction<EditTraceOptions, Void> {
     private static final String DEFAULT_OUTPUT = "output.zip";
 
     private int killed;
+
+    @Override
+    @NotNull
+    public NinjaApplicationContextLevel getApplicationContextLevel() {
+        return NinjaApplicationContextLevel.NO_REPOSITORY;
+    }
 
     @Override
     public Void execute() throws Exception {

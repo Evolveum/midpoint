@@ -22,15 +22,14 @@ public class VerifyFilesTest {
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
         connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
-        connectionOptions.setOffline(true);
 
         VerifyFilesOptions verifyFilesOptions = new VerifyFilesOptions();
         verifyFilesOptions.setFiles(List.of(new File("./src/test/resources/upgrade/objects")));
         verifyFilesOptions.setReport(new File("./target/verify-files.csv"));
 
-        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, verifyFilesOptions))) {
+        VerifyFilesAction action = new VerifyFilesAction();
 
-            VerifyFilesAction action = new VerifyFilesAction();
+        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, verifyFilesOptions), action.getApplicationContextLevel())) {
             action.init(context, verifyFilesOptions);
 
             action.execute();

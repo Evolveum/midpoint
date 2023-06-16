@@ -7,6 +7,8 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+
 import org.apache.commons.io.FileUtils;
 
 import com.evolveum.midpoint.prism.ParsingContext;
@@ -18,8 +20,15 @@ import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
+import org.jetbrains.annotations.NotNull;
+
 // todo finish
 public class VerifyFilesAction extends Action<VerifyFilesOptions, Void> {
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel() {
+        return NinjaApplicationContextLevel.NO_REPOSITORY;
+    }
 
     @Override
     public Void execute() throws Exception {

@@ -32,8 +32,6 @@ public class ConnectionOptions {
     public static final String P_MIDPOINT_HOME = "-m";
     public static final String P_MIDPOINT_HOME_LONG = "--midpoint-home";
 
-    public static final String P_OFFLINE_LONG = "--offline";
-
     @Parameter(names = { P_URL, P_URL_LONG }, validateWith = URIConverter.class, descriptionKey = "connection.url")
     private String url;
 
@@ -49,9 +47,6 @@ public class ConnectionOptions {
 
     @Parameter(names = { P_MIDPOINT_HOME, P_MIDPOINT_HOME_LONG }, descriptionKey = "connection.midpointHome")
     private String midpointHome;
-
-    @Parameter(names = { P_OFFLINE_LONG }, descriptionKey = "connection.offline")
-    private boolean offline;
 
     public String getAskPassword() {
         return askPassword;
@@ -73,10 +68,6 @@ public class ConnectionOptions {
         return midpointHome;
     }
 
-    public boolean isOffline() {
-        return offline;
-    }
-
     public void setUrl(String url) {
         this.url = url;
     }
@@ -95,9 +86,5 @@ public class ConnectionOptions {
 
     public void setMidpointHome(String midpointHome) {
         this.midpointHome = midpointHome;
-    }
-
-    public void setOffline(boolean offline) {
-        this.offline = offline;
     }
 }

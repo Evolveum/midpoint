@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.AuditFactory;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
@@ -32,14 +33,15 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 public abstract class DataSourceAction<O extends DataSourceOptions> extends Action<O, Void> {
 
     @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel() {
+        return NinjaApplicationContextLevel.STARTUP_CONFIGURATION;
+    }
+
+    @Override
     public Void execute() throws Exception {
         // this is manual setup of datasource for midpoint, can't be done via spring application context initialization with repository
         // because sqale repository during initialization loads data from m_uri and m_ext_item (not yet existing)
         log.info("Initializing application context");
-
-        ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
-        // force offline mode - when application context is initialized we don't want to have full initialization of sqale repository/audit service
-        connectionOptions.setOffline(true);
 
         final ApplicationContext applicationContext = context.getApplicationContext();
         final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);

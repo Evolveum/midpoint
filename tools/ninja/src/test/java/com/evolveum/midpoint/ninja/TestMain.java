@@ -60,9 +60,12 @@ public class TestMain {
 //                + "--backup-midpoint-directory"
 //               ).split(" ");
 
-        input = "-v -m ../../_mess/upgrade/midpoint-48/var verify --report ../../_mess/upgrade/midpoint-48/verify-report.csv".split(" ");
+//        input = "-v -m ../../_mess/upgrade/midpoint-48/var verify --report ../../_mess/upgrade/midpoint-48/verify-report.csv".split(" ");
 
+        input = "-v -m ./target/midpoint-home-upgrade setup-database --scripts-directory ../../config/sql/native-new --audit-only --no-audit".split(" ");
+        long time = System.currentTimeMillis();
         Main.main(input);
+        System.out.println("TIME: " + (System.currentTimeMillis() - time));
 
 //        System.out.println("Starting process");
 //        new ProcessBuilder(

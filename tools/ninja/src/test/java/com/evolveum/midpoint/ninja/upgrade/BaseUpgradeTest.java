@@ -94,9 +94,9 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
         setupDatabaseOptions.setScriptsDirectory(scriptsDirectory);
 
-        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions))) {
+        SetupDatabaseAction action = new SetupDatabaseAction();
 
-            SetupDatabaseAction action = new SetupDatabaseAction();
+        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, setupDatabaseOptions), action.getApplicationContextLevel())) {
             action.init(context, setupDatabaseOptions);
 
             action.execute();

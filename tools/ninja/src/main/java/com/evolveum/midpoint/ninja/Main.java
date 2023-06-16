@@ -19,9 +19,9 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
@@ -83,17 +83,11 @@ public class Main {
             //noinspection unchecked
             T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
 
-            context = new NinjaContext(jc.getObjects());
-
-            preInit(context);
+            context = new NinjaContext(jc.getObjects(), action.getApplicationContextLevel());
 
             action.init(context, options);
 
-            preExecute(context);
-
             action.execute();
-
-            postExecute(context);
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {
@@ -101,18 +95,6 @@ public class Main {
 
             AnsiConsole.systemUninstall();
         }
-    }
-
-    protected void preInit(NinjaContext context) {
-        // intentionally left out empty
-    }
-
-    protected void preExecute(NinjaContext context) {
-        // intentionally left out empty
-    }
-
-    protected void postExecute(NinjaContext context) {
-        // intentionally left out empty
     }
 
     private void cleanupResources(BaseOptions opts, NinjaContext context) {

@@ -43,20 +43,9 @@ public class NinjaContext implements Closeable {
 
     private static final String CTX_NINJA = "classpath:ctx-ninja.xml";
 
-    private static final String[] CTX_MIDPOINT = new String[] {
-            "classpath:ctx-common.xml",
-            "classpath:ctx-configuration.xml",
-            "classpath*:ctx-repository.xml",
-            "classpath:ctx-repo-cache.xml",
-            "classpath:ctx-audit.xml"
-    };
-
-    private static final String[] CTX_MIDPOINT_NO_REPO = new String[] {
-            "classpath:ctx-common.xml",
-            "classpath:ctx-configuration-no-repo.xml"
-    };
-
     private final List<Object> options;
+
+    private final NinjaApplicationContextLevel applicationContextLevel;
 
     private Log log;
 
@@ -74,8 +63,9 @@ public class NinjaContext implements Closeable {
 
     private final Map<String, String> systemPropertiesBackup = new HashMap<>();
 
-    public NinjaContext(@NotNull List<Object> options) {
+    public NinjaContext(@NotNull List<Object> options, @NotNull NinjaApplicationContextLevel applicationContextLevel) {
         this.options = options;
+        this.applicationContextLevel = applicationContextLevel;
     }
 
     @Override
@@ -98,9 +88,11 @@ public class NinjaContext implements Closeable {
     }
 
     private void setupRepositoryViaMidPointHome(ConnectionOptions options) {
-        boolean connectRepo = !options.isOffline();
+        if (applicationContextLevel == NinjaApplicationContextLevel.NONE) {
+            throw new IllegalStateException("Application context shouldn't be initialized");
+        }
 
-        log.info("Initializing using midpoint home; {} repository connection", connectRepo ? "with" : "WITHOUT");
+        log.info("Initializing using midpoint home ({})", applicationContextLevel);
 
         backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
 
@@ -111,12 +103,14 @@ public class NinjaContext implements Closeable {
 
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
         ctx.load(CTX_NINJA);
-        ctx.load(connectRepo ? CTX_MIDPOINT : CTX_MIDPOINT_NO_REPO);
+        ctx.load(applicationContextLevel.contexts);
         ctx.refresh();
 
         context = ctx;
 
-        updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+        if (applicationContextLevel.containsPrismInitialization()) {
+            updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+        }
     }
 
     private void backupAndUpdateSystemProperty(String key, String value) {

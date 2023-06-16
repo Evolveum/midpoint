@@ -12,9 +12,11 @@ import java.util.Enumeration;
 import javax.crypto.SecretKey;
 
 import org.apache.commons.codec.binary.Base64;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
@@ -33,11 +35,12 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
     }
 
     @Override
-    public Void execute() throws Exception {
-        ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
-        // force offline mode, this action just reads keystore
-        connectionOptions.setOffline(true);
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel() {
+        return NinjaApplicationContextLevel.NO_REPOSITORY;
+    }
 
+    @Override
+    public Void execute() throws Exception {
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 

@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.ninja;
 
 import com.beust.jcommander.JCommander;
+
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
@@ -34,7 +37,7 @@ public class NinjaContextTest {
 
         ConnectionOptions options = NinjaUtils.getOptions(jc.getObjects(), ConnectionOptions.class);
 
-        NinjaContext ctx = new NinjaContext(List.of(options));
+        NinjaContext ctx = new NinjaContext(List.of(options), NinjaApplicationContextLevel.FULL_REPOSITORY);
 
         RepositoryService service = ctx.getRepository();
 

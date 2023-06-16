@@ -41,8 +41,8 @@ public abstract class UpgradeTest extends BaseUpgradeTest {
         UpgradeDatabaseOptions upgradeDatabaseOptions = new UpgradeDatabaseOptions();
         upgradeDatabaseOptions.setScriptsDirectory(new File("../../config/sql/native-new"));
 
-        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, upgradeDatabaseOptions))) {
-            UpgradeDatabaseAction action = new UpgradeDatabaseAction();
+        UpgradeDatabaseAction action = new UpgradeDatabaseAction();
+        try (NinjaContext context = new NinjaContext(List.of(baseOptions, connectionOptions, upgradeDatabaseOptions), action.getApplicationContextLevel())) {
             action.init(context, upgradeDatabaseOptions);
 
             action.execute();
