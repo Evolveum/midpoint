@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -17,26 +19,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import javax.xml.namespace.QName;
-import java.util.List;
-
 /**
  * @author semancik
- *
  */
 public class ShadowConstraintsChecker<F extends FocusType> {
 
@@ -139,13 +132,14 @@ public class ShadowConstraintsChecker<F extends FocusType> {
                 projectionContext.getOid(),
                 confirmer,
                 context.getProjectionConstraintsCheckingStrategy(),
+                context.createProvisioningOperationContext(),
                 task, result);
 
         if (constraintsCheckingResult.isSatisfiesConstraints()) {
             satisfiesConstraints = true;
             return;
         }
-        for (QName checkedAttributeName: constraintsCheckingResult.getCheckedAttributes()) {
+        for (QName checkedAttributeName : constraintsCheckingResult.getCheckedAttributes()) {
             if (constraintsCheckingResult.getConflictingAttributes().contains(checkedAttributeName)) {
                 if (isInDelta(checkedAttributeName, projectionContext.getPrimaryDelta())) {
                     throw new ObjectAlreadyExistsException("Attribute " + checkedAttributeName
@@ -162,12 +156,10 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         }
     }
 
-
     private boolean isInDelta(QName attrName, ObjectDelta<ShadowType> delta) {
         if (delta == null) {
             return false;
         }
         return delta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName));
     }
-
 }

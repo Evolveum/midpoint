@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 

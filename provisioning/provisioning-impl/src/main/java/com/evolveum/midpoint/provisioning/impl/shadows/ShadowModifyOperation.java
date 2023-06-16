@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
@@ -109,6 +110,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
@@ -130,6 +132,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                 getAdditionalAuxObjectClassNames(modifications),
                 task,
                 result);
+        ctx.setOperationContext(context);
         ctx.assertDefinition();
         ctx.checkExecutionFullyPersistent();
 
@@ -267,7 +270,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         }
         LOGGER.trace("Refreshing shadow before executing the modification operation");
         refreshShadowOperation =
-                ShadowsLocalBeans.get().refreshHelper.refreshShadow(repoShadow, options, ctx.getTask(), result);
+                ShadowsLocalBeans.get().refreshHelper.refreshShadow(repoShadow, options, ctx.getOperationContext(), ctx.getTask(), result);
         ShadowType shadowAfterRefresh = refreshShadowOperation.getRefreshedShadow();
         if (shadowAfterRefresh == null) {
             LOGGER.trace("Shadow is gone. Nothing more to do");

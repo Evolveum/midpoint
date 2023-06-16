@@ -356,6 +356,22 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertHasMetadataModifyTimestamp() {
+        MetadataType metadata = getObject().asObjectable().getMetadata();
+        assertNotNull("Metadata is null", metadata);
+        assertNotNull("Modify timestamp in metadata is null", metadata.getModifyTimestamp());
+
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertHasMetadataCreateTimestamp() {
+        MetadataType metadata = getObject().asObjectable().getMetadata();
+        assertNotNull("Metadata is null", metadata);
+        assertNotNull("Create timestamp in metadata is null", metadata.getCreateTimestamp());
+
+        return this;
+    }
+
     public ShadowAsserter<RA> assertMatchReferenceId(String id) throws SchemaException {
         assertThat(getIdMatchCorrelatorStateRequired().getReferenceId())
                 .as("referenceId")

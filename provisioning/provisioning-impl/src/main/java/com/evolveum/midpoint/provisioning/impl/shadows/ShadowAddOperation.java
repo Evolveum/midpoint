@@ -7,11 +7,24 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createResourceFailureDescription;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
@@ -31,17 +44,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 /**
  * Represents/executes "add" operation on a shadow - either invoked directly, or during refresh or propagation.
@@ -68,6 +70,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             @NotNull ShadowType resourceObjectToAdd,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
@@ -81,6 +84,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
                 resourceObjectToAdd.debugDumpLazily(1));
 
         ProvisioningContext ctx = establishProvisioningContext(resourceObjectToAdd, task, result);
+        ctx.setOperationContext(context);
         ctx.checkExecutionFullyPersistent();
         AddOperationState opState = new AddOperationState();
         return new ShadowAddOperation(ctx, resourceObjectToAdd, scripts, opState, options)

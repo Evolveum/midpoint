@@ -22,7 +22,7 @@ import com.evolveum.midpoint.cases.impl.helpers.CaseExpressionEvaluationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.cases.impl.helpers.NotificationHelper;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;

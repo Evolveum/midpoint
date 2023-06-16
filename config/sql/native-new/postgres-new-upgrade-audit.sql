@@ -109,6 +109,13 @@ call apply_audit_change(3, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
 $aa$);
 
+-- changes for 4.8
+-- Shadow auditing
+call apply_audit_change(4, $aa$
+   ALTER TYPE AuditEventStageType ADD VALUE IF NOT EXISTS 'RESOURCE' AFTER 'EXECUTION';
+   ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'DISCOVER_OBJECT' AFTER 'RUN_TASK_IMMEDIATELY';
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!

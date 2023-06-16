@@ -312,10 +312,26 @@ public interface ProvisioningService {
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default @NotNull <T extends ObjectType> PrismObject<T> getObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return getObject(type, oid, options, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Add new object.
@@ -364,10 +380,26 @@ public interface ProvisioningService {
             @NotNull PrismObject<T> object,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default <T extends ObjectType> String addObject(
+            @NotNull PrismObject<T> object,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+        return addObject(object, scripts, options, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Fetches synchronization change events ({@link LiveSyncEvent}) from a resource and passes them into specified
@@ -399,6 +431,7 @@ public interface ProvisioningService {
      * @param options Options driving the synchronization process (execution mode, batch size, ...)
      * @param tokenStorage Interface for getting and setting the token for the activity
      * @param handler Handler that processes live sync events
+     * @param context Provisioning context used to pass information from upper layers
      * @param parentResult Parent OperationResult to where we write our own subresults.
      * @throws ObjectNotFoundException Some of key objects (resource, task, ...) do not exist
      * @throws CommunicationException Error communicating with the resource
@@ -412,10 +445,27 @@ public interface ProvisioningService {
             @Nullable LiveSyncOptions options,
             @NotNull LiveSyncTokenStorage tokenStorage,
             @NotNull LiveSyncEventHandler handler,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default @NotNull SynchronizationResult synchronize(
+            @NotNull ResourceOperationCoordinates coordinates,
+            @Nullable LiveSyncOptions options,
+            @NotNull LiveSyncTokenStorage tokenStorage,
+            @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+        return synchronize(coordinates, options, tokenStorage, handler, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Processes asynchronous updates for a given resource.
@@ -566,10 +616,27 @@ public interface ProvisioningService {
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    @NotNull
+    default <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return searchObjects(type, query, options, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Counts the objects of the respective type.
@@ -598,10 +665,26 @@ public interface ProvisioningService {
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default <T extends ObjectType> Integer countObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return countObjects(type, query, options, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Search for objects iteratively. Searches through all object types. Calls a specified handler for each object found.
@@ -629,10 +712,27 @@ public interface ProvisioningService {
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ResultHandler<T> handler,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default <T extends ObjectType> SearchResultMetadata searchObjectsIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ResultHandler<T> handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return searchObjectsIterative(type, query, options, handler, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Modifies object using relative change description. Must fail if user with
@@ -677,9 +777,26 @@ public interface ProvisioningService {
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @Nullable ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default <T extends ObjectType> String modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+        return modifyObject(type, oid, modifications, scripts, options, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Deletes object with specified OID.
@@ -710,9 +827,20 @@ public interface ProvisioningService {
      *             unknown connector framework error
      */
     <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option,
+            OperationProvisioningScriptsType scripts, ProvisioningOperationContext context, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option,
             OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException;
+            ExpressionEvaluationException {
+        return deleteObject(type, oid, option, scripts, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Executes a single provisioning script.
@@ -877,9 +1005,19 @@ public interface ProvisioningService {
      * And so on. However, this is NOT reconciliation function that will make sure that the resource object attributes are OK
      * with all the policies. This is just a provisioning-level operation.
      */
-    void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+    void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
+        refreshShadow(shadow, options, new ProvisioningOperationContext(), task, parentResult);
+    }
 
     /**
      * Applies appropriate definition to the shadow/resource delta.
@@ -948,10 +1086,31 @@ public interface ProvisioningService {
             String shadowOid,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
+            ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
+
+    /**
+     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
+     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
+     */
+    default ConstraintsCheckingResult checkConstraints(
+            ResourceObjectDefinition objectTypeDefinition,
+            PrismObject<ShadowType> shadowObject,
+            PrismObject<ShadowType> shadowObjectOld,
+            ResourceType resource,
+            String shadowOid,
+            ConstraintViolationConfirmer constraintViolationConfirmer,
+            ConstraintsCheckingStrategyType strategy,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+        return checkConstraints(objectTypeDefinition, shadowObject, shadowObjectOld, resource, shadowOid, constraintViolationConfirmer,
+                strategy, null, task, parentResult);
+    }
 
     void enterConstraintsCheckerCache();
 
