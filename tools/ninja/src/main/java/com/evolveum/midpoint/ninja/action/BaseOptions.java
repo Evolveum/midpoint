@@ -35,12 +35,6 @@ public class BaseOptions {
     public static final String P_VERSION = "-V";
     public static final String P_VERSION_LONG = "--version";
 
-    public static final String P_JDBC = "-j";
-    public static final String P_JDBC_LONG = "--jdbc";
-
-    @Parameter(names = { P_JDBC, P_JDBC_LONG }, descriptionKey = "base.jdbc", hidden = true)
-    private File jdbc;
-
     @Parameter(names = { P_HELP, P_HELP_LONG }, help = true, descriptionKey = "base.help")
     private boolean help = false;
 
@@ -79,11 +73,31 @@ public class BaseOptions {
         return version;
     }
 
-    public File getJdbc() {
-        return jdbc;
-    }
-
     public PolyStringNormalizerOptions getPolyStringNormalizerOptions() {
         return polyStringNormalizerOptions;
+    }
+
+    public void setHelp(boolean help) {
+        this.help = help;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public void setSilent(boolean silent) {
+        this.silent = silent;
+    }
+
+    public void setCharset(String charset) {
+        this.charset = charset;
+    }
+
+    public void setVersion(Boolean version) {
+        this.version = version;
+    }
+
+    public void setPolyStringNormalizerOptions(PolyStringNormalizerOptions polyStringNormalizerOptions) {
+        this.polyStringNormalizerOptions = polyStringNormalizerOptions;
     }
 }
