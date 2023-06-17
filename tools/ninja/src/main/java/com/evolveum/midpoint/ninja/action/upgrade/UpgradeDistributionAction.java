@@ -2,8 +2,8 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.evolveum.midpoint.ninja.action.Action;
 
-import com.evolveum.midpoint.ninja.action.DataSourceAction;
-
+import com.evolveum.midpoint.ninja.action.RunSqlAction;
+import com.evolveum.midpoint.ninja.action.RunSqlOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -20,12 +20,12 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         FileUtils.forceMkdir(tempDirectory);
 
         // download distribution
-        DownloadDistributionOptions downloadOptions = new DownloadDistributionOptions();
-        downloadOptions.setTempDirectory(tempDirectory);
-        downloadOptions.setDistributionArchive(options.getDistributionArchive());
+        DownloadDistributionOptions downloadOpts = new DownloadDistributionOptions();
+        downloadOpts.setTempDirectory(tempDirectory);
+        downloadOpts.setDistributionArchive(options.getDistributionArchive());
 
         DownloadDistributionAction downloadAction = new DownloadDistributionAction();
-        downloadAction.init(context, downloadOptions);
+        downloadAction.init(context, downloadOpts);
         DownloadDistributionResult downloadResult = downloadAction.execute();
 
         // todo next actions should be executed from downloaded ninja (as not to replace ninja.jar that's currently running), or maybe not?
@@ -36,23 +36,35 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 //        System.out.println("Finished main");
 
         // upgrade installation
-        UpgradeInstallationOptions installationOptions = new UpgradeInstallationOptions();
-        installationOptions.setDistributionDirectory(downloadResult.getDistributionDirectory());
-        installationOptions.setBackup(options.isBackupMidpointDirectory());
-        installationOptions.setInstallationDirectory(options.getInstallationDirectory());
+        UpgradeInstallationOptions installationOpts = new UpgradeInstallationOptions();
+        installationOpts.setDistributionDirectory(downloadResult.getDistributionDirectory());
+        installationOpts.setBackup(options.isBackupMidpointDirectory());
+        installationOpts.setInstallationDirectory(options.getInstallationDirectory());
 
         UpgradeInstallationAction installationAction = new UpgradeInstallationAction();
-        installationAction.init(context, installationOptions);
+        installationAction.init(context, installationOpts);
         installationAction.execute();
 
-        // upgrade database
-        UpgradeDatabaseOptions databaseOptions = new UpgradeDatabaseOptions();
         File installationDirectory = NinjaUtils.computeInstallationDirectory(options.getInstallationDirectory(), context);
-        databaseOptions.setScriptsDirectory(new File(installationDirectory, databaseOptions.getScriptsDirectory().getPath()));
 
-        UpgradeDatabaseAction databaseAction = new UpgradeDatabaseAction();
-        databaseAction.init(context, databaseOptions);
-        databaseAction.execute();
+        // upgrade repository
+        RunSqlOptions upgradeRepositoryOpts = new RunSqlOptions();
+        upgradeRepositoryOpts.setUpgrade(true);
+        upgradeRepositoryOpts.setMode(RunSqlOptions.Mode.REPOSITORY);
+        upgradeRepositoryOpts.setScriptsDirectory(new File(installationDirectory, upgradeRepositoryOpts.getScriptsDirectory().getPath()));
+
+        RunSqlAction upgradeRepositoryAction = new RunSqlAction();
+        upgradeRepositoryAction.init(context, upgradeRepositoryOpts);
+        upgradeRepositoryAction.execute();
+
+        RunSqlOptions upgradeAuditOpts = new RunSqlOptions();
+        upgradeAuditOpts.setUpgrade(true);
+        upgradeAuditOpts.setMode(RunSqlOptions.Mode.AUDIT);
+        upgradeAuditOpts.setScriptsDirectory(new File(installationDirectory, upgradeAuditOpts.getScriptsDirectory().getPath()));
+
+        RunSqlAction upgradeAuditAction = new RunSqlAction();
+        upgradeAuditAction.init(context, upgradeAuditOpts);
+        upgradeAuditAction.execute();
 
         return null;
     }

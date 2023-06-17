@@ -44,13 +44,9 @@ public enum Command {
 
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
 
-    SETUP_DATABASE("setup-database", SetupDatabaseOptions.class, SetupDatabaseAction.class),
-
     DOWNLOAD_DISTRIBUTION("download-distribution", DownloadDistributionOptions.class, DownloadDistributionAction.class),
 
     RUN_SQL("run-sql", RunSqlOptions.class, RunSqlAction.class),
-
-    UPGRADE_DATABASE("upgrade-database", UpgradeDatabaseOptions.class, UpgradeDatabaseAction.class),
 
     UPGRADE_INSTALLATION("upgrade-installation", UpgradeInstallationOptions.class, UpgradeInstallationAction.class),
 

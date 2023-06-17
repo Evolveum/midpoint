@@ -6,17 +6,7 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.apache.commons.io.FileUtils;
-import org.postgresql.Driver;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.sql.Statement;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -64,7 +54,8 @@ public class TestMain {
 
         input = "-v -m ./target/midpoint-home-upgrade setup-database --scripts-directory ../../config/sql/native-new --audit-only --no-audit".split(" ");
         long time = System.currentTimeMillis();
-        Main.main(input);
+        System.out.println("OPTIONS: " + StringUtils.join(input, " "));
+//        Main.main(input);
         System.out.println("TIME: " + (System.currentTimeMillis() - time));
 
 //        System.out.println("Starting process");

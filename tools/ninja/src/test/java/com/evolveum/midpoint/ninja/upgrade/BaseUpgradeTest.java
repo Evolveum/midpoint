@@ -4,7 +4,6 @@ import java.io.File;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.sql.DataSource;
@@ -12,7 +11,6 @@ import javax.sql.DataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,11 +19,6 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-import com.evolveum.midpoint.ninja.action.SetupDatabaseAction;
-import com.evolveum.midpoint.ninja.action.SetupDatabaseOptions;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
@@ -81,30 +74,30 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
     }
 
     protected void recreateSchema(@NotNull File scriptsDirectory) throws Exception {
-        runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public;"));
-
-        BaseOptions baseOptions = new BaseOptions();
-
-        ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
-
-        Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
-        connectionOptions.setUrl(ninjaTestsJdbcUrl);
-
-        SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
-        setupDatabaseOptions.setScriptsDirectory(scriptsDirectory);
-
-        List<Object> options = List.of(baseOptions, connectionOptions, setupDatabaseOptions);
-
-        SetupDatabaseAction action = new SetupDatabaseAction();
-
-        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
-            action.init(context, setupDatabaseOptions);
-
-            action.execute();
-        }
-
-        Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
+//        runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public;"));
+//
+//        BaseOptions baseOptions = new BaseOptions();
+//
+//        ConnectionOptions connectionOptions = new ConnectionOptions();
+//        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
+//
+//        Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
+//        connectionOptions.setUrl(ninjaTestsJdbcUrl);
+//
+//        SetupDatabaseOptions setupDatabaseOptions = new SetupDatabaseOptions();
+//        setupDatabaseOptions.setScriptsDirectory(scriptsDirectory);
+//
+//        List<Object> options = List.of(baseOptions, connectionOptions, setupDatabaseOptions);
+//
+//        SetupDatabaseAction action = new SetupDatabaseAction();
+//
+//        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
+//            action.init(context, setupDatabaseOptions);
+//
+//            action.execute();
+//        }
+//
+//        Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
     }
 
     @AfterClass(alwaysRun = true)
