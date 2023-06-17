@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
@@ -50,10 +51,16 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
     @Override
     public Void execute() throws Exception {
+        final RunSqlOptions.Mode mode = options.getMode() != null ? options.getMode() : RunSqlOptions.Mode.REPOSITORY;
+
+        setScriptsDefaults(mode, options);
+
         File scriptsDirectory = options.getScriptsDirectory();
 
         ConnectionOptions opts = context.getOptions(ConnectionOptions.class);
-        if (opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
+        if (mode == RunSqlOptions.Mode.RAW || opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
+            log.info("Running scripts in raw mode using custom JDBC url/username/password options.");
+
             if (options.getScripts().isEmpty()) {
                 return null;
             }
@@ -66,24 +73,26 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             return null;
         }
 
+        log.info("Running scripts against midpoint {}.", mode.name().toLowerCase());
+
         final ApplicationContext applicationContext = context.getApplicationContext();
         final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);
 
         DataSource repositoryDataSource = null;
         DataSource auditDataSource = null;
         try {
-            // upgrade midpoint repository
             Configuration configuration = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
             repositoryDataSource = createDataSource(configuration, "ninja-repository");
-            if (!options.isNoRepository()) {
+            if (mode == RunSqlOptions.Mode.REPOSITORY) {
                 executeScripts(repositoryDataSource, scriptsDirectory, options.getScripts());
+
+                return null;
             }
 
-            // upgrade audit database
-            if (!options.isNoAudit()) {
+            if (mode == RunSqlOptions.Mode.AUDIT) {
                 auditDataSource = createAuditDataSource(repositoryDataSource, midpointConfiguration);
                 if (auditDataSource != null) {
-                    executeScripts(auditDataSource, scriptsDirectory, options.getAuditScripts());
+                    executeScripts(auditDataSource, scriptsDirectory, options.getScripts());
                 } else {
                     log.error("Audit configuration not found in " + midpointConfiguration.getMidpointHome() + "/config.xml");
                 }
@@ -96,10 +105,56 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
         return null;
     }
 
+    private void setScriptsDefaults(RunSqlOptions.Mode mode, RunSqlOptions options) {
+        if (mode != RunSqlOptions.Mode.REPOSITORY && mode != RunSqlOptions.Mode.AUDIT) {
+            return;
+        }
+
+        if (options.getScriptsDirectory() == null) {
+            options.setScriptsDirectory(new File("./doc/config/sql/native-new"));
+        }
+
+        if (options.getScripts().isEmpty()) {
+            if (mode == RunSqlOptions.Mode.REPOSITORY) {
+                if (BooleanUtils.isTrue(options.getUpgrade())) {
+                    options.setScripts(List.of(
+                            new File("postgres-new-upgrade.sql")
+                    ));
+                } else {
+                    options.setScripts(List.of(
+                            new File("postgres-new.sql"),
+                            new File("postgres-new-quartz.sql")
+                    ));
+                }
+            } else if (mode == RunSqlOptions.Mode.AUDIT) {
+                if (BooleanUtils.isTrue(options.getUpgrade())) {
+                    options.setScripts(List.of(
+                            new File("postgres-new-upgrade-audit.sql")
+                    ));
+                } else {
+                    options.setScripts(List.of(
+                            new File("postgres-new-audit.sql")
+                    ));
+                }
+            }
+        }
+    }
+
     private HikariDataSource setupCustomDataSource() {
+        if (StringUtils.isEmpty(options.getJdbcUrl())) {
+            throw new IllegalStateException("JDBC url parameter not defined");
+        }
+
+        if (StringUtils.isEmpty(options.getJdbcUsername())) {
+            throw new IllegalStateException("JDBC username parameter not defined");
+        }
+
+        if (StringUtils.isEmpty(options.getPassword())) {
+            throw new IllegalStateException("JDBC password parameter not defined");
+        }
+
         HikariConfig config = new HikariConfig();
 
-        // todo validate jdbc inputs
         config.setJdbcUrl(options.getJdbcUrl());
         config.setUsername(options.getJdbcUsername());
         config.setPassword(options.getPassword());
@@ -170,7 +225,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     Statement stmt = connection.createStatement();
 
                     String sql = FileUtils.readFileToString(script, StandardCharsets.UTF_8);
-                    stmt.execute(sql);
+                    stmt.execute(sql);  // todo print results
 
                     stmt.close();
                 }
