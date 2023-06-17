@@ -7,9 +7,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 
@@ -21,7 +20,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
@@ -106,36 +104,15 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
     }
 
     private void setScriptsDefaults(RunSqlOptions.Mode mode, RunSqlOptions options) {
-        if (mode != RunSqlOptions.Mode.REPOSITORY && mode != RunSqlOptions.Mode.AUDIT) {
-            return;
-        }
-
         if (options.getScriptsDirectory() == null) {
-            options.setScriptsDirectory(new File("./doc/config/sql/native-new"));
+            options.setScriptsDirectory(mode.scriptsDirectory);
         }
 
         if (options.getScripts().isEmpty()) {
-            if (mode == RunSqlOptions.Mode.REPOSITORY) {
-                if (BooleanUtils.isTrue(options.getUpgrade())) {
-                    options.setScripts(List.of(
-                            new File("postgres-new-upgrade.sql")
-                    ));
-                } else {
-                    options.setScripts(List.of(
-                            new File("postgres-new.sql"),
-                            new File("postgres-new-quartz.sql")
-                    ));
-                }
-            } else if (mode == RunSqlOptions.Mode.AUDIT) {
-                if (BooleanUtils.isTrue(options.getUpgrade())) {
-                    options.setScripts(List.of(
-                            new File("postgres-new-upgrade-audit.sql")
-                    ));
-                } else {
-                    options.setScripts(List.of(
-                            new File("postgres-new-audit.sql")
-                    ));
-                }
+            if (options.getCreate()) {
+                options.setScripts(mode.createScripts);
+            } else if (options.getUpgrade()) {
+                options.setScripts(mode.updateScripts);
             }
         }
     }
@@ -225,13 +202,66 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     Statement stmt = connection.createStatement();
 
                     String sql = FileUtils.readFileToString(script, StandardCharsets.UTF_8);
-                    stmt.execute(sql);  // todo print results
+                    boolean hasResult = stmt.execute(sql);  // todo print results
+                    if (options.getResult()) {
+                        printStatementResults(stmt, hasResult);
+
+                        while (true) {
+                            hasResult = stmt.getMoreResults();
+
+                            printStatementResults(stmt, hasResult);
+
+                            if (!hasResult && stmt.getUpdateCount() == -1) {
+                                break;
+                            }
+                        }
+                    }
 
                     stmt.close();
                 }
             } finally {
                 connection.setAutoCommit(autocommit);
             }
+        }
+    }
+
+    private void printStatementResults(Statement stmt, boolean hasResult) throws SQLException {
+        if (!hasResult) {
+            int updateCount = stmt.getUpdateCount();
+            if (updateCount != -1) {
+                System.out.println("Updated rows: " + updateCount);
+                System.out.println();
+            }
+            return;
+        }
+
+        try (ResultSet set = stmt.getResultSet()) {
+            printResultSet(set);
+        }
+        System.out.println();
+    }
+
+    private void printResultSet(ResultSet set) throws SQLException {
+        ResultSetMetaData metaData = set.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        List<String> row = new ArrayList<>();
+
+        for (int i = 1; i <= columnCount; i++) {
+            row.add(metaData.getColumnLabel(i));
+        }
+
+        System.out.println(StringUtils.join(row, "|"));
+        row.clear();
+
+        while (set.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                Object obj = set.getObject(i);
+                row.add(obj != null ? obj.toString() : "");
+            }
+
+            System.out.println(StringUtils.join(row, "|"));
+            row.clear();
         }
     }
 

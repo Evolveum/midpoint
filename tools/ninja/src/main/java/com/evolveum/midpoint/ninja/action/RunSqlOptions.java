@@ -2,6 +2,7 @@ package com.evolveum.midpoint.ninja.action;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.beust.jcommander.Parameter;
@@ -14,7 +15,32 @@ public class RunSqlOptions {
 
     public enum Mode {
 
-        RAW, REPOSITORY, AUDIT;
+        RAW(new File("."),
+                Collections.emptyList(),
+                Collections.emptyList()
+        ),
+
+        REPOSITORY(new File("./doc/config/sql/native-new"),
+                List.of(new File("postgres-new.sql"), new File("postgres-new-quartz.sql")),
+                List.of(new File("postgres-new-upgrade.sql"))
+        ),
+
+        AUDIT(new File("./doc/config/sql/native-new"),
+                List.of(new File("postgres-new-audit.sql")),
+                List.of(new File("postgres-new-upgrade-audit.sql"))
+        );
+
+        final File scriptsDirectory;
+
+        final List<File> createScripts;
+
+        final List<File> updateScripts;
+
+        Mode(File scriptsDirectory, List<File> createScripts, List<File> updateScripts) {
+            this.scriptsDirectory = scriptsDirectory;
+            this.createScripts = createScripts;
+            this.updateScripts = updateScripts;
+        }
     }
 
     public static final String P_SCRIPTS_DIRECTORY_LONG = "--scripts-directory";
@@ -27,6 +53,8 @@ public class RunSqlOptions {
     public static final String P_JDBC_PASSWORD_LONG = "--jdbc-password";
     public static final String P_MODE = "--mode";
     public static final String P_UPGRADE = "--upgrade";
+    public static final String P_CREATE = "--create";
+    public static final String P_RESULT = "--result";
 
     public static final String P_JDBC_ASK_PASSWORD_LONG = "--jdbc-ask-password";
 
@@ -52,7 +80,13 @@ public class RunSqlOptions {
     private String jdbcAskPassword;
 
     @Parameter(names = { P_UPGRADE }, descriptionKey = "runSql.upgrade")
-    private Boolean upgrade;
+    private boolean upgrade;
+
+    @Parameter(names = { P_CREATE }, descriptionKey = "runSql.create")
+    private boolean create;
+
+    @Parameter(names = { P_RESULT }, descriptionKey = "runSql.result")
+    private boolean result;
 
     public File getScriptsDirectory() {
         return scriptsDirectory;
@@ -118,11 +152,27 @@ public class RunSqlOptions {
         this.mode = mode;
     }
 
-    public Boolean getUpgrade() {
+    public boolean getUpgrade() {
         return upgrade;
     }
 
-    public void setUpgrade(Boolean upgrade) {
+    public void setUpgrade(boolean upgrade) {
         this.upgrade = upgrade;
+    }
+
+    public boolean getCreate() {
+        return create;
+    }
+
+    public void setCreate(boolean create) {
+        this.create = create;
+    }
+
+    public boolean getResult() {
+        return result;
+    }
+
+    public void setResult(boolean result) {
+        this.result = result;
     }
 }
