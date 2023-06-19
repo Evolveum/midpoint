@@ -37,13 +37,13 @@ public class NinjaContextTest {
 
         ConnectionOptions options = NinjaUtils.getOptions(jc.getObjects(), ConnectionOptions.class);
 
-        NinjaContext ctx = new NinjaContext(List.of(options), NinjaApplicationContextLevel.FULL_REPOSITORY);
+        try (NinjaContext ctx = new NinjaContext(List.of(options), NinjaApplicationContextLevel.FULL_REPOSITORY)) {
+            RepositoryService service = ctx.getRepository();
 
-        RepositoryService service = ctx.getRepository();
+            OperationResult result = new OperationResult("get user");
+            PrismObject obj = service.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
 
-        OperationResult result = new OperationResult("get user");
-        PrismObject obj = service.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
-
-        System.out.println(obj.debugDump());
+            System.out.println(obj.debugDump());
+        }
     }
 }

@@ -78,6 +78,8 @@ public class RunSqlOptions {
     @Parameter(names = { P_RESULT }, descriptionKey = "runSql.result")
     private boolean result;
 
+    private File scriptsDirectory;
+
     public List<File> getScripts() {
         return scripts;
     }

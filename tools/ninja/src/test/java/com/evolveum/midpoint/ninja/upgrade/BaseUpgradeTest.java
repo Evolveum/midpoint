@@ -4,24 +4,18 @@ import java.io.File;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.sql.DataSource;
-
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-
-import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-
-import com.evolveum.midpoint.ninja.action.RunSqlAction;
-import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.postgresql.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,14 +23,23 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.action.RunSqlAction;
+import com.evolveum.midpoint.ninja.action.RunSqlOptions;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
 public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
 
-    protected static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
+    public static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
 
-    protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
+    public static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
+
+    public static final String CURRENT_SCHEMA_CHANGE_NUMBER = "15";
+
+    public static final String CURRENT_AUDIT_SCHEMA_CHANGE_NUMBER = "4";
 
     @Autowired
     protected DataSourceFactory dataSourceFactory;
@@ -47,32 +50,47 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
 
     protected HikariDataSource ninjaTestDatabase;
 
-    protected String ninjaTestsJdbcUrl;
+    private String jdbcUrlPrefix;
 
     @BeforeClass
     public void beforeClass() throws Exception {
         FileUtils.forceMkdir(UPGRADE_MIDPOINT_HOME);
         FileUtils.copyFileToDirectory(new File("./src/test/resources/upgrade/midpoint-home/config.xml"), UPGRADE_MIDPOINT_HOME);
 
-        recreateEmptyTestDatabase();
-
-        HikariConfig config = new HikariConfig();
-        config.setUsername(NINJA_TESTS_USER);
-        config.setPassword(NINJA_TESTS_USER);
-        config.setAutoCommit(true);
-
         String jdbcUrl = dataSourceFactory.configuration().getJdbcUrl().replaceFirst("jdbc:", "");
         URI jdbcURI = URI.create(jdbcUrl);
 
-        ninjaTestsJdbcUrl = "jdbc:postgresql://" + jdbcURI.getHost() + ":" + jdbcURI.getPort() + "/" + NINJA_TESTS_USER;
-        config.setJdbcUrl(ninjaTestsJdbcUrl);
+        jdbcUrlPrefix = "jdbc:postgresql://" + jdbcURI.getHost() + ":" + jdbcURI.getPort();
 
-        ninjaTestDatabase = new HikariDataSource(config);
+        recreateEmptyNinjaTestsDatabase();
+
+        ninjaTestDatabase = createHikariDataSource(getJdbcUrlForNinjaTestsUser(), NINJA_TESTS_USER, NINJA_TESTS_USER);
 
         runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public CASCADE;"));
     }
 
-    protected void recreateEmptyTestDatabase() throws SQLException {
+    protected HikariDataSource createHikariDataSource(String url, String username, String password) {
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(Driver.class.getName());
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setAutoCommit(true);
+        config.setMinimumIdle(1);
+        config.setMaximumPoolSize(3);
+
+        return new HikariDataSource(config);
+    }
+
+    protected String getJdbcUrlForNinjaTestsUser() {
+        return getJdbcUrlForDatabase(NINJA_TESTS_USER);
+    }
+
+    protected String getJdbcUrlForDatabase(String database) {
+        return jdbcUrlPrefix + "/" + database;
+    }
+
+    protected void recreateEmptyNinjaTestsDatabase() throws SQLException {
         runWith(midpointDatasource, jdbcTemplate -> {
             jdbcTemplate.execute("DROP DATABASE IF EXISTS " + NINJA_TESTS_USER + ";");
             jdbcTemplate.execute("DROP USER IF EXISTS " + NINJA_TESTS_USER + ";");
@@ -83,6 +101,13 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         });
     }
 
+    protected List<File> getCreateScripts(File scriptsDirectory) {
+        List<File> scripts = new ArrayList<>();
+        RunSqlOptions.Mode.REPOSITORY.updateScripts.forEach(f -> scripts.add(new File(scriptsDirectory, f.getName())));
+        RunSqlOptions.Mode.AUDIT.updateScripts.forEach(f -> scripts.add(new File(scriptsDirectory, f.getName())));
+        return scripts;
+    }
+
     protected void recreateSchema(@NotNull File scriptsDirectory) throws Exception {
         runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public;"));
 
@@ -91,12 +116,11 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         ConnectionOptions connectionOptions = new ConnectionOptions();
         connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
 
-        Assertions.assertThat(ninjaTestsJdbcUrl).isNotNull();
-        connectionOptions.setUrl(ninjaTestsJdbcUrl);
+        Assertions.assertThat(getJdbcUrlForNinjaTestsUser()).isNotNull();
+        connectionOptions.setUrl(getJdbcUrlForNinjaTestsUser());
 
         RunSqlOptions runSqlOptions = new RunSqlOptions();
-//        runSqlOptions.setScriptsDirectory(scriptsDirectory);
-//        runSqlOptions
+        runSqlOptions.setScripts(getCreateScripts(scriptsDirectory));
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 
@@ -147,6 +171,14 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
     protected Long countTablesInPublicSchema() throws SQLException {
         return runWithResult(ninjaTestDatabase, jdbcTemplate ->
                 jdbcTemplate.queryForObject("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'", Long.class));
+    }
+
+    protected String getAuditSchemaChangeNumber(@NotNull DataSource dataSource) throws SQLException {
+        return getGlobalMetadataValue(ninjaTestDatabase, "schemaAuditChangeNumber");
+    }
+
+    protected String getSchemaChangeNumber(@NotNull DataSource dataSource) throws SQLException {
+        return getGlobalMetadataValue(ninjaTestDatabase, "schemaChangeNumber");
     }
 
     protected String getGlobalMetadataValue(@NotNull DataSource dataSource, @NotNull String key) throws SQLException {

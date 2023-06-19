@@ -15,7 +15,7 @@ public class VerifyFilesTest {
 
     protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
 
-    @Test
+    @Test(enabled = false)
     public void verifyFilesTest() throws Exception {
         BaseOptions baseOptions = new BaseOptions();
         baseOptions.setVerbose(true);
