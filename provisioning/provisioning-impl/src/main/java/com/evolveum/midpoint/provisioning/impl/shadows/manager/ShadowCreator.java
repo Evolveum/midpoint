@@ -9,6 +9,9 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ShadowAuditHelper;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,6 +58,7 @@ public class ShadowCreator {
     @Autowired private Clock clock;
     @Autowired private Protector protector;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
+    @Autowired private ShadowAuditHelper shadowAuditHelper;
 
     /**
      * Adds (without checking for existence) a shadow corresponding to a resource object that was discovered.
@@ -71,6 +75,9 @@ public class ShadowCreator {
         repoShadow.setOid(oid);
         LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
         LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDumpLazily(1));
+
+        shadowAuditHelper.auditEvent(AuditEventType.DISCOVER_OBJECT, repoShadow, null, ctx, result);
+
         return repoShadow;
     }
 
@@ -218,6 +225,8 @@ public class ShadowCreator {
         }
 
         normalizeAttributes(repoShadow, ctx.getObjectDefinitionRequired());
+
+        MetadataUtil.addCreationMetadata(repoShadow);
 
         return repoShadow;
     }

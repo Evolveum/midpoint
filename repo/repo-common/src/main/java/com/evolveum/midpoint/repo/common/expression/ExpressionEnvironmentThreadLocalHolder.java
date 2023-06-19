@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.expression;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 
 import java.util.ArrayDeque;

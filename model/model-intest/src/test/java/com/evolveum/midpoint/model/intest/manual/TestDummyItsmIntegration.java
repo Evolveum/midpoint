@@ -260,7 +260,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         clockForward("PT3H");
 
         // WHEN
+        // remove pending operations, modificationTimestamp on shadow is updated, therefore dead shadow is not removed yet
         when();
+        reconcileUser(USER_JACK_OID, task, result);
+
+        // remove dead shadows
+        clockForward("PT3H");
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN

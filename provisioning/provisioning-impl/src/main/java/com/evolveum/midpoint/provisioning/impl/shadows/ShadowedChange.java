@@ -315,6 +315,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                             repoShadow,
                             getIdentifiers(),
                             options,
+                            context.getOperationContext(),
                             context.getTask(),
                             result);
                 } catch (ObjectNotFoundException e) {

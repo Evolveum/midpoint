@@ -2068,7 +2068,15 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // Make sure that all pending operations are expired
         clockForward("PT3H");
+
+        // during this operation (more specifically get shadow "will") shadow is refreshed, pending operations deleted and
+        // modifyTimestamp updated, meaning deadRetentionPeriod will not be exceeded
         recomputeUser(userWillOid, task, result);
+
+        // this will remove shadow during shadow refresh, since it's dead and modifications didn't happend
+        clockForward("PT3H");
+        recomputeUser(userWillOid, task, result);
+
         assertSuccess(result);
 
         assertNoShadow(accountWillOid);

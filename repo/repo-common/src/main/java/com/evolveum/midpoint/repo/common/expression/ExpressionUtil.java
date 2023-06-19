@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

@@ -6,37 +6,30 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static java.util.Collections.emptyList;
-
 import java.util.Collection;
-import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironmentSupplier;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.AuditConfiguration;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -49,13 +42,7 @@ public class ClockworkAuditHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkAuditHelper.class);
 
-    private static final String OP_EVALUATE_AUDIT_RECORD_PROPERTY =
-            ClockworkAuditHelper.class.getName() + ".evaluateAuditRecordProperty";
-
-    @Autowired private PrismContext prismContext;
     @Autowired private AuditHelper auditHelper;
-    @Autowired private ExpressionFactory expressionFactory;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     // "overallResult" covers the whole clockwork run
     // while "result" is - most of the time - related to the current clockwork click
@@ -138,36 +125,19 @@ public class ClockworkAuditHelper {
         AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
         auditRecord.setRequestIdentifier(context.getRequestIdentifier());
 
-        boolean recordResourceOids;
-        List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord;
-        ExpressionType eventRecordingExpression = null;
-
         SystemConfigurationType config = context.getSystemConfigurationBean();
-        if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
-            SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
-            recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
-            propertiesToRecord = eventRecording.getProperty();
-            eventRecordingExpression = eventRecording.getExpression();
-        } else {
-            recordResourceOids = false;
-            propertiesToRecord = emptyList();
-        }
+        AuditConfiguration auditConfiguration = auditHelper.getAuditConfiguration(config);
 
         if (primaryObject != null) {
             auditRecord.setTarget(primaryObject);
-            if (recordResourceOids) {
+            if (auditConfiguration.isRecordResourceOids()) {
                 recordResourceOids(auditRecord, primaryObject.getRealValue(), context);
             }
         }
 
         auditRecord.setChannel(context.getChannel());
 
-        // This is a brutal hack -- FIXME: create some "compute in-depth preview" method on operation result
-        OperationResult clone = overallResult.clone(2, false);
-        for (OperationResult subresult : clone.getSubresults()) {
-            subresult.computeStatusIfUnknown();
-        }
-        clone.computeStatus();
+        OperationResult clone = auditHelper.cloneResultForAuditEventRecord(overallResult);
 
         if (stage == AuditEventStage.REQUEST) {
             Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
@@ -194,16 +164,19 @@ public class ClockworkAuditHelper {
             auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
         }
 
-        addRecordMessage(auditRecord, clone.getMessage());
+        auditHelper.addRecordMessage(auditRecord, clone.getMessage());
 
-        for (SystemConfigurationAuditEventRecordingPropertyType property : propertiesToRecord) {
-            evaluateAuditRecordProperty(property, auditRecord, primaryObject, context, task, result);
+        for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
+            auditHelper.evaluateAuditRecordProperty(property, auditRecord, primaryObject,
+                    context.getPrivilegedExpressionProfile(), task, result);
         }
 
-        if (eventRecordingExpression != null) {
+        if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
-                    auditRecord, primaryObject, context, task, result);
+            auditRecord = auditHelper.evaluateRecordingExpression(
+                    auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject, context.getPrivilegedExpressionProfile(),
+                    (sTask, sResult) -> new ModelExpressionEnvironment<>(context, null, sTask, sResult),
+                    task, result);
         }
 
         if (auditRecord != null) {
@@ -243,64 +216,6 @@ public class ClockworkAuditHelper {
         }
     }
 
-    private <F extends ObjectType> void evaluateAuditRecordProperty(SystemConfigurationAuditEventRecordingPropertyType propertyDef,
-            AuditEventRecord auditRecord, PrismObject<? extends ObjectType> primaryObject, LensContext<F> context, Task task,
-            OperationResult parentResult) {
-        String name = propertyDef.getName();
-        OperationResult result = parentResult.subresult(OP_EVALUATE_AUDIT_RECORD_PROPERTY)
-                .addParam("name", name)
-                .setMinor()
-                .build();
-        try {
-            if (StringUtils.isBlank(name)) {
-                throw new IllegalArgumentException("Name of SystemConfigurationAuditEventRecordingPropertyType is empty or null in " + propertyDef);
-            }
-            if (!targetSelectorMatches(propertyDef.getTargetSelector(), primaryObject)) {
-                result.recordNotApplicable();
-                return;
-            }
-            ExpressionType expression = propertyDef.getExpression();
-            if (expression != null) {
-                VariablesMap variables = new VariablesMap();
-                variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
-                variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
-                String shortDesc = "value for custom column of audit table";
-                Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression,
-                        context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
-                if (values == null || values.isEmpty()) {
-                    // nothing to do
-                } else if (values.size() == 1) {
-                    auditRecord.getCustomColumnProperty().put(name, values.iterator().next());
-                } else {
-                    throw new IllegalArgumentException("Collection of expression result contains more than one value");
-                }
-            }
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit record property expression {}", t, name);
-            // Intentionally not throwing the exception. The error is marked as partial.
-            // (It would be better to mark it as fatal and to derive overall result as partial, but we aren't that far yet.)
-            result.recordPartialError(t);
-        } finally {
-            result.recordSuccessIfUnknown();
-        }
-    }
-
-    private boolean targetSelectorMatches(List<ObjectSelectorType> targetSelectors,
-            PrismObject<? extends ObjectType> primaryObject) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        if (targetSelectors.isEmpty()) {
-            return true;
-        }
-        for (ObjectSelectorType targetSelector : targetSelectors) {
-            if (repositoryService.selectorMatches(
-                    targetSelector, primaryObject, null, LOGGER, "target selector")) {
-                return true;
-            }
-        }
-        LOGGER.debug("No selector matches for {}", primaryObject);
-        return false;
-    }
-
     @NotNull
     private AuditEventType determineEventType(ObjectDelta<? extends ObjectType> primaryDelta) {
         AuditEventType eventType;
@@ -326,36 +241,5 @@ public class ClockworkAuditHelper {
                 }
             }
         }
-    }
-
-    /**
-     * Adds a message to the record by pulling the messages from individual delta results.
-     */
-    private void addRecordMessage(AuditEventRecord auditRecord, String message) {
-        if (auditRecord.getMessage() != null) {
-            return;
-        }
-        if (!StringUtils.isEmpty(message)) {
-            auditRecord.setMessage(message);
-            return;
-        }
-        Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = auditRecord.getDeltas();
-        if (deltas.isEmpty()) {
-            return;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (ObjectDeltaOperation<? extends ObjectType> delta : deltas) {
-            OperationResult executionResult = delta.getExecutionResult();
-            if (executionResult != null) {
-                String deltaMessage = executionResult.getMessage();
-                if (!StringUtils.isEmpty(deltaMessage)) {
-                    if (sb.length() != 0) {
-                        sb.append("; ");
-                    }
-                    sb.append(deltaMessage);
-                }
-            }
-        }
-        auditRecord.setMessage(sb.toString());
     }
 }

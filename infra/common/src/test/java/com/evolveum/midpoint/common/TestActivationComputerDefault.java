@@ -53,4 +53,20 @@ public class TestActivationComputerDefault extends AbstractActivationComputerTes
         // THEN
         assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
+
+    @Test
+    public void testGetSuspendedAdministrativeEnabled() {
+        // GIVEN
+        Clock clock = createClock(YEAR_START);
+        ActivationComputer activationComputer = createActivationComputer(clock);
+        ActivationType activationType = createActivationType(
+                ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
+
+        // WHEN
+        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(
+                SchemaConstants.LIFECYCLE_SUSPENDED, activationType, createLifecycleModel());
+
+        // THEN
+        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
+    }
 }

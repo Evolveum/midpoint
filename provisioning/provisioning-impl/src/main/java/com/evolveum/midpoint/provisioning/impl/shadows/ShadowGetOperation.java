@@ -24,10 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
+import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -109,13 +106,14 @@ class ShadowGetOperation {
             @Nullable ShadowType providedRepositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull ShadowsLocalBeans localBeans)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
             CommunicationException {
         ShadowType repositoryShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result, localBeans);
-        ProvisioningContext ctx = createProvisioningContext(repositoryShadow, options, task, result, localBeans);
+        ProvisioningContext ctx = createProvisioningContext(repositoryShadow, options, context, task, result, localBeans);
         return new ShadowGetOperation(ctx, repositoryShadow, identifiersOverride, options, localBeans);
     }
 
@@ -225,6 +223,7 @@ class ShadowGetOperation {
     private static @NotNull ProvisioningContext createProvisioningContext(
             @NotNull ShadowType repositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext operationContext,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull ShadowsLocalBeans localBeans)
@@ -232,6 +231,7 @@ class ShadowGetOperation {
             ObjectNotFoundException {
         ProvisioningContext ctx = localBeans.ctxFactory.createForShadow(repositoryShadow, task, result);
         ctx.setGetOperationOptions(options);
+        ctx.setOperationContext(operationContext);
         return ctx;
     }
 
@@ -285,7 +285,7 @@ class ShadowGetOperation {
             CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
         repositoryShadow = localBeans.refreshHelper
-                .refreshShadow(repositoryShadow, refreshOpts, ctx.getTask(), result)
+                .refreshShadow(repositoryShadow, refreshOpts, ctx.getOperationContext(), ctx.getTask(), result)
                 .getRefreshedShadow();
         LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow, 1));
 
@@ -546,7 +546,7 @@ class ShadowGetOperation {
         if (cachingMetadata == null) {
             if (stalenessOption == Long.MAX_VALUE) {
                 // We must return cached version but there is no cached version.
-                throw new ConfigurationException("Cached version of "+repositoryShadow+" requested, but there is no cached value");
+                throw new ConfigurationException("Cached version of " + repositoryShadow + " requested, but there is no cached value");
             }
             return false;
         }

@@ -17,12 +17,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
-import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -36,9 +30,13 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -47,10 +45,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -285,7 +285,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      *  The reason for being here is the similarity to {@link #getOrCreateProjectionContext(LensContext, ConstructionTargetKey, boolean)}
      *  and coupling with {@link #getOrCreateProjectionContext(LensContext, HumanReadableDescribable, Supplier, Supplier)}.
      */
-    public @NotNull static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
+    public @NotNull
+    static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
             LensContext<F> context, ProjectionContextKey contextKey) {
         return getOrCreateProjectionContext(
                 context,
@@ -294,7 +295,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 () -> context.createProjectionContext(contextKey));
     }
 
-    public @NotNull static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
+    public @NotNull
+    static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
             LensContext<F> context, ConstructionTargetKey targetKey, boolean acceptReaping) {
         return getOrCreateProjectionContext(
                 context,
@@ -303,7 +305,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 () -> context.createProjectionContext(targetKey.toProjectionContextKey()));
     }
 
-    private @NotNull static <F extends ObjectType, K extends HumanReadableDescribable>
+    private @NotNull
+    static <F extends ObjectType, K extends HumanReadableDescribable>
     GetOrCreateProjectionContextResult getOrCreateProjectionContext(
             LensContext<F> context,
             K key,
@@ -1708,7 +1711,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * This method is invoked by context factories when context build is finished.
      */
     void finishBuild() {
-        if (InternalsConfig.consistencyChecks) checkConsistence();
+        if (InternalsConfig.consistencyChecks) {
+            checkConsistence();
+        }
         if (focusContext != null) {
             focusContext.finishBuild();
         }
@@ -1996,6 +2001,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public @NotNull TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
+    }
+
+    public @NotNull ProvisioningOperationContext createProvisioningOperationContext() {
+        return new ProvisioningOperationContext()
+                .requestIdentifier(getRequestIdentifier())
+                .expressionEnvironmentSupplier((task, result) -> new ModelExpressionEnvironment<>(this, null, task, result))
+                .expressionProfile(getPrivilegedExpressionProfile());
     }
 
     public MetadataRecordingStrategyType getShadowMetadataRecordingStrategy() {

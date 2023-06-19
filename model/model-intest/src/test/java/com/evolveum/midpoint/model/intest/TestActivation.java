@@ -387,6 +387,35 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
+    public void test066ModifyUserJackLifecycleSuspended() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_SUSPENDED);
+
+        // THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack, "Jack Sparrow");
+
+        assertAdministrativeStatusEnabled(userJack);
+        assertValidity(userJack, null);
+        assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
+        assertDisableTimestampFocus(userJack, start, end);
+
+        TestUtil.assertModifyTimestamp(userJack, start, end);
+    }
+
+    @Test
     public void test068ModifyUserJackLifecycleArchived() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -1967,7 +1996,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      * MID-3689, MID-3737
      */
     @Test
-    public void test245ActivateRapp() throws Exception {
+    public void test244ActivateRapp() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1983,7 +2012,145 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
-        assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
+        assertUser(userAfter, "user after")
+                .activation()
+                .assertNoAdministrativeStatus()
+                .assertEffectiveStatus(ActivationStatusType.ENABLED);
+
+        assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        assertLiveLinks(userAfter, 1);
+
+        assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+
+        DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
+        displayDumpable("dummy account", dummyAccount);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, RESOURCE_DUMMY_QUOTE);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
+    }
+
+    /**
+     * Switch Rapp to suspended state.
+     * User should be disabled, however the assignments should still be active.
+     */
+    @Test
+    public void test245SuspendRapp() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        assertUserBefore(USER_RAPP_OID)
+                .activation()
+                .assertNoAdministrativeStatus()
+                .assertEffectiveStatus(ActivationStatusType.ENABLED);
+
+        // WHEN
+        when();
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
+                SchemaConstants.LIFECYCLE_SUSPENDED);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        assertUser(userAfter, "user after")
+                .activation()
+                // DISABLED administrative status gets propagated here from inbound mapping on dummy resource
+                // This is not ideal configuration ... it dates back to early midpoint.
+                // But we need to live with it ... for now.
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertEffectiveStatus(ActivationStatusType.DISABLED);
+
+
+        assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        assertLiveLinks(userAfter, 1);
+
+        assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+
+        DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
+        displayDumpable("dummy account", dummyAccount);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, RESOURCE_DUMMY_QUOTE);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
+    }
+
+    /**
+     * Switch Rapp administrative status to enabled.
+     * Nothing should really happen, as lifecycle state is still SUSPENDED.
+     */
+    @Test
+    public void test246AlmostReactivateRapp() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+        modifyUserReplace(USER_RAPP_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result,
+                ActivationStatusType.ENABLED);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        assertUser(userAfter, "user after")
+                .activation()
+                    .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                    .assertEffectiveStatus(ActivationStatusType.DISABLED);
+
+        assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        assertLiveLinks(userAfter, 1);
+
+        assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+
+        DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
+        displayDumpable("dummy account", dummyAccount);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, RESOURCE_DUMMY_QUOTE);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
+    }
+
+    /**
+     * Switch Rapp to active state again.
+     * User should be enabled, and the assignments should be still active.
+     */
+    @Test
+    public void test247ReactivateRapp() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
+                SchemaConstants.LIFECYCLE_ACTIVE);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        assertUser(userAfter, "user after")
+                .activation()
+                    .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                    .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);

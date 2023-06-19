@@ -327,11 +327,14 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
         testCompute(null, now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
         testComputeDraft(now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
         testComputeProposed(now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
+        testComputeSuspended(now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
         testCompute(SchemaConstants.LIFECYCLE_ACTIVE, now, administrativeStatus,
                 validFrom, validTo, expectedEffective, expectedValidity);
         testCompute(SchemaConstants.LIFECYCLE_DEPRECATED, now, administrativeStatus,
                 validFrom, validTo, expectedEffective, expectedValidity);
         testCompute(SchemaConstants.LIFECYCLE_FAILED, now, administrativeStatus,
+                validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
+        testCompute(SchemaConstants.LIFECYCLE_SUSPENDED, now, administrativeStatus,
                 validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
         testCompute(SchemaConstants.LIFECYCLE_ARCHIVED, now, administrativeStatus,
                 validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
@@ -355,6 +358,15 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
             ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity)
             throws SchemaException, IOException {
         testCompute(SchemaConstants.LIFECYCLE_PROPOSED, now, administrativeStatus,
+                validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
+    }
+
+    protected void testComputeSuspended(
+            XMLGregorianCalendar now, ActivationStatusType administrativeStatus,
+            XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
+            ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity)
+            throws SchemaException, IOException {
+        testCompute(SchemaConstants.LIFECYCLE_SUSPENDED, now, administrativeStatus,
                 validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
     }
 

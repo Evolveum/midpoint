@@ -18,22 +18,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.common.Clock;
-
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.api.ShadowDeathEvent;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
@@ -138,23 +136,29 @@ public class ShadowUpdater {
     public void executeRepoShadowModifications(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> repoModifications,
+            @NotNull Collection<? extends ItemDelta<?, ?>> repoModifications,   // todo this should be changed to Collection<ItemDelta<?, ?>> [viliam]
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        if (!repoModifications.isEmpty()) {
-            LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(repoModifications, 1));
+
+        List<ItemDelta<?, ?>> clonedModifications = new ArrayList<>();
+        clonedModifications.addAll(repoModifications);
+
+        if (!clonedModifications.isEmpty()) {
+            MetadataUtil.addModificationMetadataDeltas(clonedModifications, repoShadow);
+
+            LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(clonedModifications, 1));
             try {
-                ConstraintsChecker.onShadowModifyOperation(repoModifications);
-                repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), repoModifications, result);
+                ConstraintsChecker.onShadowModifyOperation(clonedModifications);
+                repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), clonedModifications, result);
                 // Maybe we should catch ObjectNotFoundException here and issue death event. But unless such deletion occurred
                 // in raw mode by the administrator, we shouldn't care, because the thread that deleted the shadow should have
                 // updated the links accordingly.
-                if (wasMarkedDead(repoShadow, repoModifications)) {
+                if (wasMarkedDead(repoShadow, clonedModifications)) {
                     issueShadowDeathEvent(repoShadow.getOid(), ctx.getTask(), result);
                 }
                 // This is important e.g. to update opState.repoShadow content in case of ADD operation success
                 // - to pass newly-generated primary identifier to other parts of the code.
-                ItemDeltaCollectionsUtil.applyTo(repoModifications, repoShadow.asPrismObject());
+                ItemDeltaCollectionsUtil.applyTo(clonedModifications, repoShadow.asPrismObject());
                 LOGGER.trace("Shadow changes processed successfully.");
             } catch (ObjectAlreadyExistsException ex) {
                 throw SystemException.unexpected(ex, "when updating shadow in the repository");
@@ -198,6 +202,9 @@ public class ShadowUpdater {
                 // We need to free the identifier for further use by live shadows that may come later
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                 .asItemDeltas();
+
+        MetadataUtil.addModificationMetadataDeltas(shadowChanges, repoShadow);
+
         LOGGER.trace("Marking shadow {} as tombstone", repoShadow);
         try {
             repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, result);
@@ -237,11 +244,15 @@ public class ShadowUpdater {
             return markShadowExists(liveShadow, result);
         }
     }
+
     /** @return false if the shadow was not found. */
     private boolean markShadowExists(ShadowType repoShadow, OperationResult parentResult) throws SchemaException {
         List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_EXISTS).replace(true)
                 .asItemDeltas();
+
+        MetadataUtil.addModificationMetadataDeltas(shadowChanges, repoShadow);
+
         LOGGER.trace("Marking shadow {} as existent", repoShadow);
         try {
             repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
@@ -270,6 +281,8 @@ public class ShadowUpdater {
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(expectedPrimaryIdentifierValue)
                 .asItemDeltas();
+
+        MetadataUtil.addModificationMetadataDeltas(modifications, repoShadow);
 
         LOGGER.trace("Correcting primaryIdentifierValue for {}: {} -> {}",
                 repoShadow, currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue);
@@ -310,6 +323,9 @@ public class ShadowUpdater {
             List<ItemDelta<?, ?>> resetModifications = prismContext.deltaFor(ShadowType.class)
                     .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                     .asItemDeltas();
+
+            MetadataUtil.addModificationMetadataDeltas(resetModifications, repoShadow);
+
             try {
                 repositoryService.modifyObject(ShadowType.class, potentialConflictingShadow.getOid(), resetModifications, result);
             } catch (ObjectAlreadyExistsException ee) {
@@ -366,9 +382,7 @@ public class ShadowUpdater {
      *
      * @param currentResourceObject Current state of the resource object. Not shadowized yet.
      * @param resourceObjectDelta Delta coming from the resource (if known).
-     *
      * @return repository shadow as it should look like after the update
-     *
      * @see ShadowDeltaComputerAbsolute
      */
     public @NotNull ShadowType updateShadowInRepository(
