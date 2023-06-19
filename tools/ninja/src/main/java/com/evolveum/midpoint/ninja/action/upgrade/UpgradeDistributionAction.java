@@ -1,14 +1,13 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import com.evolveum.midpoint.ninja.action.Action;
-
-import com.evolveum.midpoint.ninja.action.RunSqlAction;
-import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import java.io.File;
 
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
+import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.RunSqlAction;
+import com.evolveum.midpoint.ninja.action.RunSqlOptions;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
 
@@ -51,7 +50,9 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         RunSqlOptions upgradeRepositoryOpts = new RunSqlOptions();
         upgradeRepositoryOpts.setUpgrade(true);
         upgradeRepositoryOpts.setMode(RunSqlOptions.Mode.REPOSITORY);
-        upgradeRepositoryOpts.setScriptsDirectory(new File(installationDirectory, upgradeRepositoryOpts.getScriptsDirectory().getPath()));
+        upgradeRepositoryOpts.setScripts(RunSqlOptions.Mode.REPOSITORY.updateScripts.stream()
+                .map(f -> new File(installationDirectory, f.getPath()))
+                .toList());
 
         RunSqlAction upgradeRepositoryAction = new RunSqlAction();
         upgradeRepositoryAction.init(context, upgradeRepositoryOpts);
@@ -60,7 +61,9 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         RunSqlOptions upgradeAuditOpts = new RunSqlOptions();
         upgradeAuditOpts.setUpgrade(true);
         upgradeAuditOpts.setMode(RunSqlOptions.Mode.AUDIT);
-        upgradeAuditOpts.setScriptsDirectory(new File(installationDirectory, upgradeAuditOpts.getScriptsDirectory().getPath()));
+        upgradeRepositoryOpts.setScripts(RunSqlOptions.Mode.AUDIT.updateScripts.stream()
+                .map(f -> new File(installationDirectory, f.getPath()))
+                .toList());
 
         RunSqlAction upgradeAuditAction = new RunSqlAction();
         upgradeAuditAction.init(context, upgradeAuditOpts);

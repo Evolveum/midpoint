@@ -38,22 +38,35 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
     @Override
     public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
-        ConnectionOptions opts = NinjaUtils.getOptions(allOptions, ConnectionOptions.class);
-        if (opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
-            // no midpoint-home option defined, custom jdbc url/username/password will be used
+        if (preferCustomJdbcConnection(allOptions)) {
             return NinjaApplicationContextLevel.NONE;
         }
 
         return NinjaApplicationContextLevel.STARTUP_CONFIGURATION;
     }
 
+    private boolean preferCustomJdbcConnection(List<Object> allOptions) {
+        RunSqlOptions opts = NinjaUtils.getOptions(allOptions, RunSqlOptions.class);
+        if (opts != null && StringUtils.isNotEmpty(opts.getJdbcUrl()) && StringUtils.isNotEmpty(opts.getJdbcUsername())) {
+            return true;
+        }
+
+        ConnectionOptions connectionOpts = NinjaUtils.getOptions(allOptions, ConnectionOptions.class);
+        if (connectionOpts == null || StringUtils.isEmpty(connectionOpts.getMidpointHome())) {
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public Void execute() throws Exception {
-        final RunSqlOptions.Mode mode = options.getMode() != null ? options.getMode() : RunSqlOptions.Mode.REPOSITORY;
+        RunSqlOptions.Mode mode = options.getMode();
+        if (mode == null) {
+            mode = preferCustomJdbcConnection(context.getAllOptions()) ? RunSqlOptions.Mode.RAW : RunSqlOptions.Mode.REPOSITORY;
+        }
 
         setScriptsDefaults(mode, options);
-
-        File scriptsDirectory = options.getScriptsDirectory();
 
         ConnectionOptions opts = context.getOptions(ConnectionOptions.class);
         if (mode == RunSqlOptions.Mode.RAW || opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
@@ -65,7 +78,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
             // setup custom datasource
             try (HikariDataSource dataSource = setupCustomDataSource()) {
-                executeScripts(dataSource, scriptsDirectory, options.getScripts());
+                executeScripts(dataSource, options.getScripts());
             }
 
             return null;
@@ -82,7 +95,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             Configuration configuration = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
             repositoryDataSource = createDataSource(configuration, "ninja-repository");
             if (mode == RunSqlOptions.Mode.REPOSITORY) {
-                executeScripts(repositoryDataSource, scriptsDirectory, options.getScripts());
+                executeScripts(repositoryDataSource, options.getScripts());
 
                 return null;
             }
@@ -90,7 +103,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             if (mode == RunSqlOptions.Mode.AUDIT) {
                 auditDataSource = createAuditDataSource(repositoryDataSource, midpointConfiguration);
                 if (auditDataSource != null) {
-                    executeScripts(auditDataSource, scriptsDirectory, options.getScripts());
+                    executeScripts(auditDataSource, options.getScripts());
                 } else {
                     log.error("Audit configuration not found in " + midpointConfiguration.getMidpointHome() + "/config.xml");
                 }
@@ -104,16 +117,14 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
     }
 
     private void setScriptsDefaults(RunSqlOptions.Mode mode, RunSqlOptions options) {
-        if (options.getScriptsDirectory() == null) {
-            options.setScriptsDirectory(mode.scriptsDirectory);
+        if (!options.getScripts().isEmpty()) {
+            return;
         }
 
-        if (options.getScripts().isEmpty()) {
-            if (options.getCreate()) {
-                options.setScripts(mode.createScripts);
-            } else if (options.getUpgrade()) {
-                options.setScripts(mode.updateScripts);
-            }
+        if (options.getCreate()) {
+            options.setScripts(mode.createScripts);
+        } else if (options.getUpgrade()) {
+            options.setScripts(mode.updateScripts);
         }
     }
 
@@ -182,15 +193,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
         return createDataSource(auditServiceConfig, "ninja-audit");
     }
 
-    private void executeScripts(DataSource dataSource, File scriptsDirectory, List<File> scripts) throws IOException, SQLException {
-        List<File> files = scripts.stream()
-                .map(script -> scriptsDirectory != null ? new File(scriptsDirectory, script.getPath()) : script)
-                .toList();
-
-        executeSqlScripts(dataSource, files);
-    }
-
-    private void executeSqlScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws IOException, SQLException {
+    private void executeScripts(@NotNull DataSource dataSource, @NotNull List<File> scripts) throws IOException, SQLException {
         try (Connection connection = dataSource.getConnection()) {
             boolean autocommit = connection.getAutoCommit();
             connection.setAutoCommit(true);
@@ -202,14 +205,16 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     Statement stmt = connection.createStatement();
 
                     String sql = FileUtils.readFileToString(script, StandardCharsets.UTF_8);
-                    boolean hasResult = stmt.execute(sql);  // todo print results
+                    boolean hasResult = stmt.execute(sql);
                     if (options.getResult()) {
-                        printStatementResults(stmt, hasResult);
+                        int index = 0;
+                        printStatementResults(stmt, hasResult, index);
 
                         while (true) {
                             hasResult = stmt.getMoreResults();
+                            index++;
 
-                            printStatementResults(stmt, hasResult);
+                            printStatementResults(stmt, hasResult, index);
 
                             if (!hasResult && stmt.getUpdateCount() == -1) {
                                 break;
@@ -225,20 +230,19 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
         }
     }
 
-    private void printStatementResults(Statement stmt, boolean hasResult) throws SQLException {
+    private void printStatementResults(Statement stmt, boolean hasResult, int index) throws SQLException {
         if (!hasResult) {
             int updateCount = stmt.getUpdateCount();
             if (updateCount != -1) {
-                System.out.println("Updated rows: " + updateCount);
-                System.out.println();
+                System.out.println("Result #" + index + ": " + updateCount + " updated rows ");
             }
             return;
         }
 
+        System.out.println("Result set #" + index + ":");
         try (ResultSet set = stmt.getResultSet()) {
             printResultSet(set);
         }
-        System.out.println();
     }
 
     private void printResultSet(ResultSet set) throws SQLException {

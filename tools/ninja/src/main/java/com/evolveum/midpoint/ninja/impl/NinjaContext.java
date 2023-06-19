@@ -170,17 +170,12 @@ public class NinjaContext implements Closeable {
         return applicationContext;
     }
 
-    private String getPassword(ConnectionOptions options) {
-        String password = options.getPassword();
-        if (password == null) {
-            password = options.getAskPassword();
-        }
-
-        return password;
-    }
-
     public <T> T getOptions(Class<T> type) {
         return NinjaUtils.getOptions(options, type);
+    }
+
+    public List<Object> getAllOptions() {
+        return options;
     }
 
     public MidpointConfiguration getMidpointConfiguration() {

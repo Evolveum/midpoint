@@ -10,6 +10,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -83,7 +84,8 @@ public class Main {
 
             //noinspection unchecked
             T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
-            List<Object> allOptions = jc.getObjects();
+            List<Object> allOptions = new ArrayList<>(jc.getObjects());
+            allOptions.add(options);
 
             context = new NinjaContext(allOptions, action.getApplicationContextLevel(allOptions));
 

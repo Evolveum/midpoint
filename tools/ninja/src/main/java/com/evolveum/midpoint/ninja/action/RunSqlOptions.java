@@ -13,41 +13,34 @@ import com.evolveum.midpoint.ninja.util.RunModeConverterValidator;
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "runSql")
 public class RunSqlOptions {
 
+    public static final File SCRIPTS_DIRECTORY = new File("./doc/config/sql/native-new");
+
     public enum Mode {
 
-        RAW(new File("."),
-                Collections.emptyList(),
-                Collections.emptyList()
+        RAW(Collections.emptyList(), Collections.emptyList()),
+
+        REPOSITORY(
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new.sql"),
+                        new File(SCRIPTS_DIRECTORY, "postgres-new-quartz.sql")),
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-upgrade.sql"))
         ),
 
-        REPOSITORY(new File("./doc/config/sql/native-new"),
-                List.of(new File("postgres-new.sql"), new File("postgres-new-quartz.sql")),
-                List.of(new File("postgres-new-upgrade.sql"))
-        ),
-
-        AUDIT(new File("./doc/config/sql/native-new"),
-                List.of(new File("postgres-new-audit.sql")),
-                List.of(new File("postgres-new-upgrade-audit.sql"))
+        AUDIT(
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-audit.sql")),
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-upgrade-audit.sql"))
         );
 
-        final File scriptsDirectory;
+        public final List<File> createScripts;
 
-        final List<File> createScripts;
+        public final List<File> updateScripts;
 
-        final List<File> updateScripts;
-
-        Mode(File scriptsDirectory, List<File> createScripts, List<File> updateScripts) {
-            this.scriptsDirectory = scriptsDirectory;
+        Mode(List<File> createScripts, List<File> updateScripts) {
             this.createScripts = createScripts;
             this.updateScripts = updateScripts;
         }
     }
 
-    public static final String P_SCRIPTS_DIRECTORY_LONG = "--scripts-directory";
     public static final String P_SCRIPTS_LONG = "--scripts";
-    public static final String P_AUDIT_SCRIPTS_LONG = "--audit-scripts";
-    public static final String P_NO_AUDIT_LONG = "--no-audit";
-    public static final String P_NO_REPOSITORY_LONG = "--no-repository";
     public static final String P_JDBC_URL_LONG = "--jdbc-url";
     public static final String P_JDBC_USERNAME_LONG = "--jdbc-username";
     public static final String P_JDBC_PASSWORD_LONG = "--jdbc-password";
@@ -57,9 +50,6 @@ public class RunSqlOptions {
     public static final String P_RESULT = "--result";
 
     public static final String P_JDBC_ASK_PASSWORD_LONG = "--jdbc-ask-password";
-
-    @Parameter(names = { P_SCRIPTS_DIRECTORY_LONG }, descriptionKey = "runSql.scriptsDirectory")
-    private File scriptsDirectory;
 
     @Parameter(names = { P_SCRIPTS_LONG }, descriptionKey = "runSql.scripts", variableArity = true)
     private List<File> scripts = new ArrayList<>();
@@ -87,14 +77,6 @@ public class RunSqlOptions {
 
     @Parameter(names = { P_RESULT }, descriptionKey = "runSql.result")
     private boolean result;
-
-    public File getScriptsDirectory() {
-        return scriptsDirectory;
-    }
-
-    public void setScriptsDirectory(File scriptsDirectory) {
-        this.scriptsDirectory = scriptsDirectory;
-    }
 
     public List<File> getScripts() {
         return scripts;
