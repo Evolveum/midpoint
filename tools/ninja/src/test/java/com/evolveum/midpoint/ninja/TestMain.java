@@ -52,16 +52,84 @@ public class TestMain {
 
 //        input = "-v -m ../../_mess/upgrade/midpoint-48/var verify --report ../../_mess/upgrade/midpoint-48/verify-report.csv".split(" ");
 
-        input = "-v -m ./target/midpoint-home-upgrade setup-database --scripts-directory ../../config/sql/native-new --audit-only --no-audit".split(" ");
-        long time = System.currentTimeMillis();
-        System.out.println("OPTIONS: " + StringUtils.join(input, " "));
-//        Main.main(input);
-        System.out.println("TIME: " + (System.currentTimeMillis() - time));
+//        input = "-v -m ./target/midpoint-home-upgrade setup-database --scripts-directory ../../config/sql/native-new --audit-only --no-audit".split(" ");
+
+//        input = "-v run-sql --jdbc-url jdbc:postgresql://localhost:5432/mid8842_48 --jdbc-username postgres --jdbc-password postgres".split(" ");
+//        input = "-v -m ./target/midpoint-home-upgrade run-sql".split(" ");
+//        input = "-v -m ./target/midpoint-home-upgrade run-sql --mode repository".split(" ");
+//        input = "-v -m ./target/midpoint-home-upgrade run-sql --mode audit".split(" ");
+
+        input = ("-v run-sql "
+                + "--jdbc-url jdbc:postgresql://localhost:5432/mid8842_48 "
+                + "--jdbc-username postgres "
+                + "--jdbc-password postgres "
+                + "--scripts-directory . "
+                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
+                + "--result"
+        ).split(" ");
+
+//        input = ("-v run-sql "
+//                + "--jdbc-url jdbc:postgresql://localhost:5432/postgres "
+//                + "--jdbc-username postgres "
+//                + "--jdbc-password postgres "
+//                + "--scripts-directory <MAIN_SQL_DIRECTORY> "
+//                + "--scripts <CREATE_DATABASE_SCRIPT>"
+//        ).split(" ");
+//
+//        input = ("-v run-sql "
+//                + "--jdbc-url jdbc:postgresql://localhost:5432/<NOVA_DB> "
+//                + "--jdbc-username <NOVY_PAJAC> "
+//                + "--jdbc-password <PAJACOVE_HESLO> "
+//                + "--scripts-directory <CESTA_DO_docs/config/sql/native-new> "
+//                + "--create"
+//        ).split(" ");
+//
+//        input = ("-v -m <MIDPOINT_HOME_PATH> run-sql "
+//                + "--upgrade "
+//                + "--mode repository"
+//        ).split(" ");
+
+//        input = "-h run-sql".split(" ");
 
 //        System.out.println("Starting process");
 //        new ProcessBuilder(
 //                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
 //        ).inheritIO().start();
 //        System.out.println("Finished main");
+
+        String cmd = "-m non_existing_folder -v run-sql "
+                + "--jdbc-url jdbc:postgresql://localhost:5432/postgres "
+                + "--jdbc-username postgres "
+                + "--jdbc-password postgres "
+                + "--scripts ./src/test/resources/upgrade/midpoint-home/create-database.sql "
+                + "--result";
+        execute(cmd);
+
+        cmd = "-v run-sql "
+                + "--jdbc-url jdbc:postgresql://localhost:5432/asdf1 "
+                + "--jdbc-username asdf1 "
+                + "--jdbc-password asdf1 "
+                + "--scripts "
+                + "../../config/sql/native-new/postgres-new.sql "
+                + "../../config/sql/native-new/postgres-new-quartz.sql "
+                + "../../config/sql/native-new/postgres-new-audit.sql ";
+//                + "--create"; // can't use, we're not in default ninja folder
+        execute(cmd);
+
+        cmd = "-v run-sql "
+                + "--jdbc-url jdbc:postgresql://localhost:5432/asdf1 "
+                + "--jdbc-username asdf1 "
+                + "--jdbc-password asdf1 "
+                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
+                + "--result";
+        execute(cmd);
+    }
+
+    private static void execute(String args) {
+        long time = System.currentTimeMillis();
+        System.out.println("STARTING WITH OPTIONS: " + args);
+        Main.main(args.split(" "));
+        System.out.println("RUN TIME: " + (System.currentTimeMillis() - time));
+        System.out.println();
     }
 }
