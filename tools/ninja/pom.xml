@@ -60,6 +60,7 @@
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -148,8 +149,8 @@
         </dependency>
         <dependency>
             <groupId>com.squareup.okio</groupId>
-            <artifactId>okio-jvm</artifactId>
-            <version>3.0.0</version>
+            <artifactId>okio</artifactId>
+            <version>1.17.2</version>
         </dependency>
 
         <dependency>

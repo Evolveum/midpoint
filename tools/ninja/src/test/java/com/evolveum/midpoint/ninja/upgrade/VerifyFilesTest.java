@@ -15,7 +15,7 @@ public class VerifyFilesTest {
 
     protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
 
-    @Test(enabled = false)
+    @Test//wenabled = false)
     public void verifyFilesTest() throws Exception {
         BaseOptions baseOptions = new BaseOptions();
         baseOptions.setVerbose(true);
@@ -33,8 +33,8 @@ public class VerifyFilesTest {
 
         try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
             action.init(context, verifyFilesOptions);
-
             action.execute();
         }
+
     }
 }

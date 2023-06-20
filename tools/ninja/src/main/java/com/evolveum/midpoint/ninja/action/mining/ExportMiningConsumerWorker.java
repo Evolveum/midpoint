@@ -7,13 +7,16 @@
 package com.evolveum.midpoint.ninja.action.mining;
 
 import static com.evolveum.midpoint.common.RoleMiningExportUtils.*;
-import static com.evolveum.midpoint.repo.api.RepositoryService.LOGGER;
 import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 
 public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<ExportMiningOptions, FocusType> {
+
+    public static final Trace LOGGER = TraceManager.getTrace(ExportMiningConsumerWorker.class);
 
     OperationResult operationResult = new OperationResult(DOT_CLASS + "searchObjectByCondition");
 

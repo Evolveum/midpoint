@@ -62,7 +62,7 @@ public class BaseTest extends AbstractUnitTest {
         // Ninja tests don't support test.config.file property as other midPoint tests.
         String testConfigFile = System.getProperty("test.config.file");
         if (testConfigFile != null) {
-            System.setProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY, testConfigFile);
+            System.setProperty("midpoint.configFile", testConfigFile);
         }
     }
 
