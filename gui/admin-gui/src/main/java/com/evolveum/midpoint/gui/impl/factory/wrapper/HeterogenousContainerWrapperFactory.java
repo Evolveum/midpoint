@@ -8,12 +8,11 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 
 import org.springframework.stereotype.Component;
 
@@ -23,9 +22,10 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 
 /**
+ * Just like {@link PrismContainerWrapperFactoryImpl} but sets {@link PrismContainerValueWrapper#isHeterogenous()} flag to `true`.
+ *
  * @author katka
  */
 @Component
@@ -55,43 +55,45 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
      * match single value containers which contains a looot of other conainers, e.g. policy rule, policy action, notification configuration, etc
      */
     @Override
-    public boolean match(ItemDefinition<?> def) {
-        if (def.getTypeClass() != null && def.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)) {
+    public boolean match(ItemDefinition<?> itemDef) {
+        if (itemDef.getTypeClass() != null && itemDef.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)) {
             return false;
         }
 
-        QName defName = def.getTypeName();
+        QName typeName = itemDef.getTypeName();
 
-        if (CollectionRefSpecificationType.COMPLEX_TYPE.equals(defName)
-        && def.getItemName().equivalent(CollectionRefSpecificationType.F_BASE_COLLECTION_REF)) {
+        if (CollectionRefSpecificationType.COMPLEX_TYPE.equals(typeName)
+                && itemDef.getItemName().equivalent(CollectionRefSpecificationType.F_BASE_COLLECTION_REF)) {
             return true;
         }
 
-        // TODO
-//        if (TaskPartsDefinitionType.COMPLEX_TYPE.equals(defName)) {
-//            return true;
-//        }
-
-        if (!(def instanceof PrismContainerDefinition)) {
-            return false;
+        if (AuthorizationParentSelectorType.COMPLEX_TYPE.equals(typeName)
+                && itemDef.getItemName().equivalent(AuthorizationObjectSelectorType.F_PARENT)) {
+            // The AuthorizationObjectSelectorType#parent points back to AuthorizationObjectSelectorType
+            // (via AuthorizationParentSelectorType), so normally an endless recursion would occur here.
+            // Therefore, we treat it as a heterogeneous container. At least for now.
+            //
+            // TODO review this; see MID-8910.
+            return true;
         }
 
-        PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) def;
+        if (!(itemDef instanceof PrismContainerDefinition<?> containerDef)) {
+            return false;
+        }
 
         if (containerDef.isMultiValue() && isNotPolicyConstraint(containerDef)) {
             return false;
         }
 
-        List<? extends ItemDefinition> defs = containerDef.getDefinitions();
-        int containers = 0;
-        for (ItemDefinition<?> itemDef : defs) {
-            if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue()) {
-                containers++;
+        List<? extends ItemDefinition<?>> childDefs = containerDef.getDefinitions();
+        int multiValuedChildContainers = 0;
+        for (ItemDefinition<?> childItemDef : childDefs) {
+            if (childItemDef instanceof PrismContainerDefinition<?> && childItemDef.isMultiValue()) {
+                multiValuedChildContainers++;
             }
         }
 
-        return containers > 2;
-
+        return multiValuedChildContainers > 2;
     }
 
     private boolean isNotPolicyConstraint(PrismContainerDefinition<?> containerDef) {
