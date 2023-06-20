@@ -524,6 +524,7 @@ public abstract class SchemaConstants {
     public static final String LIFECYCLE_DRAFT = "draft";
     public static final String LIFECYCLE_PROPOSED = "proposed";
     public static final String LIFECYCLE_ACTIVE = "active";
+    public static final String LIFECYCLE_SUSPENDED = "suspended";
     public static final String LIFECYCLE_DEPRECATED = "deprecated";
     public static final String LIFECYCLE_ARCHIVED = "archived";
     public static final String LIFECYCLE_FAILED = "failed";
