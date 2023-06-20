@@ -12,26 +12,30 @@ import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.RunSqlAction;
 import com.evolveum.midpoint.ninja.action.RunSqlOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 
-public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
+public abstract class BaseUpgradeTest extends AbstractSpringTest
+        implements InfraTestMixin {
 
     public static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
 
@@ -42,10 +46,8 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
     public static final String CURRENT_AUDIT_SCHEMA_CHANGE_NUMBER = "4";
 
     @Autowired
-    protected DataSourceFactory dataSourceFactory;
+    private MidpointConfiguration midpointConfiguration;
 
-    @Autowired
-    @Qualifier("dataSource")
     protected DataSource midpointDatasource;
 
     protected HikariDataSource ninjaTestDatabase;
@@ -57,6 +59,12 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         FileUtils.forceMkdir(UPGRADE_MIDPOINT_HOME);
         FileUtils.copyFileToDirectory(new File("./src/test/resources/upgrade/midpoint-home/config.xml"), UPGRADE_MIDPOINT_HOME);
 
+        Configuration configuration = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
+        SqaleRepositoryConfiguration repositoryConfiguration = new SqaleRepositoryConfiguration(configuration);
+        repositoryConfiguration.init();
+        DataSourceFactory dataSourceFactory = new DataSourceFactory(repositoryConfiguration);
+        midpointDatasource = dataSourceFactory.createDataSource("midpoint");
+
         String jdbcUrl = dataSourceFactory.configuration().getJdbcUrl().replaceFirst("jdbc:", "");
         URI jdbcURI = URI.create(jdbcUrl);
 
@@ -64,9 +72,7 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
 
         recreateEmptyNinjaTestsDatabase();
 
-        ninjaTestDatabase = createHikariDataSource(getJdbcUrlForNinjaTestsUser(), NINJA_TESTS_USER, NINJA_TESTS_USER);
-
-        runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public CASCADE;"));
+//        runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public CASCADE;"));
     }
 
     protected HikariDataSource createHikariDataSource(String url, String username, String password) {
@@ -92,20 +98,38 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
 
     protected void recreateEmptyNinjaTestsDatabase() throws SQLException {
         runWith(midpointDatasource, jdbcTemplate -> {
+            if (ninjaTestDatabase != null) {
+                ninjaTestDatabase.close();
+                ninjaTestDatabase = null;
+            }
+
             jdbcTemplate.execute("DROP DATABASE IF EXISTS " + NINJA_TESTS_USER + ";");
             jdbcTemplate.execute("DROP USER IF EXISTS " + NINJA_TESTS_USER + ";");
 
             jdbcTemplate.execute("CREATE USER " + NINJA_TESTS_USER + " WITH PASSWORD '" + NINJA_TESTS_USER + "' LOGIN SUPERUSER;");
             jdbcTemplate.execute("CREATE DATABASE " + NINJA_TESTS_USER + " WITH OWNER = " + NINJA_TESTS_USER
                     + " ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1 TEMPLATE = template0");
+
+            if (ninjaTestDatabase == null) {
+                ninjaTestDatabase = createHikariDataSource(getJdbcUrlForNinjaTestsUser(), NINJA_TESTS_USER, NINJA_TESTS_USER);
+            }
         });
     }
 
+    protected List<File> getUpgradeScripts(File scriptsDirectory) {
+        return getScripts(scriptsDirectory, RunSqlOptions.Mode.REPOSITORY.updateScripts, RunSqlOptions.Mode.AUDIT.updateScripts);
+    }
+
     protected List<File> getCreateScripts(File scriptsDirectory) {
-        List<File> scripts = new ArrayList<>();
-        RunSqlOptions.Mode.REPOSITORY.updateScripts.forEach(f -> scripts.add(new File(scriptsDirectory, f.getName())));
-        RunSqlOptions.Mode.AUDIT.updateScripts.forEach(f -> scripts.add(new File(scriptsDirectory, f.getName())));
-        return scripts;
+        return getScripts(scriptsDirectory, RunSqlOptions.Mode.REPOSITORY.createScripts, RunSqlOptions.Mode.AUDIT.createScripts);
+    }
+
+    private List<File> getScripts(File scriptsDirectory, List<File>... scripts) {
+        List<File> result = new ArrayList<>();
+        for (List<File> list : scripts) {
+            list.forEach(f -> result.add(new File(scriptsDirectory, f.getName())));
+        }
+        return result;
     }
 
     protected void recreateSchema(@NotNull File scriptsDirectory) throws Exception {
@@ -114,12 +138,11 @@ public abstract class BaseUpgradeTest extends AbstractIntegrationTest {
         BaseOptions baseOptions = new BaseOptions();
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
-
-        Assertions.assertThat(getJdbcUrlForNinjaTestsUser()).isNotNull();
-        connectionOptions.setUrl(getJdbcUrlForNinjaTestsUser());
 
         RunSqlOptions runSqlOptions = new RunSqlOptions();
+        runSqlOptions.setJdbcUrl(getJdbcUrlForNinjaTestsUser());
+        runSqlOptions.setJdbcUsername(NINJA_TESTS_USER);
+        runSqlOptions.setJdbcPassword(NINJA_TESTS_USER);
         runSqlOptions.setScripts(getCreateScripts(scriptsDirectory));
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);

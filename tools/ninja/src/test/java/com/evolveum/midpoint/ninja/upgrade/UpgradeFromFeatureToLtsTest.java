@@ -6,7 +6,7 @@ import org.testng.annotations.Listeners;
 
 import java.io.File;
 
-@ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
+@ContextConfiguration(locations = "classpath:ctx-ninja-no-repository-test.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class UpgradeFromFeatureToLtsTest extends UpgradeTest {

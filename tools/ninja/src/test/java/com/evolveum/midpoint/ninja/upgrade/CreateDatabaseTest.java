@@ -19,7 +19,7 @@ import com.evolveum.midpoint.ninja.action.RunSqlAction;
 import com.evolveum.midpoint.ninja.action.RunSqlOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
-@ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
+@ContextConfiguration(locations = "classpath:ctx-ninja-no-repository-test.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class CreateDatabaseTest extends BaseUpgradeTest {
