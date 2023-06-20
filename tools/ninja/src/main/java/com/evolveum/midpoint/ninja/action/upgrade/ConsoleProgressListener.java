@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
+import java.io.PrintStream;
 import java.text.DecimalFormat;
 
 import org.apache.commons.io.FileUtils;
@@ -16,14 +17,20 @@ public class ConsoleProgressListener implements ProgressListener {
 
     private static final DecimalFormat FORMAT = new DecimalFormat("###");
 
+    private PrintStream stream;
+
     boolean firstUpdate = true;
 
     double progress = 0;
 
+    public ConsoleProgressListener(PrintStream stream) {
+        this.stream = stream;
+    }
+
     @Override
     public void update(long bytesRead, long contentLength, boolean done) {
         if (done) {
-            System.out.println(Ansi.ansi().cursorUpLine().eraseLine().fgGreen().a("Download complete").reset());
+            stream.println(Ansi.ansi().cursorUpLine().eraseLine().fgGreen().a("Download complete").reset());
             return;
         }
 
@@ -32,12 +39,12 @@ public class ConsoleProgressListener implements ProgressListener {
 
             String size = contentLength == -1 ? "unknown" : FileUtils.byteCountToDisplaySize(contentLength);
 
-            System.out.println(Ansi.ansi().fgBlack().a("Download size: " + size).reset());
+            stream.println(Ansi.ansi().fgBlack().a("Download size: " + size).reset());
         }
 
         double newProgress = (double) (100 * bytesRead) / contentLength;
         if (newProgress - progress > 1) {
-            System.out.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).a("Progress: ").fgBlue().a(FORMAT.format(newProgress)).a("%").reset());
+            stream.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).a("Progress: ").fgBlue().a(FORMAT.format(newProgress)).a("%").reset());
 
             progress = newProgress;
         }

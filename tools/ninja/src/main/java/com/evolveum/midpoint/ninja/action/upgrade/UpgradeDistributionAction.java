@@ -32,7 +32,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 //        new ProcessBuilder(
 //                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
 //        ).inheritIO().start();
-//        System.out.println("Finished main");
+//        context.out.println("Finished main");
 
         // upgrade installation
         UpgradeInstallationOptions installationOpts = new UpgradeInstallationOptions();

@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -135,7 +137,7 @@ public class NinjaUtils {
         return writer.toString();
     }
 
-    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
+    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite, PrintStream defaultOutput) throws IOException {
         OutputStream os;
         if (output != null) {
             if (!overwrite && output.exists()) {
@@ -145,13 +147,13 @@ public class NinjaUtils {
 
             os = new FileOutputStream(output);
         } else {
-            os = System.out;
+            os = defaultOutput;
         }
 
         if (zip) {
             ZipOutputStream zos = new ZipOutputStream(os);
 
-            String entryName = output != null ? output.getName().replaceAll("\\.", "-") + ".xml" : "objects.xml";
+            String entryName = createZipEntryName(output);
             ZipEntry entry = new ZipEntry(entryName);
             zos.putNextEntry(entry);
 
@@ -159,6 +161,18 @@ public class NinjaUtils {
         }
 
         return new OutputStreamWriter(os, charset);
+    }
+
+    private static String createZipEntryName(File file) {
+        if (file == null) {
+            return "output";
+        }
+
+        String fullName = file.getName();
+        String extension = FilenameUtils.getExtension(fullName);
+        String name = FilenameUtils.removeExtension(fullName).replaceAll("\\.", "-");
+
+        return name + "." + extension;
     }
 
     public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,

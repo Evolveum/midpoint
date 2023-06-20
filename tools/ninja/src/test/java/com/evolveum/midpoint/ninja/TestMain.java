@@ -97,31 +97,35 @@ public class TestMain {
 //        ).inheritIO().start();
 //        System.out.println("Finished main");
 
-        String cmd = "-m non_existing_folder -v run-sql "
-                + "--jdbc-url jdbc:postgresql://localhost:5432/postgres "
-                + "--jdbc-username postgres "
-                + "--jdbc-password postgres "
-                + "--scripts ./src/test/resources/upgrade/midpoint-home/create-database.sql "
-                + "--result";
-        execute(cmd);
+        String cmd = null;
 
-        cmd = "-v run-sql "
-                + "--jdbc-url jdbc:postgresql://localhost:5432/asdf1 "
-                + "--jdbc-username asdf1 "
-                + "--jdbc-password asdf1 "
-                + "--scripts "
-                + "../../config/sql/native-new/postgres-new.sql "
-                + "../../config/sql/native-new/postgres-new-quartz.sql "
-                + "../../config/sql/native-new/postgres-new-audit.sql ";
-//                + "--create"; // can't use, we're not in default ninja folder
-        execute(cmd);
+//        String cmd = "-m non_existing_folder -v run-sql "
+//                + "--jdbc-url jdbc:postgresql://localhost:5432/postgres "
+//                + "--jdbc-username postgres "
+//                + "--jdbc-password postgres "
+//                + "--scripts ./src/test/resources/upgrade/midpoint-home/create-database.sql "
+//                + "--result";
+//        execute(cmd);
+//
+//        cmd = "-v run-sql "
+//                + "--jdbc-url jdbc:postgresql://localhost:5432/asdf1 "
+//                + "--jdbc-username asdf1 "
+//                + "--jdbc-password asdf1 "
+//                + "--scripts "
+//                + "../../config/sql/native-new/postgres-new.sql "
+//                + "../../config/sql/native-new/postgres-new-quartz.sql "
+//                + "../../config/sql/native-new/postgres-new-audit.sql ";
+////                + "--create"; // can't use, we're not in default ninja folder
+//        execute(cmd);
 
-        cmd = "-v run-sql "
-                + "--jdbc-url jdbc:postgresql://localhost:5432/asdf1 "
-                + "--jdbc-username asdf1 "
-                + "--jdbc-password asdf1 "
-                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
-                + "--result";
+//        cmd = "-v run-sql "
+//                + "--jdbc-url jdbc:postgresql://localhost:5432/asdf1 "
+//                + "--jdbc-username asdf1 "
+//                + "--jdbc-password asdf1 "
+//                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
+//                + "--result";
+
+        cmd = "-h run-sql";
         execute(cmd);
     }
 

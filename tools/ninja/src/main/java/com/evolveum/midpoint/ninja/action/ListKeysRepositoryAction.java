@@ -47,27 +47,27 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
 
         if (protector instanceof KeyStoreBasedProtector) {
             KeyStoreBasedProtector p = (KeyStoreBasedProtector) protector;
-            System.out.println("Location: " + p.getKeyStorePath());
+            context.out.println("Location: " + p.getKeyStorePath());
         }
 
         KeyStore keyStore = protector.getKeyStore();
 
-        System.out.println("Type: " + keyStore.getType());
+        context.out.println("Type: " + keyStore.getType());
 
         Provider provider = keyStore.getProvider();
-        System.out.println("Provider: " + provider.getName());
+        context.out.println("Provider: " + provider.getName());
 
         Enumeration<String> aliases = keyStore.aliases();
 
         while (aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
 
-            System.out.println("======");
+            context.out.println("======");
 
             describeAlias(keyStore, alias, protector);
 
             if (aliases.hasMoreElements()) {
-                System.out.println("======");
+                context.out.println("======");
             }
         }
 
@@ -78,17 +78,17 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
     private void describeAlias(KeyStore keyStore, String alias, Protector protector)
             throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException, EncryptionException {
 
-        System.out.println("Alias: " + alias);
-        System.out.println("Creation date: " + keyStore.getCreationDate(alias));
+        context.out.println("Alias: " + alias);
+        context.out.println("Creation date: " + keyStore.getCreationDate(alias));
 
         Certificate cert = keyStore.getCertificate(alias);
         if (cert != null) {
-            System.out.println("Certificate: " + cert);
+            context.out.println("Certificate: " + cert);
         }
 
         Certificate[] chain = keyStore.getCertificateChain(alias);
         if (chain != null) {
-            System.out.println("Certificate chain: " + chain);
+            context.out.println("Certificate chain: " + chain);
         }
 
         char[] password = getPassword();
@@ -102,18 +102,18 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
 
         KeyStore.SecretKeyEntry sEntry = (KeyStore.SecretKeyEntry) entry;
         SecretKey key = sEntry.getSecretKey();
-        System.out.println("Secret key entry");
+        context.out.println("Secret key entry");
 
-        System.out.println("  Algorithm: " + key.getAlgorithm());
-        System.out.println("  Format: " + key.getFormat());
-        System.out.println("  Key length: " + key.getEncoded().length * 8);
-        System.out.println("  SHA1 digest: " + getSecretKeyDigest(key));
+        context.out.println("  Algorithm: " + key.getAlgorithm());
+        context.out.println("  Format: " + key.getFormat());
+        context.out.println("  Key length: " + key.getEncoded().length * 8);
+        context.out.println("  SHA1 digest: " + getSecretKeyDigest(key));
 
         if (protector instanceof KeyStoreBasedProtector) {
             KeyStoreBasedProtector impl = (KeyStoreBasedProtector) protector;
 
             String name = impl.getSecretKeyDigest(key);
-            System.out.println("  Key name: " + name);
+            context.out.println("  Key name: " + name);
         }
     }
 

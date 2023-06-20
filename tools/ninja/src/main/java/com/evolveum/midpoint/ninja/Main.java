@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.io.PrintStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -26,10 +27,32 @@ import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
+import org.jetbrains.annotations.NotNull;
+
 public class Main {
+
+    private PrintStream out = System.out;
+
+    private PrintStream err = System.err;
 
     public static void main(String[] args) {
         new Main().run(args);
+    }
+
+    public PrintStream getOut() {
+        return out;
+    }
+
+    public void setOut(@NotNull PrintStream out) {
+        this.out = out;
+    }
+
+    public PrintStream getErr() {
+        return err;
+    }
+
+    public void setErr(@NotNull PrintStream err) {
+        this.err = err;
     }
 
     protected <T> void run(String[] args) {
@@ -40,7 +63,7 @@ public class Main {
         try {
             jc.parse(args);
         } catch (ParameterException ex) {
-            System.err.println(ex.getMessage());
+            err.println(ex.getMessage());
             return;
         }
 
@@ -49,15 +72,7 @@ public class Main {
         BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
         if (BooleanUtils.isTrue(base.isVersion())) {
-            try {
-                URL versionResource = Objects.requireNonNull(
-                        Main.class.getResource("/version"));
-                Path path = Paths.get(versionResource.toURI());
-                String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
-                System.out.println(version);
-            } catch (Exception ex) {
-                // ignored
-            }
+            printVersion();
             return;
         }
 
@@ -67,7 +82,7 @@ public class Main {
         }
 
         if (base.isVerbose() && base.isSilent()) {
-            System.err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
+            err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");
             printHelp(jc, parsedCommand);
             return;
@@ -78,16 +93,17 @@ public class Main {
             Action<T, ?> action = Command.createAction(parsedCommand);
 
             if (action == null) {
-                System.err.println("Action for command '" + parsedCommand + "' not found");
+                err.println("Action for command '" + parsedCommand + "' not found");
                 return;
             }
 
             //noinspection unchecked
             T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
+
             List<Object> allOptions = new ArrayList<>(jc.getObjects());
             allOptions.add(options);
 
-            context = new NinjaContext(allOptions, action.getApplicationContextLevel(allOptions));
+            context = new NinjaContext(out, err, allOptions, action.getApplicationContextLevel(allOptions));
 
             try {
                 action.init(context, options);
@@ -114,7 +130,7 @@ public class Main {
             if (opts.isVerbose()) {
                 String stack = NinjaUtils.printStackToString(ex);
 
-                System.err.print("Unexpected exception occurred (" + ex.getClass()
+                err.println("Unexpected exception occurred (" + ex.getClass()
                         + ") during destroying context. Exception stack trace:\n" + stack);
             }
         }
@@ -122,19 +138,32 @@ public class Main {
 
     private void handleException(BaseOptions opts, Exception ex) {
         if (!opts.isSilent()) {
-            System.err.println("Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage());
+            err.println("Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage());
         }
 
         if (opts.isVerbose()) {
             String stack = NinjaUtils.printStackToString(ex);
 
-            System.err.print("Exception stack trace:\n" + stack);
+            err.println("Exception stack trace:\n" + stack);
+        }
+    }
+
+    private void printVersion() {
+        try {
+            URL versionResource = Objects.requireNonNull(
+                    Main.class.getResource("/version"));
+            Path path = Paths.get(versionResource.toURI());
+            String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
+            out.println(version);
+        } catch (Exception ex) {
+            // ignored
         }
     }
 
     private void printHelp(JCommander jc, String parsedCommand) {
         if (parsedCommand != null) {
             jc.getUsageFormatter().usage(parsedCommand);
+            return;
         }
         jc.usage();
     }

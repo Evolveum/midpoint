@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja.impl;
 import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
 import java.io.Closeable;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,10 @@ public class NinjaContext implements Closeable {
 
     private static final String CTX_NINJA = "classpath:ctx-ninja.xml";
 
+    public final PrintStream out;
+
+    public final PrintStream err;
+
     private final List<Object> options;
 
     private final NinjaApplicationContextLevel applicationContextLevel;
@@ -63,7 +68,14 @@ public class NinjaContext implements Closeable {
 
     private final Map<String, String> systemPropertiesBackup = new HashMap<>();
 
-    public NinjaContext(@NotNull List<Object> options, @NotNull NinjaApplicationContextLevel applicationContextLevel) {
+    public NinjaContext(
+            @NotNull PrintStream out,
+            @NotNull PrintStream err,
+            @NotNull List<Object> options,
+            @NotNull NinjaApplicationContextLevel applicationContextLevel) {
+
+        this.out = out;
+        this.err = err;
         this.options = options;
         this.applicationContextLevel = applicationContextLevel;
     }
