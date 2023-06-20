@@ -1,13 +1,14 @@
 package com.evolveum.midpoint.ninja.upgrade;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.List;
 
-import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.NinjaTestUtils;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.action.*;
 
 public class VerifyFilesTest {
 
@@ -27,12 +28,6 @@ public class VerifyFilesTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, verifyFilesOptions);
 
-        VerifyFilesAction action = new VerifyFilesAction();
-
-        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
-            action.init(context, verifyFilesOptions);
-            action.execute();
-        }
-
+        NinjaTestUtils.runAction(VerifyFilesAction.class, verifyFilesOptions, options);
     }
 }

@@ -233,12 +233,12 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
         if (!hasResult) {
             int updateCount = stmt.getUpdateCount();
             if (updateCount != -1) {
-                System.out.println("Result #" + index + ": " + updateCount + " updated rows ");
+                context.out.println("Result #" + index + ": " + updateCount + " updated rows ");
             }
             return;
         }
 
-        System.out.println("Result set #" + index + ":");
+        context.out.println("Result set #" + index + ":");
         try (ResultSet set = stmt.getResultSet()) {
             printResultSet(set);
         }
@@ -254,7 +254,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             row.add(metaData.getColumnLabel(i));
         }
 
-        System.out.println(StringUtils.join(row, "|"));
+        context.out.println(StringUtils.join(row, "|"));
         row.clear();
 
         while (set.next()) {
@@ -263,7 +263,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                 row.add(obj != null ? obj.toString() : "");
             }
 
-            System.out.println(StringUtils.join(row, "|"));
+            context.out.println(StringUtils.join(row, "|"));
             row.clear();
         }
     }

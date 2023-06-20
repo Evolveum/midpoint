@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author semancik

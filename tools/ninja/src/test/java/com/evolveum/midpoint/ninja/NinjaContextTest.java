@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.util.List;
+
 import com.beust.jcommander.JCommander;
-
-import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
-
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -21,8 +21,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,7 +35,7 @@ public class NinjaContextTest {
 
         ConnectionOptions options = NinjaUtils.getOptions(jc.getObjects(), ConnectionOptions.class);
 
-        try (NinjaContext ctx = new NinjaContext(List.of(options), NinjaApplicationContextLevel.FULL_REPOSITORY)) {
+        try (NinjaContext ctx = new NinjaContext(System.out, System.err, List.of(options), NinjaApplicationContextLevel.FULL_REPOSITORY)) {
             RepositoryService service = ctx.getRepository();
 
             OperationResult result = new OperationResult("get user");

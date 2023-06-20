@@ -1,10 +1,10 @@
 package com.evolveum.midpoint.ninja.upgrade;
 
+import java.io.File;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
-
-import java.io.File;
 
 @ContextConfiguration(locations = "classpath:ctx-ninja-no-repository-test.xml")
 @DirtiesContext

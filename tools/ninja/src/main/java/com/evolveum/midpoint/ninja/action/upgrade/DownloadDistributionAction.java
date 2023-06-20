@@ -25,7 +25,7 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
         File distributionZipFile = options.getDistributionArchive();
         if (distributionZipFile == null || !distributionZipFile.exists()) {
             DistributionManager manager = new DistributionManager(tempDirectory);
-            ProgressListener listener = new ConsoleProgressListener();
+            ProgressListener listener = new ConsoleProgressListener(context.out);
 
             distributionZipFile = manager.downloadDistribution(UpgradeConstants.SUPPORTED_VERSION_TARGET, listener);
         } else {

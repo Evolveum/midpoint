@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.ninja.action.trace;
 
+import java.util.List;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
-import java.util.List;
 
 /**
  *

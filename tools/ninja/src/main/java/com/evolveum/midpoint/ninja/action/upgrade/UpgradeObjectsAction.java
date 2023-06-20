@@ -26,7 +26,7 @@ public abstract class UpgradeObjectsAction extends Action<UpgradeObjectsOptions,
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
                 .collect(Collectors.toUnmodifiableSet());
 
-        System.out.println("Found " + processors.size() + " upgrade rules");
+        context.out.println("Found " + processors.size() + " upgrade rules");
 
         return null;
     }

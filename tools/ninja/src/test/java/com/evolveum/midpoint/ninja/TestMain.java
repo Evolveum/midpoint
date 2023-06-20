@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -125,7 +123,7 @@ public class TestMain {
 //                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
 //                + "--result";
 
-        cmd = "-h";
+        cmd = "-h run-sql";
         execute(cmd);
     }
 

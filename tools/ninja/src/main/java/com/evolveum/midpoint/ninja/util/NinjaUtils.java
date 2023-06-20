@@ -19,6 +19,7 @@ import java.util.zip.ZipOutputStream;
 
 import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
@@ -135,7 +136,7 @@ public class NinjaUtils {
         return writer.toString();
     }
 
-    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
+    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite, PrintStream defaultOutput) throws IOException {
         OutputStream os;
         if (output != null) {
             if (!overwrite && output.exists()) {
@@ -145,13 +146,13 @@ public class NinjaUtils {
 
             os = new FileOutputStream(output);
         } else {
-            os = System.out;
+            os = defaultOutput;
         }
 
         if (zip) {
             ZipOutputStream zos = new ZipOutputStream(os);
 
-            String entryName = output != null ? output.getName().replaceAll("\\.", "-") + ".xml" : "objects.xml";
+            String entryName = createZipEntryName(output);
             ZipEntry entry = new ZipEntry(entryName);
             zos.putNextEntry(entry);
 
@@ -159,6 +160,18 @@ public class NinjaUtils {
         }
 
         return new OutputStreamWriter(os, charset);
+    }
+
+    private static String createZipEntryName(File file) {
+        if (file == null) {
+            return "output";
+        }
+
+        String fullName = file.getName();
+        String extension = FilenameUtils.getExtension(fullName);
+        String name = FilenameUtils.removeExtension(fullName).replaceAll("\\.", "-");
+
+        return name + "." + extension;
     }
 
     public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,

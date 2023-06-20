@@ -20,18 +20,18 @@ public class InfoRepositoryAction extends RepositoryAction<InfoOptions, Void> {
     @Override
     public Void execute() {
         MidpointConfiguration config = context.getMidpointConfiguration();
-        System.out.println("MidPoint home: " + config.getMidpointHome());
-        System.out.println("Java home: " + System.getProperty("java.home"));
+        context.out.println("MidPoint home: " + config.getMidpointHome());
+        context.out.println("Java home: " + System.getProperty("java.home"));
 
         RepositoryService repository = context.getRepository();
         OperationResult repoTestResult = new OperationResult("repo.test");
         repository.repositorySelfTest(repoTestResult);
         repoTestResult.close();
-        System.out.println("Repository test: " + repoTestResult.getStatus());
+        context.out.println("Repository test: " + repoTestResult.getStatus());
 
         try {
             RepositoryDiag repositoryDiag = repository.getRepositoryDiag();
-            System.out.println("Repository diag:"
+            context.out.println("Repository diag:"
                     + "\n Type: " + repositoryDiag.getImplementationShortName()
                     + "\n Description: " + repositoryDiag.getImplementationDescription()
                     + "\n JDBC URL: " + repositoryDiag.getRepositoryUrl()
@@ -39,11 +39,11 @@ public class InfoRepositoryAction extends RepositoryAction<InfoOptions, Void> {
                     + "\n Driver version: " + repositoryDiag.getDriverVersion()
                     + "\n Additional details:");
             for (LabeledString detail : repositoryDiag.getAdditionalDetails()) {
-                System.out.println(" - " + detail.getLabel() + ": " + detail.getData());
+                context.out.println(" - " + detail.getLabel() + ": " + detail.getData());
             }
         } catch (Exception e) {
             // Fatal crash during Ninja start is more likely than this, but just to be sure...
-            System.err.println("Unexpected problem during repo diag: " + e);
+            context.err.println("Unexpected problem during repo diag: " + e);
         }
 
         return null;

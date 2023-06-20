@@ -34,8 +34,7 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 
-public abstract class BaseUpgradeTest extends AbstractSpringTest
-        implements InfraTestMixin {
+public abstract class BaseUpgradeTest extends AbstractSpringTest implements InfraTestMixin {
 
     public static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
 
@@ -149,7 +148,7 @@ public abstract class BaseUpgradeTest extends AbstractSpringTest
 
         RunSqlAction action = new RunSqlAction();
 
-        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
+        try (NinjaContext context = new NinjaContext(System.out, System.err, options, action.getApplicationContextLevel(options))) {
             action.init(context, runSqlOptions);
 
             action.execute();

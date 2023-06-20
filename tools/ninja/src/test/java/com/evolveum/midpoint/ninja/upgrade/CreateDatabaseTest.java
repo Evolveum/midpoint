@@ -4,11 +4,12 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.NinjaTestUtils;
+
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -17,7 +18,6 @@ import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.RunSqlAction;
 import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
 @ContextConfiguration(locations = "classpath:ctx-ninja-no-repository-test.xml")
 @DirtiesContext
@@ -67,12 +67,7 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 
-        RunSqlAction action = new RunSqlAction();
-        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
-            action.init(context, runSqlOptions);
-
-            action.execute();
-        }
+        NinjaTestUtils.runAction(RunSqlAction.class, runSqlOptions, options);
 
         Assertions.assertThat(FAKE_MIDPOINT_HOME.exists()).isFalse();
 
@@ -104,12 +99,7 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 
-        RunSqlAction action = new RunSqlAction();
-        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
-            action.init(context, runSqlOptions);
-
-            action.execute();
-        }
+        NinjaTestUtils.runAction(RunSqlAction.class, runSqlOptions, options);
 
         Assertions.assertThat(FAKE_MIDPOINT_HOME.exists()).isFalse();
 

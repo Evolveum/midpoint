@@ -11,9 +11,9 @@ import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.evolveum.midpoint.ninja.action.BasicExportOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.action.BasicExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
@@ -73,9 +73,11 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
         }
     }
 
-    protected void init() {}
+    protected void init() {
+    }
 
-    protected void destroy() {}
+    protected void destroy() {
+    }
 
     protected abstract String getProlog();
 
@@ -84,7 +86,9 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
     protected abstract String getEpilog();
 
     private Writer createWriter() throws IOException {
-        Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite());
+        Writer writer = NinjaUtils.createWriter(
+                options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite(), context.out);
+
         String prolog = getProlog();
         if (prolog != null) {
             writer.write(prolog);

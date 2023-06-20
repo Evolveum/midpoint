@@ -27,7 +27,9 @@ public class VerifyFilesAction extends Action<VerifyFilesOptions, Void> {
     public Void execute() throws Exception {
         VerificationReporter reporter = new VerificationReporter(options, context.getPrismContext());
 
-        try (Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite())) {
+        try (Writer writer = NinjaUtils.createWriter(
+                options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite(), context.out)) {
+
             String prolog = reporter.getProlog();
             if (prolog != null) {
                 writer.write(prolog);
