@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
 import java.io.File;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 
@@ -53,7 +52,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         upgradeRepositoryOpts.setMode(RunSqlOptions.Mode.REPOSITORY);
         upgradeRepositoryOpts.setScripts(RunSqlOptions.Mode.REPOSITORY.updateScripts.stream()
                 .map(f -> new File(installationDirectory, f.getPath()))
-                .collect(Collectors.toList()));
+                .toList());
 
         RunSqlAction upgradeRepositoryAction = new RunSqlAction();
         upgradeRepositoryAction.init(context, upgradeRepositoryOpts);
@@ -64,7 +63,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         upgradeAuditOpts.setMode(RunSqlOptions.Mode.AUDIT);
         upgradeRepositoryOpts.setScripts(RunSqlOptions.Mode.AUDIT.updateScripts.stream()
                 .map(f -> new File(installationDirectory, f.getPath()))
-                .collect(Collectors.toList()));
+                .toList());
 
         RunSqlAction upgradeAuditAction = new RunSqlAction();
         upgradeAuditAction.init(context, upgradeAuditOpts);

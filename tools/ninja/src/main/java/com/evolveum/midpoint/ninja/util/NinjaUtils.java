@@ -113,7 +113,7 @@ public class NinjaUtils {
         PrismContext prismContext = context.getPrismContext();
         // Experimental Axiom filter support, % is chosen as a marker and will be skipped.
         if (filterStr.startsWith("%")) {
-            ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(objectClass, filterStr.substring(1));
+            ObjectFilter objectFilter = prismContext.createQueryParser().parseFilter(objectClass, filterStr.substring(1));
             return prismContext.queryFactory().createQuery(objectFilter);
         } else {
             PrismParserNoIO parser = prismContext.parserFor(filterStr);

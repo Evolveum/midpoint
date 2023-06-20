@@ -13,6 +13,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface UpgradeObjectProcessor<T extends ObjectType> {
 
+    // todo implement
+//    String getIdentifier();
+
     UpgradePhase getPhase();
 
     <O extends ObjectType> boolean isApplicable(Class<O> type);

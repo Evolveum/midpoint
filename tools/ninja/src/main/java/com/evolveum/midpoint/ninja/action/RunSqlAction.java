@@ -68,8 +68,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
         setScriptsDefaults(mode, options);
 
-        ConnectionOptions opts = context.getOptions(ConnectionOptions.class);
-        if (mode == RunSqlOptions.Mode.RAW || opts == null || StringUtils.isEmpty(opts.getMidpointHome())) {
+        if (mode == RunSqlOptions.Mode.RAW || preferCustomJdbcConnection(context.getAllOptions())) {
             log.info("Running scripts in raw mode using custom JDBC url/username/password options.");
 
             if (options.getScripts().isEmpty()) {

@@ -3,19 +3,17 @@ package com.evolveum.midpoint.ninja.upgrade;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.action.*;
+
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-import com.evolveum.midpoint.ninja.action.VerifyFilesAction;
-import com.evolveum.midpoint.ninja.action.VerifyFilesOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
 public class VerifyFilesTest {
 
     protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
 
-    @Test//wenabled = false)
+    @Test
     public void verifyFilesTest() throws Exception {
         BaseOptions baseOptions = new BaseOptions();
         baseOptions.setVerbose(true);
@@ -25,7 +23,7 @@ public class VerifyFilesTest {
 
         VerifyFilesOptions verifyFilesOptions = new VerifyFilesOptions();
         verifyFilesOptions.setFiles(List.of(new File("./src/test/resources/upgrade/objects")));
-        verifyFilesOptions.setReport(new File("./target/verify-files.csv"));
+        verifyFilesOptions.setReportStyle(VerifyOptions.ReportStyle.CSV);
 
         List<Object> options = List.of(baseOptions, connectionOptions, verifyFilesOptions);
 
