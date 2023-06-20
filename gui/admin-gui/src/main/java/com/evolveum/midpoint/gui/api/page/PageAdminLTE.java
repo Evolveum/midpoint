@@ -568,7 +568,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
-        return WebModelServiceUtils.createSimpleTask(operation, channel, user.getFocus().asPrismObject(), getTaskManager());
+        return WebModelServiceUtils.createSimpleTask(operation, channel, user.getFocusPrismObject(), getTaskManager());
     }
 
     public MidpointConfiguration getMidpointConfiguration() {
@@ -996,6 +996,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return AuthUtil.getPrincipalUser();
     }
 
+    // TODO should we throw "redirect to login" exception here?
     public FocusType getPrincipalFocus() {
         MidPointPrincipal principal = getPrincipal();
         if (principal == null) {

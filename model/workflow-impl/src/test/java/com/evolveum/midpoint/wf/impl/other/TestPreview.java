@@ -294,7 +294,7 @@ public class TestPreview extends AbstractWfTestPolicy {
         return Collections.singletonList(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                        .add(ObjectTypeUtil.createAssignmentTo(ROLE_LAB_MANAGER.oid, ObjectTypes.ROLE, prismContext))
+                        .add(ObjectTypeUtil.createAssignmentTo(ROLE_LAB_MANAGER.oid, ObjectTypes.ROLE))
                         .asObjectDelta(USER_ALICE.oid));
     }
 }

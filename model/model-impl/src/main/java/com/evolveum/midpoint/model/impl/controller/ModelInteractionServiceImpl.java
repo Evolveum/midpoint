@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -1628,7 +1629,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         MidPointPrincipal attorneyPrincipal = securityContextManager.getPrincipal();
-        MidPointPrincipal donorPrincipal = securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
+        MidPointPrincipal donorPrincipal = securityEnforcer.createDonorPrincipal(
+                attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
 
         // TODO: audit switch
         Authentication authentication = securityContextManager.getAuthentication();
@@ -2265,9 +2267,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void switchToBackground(Task task, OperationResult result) {
-        taskManager.switchToBackground(task, result);
-        result.setBackgroundTaskOid(task.getOid());
+    public @NotNull String submit(
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull ActivitySubmissionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws CommonException {
+        OperationResult result = parentResult.createSubresult(OP_SUBMIT);
+        try {
+            return new ActivityExecutor(activityDefinition, options, task)
+                    .submit(result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public @NotNull TaskType createExecutionTask(
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull ActivitySubmissionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException {
+        return new ActivityExecutor(activityDefinition, options, task)
+                .createExecutionTask();
     }
 
     @Override

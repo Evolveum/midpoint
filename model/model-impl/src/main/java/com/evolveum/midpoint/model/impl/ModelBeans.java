@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
@@ -145,4 +147,5 @@ public class ModelBeans {
     @Autowired public SimulationResultManagerImpl simulationResultManager;
     @Autowired public MarkManager markManager;
     @Autowired public AuthorizationMigrator authorizationMigrator;
+    @Autowired public ActivityHandlerRegistry activityHandlerRegistry;
 }

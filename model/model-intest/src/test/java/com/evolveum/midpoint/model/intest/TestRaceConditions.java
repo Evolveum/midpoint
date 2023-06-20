@@ -54,8 +54,8 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         @SuppressWarnings({"raw"})
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
-                        ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(ROLE_SAILOR_OID, ObjectTypes.ROLE, prismContext))
+                        ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(ROLE_SAILOR_OID, ObjectTypes.ROLE))
                 .asObjectDelta(USER_JACK_OID);
         executeChangesAssertSuccess(objectDelta, null, task, result);
 

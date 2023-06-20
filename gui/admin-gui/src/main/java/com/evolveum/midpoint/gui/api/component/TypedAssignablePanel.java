@@ -440,7 +440,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
 
-                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(AuthUtil.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
+                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(AuthUtil.getPrincipalUser().getFocusPrismObject(), AbstractRoleType.class,
                             WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
                     query = getPrismContext().queryFactory().createQuery(filter);
                 }

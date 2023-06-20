@@ -616,8 +616,9 @@ public class WebModelServiceUtils {
         return pageBase.getModelInteractionService().getAssignmentEffectiveStatus(lifecycleStatus, activationType);
     }
 
-    public static void assumePowerOfAttorney(PrismObject<UserType> donor,
-            ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
+    static void assumePowerOfAttorney(
+            PrismObject<UserType> donor, ModelInteractionService modelInteractionService,
+            TaskManager taskManager, OperationResult parentResult) {
         Task task = taskManager.createTaskInstance();
         OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_ASSUME_POWER_OF_ATTORNEY);
 

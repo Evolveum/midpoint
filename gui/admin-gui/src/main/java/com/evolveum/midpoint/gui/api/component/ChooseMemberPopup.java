@@ -17,7 +17,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -130,9 +130,12 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     if (selectedObjects == null || selectedObjects.size() == 0) {
                         continue;
                     }
-                    executeMemberOperation(memberPanel.getAbstractRoleTypeObject(),
-                            createInOidQuery(selectedObjects), memberPanel.getRelationValue(),
-                            memberPanel.getObjectType().getTypeQName(), target, getPageBase());
+                    executeAssignMemberOperation(
+                            memberPanel.getAbstractRoleTypeObject(),
+                            memberPanel.getObjectType().getTypeQName(), createInOidQuery(selectedObjects),
+                            memberPanel.getRelationValue(),
+                            target,
+                            getPageBase());
                     if (memberPanel.getObjectType().equals(ObjectTypes.ORG)) {
                         orgPanelProcessed = true;
                     }
@@ -414,10 +417,14 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return false;
     }
 
-    protected Task executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
-            @NotNull QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-        return MemberOperationsHelper.createAndSubmitAssignMembersTask(targetObject, type, query,
-                relation, target, pageBase);
+    /** Returns task OID */
+    protected String executeAssignMemberOperation(
+            @NotNull AbstractRoleType targetObject, @NotNull QName memberType, @NotNull ObjectQuery memberQuery,
+            @NotNull QName relation, @NotNull AjaxRequestTarget target, @NotNull PageBase pageBase) {
+
+        var taskCreator = new MemberOperationsTaskCreator.Assign(targetObject, memberType, memberQuery, pageBase, relation);
+        return pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                .run(taskCreator::createAndSubmitTask);
     }
 
     private IModel<List<CompositedIconButtonDto>> createAssignButtonDescriptionModel() {

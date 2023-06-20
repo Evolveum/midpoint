@@ -118,10 +118,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         when();
         ObjectDelta<UserType> assignDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
-                        ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
+                        ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE))
                 .asObjectDelta(USER_JACK.oid);
         executeChanges(assignDelta, executeOptions().executeImmediatelyAfterApproval(), task, result); // should start approval processes
         assertNotAssignedRole(USER_JACK.oid, roleRole51aOid, result);
@@ -172,10 +172,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         when();
         UserType alice = prismContext.createObjectable(UserType.class)
                 .name("alice")
-                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext))
-                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
-                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext))
-                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext));
+                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE))
+                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE))
+                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE))
+                .assignment(ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE));
         executeChanges(DeltaFactory.Object.createAddDelta(alice.asPrismObject()), executeOptions().executeImmediatelyAfterApproval(), task, result); // should start approval processes
 
         display("Task after operation", task);
@@ -231,15 +231,15 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         when();
         ObjectDelta<UserType> assignDelta1 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
-                        ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
+                        ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE))
                 .asObjectDelta(userBobOid);
         executeChanges(assignDelta1, executeOptions().executeImmediatelyAfterApproval(), task1, result1); // should start approval processes
         ObjectDelta<UserType> assignDelta2 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
-                        ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),
-                        ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
+                        ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE),
+                        ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE))
                 .asObjectDelta(userBobOid);
         executeChanges(assignDelta2, executeOptions().executeImmediatelyAfterApproval(), task2, result2); // should start approval processes
         assertNotAssignedRole(userBobOid, roleRole51aOid, result0);

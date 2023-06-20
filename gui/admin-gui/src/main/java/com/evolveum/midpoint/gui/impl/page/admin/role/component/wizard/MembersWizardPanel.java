@@ -119,7 +119,7 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             @Override
             protected void unassignMembersPerformed(IModel rowModel, QName type, QueryScope scope, Collection relations, AjaxRequestTarget target) {
                 super.unassignMembersPerformed(rowModel, type, scope, relations, target);
-                target.add(getFeedback());
+                target.add(getFeedback()); // TODO isn't this covered by target.add(this) in the super method?
             }
 
             @Override

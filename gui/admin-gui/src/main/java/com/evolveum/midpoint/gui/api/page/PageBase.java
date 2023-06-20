@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +31,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -1013,5 +1015,9 @@ public abstract class PageBase extends PageAdminLTE {
         MessagePanel panel = new MessagePanel(panelId, type,
                 createStringResource(message, params), false);
         return panel;
+    }
+
+    public TaskAwareExecutor taskAwareExecutor(@NotNull AjaxRequestTarget target, @NotNull String operationName) {
+        return new TaskAwareExecutor(this, target, operationName);
     }
 }

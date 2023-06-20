@@ -11,13 +11,13 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -46,28 +46,28 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
-        if (!isSubtreeScope() || (isSubtreeScope() && !QueryScope.ALL.equals(scope))) {
-            return super.getActionQuery(scope, relations);
-        } else {
-            String oid = getModelObject().getOid();
-
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject(), getRelationValue());
+    protected ObjectQuery getMemberQuery(@NotNull QueryScope scope, @NotNull Collection<QName> relations) {
+        if (isSubtreeScope() && scope == QueryScope.ALL) {
+            // Special case - searching for org descendants
+            OrgType org = getModelObject();
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(org, getRelationValue());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-            }
+            LOGGER.trace("Searching all members of {} with query:\n{}", org, query.debugDumpLazily());
             return query;
+        } else {
+            return super.getMemberQuery(scope, relations);
         }
     }
 
+    // FIXME: the code seems to be exactly the same as the code of the super method ... reconsider
     @Override
     protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
         return getPrismContext().queryFor(AssignmentHolderType.class)
-                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
+                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                .ref(MemberOperationsQueryUtil.createReferenceValuesList(getModelObject(), relations))
                 .build();
     }
 

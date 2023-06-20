@@ -6,41 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
-import java.util.Collections;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class ObjectCollectionViewUtil {
 
-    public static List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionView) {
-        if (!isArchetypedCollectionView(collectionView)) {
-            return null;
+    public static @NotNull List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionView) {
+        if (collectionView == null) {
+            return List.of();
         }
-
-        ObjectReferenceType ref = collectionView.getCollection().getCollectionRef();
-        return Collections.singletonList(ref);
-    }
-
-    public static boolean isArchetypedCollectionView(CompiledObjectCollectionView view) {
-        if (view == null) {
-            return false;
-        }
-
-        CollectionRefSpecificationType collectionRefSpecificationType = view.getCollection();
-        if (collectionRefSpecificationType == null) {
-            return false;
-        }
-
-        ObjectReferenceType collectionRef = collectionRefSpecificationType.getCollectionRef();
-        if (collectionRef == null) {
-            return false;
-        }
-
-        return QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType());
+        var archetypeRef = collectionView.getArchetypeRef();
+        return archetypeRef != null ? List.of(archetypeRef) : List.of();
     }
 }
