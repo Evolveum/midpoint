@@ -156,8 +156,10 @@ public class ResourceTaskCreator {
 
     private @NotNull ActivitySubmissionOptions submissionOptions() {
         return Objects.requireNonNullElseGet(
-                submissionOptions,
-                () -> ActivitySubmissionOptions.create());
+                        submissionOptions,
+                        () -> ActivitySubmissionOptions.create())
+                .withTaskTemplate(new TaskType()
+                        .objectRef(ObjectTypeUtil.createObjectRef(resource)));
     }
 
     public @NotNull String submit(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
