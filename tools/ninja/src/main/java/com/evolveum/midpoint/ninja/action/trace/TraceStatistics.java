@@ -7,16 +7,16 @@
 
 package com.evolveum.midpoint.ninja.action.trace;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingOutputType;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  *

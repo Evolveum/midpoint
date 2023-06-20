@@ -1,14 +1,11 @@
 package com.evolveum.midpoint.ninja.util;
 
+import java.util.Arrays;
+
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
-
-import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
 
 public class EnumConverterValidator<T extends Enum> implements IStringConverter<T>, IParameterValidator {
 

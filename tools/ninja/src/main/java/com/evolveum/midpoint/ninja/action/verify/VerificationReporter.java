@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.QuoteMode;

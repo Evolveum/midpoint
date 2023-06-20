@@ -14,8 +14,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.RoleMiningExportUtils;
 import com.evolveum.midpoint.ninja.action.worker.AbstractWriterConsumerWorker;
@@ -33,10 +35,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
 
 public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<ExportMiningOptions, FocusType> {
 

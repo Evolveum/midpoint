@@ -8,9 +8,10 @@ package com.evolveum.midpoint.ninja.action;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.FileReferenceConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 /**
  * Created by Viliam Repan (lazyman).

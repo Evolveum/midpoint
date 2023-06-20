@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.action.RepositoryAction;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
@@ -25,8 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningOptions, Void> {
 
