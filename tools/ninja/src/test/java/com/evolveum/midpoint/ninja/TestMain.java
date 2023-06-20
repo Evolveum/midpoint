@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Created by Viliam Repan (lazyman).
  */

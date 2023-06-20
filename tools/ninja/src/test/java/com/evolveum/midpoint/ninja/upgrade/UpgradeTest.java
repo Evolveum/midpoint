@@ -3,6 +3,8 @@ package com.evolveum.midpoint.ninja.upgrade;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.NinjaTestUtils;
+
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
@@ -10,7 +12,6 @@ import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.RunSqlAction;
 import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 
 public abstract class UpgradeTest extends BaseUpgradeTest {
 
@@ -48,12 +49,7 @@ public abstract class UpgradeTest extends BaseUpgradeTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, upgradeDatabaseOptions);
 
-        RunSqlAction action = new RunSqlAction();
-        try (NinjaContext context = new NinjaContext(options, action.getApplicationContextLevel(options))) {
-            action.init(context, upgradeDatabaseOptions);
-
-            action.execute();
-        }
+        NinjaTestUtils.runAction(RunSqlAction.class, upgradeDatabaseOptions, options);
 
         then();
 
