@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.ninja;
 
+import com.evolveum.midpoint.ninja.impl.Command;
+
 import org.testng.annotations.Test;
 
 /**
@@ -16,8 +18,15 @@ public class HelpTest extends BaseTest {
 
     @Test
     public void runHelp() throws Exception {
-        executeTest("-h");
+        executeTest(new String[] { "-h" }, null, null, null);
 
         //todo assert help somehow
+    }
+
+    @Test
+    public void runHelpForEachCommand() throws Exception {
+        for (Command command : Command.values()) {
+            executeTest(new String[] { "-h", command.getCommandName() }, null, null, null);
+        }
     }
 }

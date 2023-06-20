@@ -17,6 +17,9 @@ import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
+import com.evolveum.midpoint.ninja.impl.ActionStateListener;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
@@ -30,12 +33,22 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
 
+    public static void main(String[] args) {
+        new Main().run(args);
+    }
+
+    private ActionStateListener actionStateListener;
+
     private PrintStream out = System.out;
 
     private PrintStream err = System.err;
 
-    public static void main(String[] args) {
-        new Main().run(args);
+    public ActionStateListener getActionStateListener() {
+        return actionStateListener;
+    }
+
+    public void setActionStateListener(ActionStateListener actionStateListener) {
+        this.actionStateListener = actionStateListener;
     }
 
     public PrintStream getOut() {
@@ -105,9 +118,21 @@ public class Main {
             context = new NinjaContext(out, err, allOptions, action.getApplicationContextLevel(allOptions));
 
             try {
+                if (actionStateListener != null) {
+                    actionStateListener.onBeforeInit(context);
+                }
+
                 action.init(context, options);
 
+                if (actionStateListener != null) {
+                    actionStateListener.onBeforeExecution(context);
+                }
+
                 action.execute();
+
+                if (actionStateListener != null) {
+                    actionStateListener.onAfterExecution(context);
+                }
             } finally {
                 action.destroy();
             }

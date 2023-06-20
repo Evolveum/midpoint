@@ -6,62 +6,74 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
+import com.evolveum.midpoint.ninja.impl.ActionStateListener;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
-/**
- * TODO: Currently not used, because it assumes system objects before the test.
- *  Perhaps setup midpoint home before class (not method) and combine add/delete?
- */
-@UnusedTestElement("failing")
+import org.assertj.core.api.Assertions;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+
 public class DeleteRepositoryTest extends BaseTest {
 
-    @BeforeMethod
+    @BeforeClass
     public void initMidpointHome() throws Exception {
         setupMidpointHome();
     }
 
     @Test
-    public void deleteByOid() {
+    public void deleteByOid() throws Exception {
+        given();
+
         String type = ObjectTypes.ROLE.name();
         String oid = SystemObjectsType.ROLE_DELEGATOR.value();
 
-        String[] input = new String[] { "-m", getMidpointHome(), "delete", "-o", oid, "-t", type };
+        String[] args = new String[] { "-m", getMidpointHome(), "delete", "-o", oid, "-t", type };
 
         OperationResult result = new OperationResult("delete by oid");
 
-        ExecutionValidator preExecValidator = (context) -> {
-            RepositoryService repo = context.getRepository();
+        ActionStateListener listener = new ActionStateListener() {
 
-            PrismObject<?> role = repo.getObject(RoleType.class, oid,
-                    GetOperationOptions.createRawCollection(), result);
+            @Override
+            public void onBeforeExecution(NinjaContext context) {
+                RepositoryService repository = context.getRepository();
 
-            Assert.assertNotNull(role);
-        };
+                try {
+                    PrismObject<?> role = repository.getObject(RoleType.class, oid,
+                            GetOperationOptions.createRawCollection(), result);
 
-        ExecutionValidator postExecValidator = (context) -> {
-            RepositoryService repo = context.getRepository();
-            try {
-                repo.getObject(RoleType.class, oid,
-                        GetOperationOptions.createRawCollection(), result);
+                    Assert.assertNotNull(role);
+                } catch (Exception ex) {
+                    Assertions.fail("Couldn't find role that should be deleted by ninja", ex);
+                }
+            }
 
-                Assert.fail();
-            } catch (ObjectNotFoundException ex) {
-                // ignored
+            @Override
+            public void onAfterExecution(NinjaContext context) {
+                RepositoryService repository = context.getRepository();
+                try {
+                    PrismObject<RoleType> role = repository.getObject(RoleType.class, oid, GetOperationOptions.createRawCollection(), result);
+
+                    Assertions.fail("Get object should fail with object not found exception");
+                } catch (ObjectNotFoundException ex) {
+                    // ignored
+                } catch (Exception ex) {
+                    Assertions.fail("Unknown exception", ex);
+                }
             }
         };
 
-        executeTest(preExecValidator, postExecValidator, input);
+        executeTest(args, null, null, listener);
     }
 }
