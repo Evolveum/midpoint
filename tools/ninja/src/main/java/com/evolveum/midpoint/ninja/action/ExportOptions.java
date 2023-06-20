@@ -23,10 +23,6 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
     public static final String P_OVERWRITE = "-O";
     public static final String P_OVERWRITE_LONG = "--overwrite";
 
-    // TODO not supported yet
-    public static final String P_SPLIT = "-n";
-    public static final String P_SPLIT_LONG = "-split";
-
     public static final String P_NO_IDS = "-ni";
     public static final String P_NO_IDS_LONG = "--no-container-ids";
 

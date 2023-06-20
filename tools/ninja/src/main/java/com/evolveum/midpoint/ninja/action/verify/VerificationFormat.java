@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.ninja.action;
+package com.evolveum.midpoint.ninja.action.verify;
 
 public enum VerificationFormat {
 

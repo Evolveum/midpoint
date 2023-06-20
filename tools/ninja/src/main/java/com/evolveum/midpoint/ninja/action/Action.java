@@ -42,6 +42,10 @@ public abstract class Action<O, R> {
         this.context.setLog(log);
     }
 
+    public void destroy() {
+
+    }
+
     private Log.LogLevel getLogLevel(NinjaContext context) {
         BaseOptions base = context.getOptions(BaseOptions.class);
         if (base == null) {

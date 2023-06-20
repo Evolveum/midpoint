@@ -89,9 +89,13 @@ public class Main {
 
             context = new NinjaContext(allOptions, action.getApplicationContextLevel(allOptions));
 
-            action.init(context, options);
+            try {
+                action.init(context, options);
 
-            action.execute();
+                action.execute();
+            } finally {
+                action.destroy();
+            }
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {
