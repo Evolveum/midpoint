@@ -48,6 +48,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     private boolean showEmpty;
     private boolean readOnly;
     private boolean selected;
+
+    /**
+     * This flag marks a single-valued container which contains a lot of other containers that we do NOT want
+     * expand automatically. Typical use: policy rule, policy action, notification configuration, etc.
+     */
     private boolean heterogenous;
     private boolean metadata;
 
