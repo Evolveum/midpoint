@@ -161,7 +161,7 @@ public class VerificationReporter {
         for (ValidationItem validationItem : result.getItems()) {
             for (UpgradeObjectProcessor<?> processor : instances) {
                 if (processor.isApplicable(object, validationItem.getItemPath())) {
-
+                    // todo finish
                 }
             }
         }
