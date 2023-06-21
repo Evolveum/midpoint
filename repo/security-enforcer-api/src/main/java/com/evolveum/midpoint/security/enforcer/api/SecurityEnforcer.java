@@ -162,11 +162,13 @@ public interface SecurityEnforcer {
      * to these values.
      */
     @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+            @Nullable MidPointPrincipal principal,
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
-            @NotNull CompileConstraintsOptions options,
+            @NotNull SecurityEnforcer.Options enforcerOptions,
+            @NotNull CompileConstraintsOptions compileConstraintsOptions,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
@@ -186,12 +188,14 @@ public interface SecurityEnforcer {
      * If null then all authorizations are considered.
      */
     <T> @Nullable ObjectFilter preProcessObjectFilter(
+            @Nullable MidPointPrincipal principal,
             String[] operationUrls,
             AuthorizationPhaseType phase,
             Class<T> searchResultType,
             @Nullable ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
+            @NotNull Options options,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
@@ -210,8 +214,9 @@ public interface SecurityEnforcer {
             ConfigurationException, SecurityViolationException;
 
     /**
-     * Similar to {@link #preProcessObjectFilter(String[], AuthorizationPhaseType, Class, ObjectFilter, String, List, Task,
-     * OperationResult)} but deals with the target-related authorization statements, not object-related ones.
+     * Similar to {@link #preProcessObjectFilter(MidPointPrincipal, String[], AuthorizationPhaseType, Class, ObjectFilter,
+     * String, List, Options, Task, OperationResult)} but deals with the target-related authorization statements,
+     * not object-related ones.
      *
      * The `object` is the object we are looking for targets for.
      *
@@ -273,4 +278,34 @@ public interface SecurityEnforcer {
             @Nullable ItemPath itemPath,
             PlusMinusZero plusMinusZero,
             String decisionContextDesc);
+
+    /** Not fully implemented yet. */
+    record Options(
+            @Nullable OwnerResolver ownerResolver,
+            @Nullable LogCollector logCollector,
+            boolean failOnNoAccess) {
+
+        public static Options create() {
+            return new Options(null, null, true);
+        }
+
+        // ignored for now
+        public @NotNull Options withOwnerResolver(OwnerResolver ownerResolver) {
+            return new Options(ownerResolver, logCollector, failOnNoAccess);
+        }
+
+        public @NotNull Options withLogCollector(LogCollector logCollector) {
+            return new Options(ownerResolver, logCollector, failOnNoAccess);
+        }
+
+        // ignored for now
+        public @NotNull Options withNoFailOnNoAccess() {
+            return new Options(ownerResolver, logCollector, false);
+        }
+    }
+
+    /** TEMPORARY */
+    interface LogCollector {
+        void log(String message);
+    }
 }

@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.text.StringSubstitutor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -170,16 +171,33 @@ public class ModelDiagController implements ModelDiagnosticService {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, ConfigurationException {
 
-        OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
+        OperationResult result = parentResult.createSubresult(EVALUATE_MAPPING);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
-                    AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorizeAll(task, result);
             return mappingDiagEvaluator.evaluateMapping(request, task, result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
+        }
+    }
+
+    @Override
+    public @NotNull AuthorizationEvaluationResponseType evaluateAuthorizations(
+            @NotNull AuthorizationEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException {
+        OperationResult result = parentResult.createSubresult(EVALUATE_AUTHORIZATIONS);
+        try {
+            securityEnforcer.authorizeAll(task, result); // May be lifted in the future to allow e.g. power users to do this
+            return AuthorizationDiagEvaluation.of(request, task)
+                    .evaluate(result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 

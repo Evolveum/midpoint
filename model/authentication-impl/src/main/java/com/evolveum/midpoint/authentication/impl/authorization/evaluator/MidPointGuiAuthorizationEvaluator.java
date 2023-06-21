@@ -172,12 +172,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 //        LOGGER.trace("decide input: authentication={}, object={}, configAttributes={}",
 //                authentication, object, configAttributes);
 
-        if (!(object instanceof FilterInvocation)) {
+        if (!(object instanceof FilterInvocation filterInvocation)) {
             LOGGER.trace("DECIDE: PASS because object is not FilterInvocation, it is {}", object);
             return;
         }
 
-        FilterInvocation filterInvocation = (FilterInvocation) object;
         if (isPermitAll(filterInvocation)) {
             LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (permitAll)",
                     authentication, object);
@@ -327,28 +326,31 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public PrismEntityOpConstraints.@NotNull ForValueContent compileOperationConstraints(
+            @Nullable MidPointPrincipal principal,
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
-            @NotNull CompileConstraintsOptions options,
+            @NotNull Options enforcerOptions,
+            @NotNull CompileConstraintsOptions compileConstraintsOptions,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileOperationConstraints(value, phase, ownerResolver, actionUrls, options, task, result);
+        return securityEnforcer.compileOperationConstraints(
+                principal, value, phase, ownerResolver, actionUrls, enforcerOptions, compileConstraintsOptions, task, result);
     }
 
     @Override
     public @Nullable <T> ObjectFilter preProcessObjectFilter(
-            String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType,
+            @Nullable MidPointPrincipal principal, String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType,
             @Nullable ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints,
-            Task task, OperationResult result)
+            @NotNull Options options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                operationUrls, phase, searchResultType,
-                origFilter, limitAuthorizationAction, paramOrderConstraints, task, result);
+                principal, operationUrls, phase, searchResultType,
+                origFilter, limitAuthorizationAction, paramOrderConstraints, options, task, result);
     }
 
     @Override

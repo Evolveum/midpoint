@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
 import jakarta.annotation.PostConstruct;
@@ -145,4 +146,5 @@ public class ModelBeans {
     @Autowired public SimulationResultManagerImpl simulationResultManager;
     @Autowired public MarkManager markManager;
     @Autowired public AuthorizationMigrator authorizationMigrator;
+    @Autowired public DataAccessProcessor dataAccessProcessor; // temporary
 }

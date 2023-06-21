@@ -57,7 +57,7 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
                     "Computing security filter for principal=%s, searchResultType=%s, searchType=%s, orig filter=%s".formatted(
                             operation.username,
                             TracingUtil.getTypeName(operation.filterType),
-                            operation.preProcessor,
+                            operation.selectorExtractor,
                             operation.origFilter));
         }
     }
