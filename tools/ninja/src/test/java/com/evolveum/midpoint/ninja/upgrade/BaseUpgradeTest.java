@@ -24,17 +24,17 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.ninja.NinjaTestMixin;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.RunSqlAction;
 import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 
-public abstract class BaseUpgradeTest extends AbstractSpringTest implements InfraTestMixin {
+public abstract class BaseUpgradeTest extends AbstractSpringTest implements InfraTestMixin, NinjaTestMixin {
 
     public static final String NINJA_TESTS_USER = "ninja_upgrade_tests";
 
@@ -70,8 +70,6 @@ public abstract class BaseUpgradeTest extends AbstractSpringTest implements Infr
         jdbcUrlPrefix = "jdbc:postgresql://" + jdbcURI.getHost() + ":" + jdbcURI.getPort();
 
         recreateEmptyNinjaTestsDatabase();
-
-//        runWith(ninjaTestDatabase, jdbcTemplate -> jdbcTemplate.execute("DROP SCHEMA IF EXISTS public CASCADE;"));
     }
 
     protected HikariDataSource createHikariDataSource(String url, String username, String password) {
@@ -146,13 +144,7 @@ public abstract class BaseUpgradeTest extends AbstractSpringTest implements Infr
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 
-        RunSqlAction action = new RunSqlAction();
-
-        try (NinjaContext context = new NinjaContext(System.out, System.err, options, action.getApplicationContextLevel(options))) {
-            action.init(context, runSqlOptions);
-
-            action.execute();
-        }
+        executeAction(RunSqlAction.class, runSqlOptions, options);
 
         Assertions.assertThat(countTablesInPublicSchema()).isNotZero();
     }

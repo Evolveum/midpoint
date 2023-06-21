@@ -15,10 +15,7 @@ public class ListKeysTest extends BaseTest {
 
     @Test
     public void simpleListKeys() throws Exception {
-        //todo asserts
-
-        String[] input = new String[]{"-m", getMidpointHome(), "keys"};
-
-        executeTest(null, null, input);
+        // todo assertions
+        executeTest(new String[] { "-m", getMidpointHome(), "keys" }, null, null, null);
     }
 }

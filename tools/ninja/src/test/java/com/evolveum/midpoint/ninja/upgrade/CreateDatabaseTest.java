@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.evolveum.midpoint.ninja.NinjaTestUtils;
-
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -67,7 +65,7 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 
-        NinjaTestUtils.runAction(RunSqlAction.class, runSqlOptions, options);
+        executeAction(RunSqlAction.class, runSqlOptions, options);
 
         Assertions.assertThat(FAKE_MIDPOINT_HOME.exists()).isFalse();
 
@@ -99,7 +97,7 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 
-        NinjaTestUtils.runAction(RunSqlAction.class, runSqlOptions, options);
+        executeAction(RunSqlAction.class, runSqlOptions, options);
 
         Assertions.assertThat(FAKE_MIDPOINT_HOME.exists()).isFalse();
 

@@ -17,14 +17,23 @@ public class RunSqlOptions {
 
     public enum Mode {
 
+        /**
+         * This will create raw datasource from JDBC url/username/password. Midpoint home doesn't have to be defined.
+         */
         RAW(Collections.emptyList(), Collections.emptyList()),
 
+        /**
+         * This mode will set up datasource based on midpoint home config.xml pointing to midpoint repository.
+         */
         REPOSITORY(
                 List.of(new File(SCRIPTS_DIRECTORY, "postgres-new.sql"),
                         new File(SCRIPTS_DIRECTORY, "postgres-new-quartz.sql")),
                 List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-upgrade.sql"))
         ),
 
+        /**
+         * This mode will set up datasource based on midpoint home config.xml pointing to midpoint audit database.
+         */
         AUDIT(
                 List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-audit.sql")),
                 List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-upgrade-audit.sql"))
@@ -45,7 +54,11 @@ public class RunSqlOptions {
     public static final String P_JDBC_USERNAME_LONG = "--jdbc-username";
     public static final String P_JDBC_PASSWORD_LONG = "--jdbc-password";
     public static final String P_MODE = "--mode";
+
+    // todo there should be upgrade-repository and upgrade-audit
     public static final String P_UPGRADE = "--upgrade";
+
+    // todo there should be create-repository and create-audit
     public static final String P_CREATE = "--create";
     public static final String P_RESULT = "--result";
 
@@ -77,8 +90,6 @@ public class RunSqlOptions {
 
     @Parameter(names = { P_RESULT }, descriptionKey = "runSql.result")
     private boolean result;
-
-    private File scriptsDirectory;
 
     public List<File> getScripts() {
         return scripts;

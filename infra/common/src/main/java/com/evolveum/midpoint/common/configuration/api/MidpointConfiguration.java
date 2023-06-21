@@ -21,6 +21,8 @@ public interface MidpointConfiguration {
 
     String USER_HOME_PROPERTY = "user.home";
 
+    String MIDPOINT_CONFIG_FILE_PROPERTY = "midpoint.configFile";
+
     // Other commonly-used configuration properties
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";

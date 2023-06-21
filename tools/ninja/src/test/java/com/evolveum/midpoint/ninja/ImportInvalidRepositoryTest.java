@@ -6,57 +6,72 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.util.List;
-
+import org.assertj.core.api.Assertions;
+import org.testng.Assert;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.ninja.impl.ActionStateListener;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-@UnusedTestElement("failing")
 public class ImportInvalidRepositoryTest extends BaseTest {
 
-    @BeforeMethod
+    @BeforeClass
     public void initMidpointHome() throws Exception {
         setupMidpointHome();
     }
 
     @Test
-    public void test100Import() {
-        String[] input = new String[] { "-m", getMidpointHome(), "import", "-i", RESOURCES_FOLDER + "/unknown-nodes.zip", "-z" };
-        executeTest(null,
-                context -> {
-                    RepositoryService repo = context.getRepository();
+    public void test100Import() throws Exception {
+        String[] args = new String[] { "-m", getMidpointHome(), "import", "-i", RESOURCES_DIRECTORY_PATH + "/unknown-nodes.zip", "-z" };
 
+        ActionStateListener listener = new ActionStateListener() {
+
+            @Override
+            public void onBeforeExecution(NinjaContext context) {
+                RepositoryService repository = context.getRepository();
+
+                try {
                     OperationResult result = new OperationResult("count objects");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+                    int count = repository.countObjects(ObjectType.class, null, null, result);
 
-                    AssertJUnit.assertEquals(0, count);
-                },
-                context -> {
-                    RepositoryService repo = context.getRepository();
+                    Assertions.assertThat(count).isZero();
+                } catch (Exception ex) {
+                    Assertions.fail("Failed", ex);
+                }
+            }
 
-                    OperationResult result = new OperationResult("count");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+            @Override
+            public void onAfterExecution(NinjaContext context) {
+                RepositoryService repository = context.getRepository();
 
-                    AssertJUnit.assertEquals(16, count);
+                OperationResult result = new OperationResult("count");
+                try {
+                    int count = repository.countObjects(ObjectType.class, null, null, result);
 
-                    count = repo.countObjects(OrgType.class, null, null, result);
+                    Assertions.assertThat(count).isEqualTo(16);
 
-                    AssertJUnit.assertEquals(1, count);
-                },
-                true, true, input);
+                    count = repository.countObjects(OrgType.class, null, null, result);
 
-        List<String> out = getSystemOut();
-        AssertJUnit.assertEquals(out.toString(), 5, out.size());
-        AssertJUnit.assertTrue(getSystemErr().isEmpty());
+                    Assertions.assertThat(count).isEqualTo(1);
+                } catch (Exception ex) {
+                    Assertions.fail("Failed", ex);
+                }
+            }
+        };
+
+        executeTest(
+                args,
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                err -> Assertions.assertThat(err.size()).isZero(),
+                listener);
     }
 }
