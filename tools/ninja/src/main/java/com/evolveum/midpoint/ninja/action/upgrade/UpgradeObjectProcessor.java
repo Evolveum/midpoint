@@ -8,17 +8,21 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface UpgradeObjectProcessor<T extends ObjectType> {
 
-    // todo implement
-//    String getIdentifier();
+    String getIdentifier();
 
     UpgradePhase getPhase();
 
-    <O extends ObjectType> boolean isApplicable(Class<O> type);
+    UpgradePriority getPriority();
+
+    UpgradeType getType();
+
+    boolean isApplicable(PrismObject<?> object, ItemPath path);
 
     /**
      * Updates object to correct form
