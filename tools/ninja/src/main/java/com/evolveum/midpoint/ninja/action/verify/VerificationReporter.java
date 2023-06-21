@@ -60,9 +60,17 @@ public class VerificationReporter {
         } else {
             for (VerifyOptions.VerificationCategory category : categories) {
                 switch (category) {
-                    case DEPRECATED -> validator.setWarnDeprecated(true);
-                    case INCORRECT_OIDS -> validator.setWarnIncorrectOids(true);
-                    case PLANNED_REMOVAL -> validator.setWarnPlannedRemoval(true);
+                    case DEPRECATED:
+                        validator.setWarnDeprecated(true);
+                        break;
+                    case INCORRECT_OIDS:
+                        validator.setWarnIncorrectOids(true);
+                        break;
+                    case PLANNED_REMOVAL:
+                        validator.setWarnPlannedRemoval(true);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown category " + category);
                 }
             }
         }
@@ -103,8 +111,14 @@ public class VerificationReporter {
         ValidationResult result = validator.validate(object);
 
         switch (options.getReportStyle()) {
-            case PLAIN -> verifyAsPlain(writer, object, result);
-            case CSV -> verifyAsCsv(writer, object, result);
+            case PLAIN:
+                verifyAsPlain(writer, object, result);
+                break;
+            case CSV:
+                verifyAsCsv(writer, object, result);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
     }
 

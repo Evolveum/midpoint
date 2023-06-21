@@ -1,16 +1,14 @@
 package com.evolveum.midpoint.ninja.upgrade;
 
 import java.io.File;
-import java.io.PrintStream;
 import java.util.List;
-
-import com.evolveum.midpoint.ninja.NinjaTestUtils;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.ninja.NinjaTestMixin;
 import com.evolveum.midpoint.ninja.action.*;
 
-public class VerifyFilesTest {
+public class VerifyFilesTest implements NinjaTestMixin {
 
     protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
 
@@ -28,6 +26,6 @@ public class VerifyFilesTest {
 
         List<Object> options = List.of(baseOptions, connectionOptions, verifyFilesOptions);
 
-        NinjaTestUtils.runAction(VerifyFilesAction.class, verifyFilesOptions, options);
+        executeAction(VerifyFilesAction.class, verifyFilesOptions, options);
     }
 }

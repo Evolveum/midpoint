@@ -6,20 +6,16 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.function.Consumer;
+import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.ninja.impl.ActionStateListener;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -34,7 +30,7 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class BaseTest extends AbstractUnitTest {
+public class BaseTest extends AbstractUnitTest implements NinjaTestMixin {
 
     private static final Logger LOG = LoggerFactory.getLogger(BaseTest.class);
 
@@ -67,38 +63,6 @@ public class BaseTest extends AbstractUnitTest {
 
     protected String getMidpointHome() {
         return TARGET_HOME.getAbsolutePath();
-    }
-
-    protected void executeTest(
-            String[] args, Consumer<List<String>> validateOut, Consumer<List<String>> validateErr, ActionStateListener actionStateListener)
-            throws IOException {
-
-        ByteArrayOutputStream bosOut = new ByteArrayOutputStream();
-        ByteArrayOutputStream bosErr = new ByteArrayOutputStream();
-        try (
-                PrintStream out = new PrintStream(bosOut);
-                PrintStream err = new PrintStream(bosErr)
-        ) {
-            Main main = new Main();
-
-            main.setActionStateListener(actionStateListener);
-            main.setOut(out);
-            main.setErr(err);
-
-            main.run(args);
-        } finally {
-            processTestOutputStream(bosOut, validateOut, "OUT");
-            processTestOutputStream(bosErr, validateErr, "ERR");
-        }
-    }
-
-    private void processTestOutputStream(ByteArrayOutputStream bos, Consumer<List<String>> validator, String prefix) throws IOException {
-        List<String> lines = IOUtils.readLines(new ByteArrayInputStream(bos.toByteArray()), StandardCharsets.UTF_8);
-        lines.forEach(line -> logger.debug("{}: {}", prefix, line));
-
-        if (validator != null) {
-            validator.accept(lines);
-        }
     }
 
     protected void clearDb(NinjaContext ninjaContext) {

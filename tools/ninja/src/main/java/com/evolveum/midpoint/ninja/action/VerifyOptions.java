@@ -26,7 +26,7 @@ public class VerifyOptions extends ExportOptions {
         CSV
     }
 
-    static class ReportStyleConverter extends EnumConverterValidator<ReportStyle> {
+    public static class ReportStyleConverter extends EnumConverterValidator<ReportStyle> {
 
         public ReportStyleConverter() {
             super(VerifyOptions.ReportStyle.class);
@@ -42,7 +42,7 @@ public class VerifyOptions extends ExportOptions {
         INCORRECT_OIDS
     }
 
-    static class VerificationCategoryConverter extends EnumConverterValidator<VerificationCategory> {
+    public static class VerificationCategoryConverter extends EnumConverterValidator<VerificationCategory> {
 
         public VerificationCategoryConverter() {
             super(VerificationCategory.class);
