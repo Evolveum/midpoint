@@ -329,7 +329,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Evaluation of time constraints.
      */
-    private TimeConstraintsEvaluation timeConstraintsEvaluation;
+    private MappingTimeConstraintsEvaluation timeConstraintsEvaluation;
 
     /**
      * When the mapping evaluation started. Used only if profiling is turned on.
@@ -1205,7 +1205,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private void evaluateTimeConstraint(OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (timeConstraintsEvaluation == null) {
-            timeConstraintsEvaluation = new TimeConstraintsEvaluation(this);
+            timeConstraintsEvaluation = new MappingTimeConstraintsEvaluation(this);
             timeConstraintsEvaluation.evaluate(result);
         }
         timeConstraintsEvaluation.isTimeConstraintValid();

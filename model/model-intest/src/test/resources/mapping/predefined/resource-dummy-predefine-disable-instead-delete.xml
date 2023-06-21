@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- RED dummy resource for testing. It is used in multi-resource tests. It also
+     has mostly STRONG mappings, therefore it is used in strong mapping tests. Also:
+     * has pre-create and delayed delete configuration.
+     * does NOT support runAs
+ -->
+
+<resource oid="2b1c05f1-8b70-43e6-ac46-3e5ee621ee55"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Resource Predefine DID</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>predefine-disable-instead-delete</icfi:instanceId>
+            <icfi:supportRunAs>false</icfi:supportRunAs>
+            <icfi:uselessString>
+                <expression>
+                    <const>useless</const>
+                </expression>
+            </icfi:uselessString>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$user/name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+                <disableInsteadDelete>
+                    <lifecycleState>active</lifecycleState>
+                </disableInsteadDelete>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+
+</resource>

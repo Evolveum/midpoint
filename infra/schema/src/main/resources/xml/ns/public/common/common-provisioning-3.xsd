@@ -8,19 +8,19 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -37,8 +37,8 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3"/>
 
     <xsd:complexType name="ResourceType">
         <xsd:annotation>
@@ -369,8 +369,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="description" type="xsd:string" minOccurs="0" />
-            <xsd:element ref="tns:documentation" minOccurs="0" />
+            <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="connectorRef" type="c:ObjectReferenceType"
                     minOccurs="0">
                 <xsd:annotation>
@@ -382,7 +382,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType" />
+            <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType"/>
             <xsd:element name="capabilities" type="tns:CapabilitiesType"
                     minOccurs="0">
                 <xsd:annotation>
@@ -394,7 +394,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="connectorInstanceSpecification" type="c:ConnectorInstanceSpecificationType" />
+    <xsd:element name="connectorInstanceSpecification" type="c:ConnectorInstanceSpecificationType"/>
 
     <xsd:complexType name="XmlSchemaType">
         <xsd:annotation>
@@ -2109,8 +2109,130 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="disableInsteadDelete" type="tns:AbstractPredefinedActivationMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If an account is unassigned and there is no other existing assignment for an account midPoint
+                        will de-provisioning that account. Which means that the account will be deleted.
+                        This is the default behavior. But it can be changed. This configuration change default behavior
+                        and account will be disabled instead delete.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="delayedDelete" type="tns:DelayedDeleteActivationMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If an account is unassigned and there is no other existing assignment for an account midPoint
+                        will de-provisioning that account. Which means that the account will be deleted.
+                        This is the default behavior. But it can be changed. This configuration change default behavior
+                        and account will delete with delay and meanwhile account will be disabled.
+
+                        We use activation/disableTimestamp from shadow object
+                        as reference attribute. As disable reason we use de-provision or mapped.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="preProvision" type="tns:PreProvisionActivationMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This configuration will pre-provision a disabled account defined time
+                        before focus’s activation/validFrom date.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractPredefinedActivationMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Basic super type for predefined configuration of account activation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Lifecycle state of predefined configuration of account activation.
+                        Production configuration consists (by default) of `active` and `deprecated` ones.
+                        Development configuration consists (by default) of `active` and `proposed` ones.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="DelayedDeleteActivationMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                If an account is unassigned and there is no other existing assignment for an account midPoint
+                will de-provisioning that account. Which means that the account will be deleted. This is the default behavior.
+                But it can be changed. This configuration change default behavior and account will delete with delay
+                and meanwhile account will be disabled.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPredefinedActivationMappingType">
+                <xsd:sequence>
+                    <xsd:element name="deleteAfter" type="xsd:duration" minOccurs="0" default="P1M">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time after which the account will be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PreProvisionActivationMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This configuration will pre-provision a disabled account defined time before focus’s activation/validFrom date.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPredefinedActivationMappingType">
+                <xsd:sequence>
+                    <xsd:element name="createBefore" type="xsd:duration" minOccurs="0" default="-P5D">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Time determines how long before date, from activation/validFrom attribute,
+                                disabled account will be created.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceObjectLifecycleDefinitionType">
@@ -3045,20 +3167,24 @@
                             then the system will ignore this definition.
                             If enabled, the synchronization should start with most recent change
                             after enabling synchronization. It will NOT pull in even the changes that
-                            were done during disabled synchronization.</p>
+                            were done during disabled synchronization.
+                        </p>
 
                         <p>If this flag is not present the synchronization is assumed to be enabled.
                             This flag is meant to act as a tool to temporarily disable synchronization without losing the
-                            configuration and state or for forcing the synchronization engine to "skip" some changes.</p>
+                            configuration and state or for forcing the synchronization engine to "skip" some changes.
+                        </p>
 
                         <p>Note that this is different from disabling/deleting the synchronization task. If the task
                             is stopped, midPoint will not poll for changes at all. This means that the changes will
                             still be "pending" on the resource and once the task is enabled it will pull such changes.
                             On the other hand, disabling synchronization using this flag and leaving the task running will
-                            "acknowledge" all changes without doing anything.</p>
+                            "acknowledge" all changes without doing anything.
+                        </p>
 
                         <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
-                            it will also disable import from resource.</p>
+                            it will also disable import from resource.
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3068,7 +3194,8 @@
                         <p>Expression that is evaluated to check whether this definition is applicable to
                             a particular shadow. It is assumed to return a boolean value. If it returns 'true'
                             then the shadow will be processed by this definition. If it returns 'false' it will
-                            not be processed.</p>
+                            not be processed.
+                        </p>
 
                         <p>If no condition is present then all applicable shadows will be processed.</p>
                     </xsd:documentation>
@@ -3078,15 +3205,18 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>Correlation filter expression. Running the query should return a list of candidate focus
-                            entries that may be owners of a particular shadow.</p>
+                            entries that may be owners of a particular shadow.
+                        </p>
 
                         <p>Correlation is an rough but an efficient way how to relate the shadow (e.g. an account)
                             to a focus (e.g. an user). The correlation expression is in fact just a search filter that can
                             contain expressions inside it. If correlation search returns more that one entry,
-                            confirmation expression will be executed for each of them.</p>
+                            confirmation expression will be executed for each of them.
+                        </p>
 
                         <p>The filter in this case is conditional, i.e. there can be specified an expression
-                            that denotes a necessary condition for the filter to be applied.</p>
+                            that denotes a necessary condition for the filter to be applied.
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4519,7 +4649,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="shadowAssociation" type="tns:ShadowAssociationType" />
+    <xsd:element name="shadowAssociation" type="tns:ShadowAssociationType"/>
 
     <xsd:complexType name="ShadowIdentifiersType">
         <xsd:annotation>
@@ -4640,29 +4770,30 @@
                         <a:since>3.7.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element><xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
-            <xsd:annotation>
-                <xsd:documentation>
-                    <p>
-                        Operation result status. This property specifies result of operation execution.
-                        If execution status is present and set to anything else than "completed" then
-                        resultStatus may be empty. If result status is present in "executing" state
-                        then it means that execution was already attempted but it was not completed
-                        yet (e.g. there was an error and we will be retrying the operation).
-                    </p>
-                    <p>
-                        Legacy meaning: If no execution status is present then resultStatus
-                        defines the execution status (this is pre-3.7.1 behavior).
-                        If set to in_progress then the operation is
-                        still executing. If not present at all then the operation was
-                        not yet tried.
-                    </p>
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:since>3.6</a:since>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:element>
+            </xsd:element>
+            <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Operation result status. This property specifies result of operation execution.
+                            If execution status is present and set to anything else than "completed" then
+                            resultStatus may be empty. If result status is present in "executing" state
+                            then it means that execution was already attempted but it was not completed
+                            yet (e.g. there was an error and we will be retrying the operation).
+                        </p>
+                        <p>
+                            Legacy meaning: If no execution status is present then resultStatus
+                            defines the execution status (this is pre-3.7.1 behavior).
+                            If set to in_progress then the operation is
+                            still executing. If not present at all then the operation was
+                            not yet tried.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="asynchronousOperationReference" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
