@@ -30,7 +30,10 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restartOnLogin
  *
  * Created to avoid repeating these actions throughout GUI code.
  *
- * NOT SERIALIZABLE, so please do not store directly or indirectly in Wicket components.
+ * This class is NOT SERIALIZABLE (although it probably could be made so); neither the instances of {@link Executable}
+ * and {@link ExecutableVoid} are. Please do not store these objects in Wicket components (directly or indirectly).
+ *
+ * TODO the treatment of "void" methods is not good now (two methods + ugly names); to be improved
  */
 @Experimental
 public class TaskAwareExecutor {
