@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,35 +35,14 @@ public abstract class Action<O, R> {
         this.context = context;
         this.options = options;
 
-        LogTarget target = getInfoLogTarget();
-        Log.LogLevel level = getLogLevel(context);
-        log = new Log(target, level);
-
-        this.context.setLog(log);
+        this.log = context.initializeLogging(getLogTarget());
     }
 
     public void destroy() {
 
     }
 
-    private Log.LogLevel getLogLevel(NinjaContext context) {
-        BaseOptions base = context.getOptions(BaseOptions.class);
-        if (base == null) {
-            return Log.LogLevel.DEFAULT;
-        }
-
-        if (base.isVerbose()) {
-            return Log.LogLevel.VERBOSE;
-        }
-
-        if (base.isSilent()) {
-            return Log.LogLevel.SILENT;
-        }
-
-        return Log.LogLevel.DEFAULT;
-    }
-
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         return LogTarget.SYSTEM_OUT;
     }
 

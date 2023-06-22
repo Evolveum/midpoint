@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.ParsingContext;
@@ -21,6 +22,15 @@ public class VerifyFilesAction extends Action<VerifyFilesOptions, Void> {
     @Override
     public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.NO_REPOSITORY;
+    }
+
+    @Override
+    public LogTarget getLogTarget() {
+        if (options.getOutput() != null) {
+            return LogTarget.SYSTEM_OUT;
+        }
+
+        return LogTarget.SYSTEM_ERR;
     }
 
     @Override

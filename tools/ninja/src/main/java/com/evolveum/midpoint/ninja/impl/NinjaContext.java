@@ -25,7 +25,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.PolyStringNormalizerOptions;
-import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
@@ -93,6 +92,32 @@ public class NinjaContext implements Closeable {
                 System.setProperty(k, v);
             }
         });
+    }
+
+    public Log initializeLogging(LogTarget target) {
+        LogVerbosity verbosity = getLogLevel();
+        PrintStream stream = target == LogTarget.SYSTEM_OUT ? out : err;
+
+        log = new Log(verbosity, stream);
+
+        return log;
+    }
+
+    private LogVerbosity getLogLevel() {
+        BaseOptions base = getOptions(BaseOptions.class);
+        if (base == null) {
+            return LogVerbosity.DEFAULT;
+        }
+
+        if (base.isVerbose()) {
+            return LogVerbosity.VERBOSE;
+        }
+
+        if (base.isSilent()) {
+            return LogVerbosity.SILENT;
+        }
+
+        return LogVerbosity.DEFAULT;
     }
 
     public void setLog(Log log) {

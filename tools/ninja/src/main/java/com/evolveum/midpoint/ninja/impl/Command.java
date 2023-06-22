@@ -54,6 +54,7 @@ public enum Command {
 
     UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class),
 
+    // todo merge with verify, if there's -f option, then don't start whole context and search repository, just go to file system. same for upgrade-files
     VERIFY_FILES("verify-files", VerifyFilesOptions.class, VerifyFilesAction.class);
 
     private final String commandName;

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.util.*;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -123,8 +125,15 @@ public class TestMain {
 //                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
 //                + "--result";
 
-        cmd = "-h run-sql";
-        execute(cmd);
+//        cmd = "-h upgrade-objects";
+//        execute(cmd);
+
+        Set<UUID> set = new HashSet<>();
+        for (int i = 0; i < 10_000_000; i++) {
+            set.add(UUID.randomUUID());
+        }
+
+        Thread.sleep(20000L);
     }
 
     private static void execute(String args) {

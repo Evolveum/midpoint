@@ -2,7 +2,7 @@ package com.evolveum.midpoint.ninja.action.upgrade.handler;
 
 import java.util.List;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectProcessor;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradePhase;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradePriority;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeType;
@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class UserDashboardHandler implements UpgradeObjectProcessor<ObjectType> {
+public class UserDashboardHandler implements UpgradeObjectHandler<ObjectType> {
 
     @Override
     public String getIdentifier() {

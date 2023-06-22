@@ -13,7 +13,7 @@ import java.util.Set;
 
 import org.fusesource.jansi.Ansi;
 
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;

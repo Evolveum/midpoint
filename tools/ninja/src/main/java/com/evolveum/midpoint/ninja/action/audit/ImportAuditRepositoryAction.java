@@ -67,7 +67,7 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getInput() != null) {
             return LogTarget.SYSTEM_OUT;
         }
