@@ -73,7 +73,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions, Void
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getInput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

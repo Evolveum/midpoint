@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.ninja.action.worker.BaseWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.query.ObjectQuery;

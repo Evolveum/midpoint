@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.Action;
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.Log;
 
 public class DownloadDistributionAction extends Action<DownloadDistributionOptions, DownloadDistributionResult> {
 

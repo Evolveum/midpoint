@@ -88,7 +88,7 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getOutput() != null) {
             return LogTarget.SYSTEM_OUT;
         }
