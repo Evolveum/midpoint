@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public interface UpgradeObjectProcessor<T extends ObjectType> {
+public interface UpgradeObjectHandler<T extends ObjectType> {
 
     String getIdentifier();
 

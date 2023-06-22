@@ -4,20 +4,19 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.Main;
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectProcessor;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradePhase;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradePriority;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeType;
@@ -31,7 +30,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class VerificationReporter {
 
-    private static final List<String> REPORT_HEADER = List.of(
+    public static final List<String> REPORT_HEADER = List.of(
             "Oid",
             "Type",
             "Name",
@@ -42,7 +41,7 @@ public class VerificationReporter {
             "Phase",
             "Priority",
             "Type",
-            "Perform upgrade [yes/no]"
+            "Skip upgrade [yes/no]"
     );
 
     private final VerifyOptions options;
@@ -51,7 +50,7 @@ public class VerificationReporter {
 
     private ObjectValidator validator;
 
-    private static final CSVFormat CSV_FORMAT;
+    public static final CSVFormat CSV_FORMAT;
 
     static {
         CSV_FORMAT = createCsvFormat();
@@ -137,17 +136,39 @@ public class VerificationReporter {
         }
     }
 
+    public static UUID getUuidFromRecord(CSVRecord record) {
+        if (record == null || record.size() != REPORT_HEADER.size()) {
+            return null;
+        }
+
+        String uuid = record.get(0);
+        return StringUtils.isNotEmpty(uuid) ? UUID.fromString(uuid) : null;
+    }
+
+    public static boolean skipUpgradeForRecord(CSVRecord record) {
+        if (record == null || record.size() != REPORT_HEADER.size()) {
+            return true;
+        }
+
+        String value = record.get(REPORT_HEADER.size() - 1);
+
+        return value.equalsIgnoreCase("true")
+                || value.equalsIgnoreCase("yes")
+                || value.equalsIgnoreCase("t")
+                || value.equalsIgnoreCase("y");
+    }
+
     private void enhanceValidationResult(PrismObject<?> object, ValidationResult result) {
         Set<Class<?>> processors = ClassPathUtil.listClasses(Main.class.getPackageName())
                 .stream()
-                .filter(UpgradeObjectProcessor.class::isAssignableFrom)
+                .filter(UpgradeObjectHandler.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
                 .collect(Collectors.toUnmodifiableSet());
 
-        Set<UpgradeObjectProcessor<?>> instances = processors.stream()
+        Set<UpgradeObjectHandler<?>> instances = processors.stream()
                 .map(c -> {
                     try {
-                        return (UpgradeObjectProcessor<?>) c.getConstructor().newInstance();
+                        return (UpgradeObjectHandler<?>) c.getConstructor().newInstance();
                     } catch (Exception ex) {
                         // todo
                         ex.printStackTrace();
@@ -159,7 +180,7 @@ public class VerificationReporter {
                 .collect(Collectors.toUnmodifiableSet());
 
         for (ValidationItem validationItem : result.getItems()) {
-            for (UpgradeObjectProcessor<?> processor : instances) {
+            for (UpgradeObjectHandler<?> processor : instances) {
                 if (processor.isApplicable(object, validationItem.getItemPath())) {
                     // todo finish
                 }
@@ -200,7 +221,7 @@ public class VerificationReporter {
                 phase != null ? phase.name() : null,
                 priority != null ? priority.name() : null,
                 type != null ? type.name() : null,
-                null
+                null    // todo last column should have YES (skip upgrade for all non-auto changes by default)
         );
     }
 
