@@ -34,8 +34,6 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
     public void run() {
         Log log = context.getLog();
 
-        // todo handle split option
-
         init();
 
         try (Writer writer = createWriter()) {

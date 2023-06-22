@@ -15,6 +15,7 @@ import com.beust.jcommander.Parameters;
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
 
 /**
+ * // todo fix these options, extending Export options is messing up help messages (it's using export.* keys)
  * @author semancik
  */
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "verify")
