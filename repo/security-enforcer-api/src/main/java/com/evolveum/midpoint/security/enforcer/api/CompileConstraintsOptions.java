@@ -17,8 +17,8 @@ public class CompileConstraintsOptions {
      */
     private final boolean skipSubObjectSelectors;
 
-    private static final CompileConstraintsOptions DEFAULT_ONES = new CompileConstraintsOptions();
-    private static final CompileConstraintsOptions SKIP_SUB_OBJECT_SELECTORS = DEFAULT_ONES.withSkipSubObjectSelectors();
+    private static final CompileConstraintsOptions DEFAULT = new CompileConstraintsOptions();
+    private static final CompileConstraintsOptions SKIP_SUB_OBJECT_SELECTORS = DEFAULT.withSkipSubObjectSelectors();
 
     private CompileConstraintsOptions() {
         this.skipSubObjectSelectors = false;
@@ -28,8 +28,8 @@ public class CompileConstraintsOptions {
         this.skipSubObjectSelectors = skipSubObjectSelectors;
     }
 
-    public static CompileConstraintsOptions defaultOnes() {
-        return DEFAULT_ONES;
+    public static CompileConstraintsOptions create() {
+        return DEFAULT;
     }
 
     public static CompileConstraintsOptions skipSubObjectSelectors() {

@@ -258,11 +258,13 @@ public class SchemaTransformer {
         AuthorizationPhaseType phase = options.isExecutionPhase() ? AuthorizationPhaseType.EXECUTION : null;
         var readConstraints =
                 securityEnforcer.compileOperationConstraints(
+                        securityEnforcer.getMidPointPrincipal(),
                         object.getValue(),
                         phase,
                         null,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
-                        CompileConstraintsOptions.defaultOnes(),
+                        SecurityEnforcer.Options.create(),
+                        CompileConstraintsOptions.create(),
                         task, result);
         PrismObject<O> objectAfter = dataAccessProcessor.applyReadConstraints(object, readConstraints);
 
@@ -420,10 +422,12 @@ public class SchemaTransformer {
         authorizeRawOption(object, getOptions, task, result);
 
         PrismEntityOpConstraints.ForValueContent readConstraints = securityEnforcer.compileOperationConstraints(
+                securityEnforcer.getMidPointPrincipal(),
                 object.getValue(),
                 null,
                 null,
                 ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+                SecurityEnforcer.Options.create(),
                 CompileConstraintsOptions.skipSubObjectSelectors(),
                 task, result);
 

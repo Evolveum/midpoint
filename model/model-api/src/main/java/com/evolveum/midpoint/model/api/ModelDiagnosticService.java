@@ -15,8 +15,11 @@ import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data
@@ -36,6 +39,7 @@ public interface ModelDiagnosticService {
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
     String EXECUTE_REPOSITORY_QUERY = CLASS_NAME_WITH_DOT + "executeRepositoryQuery";
     String EVALUATE_MAPPING = CLASS_NAME_WITH_DOT + "evaluateMapping";
+    String EVALUATE_AUTHORIZATIONS = CLASS_NAME_WITH_DOT + "evaluateAuthorization";
     String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
     String GET_LOG_FILE_CONTENT = CLASS_NAME_WITH_DOT + "getLogFileContent";
     String GET_LOG_FILE_SIZE = CLASS_NAME_WITH_DOT + "getLogFileSize";
@@ -94,6 +98,15 @@ public interface ModelDiagnosticService {
      * EXPERIMENTAL
      */
     MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException;
+
+    /**
+     * Evaluates an authorization request.
+     */
+    @Experimental
+    @NotNull AuthorizationEvaluationResponseType evaluateAuthorizations(
+            @NotNull AuthorizationEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException;
     /**

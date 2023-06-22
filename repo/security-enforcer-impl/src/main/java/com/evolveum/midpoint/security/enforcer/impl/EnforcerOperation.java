@@ -52,15 +52,20 @@ class EnforcerOperation {
     EnforcerOperation(
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull ProcessingTracer<SecurityTraceEvent> tracer,
+            @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
         this.principal = principal;
         this.username = principal != null ? principal.getUsername() : null;
-        this.tracer = tracer;
+        this.tracer = createTracer(options);
         this.ownerResolver = ownerResolver != null ? ownerResolver : beans.securityContextManager.getUserProfileService();
         this.b = beans;
         this.task = task;
+    }
+
+    // temporary
+    private ProcessingTracer<SecurityTraceEvent> createTracer(SecurityEnforcer.Options options) {
+        return new LogBasedEnforcerTracer(options.logCollector());
     }
 
     Collection<Authorization> getAuthorizations() {

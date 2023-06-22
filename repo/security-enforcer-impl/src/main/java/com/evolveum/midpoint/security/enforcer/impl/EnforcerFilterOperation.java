@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Authorization
 
 import java.util.List;
 
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
-import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -49,7 +50,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
     @NotNull private final String[] operationUrls;
     @NotNull final Class<T> filterType;
-    @NotNull final AuthorizationPreProcessor preProcessor;
+    @NotNull final AuthorizationSelectorExtractor selectorExtractor;
     private final boolean includeSpecial;
     final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
@@ -60,7 +61,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     EnforcerFilterOperation(
             @NotNull String[] operationUrls,
             @NotNull Class<T> filterType,
-            @NotNull AuthorizationPreProcessor preProcessor,
+            @NotNull AuthorizationSelectorExtractor selectorExtractor,
             boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
@@ -69,13 +70,13 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             String desc,
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull ProcessingTracer<SecurityTraceEvent> tracer,
+            @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, tracer, beans, task);
+        super(principal, ownerResolver, options, beans, task);
         this.operationUrls = operationUrls;
         this.filterType = filterType;
-        this.preProcessor = preProcessor;
+        this.selectorExtractor = selectorExtractor;
         this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
         this.limitAuthorizationAction = limitAuthorizationAction;
@@ -152,8 +153,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         filterType,
                         origFilter,
                         authorization,
-                        preProcessor.getSelectors(authorization),
-                        preProcessor.getSelectorLabel(),
+                        selectorExtractor.getSelectors(authorization),
+                        selectorExtractor.getSelectorLabel(),
                         includeSpecial,
                         EnforcerFilterOperation.this,
                         result);
@@ -164,7 +165,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         || !autzEvaluation.isApplicableToLimitations(limitAuthorizationAction, operationUrls)
                         || !autzEvaluation.isApplicableToPhase(phaseSelector)
                         || !autzEvaluation.isApplicableToOrderConstraints(paramOrderConstraints)
-                        || !preProcessor.isApplicable(autzEvaluation)) {
+                        || !selectorExtractor.isAuthorizationApplicable(autzEvaluation)) {
                     autzEvaluation.traceEndNotApplicable();
                     continue;
                 }
@@ -283,16 +284,14 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
     /**
      * Extracts relevant parts of authorizations for an {@link EnforcerFilterOperation}.
-     *
-     * TODO better name
      */
-    static abstract class AuthorizationPreProcessor {
+    static abstract class AuthorizationSelectorExtractor {
 
-        static AuthorizationPreProcessor forObject() {
+        static AuthorizationSelectorExtractor forObject() {
             return new ForObject();
         }
 
-        static AuthorizationPreProcessor forTarget(@NotNull PrismObject<? extends ObjectType> object) {
+        static AuthorizationSelectorExtractor forTarget(@NotNull PrismObject<? extends ObjectType> object) {
             return new ForTarget(object);
         }
 
@@ -300,11 +299,15 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
         abstract String getSelectorLabel();
 
-        abstract boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
+        /**
+         * Returns `true` if the authorization is applicable in the current context. For example, when constructing
+         * target-related filter, we may look if the authorization does match the object = assignment holder.
+         */
+        abstract boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException;
 
-        static class ForObject extends AuthorizationPreProcessor {
+        static class ForObject extends AuthorizationSelectorExtractor {
 
             @Override
             List<ValueSelector> getSelectors(Authorization authorization) throws ConfigurationException {
@@ -317,7 +320,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
 
             @Override
-            boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation) {
+            boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation) {
                 return true;
             }
 
@@ -327,7 +330,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
         }
 
-        static class ForTarget extends AuthorizationPreProcessor {
+        static class ForTarget extends AuthorizationSelectorExtractor {
             @NotNull private final PrismObject<? extends ObjectType> object;
 
             ForTarget(@NotNull PrismObject<? extends ObjectType> object) {
@@ -345,7 +348,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
 
             @Override
-            boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
+            boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                     ConfigurationException, ObjectNotFoundException {
                 return autzEvaluation.isApplicableToObject(object);
