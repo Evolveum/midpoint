@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -21,13 +22,16 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
+import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
+
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -39,12 +43,15 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * Parsed form of {@link ObjectSelectorType} and its subtypes.
  *
  * It was created to allow easy manipulation and (eventually) better performance due to optimized data structures.
+ *
+ * Immutable.
  */
-public class ValueSelector implements DebugDumpable {
+public class ValueSelector implements DebugDumpable, Serializable {
 
     /** This one is a prominent one, so we'll pull it from among other {@link #clauses}. */
     @Nullable private final TypeClause typeClause;
 
+    /** Again, a prominent one. */
     @Nullable private final ParentClause parentClause;
 
     /**
@@ -105,8 +112,6 @@ public class ValueSelector implements DebugDumpable {
             typeClause = null;
         }
 
-        // Temporarily allowed, just to make tests pass
-        //configCheck(subtype == null, "Subtype specification is not allowed");
         String subtype = bean.getSubtype();
         if (subtype != null) {
             clauses.add(SubtypeClause.of(subtype));
@@ -148,14 +153,16 @@ public class ValueSelector implements DebugDumpable {
                             || orgRef != null
                             || orgRelation != null
                             || roleRelation != null
-                            || (bean instanceof OwnedObjectSelectorType && ((OwnedObjectSelectorType) bean).getTenant() != null)
+                            || (bean instanceof OwnedObjectSelectorType oBean && oBean.getTenant() != null)
                             || !archetypeRefList.isEmpty()) {
-                        throw new ConfigurationException(String.format( // TODO error location
-                                "Both filter/org/role/archetype/tenant and special clause specified in %s", bean));
+                        throw new ConfigurationException(String.format(
+                                "Both filter/org/role/archetype/tenant and special clause specified in %s",
+                                ConfigErrorReporter.describe(bean)));
                     }
 
                 } else {
-                    throw new ConfigurationException("Unsupported special clause: " + special);
+                    throw new ConfigurationException(
+                            "Unsupported special clause: " + special + " in " + ConfigErrorReporter.describe(sBean));
                 }
             }
         }
@@ -259,7 +266,8 @@ public class ValueSelector implements DebugDumpable {
         return bean;
     }
 
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    /** Returns `true` if the `value` matches this selector. */
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ctx.traceMatchingStart(this, value);
@@ -273,22 +281,29 @@ public class ValueSelector implements DebugDumpable {
         return true;
     }
 
-    public ObjectFilter computeFilter(@NotNull ClauseFilteringContext ctx)
+    /**
+     * Converts the clause into {@link ObjectFilter}. If not applicable, returns `none` filter.
+     */
+    public ObjectFilter computeFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (applyFilters(ctx)) {
+        if (toFilter(ctx)) {
             return ctx.getFilterCollector().getFilter();
         } else {
             return FilterCreationUtil.createNone();
         }
     }
 
-    public boolean applyFilters(@NotNull ClauseFilteringContext ctx)
+    /**
+     * Converts the selector into {@link ObjectFilter} (passed to {@link FilteringContext#filterCollector}).
+     * Returns `false` if the selector is not applicable to given situation.
+     */
+    public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
-            if (!ctx.isClauseApplicable(clause) || !clause.applyFilter(ctx)) {
+            if (!ctx.isClauseApplicable(clause) || !clause.toFilter(ctx)) {
                 ctx.traceFilterProcessingEnd(this, false);
                 return false;
             }

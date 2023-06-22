@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;

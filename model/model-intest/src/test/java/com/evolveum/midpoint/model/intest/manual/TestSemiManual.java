@@ -277,6 +277,11 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(USER_JACK_OID, task, result);
 
+        // after first clock move & reconcile, pending operations and other stuff was deleted,
+        // modifyTimestamp updated -> therefore shadow was not deleted (not exceeding deadRetention period)
+        clock.overrideDuration("PT130M");
+        reconcileUser(USER_JACK_OID, task, result);
+
         // THEN
         then();
         display("result", result);

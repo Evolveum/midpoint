@@ -103,11 +103,13 @@ public class AuthorizationHelper {
         var directMembership = ObjectTypeUtil.getOidsFromRefs(principal.getFocus().getRoleMembershipRef());
         var delegatedIdentitiesAndMembership = principal.getDelegatedMembershipFor(OtherPrivilegesLimitations.Type.CASES);
         for (ObjectReferenceType candidateRef : workItem.getCandidateRef()) {
-            var candidateOid = Objects.requireNonNull(candidateRef.getOid());
-            if (candidateOid.equals(identity)
-                    || directMembership.contains(candidateOid)
-                    || delegatedIdentitiesAndMembership.contains(candidateOid)) {
-                return true;
+            var candidateOid = candidateRef.getOid();
+            if (candidateOid != null) { // This is a hack to eliminate artificial empty values inserted by GUI, see MID-8900.
+                if (candidateOid.equals(identity)
+                        || directMembership.contains(candidateOid)
+                        || delegatedIdentitiesAndMembership.contains(candidateOid)) {
+                    return true;
+                }
             }
         }
         return false;

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -47,8 +48,9 @@ public class AutoAssignMappingCollector {
     @Autowired private PrismContext prismContext;
 
     <AH extends AssignmentHolderType>
-    void collectAutoassignMappings(LensContext<AH> context,
-            List<FocalMappingEvaluationRequest<?, ?>> mappings, OperationResult result) throws SchemaException {
+    void collectAutoassignMappings(
+            LensContext<AH> context, List<FocalMappingEvaluationRequest<?, ?>> mappings, OperationResult result)
+            throws SchemaException {
 
         if (!autoassignEnabled(context.getSystemConfiguration())) {
             return;
@@ -85,21 +87,24 @@ public class AutoAssignMappingCollector {
             }
             return true;
         };
-        cacheRepositoryService.searchObjectsIterative(AbstractRoleType.class, query, handler,
-                createReadOnlyCollection(), true, result);
+        cacheRepositoryService.searchObjectsIterative(
+                AbstractRoleType.class, query, handler, createReadOnlyCollection(), true, result);
     }
 
-    private <AH extends AssignmentHolderType> boolean isApplicableFor(ObjectSelectorType selector, LensFocusContext<AH> focusContext, OperationResult result) {
+    private <AH extends AssignmentHolderType> boolean isApplicableFor(
+            ObjectSelectorType selector, LensFocusContext<AH> focusContext, OperationResult result) {
         if (selector == null) {
             return true;
         }
         try {
-            return cacheRepositoryService.selectorMatches(
-                    selector, focusContext.getObjectAny(), null, LOGGER, "");
-        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ObjectNotFoundException | ConfigurationException e) {
-            LOGGER.error("Failed to evaluate selector constraints, selector {}, focusContext {}\nReason: {}", selector, focusContext, e.getMessage(), e);
-            result.recordFatalError("Failed to evaluate selector constrains, selector: " + selector + ", focusContext: " + focusContext + "\nReason: " + e.getMessage(), e);
-            throw new SystemException(e);
+            return SelectorMatcher.forSelector(selector)
+                    .withLogging(LOGGER)
+                    .matches(focusContext.getObjectAnyRequired());
+        } catch (CommonException e) {
+            String message = "Failed to evaluate selector constrains, selector: %s, focusContext: %s, reason: %s".formatted(
+                    selector, focusContext, e.getMessage());
+            result.recordException(message, e);
+            throw new SystemException(message, e);
         }
     }
 

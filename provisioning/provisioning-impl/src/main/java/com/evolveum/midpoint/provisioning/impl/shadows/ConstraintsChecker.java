@@ -194,6 +194,7 @@ public class ConstraintsChecker {
                 shadowsLocalBeans.shadowsFacade.searchObjects(
                         query,
                         GetOperationOptions.createNoFetchCollection(),
+                        provisioningContext.getOperationContext(),
                         provisioningContext.getTask(),
                         result);
         LOGGER.trace("Uniqueness check of {} resulted in {} results:\n{}\nquery:\n{}",

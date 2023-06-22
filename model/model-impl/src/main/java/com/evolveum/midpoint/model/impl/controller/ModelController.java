@@ -40,7 +40,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -1651,8 +1651,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         AuthorizationPhaseType phase =
                 GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
         ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType,
-                origFilter, null, null, task, result);
+                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType,
+                origFilter, null, null, SecurityEnforcer.Options.create(), task, result);
         return updateObjectQuery(origQuery, secFilter);
     }
 

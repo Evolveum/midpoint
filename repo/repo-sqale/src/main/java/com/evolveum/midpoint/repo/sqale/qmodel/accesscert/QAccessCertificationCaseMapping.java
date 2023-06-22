@@ -127,7 +127,7 @@ public class QAccessCertificationCaseMapping
 
         addContainerTableMapping(F_WORK_ITEM,
                 QAccessCertificationWorkItemMapping.init(repositoryContext),
-                joinOn((c, wi) -> c.ownerOid.eq(wi.ownerOid)));
+                joinOn((c, wi) -> c.ownerOid.eq(wi.ownerOid).and(c.cid.eq(wi.accessCertCaseCid))  ));
     }
 
     @Override

@@ -8,14 +8,12 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.*;
-import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.FILTER_TRACE_ENABLED;
-import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
 import java.util.List;
 
-import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,13 +23,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.FilterOperationFinished;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.FilterOperationStarted;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PartialFilterOperationFinished;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PartialFilterOperationStarted;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -47,10 +49,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
 class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
     @NotNull private final String[] operationUrls;
-    @NotNull private final Class<T> filterType;
-    @NotNull private final AuthorizationPreProcessor preProcessor;
+    @NotNull final Class<T> filterType;
+    @NotNull final AuthorizationSelectorExtractor selectorExtractor;
     private final boolean includeSpecial;
-    private final ObjectFilter origFilter;
+    final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
     private final List<OrderConstraintsType> paramOrderConstraints;
     @NotNull private final FilterGizmo<F> gizmo;
@@ -59,7 +61,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     EnforcerFilterOperation(
             @NotNull String[] operationUrls,
             @NotNull Class<T> filterType,
-            @NotNull AuthorizationPreProcessor preProcessor,
+            @NotNull AuthorizationSelectorExtractor selectorExtractor,
             boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
@@ -68,12 +70,13 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             String desc,
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
+            @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, beans, task);
+        super(principal, ownerResolver, options, beans, task);
         this.operationUrls = operationUrls;
         this.filterType = filterType;
-        this.preProcessor = preProcessor;
+        this.selectorExtractor = selectorExtractor;
         this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
         this.limitAuthorizationAction = limitAuthorizationAction;
@@ -102,8 +105,17 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         return securityFilter;
     }
 
-    /** TODO */
-    private class PartialOp {
+    public String getDesc() {
+        return desc;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    String debugDumpFilter(F filter, int indent) {
+        return gizmo.debugDumpFilter(filter, indent);
+    }
+
+    /** Computes security filter for given {@link PhaseSelector}. */
+    class PartialOp {
 
         private final @NotNull PhaseSelector phaseSelector;
 
@@ -130,19 +142,19 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 ConfigurationException, SecurityViolationException {
 
             queryItemsSpec.addRequiredItems(origFilter); // MID-3916
-            tracePartialOperationStart();
+            tracePartialOperationStarted();
 
             int i = 0;
             for (Authorization authorization : getAuthorizations()) {
 
                 AuthorizationFilterEvaluation<T> autzEvaluation;
                 autzEvaluation = new AuthorizationFilterEvaluation<>(
-                        String.valueOf(i++),
+                        i++,
                         filterType,
                         origFilter,
                         authorization,
-                        preProcessor.getSelectors(authorization),
-                        preProcessor.getSelectorLabel(),
+                        selectorExtractor.getSelectors(authorization),
+                        selectorExtractor.getSelectorLabel(),
                         includeSpecial,
                         EnforcerFilterOperation.this,
                         result);
@@ -153,12 +165,14 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         || !autzEvaluation.isApplicableToLimitations(limitAuthorizationAction, operationUrls)
                         || !autzEvaluation.isApplicableToPhase(phaseSelector)
                         || !autzEvaluation.isApplicableToOrderConstraints(paramOrderConstraints)
-                        || !preProcessor.isApplicable(autzEvaluation)) {
+                        || !selectorExtractor.isAuthorizationApplicable(autzEvaluation)) {
                     autzEvaluation.traceEndNotApplicable();
                     continue;
                 }
 
                 var applicable = autzEvaluation.computeFilter();
+
+                // the end of processing of given authorization was logged as part of the method call above
 
                 if (applicable) {
                     F autzSecurityFilter =
@@ -168,7 +182,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                     // The authorization is applicable to this situation. Now we can process the decision.
                     if (authorization.isAllow()) {
                         securityFilterAllow = gizmo.or(securityFilterAllow, autzSecurityFilter);
-                        traceIntermediary("after 'allow' authorization", securityFilterAllow);
                         if (!gizmo.isNone(autzSecurityFilter)) {
                             // TODO resolve for shifted authorizations!
                             queryItemsSpec.collectItems(authorization);
@@ -183,113 +196,102 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                             // This is "deny all". We cannot have anything stronger than that.
                             // There is no point in continuing the evaluation.
                             F secFilter = gizmo.createDenyAll();
-                            tracePartialOperationEnd(secFilter, "deny all");
+                            tracePartialOperationFinished(secFilter, "deny all");
                             return secFilter;
                         } else {
                             securityFilterDeny = gizmo.or(securityFilterDeny, autzSecurityFilter);
                         }
                     }
                 }
-                trace();
             }
-
-            traceDetails();
 
             List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfiedItems();
             if (!unsatisfiedItems.isEmpty()) {
                 F secFilter = gizmo.createDenyAll();
                 // TODO lazy string concatenation?
-                tracePartialOperationEnd(secFilter, "deny because items " + unsatisfiedItems + " are not allowed");
+                tracePartialOperationFinished(secFilter, "deny because items " + unsatisfiedItems + " are not allowed");
                 return secFilter;
             }
             securityFilterAllow = gizmo.simplify(securityFilterAllow);
             if (securityFilterAllow == null) {
                 // Nothing has been allowed. This means default deny.
                 F secFilter = gizmo.createDenyAll();
-                tracePartialOperationEnd(secFilter, "default deny");
+                tracePartialOperationFinished(secFilter, "nothing allowed => default is deny");
                 return secFilter;
             } else if (securityFilterDeny == null) {
                 // Nothing has been denied. We have "allow" filter only.
-                tracePartialOperationEnd(securityFilterAllow, "allow");
+                tracePartialOperationFinished(securityFilterAllow, "nothing denied, something allowed");
                 return securityFilterAllow;
             } else {
                 // Both "allow" and "deny" filters
                 F secFilter = gizmo.and(securityFilterAllow, gizmo.not(securityFilterDeny));
-                tracePartialOperationEnd(secFilter, "allow with deny clauses");
+                tracePartialOperationFinished(secFilter, "allow with deny clauses");
                 return secFilter;
             }
         }
 
-        void trace() {
-            traceIntermediary("total 'allow' after authorization", securityFilterAllow);
-            traceIntermediary("total 'deny' after authorization", securityFilterDeny);
-            tracePaths("after authorization", queryItemsSpec);
-        }
-
-        void traceDetails() {
-            traceIntermediary( "(total 'allow') after all authorizations", securityFilterAllow);
-            traceIntermediary( "(total 'deny') after all authorizations", securityFilterDeny);
-            tracePaths("after all authorizations", queryItemsSpec);
-        }
-
-        private void tracePartialOperationStart() {
-            if (traceEnabled) {
-                LOGGER.trace("{} Starting partial filter determination ({}) for phase={}, initial query items specification: {}",
-                        OP_START, desc, phaseSelector, queryItemsSpec.shortDumpLazily());
+        private void tracePartialOperationStarted() {
+            if (tracer.isEnabled()) {
+                tracer.trace(
+                        new PartialFilterOperationStarted<>(
+                                EnforcerFilterOperation.this,
+                                phaseSelector,
+                                queryItemsSpec.shortDump()));
             }
         }
 
-        private void tracePartialOperationEnd(F secFilter, String comment) {
-            if (traceEnabled) {
-                LOGGER.trace("{} Finished partial filter determination ({}) for phase={}: {}\n{}",
-                        OP_END, desc, phaseSelector, comment, gizmo.debugDumpFilter(secFilter, 1));
+        private void tracePartialOperationFinished(F secFilter, String comment) {
+            if (tracer.isEnabled()) {
+                tracer.trace(
+                        new PartialFilterOperationFinished<>(
+                                EnforcerFilterOperation.this,
+                                this,
+                                phaseSelector,
+                                secFilter,
+                                comment));
             }
         }
 
-        private void traceIntermediary(String message, F filter) {
-            if (FILTER_TRACE_ENABLED && traceEnabled) {
-                LOGGER.trace("{} filter {}:\n{}",
-                        OP, message, gizmo.debugDumpFilter(filter, 1));
-            }
+        /** For diagnostics purposes. */
+        @NotNull QueryAutzItemPaths getQueryItemsSpec() {
+            return queryItemsSpec;
         }
 
-        private void tracePaths(String message, QueryAutzItemPaths paths) {
-            if (FILTER_TRACE_ENABLED && traceEnabled) {
-                LOGGER.trace("{} paths {}: {}", OP, message, paths.shortDump());
-            }
+        /** For diagnostics purposes. */
+        F getSecurityFilterAllow() {
+            return securityFilterAllow;
+        }
+
+        /** For diagnostics purposes. */
+        F getSecurityFilterDeny() {
+            return securityFilterDeny;
         }
     }
 
     private void traceOperationStart() {
-        if (traceEnabled) {
-            // TODO desc?
-            LOGGER.trace(
-                    "{} computing security filter principal={}, searchResultType={}, searchType={}: orig filter {}",
-                    SEC_START, username, TracingUtil.getTypeName(filterType), preProcessor, origFilter);
+        if (tracer.isEnabled()) {
+            tracer.trace(
+                    new FilterOperationStarted(this));
         }
     }
 
     private void traceOperationEnd(F securityFilter) {
-        if (traceEnabled) {
-            // TODO desc?
-            LOGGER.trace("{} computed security filter principal={}, searchResultType={}: {}\n{}",
-                    SEC_END, username, TracingUtil.getTypeName(filterType),
-                    securityFilter, DebugUtil.debugDump(securityFilter, 1));
+        if (tracer.isEnabled()) {
+            tracer.trace(
+                    new FilterOperationFinished<>(this, securityFilter));
         }
     }
 
     /**
      * Extracts relevant parts of authorizations for an {@link EnforcerFilterOperation}.
-     *
-     * TODO better name
      */
-    static abstract class AuthorizationPreProcessor {
+    static abstract class AuthorizationSelectorExtractor {
 
-        static AuthorizationPreProcessor forObject() {
+        static AuthorizationSelectorExtractor forObject() {
             return new ForObject();
         }
 
-        static AuthorizationPreProcessor forTarget(@NotNull PrismObject<? extends ObjectType> object) {
+        static AuthorizationSelectorExtractor forTarget(@NotNull PrismObject<? extends ObjectType> object) {
             return new ForTarget(object);
         }
 
@@ -297,11 +299,15 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
         abstract String getSelectorLabel();
 
-        abstract boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
+        /**
+         * Returns `true` if the authorization is applicable in the current context. For example, when constructing
+         * target-related filter, we may look if the authorization does match the object = assignment holder.
+         */
+        abstract boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException;
 
-        static class ForObject extends AuthorizationPreProcessor {
+        static class ForObject extends AuthorizationSelectorExtractor {
 
             @Override
             List<ValueSelector> getSelectors(Authorization authorization) throws ConfigurationException {
@@ -314,7 +320,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
 
             @Override
-            boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation) {
+            boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation) {
                 return true;
             }
 
@@ -324,7 +330,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
         }
 
-        static class ForTarget extends AuthorizationPreProcessor {
+        static class ForTarget extends AuthorizationSelectorExtractor {
             @NotNull private final PrismObject<? extends ObjectType> object;
 
             ForTarget(@NotNull PrismObject<? extends ObjectType> object) {
@@ -342,7 +348,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
 
             @Override
-            boolean isApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
+            boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                     ConfigurationException, ObjectNotFoundException {
                 return autzEvaluation.isApplicableToObject(object);

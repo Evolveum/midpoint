@@ -9,13 +9,20 @@ package com.evolveum.midpoint.schema.selector.eval;
 
 import org.jetbrains.annotations.NotNull;
 
-/** TODO */
+/** Description of the processing context, mainly for tracing and error reporting. */
 public interface ClauseProcessingContextDescription {
 
+    /** Short identifier, mainly for trace records. */
     @NotNull String getId();
 
+    /** Human-readable explanation of the context. */
     @NotNull String getText();
 
+    /**
+     * Creates a description for embedded (child) processing context.
+     *
+     * It is assumed that its ID and text will be somehow derived from the original one plus a "delta", provided here.
+     */
     @NotNull ClauseProcessingContextDescription child(@NotNull String idDelta, @NotNull String textDelta);
 
     static ClauseProcessingContextDescription defaultOne() {

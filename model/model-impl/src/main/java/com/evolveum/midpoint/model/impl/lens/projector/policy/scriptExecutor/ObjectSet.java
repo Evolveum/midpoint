@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionObjectType;
 
 /**
- * a set of objects that are to be processed.
+ * A set of objects that are to be processed.
  * The set can be in the form of:
+ *
  * - full prism objects (for synchronous task execution)
  * - prism references (for asynchronous 'single run with generated input' task execution)
  * - object query (for asynchronous 'iterative scripting' task execution)
@@ -40,7 +43,7 @@ abstract class ObjectSet<IO extends PrismValue> {
 
     @NotNull final ActionContext actx;
     @NotNull final PolicyRuleScriptExecutor beans;
-    @Nullable final ScriptExecutionObjectType objectSpec;
+    @Nullable private final ScriptExecutionObjectType objectSpec;
     final OperationResult result;
     private boolean collected;
 
@@ -67,9 +70,10 @@ abstract class ObjectSet<IO extends PrismValue> {
                 addObject(focus);
             }
         } else {
-            if (objectSpec.getCurrentObject() != null) {
+            ObjectSelectorType selector = objectSpec.getCurrentObject();
+            if (selector != null) {
                 PrismObject<? extends ObjectType> focus = actx.focusContext.getObjectAny();
-                if (currentObjectMatches(focus, objectSpec.getCurrentObject())) {
+                if (focus != null && currentObjectMatches(focus, selector)) {
                     addObject(focus);
                 }
             }
@@ -111,12 +115,12 @@ abstract class ObjectSet<IO extends PrismValue> {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException;
 
-    private boolean currentObjectMatches(PrismObject<?> object, ObjectSelectorType selector) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
-        //noinspection unchecked,rawtypes
-        return actx.beans.repositoryService.selectorMatches(
-                selector, (PrismObject) object, null, LOGGER, "current object");
+    private boolean currentObjectMatches(@NotNull PrismObject<?> object, @NotNull ObjectSelectorType selector)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return SelectorMatcher.forSelector(selector)
+                .withLogging(LOGGER, "current object")
+                .matches(object);
     }
 
     void addObjects(Collection<PrismObject<? extends ObjectType>> objects) {

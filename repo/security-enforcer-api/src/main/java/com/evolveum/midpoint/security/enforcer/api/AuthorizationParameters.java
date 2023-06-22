@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -113,32 +114,31 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append("odo=");
-        if (odo == null) {
-            sb.append("null");
-        } else {
-            sb.append("(");
-            sb.append(odo.getOldObject()).append(",");
-            sb.append(odo.getObjectDelta()).append(",");
-            sb.append(odo.getNewObject());
-            sb.append(")");
-        }
-        sb.append(",");
-        shortDumpElement(sb, "target", target);
-        shortDumpElement(sb, "relation", relation);
+        // slower than plain StringBuilder but less magical and error-prone w.r.t comma handling
+        List<String> elements = new ArrayList<>();
+        elements.add(shortDumpOdo());
+        shortDumpElement(elements, "target", target);
+        shortDumpElement(elements, "relation", relation);
         if (orderConstraints != null) {
-            sb.append("orderConstraints=");
-            SchemaDebugUtil.shortDumpOrderConstraintsList(sb, orderConstraints);
-            sb.append(", ");
+            StringBuilder sb1 = new StringBuilder("orderConstraints=");
+            SchemaDebugUtil.shortDumpOrderConstraintsList(sb1, orderConstraints);
+            elements.add(sb1.toString());
         }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 2);
+        sb.append(
+                String.join(", ", elements));
+    }
+
+    private String shortDumpOdo() {
+        if (odo == null) {
+            return "no odo";
+        } else {
+            return "odo=(" + odo.getOldObject() + ", " + odo.getObjectDelta() + ", " + odo.getNewObject() + ")";
         }
     }
 
-    private void shortDumpElement(StringBuilder sb, String label, Object o) {
+    private void shortDumpElement(List<String> elements, String label, Object o) {
         if (o != null) {
-            sb.append(label).append("=").append(o).append(", ");
+            elements.add(label + "=" + o);
         }
     }
 

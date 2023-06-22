@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -298,10 +297,6 @@ public class TestSecurityGovernance extends AbstractEmptySecurityTest {
 
     @Test
     public void test200StandardReviewerLegacyRole() throws Exception {
-        if (isNativeRepository()) {
-            throw new SkipException("FIXME skipped because of MID-8894");
-        }
-
         given();
         doStandardSetup(USER_MANAGER1, ROLE_REVIEWER_STANDARD_LEGACY);
 
@@ -314,10 +309,6 @@ public class TestSecurityGovernance extends AbstractEmptySecurityTest {
 
     @Test
     public void test210StandardReviewerNewRole() throws Exception {
-        if (isNativeRepository()) {
-            throw new SkipException("FIXME skipped because of MID-8894");
-        }
-
         given();
         doStandardSetup(USER_MANAGER1, ROLE_REVIEWER_STANDARD_NEW);
 

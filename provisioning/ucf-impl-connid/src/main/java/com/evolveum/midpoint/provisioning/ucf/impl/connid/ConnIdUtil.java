@@ -169,7 +169,8 @@ public class ConnIdUtil {
             return newEx;
         } else if (connIdException instanceof IllegalArgumentException) {
             // Let's assume this must be a configuration problem
-            Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
+            Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(
+                    createMessageFromInnermostException("Configuration error", connIdException));
             connIdResult.recordFatalError("Configuration error: "+connIdException.getMessage(), newEx);
             return newEx;
         }
@@ -265,7 +266,8 @@ public class ConnIdUtil {
 
     private static Exception processConnectorException(ConnectorException connIdException, OperationResult connIdResult) {
         if (connIdException instanceof ConfigurationException) {
-            Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
+            Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(
+                    createMessageFromInnermostException("Configuration error", connIdException));
             connIdResult.recordFatalError("Configuration error: " + connIdException.getMessage(), newEx);
             return newEx;
 

@@ -9,17 +9,22 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/** TEMPORARY */
+/**
+ * Originally, this was used for evaluation of `subtype` on objects.
+ * This property is deprecated and will be eventually removed.
+ *
+ * However, there are still assignment subtypes that are alive and well, at least for now.
+ */
 public class SubtypeClause extends SelectorClause {
 
     @NotNull private final String subtype;
@@ -38,7 +43,7 @@ public class SubtypeClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx) {
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx) {
         Object realValue = value.getRealValueIfExists();
         List<String> actualSubtypes;
         if (realValue instanceof ObjectType) {
@@ -63,7 +68,7 @@ public class SubtypeClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) throws SchemaException {
+    public boolean toFilter(@NotNull FilteringContext ctx) throws SchemaException {
         throw new UnsupportedOperationException("Filtering on subtypes is not supported");
     }
 

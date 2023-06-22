@@ -16,6 +16,8 @@ import com.evolveum.midpoint.provisioning.impl.MockLiveSyncTaskHandler;
 
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -42,11 +44,6 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -167,6 +164,10 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         // TODO why is the value lowercased? Is it because it was taken from the change and not fetched from the resource?
         assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME.toLowerCase(), currentShadow.asObjectable().getName().getOrig());
+
+        ShadowType shadow = currentShadow.asObjectable();
+        MetadataType metadata = shadow.getMetadata();
+        assertTrue("Shadow doesn't have metadata", metadata != null && metadata.getCreateTimestamp() != null);
 
         tokenStorage.assertToken(1);
     }

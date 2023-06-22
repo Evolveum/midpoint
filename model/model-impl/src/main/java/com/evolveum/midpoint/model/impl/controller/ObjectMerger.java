@@ -666,7 +666,7 @@ public class ObjectMerger {
             }
             return cleanContainerIds(valuesToTake);
         } else {
-            throw new ConfigurationException("Unknown strategy "+strategy);
+            throw new ConfigurationException("Unknown strategy " + strategy);
         }
     }
 

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
 
 import java.io.File;
@@ -17,14 +16,14 @@ import java.io.IOException;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Creates empty but functional environment for model integration tests - but without all the configured objects
@@ -119,5 +118,18 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     protected void loginAdministrator() throws SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         login(userAdministrator);
+    }
+
+    protected void setRecordResourceStageEnabled(boolean enable, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+
+        ItemPath path = ItemPath.create(
+                SystemConfigurationType.F_AUDIT,
+                SystemConfigurationAuditType.F_EVENT_RECORDING,
+                SystemConfigurationAuditEventRecordingType.F_RECORD_RESOURCE_STAGE_CHANGES);
+
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                path, task, result, enable);
     }
 }

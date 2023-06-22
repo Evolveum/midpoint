@@ -34,7 +34,7 @@ public class ItemSecurityConstraintsImpl implements ItemSecurityConstraints {
     }
 
     void collectItems(Authorization autz) {
-        if (autz.getDecision() == AuthorizationDecisionType.ALLOW) {
+        if (autz.isAllow()) {
             allowedItems.collectItems(autz);
         } else {
             deniedItems.collectItems(autz);

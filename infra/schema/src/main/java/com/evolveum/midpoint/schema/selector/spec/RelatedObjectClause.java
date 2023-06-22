@@ -11,8 +11,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.SelectorProcessingContext;
 import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -43,7 +44,7 @@ public class RelatedObjectClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var object = asObjectTypeIfPossible(value);
@@ -56,14 +57,15 @@ public class RelatedObjectClause extends SelectorClause {
             traceNotApplicable(ctx, "has no related object");
             return false;
         }
-        boolean matches = selector.matches(
-                relatedObject.getValue(),
-                ctx.next(DelegatorSelection.NO_DELEGATOR, "rel", "related object"));
+        boolean matches =
+                selector.matches(
+                        relatedObject.getValue(),
+                        ctx.child(DelegatorSelection.NO_DELEGATOR, "rel", "related object"));
         traceApplicability(ctx, matches, "related object (%s) matches: %s", relatedObject, matches);
         return matches;
     }
 
-    private PrismObject<? extends ObjectType> getRelatedObject(ObjectType object, @NotNull ClauseMatchingContext ctx) {
+    private PrismObject<? extends ObjectType> getRelatedObject(ObjectType object, @NotNull SelectorProcessingContext ctx) {
         if (object instanceof CaseType) {
             return ctx.resolveReference(((CaseType) object).getObjectRef(), object, "related object");
         } else if (object instanceof TaskType) {
@@ -74,7 +76,7 @@ public class RelatedObjectClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         Class<?> objectType = ctx.getRestrictedType();
         if (CaseType.class.isAssignableFrom(objectType)
                 || TaskType.class.isAssignableFrom(objectType)) {
@@ -87,7 +89,7 @@ public class RelatedObjectClause extends SelectorClause {
         }
     }
 
-    private ObjectFilter createFilter(Class<? extends ObjectType> objectType, @NotNull ClauseFilteringContext ctx) {
+    private ObjectFilter createFilter(Class<? extends ObjectType> objectType, @NotNull FilteringContext ctx) {
         // we assume CaseType.F_OBJECT_REF == TaskType.F_OBJECT_REF here
         return PrismContext.get().queryFor(objectType)
                 .item(CaseType.F_OBJECT_REF)

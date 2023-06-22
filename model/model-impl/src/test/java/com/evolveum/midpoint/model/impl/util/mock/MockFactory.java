@@ -43,6 +43,7 @@ public class MockFactory {
                     @NotNull Class<T> type,
                     @NotNull String oid,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 throw new UnsupportedOperationException();
@@ -53,6 +54,7 @@ public class MockFactory {
                     @NotNull PrismObject<T> object,
                     @Nullable OperationProvisioningScriptsType scripts,
                     @Nullable ProvisioningOperationOptions options,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -64,6 +66,7 @@ public class MockFactory {
                     LiveSyncOptions options,
                     @NotNull LiveSyncTokenStorage tokenStorage,
                     @NotNull LiveSyncEventHandler handler,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return new SynchronizationResult();
@@ -83,6 +86,7 @@ public class MockFactory {
                     @NotNull Class<T> type,
                     @Nullable ObjectQuery query,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return new SearchResultList<>(new ArrayList<>(0));
@@ -93,6 +97,7 @@ public class MockFactory {
                     @NotNull Class<T> type,
                     @Nullable ObjectQuery query,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -104,6 +109,7 @@ public class MockFactory {
                     @Nullable ObjectQuery query,
                     @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
                     @NotNull ResultHandler<T> handler,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -116,6 +122,7 @@ public class MockFactory {
                     @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
                     @Nullable OperationProvisioningScriptsType scripts,
                     @Nullable ProvisioningOperationOptions options,
+                    @NotNull ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;
@@ -127,6 +134,7 @@ public class MockFactory {
                     String oid,
                     ProvisioningOperationOptions option,
                     OperationProvisioningScriptsType scripts,
+                    @NotNull ProvisioningOperationContext context,
                     Task task,
                     OperationResult parentResult) {
                 return null;
@@ -184,6 +192,7 @@ public class MockFactory {
             public void refreshShadow(
                     PrismObject<ShadowType> shadow,
                     ProvisioningOperationOptions options,
+                    ProvisioningOperationContext context,
                     Task task,
                     OperationResult parentResult) {
             }
@@ -234,6 +243,7 @@ public class MockFactory {
                     String shadowOid,
                     ConstraintViolationConfirmer constraintViolationConfirmer,
                     ConstraintsCheckingStrategyType strategy,
+                    ProvisioningOperationContext context,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return null;

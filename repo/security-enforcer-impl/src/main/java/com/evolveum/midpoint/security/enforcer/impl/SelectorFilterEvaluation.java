@@ -7,27 +7,20 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import java.util.Collection;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
 import com.evolveum.midpoint.schema.selector.eval.FilterCollector;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.selector.spec.SelfClause;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 class SelectorFilterEvaluation<T>
         extends SelectorEvaluation {
-
-    /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
-    private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
     /** The object/value type we are searching for. */
     @NotNull private final Class<T> searchType;
@@ -47,7 +40,7 @@ class SelectorFilterEvaluation<T>
             @NotNull String desc,
             String selectorLabel,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
-            @NotNull OperationResult result) throws SchemaException, ConfigurationException {
+            @NotNull OperationResult result) {
         super(id, specification.getSelector(), null, desc, authorizationEvaluation, result);
         this.searchType = filterType;
         this.originalFilter = originalFilter;
@@ -59,7 +52,7 @@ class SelectorFilterEvaluation<T>
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        ClauseFilteringContext ctx = new ClauseFilteringContext(
+        FilteringContext ctx = new FilteringContext(
                 searchType,
                 selector.getTypeClass(searchType),
                 originalFilter,
@@ -74,15 +67,15 @@ class SelectorFilterEvaluation<T>
                 },
                 filterCollector,
                 createFilterEvaluator(),
-                new LoggingTracer(),
+                new LogBasedSelectorTracer(),
                 b.repositoryService,
                 this,
                 getOwnerResolver(),
-                this,
-                ClauseProcessingContextDescription.defaultOne(),
+                this::resolveReference,
+                ClauseProcessingContextDescription.defaultOne(id, desc),
                 DelegatorSelection.NO_DELEGATOR);
 
-        return selector.applyFilters(ctx);
+        return selector.toFilter(ctx);
     }
 
     ObjectFilter getSecurityFilter() {

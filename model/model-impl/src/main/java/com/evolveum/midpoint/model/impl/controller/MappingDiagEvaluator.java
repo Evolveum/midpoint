@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.controller;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 
 import org.jetbrains.annotations.NotNull;

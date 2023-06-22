@@ -10,33 +10,28 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
-import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
+import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection;
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Represents a {@link SecurityEnforcer} operation: access determination or filter building.
  */
 class EnforcerOperation {
-
-    /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
-    static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
     /** Principal to be used: either current or externally-provided one. */
     @Nullable final MidPointPrincipal principal;
@@ -47,8 +42,7 @@ class EnforcerOperation {
     /** {@link OwnerResolver} to be used during this operation. */
     @Nullable final OwnerResolver ownerResolver;
 
-    /** Is tracing enabled for this operation? Present here to avoid repeated determination that takes some CPU cycles. */
-    final boolean traceEnabled;
+    @NotNull final ProcessingTracer<SecurityTraceEvent> tracer;
 
     /** Useful Spring beans. */
     @NotNull final Beans b;
@@ -58,14 +52,20 @@ class EnforcerOperation {
     EnforcerOperation(
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
+            @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
         this.principal = principal;
         this.username = principal != null ? principal.getUsername() : null;
+        this.tracer = createTracer(options);
         this.ownerResolver = ownerResolver != null ? ownerResolver : beans.securityContextManager.getUserProfileService();
-        this.traceEnabled = LOGGER.isTraceEnabled();
         this.b = beans;
         this.task = task;
+    }
+
+    // temporary
+    private ProcessingTracer<SecurityTraceEvent> createTracer(SecurityEnforcer.Options options) {
+        return new LogBasedEnforcerTracer(options.logCollector());
     }
 
     Collection<Authorization> getAuthorizations() {

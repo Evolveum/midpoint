@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
 import jakarta.annotation.PostConstruct;
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.common.util.AuditHelper;
+import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
@@ -145,4 +146,5 @@ public class ModelBeans {
     @Autowired public SimulationResultManagerImpl simulationResultManager;
     @Autowired public MarkManager markManager;
     @Autowired public AuthorizationMigrator authorizationMigrator;
+    @Autowired public DataAccessProcessor dataAccessProcessor; // temporary
 }

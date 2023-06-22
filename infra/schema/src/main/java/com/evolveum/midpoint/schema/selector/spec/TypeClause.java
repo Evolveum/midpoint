@@ -10,8 +10,8 @@ package com.evolveum.midpoint.schema.selector.spec;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.TypeDefinition;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -71,7 +71,7 @@ public class TypeClause extends SelectorClause {
         return "type";
     }
 
-    private TypeDefinition getTypeDefinition() {
+    private synchronized TypeDefinition getTypeDefinition() {
         if (typeDefinition == null) {
             typeDefinition = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(typeName);
         }
@@ -85,10 +85,10 @@ public class TypeClause extends SelectorClause {
     @Override
     public boolean matches(
             @NotNull PrismValue value,
-            @NotNull ClauseMatchingContext ctx) {
+            @NotNull MatchingContext ctx) {
         if (!value.isOfType(typeName)) {
             if (ctx.tracer.isEnabled()) {
-                traceNotApplicable(ctx, "type mismatch, expected {}, was {}",
+                traceNotApplicable(ctx, "type mismatch, expected %s, was %s",
                         PrettyPrinter.prettyPrint(typeName),
                         PrettyPrinter.prettyPrint(value.getTypeName()));
             }
@@ -99,7 +99,7 @@ public class TypeClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) throws ConfigurationException {
+    public boolean toFilter(@NotNull FilteringContext ctx) throws ConfigurationException {
         var filterType = ctx.getFilterType();
         var restrictedType = ctx.getRestrictedType();
         if (restrictedType.equals(filterType)) {

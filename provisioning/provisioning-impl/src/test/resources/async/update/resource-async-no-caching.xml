@@ -95,4 +95,7 @@
             </cap:read>
         </configured>
     </capabilities>
+    <consistency>
+        <deadShadowRetentionPeriod>P0D</deadShadowRetentionPeriod>
+    </consistency>
 </resource>

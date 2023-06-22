@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.api;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.selector.eval.*;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
@@ -24,6 +25,7 @@ import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationCont
  *
  * (Currently, it is only a thin layer between repository service and the matching functionality in {@link ValueSelector}.)
  */
+@Deprecated // should be deleted after the method from repository API disappears
 class ObjectSelectorMatcher {
 
     static boolean selectorMatches(
@@ -46,13 +48,11 @@ class ObjectSelectorMatcher {
             return false;
         }
 
-        var tracer = new MatchingTracer.LoggerBased(logger, logMessagePrefix);
-        var selector = ValueSelector.parse(selectorBean);
-        return selector.matches(
+        return ValueSelector.parse(selectorBean).matches(
                 value,
-                new ClauseMatchingContext(
+                new MatchingContext(
                         filterEvaluator,
-                        tracer,
+                        ProcessingTracer.loggerBased(logger, logMessagePrefix),
                         repositoryService,
                         null,
                         null,

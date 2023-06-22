@@ -96,15 +96,17 @@ body.custom-hold-transition {
   }
 
   & > a.custom-logo {
+    height: 3.5rem;
+    max-height: 3.5rem;
 
     & > img {
-		vertical-align: middle;
-		max-height: 1.5rem;
-        object-fit: contain;
-        max-width: 100%;
-        width: 100%;
-        height: 100%;
-	}
+      vertical-align: middle;
+      max-height: 3.5rem;
+      object-fit: contain;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   & > .sidebar > nav > ul.nav-sidebar > li.nav-item > a.active {

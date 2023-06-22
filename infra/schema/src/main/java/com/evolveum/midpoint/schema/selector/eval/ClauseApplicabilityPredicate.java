@@ -11,7 +11,8 @@ import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 
 import org.jetbrains.annotations.NotNull;
 
+/** Externally-imposed exception from application of some clauses. */
 public interface ClauseApplicabilityPredicate {
 
-    boolean test(@NotNull SelectorClause clause, @NotNull ClauseMatchingContext ctx);
+    boolean test(@NotNull SelectorClause clause, @NotNull SelectorProcessingContext ctx);
 }

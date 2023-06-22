@@ -12,8 +12,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPos
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -44,7 +44,7 @@ public class OwnerClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
@@ -64,13 +64,13 @@ public class OwnerClause extends SelectorClause {
             return false;
         }
         boolean matches =
-                selector.matches(owner.getValue(), ctx.next("o", "owner"));
+                selector.matches(owner.getValue(), ctx.child("o", "owner"));
         traceApplicability(ctx, matches, "owner (%s) matches: %s", owner, matches);
         return matches;
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         // TODO: MID-3899
         // TODO what if owner is specified not as "self" ?
         if (TaskType.class.isAssignableFrom(ctx.getRestrictedType())) {

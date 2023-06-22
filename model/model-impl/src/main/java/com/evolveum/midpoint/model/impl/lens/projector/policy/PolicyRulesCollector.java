@@ -25,8 +25,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -60,7 +60,6 @@ class PolicyRulesCollector<O extends ObjectType> {
 
     @NotNull private final LensContext<O> context;
     @NotNull private final Task task;
-    @NotNull private final RepositoryService repositoryService = ModelBeans.get().cacheRepositoryService;
 
     private List<GlobalRuleWithId> rulesWithIds;
 
@@ -102,16 +101,16 @@ class PolicyRulesCollector<O extends ObjectType> {
         List<GlobalRuleWithId> ruleMatchingFocus = getGlobalRulesMatchingFocus(focus);
         int globalRulesFound = 0;
         for (GlobalRuleWithId ruleWithId : ruleMatchingFocus) {
-            GlobalPolicyRuleType ruleBean = ruleWithId.getRuleBean();
+            GlobalPolicyRuleType ruleBean = ruleWithId.ruleBean();
             if (isRuleConditionTrue(ruleBean, focus, null, result)) {
-                LOGGER.trace("Collecting global policy rule '{}' ({})", ruleBean.getName(), ruleWithId.getRuleId());
+                LOGGER.trace("Collecting global policy rule '{}' ({})", ruleBean.getName(), ruleWithId.ruleId());
                 rules.add(
                         new EvaluatedPolicyRuleImpl(
-                                ruleBean.clone(), ruleWithId.getRuleId(), null, TargetType.OBJECT));
+                                ruleBean.clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
                 LOGGER.trace("Skipping global policy rule {} ({}) because the condition evaluated to false: {}",
-                        ruleBean.getName(), ruleWithId.getRuleId(), ruleBean);
+                        ruleBean.getName(), ruleWithId.ruleId(), ruleBean);
             }
         }
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
@@ -127,8 +126,16 @@ class PolicyRulesCollector<O extends ObjectType> {
         List<GlobalRuleWithId> focusMatching = getGlobalRulesMatchingFocus(focus);
         int globalRulesInstantiated = 0;
         for (GlobalRuleWithId ruleWithId : focusMatching) {
-            GlobalPolicyRuleType ruleBean = ruleWithId.getRuleBean();
+            GlobalPolicyRuleType ruleBean = ruleWithId.ruleBean();
+            var targetSelector = ruleBean.getTargetSelector();
             String ruleName = ruleBean.getName();
+            if (targetSelector == null) {
+                LOGGER.trace("Skipping rule '{}' because it has no target selector", ruleName);
+                continue;
+            }
+            SelectorMatcher selectorMatcher =
+                    SelectorMatcher.forSelector(targetSelector)
+                            .withLogging(LOGGER, "Global policy rule " + ruleName + " target selector: ");
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
                 for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
                     boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
@@ -142,9 +149,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                         // 2. attached to an indirectly assigned role but of the matching order (because of exclusion violation).
                         continue;
                     }
-                    if (!repositoryService.selectorMatches(
-                            ruleBean.getTargetSelector(), target.getTarget(), null, LOGGER,
-                            "Global policy rule "+ruleName+" target selector: ")) {
+                    if (!selectorMatcher.matches(target.getTarget())) {
                         LOGGER.trace("Skipping global policy rule {} because target selector did not match: {}",
                                 ruleName, ruleWithId);
                         continue;
@@ -159,7 +164,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                     evaluatedAssignment.addTargetPolicyRule(
                             new EvaluatedPolicyRuleImpl(
                                     ruleBean.clone(),
-                                    ruleWithId.getRuleId(),
+                                    ruleWithId.ruleId(),
                                     target.getAssignmentPath().clone(),
                                     evaluatedAssignment,
                                     appliesDirectlyToTarget ? DIRECT_ASSIGNMENT_TARGET : INDIRECT_ASSIGNMENT_TARGET));
@@ -178,15 +183,13 @@ class PolicyRulesCollector<O extends ObjectType> {
         List<GlobalRuleWithId> matching = new ArrayList<>();
         LOGGER.trace("Checking {} global policy rules for use with the object or assignments", rulesWithIds.size());
         for (GlobalRuleWithId ruleWithId: rulesWithIds) {
-            GlobalPolicyRuleType ruleBean = ruleWithId.getRuleBean();
+            GlobalPolicyRuleType ruleBean = ruleWithId.ruleBean();
             ObjectSelectorType focusSelector = ruleBean.getFocusSelector();
-            if (focusSelector == null
-                    || repositoryService.selectorMatches(
-                    focusSelector,
-                    focus,
-                    null,
-                    LOGGER,
-                    "Global policy rule " + ruleBean.getName() + ": ")) {
+            if (focusSelector == null ||
+                    focus != null &&
+                            SelectorMatcher.forSelector(focusSelector)
+                                    .withLogging(LOGGER, "Global policy rule " + ruleBean.getName() + ": ")
+                                    .matches(focus)) {
                 matching.add(ruleWithId);
             }
         }
@@ -238,7 +241,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                 .collect(Collectors.toList());
         checkInitialized();
         Collection<GlobalPolicyRuleType> allGlobalRules = rulesWithIds.stream()
-                .map(GlobalRuleWithId::getRuleBean)
+                .map(GlobalRuleWithId::ruleBean)
                 .collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveConstraintReferences(rules, allGlobalRules);
     }

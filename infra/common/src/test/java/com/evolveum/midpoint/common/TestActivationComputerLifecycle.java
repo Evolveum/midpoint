@@ -88,6 +88,16 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
     }
 
     @Override
+    protected void testComputeSuspended(
+            XMLGregorianCalendar now, ActivationStatusType administrativeStatus,
+            XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
+            ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity)
+            throws SchemaException, IOException {
+        testCompute(SchemaConstants.LIFECYCLE_SUSPENDED, now, administrativeStatus,
+                validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
+    }
+
+    @Override
     protected void testComputeCharmed(
             XMLGregorianCalendar now, ActivationStatusType administrativeStatus,
             XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
