@@ -306,6 +306,9 @@ public interface SecurityEnforcer {
 
     /** TEMPORARY */
     interface LogCollector {
+
         void log(String message);
+
+        boolean isSelectorTracingEnabled();
     }
 }
