@@ -4,18 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.panels.details;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work;
 
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.jaccSortMiningSet;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.getMiningObject;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.getRoleObject;
-import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.CustomImageResource;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -27,12 +18,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.CustomImageResource;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
@@ -41,17 +31,19 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_IMAGE = "image";
 
-    List<String> similarGroupOid;
+    List<PrismObject<MiningType>> jaccSortMiningSet;
     String targetValue;
 
     String identifier;
+    List<String> sortedRolePrismObjectList;
 
     public ImageDetailsPanel(String id, IModel<String> messageModel,
-            List<String> similarGroupOid, String targetValue, String identifier) {
+            List<PrismObject<MiningType>> jaccSortMiningSet, List<String> sortedRolePrismObjectList, String targetValue, String identifier) {
         super(id, messageModel);
-        this.similarGroupOid = similarGroupOid;
+        this.jaccSortMiningSet = jaccSortMiningSet;
         this.targetValue = targetValue;
         this.identifier = identifier;
+        this.sortedRolePrismObjectList = sortedRolePrismObjectList;
     }
 
     @Override
@@ -62,47 +54,10 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private void initLayout() {
 
-        String string = DOT_CLASS + "getMiningTypeObject";
-        OperationResult result = new OperationResult(string);
-        List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
-        Set<String> rolesOid = new HashSet<>();
-        for (String groupOid : similarGroupOid) {
-            PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
-
-            miningTypeList.add(miningObject);
-            rolesOid.addAll(miningObject.asObjectable().getRoles());
-        }
-        if (targetValue != null) {
-            PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), targetValue, result);
-            miningTypeList.add(miningObject);
-            rolesOid.addAll(miningObject.asObjectable().getRoles());
-        }
-
-        List<PrismObject<RoleType>> rolePrismObjectList = new ArrayList<>();
-        for (String oid : rolesOid) {
-            PrismObject<RoleType> roleObject = getRoleObject(getPageBase(), oid, result);
-            if (roleObject != null) {
-                rolePrismObjectList.add(roleObject);
-            }
-        }
         CustomImageResource imageResource;
-        if (identifier != null && identifier.equals("outliers")) {
-            imageResource = new CustomImageResource(rolePrismObjectList, miningTypeList);
-        } else {
-            List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(miningTypeList);
 
-            Map<PrismObject<RoleType>, Long> roleCountMap = rolePrismObjectList.stream()
-                    .collect(Collectors.toMap(Function.identity(),
-                            role -> jaccSortMiningSet.stream()
-                                    .filter(miningType -> miningType.asObjectable().getRoles().contains(role.getOid()))
-                                    .count()));
+        imageResource = new CustomImageResource(sortedRolePrismObjectList, jaccSortMiningSet);
 
-            List<PrismObject<RoleType>> sortedRolePrismObjectList = roleCountMap.entrySet().stream()
-                    .sorted(Map.Entry.<PrismObject<RoleType>, Long>comparingByValue().reversed())
-                    .map(Map.Entry::getKey)
-                    .toList();
-            imageResource = new CustomImageResource(sortedRolePrismObjectList, jaccSortMiningSet);
-        }
         Image image = new Image(ID_IMAGE, imageResource);
 
         image.add(new AbstractDefaultAjaxBehavior() {

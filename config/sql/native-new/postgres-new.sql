@@ -50,6 +50,7 @@ CREATE TYPE ContainerType AS ENUM (
 
 ALTER TYPE ObjectType ADD VALUE 'MINING';
 ALTER TYPE ObjectType ADD VALUE 'CLUSTER';
+ALTER TYPE ObjectType ADD VALUE 'PARENT_CLUSTER';
 -- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
@@ -79,6 +80,7 @@ CREATE TYPE ObjectType AS ENUM (
     'ROLE',
     'MINING',
     'CLUSTER',
+    'PARENT_CLUSTER',
     'SECURITY_POLICY',
     'SEQUENCE',
     'SERVICE',
@@ -1182,7 +1184,6 @@ CREATE TRIGGER m_mining_table_oid_delete_tr AFTER DELETE ON m_mining_table
 
 CREATE INDEX m_mining_table_identifier_idx ON m_mining_table (identifier);
 CREATE INDEX m_mining_table_riskLevel_idx ON m_mining_table (riskLevel);
-CREATE INDEX m_mining_table_roles_idx ON m_mining_table (roles);
 CREATE INDEX m_mining_table_rolesCount_idx ON m_mining_table (rolesCount);
 CREATE INDEX m_mining_table_membersCount_idx ON m_mining_table (membersCount);
 CREATE INDEX m_mining_table_similarGroupsCount_idx ON m_mining_table (similarGroupsCount);
@@ -1192,6 +1193,7 @@ CREATE TABLE m_cluster_table (
     objectType ObjectType GENERATED ALWAYS AS ('CLUSTER') STORED
         CHECK (objectType = 'CLUSTER'),
         identifier TEXT,
+        parentRef TEXT,
         riskLevel TEXT,
         roles TEXT[],
         rolesCount INTEGER,
@@ -1213,12 +1215,39 @@ CREATE TRIGGER m_cluster_table_update_tr BEFORE UPDATE ON m_cluster_table
 CREATE TRIGGER m_cluster_table_oid_delete_tr AFTER DELETE ON m_cluster_table
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
+CREATE INDEX m_cluster_table_roles_idx ON m_cluster_table USING gin (roles);
+CREATE INDEX m_cluster_table_similarGroups_idx ON m_cluster_table USING gin (similarGroups);
 CREATE INDEX m_cluster_table_identifier_idx ON m_cluster_table (identifier);
 CREATE INDEX m_cluster_table_riskLevel_idx ON m_cluster_table (riskLevel);
 CREATE INDEX m_cluster_table_rolesCount_idx ON m_cluster_table (rolesCount);
 CREATE INDEX m_cluster_table_membersCount_idx ON m_cluster_table (membersCount);
 CREATE INDEX m_cluster_table_similarGroupsCount_idx ON m_cluster_table (similarGroupsCount);
 
+
+CREATE TABLE m_parent_cluster_table (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('PARENT_CLUSTER') STORED
+        CHECK (objectType = 'PARENT_CLUSTER'),
+        identifier TEXT,
+        riskLevel TEXT,
+        clustersRef TEXT[],
+        consist INTEGER,
+        density TEXT
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_parent_cluster_table_oid_insert_tr BEFORE INSERT ON m_parent_cluster_table
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_parent_cluster_table_update_tr BEFORE UPDATE ON m_parent_cluster_table
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_parent_cluster_table_oid_delete_tr AFTER DELETE ON m_parent_cluster_table
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_parent_cluster_table_clustersRef_idx ON m_parent_cluster_table USING gin (clustersRef);
+CREATE INDEX m_parent_cluster_table_identifier_idx ON m_parent_cluster_table (identifier);
+CREATE INDEX m_parent_cluster_table_riskLevel_idx ON m_parent_cluster_table (riskLevel);
+CREATE INDEX m_parent_cluster_table_consist_idx ON m_parent_cluster_table (consist);
+CREATE INDEX m_parent_cluster_table_density_idx ON m_parent_cluster_table (density);
 
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/

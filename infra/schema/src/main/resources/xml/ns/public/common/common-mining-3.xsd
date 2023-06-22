@@ -186,6 +186,18 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="parentRef" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parent cluster identifier.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.parentRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+
                     <xsd:element name="roles" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -345,4 +357,101 @@
     </xsd:complexType>
 
     <xsd:element name="clusterType" type="tns:ClusterType" substitutionGroup="tns:object"/>
+
+
+    <xsd:complexType name="ParentClusterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role mining object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AssignmentHolderType">
+                <xsd:sequence>
+
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object processed. Usually known, even for objects that are to be created.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ParentClusterType.oid</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="clustersRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Clusters ref.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="identifier" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Identifier.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ParentClusterType.identifier</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Indication of the level of risk associated with the permissions that this role assigns.
+                                    This may be a numeric value, textual label are any other suitable machine-processable indication.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ParentClusterType.riskLevel</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="consist" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Indication role count in the group.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ParentClusterType.roleCount</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="density" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Context of clustering refers to the measure of how tightly packed or concentrated the
+                                    data points are within a cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ParentClusterType.density</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+
+    </xsd:complexType>
+
+    <xsd:element name="parentClusterType" type="tns:ParentClusterType" substitutionGroup="tns:object"/>
 </xsd:schema>

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.test.cluster;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
@@ -26,6 +26,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         int intersectionCount = 0;
         Set<Double> setA = new HashSet<>();
         int setBunique = 0;
+
 
         for (double num : a) {
             setA.add(num);

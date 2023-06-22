@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="border-top my-3 row justify-content-center"></div>
+    <div>
+        <form
+                wicket:id="thresholds_form">
+
+            <div class="row col gap-2" style="width:1600px">
+                <div
+                        wicket:id="threshold_frequency"></div>
+
+                <div
+                        wicket:id="threshold_frequency_max"></div>
+
+                <div
+                        wicket:id="threshold_frequency_2"></div>
+
+                <input class="btn btn-default" type="submit" value="Update"
+                        wicket:id="ajax_submit_link_mn"/>
+
+                <div class="col d-flex justify-content-end">
+                    <div class="btn btn-default"
+                            wicket:id="process_selections_id"></div>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+
+    <!--    <p>-->
+    <!--        <button wicket:id="collapse_id_1" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#myTable"-->
+    <!--                aria-controls="myTable">-->
+    <!--        </button>-->
+    <!--    </p>-->
+
+
+    <!--    class="collapse"-->
+    <div id="myTable" style="width:1600px; height:1000px;"
+            wicket:id="datatable_extra"></div>
+
+    <div style="width:1600px;"
+            wicket:id="table_intersection"></div>
+</wicket:panel>
+</html>

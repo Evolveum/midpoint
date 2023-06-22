@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -18,12 +18,16 @@ public class IntersectionObject implements Serializable {
 
     Set<String> rolesId;
     String type;
+    int members;
+    Integer totalMembers;
     double metric;
 
-    public IntersectionObject(Set<String> rolesId, double metric, String type) {
+    public IntersectionObject(Set<String> rolesId, double metric, String type, int members, Integer totalMembers) {
         this.rolesId = rolesId;
         this.metric = metric;
         this.type = type;
+        this.members = members;
+        this.totalMembers = totalMembers;
     }
 
     public Set<String> getRolesId() {
@@ -36,6 +40,14 @@ public class IntersectionObject implements Serializable {
 
     public String getType() {
         return type;
+    }
+
+    public int getMembers() {
+        return members;
+    }
+
+    public Integer getTotalMembers() {
+        return totalMembers;
     }
 
 }

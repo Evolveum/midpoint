@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+
+    <div class="d-flex flex-column gap-2">
+
+        <div>
+            <form
+                    wicket:id="thresholds_form_cluster">
+
+                <div class="d-flex flex-wrap gap-2 w-100 col">
+                    <div
+                            wicket:id="identifier_field"></div>
+                    <div
+                            wicket:id="eps_cluster"> </div>
+                    <div
+                            wicket:id="intersection_field_min_cluster"> </div>
+                    <div
+                            wicket:id="group_min_cluster"></div>
+                    <input class="btn btn-default" type="submit" value="Update clusters"
+                            wicket:id="ajax_submit_link_cluster"/>
+
+                </div>
+            </form>
+        </div>
+
+
+        <div class="main-button-bar justify-content-end">
+            <a class="btn btn-primary btn-sm" wicket:id="cancel"></a>
+            <a class="btn btn-primary btn-sm" wicket:id="ok"></a>
+        </div>
+    </div>
+
+
+
+</wicket:panel>
+</html>

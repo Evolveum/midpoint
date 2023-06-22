@@ -14,7 +14,7 @@ import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.group
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.RoleUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -24,6 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public enum ObjectTypes {
 
+    PARENT_CLUSTER(SchemaConstants.C_PARENT_CLUSTER_TYPE, SchemaConstants.C_PARENT_CLUSTER, ParentClusterType.class, ObjectManager.MODEL, "parentCluster"),
+
+
     CLUSTER(SchemaConstants.C_CLUSTER_TYPE, SchemaConstants.C_CLUSTER, ClusterType.class, ObjectManager.MODEL, "cluster"),
 
     MINING(SchemaConstants.C_MINING_TYPE, SchemaConstants.C_MINING, MiningType.class, ObjectManager.MODEL, "mining"),

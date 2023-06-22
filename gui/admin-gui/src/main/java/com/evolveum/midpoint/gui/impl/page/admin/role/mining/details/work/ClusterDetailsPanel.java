@@ -4,16 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.panels.details;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work;
 
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.jaccSortMiningSet;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.getMiningObject;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.getRoleObject;
-import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -25,13 +18,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables.SimilarGroupDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.SimilarGroupDetailsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class ClusterDetailsPanel extends BasePanel<String> implements Popupable {
 
@@ -40,60 +31,16 @@ public class ClusterDetailsPanel extends BasePanel<String> implements Popupable 
 
     private static final String ID_DATATABLE = "datatable_extra";
 
-    List<String> similarGroupOid;
     String targetValue;
 
     public ClusterDetailsPanel(String id, IModel<String> messageModel,
-            List<String> similarGroupOid, String targetValue) {
+            List<PrismObject<MiningType>> jaccSortMiningSet, List<String> sortedRolePrismObjectList, String targetValue) {
         super(id, messageModel);
-        this.similarGroupOid = similarGroupOid;
         this.targetValue = targetValue;
+        initLayout(jaccSortMiningSet, sortedRolePrismObjectList);
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
-
-        String string = DOT_CLASS + "getMiningTypeObject";
-        OperationResult result = new OperationResult(string);
-        List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
-        Set<String> rolesOid = new HashSet<>();
-        for (String groupOid : similarGroupOid) {
-            PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
-            miningTypeList.add(miningObject);
-            rolesOid.addAll(miningObject.asObjectable().getRoles());
-        }
-
-        if (targetValue != null) {
-            PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), targetValue, result);
-            miningTypeList.add(miningObject);
-            rolesOid.addAll(miningObject.asObjectable().getRoles());
-        }
-
-        List<PrismObject<RoleType>> rolePrismObjectList = new ArrayList<>();
-        for (String oid : rolesOid) {
-            PrismObject<RoleType> roleObject = getRoleObject(getPageBase(), oid, result);
-            if (roleObject != null) {
-                rolePrismObjectList.add(roleObject);
-            }
-        }
-
-        List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(miningTypeList);
-
-        Map<PrismObject<RoleType>, Long> roleCountMap = rolePrismObjectList.stream()
-                .collect(Collectors.toMap(Function.identity(),
-                        role -> jaccSortMiningSet.stream()
-                                .filter(miningType -> miningType.asObjectable().getRoles().contains(role.getOid()))
-                                .count()));
-
-        List<PrismObject<RoleType>> sortedRolePrismObjectList = roleCountMap.entrySet().stream()
-                .sorted(Map.Entry.<PrismObject<RoleType>, Long>comparingByValue().reversed())
-                .map(Map.Entry::getKey)
-                .toList();
+    private void initLayout(List<PrismObject<MiningType>> jaccSortMiningSet, List<String> sortedRolePrismObjectList) {
 
         Component table = new SimilarGroupDetailsPanel(ID_DATATABLE, jaccSortMiningSet, sortedRolePrismObjectList,
                 targetValue, false).add(new AbstractDefaultAjaxBehavior() {

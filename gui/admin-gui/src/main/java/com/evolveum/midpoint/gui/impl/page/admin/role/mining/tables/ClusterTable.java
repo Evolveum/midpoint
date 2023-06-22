@@ -5,10 +5,19 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import java.util.ArrayList;
-import java.util.List;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.jaccSortMiningSet;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningObjectUtils.getMiningObject;
+import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ClusterDetailsPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ImageDetailsPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,9 +35,9 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.details.ClusterDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.details.ImageDetailsPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -168,8 +177,46 @@ public class ClusterTable extends Panel {
                                     Model.of(String.valueOf(model.getObject().getValue().getSimilarGroupsCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                                    List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
+                                    String string = DOT_CLASS + "getMiningTypeObject";
+                                    OperationResult result = new OperationResult(string);
+                                    List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
+                                    Set<String> rolesOid = new HashSet<>();
+                                    for (String groupOid : similarGroupsId) {
+                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
+
+                                        miningTypeList.add(miningObject);
+                                        rolesOid.addAll(miningObject.asObjectable().getRoles());
+                                    }
+                                    String targetValue = model.getObject().getValue().asPrismObject().getOid();
+                                    if (targetValue != null) {
+                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), targetValue, result);
+                                        miningTypeList.add(miningObject);
+                                        rolesOid.addAll(miningObject.asObjectable().getRoles());
+                                    }
+                                    List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(miningTypeList);
+
+//                                    List<PrismObject<RoleType>> rolePrismObjectList = new ArrayList<>();
+//                                    for (String oid : rolesOid) {
+//                                        PrismObject<RoleType> roleObject = getRoleObject(getPageBase(), oid, result);
+//                                        if (roleObject != null) {
+//                                            rolePrismObjectList.add(roleObject);
+//                                        }
+//                                    }
+
+                                    Map<String, Long> roleCountMap = rolesOid.stream()
+                                            .collect(Collectors.toMap(Function.identity(),
+                                                    role -> jaccSortMiningSet.stream()
+                                                            .filter(miningType -> miningType.asObjectable().getRoles().contains(role))
+                                                            .count()));
+
+                                    List<String> sortedRolePrismObjectList = roleCountMap.entrySet().stream()
+                                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                                            .map(Map.Entry::getKey)
+                                            .toList();
                                     ClusterDetailsPanel detailsPanel = new ClusterDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Groups"), model.getObject().getValue().getSimilarGroupsId(), model.getObject().getValue().asPrismObject().getOid()) {
+                                            Model.of("Groups"), jaccSortMiningSet, sortedRolePrismObjectList, model.getObject().getValue().asPrismObject().getOid()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);
@@ -225,9 +272,40 @@ public class ClusterTable extends Panel {
                                     Model.of("popup")) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                                    List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
+                                    String string = DOT_CLASS + "getMiningTypeObject";
+                                    OperationResult result = new OperationResult(string);
+                                    List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
+                                    Set<String> rolesOid = new HashSet<>();
+                                    for (String groupOid : similarGroupsId) {
+                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
+
+                                        miningTypeList.add(miningObject);
+                                        rolesOid.addAll(miningObject.asObjectable().getRoles());
+                                    }
+                                    List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(miningTypeList);
+
+                                    List<String> sortedRoles = new ArrayList<>();
+                                    String identifier = model.getObject().getValue().getIdentifier();
+                                    if (identifier == null || !identifier.equals("outliers")) {
+
+
+                                        Map<String, Long> roleCountMap = rolesOid.stream()
+                                                .collect(Collectors.toMap(Function.identity(),
+                                                        role -> jaccSortMiningSet.stream()
+                                                                .filter(miningType -> miningType.asObjectable().getRoles().contains(role))
+                                                                .count()));
+
+                                        sortedRoles = roleCountMap.entrySet().stream()
+                                                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                                                .map(Map.Entry::getKey)
+                                                .toList();
+                                    }
+
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), model.getObject().getValue().getSimilarGroupsId(),
-                                            model.getObject().getValue().asPrismObject().getOid(),
+                                            Model.of("Image"), jaccSortMiningSet,
+                                            sortedRoles, model.getObject().getValue().asPrismObject().getOid(),
                                             model.getObject().getValue().getIdentifier()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {

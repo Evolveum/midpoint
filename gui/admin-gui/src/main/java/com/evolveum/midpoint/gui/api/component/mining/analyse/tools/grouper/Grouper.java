@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper;
 
 import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.UniqueRoleSet;
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.RoleUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.RoleUtils.getRolesId;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.RoleUtils.intersectionCount;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils.getRolesId;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils.intersectionCount;
 
 public class Grouper {
     private static List<PrismObject<UserType>> extractUsersWithMinimumIntersection(List<PrismObject<UserType>> users,

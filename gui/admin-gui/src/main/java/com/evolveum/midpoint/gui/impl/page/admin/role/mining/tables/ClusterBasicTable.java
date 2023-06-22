@@ -5,10 +5,20 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningObjectUtils.getMiningObject;
+import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
+
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ClusterBasicDetailsPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ClusterDetailsPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ImageDetailsPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,21 +36,27 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.details.ClusterDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.details.ImageDetailsPanel;
+
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
 
 public class ClusterBasicTable extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
+    String identifier;
 
-    public ClusterBasicTable(String id) {
+    public ClusterBasicTable(String id, String identifier) {
         super(id);
+        this.identifier = identifier;
+        System.out.println(identifier);
     }
 
     @Override
@@ -59,6 +75,11 @@ public class ClusterBasicTable extends Panel {
     }
 
     private ObjectQuery getCustomizeContentQuery() {
+        if (identifier != null) {
+            return ((PageBase) getPage()).getPrismContext().queryFor(ClusterType.class)
+                    .item(ClusterType.F_IDENTIFIER).eq(identifier)
+                    .build();
+        }
         return ((PageBase) getPage()).getPrismContext().queryFor(ClusterType.class).not()
                 .item(ClusterType.F_SIMILAR_GROUPS_COUNT).eq(0)
                 .build();
@@ -84,6 +105,31 @@ public class ClusterBasicTable extends Panel {
                 List<IColumn<SelectableBean<ClusterType>, String>> columns = new ArrayList<>();
 
                 IColumn<SelectableBean<ClusterType>, String> column;
+
+
+                column = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ClusterType>> rowModel) {
+
+                        ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                                Model.of("TO DO: details"),rowModel) {
+                            @Override
+                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                super.onClose(ajaxRequestTarget);
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                    }
+                };
+
+                columns.add(column);
+
+
+
 
                 column = new AbstractColumn<>(
                         createStringResource("Cluster")) {
@@ -316,8 +362,27 @@ public class ClusterBasicTable extends Panel {
                                     Model.of(String.valueOf(model.getObject().getValue().getSimilarGroupsCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                                    long startTime = System.currentTimeMillis();
+
+                                    List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
+                                    String string = DOT_CLASS + "getMiningTypeObject";
+                                    OperationResult result = new OperationResult(string);
+                                    List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
+
+                                    for (String groupOid : similarGroupsId) {
+                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
+
+                                        miningTypeList.add(miningObject);
+                                    }
+
+                                    List<String> roles = model.getObject().getValue().getRoles();
+
+                                    long endTime = System.currentTimeMillis();
+                                    long elapsedTime = endTime - startTime;
+                                    double elapsedSeconds = elapsedTime / 1000.0;
+                                    System.out.println("Elapsed time: " + elapsedSeconds + " seconds (prepare table data))");
                                     ClusterDetailsPanel detailsPanel = new ClusterDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Groups"), model.getObject().getValue().getSimilarGroupsId(), null) {
+                                            Model.of("Groups"), miningTypeList, roles, null) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);
@@ -331,6 +396,10 @@ public class ClusterBasicTable extends Panel {
                                     + "justify-content-center align-items-center"));
                             ajaxButton.add(new AttributeAppender("style", " width:100px; height:20px"));
                             ajaxButton.setOutputMarkupId(true);
+
+                            if (model.getObject().getValue().getSimilarGroupsCount() > 500) {
+                                ajaxButton.setEnabled(false);
+                            }
                             cellItem.add(ajaxButton);
 
                         } else {
@@ -368,8 +437,26 @@ public class ClusterBasicTable extends Panel {
                                     Model.of("popup")) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                                    long startTime = System.currentTimeMillis();
+
+                                    List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
+                                    String string = DOT_CLASS + "getMiningTypeObject";
+                                    OperationResult result = new OperationResult(string);
+                                    List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
+                                    List<String> rolesOid = model.getObject().getValue().getRoles();
+                                    for (String groupOid : similarGroupsId) {
+                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
+
+                                        miningTypeList.add(miningObject);
+                                    }
+
+                                    long endTime = System.currentTimeMillis();
+                                    long elapsedTime = endTime - startTime;
+                                    double elapsedSeconds = elapsedTime / 1000.0;
+                                    System.out.println("Elapsed time: " + elapsedSeconds + " seconds (prepare table data))");
+
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), model.getObject().getValue().getSimilarGroupsId(), null, model.getObject().getValue().getIdentifier()) {
+                                            Model.of("Image"), miningTypeList, rolesOid, null, model.getObject().getValue().getIdentifier()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);

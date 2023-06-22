@@ -39,7 +39,8 @@ public class QClusterObjectMapping
         addItemMapping(F_MEAN, stringMapper(q -> q.mean));
         addItemMapping(F_MIN_OCCUPATION, integerMapper(q -> q.minOccupation));
         addItemMapping(F_MAX_OCCUPATION, integerMapper(q -> q.maxOccupation));
-        addItemMapping(F_DENSITY,stringMapper(q -> q.density));
+        addItemMapping(F_DENSITY, stringMapper(q -> q.density));
+        addItemMapping(F_DENSITY, stringMapper(q -> q.parentRef));
 
     }
 
@@ -64,12 +65,13 @@ public class QClusterObjectMapping
         row.membersCount = clusterObject.getMembersCount();
         row.similarGroupsCount = clusterObject.getSimilarGroupsCount();
         row.mean = clusterObject.getMean();
-        row.density =clusterObject.getDensity();
+        row.density = clusterObject.getDensity();
         row.minOccupation = clusterObject.getMinOccupation();
         row.maxOccupation = clusterObject.getMaxOccupation();
         row.roles = stringsToArray(clusterObject.getRoles());
         row.members = stringsToArray(clusterObject.getMembers());
         row.similarGroups = stringsToArray(clusterObject.getSimilarGroupsId());
+        row.parentRef = clusterObject.getParentRef();
 
         return row;
     }

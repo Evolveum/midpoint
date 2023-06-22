@@ -9,22 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cluster;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
-public class MClusterObject extends MObject {
+public class MParentClusterObject extends MObject {
 
     public String identifier;
     public String riskLevel;
-    public Integer rolesCount;
-    public Integer membersCount;
-    public Integer similarGroupsCount;
-    public String[] roles;
-    public String[] members;
-    public String[] similarGroups;
-    public String mean;
+    public Integer consist;
     public String density;
-    public Integer minOccupation;
-    public Integer maxOccupation;
-
-    public String parentRef;
+    public String[] clustersRef;
 
 
 }

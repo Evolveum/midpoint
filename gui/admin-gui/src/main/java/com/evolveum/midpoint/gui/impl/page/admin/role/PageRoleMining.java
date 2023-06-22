@@ -7,17 +7,21 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
 import static com.evolveum.midpoint.gui.api.component.mining.DataStorage.resetAll;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.ClusterObjectUtils.deleteClusterObjects;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.ClusterObjectUtils.importClusterTypeObject;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.deleteClusterObjects;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.importClusterTypeObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningObjectUtils.*;
 
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.TextFieldLabelPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterBasicTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterTable;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,9 +30,8 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.panels.GenerateDataPanelRBAM;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables.ClusterBasicTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables.ClusterTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.test.cluster.ClusterAlgorithm;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ClusterAlgorithm;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -84,7 +87,7 @@ public class PageRoleMining extends PageAdmin {
 
         add(clusterForm());
         add(new ClusterTable(ID_DATATABLE_CLUSTER).setOutputMarkupId(true));
-        add(new ClusterBasicTable(ID_DATATABLE_CLUSTER_DS).setOutputMarkupId(true));
+        add(new ClusterBasicTable(ID_DATATABLE_CLUSTER_DS,null).setOutputMarkupId(true));
 
     }
 
@@ -98,8 +101,16 @@ public class PageRoleMining extends PageAdmin {
             public void onClick(AjaxRequestTarget target) {
                 OperationResult result = new OperationResult("Generate miningType object");
                 try {
+                    long startTime = System.currentTimeMillis();
 
-                    importMiningGroups(result, getPageBase(), 15);
+                    prepareExactUsersSetByRoles(result,getPageBase(),10);
+
+//                    importMiningGroups(result, getPageBase(), 15);
+
+                    long endTime = System.currentTimeMillis();
+                    long elapsedTime = endTime - startTime;
+                    double elapsedSeconds = elapsedTime / 1000.0;
+                    System.out.println("Elapsed time: " + elapsedSeconds + " seconds (importMiningData))");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -168,19 +179,19 @@ public class PageRoleMining extends PageAdmin {
 
         Form<?> form = new Form<Void>(ID_FORM_THRESHOLDS_CLUSTER);
 
-        TextField<Double> thresholdField = new TextField<>("eps_cluster", Model.of(eps));
+        TextFieldLabelPanel thresholdField = new TextFieldLabelPanel("eps_cluster", Model.of(eps), "Jaccard distance");
         thresholdField.setOutputMarkupId(true);
         thresholdField.setOutputMarkupPlaceholderTag(true);
         thresholdField.setVisible(true);
         form.add(thresholdField);
 
-        TextField<Integer> minIntersectionField = new TextField<>("intersection_field_min_cluster", Model.of(minIntersectionEps));
+        TextFieldLabelPanel minIntersectionField = new TextFieldLabelPanel("intersection_field_min_cluster", Model.of(minIntersectionEps), "Min intersection");
         minIntersectionField.setOutputMarkupId(true);
         minIntersectionField.setOutputMarkupPlaceholderTag(true);
         minIntersectionField.setVisible(true);
         form.add(minIntersectionField);
 
-        TextField<Integer> minGroupField = new TextField<>("group_min_cluster", Model.of(minGroup));
+        TextFieldLabelPanel minGroupField = new TextFieldLabelPanel("group_min_cluster", Model.of(minGroup), "Min members");
         minGroupField.setOutputMarkupId(true);
         minGroupField.setOutputMarkupPlaceholderTag(true);
         minGroupField.setVisible(true);
@@ -189,12 +200,15 @@ public class PageRoleMining extends PageAdmin {
         AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink("ajax_submit_link_cluster", form) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                eps = thresholdField.getModelObject();
-                minIntersectionEps = minIntersectionField.getModelObject();
-                minGroup = minGroupField.getModelObject();
+                eps = (double) thresholdField.getBaseFormComponent().getModelObject();
+                minIntersectionEps = (int) minIntersectionField.getBaseFormComponent().getModelObject();
+                minGroup = (int) minGroupField.getBaseFormComponent().getModelObject();
 
                 ClusterAlgorithm clusterAlgorithm = new ClusterAlgorithm(getPageBase());
-                List<PrismObject<ClusterType>> miningTypeList = clusterAlgorithm.executeClustering(eps, minGroup, minIntersection);
+                List<PrismObject<ClusterType>> miningTypeList = clusterAlgorithm.executeClustering(eps, minGroup, minIntersection, null);
+
+                long startTime = System.currentTimeMillis();
+
                 OperationResult resultD = new OperationResult("Delete Cluster object");
 
                 try {
@@ -211,6 +225,12 @@ public class PageRoleMining extends PageAdmin {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+
+                long endTime = System.currentTimeMillis();
+                long elapsedTime = endTime - startTime;
+                double elapsedSeconds = elapsedTime / 1000.0;
+                System.out.println("Elapsed time: " + elapsedSeconds + " seconds. (update cluster db)");
+
                 target.add(getDSTable());
 
                 target.add(thresholdField);
@@ -229,13 +249,13 @@ public class PageRoleMining extends PageAdmin {
 
         Form<?> form = new Form<Void>(ID_FORM_THRESHOLDS);
 
-        TextField<Double> thresholdField = new TextField<>("threshold_field_jc", Model.of(jcThreshold));
+        TextFieldLabelPanel thresholdField = new TextFieldLabelPanel("threshold_field_jc", Model.of(jcThreshold), "Jaccard index");
         thresholdField.setOutputMarkupId(true);
         thresholdField.setOutputMarkupPlaceholderTag(true);
         thresholdField.setVisible(true);
         form.add(thresholdField);
 
-        TextField<Integer> minIntersectionField = new TextField<>("intersection_field_min", Model.of(minIntersection));
+        TextFieldLabelPanel minIntersectionField = new TextFieldLabelPanel("intersection_field_min", Model.of(minIntersection), "Min intersection");
         minIntersectionField.setOutputMarkupId(true);
         minIntersectionField.setOutputMarkupPlaceholderTag(true);
         minIntersectionField.setVisible(true);
@@ -244,8 +264,8 @@ public class PageRoleMining extends PageAdmin {
         AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink("ajax_submit_link_mn", form) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                jcThreshold = thresholdField.getModelObject();
-                minIntersection = minIntersectionField.getModelObject();
+                jcThreshold = (double) thresholdField.getBaseFormComponent().getModelObject();
+                minIntersection = (int) minIntersectionField.getBaseFormComponent().getModelObject();
                 try {
                     similarityUpdaterOidJaccard(getPageBase(), minIntersection, jcThreshold);
                 } catch (Exception e) {

@@ -45,11 +45,11 @@
             <form
                     wicket:id="thresholds_form">
 
-                <div class="d-flex flex-wrap gap-2 w-100 row">
-                    <input type="text" placeholder="Jaccard" style="width:200px" class="form-control form-control-sm mp-w-12"
-                            wicket:id="threshold_field_jc">
-                    <input type="text" placeholder="Intersection" style="width:200px" class="form-control form-control-sm mp-w-12"
-                            wicket:id="intersection_field_min">
+                <div class="d-flex flex-wrap gap-2 w-100 col">
+                    <div
+                            wicket:id="threshold_field_jc"></div>
+                    <div
+                            wicket:id="intersection_field_min"></div>
                     <input class="btn btn-default" type="submit" value="Update similarity groups"
                             wicket:id="ajax_submit_link_mn"/>
 
@@ -71,13 +71,13 @@
             <form
                     wicket:id="thresholds_form_cluster">
 
-                <div class="d-flex flex-wrap gap-2 w-100 row">
-                    <input type="text" placeholder="Eps" style="width:200px" class="form-control form-control-sm mp-w-12"
-                            wicket:id="eps_cluster">
-                    <input type="text" placeholder="Intersection" style="width:200px" class="form-control form-control-sm mp-w-12"
-                            wicket:id="intersection_field_min_cluster">
-                    <input type="text" placeholder="Group" style="width:200px" class="form-control form-control-sm mp-w-12"
-                            wicket:id="group_min_cluster">
+                <div class="d-flex flex-wrap gap-2 w-100 col">
+                    <div
+                            wicket:id="eps_cluster"> </div>
+                    <div
+                            wicket:id="intersection_field_min_cluster"> </div>
+                    <div
+                            wicket:id="group_min_cluster"></div>
                     <input class="btn btn-default" type="submit" value="Update clusters"
                             wicket:id="ajax_submit_link_cluster"/>
 

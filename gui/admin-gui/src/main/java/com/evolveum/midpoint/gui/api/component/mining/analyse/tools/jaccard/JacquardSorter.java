@@ -12,12 +12,11 @@ import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.group
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.RoleUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class JacquardSorter {
@@ -78,8 +77,10 @@ public class JacquardSorter {
                 }
 
                 if (insertIndex == -1) {
-                    if (RoleUtils.jacquardSimilarity(currentUserSet.asObjectable().getRoles(), sortedUserSets.get(0).asObjectable().getRoles())
-                            > RoleUtils.jacquardSimilarity(sortedUserSets.get(0).asObjectable().getRoles(), sortedUserSets.get(1).asObjectable().getRoles())) {
+                    if (RoleUtils.jacquardSimilarity(currentUserSet.asObjectable().getRoles(),
+                            sortedUserSets.get(0).asObjectable().getRoles())
+                            > RoleUtils.jacquardSimilarity(sortedUserSets.get(0).asObjectable().getRoles(),
+                            sortedUserSets.get(1).asObjectable().getRoles())) {
                         sortedUserSets.add(0, currentUserSet);
                     } else {
                         sortedUserSets.add(currentUserSet);
@@ -92,7 +93,6 @@ public class JacquardSorter {
 
         return sortedUserSets;
     }
-
 
     public static List<UniqueRoleSet> jaccSortUn(List<UniqueRoleSet> miningSets) {
 

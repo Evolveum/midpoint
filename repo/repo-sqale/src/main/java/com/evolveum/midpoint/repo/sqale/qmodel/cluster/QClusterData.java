@@ -23,6 +23,9 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
 
     public static final String TABLE_NAME = "m_cluster_table";
 
+    public static final ColumnMetadata PARENT_REF =
+            ColumnMetadata.named("parentRef").ofType(Types.VARCHAR);
+
     public static final ColumnMetadata IDENTIFIER =
             ColumnMetadata.named("identifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata RISK_LEVEL =
@@ -34,6 +37,7 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
     public static final ColumnMetadata SIMILAR_GROUPS_COUNT =
             ColumnMetadata.named("similarGroupsCount").ofType(Types.INTEGER);
 
+    public final StringPath parentRef = createString("parentRef", PARENT_REF);
     public final StringPath identifier = createString("identifier", IDENTIFIER);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
     public final NumberPath<Integer> rolesCount = createInteger("rolesCount", ROLES_COUNT);
@@ -47,7 +51,6 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
     public static final ColumnMetadata CLUSTER_DENSITY =
             ColumnMetadata.named("density").ofType(Types.VARCHAR);
     public final StringPath density = createString("density", CLUSTER_DENSITY);
-
 
     public static final ColumnMetadata MIN_OCCUPATION =
             ColumnMetadata.named("minOccupation").ofType(Types.INTEGER);

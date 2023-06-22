@@ -1,15 +1,25 @@
-package com.evolveum.midpoint.gui.impl.page.admin.role.test.cluster;/*
+/*
  * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.filterMiningTypeObjects;
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils.MiningObjectUtils.getMiningObject;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;/*
+ * Copyright (C) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.jaccSortMiningSet;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningObjectUtils.filterMiningTypeObjects;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningObjectUtils.getMiningObject;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
@@ -32,7 +42,7 @@ public class ClusterAlgorithm {
 
     static PageBase pageBase;
 
-    public List<PrismObject<ClusterType>> executeClustering(double eps, int minGroupSize, int minIntersections) {
+    public List<PrismObject<ClusterType>> executeClustering(double eps, int minGroupSize, int minIntersections, String identifier) {
         List<DataPoint> dataPointList = new ArrayList<>();
         List<PrismObject<MiningType>> prismObjects = filterMiningTypeObjects(pageBase);
 
@@ -47,7 +57,6 @@ public class ClusterAlgorithm {
             dataPointList.add(new DataPoint(rolesArray, prismObject.getOid()));
         }
 
-
         long startTime = System.currentTimeMillis();
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minIntersections);
@@ -58,13 +67,19 @@ public class ClusterAlgorithm {
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
         double elapsedSeconds = elapsedTime / 1000.0;
-        System.out.println("Elapsed time: " + elapsedSeconds + " seconds END");
+        System.out.println("Elapsed time: " + elapsedSeconds + " seconds (prepare clusters)");
 
         Cluster<DataPoint> outliers = getOutliers(dataPointList, clusters);
         clusters.add(outliers);
 
+        startTime = System.currentTimeMillis();
+        List<PrismObject<ClusterType>> clusterTypeObjectWithStatistic = getClusterTypeObjectWithStatistic(clusters, identifier);
+        endTime = System.currentTimeMillis();
+        elapsedTime = endTime - startTime;
+        elapsedSeconds = elapsedTime / 1000.0;
+        System.out.println("Elapsed time: " + elapsedSeconds + " seconds (prepare clusters objects)");
 
-        return getClusterTypeObjectWithStatistic(clusters);
+        return clusterTypeObjectWithStatistic;
     }
 
     @NotNull
@@ -86,8 +101,8 @@ public class ClusterAlgorithm {
         return outliers;
     }
 
-    public List<PrismObject<ClusterType>> getClusterTypeObjectWithStatistic(@NotNull List<Cluster<DataPoint>> clusters) {
-        List<PrismObject<ClusterType>> miningTypeList = new ArrayList<>();
+    public List<PrismObject<ClusterType>> getClusterTypeObjectWithStatistic(@NotNull List<Cluster<DataPoint>> clusters, String identifier) {
+        List<PrismObject<ClusterType>> clusterTypeList = new ArrayList<>();
 
         int clustersCount = clusters.size();
 
@@ -145,60 +160,85 @@ public class ClusterAlgorithm {
             boolean isLastCluster = (i == clustersCount - 1);
             String clusterId = "cluster_" + (i + 1);
 
-            miningTypeList.add(generateClusterObject(membersId, meanRoles, minRoleCount, maxRoleCount,
-                    isLastCluster, clusterId, density));
+            clusterTypeList.add(generateClusterObject(membersId, meanRoles, minRoleCount, maxRoleCount,
+                    isLastCluster, clusterId, density,identifier));
         }
 
-        return miningTypeList;
+        return clusterTypeList;
     }
 
 
     public PrismObject<ClusterType> generateClusterObject(List<String> groups, double meanRoles, int minRoleCount,
-            int maxRoleCount, boolean isLastCluster, String clusterId, double density) {
+            int maxRoleCount, boolean isLastCluster, String clusterId, double density, String identifier) {
         PrismObject<ClusterType> clusterTypePrismObject = null;
         try {
             clusterTypePrismObject = pageBase.getPrismContext()
                     .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ClusterType.class).instantiate();
         } catch (SchemaException e) {
-            LOGGER.error("Error while generate ClusterType object,{}", e.getMessage(), e);
+            LOGGER.error("Error while generating ClusterType object: {}", e.getMessage(), e);
         }
         assert clusterTypePrismObject != null;
 
-        Collections.sort(groups);
         UUID uuid = UUID.randomUUID();
-        clusterTypePrismObject.asObjectable().setName(PolyStringType.fromOrig(String.valueOf(uuid)));
-        clusterTypePrismObject.asObjectable().setOid(String.valueOf(uuid));
-        clusterTypePrismObject.asObjectable().setSimilarGroupsCount(groups.size());
-        clusterTypePrismObject.asObjectable().getSimilarGroupsId().addAll(groups);
+        ClusterType clusterType = clusterTypePrismObject.asObjectable();
+        clusterType.setOid(String.valueOf(uuid));
+        clusterType.setSimilarGroupsCount(groups.size());
 
         OperationResult result = new OperationResult("Get ClusterType object");
 
         Set<String> roles = new HashSet<>();
         Set<String> members = new HashSet<>();
-        for (String group : groups) {
-            PrismObject<MiningType> miningObject = getMiningObject(pageBase, group, result);
-            roles.addAll(miningObject.asObjectable().getRoles());
-            members.addAll(miningObject.asObjectable().getMembers());
-        }
 
-//        clusterTypePrismObject.asObjectable().getRoles().addAll(roles);
-        clusterTypePrismObject.asObjectable().setRolesCount(roles.size());
+        if (!isLastCluster) {
+            List<PrismObject<MiningType>> minigList = new ArrayList<>();
 
-//        clusterTypePrismObject.asObjectable().getMembers().addAll(members);
-        clusterTypePrismObject.asObjectable().setMembersCount(members.size());
+            for (String group : groups) {
+                PrismObject<MiningType> miningObject = getMiningObject(pageBase, group, result);
+                minigList.add(miningObject);
+                MiningType miningType = miningObject.asObjectable();
+                roles.addAll(miningType.getRoles());
+                members.addAll(miningType.getMembers());
+            }
 
-        clusterTypePrismObject.asObjectable().setMean(String.format("%.3f", meanRoles));
-        clusterTypePrismObject.asObjectable().setDensity(String.format("%.3f", density));
+            List<PrismObject<MiningType>> jaccSortMiningSet = jaccSortMiningSet(minigList);
 
-        clusterTypePrismObject.asObjectable().setMinOccupation(minRoleCount);
-        clusterTypePrismObject.asObjectable().setMaxOccupation(maxRoleCount);
+            for (PrismObject<MiningType> miningTypePrismObject : jaccSortMiningSet) {
+                clusterType.getSimilarGroupsId().add(miningTypePrismObject.getOid());
+            }
 
-        if (isLastCluster) {
-            clusterTypePrismObject.asObjectable().setIdentifier("outliers");
+            Map<String, Long> roleCountMap = roles.stream()
+                    .collect(Collectors.toMap(Function.identity(),
+                            role -> jaccSortMiningSet.stream()
+                                    .filter(miningType -> miningType.asObjectable().getRoles().contains(role))
+                                    .count()));
+
+            List<String> sortedRolePrismObjectList = roleCountMap.entrySet().stream()
+                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                    .map(Map.Entry::getKey)
+                    .toList();
+            for (String role : sortedRolePrismObjectList) {
+                clusterType.getRoles().add(role);
+            }
         } else {
-            clusterTypePrismObject.asObjectable().setIdentifier(clusterId);
+            for (String group : groups) {
+                PrismObject<MiningType> miningObject = getMiningObject(pageBase, group, result);
+                roles.addAll(miningObject.asObjectable().getRoles());
+                members.addAll(miningObject.asObjectable().getMembers());
+            }
+            clusterType.getSimilarGroupsId().addAll(groups);
+            clusterType.getRoles().addAll(roles);
+
         }
+
+        clusterType.setRolesCount(roles.size());
+        clusterType.setMembersCount(members.size());
+        clusterType.setMean(String.format("%.3f", meanRoles));
+        clusterType.setDensity(String.format("%.3f", density));
+        clusterType.setMinOccupation(minRoleCount);
+        clusterType.setMaxOccupation(maxRoleCount);
+        clusterType.setName(PolyStringType.fromOrig(isLastCluster ? "outliers" : clusterId));
+        clusterType.setIdentifier(identifier);
+
         return clusterTypePrismObject;
     }
-
 }

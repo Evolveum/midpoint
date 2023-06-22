@@ -5,9 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.mining.analyse.tools.utils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -15,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 public class RoleUtils {
 
@@ -26,16 +26,6 @@ public class RoleUtils {
     }
 
     public static double jacquardSimilarity(List<String> set1, List<String> set2) {
-        Set<String> union = new HashSet<>(set1);
-        union.addAll(set2);
-
-        Set<String> intersection = new HashSet<>(set1);
-        intersection.retainAll(set2);
-
-        return (double) intersection.size() / union.size();
-    }
-
-    public static double jacquardSimilarity(Set<String> set1, Set<String> set2) {
         Set<String> union = new HashSet<>(set1);
         union.addAll(set2);
 
