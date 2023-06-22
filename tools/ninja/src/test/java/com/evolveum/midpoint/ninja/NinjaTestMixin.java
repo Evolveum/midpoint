@@ -63,8 +63,16 @@ public interface NinjaTestMixin {
 
             return function.apply(out, err);
         } finally {
-            processTestOutputStream(bosOut, validateOut, "OUT");
-            processTestOutputStream(bosErr, validateErr, "ERR");
+            List<String> outLines = processTestOutputStream(bosOut, "OUT");
+            List<String> errLines = processTestOutputStream(bosErr, "ERR");
+
+            if (validateOut != null) {
+                validateOut.accept(outLines);
+            }
+
+            if (validateErr != null) {
+                validateErr.accept(errLines);
+            }
         }
     }
 
@@ -87,10 +95,7 @@ public interface NinjaTestMixin {
         }, validateOut, validateErr);
     }
 
-    private void processTestOutputStream(
-            ByteArrayOutputStream bos, Consumer<List<String>> validator, String prefix)
-            throws IOException {
-
+    private List<String> processTestOutputStream(ByteArrayOutputStream bos, String prefix) throws IOException {
         final Trace logger = TraceManager.getTrace(getClass());
 
         List<String> lines = IOUtils.readLines(new ByteArrayInputStream(bos.toByteArray()), StandardCharsets.UTF_8);
@@ -98,8 +103,6 @@ public interface NinjaTestMixin {
             lines.forEach(line -> logger.debug("{}: {}", prefix, line));
         }
 
-        if (validator != null) {
-            validator.accept(lines);
-        }
+        return lines;
     }
 }

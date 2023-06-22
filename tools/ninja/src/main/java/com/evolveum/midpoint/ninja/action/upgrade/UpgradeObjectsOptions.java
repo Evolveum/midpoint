@@ -18,11 +18,11 @@ public class UpgradeObjectsOptions extends ExportOptions {
 
     public static final String P_VERIFICATION_LONG = "--verification-file";
 
-    @ParametersDelegate
-    private OutputOptions outputOptions = new OutputOptions();
-
-    @ParametersDelegate
-    private SearchOptions searchOptions = new SearchOptions();
+//    @ParametersDelegate
+//    private OutputOptions outputOptions = new OutputOptions();
+//
+//    @ParametersDelegate
+//    private SearchOptions searchOptions = new SearchOptions();
 
     @Parameter(names = { P_VERIFICATION_LONG }, descriptionKey = "upgradeObjects.verification")
     private File verification;
@@ -35,19 +35,19 @@ public class UpgradeObjectsOptions extends ExportOptions {
         this.verification = verification;
     }
 
-    public OutputOptions getOutputOptions() {
-        return outputOptions;
-    }
-
-    public void setOutputOptions(OutputOptions outputOptions) {
-        this.outputOptions = outputOptions;
-    }
-
-    public SearchOptions getSearchOptions() {
-        return searchOptions;
-    }
-
-    public void setSearchOptions(SearchOptions searchOptions) {
-        this.searchOptions = searchOptions;
-    }
+//    public OutputOptions getOutputOptions() {
+//        return outputOptions;
+//    }
+//
+//    public void setOutputOptions(OutputOptions outputOptions) {
+//        this.outputOptions = outputOptions;
+//    }
+//
+//    public SearchOptions getSearchOptions() {
+//        return searchOptions;
+//    }
+//
+//    public void setSearchOptions(SearchOptions searchOptions) {
+//        this.searchOptions = searchOptions;
+//    }
 }

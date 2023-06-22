@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.assertj.core.api.Assertions;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -25,6 +29,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  */
 public class ImportRepositoryTest extends BaseTest {
 
+    private static final String PATH_MONKEY_ISLAND_SIMPLE_ZIP = "./target/org-monkey-island-simple.zip";
+
+    @BeforeClass
+    public void beforeClass() throws IOException {
+        TestUtils.zipFile(new File("./src/test/resources/org-monkey-island-simple.xml"), new File(PATH_MONKEY_ISLAND_SIMPLE_ZIP));
+    }
+
     @BeforeMethod
     public void initMidpointHome() throws Exception {
         setupMidpointHome();
@@ -32,11 +43,8 @@ public class ImportRepositoryTest extends BaseTest {
 
     @Test
     public void test100ImportByOid() throws Exception {
-        // Try this line to be sure what the config is (assuming init method runs fine):
-//        new Main().run(new String[] { "-m", getMidpointHome(), "info" });
-
-        String[] args = new String[] { "-m", getMidpointHome(), "import", "-o", "00000000-8888-6666-0000-100000000001",
-                "-i", RESOURCES_DIRECTORY_PATH + "/org-monkey-island-simple.xml.zip", "-z" };
+        String[] args = new String[] { "-m", getMidpointHome(), "import", "--oid", "00000000-8888-6666-0000-100000000001",
+                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z" };
 
         ActionStateListener listener = new ActionStateListener() {
 
@@ -84,7 +92,7 @@ public class ImportRepositoryTest extends BaseTest {
     @Test
     public void test110ImportByFilterAsOption() throws Exception {
         String[] args = new String[] { "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
-                "-i", RESOURCES_DIRECTORY_PATH + "/org-monkey-island-simple.xml.zip", "-z" };
+                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z" };
 
         ActionStateListener listener = new ActionStateListener() {
 
@@ -128,7 +136,7 @@ public class ImportRepositoryTest extends BaseTest {
     @Test
     public void test120ImportByFilterAsFile() throws Exception {
         String[] args = new String[] { "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
-                "-i", RESOURCES_DIRECTORY_PATH + "/org-monkey-island-simple.xml.zip", "-z" };
+                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z" };
 
         ActionStateListener listener = new ActionStateListener() {
 

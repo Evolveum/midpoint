@@ -19,10 +19,20 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class ImportInvalidRepositoryTest extends BaseTest {
+
+    private static final String PATH_UNKNOWN_NODES_ZIP = "./target/unknown-nodes.zip";
+
+    @BeforeClass
+    public void beforeClass() throws IOException {
+        TestUtils.zipFile(new File("./src/test/resources/unknown-nodes"), new File(PATH_UNKNOWN_NODES_ZIP));
+    }
 
     @BeforeClass
     public void initMidpointHome() throws Exception {
@@ -31,7 +41,7 @@ public class ImportInvalidRepositoryTest extends BaseTest {
 
     @Test
     public void test100Import() throws Exception {
-        String[] args = new String[] { "-m", getMidpointHome(), "import", "-i", RESOURCES_DIRECTORY_PATH + "/unknown-nodes.zip", "-z" };
+        String[] args = new String[] { "-m", getMidpointHome(), "import", "-i", PATH_UNKNOWN_NODES_ZIP, "-z" };
 
         ActionStateListener listener = new ActionStateListener() {
 
