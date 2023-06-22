@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.web.page.admin.resources.ResourceContentPane
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,7 +98,10 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                             CompiledObjectCollectionView collectionView) {
 
                         getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
-                                .hideSuccessfulStatus()
+                                .withOpResultOptions(
+                                        OpResult.Options.create()
+                                                .withHideSuccess(true)
+                                                .withHideInProgress(true))
                                 .runVoid((task, result) -> {
                                     @Nullable var finalCollectionView =
                                             collectionView != null ? collectionView : getObjectCollectionView();

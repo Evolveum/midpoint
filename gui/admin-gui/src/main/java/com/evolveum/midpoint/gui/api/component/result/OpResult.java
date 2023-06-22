@@ -23,7 +23,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -175,13 +174,17 @@ public class OpResult implements Serializable, Visitable {
 
     // This method should be called along with getOpResult for root operationResult. However, it might take some time,
     // and there might be situations in which it is not required -- so we opted for calling it explicitly.
-    public void determineObjectsVisibility(PageAdminLTE pageBase) {
-        determineBackgroundTaskVisibility(pageBase);
+    public void determineObjectsVisibility(PageAdminLTE pageBase, Options options) {
+        determineBackgroundTaskVisibility(pageBase, options.hideTaskLinks());
         determineCaseVisibility(pageBase);
     }
 
-    private void determineBackgroundTaskVisibility(PageAdminLTE pageBase) {
+    private void determineBackgroundTaskVisibility(PageAdminLTE pageBase, boolean explicitlyHidden) {
         if (backgroundTaskOid == null) {
+            return;
+        }
+        if (explicitlyHidden) {
+            backgroundTaskVisible = false;
             return;
         }
         try {
@@ -212,7 +215,6 @@ public class OpResult implements Serializable, Visitable {
             caseVisible = false;
             return;
         }
-
         if (caseOid == null) {
             return;
         }
@@ -312,14 +314,14 @@ public class OpResult implements Serializable, Visitable {
         return backgroundTaskOid;
     }
 
-    public boolean isBackgroundTaskVisible() {
+    boolean isBackgroundTaskVisible() {
         if (backgroundTaskVisible != null) {
             return backgroundTaskVisible;
         }
         if (parent != null) {
             return parent.isBackgroundTaskVisible();
         }
-        return true;            // at least as for now
+        return true; // at least as for now
     }
 
     public String getCaseOid() {
@@ -333,7 +335,7 @@ public class OpResult implements Serializable, Visitable {
         if (parent != null) {
             return parent.isCaseVisible();
         }
-        return true;            // at least as for now
+        return true; // at least as for now
     }
 
     @Override
@@ -357,5 +359,30 @@ public class OpResult implements Serializable, Visitable {
         };
 
         accept(visitor);
+    }
+
+    /** Options for showing {@link OpResult} objects. */
+    public record Options (boolean hideSuccess,
+                           boolean hideInProgress,
+                           boolean hideTaskLinks) {
+
+        public static Options create() {
+            return new Options(false, false, false);
+        }
+
+        /** `SUCCESS` messages are hidden. */
+        public Options withHideSuccess(boolean value) {
+            return new Options(value, hideInProgress, hideTaskLinks);
+        }
+
+        /** `IN_PROGRESS` messages are hidden. */
+        public Options withHideInProgress(boolean value) {
+            return new Options(hideSuccess, value, hideTaskLinks);
+        }
+
+        /** Information about background tasks is not clickable. TODO better name? */
+        public Options withHideTaskLinks(boolean value) {
+            return new Options(hideSuccess, hideInProgress, value);
+        }
     }
 }

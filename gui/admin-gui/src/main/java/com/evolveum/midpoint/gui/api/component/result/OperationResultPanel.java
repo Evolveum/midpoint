@@ -56,7 +56,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final String ID_MESSAGE = "message";
     private static final String ID_MESSAGE_LABEL = "messageLabel";
     private static final String ID_PARAMS = "params";
-    private static final String ID_BACKGROUND_TASK = "backgroundTask";
+    private static final String ID_BACKGROUND_TASK_LINK = "backgroundTaskLink";
+    private static final String ID_BACKGROUND_TASK_EXISTS = "backgroundTaskExists";
     private static final String ID_CASE = "case";
     private static final String ID_SHOW_ALL = "showAll";
     private static final String ID_HIDE_ALL = "hideAll";
@@ -126,7 +127,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         box.add(message);
 
-        AjaxLink<String> backgroundTask = new AjaxLink<>(ID_BACKGROUND_TASK) {
+        AjaxLink<String> backgroundTaskLink = new AjaxLink<>(ID_BACKGROUND_TASK_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -140,8 +141,18 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
             }
         };
-        backgroundTask.add(new VisibleBehaviour(() -> getModelObject().getBackgroundTaskOid() != null && getModelObject().isBackgroundTaskVisible()));
-        message.add(backgroundTask);
+        backgroundTaskLink.add(new VisibleBehaviour(
+                () -> getModelObject().getBackgroundTaskOid() != null
+                        && getModelObject().isBackgroundTaskVisible()));
+        message.add(backgroundTaskLink);
+
+        Label backgroundTaskExists = new Label(
+                ID_BACKGROUND_TASK_EXISTS,
+                createStringResource("OperationResultPanel.taskExists"));
+        backgroundTaskExists.add(new VisibleBehaviour(
+                () -> getModelObject().getBackgroundTaskOid() != null
+                        && !getModelObject().isBackgroundTaskVisible()));
+        message.add(backgroundTaskExists);
 
         AjaxLink<String> aCase = new AjaxLink<>(ID_CASE) {
             private static final long serialVersionUID = 1L;

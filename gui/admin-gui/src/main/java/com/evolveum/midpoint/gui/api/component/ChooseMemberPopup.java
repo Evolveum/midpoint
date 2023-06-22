@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -18,7 +18,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -130,12 +129,21 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     if (selectedObjects == null || selectedObjects.size() == 0) {
                         continue;
                     }
-                    executeAssignMemberOperation(
+
+                    var pageBase = getPageBase();
+                    var taskCreator = new MemberOperationsTaskCreator.Assign(
                             memberPanel.getAbstractRoleTypeObject(),
-                            memberPanel.getObjectType().getTypeQName(), createInOidQuery(selectedObjects),
-                            memberPanel.getRelationValue(),
-                            target,
-                            getPageBase());
+                            memberPanel.getObjectType().getTypeQName(),
+                            createInOidQuery(selectedObjects),
+                            pageBase,
+                            memberPanel.getRelationValue());
+
+                    pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                            .withOpResultOptions(OpResult.Options.create()
+                                    .withHideTaskLinks(shouldHideTaskLink()))
+                            .withCustomFeedbackPanel(getFeedbackPanel())
+                            .run(taskCreator::createAndSubmitTask);
+
                     if (memberPanel.getObjectType().equals(ObjectTypes.ORG)) {
                         orgPanelProcessed = true;
                     }
@@ -417,14 +425,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return false;
     }
 
-    /** Returns task OID */
-    protected String executeAssignMemberOperation(
-            @NotNull AbstractRoleType targetObject, @NotNull QName memberType, @NotNull ObjectQuery memberQuery,
-            @NotNull QName relation, @NotNull AjaxRequestTarget target, @NotNull PageBase pageBase) {
-
-        var taskCreator = new MemberOperationsTaskCreator.Assign(targetObject, memberType, memberQuery, pageBase, relation);
-        return pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
-                .run(taskCreator::createAndSubmitTask);
+    /** Should the "show task" link be hidden? This feature is used in wizards to avoid complexity for users. */
+    protected boolean shouldHideTaskLink() {
+        return false;
     }
 
     private IModel<List<CompositedIconButtonDto>> createAssignButtonDescriptionModel() {

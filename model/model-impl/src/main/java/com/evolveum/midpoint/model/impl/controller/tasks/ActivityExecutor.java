@@ -65,7 +65,13 @@ public class ActivityExecutor {
                             List.of(newTask.asPrismObject().createAddDelta()),
                             null, task, result);
                     var taskOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, TaskType.class);
+
                     result.setBackgroundTaskOid(taskOid);
+
+                    // Before setting "in progress" status, we may consider checking the task execution status here
+                    // (e.g. if it's not suspended). But let's ignore it for the moment.
+                    result.setInProgress();
+
                     return taskOid;
                 }
         );

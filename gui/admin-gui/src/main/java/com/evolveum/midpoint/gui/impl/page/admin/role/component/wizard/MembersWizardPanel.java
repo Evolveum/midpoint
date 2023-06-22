@@ -107,8 +107,9 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             }
 
             @Override
-            protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-                showMessageWithoutLinkForTask(task, target);
+            protected boolean shouldHideTaskLink() {
+                // This panel is used in wizard, hence we don't want to show task links.
+                return true;
             }
 
             @Override

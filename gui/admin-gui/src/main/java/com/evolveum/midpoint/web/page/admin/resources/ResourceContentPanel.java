@@ -535,9 +535,9 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private void newTaskPerformed(
             @NotNull AjaxRequestTarget target, @NotNull SynchronizationTaskFlavor flavor, boolean isSimulation) {
 
-        getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
+        var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
-                .runVoid((task, result) -> {
+                .run((task, result) -> {
 
                     if (Objects.isNull(getObjectClass())) {
                         updateDefinitions(); // FIXME not static
@@ -560,10 +560,12 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                                         new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
                     }
 
-                    var newTask = creator.create(task, result);
-
-                    WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+                    return creator.create(task, result);
                 });
+
+        if (newTask != null) {
+            WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+        }
     }
 
     private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList) {

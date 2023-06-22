@@ -19,6 +19,8 @@ import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -854,41 +856,38 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+        return showResult(result, errorMessageKey,
+                OpResult.Options.create()
+                        .withHideSuccess(!showSuccess));
+    }
+
+    // FIXME why the `errorMessageKey` is not used?
+    public OpResult showResult(OperationResult result, String errorMessageKey, @NotNull OpResult.Options options) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-        OperationResult scriptResult = executeResultScriptHook(result);
-        if (scriptResult == null) {
+        OperationResult processedResult = executeResultScriptHook(result);
+        if (processedResult == null) {
             return null;
         }
 
-        result = scriptResult;
+        OpResult opResult = OpResult.getOpResult((PageAdminLTE) getPage(), processedResult);
 
-        OpResult opResult = OpResult.getOpResult((PageAdminLTE) getPage(), result);
-        opResult.determineObjectsVisibility(this);
-        switch (opResult.getStatus()) {
-            case FATAL_ERROR:
-            case PARTIAL_ERROR:
-                getSession().error(opResult);
-
-                break;
-            case IN_PROGRESS:
-            case NOT_APPLICABLE:
-                getSession().info(opResult);
-                break;
-            case SUCCESS:
-                if (!showSuccess) {
-                    break;
-                }
-                getSession().success(opResult);
-
-                break;
-            case UNKNOWN:
-            case WARNING:
-            default:
-                getSession().warn(opResult);
-
+        // Checking these options here to eliminate the rest of processing (visibility determination etc.) if not needed
+        if (opResult.getStatus() == OperationResultStatus.SUCCESS && options.hideSuccess()
+                || opResult.getStatus() == OperationResultStatus.IN_PROGRESS && options.hideInProgress()) {
+            return opResult;
         }
+
+        opResult.determineObjectsVisibility(this, options);
+
+        switch (opResult.getStatus()) {
+            case FATAL_ERROR, PARTIAL_ERROR -> getSession().error(opResult);
+            case IN_PROGRESS, NOT_APPLICABLE -> getSession().info(opResult);
+            case SUCCESS -> getSession().success(opResult);
+            default -> getSession().warn(opResult); // includes unknown and warning
+        }
+
         return opResult;
     }
 

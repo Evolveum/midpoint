@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -16,9 +17,12 @@ import com.evolveum.midpoint.util.exception.CommonException;
 
 import com.evolveum.midpoint.util.exception.NotLoggedInException;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restartOnLoginPageException;
 
@@ -42,8 +46,11 @@ public class TaskAwareExecutor {
     @NotNull private final AjaxRequestTarget ajaxRequestTarget;
     @NotNull private final String operation;
 
-    /** If true, only non-success and non-in-progress status are shown (in feedback panel). */
-    private boolean hideSuccessfulStatus;
+    /** Options for displaying the operation result. */
+    private OpResult.Options showResultOptions = OpResult.Options.create();
+
+    /** The panel that has to be refreshed (after showing the result) if different from the default one. */
+    private Component customFeedbackPanel;
 
     public TaskAwareExecutor(
             @NotNull PageBase pageBase,
@@ -54,11 +61,28 @@ public class TaskAwareExecutor {
         this.operation = operation;
     }
 
+    /** If true, only non-success status is shown (in feedback panel). */
     public TaskAwareExecutor hideSuccessfulStatus() {
-        hideSuccessfulStatus = true;
+        showResultOptions = showResultOptions.withHideSuccess(true);
         return this;
     }
 
+    /** Options for rendering the operation result. */
+    public TaskAwareExecutor withOpResultOptions(OpResult.Options options) {
+        showResultOptions = options;
+        return this;
+    }
+
+    /** If the feedback panel is different from the default one. */
+    public TaskAwareExecutor withCustomFeedbackPanel(Component panel) {
+        this.customFeedbackPanel = panel;
+        return this;
+    }
+
+    /**
+     * Returns `null` in case of error; even in cases where the original {@link Executable#execute(Task, OperationResult)}
+     * _implementation_ is marked as `@NotNull`.
+     */
     public <X> @Nullable X run(@NotNull Executable<X> executable) {
         var task = pageBase.createSimpleTask(operation);
         OperationResult result = task.getResult();
@@ -72,11 +96,22 @@ public class TaskAwareExecutor {
         } finally {
             result.close();
         }
-        if ((!result.isSuccess() && !result.isInProgress()) || !hideSuccessfulStatus) {
-            pageBase.showResult(result);
-            ajaxRequestTarget.add(pageBase.getFeedbackPanel());
-        }
+        showResultIfNeeded(result);
         return returnValue;
+    }
+
+    private void showResultIfNeeded(OperationResult result) {
+        if (result.isSuccess() && showResultOptions.hideSuccess()
+            || result.isInProgress() && showResultOptions.hideInProgress()) {
+            // This is checked also in pageBase.showResult, but we want to avoid the extra work if possible.
+            return;
+        }
+
+        pageBase.showResult(result, null, showResultOptions);
+        ajaxRequestTarget.add(
+                Objects.requireNonNullElseGet(
+                        customFeedbackPanel,
+                        pageBase::getFeedbackPanel));
     }
 
     /** TODO better name */

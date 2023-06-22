@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -65,7 +64,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -528,45 +526,36 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            protected String executeAssignMemberOperation(
-                    @NotNull AbstractRoleType targetObject, @NotNull QName memberType, @NotNull ObjectQuery memberQuery, @NotNull QName relation,
-                    @NotNull AjaxRequestTarget target, @NotNull PageBase pageBase) {
-                var taskOid = super.executeAssignMemberOperation(targetObject, memberType, memberQuery, relation, target, pageBase);
-                // FIXME ... deal with this: processTaskAfterOperation(task, target);
-                return taskOid;
+            protected QName getRelationIfIsStable() {
+                return stableRelation;
             }
 
             @Override
-            protected QName getRelationIfIsStable() {
-                return stableRelation;
+            protected boolean shouldHideTaskLink() {
+                return AbstractRoleMemberPanel.this.shouldHideTaskLink();
+            }
+
+            @Override
+            public Component getFeedbackPanel() {
+                return AbstractRoleMemberPanel.this.getFeedback();
             }
         };
         browser.setOutputMarkupId(true);
         return browser;
     }
 
-    /** FIXME implement somehow for the new task submission style */
-    protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-    }
-
-    protected void showMessageWithoutLinkForTask(Task task, AjaxRequestTarget target) {
-        getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
-                && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
-
-        if (!task.getResult().isInProgress()) {
-            getPageBase().showResult(task.getResult());
-        } else {
-            getPageBase().info(createStringResource(
-                    "AbstractRoleMemberPanel.message.info.created.task",
-                    task.getResult().getOperation())
-                    .getString());
-//            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
-//            showedResult.setStatus(task.getResult().getStatus());
-//            getPageBase().showResult(showedResult);
-        }
-
-        refreshTable(target);
-        target.add(getFeedback());
+    /**
+     * Should the "show task" link be hidden for tasks submitted from this panel?
+     * This feature is used in wizards to avoid complexity for users.
+     *
+     * TODO originally, the role wizard showed "AbstractRoleMemberPanel.message.info.created.task"
+     *  ("Task "{0}" has been created in the background") when there was a background task started.
+     *  I originally planned to do so for any tasks. But is that really better than simply showing
+     *  the original operation name with a blue color indicating "in progress" state and a text note
+     *  "(running in background)"?
+     */
+    protected boolean shouldHideTaskLink() {
+        return false;
     }
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
