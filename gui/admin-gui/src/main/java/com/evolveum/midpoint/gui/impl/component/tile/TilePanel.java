@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -26,7 +24,7 @@ import java.io.Serializable;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
+public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,7 +33,7 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
 
     private static final String ID_DESCRIPTION = "description";
 
-    public TilePanel(String id, IModel<Tile<T>> model) {
+    public TilePanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();

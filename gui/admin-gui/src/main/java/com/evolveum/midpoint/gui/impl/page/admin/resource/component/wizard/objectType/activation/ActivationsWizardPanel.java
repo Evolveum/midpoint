@@ -39,96 +39,11 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
     }
 
     protected void initLayout() {
-        add(createWizardFragment(new WizardPanel(
-                getIdOfWizardPanel(),
-                new WizardModel(createActivationsSteps(getValueModel())))));
-    }
-
-    private List<WizardStep> createActivationsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        List<WizardStep> steps = new ArrayList<>();
-        AdministrativeStatusStepPanel adminPanel = new AdministrativeStatusStepPanel(
-                getAssignmentHolderModel(),
+        PrismContainerWrapperModel<ResourceObjectTypeDefinitionType, ResourceActivationDefinitionType> containerModel =
                 PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS))) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
-            }
-        };
-        adminPanel.setOutputMarkupId(true);
-        steps.add(adminPanel);
-
-        ExistenceStepPanel existencePanel = new ExistenceStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_EXISTENCE))) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
-            }
-        };
-        existencePanel.setOutputMarkupId(true);
-        steps.add(existencePanel);
-
-        ValidFromStepPanel validFromPanel = new ValidFromStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_VALID_FROM))) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
-            }
-        };
-        validFromPanel.setOutputMarkupId(true);
-        steps.add(validFromPanel);
-
-        ValidToStepPanel validToPanel = new ValidToStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_VALID_TO))) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
-            }
-        };
-        validToPanel.setOutputMarkupId(true);
-        steps.add(validToPanel);
-
-        LockoutStatusStepPanel lockPanel = new LockoutStatusStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_LOCKOUT_STATUS))) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
-            }
-
-            @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = ActivationsWizardPanel.this.onSavePerformed(target);
-                if (result != null && !result.isError()) {
-                    onExitPerformed(target);
-                }
-            }
-        };
-        lockPanel.setOutputMarkupId(true);
-        steps.add(lockPanel);
-
-        return steps;
+                        getValueModel(),
+                        ResourceObjectTypeDefinitionType.F_ACTIVATION);
+        add(createChoiceFragment(
+                new ActivationMappingWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel(), containerModel)));
     }
 }

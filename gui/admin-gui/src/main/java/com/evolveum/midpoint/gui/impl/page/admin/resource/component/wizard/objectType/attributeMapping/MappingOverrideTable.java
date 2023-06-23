@@ -69,7 +69,7 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
 
             ResourceAttributeMappingValueWrapper newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);
-            newAttributeMappingWrapper.addAttributeMappingType(WrapperContext.AttributeMappingType.OVERRIDE);
+            newAttributeMappingWrapper.addAttributeMappingType(WrapperContext.MappingDirection.OVERRIDE);
 
             return newAttributeMappingWrapper;
         } catch (SchemaException e) {
@@ -98,7 +98,7 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
                 return list.stream().filter(value -> {
                     if (value instanceof ResourceAttributeMappingValueWrapper) {
                         return ((ResourceAttributeMappingValueWrapper) value).getAttributeMappingTypes()
-                                .contains(WrapperContext.AttributeMappingType.OVERRIDE);
+                                .contains(WrapperContext.MappingDirection.OVERRIDE);
                     }
                     return true;
                 }).collect(Collectors.toList());

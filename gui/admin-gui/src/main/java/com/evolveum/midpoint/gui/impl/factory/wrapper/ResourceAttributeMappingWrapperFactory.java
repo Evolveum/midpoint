@@ -7,16 +7,14 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext.AttributeMappingType;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -48,12 +46,12 @@ public class ResourceAttributeMappingWrapperFactory extends PrismContainerWrappe
         ResourceAttributeMappingValueWrapper value = new ResourceAttributeMappingValueWrapper(objectWrapper, objectValue, status);
         @Nullable ResourceAttributeDefinitionType realValue = objectValue.getRealValue();
         if (status.equals(ValueStatus.NOT_CHANGED) && realValue != null) {
-            value.addAttributeMappingType(AttributeMappingType.OVERRIDE);
+            value.addAttributeMappingType(MappingDirection.OVERRIDE);
             if (!realValue.getInbound().isEmpty()) {
-                value.addAttributeMappingType(AttributeMappingType.INBOUND);
+                value.addAttributeMappingType(MappingDirection.INBOUND);
             }
             if (realValue.getOutbound() != null) {
-                value.addAttributeMappingType(AttributeMappingType.OUTBOUND);
+                value.addAttributeMappingType(MappingDirection.OUTBOUND);
             }
         } else if (status.equals(ValueStatus.ADDED) && context.getAttributeMappingType() != null) {
             value.addAttributeMappingType(context.getAttributeMappingType());

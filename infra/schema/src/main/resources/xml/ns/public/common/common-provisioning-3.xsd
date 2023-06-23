@@ -2079,6 +2079,9 @@
                         Mapping for resource object existence. This mapping decides whether the resource object
                         should exist at all.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>80</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="administrativeStatus" type="tns:ResourceBidirectionalMappingType" minOccurs="0">
@@ -2086,6 +2089,9 @@
                     <xsd:documentation>
                         Mapping for activation administrative status.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>10</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validFrom" type="tns:ResourceBidirectionalMappingType" minOccurs="0">
@@ -2093,6 +2099,9 @@
                     <xsd:documentation>
                         Mapping for activation start of validity.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>50</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validTo" type="tns:ResourceBidirectionalMappingType" minOccurs="0">
@@ -2100,6 +2109,9 @@
                     <xsd:documentation>
                         Mapping for activation end of validity.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>60</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="lockoutStatus" type="tns:ResourceBidirectionalMappingType" minOccurs="0">
@@ -2107,6 +2119,9 @@
                     <xsd:documentation>
                         Mapping for activation lockout status.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>70</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="disableInsteadDelete" type="tns:AbstractPredefinedActivationMappingType" minOccurs="0">
@@ -2119,6 +2134,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.8</a:since>
+                        <a:displayOrder>20</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2135,6 +2151,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.8</a:since>
+                        <a:displayOrder>30</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2146,6 +2163,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.8</a:since>
+                        <a:displayOrder>40</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

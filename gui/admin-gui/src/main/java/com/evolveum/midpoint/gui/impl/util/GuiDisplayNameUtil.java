@@ -10,10 +10,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -238,6 +245,14 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(MappingType mapping) {
+        if (mapping.asPrismContainerValue().getPath().isSubPath(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_OBJECT_TYPE,
+                        ResourceObjectTypeDefinitionType.F_ACTIVATION))) {
+            PrismContainer parent = (PrismContainer) mapping.asPrismContainerValue().getParent();
+            return WebPrismUtil.getLocalizedDisplayName(parent);
+        }
         String mappingName = mapping.getName();
         if (StringUtils.isNotBlank(mappingName)) {
             String description = mapping.getDescription();
@@ -269,6 +284,10 @@ public class GuiDisplayNameUtil {
             targetDescription = "(no targets)";
         }
         return sourceDescription + " - " + targetDescription;
+    }
+
+    public static String getDisplayName(AbstractPredefinedActivationMappingType mapping) {
+            return WebPrismUtil.getLocalizedDisplayName((PrismContainer)mapping.asPrismContainerValue().getParent());
     }
 
     public static String getDisplayName(ProvenanceAcquisitionType acquisition) {
@@ -317,5 +336,13 @@ public class GuiDisplayNameUtil {
         }
 
         return "";
+    }
+
+    public static String getDisplayName(Object object) {
+        if (object == null) {
+            return "";
+        }
+        return object.toString();
+
     }
 }

@@ -62,8 +62,8 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
     }
 
     @Override
-    protected WrapperContext.AttributeMappingType getMappingType() {
-        return WrapperContext.AttributeMappingType.OUTBOUND;
+    protected WrapperContext.MappingDirection getMappingType() {
+        return WrapperContext.MappingDirection.OUTBOUND;
     }
 
     @Override

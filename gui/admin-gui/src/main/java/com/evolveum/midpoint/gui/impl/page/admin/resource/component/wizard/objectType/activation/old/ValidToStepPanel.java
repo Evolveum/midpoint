@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.old;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -22,17 +22,17 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "rw-activation-validFrom",
+@PanelInstance(identifier = "rw-activation-validTo",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.validFrom", icon = "fa fa-toggle-off"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.validTo", icon = "fa fa-toggle-off"),
         expanded = true)
-public abstract class ValidFromStepPanel extends ActivationMappingStepPanel {
+public abstract class ValidToStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "rw-activation-validFrom";
+    public static final String PANEL_TYPE = "rw-activation-validTo";
 
-    public ValidFromStepPanel(ResourceDetailsModel model,
-                              IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
+    public ValidToStepPanel(ResourceDetailsModel model,
+                            IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
         super(model, containerModel);
     }
 
@@ -43,16 +43,16 @@ public abstract class ValidFromStepPanel extends ActivationMappingStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.validFrom");
+        return createStringResource("PageResource.wizard.step.activation.validTo");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.validFrom.text");
+        return createStringResource("PageResource.wizard.step.activation.validTo.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.validFrom.subText");
+        return createStringResource("PageResource.wizard.step.activation.validTo.subText");
     }
 }

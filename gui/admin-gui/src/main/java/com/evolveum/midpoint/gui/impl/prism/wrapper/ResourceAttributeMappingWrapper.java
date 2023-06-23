@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext.AttributeMappingType;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext.MappingDirection;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -29,7 +29,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -117,19 +116,19 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
         List<DeltaWrapper> deltaWrappers = new ArrayList<>();
 
         valuesToAdd.stream()
-                .filter(v -> AttributeMappingType.OVERRIDE.equals(v.getAttributeMappingTypes().get(0)))
+                .filter(v -> MappingDirection.OVERRIDE.equals(v.getAttributeMappingTypes().get(0)))
                 .forEach(v -> deltaWrappers.add(new DeltaWrapper(v)));
 
         valuesNotChanged.stream()
-                .filter(v -> v.getAttributeMappingTypes().contains(AttributeMappingType.OVERRIDE))
+                .filter(v -> v.getAttributeMappingTypes().contains(MappingDirection.OVERRIDE))
                 .forEach(v -> deltaWrappers.add(new DeltaWrapper(v)));
 
         for (ResourceAttributeMappingValueWrapper v : valuesNotChanged) {
-            if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)
-                    || v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+            if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)
+                    || v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
                 List<ItemPath> pathsForDelete = new ArrayList<>();
 
-                if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
+                if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)) {
                     pathsForDelete.addAll(
                             processAlreadyExistValue(
                                     v,
@@ -138,7 +137,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
                                     ResourceAttributeDefinitionType.F_INBOUND,
                                     true));
                 }
-                if (v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+                if (v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
                     pathsForDelete.addAll(
                             processAlreadyExistValue(
                                     v,
@@ -175,12 +174,12 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
         }
 
         for (ResourceAttributeMappingValueWrapper v : valuesToDelete) {
-            if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)
-                    || v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
-                if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
+            if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)
+                    || v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
+                if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)) {
                     processAlreadyExistValue(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_INBOUND, false);
                 }
-                if (v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+                if (v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
                     processAlreadyExistValue(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_OUTBOUND, false);
                 }
 
@@ -193,11 +192,11 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
         }
 
         for (ResourceAttributeMappingValueWrapper v : valuesToAdd) {
-            if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
+            if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)) {
                 processAddValues(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_INBOUND);
             }
 
-            if (v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+            if (v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
                 processAddValues(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_OUTBOUND);
             }
         }

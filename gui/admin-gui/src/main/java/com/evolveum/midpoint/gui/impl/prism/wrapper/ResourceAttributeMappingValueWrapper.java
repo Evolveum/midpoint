@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext.AttributeMappingType;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
@@ -22,7 +22,7 @@ public class ResourceAttributeMappingValueWrapper extends PrismContainerValueWra
 
     private static final long serialVersionUID = 1L;
 
-    private List<AttributeMappingType> attributeMappingTypes = new ArrayList<>();
+    private List<MappingDirection> attributeMappingTypes = new ArrayList<>();
 
     public ResourceAttributeMappingValueWrapper(
             PrismContainerWrapper<ResourceAttributeDefinitionType> parent,
@@ -31,13 +31,13 @@ public class ResourceAttributeMappingValueWrapper extends PrismContainerValueWra
         super(parent, pcv, status);
     }
 
-    public void addAttributeMappingType(AttributeMappingType valueType) {
+    public void addAttributeMappingType(MappingDirection valueType) {
         if (!attributeMappingTypes.contains(valueType)) {
             attributeMappingTypes.add(valueType);
         }
     }
 
-    public List<AttributeMappingType> getAttributeMappingTypes() {
+    public List<MappingDirection> getAttributeMappingTypes() {
         return attributeMappingTypes;
     }
 }

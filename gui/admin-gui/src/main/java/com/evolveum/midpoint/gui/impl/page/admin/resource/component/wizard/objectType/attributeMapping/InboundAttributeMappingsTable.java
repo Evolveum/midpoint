@@ -44,8 +44,8 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
     }
 
     @Override
-    protected WrapperContext.AttributeMappingType getMappingType() {
-        return WrapperContext.AttributeMappingType.INBOUND;
+    protected WrapperContext.MappingDirection getMappingType() {
+        return WrapperContext.MappingDirection.INBOUND;
     }
 
     @Override

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,11 +38,11 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
     }
 
     protected void initLayout() {
-        add(createChoiceFragment(createTablePanel(WrapperContext.AttributeMappingType.INBOUND)));
+        add(createChoiceFragment(createTablePanel(MappingDirection.INBOUND)));
     }
 
     protected AttributeMappingsTableWizardPanel<ResourceObjectTypeDefinitionType> createTablePanel(
-            WrapperContext.AttributeMappingType initialTab) {
+            MappingDirection initialTab) {
         return new AttributeMappingsTableWizardPanel<>(getIdOfChoicePanel(), getHelper(), initialTab) {
 
             @Override
@@ -55,13 +56,13 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
             }
 
             @Override
-            protected void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {
+            protected void onShowOverrides(AjaxRequestTarget target, MappingDirection selectedTable) {
                 showAttributeOverrides(target, selectedTable);
             }
         };
     }
 
-    private void showAttributeOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {
+    private void showAttributeOverrides(AjaxRequestTarget target, MappingDirection selectedTable) {
         showChoiceFragment(
                 target,
                 new MappingOverridesTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
@@ -92,7 +93,7 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
         steps.add(new AttributeInboundStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target, WrapperContext.AttributeMappingType.INBOUND);
+                showTableFragment(target, MappingDirection.INBOUND);
             }
         });
         return steps;
@@ -111,14 +112,14 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
         steps.add(new AttributeOutboundStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target, WrapperContext.AttributeMappingType.OUTBOUND);
+                showTableFragment(target, MappingDirection.OUTBOUND);
             }
         });
         return steps;
     }
 
     private List<WizardStep> createNewAttributeOverrideSteps(
-            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, WrapperContext.AttributeMappingType selectedTable) {
+            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, MappingDirection selectedTable) {
         List<WizardStep> steps = new ArrayList<>();
         steps.add(new MainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
@@ -136,7 +137,7 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
         return steps;
     }
 
-    private void showTableFragment(AjaxRequestTarget target, WrapperContext.AttributeMappingType initialTab) {
+    private void showTableFragment(AjaxRequestTarget target, MappingDirection initialTab) {
         showChoiceFragment(target, createTablePanel(initialTab));
     }
 }

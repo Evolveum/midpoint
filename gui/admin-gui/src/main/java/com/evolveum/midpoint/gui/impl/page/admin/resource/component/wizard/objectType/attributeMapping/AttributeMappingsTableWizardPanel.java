@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -65,12 +65,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private static final String ID_TAB_TABLE = "tabTable";
 
-    private final WrapperContext.AttributeMappingType initialTab;
+    private final MappingDirection initialTab;
 
     public AttributeMappingsTableWizardPanel(
             String id,
             WizardPanelHelper<P, ResourceDetailsModel> superHelper,
-            WrapperContext.AttributeMappingType initialTab) {
+            MappingDirection initialTab) {
         super(id, superHelper);
         this.initialTab = initialTab;
     }
@@ -189,12 +189,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return (AttributeMappingsTable) tabPanel.get(TabbedPanel.TAB_PANEL_ID);
     }
 
-    public WrapperContext.AttributeMappingType getSelectedMappingType() {
+    public MappingDirection getSelectedMappingType() {
         AttributeMappingsTable table = getTable();
         if (table instanceof InboundAttributeMappingsTable) {
-            return WrapperContext.AttributeMappingType.INBOUND;
+            return MappingDirection.INBOUND;
         } else if (table instanceof OutboundAttributeMappingsTable) {
-            return WrapperContext.AttributeMappingType.OUTBOUND;
+            return MappingDirection.OUTBOUND;
         }
         return null;
     }
@@ -222,7 +222,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return getTable().isValidFormComponents(target);
     }
 
-    protected abstract void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedMappingType);
+    protected abstract void onShowOverrides(AjaxRequestTarget target, MappingDirection selectedMappingType);
 
     @Override
     protected String getSaveLabelKey() {
