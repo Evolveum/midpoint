@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja;
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Deprecated
 public class TestMain {
 
     public static void main(String[] args) throws Exception {
@@ -133,5 +134,22 @@ public class TestMain {
         Main.main(args.split(" "));
         System.out.println("RUN TIME: " + (System.currentTimeMillis() - time));
         System.out.println();
+    }
+
+    public void testJANSI() throws Exception {
+        AnsiConsole.systemInstall();
+
+//        System.out.print(Ansi.ansi().a("vilko\n"));
+//        System.out.print(Ansi.ansi().cursorUpLine().eraseLine());
+//        System.out.print(Ansi.ansi().a("janko\n"));
+
+        System.out.println(Ansi.ansi().fgBlue().a("Start").reset());
+        for (int i = 0; i < 10; i++) {
+            System.out.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).fgGreen().a(i).reset());
+            Thread.sleep(500);
+        }
+        System.out.println(Ansi.ansi().fgRed().a("Complete").reset());
+
+        AnsiConsole.systemUninstall();
     }
 }

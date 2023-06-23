@@ -94,7 +94,7 @@ public class AuditFactory {
                 return candidate;
             }
         }
-        throw new SystemException("Couldn't find AuditServiceFactory for class " + clazz);
+        throw new SystemException("Couldn't find AuditServiceFactory for class " + clazz.getName());
     }
 
     private String getFactoryClassName(Configuration config) {

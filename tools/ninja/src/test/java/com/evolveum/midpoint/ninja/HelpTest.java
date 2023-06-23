@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.ninja;
 
-import com.evolveum.midpoint.ninja.impl.Command;
-
 import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.ninja.impl.Command;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class HelpTest extends BaseTest {
+public class HelpTest implements NinjaTestMixin {
 
     @Test
     public void runHelp() throws Exception {
-        executeTest(new String[] { "-h" }, null, null, null);
+        executeTest(null, null, "-h");
 
         //todo assert help somehow
     }
@@ -26,7 +26,7 @@ public class HelpTest extends BaseTest {
     @Test
     public void runHelpForEachCommand() throws Exception {
         for (Command command : Command.values()) {
-            executeTest(new String[] { "-h", command.getCommandName() }, null, null, null);
+            executeTest(null, null, "-h", command.getCommandName());
         }
     }
 }

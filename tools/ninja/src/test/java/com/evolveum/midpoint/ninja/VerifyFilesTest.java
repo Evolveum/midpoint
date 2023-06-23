@@ -1,8 +1,10 @@
-package com.evolveum.midpoint.ninja.upgrade;
+package com.evolveum.midpoint.ninja;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.ninja.NinjaTestMixin;
@@ -10,7 +12,10 @@ import com.evolveum.midpoint.ninja.action.*;
 
 public class VerifyFilesTest implements NinjaTestMixin {
 
-    protected static final File UPGRADE_MIDPOINT_HOME = new File("./target/midpoint-home-upgrade");
+    @BeforeClass
+    public void beforeClass() throws IOException {
+        setupMidpointHome();
+    }
 
     @Test
     public void verifyFilesTest() throws Exception {
@@ -18,7 +23,7 @@ public class VerifyFilesTest implements NinjaTestMixin {
         baseOptions.setVerbose(true);
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setMidpointHome(UPGRADE_MIDPOINT_HOME.getPath());
+        connectionOptions.setMidpointHome(getMidpointHome());
 
         VerifyFilesOptions verifyFilesOptions = new VerifyFilesOptions();
         verifyFilesOptions.setFiles(List.of(new File("./src/test/resources/upgrade/objects")));

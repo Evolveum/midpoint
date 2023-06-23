@@ -36,26 +36,13 @@ public class TestUtils {
             zos.closeEntry();
         } else {
             File[] fileList = input.listFiles();
+            if (fileList == null) {
+                return;
+            }
+
             for (File file : fileList) {
                 zipFile(file, rootPath, zos);
             }
         }
-
-//        File[] fileList = input.listFiles();
-//        for (File file : fileList) {
-//            if (file.isDirectory()) {
-//                zipFile(file, rootPath, zos);
-//            } else {
-//                Path filePath = file.toPath();
-//                String relativePath = rootPath.relativize(filePath).toString();
-//                ZipEntry ze = new ZipEntry(relativePath);
-//                zos.putNextEntry(ze);
-//
-//                try (FileInputStream fis = new FileInputStream(file)) {
-//                    IOUtils.copy(fis, zos);
-//                }
-//                zos.closeEntry();
-//            }
-//        }
     }
 }
