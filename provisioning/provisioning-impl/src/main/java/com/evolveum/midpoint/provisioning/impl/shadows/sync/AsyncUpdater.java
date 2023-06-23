@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -50,7 +51,7 @@ public class AsyncUpdater {
             ExpressionEvaluationException {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
-        ProvisioningContext globalContext = ctxFactory.createForBulkOperation(coordinates, callerTask, callerResult);
+        ProvisioningContext globalContext = ctxFactory.createForBulkOperation(coordinates, new ProvisioningOperationContext(), callerTask, callerResult);
 
         IndividualEventsAcknowledgeGate<AsyncUpdateEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 

@@ -170,15 +170,26 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:name</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use AbstractAuthenticationModuleType/identifier instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique name of the authentication module. This name is fact a short identifier.
+                        It is supposed to give some idea about nature of the module to system administrator.
+                        But it is not supposed to be used as a user-friendly label for the module.
+                        Module name must be unique.
+                        <p>
+                            Deprecated, use identifier instead
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1627,15 +1638,26 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:name</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use AuthenticationSequenceType/identifier instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique name of the authentication sequence. This name is fact a short identifier.
+                        It is supposed to give some idea about purpose of the sequence to system administrator.
+                        But it is not supposed to be used as a user-friendly label.
+                        Sequence name must be unique.
+                        <p>
+                            Deprecated, use identifier instead
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1831,15 +1853,25 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:name</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use AuthenticationSequenceModuleType/identifier instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the authentication module name. Value of this element must match name of
+                        existing authentication module.
+                        <p>
+                            Deprecated, use identifier instead.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2073,15 +2105,24 @@
                     <a:operation>removed</a:operation>
                     <a:comment>Use flexible authentication sequence instead.</a:comment>
                 </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:name</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use CredentialsResetPolicyType/identifier instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the password reset scheme. This is a short name that acts both as an
+                        identifier of the scheme and also as a short name used for diagnostics.
+
+                        DEPRECATED: use identifier attribute instead of name
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="identifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2892,5 +2933,203 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthorizationEvaluationRequestType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request to evaluate authorizations for diagnostics purposes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="subjectRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the subject for which the authorizations should be evaluated.
+                        May contain the full object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                        <a:objectReferenceTargetType>FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalAuthorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Additional authorization(s) that will be added to ones already possessed by the subject.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="actionUrl" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Action URL or URLs to be evaluated. The default is (...)model-3#read.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tracing" type="tns:AuthorizationEvaluationTracingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the evaluation should be traced.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthorizationEvaluationAccessDecisionRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A request to evaluate authorization-based access decision.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuthorizationEvaluationRequestType">
+                <xsd:choice>
+                    <xsd:element name="objectRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the object for which the authorizations should be evaluated.
+                                May contain the full object.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:composite>true</a:composite>
+                                <a:objectReferenceTargetType>ObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="value" type="xsd:anyType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The (presumably sub-object) value for which the authorizations should be evaluated.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="authorizationEvaluationAccessDecisionRequest" type="tns:AuthorizationEvaluationAccessDecisionRequestType"/>
+
+    <xsd:complexType name="AuthorizationEvaluationFilterProcessingRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A request to evaluate authorization-based filter processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuthorizationEvaluationRequestType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type for which the provided and resulting filter should be applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The object filter (optional).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="authorizationEvaluationFilterProcessingRequest" type="tns:AuthorizationEvaluationFilterProcessingRequestType"/>
+
+    <xsd:complexType name="AuthorizationEvaluationResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Response of diagnostic evaluation of authorizations.
+
+                Preliminary. Most probably it will be changed into a more structured form;
+                maybe different for specific requests (access decision, object item filtering, filter pre-processing).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="result" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The result in the textual form.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="computation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The computation notes in the textual form.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AdditionalAuthorizationsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                HACK, FIXME document
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="authorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An authorization.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="additionalAuthorizations" type="tns:AdditionalAuthorizationsType"/>
+
+    <xsd:complexType name="AuthorizationEvaluationTracingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the evaluation should be traced.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="selectorTracingEnabled" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should be the evaluation of selectors traced?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

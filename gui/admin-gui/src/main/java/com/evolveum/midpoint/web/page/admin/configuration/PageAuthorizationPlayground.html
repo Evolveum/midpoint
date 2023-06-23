@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-inline" role="form">
+
+        <div>
+        <h3>Introduction</h3>
+        <p>The purpose of this page is to check the definition of authorizations.</p>
+        <p>You can take any existing user (or service or whatever subject is allowed to log into midPoint) and check
+            the effects of their authorizations. You can add your own authorizations to the ones currently defined for the subject.</p>
+        <p>Alternatively, you can start from scratch by not choosing any subject. In that case, only the authorizations explicitly provided here will be applied.</p>
+        </div>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h3><wicket:message key="PageAuthorizationPlayground.Subject"/></h3>
+                    <div style="padding: 15px; margin-bottom: 15px">
+                    <b>TODO</b> Here will be a select box that would allow us to select any subject. For the time being, you may specify the OID here:
+                        <input class="input-sm form-control" wicket:id="subjectOid"/>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <h4><wicket:message key="PageAuthorizationPlayground.AdditionalAuthorizations"/></h4>
+                    <p>You can define any additional authorizations here.</p>
+                    <textarea wicket:id="additionalAuthorizations" style="margin-bottom: 20px"></textarea>
+                </div>
+                <div class="form-group" style="margin-top: 10px; width: 100%;" >
+                    <label for="sample" style="margin-right: 10px;">There are some samples prepared. Just select any of them:</label>
+                    <select id="sample" class="input-sm form-control" wicket:id="sample"/>
+                </div>
+            </div>
+            <div class="row">
+                <div style="width: 100%; margin-top: 10px">
+                    <h3>Filter processing</h3>
+                    <p>Here you can test how are object filters transformed (limited) by the authorizations to cover only those objects that the subject has the rights to see.</p>
+                </div>
+                <div>
+                    <label for="type">Please select the type of objects:</label>
+                    <input id="type" class="input-sm form-control" wicket:id="type"/>
+                </div>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <!-- hack (as everything on this page) -->
+                <div class="col-lg-12; margin-top: 10px">
+                    <label for="type">Please specify the initial filter. If not provided, we assume all objects of given type are to be seen.</label>
+                    <textarea wicket:id="objectFilter" style="margin-bottom: 10px"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div style="width: 100%; margin-top: 10px">
+                    <h3>Object processing</h3>
+                    <p>Here you can check the application of authorizations on objects being read.</p>
+                </div>
+                <div>
+                    <label for="objectOid">Please enter the object OID (temporary):</label>
+                    <input id="objectOid" class="input-sm form-control" wicket:id="objectOid"/>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 10px">
+                <h3>Authorization evaluation</h3>
+                <div style="width: 100%">By clicking on this button, the evaluation of authorizations starts.
+                    If specific object is selected, the "read" authorizations are checked against it.
+                    Otherwise, the filter is computed.</div>
+                <div class="main-button-bar" style="margin-top: 10px">
+                    <a class="btn btn-primary" wicket:id="execute"></a>
+                </div>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <!-- hack -->
+                <div>
+                    <label for="selectorTracing">Selector tracing enabled</label>
+                    <input type="checkbox" id="selectorTracing" wicket:id="selectorTracing"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12" style="margin-top: 15px">
+                    <h3><wicket:message key="PageAuthorizationPlayground.Result"/></h3>
+                    <p>Here is the result of the evaluation.</p>
+                    <textarea wicket:id="resultText"></textarea>
+                </div>
+                <div class="col-lg-12" style="margin-top: 10px">
+                    <h3><wicket:message key="PageAuthorizationPlayground.Computation"/></h3>
+                    <p>Details about how the result was computed.</p>
+                    <textarea wicket:id="computationText"></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</wicket:extend>
+</body>
+</html>

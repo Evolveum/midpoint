@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityBasic extends AbstractSecurityTest {
+public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -409,7 +409,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         USER_DEPUTY_1.init(this, task, result);
         try {
-            login(USER_DEPUTY_1.getNameOrig());
+            login(USER_DEPUTY_1);
 
             // WHEN
             when();
@@ -475,7 +475,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         addObject(USER_DEPUTY_2, task, result);
         try {
-            login(USER_DEPUTY_2.getNameOrig());
+            login(USER_DEPUTY_2);
 
             // WHEN
             when();

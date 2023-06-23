@@ -14,25 +14,13 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.query.LinkedSelectorToFilterTranslator;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -41,10 +29,18 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.common.query.LinkedSelectorToFilterTranslator;
+import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Functions related to "linked objects" functionality.
@@ -59,10 +55,6 @@ public class LinkedObjectsFunctions {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MidpointFunctionsImpl midpointFunctions;
     @Autowired private LinkManager linkManager;
-    @Autowired private ExpressionFactory expressionFactory;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
@@ -108,13 +100,17 @@ public class LinkedObjectsFunctions {
             return List.of();
         }
         PrismReferenceValue focusReference = focusObjectReference.asReferenceValue();
-        LinkedSelectorToFilterTranslator translator = new LinkedSelectorToFilterTranslator(definition.getSelector(), focusReference,
-                "finding linked sources for " + focusContext, prismContext, expressionFactory,
-                currentTask, currentResult);
-        ObjectQuery query = prismContext.queryFactory().createQuery(translator.createFilter());
+        LinkedSelectorToFilterTranslator translator = new LinkedSelectorToFilterTranslator(
+                definition.getSelector(),
+                focusReference,
+                "finding linked sources for " + focusContext,
+                LOGGER,
+                currentTask);
+        ObjectQuery query = prismContext.queryFactory().createQuery(translator.createFilter(currentResult));
 
         //noinspection unchecked
-        return (List<T>) midpointFunctions.searchObjects(translator.getNarrowedTargetType(), query, null);
+        return (List<T>) midpointFunctions.searchObjects(
+                translator.getNarrowedTargetType(), query, null);
     }
 
     // Should be used after assignment evaluation!
@@ -142,7 +138,7 @@ public class LinkedObjectsFunctions {
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMemberRelation = membership.stream()
                 .filter(ref -> relationRegistry.isMember(ref.getRelation()) && objectTypeMatches(ref, type))
-                .collect(Collectors.toList());
+                .toList();
         // TODO deduplicate w.r.t. member/manager
         // TODO optimize matching
         List<T> objects = new ArrayList<>(assignedWithMemberRelation.size());
@@ -178,7 +174,7 @@ public class LinkedObjectsFunctions {
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMatchingRelation = membership.stream()
                 .filter(ref -> relationMatches(ref, definition.getSelector()) && objectTypeMatches(ref, expectedClasses))
-                .collect(Collectors.toList());
+                .toList();
         // TODO deduplicate w.r.t. member/manager
         // TODO optimize matching
         List<T> objects = new ArrayList<>(assignedWithMatchingRelation.size());
@@ -255,12 +251,13 @@ public class LinkedObjectsFunctions {
                 && (archetypeOid == null || hasArchetypeRef(targetObject, archetypeOid));
     }
 
-    private boolean objectMatches(AssignmentHolderType targetObject, ObjectSelectorType selector)
+    private boolean objectMatches(@NotNull AssignmentHolderType targetObject, @Nullable ObjectSelectorType selector)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         return selector == null ||
-                repositoryService.selectorMatches(
-                        selector, targetObject.asPrismObject(), null, LOGGER, "");
+                SelectorMatcher.forSelector(selector)
+                        .withLogging(LOGGER)
+                        .matches(targetObject.asPrismContainerValue());
     }
 
     @Experimental // todo clean up!

@@ -12,8 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 import java.util.*;
 
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.google.common.base.Preconditions;
@@ -53,7 +53,7 @@ public class ArchetypeRefClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx) {
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx) {
         Object realValue = value.getRealValueIfExists();
         if (realValue instanceof AssignmentHolderType) {
             Collection<String> actualArchetypeOids =
@@ -76,7 +76,7 @@ public class ArchetypeRefClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) throws SchemaException {
+    public boolean toFilter(@NotNull FilteringContext ctx) throws SchemaException {
         addConjunct(
                 ctx,
                 PrismContext.get().queryFor(AssignmentHolderType.class)

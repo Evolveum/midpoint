@@ -2835,6 +2835,19 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    protected <O extends ObjectType> void assertNoRepoObjects(Class<O> type) throws SchemaException {
+        OperationResult result = createSubresult("assertNoRepoObjects");
+        try {
+            var objects = repositoryService.searchObjects(type, null, null, result);
+            assertThat(objects).as(type.getSimpleName() + " objects").isEmpty();
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
     protected void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
         IntegrationTestTools.assertAssociation(shadow, associationName, entitlementOid);
     }
@@ -4510,7 +4523,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     public void initTestObjects(Task task, OperationResult result, TestObject<?>... objects) throws Exception {
         for (TestObject<?> object : objects) {
-            object.init(this, getTestTask(), getTestOperationResult());
+            object.init(this, task, result);
+        }
+    }
+
+    public void initTestObjectsRaw(OperationResult result, TestObject<?>... objects) throws Exception {
+        for (TestObject<?> object : objects) {
+            object.initRaw(this, result);
         }
     }
 }

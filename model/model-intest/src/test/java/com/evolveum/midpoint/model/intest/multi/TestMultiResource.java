@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.*;
@@ -130,6 +131,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        setRecordResourceStageEnabled(true, initTask, initResult);
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
@@ -1951,22 +1954,32 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertRecords(7);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,3);
-        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+
+        dummyAuditService.assertHasDelta(0, AuditEventStage.RESOURCE, ChangeType.ADD, ShadowType.class);
+
+        dummyAuditService.assertExecutionDeltas(1, 3);
+        dummyAuditService.assertHasDelta(1, ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1, ChangeType.ADD, ShadowType.class);
+
+        dummyAuditService.assertHasDelta(2, AuditEventStage.RESOURCE, ChangeType.ADD, ShadowType.class);
+
+        dummyAuditService.assertExecutionDeltas(3, 3);
+        dummyAuditService.assertHasDelta(3, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(3, ChangeType.ADD, ShadowType.class);
+
+        dummyAuditService.assertHasDelta(4, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+
+        dummyAuditService.assertExecutionDeltas(5, 2);
+        dummyAuditService.assertHasDelta(5, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(5, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
-        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
+        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(5, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         displayDumpable("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
@@ -2032,22 +2045,25 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertRecords(7);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,2);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3,2);
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(4, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(5,2);
+        dummyAuditService.assertHasDelta(5,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(5,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
-        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
+        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(5, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         displayDumpable("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
@@ -2077,15 +2093,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);            // last one is duplicate
+        dummyAuditService.assertRecords(5);            // last one is duplicate
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,2);            // user is again disabled here
-        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
+        dummyAuditService.assertHasDelta(0, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3,2);            // user is again disabled here
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
     }
 
@@ -2112,16 +2130,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);                        // last one is duplicate
+        dummyAuditService.assertRecords(5);                        // last one is duplicate
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,2);            // user is again disabled here
-        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
+        dummyAuditService.assertHasDelta(0, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2, AuditEventStage.RESOURCE, ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3,2);            // user is again disabled here
+        dummyAuditService.assertHasDelta(3, ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
+        dummyAuditService.assertHasDelta(3,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
+
+        setRecordResourceStageEnabled(false, task, result);
     }
 
     @Test
@@ -2579,6 +2601,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
+        // during this operation (more specifically get shadow) shadow is refreshed, pending operations deleted and
+        // modifyTimestamp updated, meaning deadRetentionPeriod will not be exceeded
+        reconcileUser(userBefore.getOid(), task, result);
+
+        // this will remove shadow during shadow refresh, since it's dead and modifications didn't happend
+        clockForward("P10D");
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN

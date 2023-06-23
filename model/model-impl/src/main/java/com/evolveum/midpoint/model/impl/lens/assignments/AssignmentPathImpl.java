@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
@@ -262,6 +264,17 @@ public class AssignmentPathImpl implements AssignmentPath {
             }
         }
         return true;
+    }
+
+    @Override
+    public @NotNull OtherPrivilegesLimitations.Limitation getOtherPrivilegesLimitation() {
+        OtherPrivilegesLimitations.Limitation limitation = OtherPrivilegesLimitations.Limitation.allowingAll();
+        for (AssignmentPathSegmentImpl segment : segments) {
+            if (segment.isDelegation()) {
+                limitation.restrict(segment.getAssignment().getLimitOtherPrivileges());
+            }
+        }
+        return limitation;
     }
 
     boolean containsDelegation(boolean evaluateOld, RelationRegistry relationRegistry) {

@@ -1681,6 +1681,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                             .display()
                             .assertAdd();
         // @formatter:on
+        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowOid);
+        MetadataType metadata = repoShadow.asObjectable().getMetadata();
+        assertTrue("Shadow doesn't have metadata", metadata != null && metadata.getCreateTimestamp() != null);
 
         //start openDJ
         openDJController.start();

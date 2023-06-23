@@ -7,8 +7,6 @@
   -->
 <user oid="c0c010c0-d34d-b33f-f00d-111111111111"
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
         xmlns:xsd='http://www.w3.org/2001/XMLSchema'
         xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
@@ -18,6 +16,9 @@
         <piracy:weapon>pistol</piracy:weapon>
         <piracy:weapon>mouth</piracy:weapon>
     </extension>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>

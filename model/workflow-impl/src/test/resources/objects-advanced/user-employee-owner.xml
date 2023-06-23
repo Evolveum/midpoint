@@ -6,12 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user oid="8d8e1a4e-61a6-4ad1-a51a-1dfc218551da"
-        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>employee-owner</name>
-    <!-- assignment will be created on role creation -->
+    <!-- the governance assignment will be created on role creation -->
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
 </user>

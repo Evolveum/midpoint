@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
 
 import java.util.List;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +63,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             @NotNull ShadowType repoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
@@ -76,6 +79,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
         ProvisioningContext ctx;
         try {
             ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(repoShadow, task, result);
+            ctx.setOperationContext(context);
             ctx.assertDefinition();
             ctx.checkExecutionFullyPersistent();
         } catch (ObjectNotFoundException ex) {

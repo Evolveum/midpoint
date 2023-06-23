@@ -1,0 +1,6 @@
+<additionalAuthorizations xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <authorization>
+        <name>Full authorization</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
+    </authorization>
+</additionalAuthorizations>

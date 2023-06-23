@@ -186,7 +186,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         if (ps != null) {
             // TODO take name from process specification itself (if present)
             for (ApprovalActionWithRule actionWithRule : ps.actionsWithRules) {
-                AssociatedPolicyRule rule = actionWithRule.policyRule;
+                AssociatedPolicyRule rule = actionWithRule.policyRule();
                 // We can take all (i.e. also irrelevant) triggers here, as the conversion to bean will select the relevant ones.
                 for (EvaluatedPolicyRuleTrigger<?> trigger : rule.getEvaluatedPolicyRule().getAllTriggers()) {
                     // we don't care about options; these converted triggers will be thrown away - only messages are collected

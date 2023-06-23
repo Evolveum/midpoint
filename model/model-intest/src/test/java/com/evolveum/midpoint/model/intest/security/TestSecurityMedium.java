@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityMedium extends AbstractSecurityTest {
+public class TestSecurityMedium extends AbstractInitializedSecurityTest {
 
     private static final File USER_EMPLOYEE_FRED_FILE = new File(TEST_DIR, "user-employee-fred.xml");
 

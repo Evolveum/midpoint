@@ -375,6 +375,14 @@ public class CertCampaignTypeUtil {
         return rv;
     }
 
+    public static @NotNull List<ObjectReferenceType> getAllCandidateAssignees(@NotNull AccessCertificationCaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (var workItem : aCase.getWorkItem()) {
+            rv.addAll(workItem.getCandidateRef());
+        }
+        return rv;
+    }
+
     @SuppressWarnings("unused")         // used by certification cases report
     public static Date getLastReviewedOn(PrismContainerValue<AccessCertificationCaseType> pcv) {
         return getReviewedTimestamp(pcv.asContainerable().getWorkItem());

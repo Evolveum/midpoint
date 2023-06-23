@@ -10,7 +10,12 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.repo.api.util.AccessCertificationSupportMixin;
+import com.evolveum.midpoint.repo.api.util.CaseSupportMixin;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
+
+import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author Radovan Semancik
  * @version 3.1.1
  */
-public interface RepositoryService extends OrgTreeEvaluator {
+public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, AccessCertificationSupportMixin {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
 
@@ -647,6 +652,11 @@ public interface RepositoryService extends OrgTreeEvaluator {
      */
     RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 
+    /**
+     * Use `SelectorMatcher` in `repo-common` module instead.
+     * Or, call directly the {@link ValueSelector#matches(PrismValue, MatchingContext)} method.
+     */
+    @Deprecated
     default <O extends ObjectType> boolean selectorMatches(
             @Nullable ObjectSelectorType objectSelector,
             @Nullable PrismObject<O> object,
@@ -655,25 +665,9 @@ public interface RepositoryService extends OrgTreeEvaluator {
             @NotNull String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return selectorMatches(
-                objectSelector,
-                object != null ? object.getValue() : null,
-                filterEvaluator,
-                logger,
-                logMessagePrefix);
-    }
-
-    default boolean selectorMatches(
-            @Nullable ObjectSelectorType objectSelector,
-            @Nullable PrismValue value,
-            @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull Trace logger,
-            @NotNull String logMessagePrefix)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+        var value = object != null ? object.getValue() : null;
         return ObjectSelectorMatcher.selectorMatches(
-                objectSelector, value,
-                filterEvaluator, logger, logMessagePrefix, this);
+                objectSelector, value, filterEvaluator, logger, logMessagePrefix, this);
     }
 
     void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch);
@@ -695,4 +689,10 @@ public interface RepositoryService extends OrgTreeEvaluator {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
     PerformanceMonitor getPerformanceMonitor();
+
+    @Override
+    @NotNull
+    default RepositoryService repositoryService() {
+        return this;
+    }
 }

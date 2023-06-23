@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import static com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl.FILTER_TRACE_ENABLED;
-
 import java.util.List;
-import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,10 +18,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.AuthorizationFilterProcessingFinished;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Evaluation of given {@link Authorization} aimed to determine a "security filter", i.e. additional filter to be
@@ -33,9 +28,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * It is a part of {@link EnforcerFilterOperation}.
  */
 class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
-
-    /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
-    private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
     @NotNull private final Class<T> filterType;
     @Nullable private final ObjectFilter originalFilter;
@@ -46,7 +38,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
     private boolean applicable;
 
     AuthorizationFilterEvaluation(
-            @NotNull String id,
+            int id,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter originalFilter,
             @NotNull Authorization authorization,
@@ -68,19 +60,16 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             ConfigurationException, ObjectNotFoundException {
 
         if (objectSelectors.isEmpty()) {
-
-            // FIXME logging
-            LOGGER.trace("      No {} specification in authorization (authorization is universally applicable)", selectorLabel);
             autzFilter = FilterCreationUtil.createAll();
             applicable = true;
-
+            traceAutzProcessingEnd("no %s specification (authorization is universally applicable)", selectorLabel);
         } else {
             int i = 0;
             for (var objectSelector : objectSelectors) {
                 processSelector(i++, objectSelector);
             }
+            traceAutzProcessingEnd("%d selector(s) processed", i);
         }
-        traceAutzProcessingEnd();
         return applicable;
     }
 
@@ -95,7 +84,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             // TODO log
         } else {
             var evaluation = new SelectorFilterEvaluation<>(
-                    String.valueOf(i), adjusted, filterType, originalFilter, Set.of(), adjusted.getDescription(),
+                    selectorId(i), adjusted, filterType, originalFilter, adjusted.getDescription(),
                     selectorLabel, AuthorizationFilterEvaluation.this, result);
             if (evaluation.processFilter(includeSpecial)) {
                 autzFilter = ObjectQueryUtil.filterOr(autzFilter, evaluation.getSecurityFilter());
@@ -104,15 +93,18 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
         }
     }
 
+    public boolean isApplicable() {
+        return applicable;
+    }
+
     ObjectFilter getAutzFilter() {
         return autzFilter;
     }
 
-    private void traceAutzProcessingEnd() {
-        if (FILTER_TRACE_ENABLED && op.traceEnabled) {
-            LOGGER.trace("{} Finished deriving filter from {} (applicable: {}):\n{}",
-                    end(), TracingUtil.describe(authorization), applicable,
-                    DebugUtil.debugDump(autzFilter, 1));
+    private void traceAutzProcessingEnd(String message, Object... arguments) {
+        if (op.tracer.isEnabled()) {
+            op.tracer.trace(
+                    new AuthorizationFilterProcessingFinished(this, message, arguments));
         }
     }
 }

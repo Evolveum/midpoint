@@ -106,7 +106,15 @@
                     </items>
                 </correlators>
             </correlation>
-            <synchronization/> <!-- no reactions, just the correlation -->
+            <synchronization>
+                <!-- No reactions, just the correlation. Except for the following one to test MID-8848. -->
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
 </resource>

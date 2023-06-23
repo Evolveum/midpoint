@@ -7,7 +7,14 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +60,16 @@ public class WorkItemId implements Serializable {
         return create(CaseTypeUtil.getCaseRequired(workItem).getOid(), workItem.getId());
     }
 
+    public static Set<WorkItemId> of(@NotNull Collection<CaseWorkItemType> workItems) {
+        return workItems.stream()
+                .map(wi -> of(wi))
+                .collect(Collectors.toSet());
+    }
+
+    public static WorkItemId of(@NotNull String caseOid, long id) {
+        return new WorkItemId(caseOid, id);
+    }
+
     @NotNull
     public String getCaseOid() {
         return caseOid;
@@ -72,6 +89,10 @@ public class WorkItemId implements Serializable {
 
     public String asString() {
         return caseOid + ":" + id;
+    }
+
+    public @NotNull ItemPath asItemPath() {
+        return ItemPath.create(CaseType.F_WORK_ITEM, id);
     }
 
     @Override

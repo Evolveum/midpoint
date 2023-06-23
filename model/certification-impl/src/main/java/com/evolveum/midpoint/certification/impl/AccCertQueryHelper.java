@@ -14,9 +14,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.certification.api.AccessCertificationCaseId;
+import com.evolveum.midpoint.schema.util.AccessCertificationCaseId;
 
-import com.evolveum.midpoint.certification.api.AccessCertificationWorkItemId;
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 

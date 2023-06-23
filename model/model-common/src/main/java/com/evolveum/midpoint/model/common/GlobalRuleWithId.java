@@ -13,28 +13,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType
 
 import org.jetbrains.annotations.NotNull;
 
-/** TEMPORARY */
-public class GlobalRuleWithId {
-    @NotNull final GlobalPolicyRuleType ruleBean;
-    @NotNull final String ruleId;
+import java.io.Serializable;
 
-    private GlobalRuleWithId(@NotNull GlobalPolicyRuleType ruleBean, @NotNull String containingObjectOid) {
-        this.ruleBean = ruleBean;
-        this.ruleId = PolicyRuleTypeUtil.createId(
-                containingObjectOid,
-                MiscUtil.stateNonNull(ruleBean.getId(), () -> "Policy rule ID null: " + ruleBean));
-    }
+/** TEMPORARY */
+public record GlobalRuleWithId(
+        @NotNull GlobalPolicyRuleType ruleBean,
+        @NotNull String ruleId) implements Serializable {
 
     public static GlobalRuleWithId of(@NotNull GlobalPolicyRuleType ruleBean, @NotNull String containingObjectOid) {
-        return new GlobalRuleWithId(ruleBean, containingObjectOid);
-    }
-
-    public @NotNull GlobalPolicyRuleType getRuleBean() {
-        return ruleBean;
-    }
-
-    public @NotNull String getRuleId() {
-        return ruleId;
+        return new GlobalRuleWithId(
+                ruleBean,
+                PolicyRuleTypeUtil.createId(
+                        containingObjectOid,
+                        MiscUtil.stateNonNull(ruleBean.getId(), () -> "Policy rule ID null: " + ruleBean)));
     }
 
     @Override

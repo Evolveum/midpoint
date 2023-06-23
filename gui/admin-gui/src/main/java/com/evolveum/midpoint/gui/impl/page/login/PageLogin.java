@@ -111,6 +111,10 @@ public class PageLogin extends AbstractPageLogin {
         AuthenticationsPolicyType authenticationPolicy = securityPolicy.getAuthentication();
         AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(resetSequenceIdOrName, authenticationPolicy);
         if (sequence == null) {
+            // this lookup by name will be (probably) eventually removed
+            sequence = SecurityUtils.getSequenceByName(resetSequenceIdOrName, authenticationPolicy);
+        }
+        if (sequence == null) {
             LOGGER.warn("Password reset authentication sequence '{}' does not exist", resetSequenceIdOrName);
             return "";
         }
@@ -160,8 +164,11 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(
-                selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
+                    securityPolicy.getAuthentication());
+        }
         if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null) {
             return "";
         }

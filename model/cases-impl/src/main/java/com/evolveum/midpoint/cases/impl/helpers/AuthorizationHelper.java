@@ -7,26 +7,28 @@
 
 package com.evolveum.midpoint.cases.impl.helpers;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Helps with the authorization activities.
@@ -38,17 +40,14 @@ public class AuthorizationHelper {
 
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
-    @Autowired private RelationRegistry relationRegistry;
 
     public enum RequestedOperation {
-        COMPLETE(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS, null),
-        DELEGATE(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS, ModelAuthorizationAction.DELEGATE_OWN_WORK_ITEMS);
+        COMPLETE(ModelAuthorizationAction.COMPLETE_WORK_ITEM),
+        DELEGATE(ModelAuthorizationAction.DELEGATE_WORK_ITEM);
 
-        final ModelAuthorizationAction actionAll;
-        final ModelAuthorizationAction actionOwn;
-        RequestedOperation(ModelAuthorizationAction actionAll, ModelAuthorizationAction actionOwn) {
-            this.actionAll = actionAll;
-            this.actionOwn = actionOwn;
+        final ModelAuthorizationAction action;
+        RequestedOperation(ModelAuthorizationAction action) {
+            this.action = action;
         }
     }
 
@@ -73,44 +72,20 @@ public class AuthorizationHelper {
             return false;
         }
         try {
-            if (securityEnforcer.isAuthorized(
-                    operation.actionAll.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
-                return true;
-            }
-            if (operation.actionOwn != null && !securityEnforcer.isAuthorized(
-                    operation.actionOwn.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
-                return false;
-            }
-        } catch (SchemaException e) {
+            ObjectTypeUtil.checkIn(workItem, CaseType.class);
+            return securityEnforcer.isAuthorized(
+                    operation.action.getUrl(),
+                    null,
+                    ValueAuthorizationParameters.of(workItem),
+                    null,
+                    task, result);
+        } catch (CommonException e) {
             throw new SystemException(e.getMessage(), e);
         }
-        for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-            if (isEqualOrDeputyOf(principal, assignee.getOid(), relationRegistry)) {
-                return true;
-            }
-        }
-        return isAmongCandidates(principal, workItem);
-    }
-
-    private boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid,
-            RelationRegistry relationRegistry) {
-        return principal.getOid().equals(eligibleUserOid)
-                || DeputyUtils.isDelegationPresent(principal.getFocus(), eligibleUserOid, relationRegistry);
-    }
-
-    // principal != null, principal.getOid() != null, principal.getUser() != null
-    private boolean isAmongCandidates(MidPointPrincipal principal, CaseWorkItemType workItem) {
-        for (ObjectReferenceType candidateRef : workItem.getCandidateRef()) {
-            if (principal.getOid().equals(candidateRef.getOid())
-                    || isMemberOrDeputyOf(principal.getFocus(), candidateRef)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
-     * Returns true if the current principal is authorized to claim give work item.
+     * Returns true if the current principal is authorized to claim given work item.
      */
     public boolean isAuthorizedToClaim(CaseWorkItemType workItem) {
         MidPointPrincipal principal;
@@ -123,14 +98,20 @@ public class AuthorizationHelper {
         return principal.getOid() != null && isAmongCandidates(principal, workItem);
     }
 
-    private boolean isMemberOrDeputyOf(FocusType focusType, ObjectReferenceType userOrRoleRef) {
-        return focusType.getRoleMembershipRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref))
-                || focusType.getDelegatedRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref));
-    }
-
-    private boolean matches(ObjectReferenceType userOrRoleRef, ObjectReferenceType targetRef) {
-        // TODO check also the reference target type (user vs. abstract role)
-        return (relationRegistry.isMember(targetRef.getRelation()) || relationRegistry.isDelegation(targetRef.getRelation()))
-                && targetRef.getOid().equals(userOrRoleRef.getOid());
+    private boolean isAmongCandidates(@NotNull MidPointPrincipal principal, @NotNull CaseWorkItemType workItem) {
+        var identity = principal.getOid();
+        var directMembership = ObjectTypeUtil.getOidsFromRefs(principal.getFocus().getRoleMembershipRef());
+        var delegatedIdentitiesAndMembership = principal.getDelegatedMembershipFor(OtherPrivilegesLimitations.Type.CASES);
+        for (ObjectReferenceType candidateRef : workItem.getCandidateRef()) {
+            var candidateOid = candidateRef.getOid();
+            if (candidateOid != null) { // This is a hack to eliminate artificial empty values inserted by GUI, see MID-8900.
+                if (candidateOid.equals(identity)
+                        || directMembership.contains(candidateOid)
+                        || delegatedIdentitiesAndMembership.contains(candidateOid)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

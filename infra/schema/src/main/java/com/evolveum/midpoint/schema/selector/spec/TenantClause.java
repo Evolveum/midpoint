@@ -11,8 +11,8 @@ import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.prism.query.FilterCreationUtil.createNone;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ public class TenantClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx) {
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx) {
         var object = asObjectTypeIfPossible(value);
         if (object == null) {
             traceNotApplicable(ctx, "not an object");
@@ -82,7 +82,7 @@ public class TenantClause extends SelectorClause {
     }
 
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         if (!Boolean.TRUE.equals(bean.isSameAsSubject())) {
             addConjunct(ctx, createNone(), "tenant authorization empty");
             return false;

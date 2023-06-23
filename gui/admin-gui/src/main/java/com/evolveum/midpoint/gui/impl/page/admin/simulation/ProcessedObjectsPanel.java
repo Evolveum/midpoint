@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -262,9 +263,11 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return null;
         }
 
-        PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(new ObjectReferenceType()
-                .type(ShadowType.COMPLEX_TYPE)
-                .oid(obj.getOid()), getPageBase());
+        PageBase page = getPageBase();
+        Task task = page.getPageTask();
+
+        PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, obj.getOid(),
+                GetOperationOptions.createRawCollection(), page, task, task.getResult());
         if (shadow == null) {
             return null;
         }

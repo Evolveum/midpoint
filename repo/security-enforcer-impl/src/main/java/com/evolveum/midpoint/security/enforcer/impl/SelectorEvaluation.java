@@ -8,12 +8,8 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createAllowNotFoundCollection;
-import static com.evolveum.midpoint.security.enforcer.impl.TracingUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.getDiagInfo;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,26 +35,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  * Instantiated and used as part of an {@link EnforcerOperation}.
  */
-class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
+class SelectorEvaluation implements SubjectedEvaluationContext {
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
-    @NotNull private final String id;
+    @NotNull final String id;
     @NotNull final ValueSelector selector;
     @Nullable private final PrismValue value;
     @NotNull final String desc;
     @NotNull final AuthorizationEvaluation authorizationEvaluation;
     @NotNull private final EnforcerOperation enforcerOp;
     @NotNull final Beans b;
-    @NotNull private final Set<String> selfOids;
     @NotNull private final OperationResult result;
 
     SelectorEvaluation(
             @NotNull String id,
             @NotNull ValueSelector selector,
             @Nullable PrismValue value,
-            @NotNull Collection<String> otherSelfOids,
             @NotNull String desc,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) {
@@ -69,33 +63,22 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
         this.authorizationEvaluation = authorizationEvaluation;
         this.enforcerOp = authorizationEvaluation.op;
         this.b = enforcerOp.b;
-        this.selfOids = computeSelfOids(otherSelfOids);
         this.result = result;
-    }
-
-    @NotNull
-    private Set<String> computeSelfOids(@NotNull Collection<String> otherSelfOids) {
-        Set<String> allSelfOids = new HashSet<>(otherSelfOids);
-        String principalOid = getPrincipalOid();
-        if (principalOid != null) {
-            allSelfOids.add(principalOid);
-        }
-        return Collections.unmodifiableSet(allSelfOids);
     }
 
     boolean isSelectorApplicable()
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        var ctx = new ClauseMatchingContext(
+        var ctx = new MatchingContext(
                 createFilterEvaluator(),
-                new LoggingTracer(),
+                enforcerOp.tracer,
                 b.repositoryService,
                 this,
                 enforcerOp.ownerResolver,
-                this,
+                this::resolveReference,
                 ClauseProcessingContextDescription.defaultOne(id, desc),
-                null);
+                DelegatorSelection.NO_DELEGATOR);
 
         assert value != null;
         return selector.matches(value, ctx);
@@ -115,22 +98,18 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
         return enforcerOp.getPrincipalFocus();
     }
 
-    public Object getDesc() {
+    public @NotNull String getDesc() {
         return desc;
     }
 
     @Override
-    public @NotNull Collection<String> getSelfOids() {
-        return selfOids;
+    public @NotNull Set<String> getSelfOids(@NotNull DelegatorSelection delegatorSelection) {
+        return enforcerOp.getAllSelfOids(delegatorSelection);
     }
 
     @Override
-    public @NotNull Collection<String> getSelfOids(@Nullable Delegation delegation) {
-        return enforcerOp.getAllSelfOids(selfOids, delegation);
-    }
-
-    public String getAutzDesc() {
-        return authorizationEvaluation.getDesc();
+    public @NotNull Set<String> getSelfPlusRolesOids(@NotNull DelegatorSelection delegatorSelection) {
+        return enforcerOp.getAllSelfPlusRolesOids(delegatorSelection);
     }
 
     public @Nullable OwnerResolver getOwnerResolver() {
@@ -142,7 +121,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
     }
 
     /** TODO */
-    public PrismObject<? extends ObjectType> resolveReference(
+    PrismObject<? extends ObjectType> resolveReference(
             ObjectReferenceType ref, Object context, String referenceName) {
         if (ref != null && ref.getOid() != null) {
             Class<? extends ObjectType> type = ref.getType() != null ?
@@ -156,41 +135,6 @@ class SelectorEvaluation implements SubjectedEvaluationContext, ObjectResolver {
             }
         } else {
             return null;
-        }
-    }
-
-    public String getSelectorId() {
-        return id;
-    }
-
-    class LoggingTracer implements MatchingTracer {
-
-        @Override
-        public boolean isEnabled() {
-            return enforcerOp.traceEnabled;
-        }
-
-        @Override
-        public void trace(@NotNull TraceEvent event) {
-
-            String typeMark;
-            if (event instanceof TraceEvent.SelectorProcessingStarted) {
-                typeMark = START;
-            } else if (event instanceof TraceEvent.SelectorProcessingFinished) {
-                typeMark = END;
-            } else {
-                typeMark = CONT;
-            }
-
-            String prefix = SEL + event.getDescription().getId() + typeMark;
-
-            var record = event.defaultTraceRecord();
-            var nextLines = record.getNextLines();
-            if (nextLines == null) {
-                LOGGER.trace("{}{}", prefix, record.getFirstLine());
-            } else {
-                LOGGER.trace("{}{}\n{}", prefix, record.getFirstLine(), nextLines);
-            }
         }
     }
 }

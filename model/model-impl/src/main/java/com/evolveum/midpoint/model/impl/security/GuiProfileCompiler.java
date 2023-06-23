@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
 import com.evolveum.midpoint.prism.*;
@@ -41,7 +40,6 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
-import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -133,14 +131,11 @@ public class GuiProfileCompiler {
                 addAuthorizations(principal, assignment.getAuthorizations(), authorizationTransformer);
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
             }
-            for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
-                if (target.isValid()
-                        && target.getTarget().asObjectable() instanceof UserType
-                        && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-                    principal.addDelegatorWithOtherPrivilegesLimitations(
-                            new DelegatorWithOtherPrivilegesLimitations(
-                                    (UserType) target.getTarget().asObjectable(),
-                                    DeputyUtils.extractLimitations(target.getAssignmentPath())));
+            for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
+                if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
+                    principal.addDelegationTarget(
+                            target.getTarget(),
+                            target.getAssignmentPath().getOtherPrivilegesLimitation());
                 }
             }
         }

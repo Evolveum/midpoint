@@ -9,10 +9,8 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
-import java.util.List;
-
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +42,7 @@ public class DelegatorClause extends SelectorClause {
     }
 
     @Override
-    public boolean matches(@NotNull PrismValue value, @NotNull ClauseMatchingContext ctx)
+    public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var object = asObjectTypeIfPossible(value);
@@ -52,7 +50,8 @@ public class DelegatorClause extends SelectorClause {
             traceNotApplicable(ctx, "Not an object");
             return false;
         }
-        if (!isSelfSelector()) {
+        if (!selector.isPureSelf()) {
+            // Currently, we support only "self" delegator selector clause
             throw new UnsupportedOperationException("Unsupported non-self delegator clause");
         }
         if (!(object instanceof UserType)) {
@@ -87,14 +86,8 @@ public class DelegatorClause extends SelectorClause {
         return false;
     }
 
-    // Currently, we support only "self" delegator selector clause
-    private boolean isSelfSelector() {
-        List<SelectorClause> clauses = selector.getClauses();
-        return clauses.size() == 1 && clauses.get(0) instanceof SelfClause;
-    }
-
     @Override
-    public boolean applyFilter(@NotNull ClauseFilteringContext ctx) {
+    public boolean toFilter(@NotNull FilteringContext ctx) {
         // TODO: MID-3899
         traceNotApplicable(ctx, "not supported when searching");
         return false;

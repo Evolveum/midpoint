@@ -1,0 +1,80 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        oid="578e1d81-7865-4e05-9975-0d144fb6e488">
+    <name>
+        <t:orig>Approving and executing change of user "user1" (started 9 Jun 2023, 11:43:15)</t:orig>
+        <t:norm>approving and executing change of user user1 started 9 jun 2023 114315</t:norm>
+        <t:translation>
+            <t:key>ApprovingAndExecuting.ChangeOf</t:key>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.UserType</t:key>
+                            <t:fallback>UserType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>user1</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+            <t:argument>
+                <t:value>9 Jun 2023, 11:43:15</t:value>
+            </t:argument>
+        </t:translation>
+    </name>
+    <metadata>
+        <createTimestamp>2023-06-09T11:43:15.819+02:00</createTimestamp>
+    </metadata>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType"/>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType"/>
+    <objectRef oid="96dc9b60-6e02-4c30-a032-cb435d13a7f5" relation="org:default" type="c:UserType"/>
+    <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    <state>open</state>
+    <modelContext>
+        <state>primary</state>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
+        <focusContext>
+            <objectOldRef oid="96dc9b60-6e02-4c30-a032-cb435d13a7f5" relation="org:default" type="c:UserType"/>
+            <objectNewRef oid="96dc9b60-6e02-4c30-a032-cb435d13a7f5" relation="org:default" type="c:UserType"/>
+            <objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</objectTypeClass>
+            <oid>96dc9b60-6e02-4c30-a032-cb435d13a7f5</oid>
+            <iteration>0</iteration>
+            <iterationToken/>
+            <fresh>true</fresh>
+            <secondaryDeltas/>
+        </focusContext>
+        <focusClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</focusClass>
+        <doReconciliationForAllProjections>false</doReconciliationForAllProjections>
+        <executionPhaseOnly>false</executionPhaseOnly>
+        <projectionWave>1</projectionWave>
+        <executionWave>0</executionWave>
+        <options>
+            <force>false</force>
+            <reconcile>false</reconcile>
+            <executeImmediatelyAfterApproval>false</executeImmediatelyAfterApproval>
+        </options>
+        <lazyAuditRequest>false</lazyAuditRequest>
+        <requestAudited>false</requestAudited>
+        <executionAudited>false</executionAudited>
+        <requestAuthorized>true</requestAuthorized>
+        <stats/>
+        <requestMetadata>
+            <requestTimestamp>2023-06-09T11:43:15.800+02:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        </requestMetadata>
+    </modelContext>
+</case>

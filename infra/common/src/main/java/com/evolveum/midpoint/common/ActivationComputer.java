@@ -158,6 +158,9 @@ public class ActivationComputer {
         if (!taskExecutionMode.isProductionConfiguration() && SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleStatus)) {
             return true; // FIXME TEMPORARY IMPLEMENTATION
         }
+        if (SchemaConstants.LIFECYCLE_SUSPENDED.equals(lifecycleStatus)) {
+            return true; // FIXME TEMPORARY IMPLEMENTATION, need to do something smarter when we have full lifecycle model
+        }
 
         ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
         if (forcedLifecycleActivationStatus == null) {

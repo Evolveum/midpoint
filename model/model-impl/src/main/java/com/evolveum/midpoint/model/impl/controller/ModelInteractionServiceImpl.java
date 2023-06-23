@@ -24,6 +24,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -606,8 +608,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType,
-                origFilter, targetAuthorizationAction, null, task, parentResult);
+                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null,
+                searchResultType, origFilter, targetAuthorizationAction, null,
+                SecurityEnforcer.Options.create(), task, parentResult);
     }
 
     @Override
@@ -1496,7 +1499,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @NotNull
     @Override
     public List<ObjectReferenceType> getDeputyAssignees(
-            ObjectReferenceType assigneeRef, QName limitationItemName, Task task, OperationResult parentResult)
+            ObjectReferenceType assigneeRef,
+            OtherPrivilegesLimitations.Type limitationType,
+            Task task,
+            OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
@@ -1504,13 +1510,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Set<String> oidsToSkip = new HashSet<>();
             oidsToSkip.add(assigneeRef.getOid());
             List<ObjectReferenceType> deputies = new ArrayList<>();
-            getDeputyAssigneesNoWorkItem(deputies, assigneeRef, limitationItemName, oidsToSkip, task, result);
-            result.computeStatusIfUnknown();
+            getDeputyAssigneesNoWorkItem(deputies, assigneeRef, limitationType, oidsToSkip, task, result);
             return deputies;
         } catch (Throwable t) {
-            result.recordFatalError(t.getMessage(), t);
+            result.recordException(t);
             throw t;
         } finally {
+            result.close();
             RepositoryCache.exitLocalCaches();
         }
     }
@@ -1534,8 +1540,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(
-                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS,
-                    task, result)) {
+                    potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitations.Type.CASES, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
@@ -1544,7 +1549,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     private void getDeputyAssigneesNoWorkItem(
             List<ObjectReferenceType> deputies, ObjectReferenceType assigneeRef,
-            QName limitationItemName, Set<String> oidsToSkip,
+            OtherPrivilegesLimitations.Type limitationType, Set<String> oidsToSkip,
             Task task, OperationResult result) throws SchemaException {
         PrismReferenceValue assigneeReferenceToQuery = assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue();
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -1556,15 +1561,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
-            if (determineDeputyValidity(potentialDeputy, Collections.singletonList(assigneeRef), null, limitationItemName, task, result)) {
+            if (determineDeputyValidity(
+                    potentialDeputy, List.of(assigneeRef), null, limitationType, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
     }
 
-    private boolean determineDeputyValidity(PrismObject<UserType> potentialDeputy, List<ObjectReferenceType> assignees,
-            @Nullable AbstractWorkItemType workItem, QName privilegeLimitationItemName, Task task, OperationResult result) {
+    private boolean determineDeputyValidity(
+            PrismObject<UserType> potentialDeputy,
+            List<ObjectReferenceType> assignees,
+            @Nullable AbstractWorkItemType workItem,
+            @NotNull OtherPrivilegesLimitations.Type limitationType,
+            Task task,
+            OperationResult result) {
         AssignmentEvaluator.Builder<UserType> builder =
                 new AssignmentEvaluator.Builder<UserType>()
                         .referenceResolver(referenceResolver)
@@ -1591,14 +1602,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     continue;
                 }
                 for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // MID-6403
-                    if (target.getTarget().getOid() != null
-                            && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)
-                            && ObjectTypeUtil.containsOid(assignees, target.getTarget().getOid())) {
-                        List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-                        if (workItem != null && DeputyUtils.limitationsAllow(limitations, privilegeLimitationItemName, workItem)
-                                || workItem == null && SchemaDeputyUtil.limitationsAllow(limitations, privilegeLimitationItemName)) {
-                            return true;
-                        }
+                    String targetOid = target.getTarget().getOid();
+                    if (targetOid != null
+                            && ObjectTypeUtil.containsOid(assignees, targetOid)
+                            && target.getAssignmentPath().containsDelegation()
+                            && target.getAssignmentPath().getOtherPrivilegesLimitation().allows(limitationType)) {
+                        return true;
                     }
                 }
             } catch (CommonException e) {
@@ -1692,7 +1701,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
-        ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType(prismContext);
+        ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
 
         String resetMethod = executeCredentialResetRequest.getResetMethod();
         if (StringUtils.isBlank(resetMethod)) {
@@ -2225,7 +2234,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private <T> Class<T> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
         if (compiledCollection.getTargetClass(prismContext) == null) {
             if (typeForFilter == null) {
-                LOGGER.error("Type of objects is null");
                 throw new ConfigurationException("Type of objects is null");
             }
             return prismContext.getSchemaRegistry().determineClassForType(typeForFilter);

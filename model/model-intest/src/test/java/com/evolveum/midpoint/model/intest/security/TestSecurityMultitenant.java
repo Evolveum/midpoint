@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSecurityMultitenant extends AbstractSecurityTest {
+public class TestSecurityMultitenant extends AbstractInitializedSecurityTest {
 
     public static final File TEST_DIR = new File("src/test/resources/security/multitenant");
 

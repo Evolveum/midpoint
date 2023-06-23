@@ -7,16 +7,19 @@
 
 package com.evolveum.midpoint.schema.selector.spec;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.selector.eval.ClauseFilteringContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.SelectorProcessingContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -24,28 +27,34 @@ import com.evolveum.midpoint.util.exception.*;
 
 /**
  * A clause of a {@link ValueSelector}.
+ *
+ * Immutable.
  */
-public abstract class SelectorClause implements DebugDumpable {
+public abstract class SelectorClause implements DebugDumpable, Serializable {
 
+    /** Returns `true` if the `value` matches this clause. */
     public abstract boolean matches(
-            @NotNull PrismValue value,
-            @NotNull ClauseMatchingContext ctx)
+            @NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
-    public abstract boolean applyFilter(@NotNull ClauseFilteringContext ctx)
+    /**
+     * Converts the clause into {@link ObjectFilter} (passed to {@link FilteringContext#filterCollector}).
+     * Returns `false` if the clause is not applicable to given situation.
+     */
+    public abstract boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException ;
 
-    void traceNotApplicable(ClauseMatchingContext ctx, String message, Object... arguments) {
+    void traceNotApplicable(SelectorProcessingContext ctx, String message, Object... arguments) {
         ctx.traceClauseNotApplicable(this, message, arguments);
     }
 
-    void traceApplicable(ClauseMatchingContext ctx, String message, Object... arguments) {
+    void traceApplicable(SelectorProcessingContext ctx, String message, Object... arguments) {
         ctx.traceClauseApplicable(this, message, arguments);
     }
 
-    void traceApplicability(ClauseMatchingContext ctx, boolean matches, String message, Object... arguments) {
+    void traceApplicability(SelectorProcessingContext ctx, boolean matches, String message, Object... arguments) {
         if (matches) {
             traceApplicable(ctx, message, arguments);
         } else {
@@ -56,11 +65,11 @@ public abstract class SelectorClause implements DebugDumpable {
     /** Human-understandable name to be used e.g. in tracing messages. */
     abstract public @NotNull String getName();
 
-    void addConjunct(ClauseFilteringContext ctx, ObjectFilter objectFilter) {
+    void addConjunct(FilteringContext ctx, ObjectFilter objectFilter) {
         ctx.addConjunct(this, objectFilter);
     }
 
-    void addConjunct(ClauseFilteringContext ctx, ObjectFilter objectFilter, String message, Object... arguments) {
+    void addConjunct(FilteringContext ctx, ObjectFilter objectFilter, String message, Object... arguments) {
         ctx.addConjunct(this, objectFilter, message, arguments);
     }
 
@@ -73,7 +82,7 @@ public abstract class SelectorClause implements DebugDumpable {
 
     abstract void addDebugDumpContent(StringBuilder sb, int indent);
 
-    public static <T extends SelectorClause> @Nullable T getSingle(@NotNull Collection<SelectorClause> clauses, Class<T> type) {
+    static <T extends SelectorClause> @Nullable T getSingle(@NotNull Collection<SelectorClause> clauses, Class<T> type) {
         //noinspection unchecked
         return MiscUtil.extractSingleton(clauses.stream()
                 .filter(c -> type.isAssignableFrom(c.getClass()))

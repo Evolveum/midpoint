@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,17 +101,23 @@ public class ProvisioningContextFactory {
      */
     public @NotNull ProvisioningContext createForBulkOperation(
             @NotNull ResourceOperationCoordinates coords,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+
         ResourceType resource = getResource(coords.getResourceOid(), task, result);
         ScopedDefinition scopedDefinition = createScopedDefinitionForBulkOperation(coords, resource);
-        return new ProvisioningContext(
+
+        ProvisioningContext ctx = new ProvisioningContext(
                 task,
                 resource,
                 scopedDefinition.definition,
                 scopedDefinition.wholeClass,
                 this);
+        ctx.setOperationContext(context);
+
+        return ctx;
     }
 
     private ScopedDefinition createScopedDefinitionForBulkOperation(ResourceOperationCoordinates coords, ResourceType resource)

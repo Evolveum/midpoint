@@ -496,7 +496,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         return !isDryRun() && !task.areShadowChangesSimulated();
     }
 
-    boolean isFullMode() {
+    public boolean isFullMode() {
         return executionMode == ExecutionModeType.FULL
                 && task.isExecutionFullyPersistent();
     }

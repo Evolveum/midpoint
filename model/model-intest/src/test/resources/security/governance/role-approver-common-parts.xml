@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="9d06e3c7-a182-4b61-b3b0-5c181eaf6955"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>approver-common-parts</name>
+    <authorization>
+        <name>users-read</name>
+        <description>
+            Allow to read basic user properties to be able to display requestor details in the
+            approval forms.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
+        <item>givenName</item>
+        <item>familyName</item>
+        <item>fullName</item>
+        <item>subtype</item>
+        <item>employeeNumber</item>
+    </authorization>
+    <authorization>
+        <name>roles-read</name>
+        <description>
+            Allow to read basic role properties to be able to display details of the requested role.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>subtype</item>
+    </authorization>
+    <authorization>
+        <name>orgs-read</name>
+        <description>
+            Allow to read basic org properties to be able to display details of the requested org.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>subtype</item>
+    </authorization>
+    <authorization>
+        <name>services-read</name>
+        <description>
+            Allow to read basic service properties to be able to display details of the requested service.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>subtype</item>
+    </authorization>
+</role>

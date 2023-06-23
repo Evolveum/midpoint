@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.enforcer.api.*;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -71,7 +72,6 @@ public class SchemaTransformer {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ArchetypeManager archetypeManager;
-    @Autowired private PrismContext prismContext;
 
     @Autowired private DataAccessProcessor dataAccessProcessor;
     @Autowired private DefinitionAccessProcessor definitionAccessProcessor;
@@ -180,8 +180,15 @@ public class SchemaTransformer {
 
         applySchemasAndSecurityToMutableObjects(roots, parsedOptions, task, result);
 
-        // We have to check that no value was disconnected in the process of applying the constraints.
-        ObjectTypeUtil.getRootsForContainerables(values);
+        // We have to check that no value got detached in the process of applying the constraints.
+        var detached = ObjectTypeUtil.getDetachedContainerables(values);
+        if (!detached.isEmpty()) {
+            throw new SecurityViolationException( // TODO do better diagnostics
+                    "%d containerable(s) returned by a search are not allowed by #get authorization: %s"
+                            .formatted(
+                                    detached.size(),
+                                    MiscUtil.getDiagInfo(detached, 10, 200)));
+        }
     }
 
     /**
@@ -251,11 +258,13 @@ public class SchemaTransformer {
         AuthorizationPhaseType phase = options.isExecutionPhase() ? AuthorizationPhaseType.EXECUTION : null;
         var readConstraints =
                 securityEnforcer.compileOperationConstraints(
+                        securityEnforcer.getMidPointPrincipal(),
                         object.getValue(),
                         phase,
                         null,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
-                        CompileConstraintsOptions.defaultOnes(),
+                        SecurityEnforcer.Options.create(),
+                        CompileConstraintsOptions.create(),
                         task, result);
         PrismObject<O> objectAfter = dataAccessProcessor.applyReadConstraints(object, readConstraints);
 
@@ -413,10 +422,12 @@ public class SchemaTransformer {
         authorizeRawOption(object, getOptions, task, result);
 
         PrismEntityOpConstraints.ForValueContent readConstraints = securityEnforcer.compileOperationConstraints(
+                securityEnforcer.getMidPointPrincipal(),
                 object.getValue(),
                 null,
                 null,
                 ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+                SecurityEnforcer.Options.create(),
                 CompileConstraintsOptions.skipSubObjectSelectors(),
                 task, result);
 

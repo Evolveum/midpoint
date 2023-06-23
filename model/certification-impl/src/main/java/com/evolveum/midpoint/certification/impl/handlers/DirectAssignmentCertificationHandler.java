@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -50,13 +51,14 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     // converts assignments to cases
     @Override
-    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
+            PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
-        AccessCertificationAssignmentReviewScopeType assignmentScope = null;
-        if (campaign.getScopeDefinition() instanceof AccessCertificationAssignmentReviewScopeType) {
-            assignmentScope = (AccessCertificationAssignmentReviewScopeType) campaign.getScopeDefinition();
-        }
         // TODO what if AccessCertificationObjectBasedScopeType?
+        AccessCertificationAssignmentReviewScopeType assignmentScope =
+                campaign.getScopeDefinition() instanceof AccessCertificationAssignmentReviewScopeType matching ? matching : null;
 
         F focus = objectPrism.asObjectable();
 
@@ -74,9 +76,18 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         return caseList;
     }
 
-    private void processAssignment(AssignmentType assignment, boolean isInducement, AccessCertificationAssignmentReviewScopeType scope,
-                                   AccessCertificationCampaignType campaign, ObjectType object, List<AccessCertificationCaseType> caseList, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
+    private void processAssignment(
+            AssignmentType assignment,
+            boolean isInducement,
+            AccessCertificationAssignmentReviewScopeType scope,
+            AccessCertificationCampaignType campaign,
+            ObjectType object,
+            List<AccessCertificationCaseType> caseList,
+            Task task,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType();
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
         assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object, prismContext));
@@ -176,10 +187,12 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     }
 
     @Override
-    public void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        if (!(aCase instanceof AccessCertificationAssignmentCaseType)) {
-            throw new IllegalStateException("Expected " + AccessCertificationAssignmentCaseType.class + ", got " + aCase.getClass() + " instead");
-        }
-        revokeAssignmentCase((AccessCertificationAssignmentCaseType) aCase, campaign, caseResult, task);
+    public void doRevoke(
+            AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult result)
+            throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+            SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        revokeAssignmentCase(
+                MiscUtil.castSafely(aCase, AccessCertificationAssignmentCaseType.class),
+                campaign, result, task);
     }
 }

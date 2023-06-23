@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
@@ -56,10 +56,14 @@ public class AccCertReviewersHelper {
         return stageDef.getReviewerSpecification();
     }
 
-    List<ObjectReferenceType> getReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
-            AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    List<ObjectReferenceType> getReviewersForCase(
+            AccessCertificationCaseType _case,
+            AccessCertificationCampaignType campaign,
+            AccessCertificationReviewerSpecificationType reviewerSpec,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (reviewerSpec == null) {
-            return Collections.emptyList();     // TODO issue a warning here?
+            return Collections.emptyList(); // TODO issue a warning here?
         }
 
         List<ObjectReferenceType> reviewers = new ArrayList<>();
@@ -84,8 +88,9 @@ public class AccCertReviewersHelper {
             variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, _case, AccessCertificationCaseType.class);
             variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);
             variables.put(ExpressionConstants.VAR_REVIEWER_SPECIFICATION, reviewerSpec, AccessCertificationReviewerSpecificationType.class);
-            List<ObjectReferenceType> refList = expressionHelper
-                    .evaluateRefExpressionChecked(reviewerExpression, variables, "reviewer expression", task, result);
+            List<ObjectReferenceType> refList =
+                    expressionHelper.evaluateRefExpressionChecked(
+                            reviewerExpression, variables, "reviewer expression", task, result);
             cloneAndMerge(reviewers, refList);
         }
         resolveRoleReviewers(reviewers, result);
@@ -103,9 +108,9 @@ public class AccCertReviewersHelper {
         List<ObjectReferenceType> resolved = new ArrayList<>();
         for (Iterator<ObjectReferenceType> iterator = reviewers.iterator(); iterator.hasNext(); ) {
             ObjectReferenceType reviewer = iterator.next();
-            if (QNameUtil.match(reviewer.getType(), RoleType.COMPLEX_TYPE) ||
-                    QNameUtil.match(reviewer.getType(), OrgType.COMPLEX_TYPE) ||
-                    QNameUtil.match(reviewer.getType(), ServiceType.COMPLEX_TYPE)) {
+            if (QNameUtil.match(reviewer.getType(), RoleType.COMPLEX_TYPE)
+                    || QNameUtil.match(reviewer.getType(), OrgType.COMPLEX_TYPE)
+                    || QNameUtil.match(reviewer.getType(), ServiceType.COMPLEX_TYPE)) {
                 iterator.remove();
                 resolved.addAll(getMembers(reviewer, result));
             }
@@ -127,7 +132,7 @@ public class AccCertReviewersHelper {
                     .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(references)
                     .build();
         return repositoryService.searchObjects(UserType.class, query, null, result).stream()
-                .map(obj -> ObjectTypeUtil.createObjectRef(obj, prismContext))
+                .map(obj -> ObjectTypeUtil.createObjectRef(obj))
                 .collect(Collectors.toList());
     }
 
@@ -152,8 +157,9 @@ public class AccCertReviewersHelper {
         return false;
     }
 
-    private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private Collection<ObjectReferenceType> getObjectManagers(
+            AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
         try {
             ObjectReferenceType objectRef = _case.getObjectRef();
@@ -194,7 +200,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
-            return getAssignees((AbstractRoleType) target, RelationKindType.OWNER, result);
+            return getReviewers((AbstractRoleType) target, RelationKindType.OWNER, result);
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getOwnerRef((ResourceType) target);
         } else {
@@ -202,7 +208,7 @@ public class AccCertReviewersHelper {
         }
     }
 
-    private List<ObjectReferenceType> getAssignees(AbstractRoleType role, RelationKindType relationKind, OperationResult result)
+    private List<ObjectReferenceType> getReviewers(AbstractRoleType role, RelationKindType relationKind, OperationResult result)
             throws SchemaException {
         List<ObjectReferenceType> rv = new ArrayList<>();
         if (relationKind != RelationKindType.OWNER && relationKind != RelationKindType.APPROVER) {
@@ -220,7 +226,7 @@ public class AccCertReviewersHelper {
                 .build();
         List<PrismObject<FocusType>> assignees = repositoryService.searchObjects(FocusType.class, query, null, result);
         LOGGER.trace("Looking for '{}' of {} using {}: found: {}", relationKind, role, query, assignees);
-        assignees.forEach(o -> rv.add(ObjectTypeUtil.createObjectRef(o, prismContext)));
+        assignees.forEach(o -> rv.add(ObjectTypeUtil.createObjectRef(o)));
         return rv;
     }
 
@@ -231,7 +237,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
-            return getAssignees((AbstractRoleType) object, RelationKindType.OWNER, result);
+            return getReviewers((AbstractRoleType) object, RelationKindType.OWNER, result);
         } else {
             return null;
         }
@@ -244,7 +250,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
-            return getAssignees((AbstractRoleType) target, RelationKindType.APPROVER, result);
+            return getReviewers((AbstractRoleType) target, RelationKindType.APPROVER, result);
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getApproverRef((ResourceType) target);
         } else {
@@ -259,7 +265,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
-            return getAssignees((AbstractRoleType) object, RelationKindType.APPROVER, result);
+            return getReviewers((AbstractRoleType) object, RelationKindType.APPROVER, result);
         } else {
             return null;
         }
@@ -268,17 +274,19 @@ public class AccCertReviewersHelper {
     @SuppressWarnings("SameParameterValue")
     private ObjectType resolveReference(ObjectReferenceType objectRef, Class<? extends ObjectType> defaultObjectTypeClass,
             OperationResult result) throws SchemaException, ObjectNotFoundException {
-        final Class<? extends ObjectType> objectTypeClass;
+        Class<? extends ObjectType> objectTypeClass;
         if (objectRef.getType() != null) {
             //noinspection unchecked
-            objectTypeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectRef.getType());
+            objectTypeClass = (Class<? extends ObjectType>)
+                    prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectRef.getType());
             if (objectTypeClass == null) {
                 throw new SchemaException("No object class found for " + objectRef.getType());
             }
         } else {
             objectTypeClass = defaultObjectTypeClass;
         }
-        PrismObject<? extends ObjectType> object = repositoryService.getObject(objectTypeClass, objectRef.getOid(), null, result);
-        return object.asObjectable();
+        return repositoryService
+                .getObject(objectTypeClass, objectRef.getOid(), null, result)
+                .asObjectable();
     }
 }

@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 import java.io.File;
 import java.util.Date;
+
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -34,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * Various synchronization-related tests.
@@ -85,6 +86,8 @@ public class MiscSyncTest extends AbstractInitializedModelIntegrationTest {
 
         TASK_LIVE_SYNC_DUMMY_BYZANTINE.init(this, initTask, initResult);
         TASK_LIVE_SYNC_DUMMY_BYZANTINE.rerun(initResult); // to get the token
+
+        setRecordResourceStageEnabled(true, initTask, initResult);
     }
 
     /** MID-2149 */
@@ -110,9 +113,15 @@ public class MiscSyncTest extends AbstractInitializedModelIntegrationTest {
             displayValue("Adding dummy account", account.debugDump());
             RESOURCE_DUMMY_BYZANTINE.addAccount(account);
 
+            dummyAuditService.clear();
+
             when("LS is run");
             long timeBeforeSync = System.currentTimeMillis();
             TASK_LIVE_SYNC_DUMMY_BYZANTINE.rerun(result);
+
+            AuditEventRecord record = dummyAuditService.assertRecordsStartsWithDiscovery();
+            assertNotNull(record.getTargetRef());
+            assertFalse(record.getDeltas().isEmpty());
 
             then("account is linked");
             PrismObject<ShadowType> accountMancomb =

@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.ClauseMatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
-import com.evolveum.midpoint.schema.selector.eval.MatchingTracer;
-import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.schema.selector.eval.*;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
+import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
@@ -20,11 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.DelegatorSelection.NO_DELEGATOR;
+
 /**
  * This code is independent on particular repository implementation; hence, it is part of the API package.
  *
  * (Currently, it is only a thin layer between repository service and the matching functionality in {@link ValueSelector}.)
  */
+@Deprecated // should be deleted after the method from repository API disappears
 class ObjectSelectorMatcher {
 
     static boolean selectorMatches(
@@ -47,18 +48,16 @@ class ObjectSelectorMatcher {
             return false;
         }
 
-        var tracer = new MatchingTracer.LoggerBased(logger, logMessagePrefix);
-        var selector = ValueSelector.parse(selectorBean);
-        return selector.matches(
+        return ValueSelector.parse(selectorBean).matches(
                 value,
-                new ClauseMatchingContext(
+                new MatchingContext(
                         filterEvaluator,
-                        tracer,
+                        ProcessingTracer.loggerBased(logger, logMessagePrefix),
                         repositoryService,
                         null,
                         null,
                         null,
                         new ClauseProcessingContextDescription.Default(),
-                        null));
+                        NO_DELEGATOR));
     }
 }

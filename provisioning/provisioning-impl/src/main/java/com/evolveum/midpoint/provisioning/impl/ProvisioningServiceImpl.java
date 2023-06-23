@@ -141,6 +141,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -150,7 +151,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Preconditions.checkNotNull(task, "task");
         Preconditions.checkNotNull(parentResult, "parentResult");
 
-        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, task, beans, operationsHelper);
+        ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, context, task, beans, operationsHelper);
 
         OperationResult result = parentResult.createSubresult(OP_GET_OBJECT);
         result.addParam(OperationResult.PARAM_OID, oid);
@@ -198,6 +199,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull PrismObject<T> object,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
@@ -218,7 +220,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (object.canRepresent(ShadowType.class)) {
                 try {
                     String oid = shadowsFacade.addResourceObject(
-                            (ShadowType) object.asObjectable(), scripts, options, task, result);
+                            (ShadowType) object.asObjectable(), scripts, options, context, task, result);
                     LOGGER.trace("Added shadow object {}", oid);
                     return oid;
                 } catch (GenericFrameworkException ex) {
@@ -251,6 +253,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LiveSyncOptions options,
             @NotNull LiveSyncTokenStorage tokenStorage,
             @NotNull LiveSyncEventHandler handler,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -277,7 +280,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ResourceTypeUtil.checkNotInMaintenance(resource.asObjectable());
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(coordinates, options, tokenStorage, handler, task, result);
+            liveSyncResult = liveSynchronizer.synchronize(coordinates, options, tokenStorage, handler, context, task, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
@@ -332,6 +335,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -350,7 +354,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             SearchResultList<PrismObject<T>> objects =
-                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                    new ProvisioningSearchLikeOperation<>(type, query, options, context, task, beans)
                             .executeSearch(result);
 
             LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(objects.getMetadata()));
@@ -368,6 +372,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
@@ -386,7 +391,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             Integer count =
-                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                    new ProvisioningSearchLikeOperation<>(type, query, options, context, task, beans)
                             .executeCount(result);
 
             LOGGER.trace("Result of the counting: {}", count);
@@ -408,6 +413,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -443,7 +449,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 
             if (ShadowType.class.isAssignableFrom(type)) {
-                oid = shadowsFacade.modifyShadow((ShadowType) repoShadow, modifications, scripts, options, task, result);
+                oid = shadowsFacade.modifyShadow((ShadowType) repoShadow, modifications, scripts, options, context, task, result);
             } else {
                 cacheRepositoryService.modifyObject(type, oid, modifications, result);
             }
@@ -478,7 +484,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options,
-            OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            OperationProvisioningScriptsType scripts, ProvisioningOperationContext context, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException {
 
@@ -501,7 +507,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
             if (object instanceof ShadowType && !ProvisioningOperationOptions.isRaw(options)) {
-                return deleteShadow((ShadowType) object, options, scripts, task, result);
+                return deleteShadow((ShadowType) object, options, scripts, context, task, result);
             } else if (object instanceof ResourceType) {
                 resourceManager.deleteResource(oid, result);
                 return null;
@@ -523,6 +529,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ShadowType shadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -533,7 +540,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             //noinspection unchecked
             return (PrismObject<T>)
                     asPrismObject(
-                            shadowsFacade.deleteShadow(shadow, options, scripts, task, result));
+                            shadowsFacade.deleteShadow(shadow, options, scripts, context, task, result));
 
             // TODO improve the error reporting. It is good that we want to provide some context for the error ("Couldn't delete
             //  object: ... problem: ...") but this is just too verbose in code. We need a better approach.
@@ -702,7 +709,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+    public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         Validate.notNull(shadow, "Shadow for refresh must not be null.");
@@ -712,7 +719,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
 
-            shadowsFacade.refreshShadow(shadow.asObjectable(), options, task, result);
+            shadowsFacade.refreshShadow(shadow.asObjectable(), options, context, task, result);
 
         } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
@@ -735,6 +742,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ResultHandler<T> handler,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -757,7 +765,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             SearchResultMetadata metadata =
-                    new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
+                    new ProvisioningSearchLikeOperation<>(type, query, options, context, task, beans)
                             .executeIterativeSearch(handler, result);
 
             LOGGER.trace("Finished iterative searching. Metadata: {}", DebugUtil.shortDumpLazily(metadata));
@@ -990,6 +998,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ResourceType resource, String shadowOid,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
+            @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException,
@@ -1001,6 +1010,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             checker.setShadowObjectOld(shadowObjectOld);
             // "Whole class": we should not need it here. We do not invoke the search on resource here.
             ProvisioningContext ctx = ctxFactory.createForDefinition(resource, objectDefinition, null, task);
+            ctx.setOperationContext(context);
+
             checker.setProvisioningContext(ctx);
             checker.setShadowObject(shadowObject);
             checker.setShadowOid(shadowOid);

@@ -35,5 +35,9 @@
         <key>failed</key>
         <label>Failed</label>
     </row>
+    <row>
+        <key>suspended</key>
+        <label>Suspended</label>
+    </row>
 
 </lookupTable>

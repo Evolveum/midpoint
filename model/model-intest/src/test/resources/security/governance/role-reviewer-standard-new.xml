@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="fd4b11ca-8bf4-4ca2-8c4f-654f734de032"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>reviewer-standard-new</name>
+    <description>The new variant of a standard reviewer role</description>
+    <inducement>
+        <targetRef oid="26224a3a-3b78-4cc0-8c4c-368193eb575c" type="RoleType"/>
+    </inducement>
+    <authorization>
+        <name>own-workitems-read-complete-delegate</name>
+        <description>
+            Allows reading, completion, and delegation of own work items.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateWorkItem</action>
+        <object>
+            <type>AccessCertificationWorkItemType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+    <authorization>
+        <name>cases-read</name>
+        <description>
+            Allows to see parts of the cases containing work items assigned to the user.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCaseType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+        <exceptItem>workItem</exceptItem>
+    </authorization>
+</role>

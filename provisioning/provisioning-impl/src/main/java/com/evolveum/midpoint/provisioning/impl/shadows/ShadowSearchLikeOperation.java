@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectHandler;
@@ -78,12 +79,13 @@ class ShadowSearchLikeOperation {
     static ShadowSearchLikeOperation create(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
+            ProvisioningOperationContext context,
             Task task,
             OperationResult result,
             ShadowsLocalBeans localBeans)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
         return new ShadowSearchLikeOperation(
-                createContext(query, options, task, localBeans, result),
+                createContext(query, options, context, task, localBeans, result),
                 query,
                 options,
                 localBeans);
@@ -92,6 +94,7 @@ class ShadowSearchLikeOperation {
     private static ProvisioningContext createContext(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
+            ProvisioningOperationContext context,
             Task task,
             ShadowsLocalBeans localBeans,
             OperationResult result)
@@ -99,7 +102,7 @@ class ShadowSearchLikeOperation {
         ResourceOperationCoordinates operationCoordinates = ObjectQueryUtil.getOperationCoordinates(query);
         operationCoordinates.checkNotUnknown();
         operationCoordinates.checkNotResourceScoped();
-        ProvisioningContext ctx = localBeans.ctxFactory.createForBulkOperation(operationCoordinates, task, result);
+        ProvisioningContext ctx = localBeans.ctxFactory.createForBulkOperation(operationCoordinates, context, task, result);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;

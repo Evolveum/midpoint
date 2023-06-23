@@ -1711,7 +1711,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         AuthenticationSequenceModuleType module = invitationAuthSequence.getModule().get(0);
-        String moduleIdentifier = module.getIdentifier();
+        String moduleIdentifier = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
         if (StringUtils.isEmpty(moduleIdentifier)) {
             return null;
         }
@@ -1728,17 +1728,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private boolean sequenceIdentifierMatch(AuthenticationSequenceType seq, String sequenceIdentifier) {
-        if (sequenceIdentifier == null) {
-            return false;
-        }
-        return sequenceIdentifier.equals(seq.getIdentifier());
+        return sequenceIdentifier.equals(seq.getName()) || sequenceIdentifier.equals(seq.getIdentifier());
     }
 
     private boolean moduleIdentifierMatch(MailNonceAuthenticationModuleType module, String moduleIdentifier) {
-        if (moduleIdentifier == null) {
-            return false;
-        }
-        String mailNonceModuleId = module.getIdentifier();
+        String mailNonceModuleId = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
         return moduleIdentifier.equals(mailNonceModuleId);
     }
 
@@ -1796,7 +1790,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         AuthenticationSequenceType sequenceByName = null;
         AuthenticationSequenceType defaultSequence = null;
         for (AuthenticationSequenceType sequenceType : sequences) {
-            String sequenceIdentifier = sequenceType.getIdentifier();
+            String sequenceIdentifier = StringUtils.isNotEmpty(sequenceType.getIdentifier()) ? sequenceType.getIdentifier() : sequenceType.getName();
             if (StringUtils.equals(sequenceIdentifier, nameOfSequence)) {
                 sequenceByName = sequenceType;
                 break;

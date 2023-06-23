@@ -247,7 +247,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             OperationResult result = new OperationResult(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
-                            getPageBase().getCaseManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToComplete(getModelObject(), task, result),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
