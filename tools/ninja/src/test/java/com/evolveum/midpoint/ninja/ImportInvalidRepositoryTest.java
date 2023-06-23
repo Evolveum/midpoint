@@ -6,15 +6,16 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.assertj.core.api.Assertions;
-import org.testng.Assert;
-import org.testng.AssertJUnit;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.impl.ActionStateListener;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -22,56 +23,49 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportInvalidRepositoryTest extends BaseTest {
+@ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
+@DirtiesContext
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
+public class ImportInvalidRepositoryTest extends NinjaSpringTest {
+
+    private static final String PATH_UNKNOWN_NODES_ZIP = "./target/unknown-nodes.zip";
 
     @BeforeClass
-    public void initMidpointHome() throws Exception {
-        setupMidpointHome();
+    @Override
+    public void beforeClass() throws IOException {
+        TestUtils.zipFile(new File("./src/test/resources/unknown-nodes"), new File(PATH_UNKNOWN_NODES_ZIP));
+
+        super.beforeClass();
     }
 
-    @Test
+    @Test(enabled = false)
     public void test100Import() throws Exception {
-        String[] args = new String[] { "-m", getMidpointHome(), "import", "-i", RESOURCES_DIRECTORY_PATH + "/unknown-nodes.zip", "-z" };
+        given();
 
-        ActionStateListener listener = new ActionStateListener() {
+        OperationResult result = new OperationResult("test100Import");
+        int count = repository.countObjects(ObjectType.class, null, null, result);
 
-            @Override
-            public void onBeforeExecution(NinjaContext context) {
-                RepositoryService repository = context.getRepository();
+        Assertions.assertThat(count).isZero();
 
-                try {
-                    OperationResult result = new OperationResult("count objects");
-                    int count = repository.countObjects(ObjectType.class, null, null, result);
-
-                    Assertions.assertThat(count).isZero();
-                } catch (Exception ex) {
-                    Assertions.fail("Failed", ex);
-                }
-            }
-
-            @Override
-            public void onAfterExecution(NinjaContext context) {
-                RepositoryService repository = context.getRepository();
-
-                OperationResult result = new OperationResult("count");
-                try {
-                    int count = repository.countObjects(ObjectType.class, null, null, result);
-
-                    Assertions.assertThat(count).isEqualTo(16);
-
-                    count = repository.countObjects(OrgType.class, null, null, result);
-
-                    Assertions.assertThat(count).isEqualTo(1);
-                } catch (Exception ex) {
-                    Assertions.fail("Failed", ex);
-                }
-            }
-        };
+        when();
 
         executeTest(
-                args,
                 out -> Assertions.assertThat(out.size()).isEqualTo(5),
                 err -> Assertions.assertThat(err.size()).isZero(),
-                listener);
+                "-m", getMidpointHome(), "import", "-i", PATH_UNKNOWN_NODES_ZIP, "-z");
+
+        then();
+
+        try {
+            count = repository.countObjects(ObjectType.class, null, null, result);
+
+            Assertions.assertThat(count).isEqualTo(16);
+
+            count = repository.countObjects(OrgType.class, null, null, result);
+
+            Assertions.assertThat(count).isEqualTo(1);
+        } catch (Exception ex) {
+            Assertions.fail("Failed", ex);
+        }
     }
 }

@@ -200,13 +200,6 @@
             <artifactId>jakarta.xml.ws-api</artifactId>
         </dependency>
 
-        <!-- LOGGING -->
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
         <!-- TEST DEPENDENCIES -->
         <dependency>
             <groupId>org.springframework</groupId>

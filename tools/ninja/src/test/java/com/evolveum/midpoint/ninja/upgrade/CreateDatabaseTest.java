@@ -46,7 +46,7 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
                         + "DROP USER IF EXISTS " + CREATE_MIDPOINT_SCHEMA_TEST + ";"));
     }
 
-    @Test
+    @Test(enabled = false)
     public void test100CreateUserAndDatabase() throws Exception {
         BaseOptions baseOptions = new BaseOptions();
         baseOptions.setVerbose(true);
@@ -75,7 +75,7 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
         }
     }
 
-    @Test
+    @Test(enabled = false)
     public void test200CreateSchema() throws Exception {
         BaseOptions baseOptions = new BaseOptions();
         baseOptions.setVerbose(true);

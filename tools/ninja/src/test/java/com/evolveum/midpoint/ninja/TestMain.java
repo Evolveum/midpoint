@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.util.*;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Deprecated
 public class TestMain {
 
     public static void main(String[] args) throws Exception {
@@ -125,15 +127,8 @@ public class TestMain {
 //                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
 //                + "--result";
 
-//        cmd = "-h upgrade-objects";
-//        execute(cmd);
-
-        Set<UUID> set = new HashSet<>();
-        for (int i = 0; i < 10_000_000; i++) {
-            set.add(UUID.randomUUID());
-        }
-
-        Thread.sleep(20000L);
+        cmd = "-h run-sql";
+        execute(cmd);
     }
 
     private static void execute(String args) {
@@ -142,5 +137,22 @@ public class TestMain {
         Main.main(args.split(" "));
         System.out.println("RUN TIME: " + (System.currentTimeMillis() - time));
         System.out.println();
+    }
+
+    public void testJANSI() throws Exception {
+        AnsiConsole.systemInstall();
+
+//        System.out.print(Ansi.ansi().a("vilko\n"));
+//        System.out.print(Ansi.ansi().cursorUpLine().eraseLine());
+//        System.out.print(Ansi.ansi().a("janko\n"));
+
+        System.out.println(Ansi.ansi().fgBlue().a("Start").reset());
+        for (int i = 0; i < 10; i++) {
+            System.out.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).fgGreen().a(i).reset());
+            Thread.sleep(500);
+        }
+        System.out.println(Ansi.ansi().fgRed().a("Complete").reset());
+
+        AnsiConsole.systemUninstall();
     }
 }

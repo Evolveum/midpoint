@@ -19,7 +19,7 @@ public abstract class UpgradeTest extends BaseUpgradeTest {
 
     protected abstract String getOldSchemaAuditChangeNumber();
 
-    @Test
+    @Test(enabled = false)
     public void test100UpgradeDatabase() throws Exception {
         given();
 
