@@ -240,7 +240,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
-    private SystemConfigurationType systemConfiguration;
+
+    /**
+     * Is the computation of access metadata (on `roleMembershipRef`) enabled? Currently, it influences some asserts
+     * on audit events.
+     *
+     * Set only _AFTER_ the initialization is complete - in {@link #postInitSystem(Task, OperationResult)} method.
+     */
     private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
@@ -270,7 +276,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
-
     }
 
     @Override
@@ -278,9 +283,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (dummyResourceCollection != null) {
             dummyResourceCollection.resetResources();
         }
-        systemConfiguration = systemObjectCache.getSystemConfigurationBean(initResult);
-        assertNotNull("No systemConfiguration found after initSystem", systemConfiguration);
-        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(systemConfiguration);
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     protected boolean isAvoidLoggingChange() {
