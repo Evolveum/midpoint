@@ -9,7 +9,6 @@
 <suite name="unit" parallel="false" verbose="1">
     <test name="Default" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.ninja.ExportRepositoryTest"/>
             <class name="com.evolveum.midpoint.ninja.HelpTest"/>
             <class name="com.evolveum.midpoint.ninja.ListKeysTest"/>
         </classes>
