@@ -35,6 +35,11 @@ public class EditTraceAction extends RepositoryAction<EditTraceOptions, Void> {
     private int killed;
 
     @Override
+    public String getOperationName() {
+        return "edit trace";
+    }
+
+    @Override
     @NotNull
     public NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.NO_REPOSITORY;

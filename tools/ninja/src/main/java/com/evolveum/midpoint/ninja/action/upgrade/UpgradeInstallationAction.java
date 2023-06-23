@@ -13,6 +13,11 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
     private static final String VAR_DIRECTORY = "var";
 
     @Override
+    public String getOperationName() {
+        return "upgrade installation";
+    }
+
+    @Override
     public Void execute() throws Exception {
         final File distributionDirectory = options.getDistributionDirectory();
 
@@ -53,6 +58,8 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
                 FileUtils.moveToDirectory(file, midpointInstallation, false);
             }
         }
+
+        log.info("");
 
         return null;
     }

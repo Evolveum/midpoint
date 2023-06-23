@@ -37,6 +37,11 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
     @Override
+    public String getOperationName() {
+        return "run sql scripts";
+    }
+
+    @Override
     public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         if (preferCustomJdbcConnection(allOptions)) {
             return NinjaApplicationContextLevel.NONE;

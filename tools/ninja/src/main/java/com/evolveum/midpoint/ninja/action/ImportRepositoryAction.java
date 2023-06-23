@@ -34,6 +34,11 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions, Void
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
     @Override
+    public String getOperationName() {
+        return "import objects";
+    }
+
+    @Override
     public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_IMPORT);
         OperationStatus progress = new OperationStatus(context, result);

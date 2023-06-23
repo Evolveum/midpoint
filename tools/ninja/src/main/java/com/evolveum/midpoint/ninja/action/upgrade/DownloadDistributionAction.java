@@ -17,6 +17,11 @@ import com.evolveum.midpoint.ninja.impl.Log;
 public class DownloadDistributionAction extends Action<DownloadDistributionOptions, DownloadDistributionResult> {
 
     @Override
+    public String getOperationName() {
+        return "download distribution";
+    }
+
+    @Override
     public DownloadDistributionResult execute() throws Exception {
         final Log log = context.getLog();
 
@@ -24,10 +29,13 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
 
         File distributionZipFile = options.getDistributionArchive();
         if (distributionZipFile == null || !distributionZipFile.exists()) {
+            String version = UpgradeConstants.SUPPORTED_VERSION_TARGET;
+            log.info("Downloading version: {}", version);
+
             DistributionManager manager = new DistributionManager(tempDirectory);
             ProgressListener listener = new ConsoleProgressListener(context.out);
 
-            distributionZipFile = manager.downloadDistribution(UpgradeConstants.SUPPORTED_VERSION_TARGET, listener);
+            distributionZipFile = manager.downloadDistribution(version, listener);
         } else {
             log.info("Distribution zip already downloaded.");
         }

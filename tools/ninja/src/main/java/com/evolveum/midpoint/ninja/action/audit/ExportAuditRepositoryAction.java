@@ -38,6 +38,11 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
     public static final String OPERATION_SHORT_NAME = "exportAudit";
     public static final String OPERATION_NAME = ExportAuditRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
+    @Override
+    public String getOperationName() {
+        return "export audit";
+    }
+
     protected Runnable createConsumer(
             BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
         return new ExportAuditConsumerWorker(context, options, queue, operation);

@@ -36,6 +36,11 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
     public static final String OPERATION_SHORT_NAME = "exportMining";
     public static final String OPERATION_NAME = ExportMiningRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
+    @Override
+    public String getOperationName() {
+        return "export mining data";
+    }
+
     protected Runnable createConsumer(
             BlockingQueue<FocusType> queue, OperationStatus operation) {
         return new ExportMiningConsumerWorker(context, options, queue, operation);

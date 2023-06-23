@@ -3,11 +3,11 @@ package com.evolveum.midpoint.ninja;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
@@ -28,6 +28,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public interface NinjaTestMixin {
 
+    StreamValidator EMPTY_STREAM_VALIDATOR = list -> Assertions.assertThat(list).isEmpty();
+
     Trace LOGGER = TraceManager.getTrace(NinjaTestMixin.class);
 
     File TARGET_HOME = new File("./target/midpoint-home");
@@ -40,11 +42,17 @@ public interface NinjaTestMixin {
         R apply(T t, U u) throws Exception;
     }
 
+    @FunctionalInterface
+    interface StreamValidator {
+
+        void validate(List<String> stream) throws Exception;
+    }
+
     /**
      * Add @BeforeMethod calling this into test classes that need this.
      * This also removes H2 DB files, effectively cleaning the DB between test methods.
      * This is not enough to support tests on other DB (it doesn't run dbtest profile properly)
-     * or for Native repository, but {@link #clearMidpointTesetDatabase(ApplicationContext)} can be used in the preExecute block.
+     * or for Native repository, but {@link #clearMidpointTestDatabase(ApplicationContext)} can be used in the preExecute block.
      */
     default void setupMidpointHome() throws IOException {
         FileUtils.deleteDirectory(TARGET_HOME);
@@ -61,7 +69,7 @@ public interface NinjaTestMixin {
         }
     }
 
-    default void clearMidpointTesetDatabase(ApplicationContext context) {
+    default void clearMidpointTestDatabase(ApplicationContext context) {
         LOGGER.info("Cleaning up the database");
 
         RepositoryService repository = context.getBean(RepositoryService.class);
@@ -114,7 +122,7 @@ public interface NinjaTestMixin {
 
     default <O, R, A extends Action<O, R>> R executeAction(
             @NotNull Class<A> actionClass, @NotNull O actionOptions, @NotNull List<Object> allOptions,
-            @Nullable Consumer<List<String>> validateOut, @Nullable Consumer<List<String>> validateErr)
+            @Nullable StreamValidator validateOut, @Nullable StreamValidator validateErr)
             throws Exception {
 
         return executeWithWrappedPrintStreams((out, err) -> {
@@ -129,8 +137,8 @@ public interface NinjaTestMixin {
     }
 
     private <R> R executeWithWrappedPrintStreams(
-            @NotNull BiFunctionThrowable<PrintStream, PrintStream, R> function, @Nullable Consumer<List<String>> validateOut,
-            @Nullable Consumer<List<String>> validateErr)
+            @NotNull BiFunctionThrowable<PrintStream, PrintStream, R> function, @Nullable StreamValidator validateOut,
+            @Nullable StreamValidator validateErr)
             throws Exception {
 
         ByteArrayOutputStream bosOut = new ByteArrayOutputStream();
@@ -146,17 +154,17 @@ public interface NinjaTestMixin {
             List<String> errLines = processTestOutputStream(bosErr, "ERR");
 
             if (validateOut != null) {
-                validateOut.accept(outLines);
+                validateOut.validate(outLines);
             }
 
             if (validateErr != null) {
-                validateErr.accept(errLines);
+                validateErr.validate(errLines);
             }
         }
     }
 
     default void executeTest(
-            @Nullable Consumer<List<String>> validateOut, @Nullable Consumer<List<String>> validateErr, @NotNull String... args)
+            @Nullable StreamValidator validateOut, @Nullable StreamValidator validateErr, @NotNull String... args)
             throws Exception {
 
         executeWithWrappedPrintStreams((out, err) -> {

@@ -13,6 +13,11 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
 
     @Override
+    public String getOperationName() {
+        return "upgrade distribution";
+    }
+
+    @Override
     public Void execute() throws Exception {
         File tempDirectory = options.getTempDirectory() != null ?
                 options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
@@ -26,14 +31,16 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
         DownloadDistributionAction downloadAction = new DownloadDistributionAction();
         downloadAction.init(context, downloadOpts);
-        DownloadDistributionResult downloadResult = downloadAction.execute();
 
-        // todo next actions should be executed from downloaded ninja (as not to replace ninja.jar that's currently running), or maybe not?
-//        log.info("Starting ninja");
-//        new ProcessBuilder(
-//                "../../_mess/mid8842/.upgrade-process/1685390031006-midpoint-latest-dist/bin/ninja.sh -v --offline -h".split(" ")
-//        ).inheritIO().start();
-//        context.out.println("Finished main");
+        DownloadDistributionResult downloadResult = executeAction(downloadAction);
+
+        File distributionDirectory = downloadResult.getDistributionDirectory();
+
+        // upgrade repository
+        runUpgradeSql(RunSqlOptions.Mode.REPOSITORY, distributionDirectory);
+
+        // upgrade audit
+        runUpgradeSql(RunSqlOptions.Mode.AUDIT, distributionDirectory);
 
         // upgrade installation
         UpgradeInstallationOptions installationOpts = new UpgradeInstallationOptions();
@@ -43,33 +50,28 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
         UpgradeInstallationAction installationAction = new UpgradeInstallationAction();
         installationAction.init(context, installationOpts);
-        installationAction.execute();
-
-        File installationDirectory = NinjaUtils.computeInstallationDirectory(options.getInstallationDirectory(), context);
-
-        // upgrade repository
-        RunSqlOptions upgradeRepositoryOpts = new RunSqlOptions();
-        upgradeRepositoryOpts.setUpgrade(true);
-        upgradeRepositoryOpts.setMode(RunSqlOptions.Mode.REPOSITORY);
-        upgradeRepositoryOpts.setScripts(RunSqlOptions.Mode.REPOSITORY.updateScripts.stream()
-                .map(f -> new File(installationDirectory, f.getPath()))
-                .collect(Collectors.toList()));
-
-        RunSqlAction upgradeRepositoryAction = new RunSqlAction();
-        upgradeRepositoryAction.init(context, upgradeRepositoryOpts);
-        upgradeRepositoryAction.execute();
-
-        RunSqlOptions upgradeAuditOpts = new RunSqlOptions();
-        upgradeAuditOpts.setUpgrade(true);
-        upgradeAuditOpts.setMode(RunSqlOptions.Mode.AUDIT);
-        upgradeRepositoryOpts.setScripts(RunSqlOptions.Mode.AUDIT.updateScripts.stream()
-                .map(f -> new File(installationDirectory, f.getPath()))
-                .collect(Collectors.toList()));
-
-        RunSqlAction upgradeAuditAction = new RunSqlAction();
-        upgradeAuditAction.init(context, upgradeAuditOpts);
-        upgradeAuditAction.execute();
+        executeAction(installationAction);
 
         return null;
+    }
+
+    private <O, T> T executeAction(Action<O, T> action) throws Exception {
+        log.info(NinjaUtils.formatActionStartMessage(action));
+
+        return action.execute();
+    }
+
+    private void runUpgradeSql(RunSqlOptions.Mode mode, File distributionDirectory) throws Exception {
+        RunSqlOptions runSqlOptions = new RunSqlOptions();
+        runSqlOptions.setUpgrade(true);
+        runSqlOptions.setMode(mode);
+        runSqlOptions.setScripts(mode.updateScripts.stream()
+                .map(f -> new File(distributionDirectory, f.getPath()))
+                .collect(Collectors.toList()));
+
+        RunSqlAction action = new RunSqlAction();
+        action.init(context, runSqlOptions);
+
+        executeAction(action);
     }
 }

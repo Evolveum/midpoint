@@ -20,6 +20,11 @@ import com.evolveum.midpoint.prism.PrismParser;
 public class VerifyFilesAction extends Action<VerifyFilesOptions, Void> {
 
     @Override
+    public String getOperationName() {
+        return "verify files";
+    }
+
+    @Override
     public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.NO_REPOSITORY;
     }

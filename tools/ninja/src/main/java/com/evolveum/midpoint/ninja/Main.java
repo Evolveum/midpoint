@@ -6,18 +6,15 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
 import org.jetbrains.annotations.NotNull;
@@ -70,19 +67,19 @@ public class Main {
 
         BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
-        if (BooleanUtils.isTrue(base.isVersion())) {
-            printVersion();
-            return;
-        }
-
-        if (base.isHelp() || parsedCommand == null) {
+        if (base.isVerbose() && base.isSilent()) {
+            err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
+                    + " together (verbose and silent)");
             printHelp(jc, parsedCommand);
             return;
         }
 
-        if (base.isVerbose() && base.isSilent()) {
-            err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
-                    + " together (verbose and silent)");
+        if (BooleanUtils.isTrue(base.isVersion())) {
+            printVersion(base.isVerbose());
+            return;
+        }
+
+        if (base.isHelp() || parsedCommand == null) {
             printHelp(jc, parsedCommand);
             return;
         }
@@ -106,6 +103,8 @@ public class Main {
 
             try {
                 action.init(context, options);
+
+                context.getLog().info(NinjaUtils.formatActionStartMessage(action));
 
                 action.execute();
             } finally {
@@ -147,15 +146,16 @@ public class Main {
         }
     }
 
-    private void printVersion() {
-        try {
-            URL versionResource = Objects.requireNonNull(
-                    Main.class.getResource("/version"));
-            Path path = Paths.get(versionResource.toURI());
-            String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
+    private void printVersion(boolean verbose) {
+        try (InputStream is = Main.class.getResource("/version").openStream()) {
+            String version = IOUtils.toString(is).trim();
             out.println(version);
         } catch (Exception ex) {
-            // ignored
+            err.println("Couldn't obtains version");
+            if (verbose) {
+                String stack = NinjaUtils.printStackToString(ex);
+                err.println("Exception stack trace:\n" + stack);
+            }
         }
     }
 

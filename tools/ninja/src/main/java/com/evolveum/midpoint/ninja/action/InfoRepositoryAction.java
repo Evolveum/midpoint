@@ -18,6 +18,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class InfoRepositoryAction extends RepositoryAction<InfoOptions, Void> {
 
     @Override
+    public String getOperationName() {
+        return "get repository information";
+    }
+
+    @Override
     public Void execute() {
         MidpointConfiguration config = context.getMidpointConfiguration();
         context.out.println("MidPoint home: " + config.getMidpointHome());
