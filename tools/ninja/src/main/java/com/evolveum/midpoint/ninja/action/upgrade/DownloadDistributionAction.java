@@ -24,10 +24,13 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
 
         File distributionZipFile = options.getDistributionArchive();
         if (distributionZipFile == null || !distributionZipFile.exists()) {
+            String version = UpgradeConstants.SUPPORTED_VERSION_TARGET;
+            log.info("Downloading distribution: {}", version);
+            
             DistributionManager manager = new DistributionManager(tempDirectory);
             ProgressListener listener = new ConsoleProgressListener(context.out);
 
-            distributionZipFile = manager.downloadDistribution(UpgradeConstants.SUPPORTED_VERSION_TARGET, listener);
+            distributionZipFile = manager.downloadDistribution(version, listener);
         } else {
             log.info("Distribution zip already downloaded.");
         }

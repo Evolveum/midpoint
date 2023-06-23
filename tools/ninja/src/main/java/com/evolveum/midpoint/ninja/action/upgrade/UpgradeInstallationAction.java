@@ -8,12 +8,16 @@ import org.apache.commons.io.FileUtils;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
+import org.fusesource.jansi.Ansi;
+
 public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions, Void> {
 
     private static final String VAR_DIRECTORY = "var";
 
     @Override
     public Void execute() throws Exception {
+        log.info(Ansi.ansi().fgGreen().a("Upgrading installation").toString());
+
         final File distributionDirectory = options.getDistributionDirectory();
 
         final boolean backupFiles = options.isBackup();
@@ -53,6 +57,8 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
                 FileUtils.moveToDirectory(file, midpointInstallation, false);
             }
         }
+
+        log.info("");
 
         return null;
     }
