@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
+
 /**
  * Created by Viliam Repan (lazyman).
  */

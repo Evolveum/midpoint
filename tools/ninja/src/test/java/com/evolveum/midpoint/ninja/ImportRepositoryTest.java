@@ -44,7 +44,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
 
     @BeforeMethod
     public void initMidpointHome() {
-        clearMidpointTesetDatabase(applicationContext);
+        clearMidpointTestDatabase(applicationContext);
     }
 
     @Test

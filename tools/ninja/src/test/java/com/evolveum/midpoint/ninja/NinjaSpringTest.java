@@ -22,6 +22,6 @@ public abstract class NinjaSpringTest extends AbstractSpringTest implements Infr
     public void beforeClass() throws IOException {
         setupMidpointHome();
 
-        clearMidpointTesetDatabase(applicationContext);
+        clearMidpointTestDatabase(applicationContext);
     }
 }

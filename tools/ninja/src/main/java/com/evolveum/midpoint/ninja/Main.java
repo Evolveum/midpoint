@@ -152,7 +152,8 @@ public class Main {
             URL versionResource = Objects.requireNonNull(
                     Main.class.getResource("/version"));
             Path path = Paths.get(versionResource.toURI());
-            String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
+            String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8).trim();
+
             out.println(version);
         } catch (Exception ex) {
             // ignored
