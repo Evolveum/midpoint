@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO get rid of logback magic in here, this is hell. How could I do this. OMG.
- *
  * Created by Viliam Repan (lazyman).
  */
 public class Log {
@@ -22,9 +21,9 @@ public class Log {
         ERROR, INFO, DEBUG
     }
 
-    private LogVerbosity level;
+    private final LogVerbosity level;
 
-    private PrintStream stream;
+    private final PrintStream stream;
 
     public Log(@NotNull LogVerbosity level, @NotNull PrintStream stream) {
         this.level = level;

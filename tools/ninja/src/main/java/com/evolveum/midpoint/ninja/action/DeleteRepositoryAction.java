@@ -44,6 +44,11 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions, Void
     }
 
     @Override
+    public String getOperationName() {
+        return "delete objects";
+    }
+
+    @Override
     public Void execute() throws Exception {
         String oid = options.getOid();
 

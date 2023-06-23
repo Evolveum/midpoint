@@ -32,6 +32,11 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
     public static final String OPERATION_NAME = ImportAuditRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
     @Override
+    public String getOperationName() {
+        return "import audit";
+    }
+
+    @Override
     public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus progress = new OperationStatus(context, result);

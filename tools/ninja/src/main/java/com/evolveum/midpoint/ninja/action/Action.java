@@ -68,5 +68,7 @@ public abstract class Action<O, R> {
         return NinjaApplicationContextLevel.FULL_REPOSITORY;
     }
 
+    public abstract String getOperationName();
+
     public abstract R execute() throws Exception;
 }

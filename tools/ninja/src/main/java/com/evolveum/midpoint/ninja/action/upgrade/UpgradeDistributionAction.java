@@ -8,8 +8,14 @@ import org.apache.commons.io.FileUtils;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.RunSqlAction;
 import com.evolveum.midpoint.ninja.action.RunSqlOptions;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
+
+    @Override
+    public String getOperationName() {
+        return "upgrade distribution";
+    }
 
     @Override
     public Void execute() throws Exception {
@@ -25,7 +31,8 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
         DownloadDistributionAction downloadAction = new DownloadDistributionAction();
         downloadAction.init(context, downloadOpts);
-        DownloadDistributionResult downloadResult = downloadAction.execute();
+
+        DownloadDistributionResult downloadResult = executeAction(downloadAction);
 
         File distributionDirectory = downloadResult.getDistributionDirectory();
 
@@ -43,9 +50,15 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
         UpgradeInstallationAction installationAction = new UpgradeInstallationAction();
         installationAction.init(context, installationOpts);
-        installationAction.execute();
+        executeAction(installationAction);
 
         return null;
+    }
+
+    private <O, T> T executeAction(Action<O, T> action) throws Exception {
+        log.info(NinjaUtils.formatActionStartMessage(action));
+
+        return action.execute();
     }
 
     private void runUpgradeSql(RunSqlOptions.Mode mode, File distributionDirectory) throws Exception {
@@ -58,6 +71,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
         RunSqlAction action = new RunSqlAction();
         action.init(context, runSqlOptions);
-        action.execute();
+
+        executeAction(action);
     }
 }

@@ -31,6 +31,11 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
     @Override
+    public String getOperationName() {
+        return "list keys";
+    }
+
+    @Override
     public LogTarget getLogTarget() {
         return LogTarget.SYSTEM_ERR;
     }

@@ -54,7 +54,8 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
 
     protected abstract Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
 
-    protected String getOperationName() {
+    @Override
+    public String getOperationName() {
         return getClass().getName() + "." + getOperationShortName();
     }
 

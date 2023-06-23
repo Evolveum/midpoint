@@ -29,6 +29,11 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions, Void> 
     private static final String OPERATION_COUNT = DOT_CLASS + "count";
 
     @Override
+    public String getOperationName() {
+        return "count objects";
+    }
+
+    @Override
     public LogTarget getLogTarget() {
         return LogTarget.SYSTEM_ERR;
     }
