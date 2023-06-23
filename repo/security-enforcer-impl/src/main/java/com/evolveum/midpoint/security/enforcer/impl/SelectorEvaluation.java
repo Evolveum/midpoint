@@ -72,7 +72,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext {
 
         var ctx = new MatchingContext(
                 createFilterEvaluator(),
-                new LogBasedSelectorTracer(),
+                enforcerOp.tracer,
                 b.repositoryService,
                 this,
                 enforcerOp.ownerResolver,

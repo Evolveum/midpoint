@@ -2973,6 +2973,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="tracing" type="tns:AuthorizationEvaluationTracingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the evaluation should be traced.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3103,4 +3110,26 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="additionalAuthorizations" type="tns:AdditionalAuthorizationsType"/>
+
+    <xsd:complexType name="AuthorizationEvaluationTracingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the evaluation should be traced.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="selectorTracingEnabled" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should be the evaluation of selectors traced?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

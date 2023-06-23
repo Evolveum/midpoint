@@ -60,7 +60,7 @@ public class FilteringContext extends SelectorProcessingContext {
             @Nullable ClauseApplicabilityPredicate clauseApplicabilityPredicate,
             @NotNull FilterCollector filterCollector,
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
+            @NotNull ProcessingTracer<? super SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,

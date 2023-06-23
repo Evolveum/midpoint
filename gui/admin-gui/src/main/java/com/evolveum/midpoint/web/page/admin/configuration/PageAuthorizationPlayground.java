@@ -20,6 +20,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -76,6 +77,8 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
     private static final String ID_SAMPLE = "sample";
 
+    private static final String ID_SELECTOR_TRACING = "selectorTracing";
+
     private static final String ID_EXECUTE = "execute";
 
     private static final String ID_RESULT_TEXT = "resultText";
@@ -97,6 +100,8 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
     private final IModel<String> typeModel = new Model<>("UserType");
     private final IModel<String> filterModel = new Model<>();
     private final IModel<String> objectOidModel = Model.of("");
+
+    private final IModel<Boolean> selectorTracingModel = Model.of(false);
 
     private final IModel<String> resultModel = new Model<>();
     private final IModel<String> computationModel = new Model<>();
@@ -124,6 +129,8 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         mainForm.add(filterEditor);
 
         mainForm.add(new TextField<>(ID_OBJECT_OID, objectOidModel));
+
+        mainForm.add(new CheckBox(ID_SELECTOR_TRACING, selectorTracingModel));
 
         mainForm.add(
                 new AjaxSubmitButton(ID_EXECUTE, createStringResource("PageAuthorizationPlayground.button.evaluate")) {
@@ -183,6 +190,7 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
             setSubjectRef(request);
             addExplicitAuthorizations(request);
+            setTracing(request);
 
             var response = getModelDiagnosticService().evaluateAuthorizations(request, task, result);
 
@@ -251,5 +259,10 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
                     CloneUtil.cloneCollectionMembers(
                             additional.getAuthorization()));
         }
+    }
+
+    private void setTracing(AuthorizationEvaluationRequestType request) {
+        request.tracing(new AuthorizationEvaluationTracingOptionsType()
+                .selectorTracingEnabled(selectorTracingModel.getObject()));
     }
 }

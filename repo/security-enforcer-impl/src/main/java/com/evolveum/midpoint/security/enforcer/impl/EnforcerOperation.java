@@ -10,6 +10,8 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.traces.details.AbstractTraceEvent;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +44,7 @@ class EnforcerOperation {
     /** {@link OwnerResolver} to be used during this operation. */
     @Nullable final OwnerResolver ownerResolver;
 
-    @NotNull final ProcessingTracer<SecurityTraceEvent> tracer;
+    @NotNull final ProcessingTracer<AbstractTraceEvent> tracer;
 
     /** Useful Spring beans. */
     @NotNull final Beans b;
@@ -64,8 +66,8 @@ class EnforcerOperation {
     }
 
     // temporary
-    private ProcessingTracer<SecurityTraceEvent> createTracer(SecurityEnforcer.Options options) {
-        return new LogBasedEnforcerTracer(options.logCollector());
+    private ProcessingTracer<AbstractTraceEvent> createTracer(SecurityEnforcer.Options options) {
+        return new LogBasedEnforcerAndSelectorTracer(options.logCollector());
     }
 
     Collection<Authorization> getAuthorizations() {
