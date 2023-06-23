@@ -27,23 +27,47 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         Set<Double> setA = new HashSet<>();
         int setBunique = 0;
 
+//        for (double num : a) {
+//            setA.add(num);
+//        }
+//        for (double num : b) {
+//            if (setA.contains(num)) {
+//                intersectionCount++;
+//            }else {
+//                setA.add(num);
+//            }
+//        }
 
-        for (double num : a) {
-            setA.add(num);
-        }
-        for (double num : b) {
-            if (setA.contains(num)) {
-                intersectionCount++;
-            } else {
-                setBunique++;
+        if (a.length > b.length) {
+            for (double num : a) {
+                setA.add(num);
+            }
+            for (double num : b) {
+                if (setA.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+        } else {
+            for (double num : b) {
+                setA.add(num);
+            }
+            for (double num : a) {
+                if (setA.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
             }
         }
 
         if (intersectionCount < minIntersection) {
             return 1;
         }
-
         return 1 - (double) intersectionCount / (setA.size() + setBunique);
+
+//        return 1 - (double) intersectionCount / setA.size();
     }
 
     //Elapsed time: 109.211 seconds.

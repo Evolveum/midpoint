@@ -57,7 +57,6 @@ DO $$ BEGIN
         'REPORT_DATA',
         'RESOURCE',
         'ROLE',
-        'MINING',
         'CLUSTER',
         'PARENT_CLUSTER',
         'SECURITY_POLICY',

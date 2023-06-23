@@ -7,18 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningObjectUtils.getMiningObject;
-import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.getRolesOid;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getUserObject;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ClusterBasicDetailsPanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ClusterDetailsPanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ImageDetailsPanel;
+import java.util.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,7 +29,9 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ClusterBasicDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ClusterDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ImageDetailsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,18 +40,17 @@ import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class ClusterBasicTable extends Panel {
+public class ClusterOperationPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
     String identifier;
 
-    public ClusterBasicTable(String id, String identifier) {
+    public ClusterOperationPanel(String id, String identifier) {
         super(id);
         this.identifier = identifier;
-        System.out.println(identifier);
     }
 
     @Override
@@ -106,7 +100,6 @@ public class ClusterBasicTable extends Panel {
 
                 IColumn<SelectableBean<ClusterType>, String> column;
 
-
                 column = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
 
                     @Serial private static final long serialVersionUID = 1L;
@@ -115,7 +108,7 @@ public class ClusterBasicTable extends Panel {
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ClusterType>> rowModel) {
 
                         ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("TO DO: details"),rowModel) {
+                                Model.of("TO DO: details"), rowModel) {
                             @Override
                             public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                 super.onClose(ajaxRequestTarget);
@@ -127,9 +120,6 @@ public class ClusterBasicTable extends Panel {
                 };
 
                 columns.add(column);
-
-
-
 
                 column = new AbstractColumn<>(
                         createStringResource("Cluster")) {
@@ -362,27 +352,33 @@ public class ClusterBasicTable extends Panel {
                                     Model.of(String.valueOf(model.getObject().getValue().getSimilarGroupsCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    long startTime = System.currentTimeMillis();
+                                    OperationResult result = new OperationResult("Prepare clustered objects");
 
                                     List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
-                                    String string = DOT_CLASS + "getMiningTypeObject";
-                                    OperationResult result = new OperationResult(string);
-                                    List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
+                                    List<ClusteringObjectMapped> mappedUsers = new ArrayList<>();
 
+                                    List<String> prevRoles = new ArrayList<>();
+                                    int prevIndex = -1;
                                     for (String groupOid : similarGroupsId) {
-                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
-
-                                        miningTypeList.add(miningObject);
+                                        PrismObject<UserType> user = getUserObject(getPageBase(), groupOid, result);
+                                        List<String> rolesOid = getRolesOid(user.asObjectable());
+                                        Collections.sort(rolesOid);
+                                        if (prevRoles.equals(rolesOid)) {
+                                            ClusteringObjectMapped clusteringObjectMapped = mappedUsers.get(prevIndex);
+                                            clusteringObjectMapped.getMembers().add(groupOid);
+                                        } else {
+                                            mappedUsers.add(new ClusteringObjectMapped(groupOid, rolesOid,
+                                                    new ArrayList<>(Collections.singletonList(groupOid))));
+                                            prevRoles = rolesOid;
+                                            prevIndex++;
+                                        }
                                     }
 
                                     List<String> roles = model.getObject().getValue().getRoles();
 
-                                    long endTime = System.currentTimeMillis();
-                                    long elapsedTime = endTime - startTime;
-                                    double elapsedSeconds = elapsedTime / 1000.0;
-                                    System.out.println("Elapsed time: " + elapsedSeconds + " seconds (prepare table data))");
-                                    ClusterDetailsPanel detailsPanel = new ClusterDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Groups"), miningTypeList, roles, null) {
+                                    ClusterDetailsPanel detailsPanel = new ClusterDetailsPanel(((PageBase) getPage())
+                                            .getMainPopupBodyId(), Model.of("Groups"), mappedUsers,
+                                            roles) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);
@@ -437,26 +433,18 @@ public class ClusterBasicTable extends Panel {
                                     Model.of("popup")) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    long startTime = System.currentTimeMillis();
 
-                                    List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
-                                    String string = DOT_CLASS + "getMiningTypeObject";
-                                    OperationResult result = new OperationResult(string);
-                                    List<PrismObject<MiningType>> miningTypeList = new ArrayList<>();
-                                    List<String> rolesOid = model.getObject().getValue().getRoles();
-                                    for (String groupOid : similarGroupsId) {
-                                        PrismObject<MiningType> miningObject = getMiningObject(getPageBase(), groupOid, result);
-
-                                        miningTypeList.add(miningObject);
+                                    List<String> members = model.getObject().getValue().getSimilarGroupsId();
+                                    OperationResult result = new OperationResult("prepare user objects");
+                                    List<PrismObject<UserType>> users = new ArrayList<>();
+                                    List<String> roles = model.getObject().getValue().getRoles();
+                                    for (String groupOid : members) {
+                                        PrismObject<UserType> user = getUserObject(getPageBase(), groupOid, result);
+                                        users.add(user);
                                     }
 
-                                    long endTime = System.currentTimeMillis();
-                                    long elapsedTime = endTime - startTime;
-                                    double elapsedSeconds = elapsedTime / 1000.0;
-                                    System.out.println("Elapsed time: " + elapsedSeconds + " seconds (prepare table data))");
-
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), miningTypeList, rolesOid, null, model.getObject().getValue().getIdentifier()) {
+                                            Model.of("Image"), users, roles, model.getObject().getValue().getIdentifier()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);

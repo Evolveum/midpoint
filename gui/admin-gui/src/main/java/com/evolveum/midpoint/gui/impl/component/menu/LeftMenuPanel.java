@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.MainPageMining;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMining;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningRBAM;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningSimple;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -81,7 +79,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
@@ -403,7 +400,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
         roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
         roleMenu.addMenuItem(new MenuItem("RBAM", PageRoleMiningRBAM.class));
-        roleMenu.addMenuItem(new MenuItem("CL", PageRoleMining.class));
         roleMenu.addMenuItem(new MenuItem("Mining", MainPageMining.class));
 
         return roleMenu;

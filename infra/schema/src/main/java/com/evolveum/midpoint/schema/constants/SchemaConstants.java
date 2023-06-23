@@ -75,8 +75,6 @@ public abstract class SchemaConstants {
     public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
     public static final QName C_CONNECTOR_HOST_TYPE = new QName(NS_C, "ConnectorHostType");
     public static final ItemName C_CONNECTOR_HOST = new ItemName(NS_C, "connectorHost");
-    public static final ItemName C_MINING_TYPE = new ItemName(NS_C, "MiningType");
-    public static final ItemName C_MINING = new ItemName(NS_C, "mining");
     public static final ItemName C_CLUSTER_TYPE = new ItemName(NS_C, "ClusterType");
     public static final ItemName C_CLUSTER = new ItemName(NS_C, "cluster");
     public static final ItemName C_PARENT_CLUSTER_TYPE = new ItemName(NS_C, "ParentClusterType");

@@ -22,28 +22,26 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.CustomImageRe
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getImageScaleScript;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
-
     private static final String ID_IMAGE = "image";
 
-    List<PrismObject<MiningType>> jaccSortMiningSet;
-    String targetValue;
-
+    List<PrismObject<UserType>> members;
     String identifier;
-    List<String> sortedRolePrismObjectList;
+    List<String> occupiedRoles;
 
     public ImageDetailsPanel(String id, IModel<String> messageModel,
-            List<PrismObject<MiningType>> jaccSortMiningSet, List<String> sortedRolePrismObjectList, String targetValue, String identifier) {
+            List<PrismObject<UserType>> members, List<String> occupiedRoles, String identifier) {
         super(id, messageModel);
-        this.jaccSortMiningSet = jaccSortMiningSet;
-        this.targetValue = targetValue;
+        this.members = members;
         this.identifier = identifier;
-        this.sortedRolePrismObjectList = sortedRolePrismObjectList;
+        this.occupiedRoles = occupiedRoles;
     }
 
     @Override
@@ -56,21 +54,21 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
         CustomImageResource imageResource;
 
-        imageResource = new CustomImageResource(sortedRolePrismObjectList, jaccSortMiningSet);
+        imageResource = new CustomImageResource(occupiedRoles, members);
 
         Image image = new Image(ID_IMAGE, imageResource);
 
         image.add(new AbstractDefaultAjaxBehavior() {
             @Override
             protected void respond(AjaxRequestTarget target) {
-                target.appendJavaScript(getScaleScript());
+                target.appendJavaScript(getImageScaleScript());
 
             }
 
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
                 super.renderHead(component, response);
-                response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
+                response.render(OnDomReadyHeaderItem.forScript(getImageScaleScript()));
 
             }
         });
@@ -129,46 +127,6 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
     @Override
     public StringResourceModel getTitle() {
         return new StringResourceModel("Details.panel");
-    }
-
-    private String getScaleScript() {
-        return "let imageContainer = document.querySelector('#imageContainer');" +
-                "let image = imageContainer.querySelector('img');" +
-                "let scale = 1;" +
-                "if (imageContainer && image) {" +
-                "  imageContainer.onwheel = function(e) {" +
-                "    e.preventDefault();" +
-                "    let rectBefore = image.getBoundingClientRect();" +
-                "    let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;" +
-                "    let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;" +
-                "    image.style.transformOrigin = 'left top';" +
-                "    if (e.deltaY < 0) {" +
-                "      console.log('Zooming in');" +
-                "      scale += 0.03;" +
-                "      let prevScale = scale - 0.1;" +
-                "      let scaleFactor = scale / prevScale;" +
-                "      let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);" +
-                "      let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);" +
-                "      image.style.transformOrigin = x + '%' + ' ' + y + '%';" +
-                "      image.style.transition = 'transform 0.3s';" +
-                "      image.style.transform = 'scale(' + scale + ')';" +
-                "      let rectAfter = image.getBoundingClientRect();" +
-                "      imageContainer.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);" +
-                "      imageContainer.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);" +
-                "    } else if (e.deltaY > 0) {" +
-                "      console.log('Zooming out');" +
-                "      scale -= 0.03;" +
-                "      scale = Math.max(0.1, scale);" +
-                "      image.style.transition = 'transform 0.3s';" +
-                "      image.style.transform = 'scale(' + scale + ')';" +
-                "      let rectAfter = image.getBoundingClientRect();" +
-                "      imageContainer.scrollLeft += (rectAfter.left - rectBefore.left);" +
-                "      imageContainer.scrollTop += (rectAfter.top - rectBefore.top);" +
-                "    }" +
-                "  };" +
-                "} else {" +
-                "  console.error('Image or container not found');" +
-                "}";
     }
 
 }

@@ -16,6 +16,11 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
  */
 public enum ObjectTypeGuiDescriptor {
 
+
+    CLUSTER(ObjectTypes.CLUSTER, "ObjectTypeGuiDescriptor.cluster", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
+
+    PARENT_CLUSTER(ObjectTypes.PARENT_CLUSTER, "ObjectTypeGuiDescriptor.parent.cluster", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
+
     CONNECTOR(ObjectTypes.CONNECTOR, "ObjectTypeGuiDescriptor.connector", "silk-link", "silk-link"),
 
     CONNECTOR_HOST(ObjectTypes.CONNECTOR_HOST, "ObjectTypeGuiDescriptor.connectorHost", "silk-driver_link", "silk-driver_link"),

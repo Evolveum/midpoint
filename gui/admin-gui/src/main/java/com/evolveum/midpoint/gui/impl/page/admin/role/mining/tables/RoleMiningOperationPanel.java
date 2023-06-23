@@ -7,27 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.getRolesOid;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.generateIntersectionsMap;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterUtils.generateFrequencyMap;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.TextFieldLabelPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ProcessBusinessRolePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
-
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -45,124 +35,126 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.TextFieldLabelPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ProcessBusinessRolePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class SimilarGroupDetailsPanel extends Panel {
+public class RoleMiningOperationPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
-    double minFrequency = 0.0;
+    double minFrequency = 0.3;
     double maxFrequency = 1.0;
-    Integer minIntersection = 0;
-
+    Integer minIntersection = 10;
     List<IntersectionObject> mergedIntersection = new ArrayList<>();
-
     IntersectionObject selections;
+    int fullRolesOccupation = 0;
+    AjaxButton processButton;
 
-    public boolean isSelectedBusinessRole(){
-        return selections != null;
-    }
-    public SimilarGroupDetailsPanel(String id, List<PrismObject<MiningType>> miningTypeList,
-            List<String> rolePrismObjectList, String targetOid, boolean sortable) {
+    public RoleMiningOperationPanel(String id, List<ClusteringObjectMapped> users,
+            List<String> occupiedRoles, boolean sortable) {
         super(id);
 
-        HashMap<String, Double> frequencyMap = getFrequencyMap(miningTypeList, rolePrismObjectList);
+        HashMap<String, Double> frequencyMap = generateFrequencyMap(users, occupiedRoles);
 
-        BoxedTablePanel<PrismObject<MiningType>> components = generateTableRM(miningTypeList,
-                rolePrismObjectList, targetOid, sortable, minFrequency, frequencyMap, null, maxFrequency);
-        components.setOutputMarkupId(true);
-        components.getDataTable().add(AttributeModifier.append("style", "transform: scale(0.3); transform-origin: 0 0;"));
-        add(components);
+        BoxedTablePanel<ClusteringObjectMapped> boxedTablePanel = generateRoleMiningTable(users,
+                occupiedRoles, sortable, minFrequency, frequencyMap, null, maxFrequency);
+        boxedTablePanel.setOutputMarkupId(true);
+        boxedTablePanel.getDataTable().add(scaleModifier());
+        add(boxedTablePanel);
 
         EmptyPanel tableIntersection = new EmptyPanel(ID_DATATABLE_INTERSECTIONS);
         tableIntersection.setOutputMarkupId(true);
         add(tableIntersection);
 
-        add(frequencyForm(miningTypeList, targetOid, sortable, rolePrismObjectList, frequencyMap));
-
+        add(frequencyForm(users, sortable, occupiedRoles, frequencyMap));
     }
 
-    public Form<?> frequencyForm(List<PrismObject<MiningType>> miningTypeList, String targetOid, boolean sortable,
-            List<String> rolePrismObjectList, HashMap<String, Double> frequencyMap) {
+    public Form<?> frequencyForm(List<ClusteringObjectMapped> usersMap, boolean sortable,
+            List<String> occupiedRoles, HashMap<String, Double> frequencyMap) {
 
         Form<?> form = new Form<Void>("thresholds_form");
 
-        TextFieldLabelPanel thresholdField = new TextFieldLabelPanel("threshold_frequency", Model.of(minFrequency), "Min frequency");
+        TextFieldLabelPanel thresholdField = new TextFieldLabelPanel("threshold_frequency",
+                Model.of(minFrequency), "Min frequency");
         thresholdField.setOutputMarkupId(true);
         thresholdField.setOutputMarkupPlaceholderTag(true);
         thresholdField.setVisible(true);
         form.add(thresholdField);
 
-        TextFieldLabelPanel thresholdFieldMax = new TextFieldLabelPanel("threshold_frequency_max", Model.of(maxFrequency), "Max frequency");
+        TextFieldLabelPanel thresholdFieldMax = new TextFieldLabelPanel("threshold_frequency_max",
+                Model.of(maxFrequency), "Max frequency");
         thresholdFieldMax.setOutputMarkupId(true);
         thresholdFieldMax.setOutputMarkupPlaceholderTag(true);
         thresholdFieldMax.setVisible(true);
         form.add(thresholdFieldMax);
 
-        TextFieldLabelPanel thresholdField2 = new TextFieldLabelPanel("threshold_frequency_2", Model.of(minIntersection), "Intersection");
-        thresholdField2.setOutputMarkupId(true);
-        thresholdField2.setOutputMarkupPlaceholderTag(true);
-        thresholdField2.setVisible(true);
-        form.add(thresholdField2);
+        TextFieldLabelPanel minIntersectionField = new TextFieldLabelPanel("threshold_intersection",
+                Model.of(minIntersection), "Intersection");
+        minIntersectionField.setOutputMarkupId(true);
+        minIntersectionField.setOutputMarkupPlaceholderTag(true);
+        minIntersectionField.setVisible(true);
+        form.add(minIntersectionField);
 
-        AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink("ajax_submit_link_mn", form) {
+        AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink("ajax_submit_link", form) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 minFrequency = (double) thresholdField.getBaseFormComponent().getModelObject();
                 maxFrequency = (double) thresholdFieldMax.getBaseFormComponent().getModelObject();
-                target.add(thresholdField);
-                target.add(thresholdFieldMax);
 
-                minIntersection = (Integer) thresholdField2.getBaseFormComponent().getModelObject();
+                minIntersection = (Integer) minIntersectionField.getBaseFormComponent().getModelObject();
 
-                long startTime = System.currentTimeMillis();
+                long startTime = startTimer("prepare intersections");
 
-                mergedIntersection = generateIntersectionsMap(miningTypeList, minIntersection, minFrequency, frequencyMap,
+                mergedIntersection = generateIntersectionsMap(usersMap, minIntersection, minFrequency, frequencyMap,
                         maxFrequency);
 
-                long endTime = System.currentTimeMillis();
-                long elapsedTime = endTime - startTime;
-                double elapsedSeconds = elapsedTime / 1000.0;
-                System.out.println("Elapsed time: " + elapsedSeconds + " seconds. (prepare intersections)");
-                target.add(thresholdField);
+                endTimer(startTime, "prepare intersections");
 
-                getBoxedTableExtra().replaceWith(generateTableRM(miningTypeList,
-                        rolePrismObjectList, targetOid, sortable, minFrequency, frequencyMap, null, maxFrequency));
+                getBoxedTableExtra().replaceWith(generateRoleMiningTable(usersMap,
+                        occupiedRoles, sortable, minFrequency, frequencyMap, null, maxFrequency));
                 getBoxedTableExtra().setOutputMarkupId(true);
                 getBoxedTableExtra().getDataTable().add(AttributeModifier.append("style", "transform: scale(0.3);"
                         + " transform-origin: 0 0;"));
+                getIntersectionTable().replaceWith(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection,
+                        sortable, occupiedRoles, usersMap, frequencyMap));
 
                 target.appendJavaScript(getScaleScript());
                 target.add(getBoxedTableExtra());
-
-                getIntersectionTable().replaceWith(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection,
-                        sortable, rolePrismObjectList, miningTypeList, targetOid, frequencyMap));
                 target.add(getIntersectionTable().setOutputMarkupId(true));
+                target.add(thresholdField);
+                target.add(thresholdFieldMax);
+                target.add(thresholdField);
             }
         };
 
         ajaxSubmitLink.setOutputMarkupId(true);
 
-
-
-        AjaxButton ajaxButton = new AjaxButton("process_selections_id",Model.of("Process selections")) {
+        processButton = new AjaxButton("process_selections_id", Model.of("Process selections")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
                 ProcessBusinessRolePanel detailsPanel = new ProcessBusinessRolePanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("TO DO: details"),selections) {
+                        Model.of("TO DO: details"), selections) {
                     @Override
                     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                         super.onClose(ajaxRequestTarget);
@@ -174,64 +166,37 @@ public class SimilarGroupDetailsPanel extends Panel {
 
         };
 
-        ajaxButton.setOutputMarkupId(true);
-        ajaxButton.add(new VisibleBehaviour(this::isSelectedBusinessRole));
+        processButton.setOutputMarkupId(true);
+        processButton.setOutputMarkupPlaceholderTag(true);
+        processButton.setVisible(false);
 
-        form.add(ajaxButton);
+        form.add(processButton);
         form.add(ajaxSubmitLink);
 
         return form;
     }
 
-
-    public HashMap<String, Double> getFrequencyMap(List<PrismObject<MiningType>> miningTypeList,
-            List<String> rolePrismObjectList) {
-
-        HashMap<String, Double> roleFrequencyMap = new HashMap<>();
-        HashSet<String> roleIds = new HashSet<>(rolePrismObjectList);
-
-        HashMap<String, Integer> roleCountMap = new HashMap<>();
-        for (PrismObject<MiningType> miningType : miningTypeList) {
-            List<String> roles = miningType.asObjectable().getRoles();
-            for (String roleId : roles) {
-                if (roleIds.contains(roleId)) {
-                    roleCountMap.put(roleId, roleCountMap.getOrDefault(roleId, 0) + 1);
-                }
-            }
-        }
-
-        int totalMiningTypeObjects = miningTypeList.size();
-        for (Map.Entry<String, Integer> entry : roleCountMap.entrySet()) {
-            String roleId = entry.getKey();
-            int frequency = entry.getValue();
-            double percentage = (double) frequency / totalMiningTypeObjects;
-            roleFrequencyMap.put(roleId, percentage);
-        }
-
-        return roleFrequencyMap;
-    }
-
-    public BoxedTablePanel<PrismObject<MiningType>> generateTableRM(List<PrismObject<MiningType>> groupsOid,
-            List<String> rolePrismObjectList, String targetOid, boolean sortable, double frequency,
+    public BoxedTablePanel<ClusteringObjectMapped> generateRoleMiningTable(List<ClusteringObjectMapped> usersMap,
+            List<String> occupiedRoles, boolean sortable, double frequency,
             HashMap<String, Double> frequencyMap, Set<String> intersection, double maxFrequency) {
 
-        RoleMiningProvider<PrismObject<MiningType>> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(groupsOid) {
+        RoleMiningProvider<ClusteringObjectMapped> provider = new RoleMiningProvider<>(
+                this, new ListModel<>(usersMap) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<PrismObject<MiningType>> object) {
+            public void setObject(List<ClusteringObjectMapped> object) {
                 super.setObject(object);
             }
 
         }, sortable);
 
         if (sortable) {
-            provider.setSort(MiningType.F_ROLES.toString(), SortOrder.ASCENDING);
+            provider.setSort(UserType.F_NAME.toString(), SortOrder.ASCENDING);
         }
-        BoxedTablePanel<PrismObject<MiningType>> table = new BoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumnsRM(rolePrismObjectList, targetOid, frequency, frequencyMap, intersection, maxFrequency),
+        BoxedTablePanel<ClusteringObjectMapped> table = new BoxedTablePanel<>(
+                ID_DATATABLE, provider, initColumnsRM(occupiedRoles, frequency, frequencyMap, intersection, maxFrequency),
                 null, true, true);
         table.setItemsPerPage(100);
         table.setOutputMarkupId(true);
@@ -239,10 +204,10 @@ public class SimilarGroupDetailsPanel extends Panel {
         return table;
     }
 
-    public List<IColumn<PrismObject<MiningType>, String>> initColumnsRM(List<String> rolePrismObjectList,
-            String targetOid, double frequency, HashMap<String, Double> frequencyMap, Set<String> intersection, double maxFrequency) {
+    public List<IColumn<ClusteringObjectMapped, String>> initColumnsRM(List<String> occupiedRoles, double frequency, HashMap<String,
+            Double> frequencyMap, Set<String> intersection, double maxFrequency) {
 
-        List<IColumn<PrismObject<MiningType>, String>> columns = new ArrayList<>();
+        List<IColumn<ClusteringObjectMapped, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
@@ -253,7 +218,7 @@ public class SimilarGroupDetailsPanel extends Panel {
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<PrismObject<MiningType>> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<ClusteringObjectMapped> rowModel) {
 
                 return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
             }
@@ -263,11 +228,11 @@ public class SimilarGroupDetailsPanel extends Panel {
 
             @Override
             public String getSortProperty() {
-                return MiningType.F_OID.getLocalPart();
+                return UserType.F_NAME.getLocalPart();
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<PrismObject<MiningType>> iModel) {
+            public IModel<?> getDataModel(IModel<ClusteringObjectMapped> iModel) {
                 return null;
             }
 
@@ -277,21 +242,16 @@ public class SimilarGroupDetailsPanel extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<PrismObject<MiningType>>> item, String componentId,
-                    IModel<PrismObject<MiningType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<ClusteringObjectMapped>> item, String componentId,
+                    IModel<ClusteringObjectMapped> rowModel) {
 
                 item.add(AttributeAppender.replace("class", " overflow-auto"));
                 item.add(new AttributeAppender("style", " width:150px"));
 
-                Label label = new Label(componentId, rowModel.getObject().getOid());
-                String oid = rowModel.getObject().getValue().getOid();
+                List<String> usersGroup = rowModel.getObject().getMembers();
+                String joinedGroup = String.join(", ", usersGroup);
+                Label label = new Label(componentId, "count: " + usersGroup.size() + " | " + joinedGroup);
                 item.add(label);
-                if (targetOid != null) {
-                    if (oid.equals(targetOid)) {
-                        item.add(new AttributeAppender("class", " table-primary"));
-                    }
-                }
-
             }
 
             @Override
@@ -307,8 +267,8 @@ public class SimilarGroupDetailsPanel extends Panel {
             }
         });
 
-        IColumn<PrismObject<MiningType>, String> column;
-        for (String roleTypePrismObject : rolePrismObjectList) {
+        IColumn<ClusteringObjectMapped, String> column;
+        for (String roleTypePrismObject : occupiedRoles) {
             String name = "" + roleTypePrismObject;
             String cellColor = "table-dark";
             Double fr = frequencyMap.get(roleTypePrismObject);
@@ -322,18 +282,18 @@ public class SimilarGroupDetailsPanel extends Panel {
             column = new AbstractColumn<>(createStringResource(name)) {
 
                 @Override
-                public void populateItem(Item<ICellPopulator<PrismObject<MiningType>>> cellItem,
-                        String componentId, IModel<PrismObject<MiningType>> model) {
+                public void populateItem(Item<ICellPopulator<ClusteringObjectMapped>> cellItem,
+                        String componentId, IModel<ClusteringObjectMapped> model) {
 
                     tableStyle(cellItem);
 
+                    List<String> rolesOid = model.getObject().getRoles();
                     if (intersection != null
                             && intersection.contains(roleTypePrismObject)
-                            && new HashSet<>(model.getObject().asObjectable().getRoles()).containsAll(intersection)) {
+                            && new HashSet<>(rolesOid).containsAll(intersection)) {
                         filledCell(cellItem, componentId, "bg-success");
                     } else {
-                        List<String> roleMembers = model.getObject().asObjectable().getRoles();
-                        if (roleMembers.contains(roleTypePrismObject)) {
+                        if (rolesOid.contains(roleTypePrismObject)) {
                             filledCell(cellItem, componentId, finalCellColor);
                         } else {
                             emptyCell(cellItem, componentId);
@@ -372,8 +332,8 @@ public class SimilarGroupDetailsPanel extends Panel {
     }
 
     public BoxedTablePanel<IntersectionObject> generateTableIntersection(String id, List<IntersectionObject> miningSets,
-            boolean sortable, List<String> rolePrismObjectList, List<PrismObject<MiningType>> miningTypeList,
-            String targetOid, HashMap<String, Double> frequencyMap) {
+            boolean sortable, List<String> occupiedRoles, List<ClusteringObjectMapped> usersMap,
+            HashMap<String, Double> frequencyMap) {
 
         RoleMiningProvider<IntersectionObject> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(miningSets) {
@@ -390,7 +350,7 @@ public class SimilarGroupDetailsPanel extends Panel {
         provider.setSort(IntersectionObject.F_METRIC, SortOrder.DESCENDING);
 
         BoxedTablePanel<IntersectionObject> table = new BoxedTablePanel<>(
-                id, provider, initColumnsIntersection(miningTypeList, targetOid, sortable, rolePrismObjectList, frequencyMap),
+                id, provider, initColumnsIntersection(usersMap, sortable, occupiedRoles, frequencyMap),
                 null, true, false);
         table.setOutputMarkupId(true);
         table.getDataTable().setItemsPerPage(10);
@@ -399,11 +359,8 @@ public class SimilarGroupDetailsPanel extends Panel {
         return table;
     }
 
-    int counter = 0;
-
-    public List<IColumn<IntersectionObject, String>> initColumnsIntersection(List<PrismObject<MiningType>> miningTypeList,
-            String targetOid, boolean sortable, List<String> rolePrismObjectList,
-            HashMap<String, Double> frequencyMap) {
+    public List<IColumn<IntersectionObject, String>> initColumnsIntersection(List<ClusteringObjectMapped> usersMap,
+            boolean sortable, List<String> occupiedRoles, HashMap<String, Double> frequencyMap) {
 
         List<IColumn<IntersectionObject, String>> columns = new ArrayList<>();
 
@@ -535,26 +492,18 @@ public class SimilarGroupDetailsPanel extends Panel {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-                        counter = 0;
+                        fullRolesOccupation = 0;
 
                         Set<String> rolesId = rowModel.getObject().getRolesId();
                         OperationResult result = new OperationResult("Generate miningType object");
 
                         ResultHandler<UserType> handler = (object, parentResult) -> {
 
-                            List<String> rolesOid = new ArrayList<>();
-                            List<AssignmentType> assignment = object.asObjectable().getAssignment();
-                            for (AssignmentType assignmentObject : assignment) {
-                                ObjectReferenceType targetRef = assignmentObject.getTargetRef();
-                                if (targetRef.getType().getLocalPart().equals(RoleType.class.getSimpleName())) {
-                                    rolesOid.add(targetRef.getOid());
-                                }
-                            }
+                            List<String> rolesOid = getRolesOid(object.asObjectable());
 
                             if (new HashSet<>(rolesOid).containsAll(rolesId)) {
-                                counter++;
+                                fullRolesOccupation++;
                             }
-
                             return true;
                         };
 
@@ -568,7 +517,7 @@ public class SimilarGroupDetailsPanel extends Panel {
                             throw new RuntimeException(e);
                         }
 
-                        this.setDefaultModel(Model.of(String.valueOf(counter)));
+                        this.setDefaultModel(Model.of(String.valueOf(fullRolesOccupation)));
                         item.setOutputMarkupId(true);
                         ajaxRequestTarget.add(item);
                     }
@@ -615,14 +564,17 @@ public class SimilarGroupDetailsPanel extends Panel {
                         Set<String> intersection = rowModel.getObject().getRolesId();
 
                         selections = rowModel.getObject();
-                        getBoxedTableExtra().replaceWith(generateTableRM(miningTypeList,
-                                rolePrismObjectList, targetOid, sortable, minFrequency, frequencyMap, intersection, maxFrequency));
+                        getBoxedTableExtra().replaceWith(generateRoleMiningTable(usersMap,
+                                occupiedRoles, sortable, minFrequency, frequencyMap, intersection, maxFrequency));
                         getBoxedTableExtra().setOutputMarkupId(true);
-                        getBoxedTableExtra().getDataTable().add(AttributeModifier.append("style", "transform: scale(0.3);"
-                                + " transform-origin: 0 0;"));
+                        getBoxedTableExtra().getDataTable().add(AttributeModifier.append("style",
+                                "transform: scale(0.3);"
+                                        + " transform-origin: 0 0;"));
 
                         ajaxRequestTarget.appendJavaScript(getScaleScript());
                         ajaxRequestTarget.add(getBoxedTableExtra());
+                        processButton.setVisible(true);
+                        ajaxRequestTarget.add(processButton);
 
                     }
                 };
@@ -644,70 +596,12 @@ public class SimilarGroupDetailsPanel extends Panel {
         return columns;
     }
 
-    private void tableStyle(@NotNull Item<?> cellItem) {
-        MarkupContainer parentContainer = cellItem.getParent().getParent();
-        parentContainer.add(AttributeAppender.replace("class", "d-flex"));
-        parentContainer.add(AttributeAppender.replace("style", "height:40px"));
-
-        cellItem.add(AttributeAppender.append("style", "width:40px; height:40px; border: 1px solid #f4f4f4;"));
-        cellItem.add(AttributeAppender.remove("class"));
-    }
-
-    private void emptyCell(@NotNull Item<?> cellItem, String componentId) {
-        cellItem.add(new EmptyPanel(componentId));
-    }
-
-    private void filledCell(@NotNull Item<?> cellItem, String componentId, String color) {
-        cellItem.add(new AttributeAppender("class", color));
-        cellItem.add(new EmptyPanel(componentId));
-    }
-
     protected Component getIntersectionTable() {
         return get(((PageBase) getPage()).createComponentPath(ID_DATATABLE_INTERSECTIONS));
     }
 
     protected BoxedTablePanel<?> getBoxedTableExtra() {
         return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE));
-    }
-
-    private String getScaleScript() {
-        return "let div = document.querySelector('#myTable');" +
-                "let table = div.querySelector('table');" +
-                "let scale = 1;" +
-                "if (div && table) {" +
-                "  div.onwheel = function(e) {" +
-                "    e.preventDefault();" +
-                "    let rectBefore = table.getBoundingClientRect();" +
-                "    let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;" +
-                "    let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;" +
-                "    table.style.transformOrigin = 'left top';" +
-                "    if (e.deltaY < 0) {" +
-                "      console.log('Zooming in');" +
-                "      scale += 0.03;" +
-                "      let prevScale = scale - 0.1;" +
-                "      let scaleFactor = scale / prevScale;" +
-                "      let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);" +
-                "      let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);" +
-                "      table.style.transformOrigin = x + '%' + ' ' + y + '%';" +
-                "      table.style.transition = 'transform 0.3s';" + // Add transition property
-                "      table.style.transform = 'scale(' + scale + ')';" +
-                "      let rectAfter = table.getBoundingClientRect();" +
-                "      div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);" +
-                "      div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);" +
-                "    } else if (e.deltaY > 0) {" +
-                "      console.log('Zooming out');" +
-                "      scale -= 0.03;" +
-                "      scale = Math.max(0.1, scale);" +
-                "      table.style.transition = 'transform 0.3s';" + // Add transition property
-                "      table.style.transform = 'scale(' + scale + ')';" +
-                "      let rectAfter = table.getBoundingClientRect();" +
-                "      div.scrollLeft += (rectAfter.left - rectBefore.left);" +
-                "      div.scrollTop += (rectAfter.top - rectBefore.top);" +
-                "    }" +
-                "  };" +
-                "} else {" +
-                "  console.error('Div or table not found');" +
-                "}";
     }
 
 }

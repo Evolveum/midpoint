@@ -40,7 +40,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.QMiningObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
@@ -178,7 +177,6 @@ public class SqaleRepositoryBeanConfig {
                 .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
-                .register(MiningType.COMPLEX_TYPE, QMiningObjectMapping.init(repositoryContext))
                 .register(ClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
                 .register(ParentClusterType.COMPLEX_TYPE, QParentClusterObjectMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))

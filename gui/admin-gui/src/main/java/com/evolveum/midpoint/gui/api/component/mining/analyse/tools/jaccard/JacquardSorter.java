@@ -11,13 +11,16 @@ import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.group
 import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper.Grouper.getRoleGroupByJc;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.DataPoint;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class JacquardSorter {
 
@@ -41,15 +44,25 @@ public class JacquardSorter {
         return (double) intersection.size() / union.size();
     }
 
-    public static List<PrismObject<MiningType>> jaccSortMiningSet(List<PrismObject<MiningType>> miningSets) {
+    public static List<String> getRolesOid(AssignmentHolderType object) {
+        List<String> oidList;
+        List<AssignmentType> assignments = object.getAssignment();
+        oidList = assignments.stream().map(AssignmentType::getTargetRef).filter(
+                        targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid).sorted()
+                .collect(Collectors.toList());
+        return oidList;
+    }
 
-        List<PrismObject<MiningType>> sortedUserSets = new ArrayList<>();
-        List<PrismObject<MiningType>> remainingUserSets = new ArrayList<>(miningSets);
+    public static List<DataPoint> jaccSortDataPoints(List<DataPoint> dataPoints) {
 
-        remainingUserSets.sort(Comparator.comparingInt(set -> -set.asObjectable().getRoles().size()));
+        List<DataPoint> sortedUserSets = new ArrayList<>();
+        List<DataPoint> remainingUserSets = new ArrayList<>(dataPoints);
+
+        remainingUserSets.sort(Comparator.comparingInt(set -> -set.getRoles().size()));
 
         while (!remainingUserSets.isEmpty()) {
-            PrismObject<MiningType> currentUserSet = remainingUserSets.remove(0);
+            DataPoint currentUserSet = remainingUserSets.remove(0);
             double maxSimilarity = 0;
             int insertIndex = -1;
 
@@ -61,26 +74,26 @@ public class JacquardSorter {
                 }
             } else {
                 for (int i = 1; i < sortedUserSets.size(); i++) {
-                    PrismObject<MiningType> prevUserSet = sortedUserSets.get(i - 1);
-                    PrismObject<MiningType> nextUserSet = sortedUserSets.get(i);
-                    double similarity = RoleUtils.jacquardSimilarity(currentUserSet.asObjectable().getRoles(),
-                            prevUserSet.asObjectable().getRoles());
-                    double nextSimilarity = RoleUtils.jacquardSimilarity(currentUserSet.asObjectable().getRoles(),
-                            nextUserSet.asObjectable().getRoles());
+                    DataPoint prevUserSet = sortedUserSets.get(i - 1);
+                    DataPoint nextUserSet = sortedUserSets.get(i);
+                    double similarity = RoleUtils.jacquardSimilarity(currentUserSet.getRoles(),
+                            prevUserSet.getRoles());
+                    double nextSimilarity = RoleUtils.jacquardSimilarity(currentUserSet.getRoles(),
+                            nextUserSet.getRoles());
 
                     if (Math.max(similarity, nextSimilarity) > maxSimilarity
                             && Math.min(similarity, nextSimilarity) >= RoleUtils.jacquardSimilarity(
-                                    prevUserSet.asObjectable().getRoles(), nextUserSet.asObjectable().getRoles())) {
+                            prevUserSet.getRoles(), nextUserSet.getRoles())) {
                         maxSimilarity = Math.max(similarity, nextSimilarity);
                         insertIndex = i;
                     }
                 }
 
                 if (insertIndex == -1) {
-                    if (RoleUtils.jacquardSimilarity(currentUserSet.asObjectable().getRoles(),
-                            sortedUserSets.get(0).asObjectable().getRoles())
-                            > RoleUtils.jacquardSimilarity(sortedUserSets.get(0).asObjectable().getRoles(),
-                            sortedUserSets.get(1).asObjectable().getRoles())) {
+                    if (RoleUtils.jacquardSimilarity(currentUserSet.getRoles(),
+                            sortedUserSets.get(0).getRoles())
+                            > RoleUtils.jacquardSimilarity(sortedUserSets.get(0).getRoles(),
+                            sortedUserSets.get(1).getRoles())) {
                         sortedUserSets.add(0, currentUserSet);
                     } else {
                         sortedUserSets.add(currentUserSet);

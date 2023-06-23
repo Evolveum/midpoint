@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterBasicTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterOperationPanel;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -36,11 +36,11 @@ public class PageCluster extends PageAdmin {
 
     private static final String ID_DATATABLE_CLUSTER_DS = "datatable_cluster_ds";
 
-    String identifier = "IDENTIFIER";
+    public static final String PARAMETER_IDENTIFIER = "id";
 
-    String getPageParameterOid() {
+    String getPageParameterIdentifier() {
         PageParameters params = getPageParameters();
-        return params.get(identifier).toString();
+        return params.get(PARAMETER_IDENTIFIER).toString();
     }
 
     public PageCluster() {
@@ -50,7 +50,7 @@ public class PageCluster extends PageAdmin {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(new ClusterBasicTable(ID_DATATABLE_CLUSTER_DS, getPageParameterOid()).setOutputMarkupId(true));
+        add(new ClusterOperationPanel(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier()).setOutputMarkupId(true));
     }
 
     public PageBase getPageBase() {

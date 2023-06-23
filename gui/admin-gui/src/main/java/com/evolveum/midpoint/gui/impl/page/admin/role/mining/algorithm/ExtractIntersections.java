@@ -12,20 +12,19 @@ import java.util.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MiningType;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusteringObjectMapped;
 
 public class ExtractIntersections {
 
-    public static @NotNull List<IntersectionObject> generateIntersectionsMap(@NotNull List<PrismObject<MiningType>>
-            clusterMiningTypeObjects, int minIntersection, double frequency, HashMap<String, Double> frequencyMap,
+    public static @NotNull List<IntersectionObject> generateIntersectionsMap(@NotNull List<ClusteringObjectMapped>
+            userObjects, int minIntersection, double frequency, HashMap<String, Double> frequencyMap,
             double maxFrequency) {
 
         List<List<String>> clusterRoles = new ArrayList<>();
-        for (PrismObject<MiningType> clusterMiningTypeObject : clusterMiningTypeObjects) {
-            List<String> miningObjectRoles = clusterMiningTypeObject.asObjectable().getRoles();
+        for (ClusteringObjectMapped prismUser : userObjects) {
+            List<String> roles = prismUser.getRoles();
             List<String> preparedRoles = new ArrayList<>();
-            for (String oid : miningObjectRoles) {
+            for (String oid : roles) {
 
                 Double fr = frequencyMap.get(oid);
                 if (frequency > fr || maxFrequency < fr) {
@@ -37,11 +36,11 @@ public class ExtractIntersections {
             clusterRoles.add(preparedRoles);
         }
 
-        return getOuterIntersectionMap(clusterRoles, minIntersection, clusterMiningTypeObjects);
+        return getOuterIntersectionMap(clusterRoles, minIntersection, userObjects);
     }
 
     private static List<IntersectionObject> getOuterIntersectionMap(List<List<String>> roles, int minIntersection,
-            List<PrismObject<MiningType>> clusterMiningTypeObjects) {
+            List<ClusteringObjectMapped> userObjects) {
 
         HashMap<Set<String>, String> mappedIntersections = new HashMap<>();
 
@@ -78,10 +77,10 @@ public class ExtractIntersections {
             }
         }
 
-        return prepareIntersectionObjects(clusterMiningTypeObjects, mappedIntersections);
+        return prepareIntersectionObjects(userObjects, mappedIntersections);
     }
 
-    private static List<IntersectionObject> prepareIntersectionObjects(List<PrismObject<MiningType>> roles, HashMap<Set<String>,
+    private static List<IntersectionObject> prepareIntersectionObjects(List<ClusteringObjectMapped> users, HashMap<Set<String>,
             String> intersectionsSet) {
         List<IntersectionObject> intersectionObjectList = new ArrayList<>();
 
@@ -89,9 +88,9 @@ public class ExtractIntersections {
             Set<String> key = entry.getKey();
             String value = entry.getValue();
             int counter = 0;
-            for (PrismObject<MiningType> role : roles) {
-                if (new HashSet<>(role.asObjectable().getRoles()).containsAll(key)) {
-                    counter = counter + role.asObjectable().getMembersCount();
+            for (ClusteringObjectMapped user : users) {
+                if (new HashSet<>(user.getRoles()).containsAll(key)) {
+                    counter = counter + user.getMembers().size();
                 }
             }
 

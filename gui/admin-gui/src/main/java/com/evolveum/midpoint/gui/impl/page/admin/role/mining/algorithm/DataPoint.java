@@ -9,31 +9,36 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 
 import org.apache.commons.math3.ml.clustering.Clusterable;
 
+import java.util.List;
+
 public class DataPoint implements Clusterable {
-        private final double[] point;
-        private final String label;
-        private boolean noisePoint;
+    private final double[] point;
+    private final String label;
+    List<String> members;
+    List<String> roles;
 
-        public DataPoint(double[] point, String label) {
-            this.point = point;
-            this.label = label;
-            this.noisePoint = false;
-        }
-
-        @Override
-        public double[] getPoint() {
-            return point;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public boolean isNoisePoint() {
-            return noisePoint;
-        }
-
-        public void setNoisePoint(boolean noisePoint) {
-            this.noisePoint = noisePoint;
-        }
+    public DataPoint(double[] point, String label, List<String> members, List<String> roles) {
+        this.point = point;
+        this.label = label;
+        this.members = members;
+        this.roles = roles;
     }
+
+    @Override
+    public double[] getPoint() {
+        return point;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public List<String> getMembers() {
+        return members;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+}

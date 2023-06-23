@@ -1,45 +1,61 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
-  ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
-  -->
+  Copyright (c) 2010-2013 Evolveum
+
+  This work is dual-licensed under the Apache License 2.0
+  and European Union Public License. See LICENSE file for details.
+-->
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-
     <div class="d-flex flex-column gap-2">
-
         <div>
-            <form
-                    wicket:id="thresholds_form_cluster">
-
-                <div class="d-flex flex-wrap gap-2 w-100 col">
-                    <div
-                            wicket:id="identifier_field"></div>
-                    <div
-                            wicket:id="eps_cluster"> </div>
-                    <div
-                            wicket:id="intersection_field_min_cluster"> </div>
-                    <div
-                            wicket:id="group_min_cluster"></div>
-                    <input class="btn btn-default" type="submit" value="Update clusters"
-                            wicket:id="ajax_submit_link_cluster"/>
-
+            <form wicket:id="thresholds_form_cluster">
+                <div class="gap-2 w-100" wicket:id="warningFeedback"></div>
+                <div class="form-group row">
+                    <label for="identifier" class="col-sm-2 col-form-label" wicket:id="identifier_field_label"></label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="identifier" placeholder="Identifier" wicket:id="identifier_field">
+                    </div>
                 </div>
+                <div class="form-group row">
+                    <label for="jaccardDistance" class="col-sm-2 col-form-label" wicket:id="eps_cluster_label"></label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="jaccardDistance" placeholder="Jaccard Distance" wicket:id="eps_cluster">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="intersectionMin" class="col-sm-2 col-form-label" wicket:id="intersection_field_min_cluster_label"></label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="intersectionMin" placeholder="Jaccard Distance" wicket:id="intersection_field_min_cluster">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="groupMin" class="col-sm-2 col-form-label" wicket:id="group_min_cluster_label"></label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="groupMin" placeholder="Jaccard Distance" wicket:id="group_min_cluster">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="userQuery" class="col-sm-2 col-form-label">
+                        <wicket:message key="roleMiningClusterPanel.query.label.title"/>
+                    </label>
+                    <div class="col-sm-2">
+                        <button type="button" style="width:120px;" id="userQuery" class="btn btn-default btn-sm" wicket:id="filterForm_submit"></button>
+                    </div>
+                    <div class="col-sm-8">
+                        <form wicket:id="userFilter">
+                            <input type="text" class="form-control" wicket:id="filter_field">
+                        </form>
+                    </div>
+                </div>
+                <input class="btn btn-default form-control" type="submit" value="Update clusters" wicket:id="ajax_submit_link_cluster"/>
             </form>
         </div>
-
-
         <div class="main-button-bar justify-content-end">
             <a class="btn btn-primary btn-sm" wicket:id="cancel"></a>
             <a class="btn btn-primary btn-sm" wicket:id="ok"></a>
         </div>
     </div>
-
-
-
 </wicket:panel>
 </html>

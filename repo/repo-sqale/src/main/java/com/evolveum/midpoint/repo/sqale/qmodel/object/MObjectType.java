@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterData;
 import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QParentClusterData;
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.QMiningData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +78,6 @@ public enum MObjectType {
     REPORT_DATA(QReportData.class, ReportDataType.class),
     RESOURCE(QResource.class, ResourceType.class),
     ROLE(QRole.class, RoleType.class),
-    MINING(QMiningData.class, MiningType.class),
     CLUSTER(QClusterData.class, ClusterType.class),
     PARENT_CLUSTER(QParentClusterData.class, ParentClusterType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
