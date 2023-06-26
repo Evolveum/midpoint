@@ -19,23 +19,25 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class SpecificMappingProvider<C extends Containerable> extends ContainerListDataProvider<Containerable> {
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
+
+public class SpecificMappingProvider<C extends Containerable> extends ContainerListDataProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(SpecificMappingProvider.class);
 
     private final MappingDirection mappingDirection;
     private final IModel<PrismContainerValueWrapper<C>> parentModel;
-    private List<PrismContainerValueWrapper> availableValues;
 
     public SpecificMappingProvider(
             Component component,
@@ -47,58 +49,54 @@ public class SpecificMappingProvider<C extends Containerable> extends ContainerL
     }
 
     @Override
-    public Iterator<? extends PrismContainerValueWrapper> iterator(long l, long l1) {
-        if (getAvailableData().isEmpty()) {
-            PrismContainerValueWrapper<? extends Containerable> parent = parentModel.getObject();
-            if (parent != null) {
-                WebPrismUtil.sortContainers(parent.getContainers());
-                for (PrismContainerWrapper<? extends Containerable> child : parent.getContainers()) {
-                    if (QNameUtil.match(child.getTypeName(), ResourceBidirectionalMappingType.COMPLEX_TYPE)) {
-                        try {
-                            PrismContainerWrapper<Containerable> container = child.findContainer(mappingDirection.getContainerName());
-                            getAvailableData().addAll(container.getValues());
-                        } catch (SchemaException e) {
-                            LOGGER.debug("Couldn't find container with name " + mappingDirection.getContainerName() + ", skipping it", e);
-                            continue;
-                        }
-                    } else {
-                        getAvailableData().addAll((Collection<? extends PrismContainerValueWrapper<Containerable>>) child.getValues());
-                    }
-                }
+    protected Iterator<? extends PrismContainerValueWrapper> doRepositoryIteration(long first, long count) {
+        List<PrismContainerValueWrapper> list = getListOfValues();
+
+        Integer indexFrom = safeLongToInteger(first);
+        Integer indexTo = safeLongToInteger(count);
+        if (list.size() > indexFrom) {
+            if (list.size() <= indexTo) {
+                indexTo = list.size();
             }
+            getAvailableData().addAll(list.subList(indexFrom, indexTo));
         }
         return getAvailableData().iterator();
     }
 
-    @Override
-    public long size() {
-        int size = 0;
+    private List<PrismContainerValueWrapper> getListOfValues() {
+        List<PrismContainerValueWrapper> list = new ArrayList<>();
         PrismContainerValueWrapper<? extends Containerable> parent = parentModel.getObject();
-        for (PrismContainerWrapper<? extends Containerable> child : parent.getContainers()) {
-            if (QNameUtil.match(child.getTypeName(), ResourceBidirectionalMappingType.COMPLEX_TYPE)) {
-                try {
-                    PrismContainerWrapper<Containerable> container = child.findContainer(mappingDirection.getContainerName());
-                    size += container.getValues().size();
-                } catch (SchemaException e) {
-                    LOGGER.debug("Couldn't find container with name " + mappingDirection.getContainerName() + ", skipping it", e);
-                    continue;
+        if (parent != null) {
+            WebPrismUtil.sortContainers(parent.getContainers());
+            for (PrismContainerWrapper<? extends Containerable> child : parent.getContainers()) {
+                if (QNameUtil.match(child.getTypeName(), ResourceBidirectionalMappingType.COMPLEX_TYPE)) {
+                    try {
+                        PrismContainerWrapper<Containerable> container = child.findContainer(mappingDirection.getContainerName());
+                        container.getValues().forEach(value -> {
+                            if (ValueStatus.DELETED.equals(value.getStatus())) {
+                                return;
+                            }
+                            list.add(value);
+                        });
+                    } catch (SchemaException e) {
+                        LOGGER.debug("Couldn't find container with name " + mappingDirection.getContainerName() + ", skipping it", e);
+                    }
+                } else if (MappingDirection.OUTBOUND.equals(mappingDirection)){
+                    child.getValues().forEach(value -> {
+                        if (ValueStatus.DELETED.equals(value.getStatus())) {
+                            return;
+                        }
+                        list.add(value);
+                    });
                 }
-            } else {
-                size += child.getValues().size();
             }
         }
-
-        return size;
+        return list;
     }
 
     @Override
-    public IModel<PrismContainerValueWrapper> model(PrismContainerValueWrapper object) {
-        return Model.of(object);
-    }
-
-    @Override
-    public void detach() {
-        super.detach();
-        getAvailableData().clear();
+    public long size() {
+        List<PrismContainerValueWrapper> list = getListOfValues();
+        return list.size();
     }
 }

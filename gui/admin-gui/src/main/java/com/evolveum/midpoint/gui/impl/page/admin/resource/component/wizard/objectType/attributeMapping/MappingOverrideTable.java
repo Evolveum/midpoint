@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -69,7 +70,7 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
 
             ResourceAttributeMappingValueWrapper newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);
-            newAttributeMappingWrapper.addAttributeMappingType(WrapperContext.MappingDirection.OVERRIDE);
+            newAttributeMappingWrapper.addAttributeMappingType(MappingDirection.OVERRIDE);
 
             return newAttributeMappingWrapper;
         } catch (SchemaException e) {
@@ -98,7 +99,7 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
                 return list.stream().filter(value -> {
                     if (value instanceof ResourceAttributeMappingValueWrapper) {
                         return ((ResourceAttributeMappingValueWrapper) value).getAttributeMappingTypes()
-                                .contains(WrapperContext.MappingDirection.OVERRIDE);
+                                .contains(MappingDirection.OVERRIDE);
                     }
                     return true;
                 }).collect(Collectors.toList());

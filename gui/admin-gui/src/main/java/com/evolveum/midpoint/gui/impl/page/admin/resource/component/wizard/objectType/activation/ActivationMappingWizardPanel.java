@@ -6,29 +6,28 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
 
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lskublik
@@ -39,19 +38,22 @@ import org.jetbrains.annotations.NotNull;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ActivationMappingWizardPanel.title", icon = "fa fa-toggle-off"))
-public class ActivationMappingWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
+public abstract class ActivationMappingWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "arw-governance";
-    private static final String ID_TABLE = "table";
+    private static final String ID_TAB_TABLE = "tabTable";
 
     private final IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel;
+    private final MappingDirection initialTab;
 
     public ActivationMappingWizardPanel(
             String id,
             ResourceDetailsModel model,
-            IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel) {
+            IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel,
+            MappingDirection initialTab) {
         super(id, model);
         this.containerModel = containerModel;
+        this.initialTab = initialTab;
     }
 
     @Override
@@ -61,33 +63,99 @@ public class ActivationMappingWizardPanel extends AbstractWizardBasicPanel<Resou
     }
 
     private void initLayout() {
-        TileTablePanel table = new TileTablePanel<MappingTile, PrismContainerValueWrapper>(ID_TABLE) {
+
+        List<ITab> tabs = new ArrayList<>();
+        tabs.add(createTableTab(MappingDirection.INBOUND));
+        tabs.add(createTableTab(MappingDirection.OUTBOUND));
+
+        TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>(ID_TAB_TABLE, tabs);
+        tabPanel.setOutputMarkupId(true);
+        switch (initialTab) {
+            case INBOUND:
+                tabPanel.setSelectedTab(0);
+                break;
+            case OUTBOUND:
+                tabPanel.setSelectedTab(1);
+                break;
+        }
+
+            tabPanel.setOutputMarkupId(true);
+
+        add(tabPanel);
+    }
+
+    private ITab createTableTab(MappingDirection mappingDirection) {
+        String key = null;
+        switch (mappingDirection) {
+            case INBOUND:
+                key = "ActivationMappingWizardPanel.inboundTable";
+                break;
+            case OUTBOUND:
+                key = "ActivationMappingWizardPanel.outboundTable";
+                break;
+        }
+
+        return new CountablePanelTab(getPageBase().createStringResource(key)) {
+
             @Override
-            protected ISortableDataProvider createProvider() {
-                return new SpecificMappingProvider(
+            public String getCount() {
+                SpecificMappingProvider provider = new SpecificMappingProvider(
                         ActivationMappingWizardPanel.this,
                         new ContainerValueWrapperFromObjectWrapperModel<>(containerModel, ItemPath.EMPTY_PATH),
-                        MappingDirection.INBOUND);
+                        mappingDirection);
+                return String.valueOf(provider.size());
             }
 
             @Override
-            protected MappingTile createTileObject(PrismContainerValueWrapper object) {
-                MappingTile tile = new MappingTile(object);
-                tile.setIcon(WebComponentUtil.createMappingIcon(object));
-                tile.setTitle(GuiDisplayNameUtil.getDisplayName(object.getRealValue()));
-                return tile;
-            }
+            public WebMarkupContainer createPanel(String panelId) {
+                return new SpecificMappingTileTable(panelId, containerModel, mappingDirection, getAssignmentHolderDetailsModel()) {
+                    @Override
+                    protected void editPredefinedMapping(
+                            IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
+                            AjaxRequestTarget target) {
+                        ActivationMappingWizardPanel.this.editPredefinedMapping(valueModel, target, mappingDirection);
+                    }
 
+                    @Override
+                    protected void editConfiguredMapping(
+                            IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target) {
+                        if (MappingDirection.INBOUND.equals(mappingDirection)) {
+                            editInboundMapping(valueModel, target);
+                        } else if (MappingDirection.OUTBOUND.equals(mappingDirection)) {
+                            editOutboundMapping(valueModel, target);
+                        }
+                    }
+
+                    @Override
+                    public void refresh(AjaxRequestTarget target) {
+                        super.refresh(target);
+                        target.add(getParent());
+                    }
+                };
+            }
             @Override
-            protected Component createTile(String id, IModel<MappingTile> model) {
-                return new TilePanel<>(id, model);
+            public IModel<String> getCssIconModel() {
+                return () -> {
+                    switch (mappingDirection) {
+                        case INBOUND:
+                            return  "fa fa-arrow-right-to-bracket";
+                        case OUTBOUND:
+                            return  "fa fa-arrow-right-from-bracket";
+                    }
+                    return "";
+                };
             }
         };
-
-        table.setOutputMarkupId(true);
-
-        add(table);
     }
+
+    protected abstract void editOutboundMapping(IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target);
+
+    protected abstract void editInboundMapping(IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target);
+
+    protected abstract void editPredefinedMapping(
+            IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
+            AjaxRequestTarget target,
+            MappingDirection direction);
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
@@ -107,5 +175,10 @@ public class ActivationMappingWizardPanel extends AbstractWizardBasicPanel<Resou
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-11";
+    }
+
+    @Override
+    protected boolean isSubmitButtonVisible() {
+        return true;
     }
 }

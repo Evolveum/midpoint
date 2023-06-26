@@ -245,12 +245,15 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(MappingType mapping) {
-        if (mapping.asPrismContainerValue().getPath().isSubPath(
+        if (mapping.asPrismContainerValue().getPath().namedSegmentsOnly().isSuperPath(
                 ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,
                         ResourceObjectTypeDefinitionType.F_ACTIVATION))) {
-            PrismContainer parent = (PrismContainer) mapping.asPrismContainerValue().getParent();
+            if (StringUtils.isNotEmpty(mapping.getName())) {
+                return mapping.getName();
+            }
+            PrismContainer parent = mapping.asPrismContainerValue().getContainer().getParent().getContainer();
             return WebPrismUtil.getLocalizedDisplayName(parent);
         }
         String mappingName = mapping.getName();
