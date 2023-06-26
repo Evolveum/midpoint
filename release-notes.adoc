@@ -49,7 +49,17 @@ The following options are available for exporting anonymized role mining data:
 xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja documentation].
 ** Repository object (GUI): For detailed information, see the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
-
+** Shadow metadata - `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
+This changes behaviour for resources which have non-zero deadShadowRetentionPeriod in consistency defined.
+Previously shadows without such timestamps were removed right away if there were no pending operations, since midPoint couldn't compute _last activity timestmap_.
+Last shadow activity taken into account:
+*** `pendingOperation/requestTimestamp`
+*** `pendingOperation/lastAttemptTimestamp`
+*** `pendingOperation/completionTimestamp`
+*** `metadata/createTimestamp`
+*** `metadata/modifyTimestamp`
+** Shadow changes are now being audited, new auditing stage `RESOURCE`.
+For more info see: xref:/midpoint/reference/security/audit/index.adoc[Auditing]
 
 === Miscellaneous Improvements
 
@@ -77,7 +87,7 @@ Please see _Upgrade_ section below for details.
 
 == Changes With Respect To Version 4.4 LTS
 
-* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xref:/midpoint/reference/repository/native-postgresql/[PostgreSQL native repository]. 
+* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xref:/midpoint/reference/repository/native-postgresql/[PostgreSQL native repository].
 
 
 ++++
