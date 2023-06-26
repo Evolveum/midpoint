@@ -31,9 +31,9 @@ import java.util.Objects;
 /**
  * Evaluates mapping time constraints.
  */
-class TimeConstraintsEvaluation implements Serializable {
+class MappingTimeConstraintsEvaluation implements Serializable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TimeConstraintsEvaluation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingTimeConstraintsEvaluation.class);
 
     /**
      * "Parent" mapping evaluation.
@@ -52,7 +52,7 @@ class TimeConstraintsEvaluation implements Serializable {
      */
     private XMLGregorianCalendar nextRecomputeTime;
 
-    TimeConstraintsEvaluation(AbstractMappingImpl<?, ?, ?> m) {
+    MappingTimeConstraintsEvaluation(AbstractMappingImpl<?, ?, ?> m) {
         this.m = m;
     }
 

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DelayedDeleteEvaluator;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -100,6 +101,7 @@ public class TestMapping extends AbstractMappingTest {
     private static final DummyTestResource RESOURCE_DUMMY_MEGA_OUTBOUND = new DummyTestResource(TEST_DIR,
             "resource-dummy-mega-outbound.xml", "2b1c05f1-8b70-43e6-ac46-3e5ee621ee36",
             "mega-outbound", TestMapping::initMegaResource);
+
     private static final int MEGA_ATTRIBUTES = 1000;
 
     private static final File ROLE_ANTINIHILIST_FILE = new File(TEST_DIR, "role-antinihilist.xml");
@@ -153,6 +155,43 @@ public class TestMapping extends AbstractMappingTest {
     private static final TestResource<TaskType> TASK_IMPORT_PWD_GENERATE = new TestResource<>(
             TEST_DIR, "task-dummy-services-pwd-generate-import.xml", "7a987537-9e87-47db-a62c-a7ba25a8fee5");
 
+    public static final File PREDEFINED_DIR = new File(TEST_DIR, "predefined");
+
+    private static final File RESOURCE_DUMMY_PREDEFINED_DID_FILE = new File(PREDEFINED_DIR,
+            "resource-dummy-predefine-disable-instead-delete.xml");
+    private static final String RESOURCE_DUMMY_PREDEFINED_DID_NAME = "predefine-disable-instead-delete";
+    private static final String RESOURCE_DUMMY_PREDEFINED_DID_OID = "2b1c05f1-8b70-43e6-ac46-3e5ee621ee55";
+
+    private static final File ROLE_PREDEFINED_DID_FILE = new File(PREDEFINED_DIR, "role-predefine-disable-instead-delete.xml");
+    private static final String ROLE_PREDEFINED_DID_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26932";
+
+    private static final File RESOURCE_DUMMY_PREDEFINED_DD_FILE = new File(PREDEFINED_DIR,
+            "resource-dummy-predefine-delayed-delete.xml");
+    private static final String RESOURCE_DUMMY_PREDEFINED_DD_NAME = "predefine-delayed-delete";
+    private static final String RESOURCE_DUMMY_PREDEFINED_DD_OID = "2b1c05f1-8b70-43e6-ac46-3e5ee621ee66";
+    private static final File ROLE_PREDEFINED_DD_FILE = new File(PREDEFINED_DIR, "role-predefine-delayed-delete.xml");
+    private static final String ROLE_PREDEFINED_DD_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26966";
+
+    private static final File RESOURCE_DUMMY_PREDEFINED_PPA_FILE = new File(PREDEFINED_DIR,
+            "resource-dummy-predefine-pre-provision.xml");
+    private static final String RESOURCE_DUMMY_PREDEFINED_PPA_NAME = "predefine-pre-provision";
+    private static final String RESOURCE_DUMMY_PREDEFINED_PPA_OID = "2b1c05f1-8b70-43e6-ac46-3e5ee621ee77";
+    private static final File ROLE_PREDEFINED_PPA_FILE = new File(PREDEFINED_DIR, "role-predefine-pre-provision.xml");
+    private static final String ROLE_PREDEFINED_PPA_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26977";
+
+    private static final File RESOURCE_DUMMY_PREDEFINED_ALL_FILE = new File(PREDEFINED_DIR,
+            "resource-dummy-predefine-all.xml");
+    private static final String RESOURCE_DUMMY_PREDEFINED_ALL_NAME = "predefine-all";
+    private static final String RESOURCE_DUMMY_PREDEFINED_ALL_OID = "2b1c05f1-8b70-43e6-ac46-3e5ee621ee88";
+    private static final File ROLE_PREDEFINED_ALL_FILE = new File(PREDEFINED_DIR, "role-predefine-all.xml");
+    private static final String ROLE_PREDEFINED_ALL_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26988";
+
+    private static final File USER_SHELDON_FILE = new File(PREDEFINED_DIR, "user-sheldon.xml");
+    private static final String USER_SHELDON_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
+    private static final String USER_SHELDON_USERNAME = "sheldon";
+
+
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -165,6 +204,28 @@ public class TestMapping extends AbstractMappingTest {
                 RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_FILE, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, initTask, initResult);
         initDummyResourcePirate(RESOURCE_DUMMY_COBALT_NAME,
                 RESOURCE_DUMMY_COBALT_FILE, RESOURCE_DUMMY_COBALT_OID, initTask, initResult);
+        initDummyResource(RESOURCE_DUMMY_PREDEFINED_DID_NAME,
+                RESOURCE_DUMMY_PREDEFINED_DID_FILE,
+                RESOURCE_DUMMY_PREDEFINED_DID_OID,
+                initTask,
+                initResult);
+        initDummyResource(RESOURCE_DUMMY_PREDEFINED_DD_NAME,
+                RESOURCE_DUMMY_PREDEFINED_DD_FILE,
+                RESOURCE_DUMMY_PREDEFINED_DD_OID,
+                initTask,
+                initResult);
+
+        initDummyResource(RESOURCE_DUMMY_PREDEFINED_PPA_NAME,
+                RESOURCE_DUMMY_PREDEFINED_PPA_FILE,
+                RESOURCE_DUMMY_PREDEFINED_PPA_OID,
+                initTask,
+                initResult);
+
+        initDummyResource(RESOURCE_DUMMY_PREDEFINED_ALL_NAME,
+                RESOURCE_DUMMY_PREDEFINED_ALL_FILE,
+                RESOURCE_DUMMY_PREDEFINED_ALL_OID,
+                initTask,
+                initResult);
 
         // Do not we also want to test these resources?
         RESOURCE_DUMMY_SERVICES_OUTBOUND.init(this, initTask, initResult);
@@ -177,12 +238,18 @@ public class TestMapping extends AbstractMappingTest {
         repoAddObjectFromFile(ROLE_BLUE_TITANIC_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLUE_POETRY_FILE, initResult);
         repoAddObjectFromFile(ROLE_COBALT_NEVERLAND_FILE, initResult);
+        repoAddObjectFromFile(ROLE_PREDEFINED_DID_FILE, initResult);
+        repoAddObjectFromFile(ROLE_PREDEFINED_DD_FILE, initResult);
+        repoAddObjectFromFile(ROLE_PREDEFINED_PPA_FILE, initResult);
+        repoAddObjectFromFile(ROLE_PREDEFINED_ALL_FILE, initResult);
         repoAdd(ROLE_TIMED, initResult);
         repoAdd(ROLE_DISABLED_MAPPING, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TYPE_CARTHESIAN, USER_TEMPLATE_CARTHESIAN_OID, initResult);
+
+        repoAddObjectFromFile(USER_SHELDON_FILE, initResult);
 //
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
@@ -3461,6 +3528,151 @@ public class TestMapping extends AbstractMappingTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME, 30000);
         assertDummyAccountNoAttribute(RESOURCE_DUMMY_COBALT_NAME, "test750",
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+    }
+
+    @Test
+    public void test800PredefinedDisableInsteadDelete() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        when("assign and unassign role");
+        assignRole(USER_SHELDON_OID, ROLE_PREDEFINED_DID_OID, task, result);
+        unassignRole(USER_SHELDON_OID, ROLE_PREDEFINED_DID_OID, task, result);
+
+        then("expected that account is disabled");
+        assertSuccess(result);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_DID_NAME, USER_SHELDON_USERNAME, false);
+
+        when("again assign role");
+        assignRole(USER_SHELDON_OID, ROLE_PREDEFINED_DID_OID, task, result);
+
+        then("expected that account is enabled");
+        assertSuccess(result);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_DID_NAME, USER_SHELDON_USERNAME, true);
+    }
+
+    @Test
+    public void test801PredefinedDelayedDelete() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        when("assign and unassign role");
+        assignRole(USER_SHELDON_OID, ROLE_PREDEFINED_DD_OID, task, result);
+        unassignRole(USER_SHELDON_OID, ROLE_PREDEFINED_DD_OID, task, result);
+
+        then("expected that account is disabled");
+        assertSuccess(result);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_DD_NAME, USER_SHELDON_USERNAME, false);
+
+        assertShadow(USER_SHELDON_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_DD_NAME))
+                .display()
+                .triggers()
+                .single()
+                .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .assertOriginDescription(DelayedDeleteEvaluator.class.getSimpleName())
+                .assertTimestampFuture("P5D", 20000);
+
+        when("override time to future and recompute user");
+        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_DD_NAME, USER_SHELDON_USERNAME);
+        clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 10, 0, 0, 0));
+        recomputeUser(USER_SHELDON_OID);
+
+        then("expected that account non-exist");
+        assertSuccess(result);
+        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_DD_NAME, USER_SHELDON_USERNAME);
+    }
+
+    @Test
+    public void test802PredefinedPreProvisionEvaluator() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+        XMLGregorianCalendar validFrom = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis());
+        validFrom.add(XmlTypeConverter.createDuration(true, 0, 0, 10, 0, 0, 0));
+        modifyObjectReplaceProperty(
+                UserType.class,
+                USER_SHELDON_OID,
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                task,
+                result,
+                validFrom);
+
+        recomputeUser(USER_SHELDON_OID);
+
+        when("assign role");
+        assignRole(USER_SHELDON_OID, ROLE_PREDEFINED_PPA_OID, task, result);
+
+        then("expected that account non-exists");
+        assertSuccess(result);
+        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_PPA_NAME, USER_SHELDON_USERNAME);
+
+        when("override time to future and recompute user");
+        clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 6, 0, 0, 0));
+        recomputeUser(USER_SHELDON_OID);
+
+        then("expected that account exist and is disabled");
+        assertSuccess(result);
+        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_PPA_NAME, USER_SHELDON_USERNAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_PPA_NAME, USER_SHELDON_USERNAME, false);
+    }
+
+    @Test
+    public void test803AllPredefinedAllEvaluators() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+        XMLGregorianCalendar validFrom = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis());
+        validFrom.add(XmlTypeConverter.createDuration(true, 0, 0, 10, 0, 0, 0));
+        modifyObjectReplaceProperty(
+                UserType.class,
+                USER_SHELDON_OID,
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                task,
+                result,
+                validFrom);
+        recomputeUser(USER_SHELDON_OID);
+
+        when("assign role");
+        assignRole(USER_SHELDON_OID, ROLE_PREDEFINED_ALL_OID, task, result);
+
+        then("expected that account non-exists");
+        assertSuccess(result);
+        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
+
+        when("override time to future and recompute user");
+        clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 6, 0, 0, 0));
+        recomputeUser(USER_SHELDON_OID);
+
+        then("expected that account exist and is disabled");
+        assertSuccess(result);
+        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, false);
+
+        when("override time to future after enabling and recompute user");
+        clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 11, 0, 0, 0));
+        recomputeUser(USER_SHELDON_OID);
+
+        then("expected that account exist and is enabled");
+        assertSuccess(result);
+        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, true);
+
+        when("unassign role");
+        unassignRole(USER_SHELDON_OID, ROLE_PREDEFINED_ALL_OID, task, result);
+
+        then("expected that account is disabled");
+        assertSuccess(result);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, false);
+
+        when("override time to future after enabling and recompute user");
+        clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 2, 0, 0, 0, 0));
+        recomputeUser(USER_SHELDON_OID);
+
+        then("expected that account non-exist");
+        assertSuccess(result);
+        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
     }
 
     private String rumFrom(String locality) {

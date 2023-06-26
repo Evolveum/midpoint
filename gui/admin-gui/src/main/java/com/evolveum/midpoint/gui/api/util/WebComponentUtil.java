@@ -5790,4 +5790,57 @@ public final class WebComponentUtil {
         MidPointAuthWebSession session = MidPointAuthWebSession.get();
         return session.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
     }
+
+    public static String createMappingIcon(PrismContainerValueWrapper<? extends Containerable> object) {
+        if (object == null) {
+            return "fa fa-circle";
+        }
+
+        PrismContainerDefinition<? extends Containerable> def = object.getDefinition();
+        if (def == null) {
+            return "fa fa-circle";
+        }
+
+        if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null) {
+            if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)){
+                PrismContainerValueWrapper<ResourceBidirectionalMappingType> parent =
+                        object.getParentContainerValue(ResourceBidirectionalMappingType.class);
+                if (parent == null) {
+                    return "fa fa-circle";
+                }
+
+                PrismContainerDefinition<ResourceBidirectionalMappingType> parentDef = parent.getDefinition();
+                return createMappingIcon(parentDef);
+
+            } else {
+                return createMappingIcon(def);
+            }
+        }
+        return "fa fa-circle";
+    }
+
+    public static String createMappingIcon(PrismContainerDefinition<? extends Containerable> def) {
+        if (def == null) {
+            return "fa fa-circle";
+        }
+
+        if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS)) {
+            return "fa fa-id-card-clip";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_EXISTENCE)) {
+            return "fa fa-universal-access";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_VALID_FROM)) {
+            return "fa fa-arrow-right-from-bracket";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_VALID_TO)) {
+            return "fa fa-arrow-right-to-bracket";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_LOCKOUT_STATUS)) {
+            return "fa fa-user-lock";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_DELETE)) {
+            return "fa fa-user-slash";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DELAYED_DELETE)) {
+            return "fa fa-clock";
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_PRE_PROVISION)) {
+            return "fa fa-user-plus";
+        }
+        return "fa fa-circle";
+    }
 }

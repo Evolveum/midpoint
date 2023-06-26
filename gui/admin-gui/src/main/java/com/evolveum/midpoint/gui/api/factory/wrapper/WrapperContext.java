@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -63,13 +65,7 @@ public class WrapperContext {
      private List<? extends ContainerPanelConfigurationType> detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
-    //Attribute mapping related attributes
-    public enum AttributeMappingType {
-        INBOUND,
-        OUTBOUND,
-        OVERRIDE
-    }
-    private AttributeMappingType attributeMappingType;
+    private MappingDirection attributeMappingType;
     private boolean configureMappingType;
 
     private boolean isShowedByWizard;
@@ -260,11 +256,11 @@ public class WrapperContext {
         this.detailsPageTypeConfiguration = detailsPageTypeConfiguration;
     }
 
-    public void setAttributeMappingType(AttributeMappingType attributeMappingType) {
+    public void setAttributeMappingType(MappingDirection attributeMappingType) {
         this.attributeMappingType = attributeMappingType;
     }
 
-    public AttributeMappingType getAttributeMappingType() {
+    public MappingDirection getAttributeMappingType() {
         return attributeMappingType;
     }
 

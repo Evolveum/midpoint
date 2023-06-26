@@ -10,8 +10,8 @@
     <wicket:enclosure child="tilesContainer">
         <div class="d-flex flex-column flex-grow-1">
             <div wicket:id="header"/>
-            <div class="row justify-content-center pt-3" wicket:id="tilesContainer"/>
-            <div class="d-flex" wicket:id="footerContainer">
+            <div class="row justify-content-center m-0 px-2 py-2" wicket:id="tilesContainer"/>
+            <div class="card-footer d-flex" wicket:id="footerContainer">
                 <div class="d-flex">
                     <div wicket:id="buttonToolbar"/>
                 </div>
@@ -33,8 +33,14 @@
         </div>
     </wicket:fragment>
     <wicket:fragment wicket:id="tilesFragment">
-        <div wicket:id="tiles">
+
+        <div wicket:id="tiles" style="min-height: 250px;">
             <div wicket:id="tile"/>
+        </div>
+
+        <div wicket:id="addRuleContainer" class="row p-0 col-12 bg-light d-flex flex-column">
+            <span class="pt-5 pb-3 m-auto"><wicket:message key="SpecificMappingTileTable.addRule"/></span>
+            <button class="btn btn-primary mb-5 mx-auto" wicket:id="addButton" />
         </div>
     </wicket:fragment>
 </wicket:panel>
