@@ -16,7 +16,10 @@ import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions> {
+// todo handle initial objects somehow
+// compare vanilla previous with vanilla new ones and also vanilla previous with current in MP repository,
+// apply only non conflicting delta items, report it to user
+public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
     private Set<UUID> skipUpgradeForUUIDs;
 
@@ -49,7 +52,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
     }
 
     @Override
-    protected String getOperationShortName() {
+    public String getOperationName() {
         return "upgrade";
     }
 

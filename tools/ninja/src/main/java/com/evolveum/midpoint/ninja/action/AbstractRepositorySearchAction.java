@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @param <O> options class
  */
-public abstract class AbstractRepositorySearchAction<O extends ExportOptions> extends RepositoryAction<O, Void> {
+public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R> extends RepositoryAction<O, R> {
 
     private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
 
@@ -50,18 +50,11 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
-    protected abstract String getOperationShortName();
-
     protected abstract Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
 
     @Override
-    public String getOperationName() {
-        return getClass().getName() + "." + getOperationShortName();
-    }
-
-    @Override
-    public Void execute() throws Exception {
-        OperationResult result = new OperationResult(getOperationName());
+    public R execute() throws Exception {
+        OperationResult result = new OperationResult(getClass().getName());
         OperationStatus operation = new OperationStatus(context, result);
 
         // "+ 2" will be used for consumer and progress reporter
@@ -71,7 +64,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
 
         List<SearchProducerWorker> producers = createProducers(queue, operation);
 
-        log.info("Starting " + getOperationShortName());
+        log.info("Starting " + getOperationName());
         operation.start();
 
         // execute as many producers as there are threads for them
@@ -97,7 +90,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(operation, "Finished " + getOperationShortName());
+        handleResultOnFinish(operation, "Finished " + getOperationName());
 
         return null;
     }

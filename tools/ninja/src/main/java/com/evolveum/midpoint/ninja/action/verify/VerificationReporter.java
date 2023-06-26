@@ -3,9 +3,10 @@ package com.evolveum.midpoint.ninja.action.verify;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -14,18 +15,13 @@ import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.ninja.Main;
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradePhase;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradePriority;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeType;
+import com.evolveum.midpoint.ninja.action.upgrade.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
-import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class VerificationReporter {
@@ -122,7 +118,8 @@ public class VerificationReporter {
     public void verify(Writer writer, PrismObject<?> object) throws IOException {
         ValidationResult result = validator.validate(object);
 
-        enhanceValidationResult(object, result);
+        // todo implement
+//        VerificationResultSomething verificationResult = new UpgradeObjectsHelper().upgradeObject(object, result);
 
         switch (options.getReportStyle()) {
             case PLAIN:
@@ -156,36 +153,6 @@ public class VerificationReporter {
                 || value.equalsIgnoreCase("yes")
                 || value.equalsIgnoreCase("t")
                 || value.equalsIgnoreCase("y");
-    }
-
-    private void enhanceValidationResult(PrismObject<?> object, ValidationResult result) {
-        Set<Class<?>> processors = ClassPathUtil.listClasses(Main.class.getPackageName())
-                .stream()
-                .filter(UpgradeObjectHandler.class::isAssignableFrom)
-                .filter(c -> !Modifier.isAbstract(c.getModifiers()))
-                .collect(Collectors.toUnmodifiableSet());
-
-        Set<UpgradeObjectHandler<?>> instances = processors.stream()
-                .map(c -> {
-                    try {
-                        return (UpgradeObjectHandler<?>) c.getConstructor().newInstance();
-                    } catch (Exception ex) {
-                        // todo
-                        ex.printStackTrace();
-
-                        return null;
-                    }
-                })
-                .filter(p -> p != null)
-                .collect(Collectors.toUnmodifiableSet());
-
-        for (ValidationItem validationItem : result.getItems()) {
-            for (UpgradeObjectHandler<?> processor : instances) {
-                if (processor.isApplicable(object, validationItem.getItemPath())) {
-                    // todo finish
-                }
-            }
-        }
     }
 
     private void verifyAsPlain(Writer writer, PrismObject<?> object, ValidationResult result) throws IOException {

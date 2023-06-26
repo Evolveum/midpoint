@@ -13,25 +13,27 @@ import java.util.Set;
 
 import org.fusesource.jansi.Ansi;
 
-import com.evolveum.midpoint.ninja.impl.Log;
+import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
-/**
- * todo remove
- */
-@Deprecated
-public class UpgradePreCheckStep {
+public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolean> {
 
-    public void execute() throws Exception {
-        final Log log = null;
-        final RepositoryService repository = null;
+    @Override
+    public String getOperationName() {
+        return "pre-upgrade checks";
+    }
+
+    @Override
+    public Boolean execute() throws Exception {
+        final RepositoryService repository = context.getRepository();
 
         if (!repository.isNative()) {
-            // todo error, this midpoint installation doesn't run on top of native repository
+            log.error("Repository implementation is not using native PostgreSQL");
+            return false;
         }
 
         OperationResult result = new OperationResult("Search nodes");
@@ -53,9 +55,11 @@ public class UpgradePreCheckStep {
             if (versions.isEmpty()) {
                 // todo error, couldn't obtain version. Ask whether to continue?
 
+                return false;
             } else if (versions.size() > 1) {
                 // todo error, cluster contains nodes with multiple versions? Ask whether to continue?
 
+                return false;
             }
 
             String version = versions.iterator().next();
@@ -71,5 +75,6 @@ public class UpgradePreCheckStep {
         }
 
         // todo implement midPoint version check, also implement midpoint version support in midpoint sqale db
+        return true;    // todo true if upgrade can continue, false if not
     }
 }

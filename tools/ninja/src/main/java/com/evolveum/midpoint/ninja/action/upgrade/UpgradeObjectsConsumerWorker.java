@@ -78,7 +78,7 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
             return;
         }
 
-        ObjectDelta<T> delta = new UpgradeObjectsHelper().upgradeObject(prismObject);
+        ObjectDelta<T> delta = null; // todo implement new UpgradeObjectsHelper().upgradeObject(prismObject);
 
         if (delta != null && !delta.isEmpty()) {
             OperationResult result = new OperationResult("aaaa"); // todo fix operation result name and handling!

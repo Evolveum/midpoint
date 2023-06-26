@@ -15,10 +15,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Ninja action realizing "export" command.
  */
-public class ExportRepositoryAction extends AbstractRepositorySearchAction<ExportOptions> {
+public class ExportRepositoryAction extends AbstractRepositorySearchAction<ExportOptions, Void> {
 
     @Override
-    protected String getOperationShortName() {
+    public String getOperationName() {
         return "export";
     }
 

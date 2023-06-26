@@ -53,6 +53,9 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
 
         String name = distributionZip.getName();
         File distribution = new File(tempDirectory, StringUtils.left(name, name.length() - 4));
+        if (distribution.exists()) {
+            distribution.delete();
+        }
 
         byte[] buffer = new byte[1024];
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(distributionZip))) {
