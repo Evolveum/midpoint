@@ -66,7 +66,7 @@ name = "jack"
 In both cases we're searching for an object with the name "jack".
 
 But this is just a filter, which is probably the most used part of the query - but it's not all.
-So let's start with various query types and then we will look at the query parts.
+So let's start with various query types, and then we will look at the query parts.
 
 === Types of query result
 
@@ -809,7 +809,7 @@ Ref filter with nested target filter is supported only for repository searches.
 |===
 | Subelement | Description
 
-| `path` | item path to the refernce item
+| `path` | item path to the reference item
 // TODO is note about @, .. support needed or desired here?
 
 | `value` | Required value of the reference with attributes `oid`, `type` and `relation`, at least one attribute should be provided.
@@ -817,7 +817,7 @@ Multiple values can be provided, filter matches when any of the values match.
 
 optional, multiple values supported (with mixed attribute usage allowed)
 
-| `filter` | Optional nested _target filter_ that is applied on the target object (the object the reference points to).
+| `filter` | Optional nested _target filter_ that is applied on the target object (the object that the reference points to).
 Any filter allowed for objects can be written inside.
 Without the target filter, `ref` filter is just common non-complex value filter.
 |===
@@ -1061,17 +1061,17 @@ and `type` information - note that these are prefixed with `@` in the Axiom quer
 
 OwnedBy filter logically resolves a previous limitation in filtering assignments vs inducements.
 These are both of `AssignmentType` and selecting them by parent is not enough to select only one or the other.
-To qualifiy the actual container, `ownedBy` filter allows us to specify the `path` for the container in the parent.
+To qualify the actual container, `ownedBy` filter allows us to specify the `path` for the container in the parent.
 This was previously not possible and allows to query only for container values on that path - even if the same object type has other containers of the same type.
 Currently, this is relevant only for assignments and inducements (and only for subtypes of `AbstractRoleType`
 where `inducement` container is defined), but it makes the filter more flexible in general.
-The path is optional in cases with no ambuguity, e.g. `CaseWorkItem` is used only by a single container in the `CaseType`.
+The path is optional in cases with no ambiguity, e.g. `CaseWorkItem` is used only by a single container in the `CaseType`.
 
 ===== Owner type
 
 OwnedBy filter mandates specifying the `type` of the owning object.
 This is more efficient than adding a `type` filter into `exists(..)` filter.
-Even though the parent type is obviousl for some container types (`AccessCertificationCaseType`,
+Even though the parent type is obvious for some container types (`AccessCertificationCaseType`,
 `AccessCertificationWorkItemType` and `CaseWorkItemType`) it is a required parameter of the filter.
 
 It is always preferred to specify the most concrete type possible - for instance, when searching
@@ -1203,7 +1203,7 @@ prismContext.queryFor(AccessCertificationWorkItemType.class)
 ===== When to use other filters?
 
 Sometimes the `ownedBy` filter can be replaced by one of existing filters - and often it is more efficient.
-(Perhaps in the future you can write `ownedBy` filter and it will be optimized for you, but it is not the case yet.)
+(Perhaps in the future you can write `ownedBy` filter, and it will be optimized for you, but it is not the case yet.)
 The following filters can often do the same job:
 
 * `exists` filter with `..` path,
@@ -1246,7 +1246,7 @@ prismContext.queryFor(AccessCertificationWorkItemType.class)
 As an implementation note, this query is more efficient, because it internally uses the `ownerOid`
 column from the `AccessCertificationCaseType` container table instead of checking the `oid` column
 on the parent table, so it's "one less join" (in very simplified terms).
-This may not warrant optimization for this particular query, but may be noticable for others.
+This may not warrant optimization for this particular query, but may be noticeable for others.
 
 Even the outer `ownedBy` filter can be replaced in the previous examples:
 
@@ -1283,16 +1283,16 @@ prismContext.queryFor(AccessCertificationWorkItemType.class)
 
 In other words: Search for access certification work items which belong to ("for which exists")
 the access certification case with container id 1 (`inOid` without `considerOwner`) and belong
-to the object (access certication) with the specfified OID (`inOid` with `considerOwner` set to true).
+to the object (access certification) with the specified OID (`inOid` with `considerOwner` set to true).
 
 ===== OwnedBy summarization
 
 * OwnedBy filter is similar to `exists` with `..` (`T_PARENT` in Java API) with a few extensions.
-* It allows to narrow the `type` (`@type` in Axiom) which is more efficient than addin `type` filter
+* It allows to narrow the `type` (`@type` in Axiom) which is more efficient than adding a `type` filter
 inside the `exists ..` filter.
 * It allows to specify the item path for the owned container (the path from the owning object/container).
 This is a unique feature that allows to distinguish between assignments and inducements
-where it was previously not possile.
+where it was previously not possible.
 * If simple check on parent's ID/OID is needed, prefer `inOid` filter with `considerOwner` flag.
 Using `inOid` for the filtered owning object itself works equally well with both `ownedBy` and `exists ..`.
 * It is possible to use value filters with item paths containing parent (`..`) segment for simple cases,
@@ -1347,7 +1347,7 @@ We need to know:
 
 * Type of the object(s) (_oid1_) referencing our object(s) of interest  (_oid2_).
 * Item path of the reference, `someRef` in our example.
-* Optionally we can specify the relation of the reference; in constast with the `ref` filter,
+* Optionally we can specify the relation of the reference; in contrast with the `ref` filter,
 no relation stated means we don't care about the relation (as if `q:any` was used).
 If only `c:default` is desired, it must be stated explicitly in the filter.
 * Finally, we can optionally add any filter on the referencing object, we can narrow it down
@@ -1393,7 +1393,7 @@ prismContext.queryFor(OrgType.class)
 This seems similar to `isParentOf` variant of the `org` filter - but that one actually cannot do this,
 because only another organization can be used as its parameter (here it's user).
 Also, we use OID of the user here, but we could as well use their name, or ask for organizations
-with users having their names starting with a specifed string.
+with users having their names starting with a specified string.
 Any legal filter is allowed inside the `referencedBy` filter.
 
 ////
@@ -2206,7 +2206,7 @@ In XML you can use either `<path>.</path>`, but empty path `<path/>` is technica
 proper representation of the self path in XML - and is also shorter.
 ** Ref filters can contain the target filter - see xref:#ref-filter-with-target-filter[this section] for more.
 
-Because of the specifics of this search, you may notice that the fluent Java API for the refernce
+Because of the specifics of this search, you may notice that the fluent Java API for the reference
 search starts differently than other searches.
 It requires the information for the `ownedBy` filter right at the start and creates the filter for you.
 You can then continue either with the nested filter or the ref filter - we will show examples later.
