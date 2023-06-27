@@ -66,6 +66,8 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
             log.error(ConsoleFormat.formatError(
                     "Database schema change number (" + number + ") doesn't match supported one (" + expected + ") for label "
                             + label + "."));
+        } else {
+            log.info("Database schema change number matches supported one (" + expected + ") for label " + label + ".");
         }
 
         return equals;
@@ -97,14 +99,16 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
 
         if (versions.isEmpty()) {
             log.info(ConsoleFormat.formatWarn("There are zero nodes in cluster to validate current midPoint version."));
+
+            return true;
         } else if (versions.size() > 1) {
             log.error(ConsoleFormat.formatError(
                     "There are nodes with different versions of midPoint. Please remove incorrect nodes from cluster."));
             return false;
-        } else {
-            log.info(ConsoleFormat.formatInfoMessageWithParameter(
-                    "Node versions in cluster: ", Arrays.toString(versions.toArray())));
         }
+
+        log.info(ConsoleFormat.formatInfoMessageWithParameter(
+                "Node versions in cluster: ", Arrays.toString(versions.toArray())));
 
         String version = versions.iterator().next();
         boolean match = Arrays.asList(UpgradeConstants.SUPPORTED_VERSIONS).contains(version);

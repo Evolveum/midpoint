@@ -10,7 +10,7 @@ public final class ConsoleFormat {
     }
 
     public static String formatActionStartMessage(Action action) {
-        return Ansi.ansi().a("Starting to ").fgGreen().a(action.getOperationName()).reset().toString();
+        return Ansi.ansi().a("Starting ").fgGreen().a(action.getOperationName()).reset().toString();
     }
 
     public static String formatSuccessMessageWithParameter(String message, Object parameter) {

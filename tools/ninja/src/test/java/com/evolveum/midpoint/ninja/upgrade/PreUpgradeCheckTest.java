@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.ninja.upgrade;
 
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -13,16 +14,16 @@ import com.evolveum.midpoint.ninja.NinjaSpringTest;
 public class PreUpgradeCheckTest extends NinjaSpringTest {
 
     @Test
-    public void test100TestPreUpgradeCheck() throws Exception {
+    public void test100TestNoNodes() throws Exception {
         given();
 
         when();
 
         executeTest(
                 list -> {
-
-                    // todo more asserts maybe?
-
+                    boolean found = list.stream().anyMatch(
+                            s -> s.contains("There are zero nodes in cluster to validate current midPoint version"));
+                    Assertions.assertThat(found).isTrue();
                 },
                 EMPTY_STREAM_VALIDATOR,
                 "-v", "-m", getMidpointHome(), "pre-upgrade-check"
