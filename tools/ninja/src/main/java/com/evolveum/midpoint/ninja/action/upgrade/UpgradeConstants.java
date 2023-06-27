@@ -11,4 +11,12 @@ public class UpgradeConstants {
     public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE, "4.8-SNAPSHOT" }; // todo remove viliam
 
     public static final String UPGRADE_TEMP_DIRECTORY = ".upgrade";
+
+    public static final String LABEL_SCHEMA_CHANGE_NUMBER = "schemaChangeNumber";
+
+    public static final String LABEL_SCHEMA_AUDIT_CHANGE_NUMBER = "schemaAuditChangeNumber";
+
+    public static final String SUPPORTED_SCHEMA_CHANGE_NUMBER = Integer.toString(15);
+
+    public static final String SUPPORTED_SCHEMA_AUDIT_CHANGE_NUMBER = Integer.toString(4);
 }

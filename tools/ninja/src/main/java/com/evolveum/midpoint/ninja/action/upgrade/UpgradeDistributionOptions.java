@@ -20,6 +20,8 @@ public class UpgradeDistributionOptions {
 
     public static final String P_VERIFICATION_THREADS = "--verification-threads";
 
+    public static final String P_SKIP_PRE_CHECK = "--skip-pre-check";
+
     public static final String P_CONTINUE_VERIFICATION_ON_ERROR = "--continue-verification-on-error";
 
     @Parameter(names = { P_TEMP_DIR_LONG }, descriptionKey = "upgradeDistribution.tempDir")
@@ -42,6 +44,9 @@ public class UpgradeDistributionOptions {
 
     @Parameter(names = { P_CONTINUE_VERIFICATION_ON_ERROR }, descriptionKey = "upgradeDistribution.continueVerificationOnError")
     private boolean continueVerificationOnError = true;
+
+    @Parameter(names = { P_SKIP_PRE_CHECK }, descriptionKey = "upgradeDistribution.skipPreCheck")
+    private boolean skipPreCheck;
 
     public File getTempDirectory() {
         return tempDirectory;
@@ -97,5 +102,13 @@ public class UpgradeDistributionOptions {
 
     public void setContinueVerificationOnError(boolean continueVerificationOnError) {
         this.continueVerificationOnError = continueVerificationOnError;
+    }
+
+    public boolean isSkipPreCheck() {
+        return skipPreCheck;
+    }
+
+    public void setSkipPreCheck(boolean skipPreCheck) {
+        this.skipPreCheck = skipPreCheck;
     }
 }

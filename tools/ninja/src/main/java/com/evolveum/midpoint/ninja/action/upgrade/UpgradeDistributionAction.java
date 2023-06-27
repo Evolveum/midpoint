@@ -7,7 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.*;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
 public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
 
@@ -24,16 +24,20 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         FileUtils.forceMkdir(tempDirectory);
 
         // pre-upgrade checks
-        PreUpgradeCheckOptions preUpgradeCheckOptions = new PreUpgradeCheckOptions();
+        if (!options.isSkipPreCheck()) {
+            PreUpgradeCheckOptions preUpgradeCheckOptions = new PreUpgradeCheckOptions();
 
-        PreUpgradeCheckAction preUpgradeCheckAction = new PreUpgradeCheckAction();
-        preUpgradeCheckAction.init(context, preUpgradeCheckOptions);
-        boolean shouldContinue = executeAction(preUpgradeCheckAction);
-        if (shouldContinue) {
-            log.info(Ansi.ansi().fgGreen().a("Pre-upgrade check succeeded.").reset().toString());
+            PreUpgradeCheckAction preUpgradeCheckAction = new PreUpgradeCheckAction();
+            preUpgradeCheckAction.init(context, preUpgradeCheckOptions);
+            boolean shouldContinue = executeAction(preUpgradeCheckAction);
+            if (shouldContinue) {
+                log.info(Ansi.ansi().fgGreen().a("Pre-upgrade check succeeded.").reset().toString());
+            } else {
+                log.error(Ansi.ansi().fgRed().a("Pre-upgrade check failed.").reset().toString());
+                return null;
+            }
         } else {
-            log.error(Ansi.ansi().fgRed().a("Pre-upgrade check failed.").reset().toString());
-            return null;
+            log.info("Pre-upgrade checks skipped.");
         }
 
         // verification
@@ -87,7 +91,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
     }
 
     private <O, T> T executeAction(Action<O, T> action) throws Exception {
-        log.info(NinjaUtils.formatActionStartMessage(action));
+        log.info(ConsoleFormat.formatActionStartMessage(action));
 
         return action.execute();
     }
