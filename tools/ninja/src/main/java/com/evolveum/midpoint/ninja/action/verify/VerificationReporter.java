@@ -20,7 +20,6 @@ import com.evolveum.midpoint.ninja.action.upgrade.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
-import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
@@ -118,19 +117,29 @@ public class VerificationReporter {
     public void verify(Writer writer, PrismObject<?> object) throws IOException {
         ValidationResult result = validator.validate(object);
 
-        // todo implement
-//        VerificationResultSomething verificationResult = new UpgradeObjectsHelper().upgradeObject(object, result);
+        UpgradeObjectsHandler handler = new UpgradeObjectsHandler();
+        VerificationResult verificationResult = handler.verify(object, result);
+
+        // todo handle merge result with upgrade result, doesn't look nice
 
         switch (options.getReportStyle()) {
             case PLAIN:
-                verifyAsPlain(writer, object, result);
+                verifyAsPlain(writer, object, verificationResult);
                 break;
             case CSV:
-                verifyAsCsv(writer, object, result);
+                verifyAsCsv(writer, object, verificationResult);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
+    }
+
+    public static String getIdentifierFromRecord(CSVRecord record) {
+        if (record == null || record.size() != REPORT_HEADER.size()) {
+            return null;
+        }
+
+        return record.get(6);
     }
 
     public static UUID getUuidFromRecord(CSVRecord record) {
@@ -155,27 +164,27 @@ public class VerificationReporter {
                 || value.equalsIgnoreCase("y");
     }
 
-    private void verifyAsPlain(Writer writer, PrismObject<?> object, ValidationResult result) throws IOException {
-        for (ValidationItem validationItem : result.getItems()) {
+    private void verifyAsPlain(Writer writer, PrismObject<?> object, VerificationResult result) throws IOException {
+        for (VerificationResultItem validationItem : result.getItems()) {
             writeValidationItem(writer, object, validationItem);
         }
     }
 
-    private void verifyAsCsv(Writer writer, PrismObject<?> object, ValidationResult result) throws IOException {
+    private void verifyAsCsv(Writer writer, PrismObject<?> object, VerificationResult result) throws IOException {
         // this is not very nice/clean code, we're creating printer (Closeable), but not closing it, since that would close underlying writer
         CSVPrinter printer = CSV_FORMAT.print(writer);
 
-        for (ValidationItem item : result.getItems()) {
+        for (VerificationResultItem item : result.getItems()) {
             printer.printRecord(createReportRecord(item, object));
         }
     }
 
-    private List<String> createReportRecord(ValidationItem item, PrismObject<?> object) {
+    private List<String> createReportRecord(VerificationResultItem item, PrismObject<?> object) {
         // todo populate
-        String identifier = null;
-        UpgradePhase phase = null;
-        UpgradePriority priority = null;
-        UpgradeType type = null;
+        String identifier = item.getIdentifier();
+        UpgradePhase phase = item.getPhase();
+        UpgradePriority priority = item.getPriority();
+        UpgradeType type = item.getType();
 
         // this array has to match {@link VerifyConsumerWorker#REPORT_HEADER}
         return Arrays.asList(object.getOid(),
@@ -192,7 +201,7 @@ public class VerificationReporter {
         );
     }
 
-    private void writeValidationItem(Writer writer, PrismObject<?> object, ValidationItem validationItem) throws IOException {
+    private void writeValidationItem(Writer writer, PrismObject<?> object, VerificationResultItem validationItem) throws IOException {
         if (validationItem.getStatus() != null) {
             writer.append(validationItem.getStatus().toString());
             writer.append(" ");

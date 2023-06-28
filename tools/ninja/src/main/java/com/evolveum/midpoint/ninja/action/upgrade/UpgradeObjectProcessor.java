@@ -9,10 +9,9 @@ package com.evolveum.midpoint.ninja.action.upgrade;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public interface UpgradeObjectHandler<T extends ObjectType> {
+public interface UpgradeObjectProcessor<T extends ObjectType> {
 
     String getIdentifier();
 
@@ -24,12 +23,5 @@ public interface UpgradeObjectHandler<T extends ObjectType> {
 
     boolean isApplicable(PrismObject<?> object, ItemPath path);
 
-    /**
-     * Updates object to correct form
-     *
-     * @param object
-     * @param result
-     * @return true if object needs to be updated (saved) in midpoint repository, false otherwise
-     */
-    boolean processObject(PrismObject<T> object, OperationResult result);
+    boolean process(PrismObject<T> object);
 }
