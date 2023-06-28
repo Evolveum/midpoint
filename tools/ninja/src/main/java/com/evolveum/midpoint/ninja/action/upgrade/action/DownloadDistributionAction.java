@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.evolveum.midpoint.ninja.action.upgrade.ConsoleProgressListener;
+import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
+import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;

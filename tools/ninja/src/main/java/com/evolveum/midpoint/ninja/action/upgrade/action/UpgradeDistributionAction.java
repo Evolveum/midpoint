@@ -1,8 +1,9 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 

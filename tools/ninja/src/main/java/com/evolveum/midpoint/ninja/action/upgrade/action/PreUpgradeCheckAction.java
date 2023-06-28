@@ -5,11 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.util.*;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;

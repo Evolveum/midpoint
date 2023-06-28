@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import com.beust.jcommander.Parameters;
 
