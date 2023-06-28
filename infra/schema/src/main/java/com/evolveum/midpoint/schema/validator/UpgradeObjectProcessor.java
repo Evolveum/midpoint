@@ -5,10 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.schema.validator;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.validator.UpgradePhase;
+import com.evolveum.midpoint.schema.validator.UpgradePriority;
+import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface UpgradeObjectProcessor<T extends ObjectType> {

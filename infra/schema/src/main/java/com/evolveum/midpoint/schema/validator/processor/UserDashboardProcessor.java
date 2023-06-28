@@ -1,11 +1,11 @@
-package com.evolveum.midpoint.ninja.action.upgrade.processor;
+package com.evolveum.midpoint.schema.validator.processor;
 
 import java.util.List;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectProcessor;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradePhase;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradePriority;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeType;
+import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
+import com.evolveum.midpoint.schema.validator.UpgradePhase;
+import com.evolveum.midpoint.schema.validator.UpgradePriority;
+import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

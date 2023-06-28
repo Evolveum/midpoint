@@ -16,11 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.*;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.validator.ObjectValidator;
-import com.evolveum.midpoint.schema.validator.ValidationResult;
+import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class VerificationReporter {
@@ -43,7 +42,7 @@ public class VerificationReporter {
 
     private final PrismContext prismContext;
 
-    private ObjectValidator validator;
+    private ObjectUpgradeValidator validator;
 
     public static final CSVFormat CSV_FORMAT;
 
@@ -59,11 +58,11 @@ public class VerificationReporter {
     }
 
     private void init() {
-        validator = new ObjectValidator(prismContext);
+        validator = new ObjectUpgradeValidator(prismContext);
 
         List<VerifyOptions.VerificationCategory> categories = options.getVerificationCategories();
         if (categories.isEmpty()) {
-            validator.setAllWarnings();
+            validator.showAllWarnings();
         } else {
             for (VerifyOptions.VerificationCategory category : categories) {
                 switch (category) {
@@ -114,20 +113,15 @@ public class VerificationReporter {
                 .build();
     }
 
-    public void verify(Writer writer, PrismObject<?> object) throws IOException {
-        ValidationResult result = validator.validate(object);
-
-        UpgradeObjectsHandler handler = new UpgradeObjectsHandler();
-        VerificationResult verificationResult = handler.verify(object, result);
-
-        // todo handle merge result with upgrade result, doesn't look nice
+    public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
+        UpgradeValidationResult result = validator.validate((PrismObject) object);
 
         switch (options.getReportStyle()) {
             case PLAIN:
-                verifyAsPlain(writer, object, verificationResult);
+                verifyAsPlain(writer, object, result);
                 break;
             case CSV:
-                verifyAsCsv(writer, object, verificationResult);
+                verifyAsCsv(writer, object, result);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
@@ -164,22 +158,22 @@ public class VerificationReporter {
                 || value.equalsIgnoreCase("y");
     }
 
-    private void verifyAsPlain(Writer writer, PrismObject<?> object, VerificationResult result) throws IOException {
-        for (VerificationResultItem validationItem : result.getItems()) {
+    private void verifyAsPlain(Writer writer, PrismObject<?> object, UpgradeValidationResult result) throws IOException {
+        for (UpgradeValidationItem validationItem : result.getItems()) {
             writeValidationItem(writer, object, validationItem);
         }
     }
 
-    private void verifyAsCsv(Writer writer, PrismObject<?> object, VerificationResult result) throws IOException {
+    private void verifyAsCsv(Writer writer, PrismObject<?> object, UpgradeValidationResult result) throws IOException {
         // this is not very nice/clean code, we're creating printer (Closeable), but not closing it, since that would close underlying writer
         CSVPrinter printer = CSV_FORMAT.print(writer);
 
-        for (VerificationResultItem item : result.getItems()) {
+        for (UpgradeValidationItem item : result.getItems()) {
             printer.printRecord(createReportRecord(item, object));
         }
     }
 
-    private List<String> createReportRecord(VerificationResultItem item, PrismObject<?> object) {
+    private List<String> createReportRecord(UpgradeValidationItem item, PrismObject<?> object) {
         // todo populate
         String identifier = item.getIdentifier();
         UpgradePhase phase = item.getPhase();
@@ -190,9 +184,9 @@ public class VerificationReporter {
         return Arrays.asList(object.getOid(),
                 object.getDefinition().getTypeName().getLocalPart(),
                 object.getBusinessDisplayName(),
-                Objects.toString(item.getStatus()),
-                Objects.toString(item.getItemPath()),
-                item.getMessage() != null ? item.getMessage().getFallbackMessage() : null,
+                Objects.toString(item.getItem().getStatus()),
+                Objects.toString(item.getItem().getItemPath()),
+                item.getItem().getMessage() != null ? item.getItem().getMessage().getFallbackMessage() : null,
                 identifier,
                 phase != null ? phase.name() : null,
                 priority != null ? priority.name() : null,
@@ -201,20 +195,20 @@ public class VerificationReporter {
         );
     }
 
-    private void writeValidationItem(Writer writer, PrismObject<?> object, VerificationResultItem validationItem) throws IOException {
-        if (validationItem.getStatus() != null) {
-            writer.append(validationItem.getStatus().toString());
+    private void writeValidationItem(Writer writer, PrismObject<?> object, UpgradeValidationItem validationItem) throws IOException {
+        if (validationItem.getItem().getStatus() != null) {
+            writer.append(validationItem.getItem().getStatus().toString());
             writer.append(" ");
         } else {
             writer.append("INFO ");
         }
         writer.append(object.toString());
         writer.append(" ");
-        if (validationItem.getItemPath() != null) {
-            writer.append(validationItem.getItemPath().toString());
+        if (validationItem.getItem().getItemPath() != null) {
+            writer.append(validationItem.getItem().getItemPath().toString());
             writer.append(" ");
         }
-        writeMessage(writer, validationItem.getMessage());
+        writeMessage(writer, validationItem.getItem().getMessage());
         writer.append("\n");
     }
 

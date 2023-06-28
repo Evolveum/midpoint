@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.schema.validator;
 
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
@@ -6,13 +6,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.ninja.Main;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.validator.ValidationItem;
-import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsHandler {
 
@@ -23,7 +21,7 @@ public class UpgradeObjectsHandler {
     }
 
     private static List<UpgradeObjectProcessor<?>> initProcessors() {
-        Set<Class<?>> processors = ClassPathUtil.listClasses(Main.class.getPackageName())
+        Set<Class<?>> processors = ClassPathUtil.listClasses("com.evolveum.midpoint")
                 .stream()
                 .filter(UpgradeObjectProcessor.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
@@ -42,8 +40,10 @@ public class UpgradeObjectsHandler {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public UpgradeObjectResult upgrade(PrismObject<?> object, ItemPath path) {
-        PrismObject cloned = object.clone();
+    public <T extends ObjectType> UpgradeValidationItem verify(PrismObject<T> object, ValidationItem item) {
+        ItemPath path = item.getItemPath();
+
+        PrismObject<T> cloned = object.clone();
 
         UpgradeObjectProcessor<?> processor = null;
         for (UpgradeObjectProcessor<?> p : PROCESSORS) {
@@ -57,9 +57,9 @@ public class UpgradeObjectsHandler {
             return null;
         }
 
-        boolean changed = processor.process(cloned);
+        boolean changed = processor.process((PrismObject) cloned);
 
-        UpgradeObjectResult result = new UpgradeObjectResult();
+        UpgradeValidationItem result = new UpgradeValidationItem(item);
         result.setChanged(changed);
         result.setIdentifier(processor.getIdentifier());
         result.setPhase(processor.getPhase());
@@ -72,17 +72,16 @@ public class UpgradeObjectsHandler {
         return result;
     }
 
-    public VerificationResult verify(PrismObject<?> object, ValidationResult result) {
-        VerificationResult verificationResult = new VerificationResult(result);
+    public <T extends ObjectType> UpgradeValidationResult verify(PrismObject<T> object, ValidationResult result) {
+        UpgradeValidationResult verificationResult = new UpgradeValidationResult(result);
 
         for (ValidationItem item : result.getItems()) {
-            UpgradeObjectResult upgrade = upgrade(object, item.getItemPath());
-            VerificationResultItem vi = new VerificationResultItem(item, upgrade);
-
-            verificationResult.getItems().add(vi);
+            UpgradeValidationItem upgrade = verify(object, item);
+            if (upgrade != null) {
+                verificationResult.getItems().add(upgrade);
+            }
         }
 
-        // todo implement
         return verificationResult;
     }
 }

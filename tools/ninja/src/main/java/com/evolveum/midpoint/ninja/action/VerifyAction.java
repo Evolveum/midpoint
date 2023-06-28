@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,10 +23,6 @@ import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -103,8 +101,8 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         PrismParser parser = prismContext.parserFor(file).language(PrismContext.LANG_XML).context(parsingContext);
 
         try {
-            List<PrismObject<?>> objects = parser.parseObjects();
-            for (PrismObject<?> object : objects) {
+            List<PrismObject<? extends Objectable>> objects = parser.parseObjects();
+            for (PrismObject<? extends Objectable> object : objects) {
                 reporter.verify(writer, object);
             }
         } catch (Exception ex) {

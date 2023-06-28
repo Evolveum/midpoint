@@ -1,11 +1,10 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.schema.validator;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.validator.UpgradePhase;
-import com.evolveum.midpoint.schema.validator.UpgradePriority;
-import com.evolveum.midpoint.schema.validator.UpgradeType;
 
-public class UpgradeObjectResult {
+public class UpgradeValidationItem {
+
+    private final ValidationItem item;
 
     private boolean changed;
 
@@ -19,20 +18,16 @@ public class UpgradeObjectResult {
 
     private ObjectDelta<?> delta;
 
+    public UpgradeValidationItem(ValidationItem item) {
+        this.item = item;
+    }
+
     public boolean isChanged() {
         return changed;
     }
 
     public void setChanged(boolean changed) {
         this.changed = changed;
-    }
-
-    public ObjectDelta<?> getDelta() {
-        return delta;
-    }
-
-    public void setDelta(ObjectDelta<?> delta) {
-        this.delta = delta;
     }
 
     public String getIdentifier() {
@@ -65,5 +60,17 @@ public class UpgradeObjectResult {
 
     public void setType(UpgradeType type) {
         this.type = type;
+    }
+
+    public ObjectDelta<?> getDelta() {
+        return delta;
+    }
+
+    public void setDelta(ObjectDelta<?> delta) {
+        this.delta = delta;
+    }
+
+    public ValidationItem getItem() {
+        return item;
     }
 }

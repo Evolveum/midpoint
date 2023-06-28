@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.validator.UpgradeObjectsHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWorker<UpgradeObjectsOptions, T> {
@@ -38,7 +39,6 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
     @Override
     public void run() {
         RepositoryService repository = context.getRepository();
-        // todo implement
 
         try {
             while (!shouldConsumerStop()) {
