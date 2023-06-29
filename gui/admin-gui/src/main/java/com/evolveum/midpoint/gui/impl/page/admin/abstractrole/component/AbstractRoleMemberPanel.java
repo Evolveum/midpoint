@@ -1156,9 +1156,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                             pageBase);
                     pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
                             .runVoid(taskCreator::createAndSubmitTask);
-
-                    // FIXME deal with this (hiding the task link in some cases ... and what else?)
-                    //  processTaskAfterOperation(task, target);
                 }
             }
         };

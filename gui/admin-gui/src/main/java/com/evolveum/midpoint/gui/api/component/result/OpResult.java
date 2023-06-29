@@ -364,7 +364,7 @@ public class OpResult implements Serializable, Visitable {
     /** Options for showing {@link OpResult} objects. */
     public record Options (boolean hideSuccess,
                            boolean hideInProgress,
-                           boolean hideTaskLinks) {
+                           boolean hideTaskLinks) implements Serializable {
 
         public static Options create() {
             return new Options(false, false, false);

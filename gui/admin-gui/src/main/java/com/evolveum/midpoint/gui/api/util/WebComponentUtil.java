@@ -295,15 +295,6 @@ public final class WebComponentUtil {
         OBJECT_HISTORY_PAGE_MAP.put(PageUser.class, PageUserHistory.class);
     }
 
-    public static @NotNull MidPointPrincipal getPrincipalOrRestart() {
-        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
-        if (principal != null) {
-            return principal;
-        } else {
-            throw restartOnLoginPageException();
-        }
-    }
-
     public static RestartResponseException restartOnLoginPageException() {
         return new RestartResponseException(PageLogin.class);
     }
