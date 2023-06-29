@@ -67,6 +67,13 @@
                     </xsd:element>
                     <xsd:element name="credentialsReset" type="tns:CredentialsResetPolicyType" minOccurs="0">
                     </xsd:element>
+                    <xsd:element name="loginNameRecovery" type="tns:LoginNameRecoveryPolicyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -158,6 +165,7 @@
             <xsd:element name="focusIdentification" type="tns:FocusIdentificationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="hint" type="tns:HintAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="archetypeBased" type="tns:ArchetypeBasedModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -380,6 +388,40 @@
                 <xsd:sequence>
                     <xsd:element name="factoryClass" type="xsd:string"/>
                     <xsd:element name="parameter" type="tns:OtherAuthenticationModuleParameterType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArchetypeBasedModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for the user authentication using the rules from the set of archetypes. For example, for "lost my
+                username" case the archetypes provide the information about correlation rules to be applied.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A set of archetypes which provides e.g. rules to be applied during user authentication.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="allowUndefinedArchetype" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Enables the case when no archetype can be selected. If set to true, the user can be
+                                authenticated e.g. by the rules from global security policy.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2148,7 +2190,7 @@
             <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines authentication sequence, which will be use for reset credential.
+                        Defines authentication sequence, which will be used for reset credential.
                         Since 4.7: it's better to specify sequence identifier here instead of sequence name
                         as name attribute becomes deprecated in some objects which are used for
                         authentication configuration starting from 4.7 version (e.g. in AuthenticationSequenceType)
@@ -2189,6 +2231,46 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoginNameRecoveryPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Login name recovery management policy. It defines which authentication sequence should be used for login
+                    recovery procedure. For now, a username is considered to be a login name.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier. Can be used for overriding the configuration in different security policies.
+                        Can be also used as a short name used for diagnostics.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description of the login name recovery policy.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authenticationSequenceIdentifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines authentication sequence, which should be used for login name recovery.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -3128,6 +3210,27 @@
                     <xsd:documentation>
                         Should be the evaluation of selectors traced?
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArchetypeSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a set of archetypes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
