@@ -248,61 +248,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     private String getLocalizedDisplayName() {
-        Validate.notNull(newItem, "Item must not be null.");
-
-        String displayName = newItem.getDisplayName();
-        if (!StringUtils.isEmpty(displayName)) {
-            return localizeName(displayName, displayName);
-        }
-
-        QName name = newItem.getElementName();
-        if (name != null) {
-            displayName = name.getLocalPart();
-
-            PrismContainerValue<?> val = newItem.getParent();
-            if (val != null && val.getDefinition() != null
-                    && val.getDefinition().isRuntimeSchema()) {
-                return localizeName(displayName, displayName);
-            }
-
-            if (val != null) {
-                if (val.getRealClass() != null) {
-                    displayName = val.getRealClass().getSimpleName() + "." + displayName;
-                    String localizedName = localizeName(displayName, displayName);
-                    //try to find by super class name + item name
-                    if (localizedName.equals(displayName) && val.getRealClass().getSuperclass() != null) {
-                        return getItemDisplayNameFromSuperClassName(val.getRealClass().getSuperclass(), name.getLocalPart());
-                    }
-                } else if (val.getTypeName() != null) {
-                    displayName = val.getTypeName().getLocalPart() + "." + displayName;
-                }
-            }
-        } else {
-            displayName = newItem.getDefinition().getTypeName().getLocalPart();
-        }
-
-        return localizeName(displayName, name.getLocalPart());
-    }
-
-    private String getItemDisplayNameFromSuperClassName(Class superClass, String itemName) {
-        if (superClass == null) {
-            return "";
-        }
-        String displayNameParentClass = superClass.getSimpleName() + "." + itemName;
-        String localizedName = localizeName(displayNameParentClass, displayNameParentClass);
-        if (localizedName.equals(displayNameParentClass) && superClass.getSuperclass() != null) {
-            return getItemDisplayNameFromSuperClassName(superClass.getSuperclass(), itemName);
-        }
-        if (!localizedName.equals(displayNameParentClass)) {
-            return localizedName;
-        } else {
-            return itemName;
-        }
-    }
-
-    private String localizeName(String nameKey, String defaultString) {
-        Validate.notNull(nameKey, "Null localization key");
-        return ColumnUtils.createStringResource(nameKey, defaultString).getString();
+        return WebPrismUtil.getLocalizedDisplayName(newItem);
     }
 
     @Override

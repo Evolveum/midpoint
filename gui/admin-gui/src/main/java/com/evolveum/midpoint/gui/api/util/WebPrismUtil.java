@@ -12,18 +12,20 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPasswordPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,7 +47,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
-import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -437,5 +438,70 @@ public class WebPrismUtil {
         }
         propertyPanel.setOutputMarkupId(true);
         return propertyPanel;
+    }
+
+    public static void sortContainers(List<PrismContainerWrapper<? extends Containerable>> containers) {
+        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(WebComponentUtil.getCollator(), false);
+        if (CollectionUtils.isNotEmpty(containers)) {
+            containers.sort((Comparator) comparator);
+        }
+    }
+
+    public static String getLocalizedDisplayName(Item item) {
+        Validate.notNull(item, "Item must not be null.");
+
+        String displayName = item.getDisplayName();
+        if (!StringUtils.isEmpty(displayName)) {
+            return localizeName(displayName, displayName);
+        }
+
+        QName name = item.getElementName();
+        if (name != null) {
+            displayName = name.getLocalPart();
+
+            PrismContainerValue<?> val = item.getParent();
+            if (val != null && val.getDefinition() != null
+                    && val.getDefinition().isRuntimeSchema()) {
+                return localizeName(displayName, displayName);
+            }
+
+            if (val != null) {
+                if (val.getRealClass() != null) {
+                    displayName = val.getRealClass().getSimpleName() + "." + displayName;
+                    String localizedName = localizeName(displayName, displayName);
+                    //try to find by super class name + item name
+                    if (localizedName.equals(displayName) && val.getRealClass().getSuperclass() != null) {
+                        return getItemDisplayNameFromSuperClassName(val.getRealClass().getSuperclass(), name.getLocalPart());
+                    }
+                } else if (val.getTypeName() != null) {
+                    displayName = val.getTypeName().getLocalPart() + "." + displayName;
+                }
+            }
+        } else {
+            displayName = item.getDefinition().getTypeName().getLocalPart();
+        }
+
+        return localizeName(displayName, name.getLocalPart());
+    }
+
+    private static String getItemDisplayNameFromSuperClassName(Class superClass, String itemName) {
+        if (superClass == null) {
+            return "";
+        }
+        String displayNameParentClass = superClass.getSimpleName() + "." + itemName;
+        String localizedName = localizeName(displayNameParentClass, displayNameParentClass);
+        if (localizedName.equals(displayNameParentClass) && superClass.getSuperclass() != null) {
+            return getItemDisplayNameFromSuperClassName(superClass.getSuperclass(), itemName);
+        }
+        if (!localizedName.equals(displayNameParentClass)) {
+            return localizedName;
+        } else {
+            return itemName;
+        }
+    }
+
+    private static String localizeName(String nameKey, String defaultString) {
+        Validate.notNull(nameKey, "Null localization key");
+        return ColumnUtils.createStringResource(nameKey, defaultString).getString();
     }
 }

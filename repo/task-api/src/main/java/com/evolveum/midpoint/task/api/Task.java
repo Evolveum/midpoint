@@ -1001,6 +1001,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return SimulationUtil.isVisible(object, getExecutionMode());
     }
 
+    /** Just a convenience method. */
+    default boolean canSee(String lifecycleState) {
+        return SimulationUtil.isVisible(lifecycleState, getExecutionMode());
+    }
+
     /**
      * Sets the execution mode of this task. Use with care - preferably only for new tasks.
      * Returns the original value.

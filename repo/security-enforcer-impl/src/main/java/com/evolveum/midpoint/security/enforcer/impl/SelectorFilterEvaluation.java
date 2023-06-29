@@ -67,7 +67,7 @@ class SelectorFilterEvaluation<T>
                 },
                 filterCollector,
                 createFilterEvaluator(),
-                new LogBasedSelectorTracer(),
+                authorizationEvaluation.op.tracer,
                 b.repositoryService,
                 this,
                 getOwnerResolver(),

@@ -609,8 +609,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType,
-                origFilter, targetAuthorizationAction, null, task, parentResult);
+                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null,
+                searchResultType, origFilter, targetAuthorizationAction, null,
+                SecurityEnforcer.Options.create(), task, parentResult);
     }
 
     @Override

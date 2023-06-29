@@ -28,7 +28,7 @@ public class MatchingContext extends SelectorProcessingContext {
 
     public MatchingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
+            @NotNull ProcessingTracer<? super SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,

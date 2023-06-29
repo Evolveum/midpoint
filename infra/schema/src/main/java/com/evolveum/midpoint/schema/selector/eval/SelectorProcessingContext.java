@@ -45,7 +45,7 @@ public abstract class SelectorProcessingContext {
      * Mainly used for troubleshooting of selectors and their clauses; especially important for
      * https://docs.evolveum.com/midpoint/reference/diag/troubleshooting/authorizations.
      */
-    @NotNull public final ProcessingTracer<SelectorTraceEvent> tracer;
+    @NotNull public final ProcessingTracer<? super SelectorTraceEvent> tracer;
 
     /** Evaluates organization tree questions (is descendant, is ancestor). Usually it is the repository itself. */
     @NotNull public final OrgTreeEvaluator orgTreeEvaluator;
@@ -76,7 +76,7 @@ public abstract class SelectorProcessingContext {
 
     public SelectorProcessingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
+            @NotNull ProcessingTracer<? super SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,

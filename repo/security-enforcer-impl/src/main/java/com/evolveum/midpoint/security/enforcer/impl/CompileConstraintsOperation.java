@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
-import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.CompileConstraintsOptions;
@@ -43,12 +42,12 @@ class CompileConstraintsOperation<O extends ObjectType> extends EnforcerOperatio
     CompileConstraintsOperation(
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull ProcessingTracer<SecurityTraceEvent> tracer,
+            @NotNull SecurityEnforcer.Options enforcerOptions,
             @NotNull Beans beans,
-            @NotNull CompileConstraintsOptions options,
+            @NotNull CompileConstraintsOptions compileConstraintsOptions,
             @NotNull Task task) {
-        super(principal, ownerResolver, tracer, beans, task);
-        this.options = options;
+        super(principal, ownerResolver, enforcerOptions, beans, task);
+        this.options = compileConstraintsOptions;
     }
 
     @NotNull ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OperationResult result)

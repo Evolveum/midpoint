@@ -540,6 +540,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.internals", "fa fa-archive", PageInternals.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.repoQuery", GuiStyleConstants.CLASS_ICON_SEARCH_FLIP + " flip-icon-margin", PageRepositoryQuery.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.evaluateMapping", "fa fa-cog", PageEvaluateMapping.class));
+        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.authorizationPlayground", "fa fa-cog", PageAuthorizationPlayground.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.about", "fa fa-info-circle", PageAbout.class));
         return item;
     }

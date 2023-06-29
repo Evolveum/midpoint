@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
@@ -62,8 +63,8 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
     }
 
     @Override
-    protected WrapperContext.AttributeMappingType getMappingType() {
-        return WrapperContext.AttributeMappingType.OUTBOUND;
+    protected MappingDirection getMappingType() {
+        return MappingDirection.OUTBOUND;
     }
 
     @Override

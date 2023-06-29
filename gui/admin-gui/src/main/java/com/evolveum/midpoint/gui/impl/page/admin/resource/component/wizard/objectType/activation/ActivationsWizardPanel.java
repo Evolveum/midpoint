@@ -6,32 +6,33 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeInboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPredefinedActivationMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
+
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lskublik
  */
 
-@Experimental
 public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     public ActivationsWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
@@ -39,80 +40,34 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
     }
 
     protected void initLayout() {
-        add(createWizardFragment(new WizardPanel(
-                getIdOfWizardPanel(),
-                new WizardModel(createActivationsSteps(getValueModel())))));
+        add(createChoiceFragment(createActivationTablePanel(MappingDirection.INBOUND)));
     }
 
-    private List<WizardStep> createActivationsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        List<WizardStep> steps = new ArrayList<>();
-        AdministrativeStatusStepPanel adminPanel = new AdministrativeStatusStepPanel(
-                getAssignmentHolderModel(),
+    private ActivationMappingWizardPanel createActivationTablePanel(MappingDirection mappingDirection) {
+        PrismContainerWrapperModel<ResourceObjectTypeDefinitionType, ResourceActivationDefinitionType> containerModel =
                 PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS))) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
-            }
-        };
-        adminPanel.setOutputMarkupId(true);
-        steps.add(adminPanel);
+                        getValueModel(),
+                        ResourceObjectTypeDefinitionType.F_ACTIVATION);
 
-        ExistenceStepPanel existencePanel = new ExistenceStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_EXISTENCE))) {
+        return new ActivationMappingWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel(), containerModel, mappingDirection) {
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
+            protected void editOutboundMapping(IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target) {
+                showOutboundAttributeMappingWizardFragment(target, valueModel);
             }
-        };
-        existencePanel.setOutputMarkupId(true);
-        steps.add(existencePanel);
 
-        ValidFromStepPanel validFromPanel = new ValidFromStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_VALID_FROM))) {
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
+            protected void editInboundMapping(IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target) {
+                showInboundAttributeMappingWizardFragment(target, valueModel);
             }
-        };
-        validFromPanel.setOutputMarkupId(true);
-        steps.add(validFromPanel);
 
-        ValidToStepPanel validToPanel = new ValidToStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_VALID_TO))) {
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                ActivationsWizardPanel.this.onExitPerformed(target);
+            protected void editPredefinedMapping(
+                    IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
+                    AjaxRequestTarget target,
+                    MappingDirection direction) {
+                showPredefinedMappingFragment(target, valueModel, direction);
             }
-        };
-        validToPanel.setOutputMarkupId(true);
-        steps.add(validToPanel);
 
-        LockoutStatusStepPanel lockPanel = new LockoutStatusStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerWrapperModel.fromContainerValueWrapper(
-                        valueModel,
-                        ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
-                                ResourceActivationDefinitionType.F_LOCKOUT_STATUS))) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 ActivationsWizardPanel.this.onExitPerformed(target);
@@ -120,15 +75,73 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = ActivationsWizardPanel.this.onSavePerformed(target);
-                if (result != null && !result.isError()) {
-                    onExitPerformed(target);
-                }
+                getHelper().onSaveObjectPerformed(target);
+                onExitPerformed(target);
             }
         };
-        lockPanel.setOutputMarkupId(true);
-        steps.add(lockPanel);
+    }
 
+    private void showPredefinedMappingFragment(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
+            MappingDirection direction) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createPredefinedMappingSteps(valueModel, direction))));
+    }
+
+    private List<WizardStep> createPredefinedMappingSteps(
+            IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
+            MappingDirection direction) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new PredefinedMappingStepPanel(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showActivationTablePanel(target, direction);
+            }
+        });
+        return steps;
+    }
+
+    private void showActivationTablePanel(AjaxRequestTarget target, MappingDirection mappingDirection) {
+        showChoiceFragment(target, createActivationTablePanel(mappingDirection));
+    }
+
+    private void showInboundAttributeMappingWizardFragment(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createInboundAttributeMappingSteps(valueModel))));
+    }
+
+    private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new AttributeInboundStepPanel(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showActivationTablePanel(target, MappingDirection.INBOUND);
+            }
+        });
+        return steps;
+    }
+
+    private void showOutboundAttributeMappingWizardFragment(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(valueModel))));
+    }
+
+    private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new AttributeOutboundStepPanel<>(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showActivationTablePanel(target, MappingDirection.OUTBOUND);
+            }
+        });
         return steps;
     }
 }

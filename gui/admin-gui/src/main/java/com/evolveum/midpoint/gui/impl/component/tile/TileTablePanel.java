@@ -44,7 +44,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private static final long serialVersionUID = 1L;
 
     static final String ID_TILES_CONTAINER = "tilesContainer";
-    static final String ID_TILES_FRAGMENT = "tilesFragment";
+    protected static final String ID_TILES_FRAGMENT = "tilesFragment";
     protected static final String ID_TILES = "tiles";
 
     private static final String ID_HEADER_FRAGMENT = "headerFragment";
@@ -106,6 +106,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         add(tilesContainer);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+        footerContainer.add(new VisibleBehaviour(this::showFooter));
         footerContainer.setOutputMarkupId(true);
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
         add(footerContainer);
@@ -127,6 +128,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         add(table);
     }
 
+    protected boolean showFooter() {
+        return true;
+    }
+
     protected WebMarkupContainer createTilesContainer(String idTilesContainer, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
 
@@ -143,6 +148,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             @Override
             protected void populateItem(ListItem<T> item) {
                 item.add(AttributeAppender.append("class", () -> getTileCssClasses()));
+                item.add(AttributeAppender.append("style", () -> getTileCssStyle()));
 
                 Component tile = createTile(ID_TILE, item.getModel());
                 item.add(tile);
@@ -153,6 +159,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 return List.of(createTileObject(object));
             }
         };
+    }
+
+    protected String getTileCssStyle() {
+        return "min-height: 250px;";
     }
 
     protected UserProfileStorage.TableId getTableId() {
@@ -266,7 +276,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
-            target.add(get(ID_TILES_CONTAINER), getTilesNavigation());
+            target.add(get(ID_TILES_CONTAINER), getTilesNavigation(), get(ID_FOOTER_CONTAINER));
         }
     }
 

@@ -31,6 +31,10 @@ public class TemplateTile<T extends Serializable> extends Tile<T> {
 
     private List<DisplayType> tags = new ArrayList<>();
 
+    public TemplateTile(T templateObject) {
+        this(null, null, templateObject);
+    }
+
     public TemplateTile(String icon, String title, T templateObject) {
         super(icon, title);
         setValue(templateObject);

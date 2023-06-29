@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import static com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationPreProcessor.forObject;
-import static com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationPreProcessor.forTarget;
+import static com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationSelectorExtractor.forObject;
+import static com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationSelectorExtractor.forTarget;
 import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.nonStrict;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 
+import com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationSelectorExtractor;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
-import com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationPreProcessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -171,9 +171,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        var tracer = new LogBasedEnforcerTracer(); // TEMPORARY
+        var options = Options.create(); // TEMPORARY
         return new EnforcerDecisionOperation(
-                operationUrl, params, applicableAutzConsumer, principal, ownerResolver, tracer, beans, task)
+                operationUrl, params, applicableAutzConsumer, principal, ownerResolver, options, beans, task)
                 .decideAccess(phase, result);
     }
 
@@ -205,44 +205,47 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        var tracer = new LogBasedEnforcerTracer(); // FIXME TEMPORARY
+        var options = Options.create(); // FIXME temporary
         return new CompileConstraintsOperation<O>(
-                getMidPointPrincipal(), ownerResolver, tracer, beans, CompileConstraintsOptions.defaultOnes(), task)
+                getMidPointPrincipal(), ownerResolver, options, beans, CompileConstraintsOptions.create(), task)
                 .compileSecurityConstraints(object, result);
     }
 
     @Override
-    public PrismEntityOpConstraints.@NotNull ForValueContent compileOperationConstraints(
+    public @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+            @Nullable MidPointPrincipal principal,
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
             @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
-            @NotNull CompileConstraintsOptions options,
+            @NotNull Options enforcerOptions,
+            @NotNull CompileConstraintsOptions compileConstraintsOptions,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        var tracer = new LogBasedEnforcerTracer(); // FIXME TEMPORARY
-        return new CompileConstraintsOperation<>(getMidPointPrincipal(), ownerResolver, tracer, beans, options, task)
+        return new CompileConstraintsOperation<>(
+                principal, ownerResolver, enforcerOptions, beans, compileConstraintsOptions, task)
                 .compileValueOperationConstraints(value, phase, actionUrls, result);
     }
 
     @Override
     public @Nullable <T> ObjectFilter preProcessObjectFilter(
+            @Nullable MidPointPrincipal principal,
             String[] operationUrls,
             AuthorizationPhaseType phase,
             Class<T> filterType,
             @Nullable ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
-            Task task, OperationResult result)
+            @NotNull Options options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         FilterGizmo<ObjectFilter> gizmo = new FilterGizmoObjectFilterImpl();
         ObjectFilter securityFilter = computeSecurityFilterInternal(
-                operationUrls, phase, filterType, forObject(),true, origFilter,
+                principal, operationUrls, phase, filterType, forObject(),true, origFilter,
                 limitAuthorizationAction, paramOrderConstraints, gizmo, "filter pre-processing",
-                task, result);
+                options, task, result);
         ObjectFilter finalFilter = gizmo.and(origFilter, securityFilter);
         LOGGER.trace("SEC: pre-processed object filter (combined with the original one):\n{}",
                 DebugUtil.debugDumpLazily(finalFilter, 1)); // This is not a part of the flexible tracing
@@ -268,30 +271,31 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return computeSecurityFilterInternal(
-                operationUrls, phase, filterType, forTarget(object), true, origFilter,
+                principal, operationUrls, phase, filterType, forTarget(object), true, origFilter,
                 limitAuthorizationAction, paramOrderConstraints, gizmo, "security filter computation",
-                task, result);
+                Options.create(), task, result);
     }
 
     private <T, F> F computeSecurityFilterInternal(
+            @Nullable MidPointPrincipal principal,
             @NotNull String[] operationUrls,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Class<T> filterType,
-            @NotNull AuthorizationPreProcessor preProcessor,
+            @NotNull AuthorizationSelectorExtractor selectorExtractor,
             boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
             @NotNull FilterGizmo<F> gizmo,
             String desc,
+            @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        var tracer = new LogBasedEnforcerTracer(); // FIXME TEMPORARY
         return new EnforcerFilterOperation<>(
-                operationUrls, filterType, preProcessor, includeSpecial, origFilter, limitAuthorizationAction,
-                paramOrderConstraints, gizmo, desc, getMidPointPrincipal(), null, tracer, beans, task)
+                operationUrls, filterType, selectorExtractor, includeSpecial, origFilter, limitAuthorizationAction,
+                paramOrderConstraints, gizmo, desc, principal, null, options, beans, task)
                 .computeSecurityFilter(phase, result);
     }
 
@@ -308,9 +312,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             CommunicationException, ConfigurationException, SecurityViolationException {
         FilterGizmo<ObjectFilter> gizmo = new FilterGizmoObjectFilterImpl();
         var securityFilter = computeSecurityFilterInternal(
-                operationUrls, phase, filterType, forObject(), includeSpecial, origFilter,
+                getMidPointPrincipal(), operationUrls, phase,
+                filterType, forObject(), includeSpecial, origFilter,
                 null, null, gizmo, "canSearch decision",
-                task, result);
+                Options.create(), task, result);
         ObjectFilter finalFilter =
                 ObjectQueryUtil.simplify(
                         ObjectQueryUtil.filterAnd(origFilter, securityFilter));
@@ -350,8 +355,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        var tracer = new LogBasedEnforcerTracer(); // TEMPORARY
-        EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, null, tracer, beans, task);
+        // TODO options
+        EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, null, Options.create(), beans, task);
         ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
         int i = 0;
         for (Authorization autz : ctx.getAuthorizations()) {

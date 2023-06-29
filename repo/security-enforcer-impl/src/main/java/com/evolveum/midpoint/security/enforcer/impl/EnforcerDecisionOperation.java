@@ -13,13 +13,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Authorization
 
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
-import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -46,10 +47,10 @@ class EnforcerDecisionOperation extends EnforcerOperation {
             @Nullable Consumer<Authorization> applicableAutzConsumer,
             @Nullable MidPointPrincipal principal,
             @Nullable OwnerResolver ownerResolver,
-            @NotNull ProcessingTracer<SecurityTraceEvent> tracer,
+            @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, tracer, beans, task);
+        super(principal, ownerResolver, options, beans, task);
 
         this.operationUrl = operationUrl;
         this.params = params;
