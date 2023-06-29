@@ -10,10 +10,15 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 
+import javax.sql.DataSource;
+
 public abstract class NinjaSpringTest extends AbstractSpringTest implements InfraTestMixin, NinjaTestMixin {
 
     @Autowired
     protected RepositoryService repository;
+
+    @Autowired
+    protected DataSource repositoryDataSource;
 
     @Autowired
     protected ApplicationContext applicationContext;

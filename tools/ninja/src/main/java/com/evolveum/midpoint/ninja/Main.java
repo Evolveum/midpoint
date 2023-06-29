@@ -14,9 +14,6 @@ import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
@@ -26,6 +23,7 @@ import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
@@ -54,7 +52,7 @@ public class Main {
         this.err = err;
     }
 
-    protected <T> void run(String[] args) {
+    protected <T> Object run(String[] args) {
         AnsiConsole.systemInstall();
 
         JCommander jc = NinjaUtils.setupCommandLineParser();
@@ -63,7 +61,7 @@ public class Main {
             jc.parse(args);
         } catch (ParameterException ex) {
             err.println(ex.getMessage());
-            return;
+            return null;
         }
 
         String parsedCommand = jc.getParsedCommand();
@@ -74,17 +72,17 @@ public class Main {
             err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");
             printHelp(jc, parsedCommand);
-            return;
+            return null;
         }
 
         if (BooleanUtils.isTrue(base.isVersion())) {
             printVersion(base.isVerbose());
-            return;
+            return null;
         }
 
         if (base.isHelp() || parsedCommand == null) {
             printHelp(jc, parsedCommand);
-            return;
+            return null;
         }
 
         NinjaContext context = null;
@@ -93,7 +91,7 @@ public class Main {
 
             if (action == null) {
                 err.println("Action for command '" + parsedCommand + "' not found");
-                return;
+                return null;
             }
 
             //noinspection unchecked
@@ -109,7 +107,7 @@ public class Main {
 
                 context.getLog().info(ConsoleFormat.formatActionStartMessage(action));
 
-                action.execute();
+                return action.execute();
             } finally {
                 action.destroy();
             }
@@ -120,6 +118,8 @@ public class Main {
 
             AnsiConsole.systemUninstall();
         }
+
+        return null;
     }
 
     private void cleanupResources(BaseOptions opts, NinjaContext context) {

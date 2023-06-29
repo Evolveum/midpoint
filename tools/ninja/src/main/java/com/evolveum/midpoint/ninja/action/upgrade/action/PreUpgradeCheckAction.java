@@ -54,6 +54,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
             return false;
         }
 
+        // todo this will not work if audit was not configured or is in different database!
         return validateChangeNumber(
                 diag.getAdditionalDetails(), UpgradeConstants.LABEL_SCHEMA_AUDIT_CHANGE_NUMBER,
                 UpgradeConstants.SUPPORTED_SCHEMA_AUDIT_CHANGE_NUMBER);
