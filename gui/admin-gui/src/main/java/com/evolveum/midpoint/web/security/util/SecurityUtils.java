@@ -8,6 +8,9 @@ package com.evolveum.midpoint.web.security.util;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,8 +33,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 
 /**
  * @author lazyman
@@ -193,5 +194,53 @@ public class SecurityUtils {
 
     public static boolean sequenceExists(AuthenticationsPolicyType policy, String identifier) {
         return getSequenceByIdentifier(identifier, policy) != null || getSequenceByName(identifier, policy) != null;
+    }
+
+    public static String getChannelUrlSuffixFromAuthSequence(String sequenceIdentifier, SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        AuthenticationSequenceType sequence = getSequenceByIdentifier(sequenceIdentifier, securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(sequenceIdentifier, securityPolicy.getAuthentication());
+        }
+        if (sequence == null) {
+            return null;
+        }
+        var channel = sequence.getChannel();
+        if (channel == null) {
+            return null;
+        }
+        return channel.getUrlSuffix();
+    }
+
+    public static ArchetypeBasedModuleType getLoginRecoveryAuthModule(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null
+                || securityPolicy.getAuthentication().getModules() == null) {
+            return null;
+        }
+        var policy = securityPolicy.getLoginNameRecovery();
+        if (policy == null) {
+            return null;
+        }
+        var sequenceIdentifier = policy.getAuthenticationSequenceIdentifier();
+        var sequence = getSequenceByIdentifier(sequenceIdentifier, securityPolicy.getAuthentication());
+        if (sequence == null) {
+            return null;
+        }
+        List<AuthenticationSequenceModuleType> modules = sequence.getModule();
+        if (modules.size() == 1) {
+            //for now only one archetype based module is supported for login recovery functionality
+            var loginRecoveryModule = modules.get(0);
+            var recoveryModuleIdentifier = loginRecoveryModule.getIdentifier();
+            List<ArchetypeBasedModuleType> archetypeBasedModules =
+                    securityPolicy.getAuthentication().getModules().getArchetypeBased();
+            return archetypeBasedModules
+                    .stream()
+                    .filter(m -> m.getIdentifier().equals(recoveryModuleIdentifier))
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
     }
 }

@@ -51,6 +51,7 @@ public class PageLogin extends AbstractPageLogin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
+    private static final String ID_LOGIN_RECOVERY = "loginRecovery";
     private static final String ID_RESET_PASSWORD = "resetPassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
     private static final String ID_CSRF_FIELD = "csrfField";
@@ -87,11 +88,28 @@ public class PageLogin extends AbstractPageLogin {
         add(form);
 
         SecurityPolicyType securityPolicy = loadSecurityPolicyType();
+        addLoginRecoveryLink(securityPolicy);
         addForgotPasswordLink(securityPolicy);
         addRegistrationLink(securityPolicy);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
+    }
+
+    private void addLoginRecoveryLink(SecurityPolicyType securityPolicy) {
+        String loginRecoveryUrl = getLoginRecoveryUrl(securityPolicy);
+        ExternalLink link = new ExternalLink(ID_LOGIN_RECOVERY, loginRecoveryUrl);
+
+        link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(loginRecoveryUrl)));
+        add(link);
+    }
+
+    private String getLoginRecoveryUrl(SecurityPolicyType securityPolicy) {
+        var loginRecoveryPolicy = securityPolicy.getLoginNameRecovery();
+        if (loginRecoveryPolicy == null) {
+            return "";
+        }
+        return getAuthLinkUrl(loginRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
     }
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
@@ -107,25 +125,7 @@ public class PageLogin extends AbstractPageLogin {
         if (StringUtils.isBlank(resetSequenceIdOrName)) {
             return "";
         }
-
-        AuthenticationsPolicyType authenticationPolicy = securityPolicy.getAuthentication();
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(resetSequenceIdOrName, authenticationPolicy);
-        if (sequence == null) {
-            // this lookup by name will be (probably) eventually removed
-            sequence = SecurityUtils.getSequenceByName(resetSequenceIdOrName, authenticationPolicy);
-        }
-        if (sequence == null) {
-            LOGGER.warn("Password reset authentication sequence '{}' does not exist", resetSequenceIdOrName);
-            return "";
-        }
-
-        if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
-            String message = "Sequence with name " + resetSequenceIdOrName + " doesn't contain urlSuffix";
-            LOGGER.error(message, new IllegalArgumentException(message));
-            error(message);
-            return "";
-        }
-        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+        return getAuthLinkUrl(resetSequenceIdOrName, securityPolicy);
     }
 
     private void addRegistrationLink(SecurityPolicyType securityPolicyType) {
@@ -156,24 +156,20 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     private String getRegistrationUrl(SecurityPolicyType securityPolicy) {
-        if (securityPolicy == null) {
-            return "";
-        }
         SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
         if (selfRegistrationPolicy == null || StringUtils.isBlank(selfRegistrationPolicy.getAdditionalAuthenticationSequence())) {
             return "";
         }
+        return getAuthLinkUrl(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy);
+    }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy.getAuthentication());
-        if (sequence == null) {
-            sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
-                    securityPolicy.getAuthentication());
-        }
-        if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null) {
+    private String getAuthLinkUrl(String sequenceIdentifier, SecurityPolicyType securityPolicy) {
+        String channelUrlSuffix = SecurityUtils.getChannelUrlSuffixFromAuthSequence(sequenceIdentifier, securityPolicy);
+        if (StringUtils.isEmpty(channelUrlSuffix)) {
+            LOGGER.warn("Authentication sequence '{}' does not exist", sequenceIdentifier);
             return "";
         }
-
-        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + channelUrlSuffix;
     }
 
     private String getUrlProcessingLogin() {

@@ -402,7 +402,8 @@ public final class WebComponentUtil {
         return sb.toString();
     }
 
-    public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation, PageBase pageBase) {
+    public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation,
+            PageAdminLTE pageBase) {
         List<O> loadedObjectsList = new ArrayList<>();
         if (refList == null) {
             return loadedObjectsList;

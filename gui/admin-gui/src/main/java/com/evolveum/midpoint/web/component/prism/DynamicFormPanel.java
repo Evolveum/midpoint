@@ -55,6 +55,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
     private static final Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
 
     private static final String DOT_CLASS = DynamicFormPanel.class.getName() + ".";
+    protected static final String OPERATION_LOAD_FORM = DOT_CLASS + "loadForm";
 
     private static final String ID_FORM_FIELDS = "formFields";
 
@@ -155,7 +156,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
     }
 
     private FormType loadForm(String formOid, Task task, PageAdminLTE parentPage) {
-        OperationResult result = new OperationResult("some some operation");
+        OperationResult result = new OperationResult(OPERATION_LOAD_FORM);
         return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
                 parentPage, task, result));
     }
