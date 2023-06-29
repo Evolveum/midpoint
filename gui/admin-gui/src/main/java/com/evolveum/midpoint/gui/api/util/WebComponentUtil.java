@@ -34,6 +34,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
@@ -292,6 +293,10 @@ public final class WebComponentUtil {
         OBJECT_HISTORY_PAGE_MAP.put(PageRole.class, PageRoleHistory.class);
         OBJECT_HISTORY_PAGE_MAP.put(PageOrg.class, PageOrgHistory.class);
         OBJECT_HISTORY_PAGE_MAP.put(PageUser.class, PageUserHistory.class);
+    }
+
+    public static RestartResponseException restartOnLoginPageException() {
+        return new RestartResponseException(PageLogin.class);
     }
 
     public enum AssignmentOrder {
@@ -2399,7 +2404,8 @@ public final class WebComponentUtil {
         initNewObjectWithReference(pageBase, assignmentHolder, newReferences);
     }
 
-    public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, AHT assignmentHolder, List<ObjectReferenceType> newReferences) throws SchemaException {
+    public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(
+            PageBase pageBase, AHT assignmentHolder, List<ObjectReferenceType> newReferences) {
         if (newReferences != null) {
             newReferences.stream().forEach(ref -> {
                 AssignmentType assignment = new AssignmentType();
@@ -2419,7 +2425,11 @@ public final class WebComponentUtil {
             });
         }
 
-        WebComponentUtil.dispatchToObjectDetailsPage(assignmentHolder.asPrismObject(), true, pageBase);
+        dispatchToNewObject(assignmentHolder, pageBase);
+    }
+
+    public static void dispatchToNewObject(@NotNull AssignmentHolderType newObject, @NotNull PageBase pageBase) {
+        dispatchToObjectDetailsPage(newObject.asPrismObject(), true, pageBase);
     }
 
     public static String createErrorIcon(OperationResult result) {
@@ -3445,7 +3455,7 @@ public final class WebComponentUtil {
                                     newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
                                     newTask.setOid(null);
                                     newTask.setTaskIdentifier(null);
-                                    newTask.setOwnerRef(createObjectRef(principal.getFocus()));
+                                    newTask.setOwnerRef(principal.toObjectReference());
                                     newTask.setExecutionState(RUNNABLE);
                                     newTask.setSchedulingState(READY);
                                     newTask.asPrismObject().getOrCreateExtension().add(extensionQuery);
@@ -5168,20 +5178,17 @@ public final class WebComponentUtil {
     }
 
     public static <F extends FocusType> Locale getLocale() {
-        MidPointPrincipal principal = AuthUtil.getPrincipalUser();
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return MidPointApplication.getDefaultLocale();
         }
 
-        Locale locale = null;
-        if (principal instanceof GuiProfiledPrincipal
-                && ((GuiProfiledPrincipal) principal).getCompiledGuiProfile().getLocale() != null) {
-            locale = ((GuiProfiledPrincipal) principal).getCompiledGuiProfile().getLocale();
+        Locale locale;
+        if (principal.getCompiledGuiProfile().getLocale() != null) {
+            locale = principal.getCompiledGuiProfile().getLocale();
         } else {
+            //noinspection unchecked
             F focus = (F) principal.getFocus();
-            if (focus == null) {
-                return MidPointApplication.getDefaultLocale();
-            }
 
             locale = LocalizationUtil.toLocale(FocusTypeUtil.languageOrLocale(focus));
         }
@@ -5269,7 +5276,7 @@ public final class WebComponentUtil {
                 });
             }
         } catch (Exception e) {
-            LOGGER.warn("Couldn't load password value policy for focus " + (user != null ? user.getFocus().asPrismObject() : null), e);
+            LOGGER.warn("Couldn't load password value policy for focus " + (user != null ? user.getFocusPrismObject() : null), e);
         }
         return valuePolicyType;
     }
@@ -5733,7 +5740,8 @@ public final class WebComponentUtil {
         return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage(msg);
     }
 
-    public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
+    public static CompiledObjectCollectionView getCompiledObjectCollectionView(
+            GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
         if (listViewType == null) {
             return null;
         }

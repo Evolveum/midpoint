@@ -375,9 +375,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <F extends FocusType> MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal,
-            String attorneyAuthorizationAction, PrismObject<F> donor, Task task,
-            OperationResult result)
+    public <F extends FocusType> MidPointPrincipal createDonorPrincipal(
+            MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<F> donor,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return securityEnforcer.createDonorPrincipal(attorneyPrincipal, attorneyAuthorizationAction, donor, task, result);

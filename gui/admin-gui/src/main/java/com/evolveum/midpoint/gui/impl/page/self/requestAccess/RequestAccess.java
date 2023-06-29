@@ -16,12 +16,16 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -44,7 +48,6 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -662,7 +665,10 @@ public class RequestAccess implements Serializable {
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
             try {
                 ChangeExecutionRequestType request = new ChangeExecutionRequestType();
-                request.setName(page.getString("RequestAccess.changeExecutionRequestName", WebComponentUtil.getOrigStringFromPoly(poiRef.getTargetName())));
+                request.setName(
+                        page.getString(
+                                "RequestAccess.changeExecutionRequestName",
+                                WebComponentUtil.getOrigStringFromPoly(poiRef.getTargetName())));
 
                 ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
                 options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
@@ -682,24 +688,21 @@ public class RequestAccess implements Serializable {
         Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
-        task.setName(page.getString("RequestAccess.changeExecutionRequestTaskName", explicitChangeExecution.getRequest().size()));
-        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
-        task.setOwner(owner.getFocus().asPrismObject());
-        task.setInitiallyRunnable();
-        task.setThreadStopAction(ThreadStopActionType.RESTART);
+        TaskType taskTemplate = new TaskType()
+                .name(page.getString(
+                        "RequestAccess.changeExecutionRequestTaskName", explicitChangeExecution.getRequest().size()));
+
         try {
-            task.setRootActivityDefinition(
-                    new ActivityDefinitionType().work(
-                            new WorkDefinitionsType().explicitChangeExecution(explicitChangeExecution)));
-
-            page.getModelInteractionService().switchToBackground(task, result);
-        } catch (SchemaException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare task wih explicit change execution data. Reason: ", ex);
-
-            result.recordFatalError("Couldn't prepare task wih explicit change execution data", ex);
+            page.getModelInteractionService().submit(
+                    ActivityDefinitionBuilder.create(explicitChangeExecution).build(),
+                    ActivitySubmissionOptions.create().withTaskTemplate(taskTemplate),
+                    task, result);
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit task wih explicit change execution data. Reason: ", ex);
+            result.recordException("Couldn't prepare task wih explicit change execution data", ex);
+        } finally {
+            result.close();
         }
-
-        result.computeStatusIfUnknown();
 
         return result;
     }

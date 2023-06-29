@@ -9,6 +9,8 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -30,12 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lazyman
@@ -80,10 +76,10 @@ public abstract class DataImport {
         // We have to fake it because we do not have anything in the repository yet. And to get
         // something to the repository we need a context. Chicken and egg. So we fake the egg.
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        UserType userAdministrator = new UserType();
-        prismContext.adopt(userAdministrator);
-        userAdministrator.setName(new PolyStringType(new PolyString("initAdmin", "initAdmin")));
-        MidPointPrincipal principal = new MidPointPrincipal(userAdministrator);
+        MidPointPrincipal principal = new MidPointPrincipal(
+                new UserType()
+                        .oid(SystemObjectsType.USER_ADMINISTRATOR.value())
+                        .name("initAdmin"));
         principal.addAuthorization(SecurityUtil.createPrivilegedAuthorization());
         Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
         securityContext.setAuthentication(authentication);

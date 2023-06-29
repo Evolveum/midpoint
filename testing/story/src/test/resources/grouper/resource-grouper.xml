@@ -114,7 +114,7 @@
                                         case ~/ref:course:.*/: archetypeOid = '3dab9a72-118b-4e40-a138-bb691c335eca'; break;        // course archetype
                                         case ~/app:mailinglist:.*/: archetypeOid = '1645d1dc-1f7c-4508-b50b-97b501ccdee3'; break;   // mailing-list archetype
                                     }
-                                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, prismContext)
+                                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE)
                                 }
                             </code>
                         </script>

@@ -575,7 +575,7 @@ public class TestPolicyRules extends AbstractLensTest {
         when();
         ObjectDelta<? extends ObjectType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
+                .add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE))
                 .item(UserType.F_EMPLOYEE_NUMBER).replace("T")
                 .asObjectDelta(USER_DRAKE_OID);
 

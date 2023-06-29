@@ -672,7 +672,7 @@ public class TestMisc extends AbstractMiscTest {
         String localNodeOid = taskManager.getLocalNodeOid();
         ObjectDelta<NodeType> delta = deltaFor(NodeType.class)
                 .item(NodeType.F_ASSIGNMENT)
-                .add(ObjectTypeUtil.createAssignmentTo(ARCHETYPE_NODE_GROUP_GUI.oid, ObjectTypes.ARCHETYPE, prismContext))
+                .add(ObjectTypeUtil.createAssignmentTo(ARCHETYPE_NODE_GROUP_GUI.oid, ObjectTypes.ARCHETYPE))
                 .asObjectDelta(localNodeOid);
 
         executeChanges(delta, null, task, result);

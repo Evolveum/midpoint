@@ -11,9 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTasksPanel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
@@ -79,7 +76,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private static final Trace LOGGER = TraceManager.getTrace(ResourceContentPanel.class);
 
     private static final String DOT_CLASS = ResourceContentPanel.class.getName() + ".";
-    private static final String OPERATION_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "searchTasks";
+    private static final String OP_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "searchTasks";
+    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private static final String ID_TABLE = "table";
     private static final String ID_LABEL = "label";
@@ -91,6 +89,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private static final String ID_SIMULATION = "simulation";
     private static final String ID_TOTALS = "totals";
 
+    // FIXME why are these static?
     private static ShadowKindType kind;
     private static String intent;
     private static QName objectClass;
@@ -329,19 +328,19 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 ID_IMPORT,
                 "ResourceContentPanel.button.import",
                 " fa-download",
-                SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+                SynchronizationTaskFlavor.IMPORT,
                 taskButtonsContainer);
         initButton(
                 ID_RECONCILIATION,
                 "ResourceContentPanel.button.reconciliation",
                 " fa-link",
-                SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
+                SynchronizationTaskFlavor.RECONCILIATION,
                 taskButtonsContainer);
         initButton(
                 ID_LIVE_SYNC,
                 "ResourceContentPanel.button.liveSync",
                 " fa-sync-alt",
-                SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
+                SynchronizationTaskFlavor.LIVE_SYNC,
                 taskButtonsContainer);
 
         initSimulationButton(
@@ -364,7 +363,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
                 SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
                 SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
-        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+        OperationResult result = new OperationResult(OP_SEARCH_TASKS_FOR_RESOURCE);
         List<PrismObject<TaskType>> tasksList = WebModelServiceUtils.searchObjects(TaskType.class, existingTasksQuery,
                 result, getPageBase());
 
@@ -399,7 +398,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(), true);
+                        newTaskPerformed(target, SynchronizationTaskFlavor.IMPORT, true);
                     }
                 };
             }
@@ -416,7 +415,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(), true);
+                        newTaskPerformed(target, SynchronizationTaskFlavor.RECONCILIATION, true);
                     }
                 };
             }
@@ -433,7 +432,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(), true);
+                        newTaskPerformed(target, SynchronizationTaskFlavor.LIVE_SYNC, true);
                     }
                 };
             }
@@ -476,10 +475,11 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     protected abstract void initShadowStatistics(WebMarkupContainer totals);
 
-    private void initButton(String id, String label, String icon, String archetypeOid, WebMarkupContainer taskButtonsContainer) {
+    private void initButton(
+            String id, String label, String icon, SynchronizationTaskFlavor flavor, WebMarkupContainer taskButtonsContainer) {
 
-        ObjectQuery existingTasksQuery = getExistingTasksQuery(archetypeOid);
-        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+        ObjectQuery existingTasksQuery = getExistingTasksQuery(flavor.getArchetypeOid());
+        OperationResult result = new OperationResult(OP_SEARCH_TASKS_FOR_RESOURCE);
         List<PrismObject<TaskType>> tasksList = WebModelServiceUtils.searchObjects(TaskType.class, existingTasksQuery,
                 result, getPageBase());
 
@@ -497,7 +497,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         List<TaskType> filteredByKindIntentTasks = getTasksForKind(tasksList);
-                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), archetypeOid);
+                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), flavor.getArchetypeOid());
                     }
                 };
             }
@@ -514,7 +514,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, archetypeOid, false);
+                        newTaskPerformed(target, flavor, false);
                     }
                 };
             }
@@ -532,34 +532,39 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(AjaxRequestTarget target, String archetypeOid, boolean isSimulation) {
-        List<ObjectReferenceType> archetypeRef = List.of(
-                new ObjectReferenceType()
-                        .oid(archetypeOid)
-                        .type(ArchetypeType.COMPLEX_TYPE));
-        try {
+    private void newTaskPerformed(
+            @NotNull AjaxRequestTarget target, @NotNull SynchronizationTaskFlavor flavor, boolean isSimulation) {
 
-            if (Objects.isNull(getObjectClass())) {
-                updateDefinitions();
-            }
+        var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
+                .hideSuccessfulStatus()
+                .run((task, result) -> {
 
-            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getResourceModel().getObject(), archetypeRef);
+                    if (Objects.isNull(getObjectClass())) {
+                        updateDefinitions(); // FIXME not static
+                    }
 
-            if (isSimulation) {
-                newTask.getActivity().beginExecution()
-                        .mode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
-                        .beginConfigurationToUse().predefined(PredefinedConfigurationType.DEVELOPMENT);
-                newTask.getActivity()
-                        .beginReporting()
-                        .beginSimulationResult()
-                        .beginDefinition()
-                        .useOwnPartitionForProcessedObjects(false);
-            }
+                    PrismObject<ResourceType> resource = getResourceModel().getObject();
+                    ResourceTaskCreator creator =
+                            ResourceTaskCreator.forResource(resource.asObjectable(), getPageBase())
+                                    .ofFlavor(flavor)
+                                    .withCoordinates(
+                                            getKind(), // FIXME not static
+                                            getIntent(), // FIXME not static
+                                            getObjectClass()); // FIXME not static
 
-            WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
-        } catch (SchemaException ex) {
-            getPageBase().getFeedbackMessages().error(ResourceContentPanel.this, ex.getUserFriendlyMessage());
-            target.add(getPageBase().getFeedbackPanel());
+                    if (isSimulation) {
+                        creator = creator
+                                .withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                                .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
+                                .withSimulationResultDefinition(
+                                        new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
+                    }
+
+                    return creator.create(task, result);
+                });
+
+        if (newTask != null) {
+            WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
         }
     }
 
@@ -574,7 +579,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 .build();
     }
 
-    private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid) {
+    private void redirectToTasksListPage(ObjectQuery tasksQuery, @Nullable String archetypeOid) {
         String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
         PageParameters pageParameters = new PageParameters();
 
@@ -737,5 +742,4 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             }
         }
     }
-
 }

@@ -47,7 +47,7 @@ public class ActivityTree implements DebugDumpable {
             @NotNull ActivityDefinition<WD> rootDefinition,
             @NotNull Task rootTask,
             @NotNull CommonTaskBeans beans) {
-        AH handler = beans.activityHandlerRegistry.getHandler(rootDefinition);
+        AH handler = beans.activityHandlerRegistry.getHandlerRequired(rootDefinition);
         this.rootActivity = StandaloneActivity.createRoot(rootDefinition, handler, this);
         this.beans = beans;
         this.treeStateOverview = new ActivityTreeStateOverview(rootTask, beans);

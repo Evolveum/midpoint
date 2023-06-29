@@ -24,8 +24,8 @@
                 <div class="col-lg-12">
                     <h3><wicket:message key="PageAuthorizationPlayground.Subject"/></h3>
                     <div style="padding: 15px; margin-bottom: 15px">
-                    <b>TODO</b> Here will be a select box that would allow us to select any subject. For the time being, you may specify the OID here:
-                        <input class="input-sm form-control" wicket:id="subjectOid"/>
+                    Select any subject. Alternatively, the currently logged-in user is used (but ignoring its current authorizations).
+                        <div wicket:id="subjectOid"/>
                     </div>
                 </div>
                 <div class="col-lg-12">
@@ -45,7 +45,7 @@
                 </div>
                 <div>
                     <label for="type">Please select the type of objects:</label>
-                    <input id="type" class="input-sm form-control" wicket:id="type"/>
+                    <div id="type" wicket:id="type"/>
                 </div>
                 <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <!-- hack (as everything on this page) -->
                 <div class="col-lg-12; margin-top: 10px">
@@ -59,8 +59,8 @@
                     <p>Here you can check the application of authorizations on objects being read.</p>
                 </div>
                 <div>
-                    <label for="objectOid">Please enter the object OID (temporary):</label>
-                    <input id="objectOid" class="input-sm form-control" wicket:id="objectOid"/>
+                    <label for="objectOid">Please select an existing object (optional):</label>
+                    <div id="objectOid" wicket:id="objectOid"/>
                 </div>
             </div>
             <div class="row" style="margin-top: 10px">

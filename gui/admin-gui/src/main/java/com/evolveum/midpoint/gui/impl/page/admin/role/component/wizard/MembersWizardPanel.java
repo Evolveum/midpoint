@@ -107,8 +107,9 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             }
 
             @Override
-            protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-                showMessageWithoutLinkForTask(task, target);
+            protected boolean shouldHideTaskLink() {
+                // This panel is used in wizard, hence we don't want to show task links.
+                return true;
             }
 
             @Override
@@ -119,7 +120,7 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             @Override
             protected void unassignMembersPerformed(IModel rowModel, QName type, QueryScope scope, Collection relations, AjaxRequestTarget target) {
                 super.unassignMembersPerformed(rowModel, type, scope, relations, target);
-                target.add(getFeedback());
+                target.add(getFeedback()); // TODO isn't this covered by target.add(this) in the super method?
             }
 
             @Override

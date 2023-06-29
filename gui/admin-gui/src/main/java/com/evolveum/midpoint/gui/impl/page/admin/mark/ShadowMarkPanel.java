@@ -676,7 +676,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
     protected void deleteMembersPerformed(IModel<?> rowModel, QName memberType, Collection<QName> relations, AjaxRequestTarget target) {
 
-//        MemberOperationsHelper.createAndSubmitDeleteMembersTask(
+//        MemberOperationsTaskCreator.createAndSubmitDeleteMembersTask(
 //                getModelObject(),
 //                memberType,
 //                target, getPageBase());
@@ -684,7 +684,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
     protected void unassignMembersPerformed(IModel<?> rowModel, QName type, Collection<QName> relations, AjaxRequestTarget target) {
 
-//        MemberOperationsHelper.createAndSubmitUnassignMembersTask(
+//        MemberOperationsTaskCreator.createAndSubmitUnassignMembersTask(
 //                getModelObject(),
 //                type,
 //                relations,

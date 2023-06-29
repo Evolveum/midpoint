@@ -72,7 +72,7 @@ public class ActivityBasedTaskHandler implements TaskHandler {
         if (handlerUri == null) {
             return null;
         } else {
-            return beans.activityHandlerRegistry.getArchetypeOid(handlerUri);
+            return beans.activityHandlerRegistry.getDefaultArchetypeOid(handlerUri);
         }
     }
 

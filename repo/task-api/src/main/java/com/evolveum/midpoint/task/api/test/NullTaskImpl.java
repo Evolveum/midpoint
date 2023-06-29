@@ -366,11 +366,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void addAuxiliaryArchetypeInformation(@NotNull String archetypeOid) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void addArchetypeInformationIfMissing(@NotNull String archetypeOid) {
         throw new UnsupportedOperationException();
     }

@@ -11,10 +11,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
@@ -41,7 +43,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -783,38 +784,21 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
-        OperationResult launchResult = new OperationResult(OPERATION_DELETE_ALL_CLOSED_TASKS);
-        Task task = createSimpleTask(OPERATION_DELETE_ALL_CLOSED_TASKS);
-
-        task.setHandlerUri(ModelPublicConstants.CLEANUP_TASK_HANDLER_URI);
-        task.setName("Closed tasks cleanup");
-
-        try {
-            // @formatter:off
-            task.setRootActivityDefinition(
-                    new ActivityDefinitionType()
-                        .beginWork()
-                            .beginCleanup()
-                                .beginPolicies()
-                                    .beginClosedTasks()
-                                        .maxAge(XmlTypeConverter.createDuration(0))
-                                    .<CleanupPoliciesType>end()
-                                .<CleanupWorkDefinitionType>end()
-                            .<WorkDefinitionsType>end()
-                        .end());
-            // @formatter:on
-        } catch (SchemaException e) {
-            LOGGER.error("Error dealing with schema (task {})", task, e);
-            launchResult.recordFatalError(
-                    createStringResource("pageTasks.message.deleteAllClosedTasksConfirmedPerformed.fatalError").getString(), e);
-            throw new IllegalStateException("Error dealing with schema", e);
-        }
-
-        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value());
-        getPageBase().getModelInteractionService().switchToBackground(task, launchResult);
-
-        showResult(launchResult);
-        target.add(getFeedbackPanel());
+        getPageBase().taskAwareExecutor(target, OPERATION_DELETE_ALL_CLOSED_TASKS)
+                .runVoid((task, result) -> {
+                    var activityDefinition =
+                            ActivityDefinitionBuilder.create(new CleanupWorkDefinitionType()
+                                            .policies(new CleanupPoliciesType()
+                                                    .closedTasks(new CleanupPolicyType()
+                                                            .maxAge(XmlTypeConverter.createDuration(0)))))
+                                    .build();
+                    getPageBase().getModelInteractionService().submit(
+                            activityDefinition,
+                            ActivitySubmissionOptions.create()
+                                    .withTaskTemplate(new TaskType()
+                                            .name("Closed tasks cleanup")),
+                            task, result);
+                });
     }
 
     private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction<SelectableBean<TaskType>> action, String actionName) {
