@@ -261,8 +261,8 @@
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
         but M5 doesn't work for us anymore either (failing test initialization). -->
-        <surefire.version>3.0.0-M6</surefire.version>
-        <failsafe.version>3.0.0-M6</failsafe.version>
+        <surefire.version>3.1.2</surefire.version>
+        <failsafe.version>3.1.2</failsafe.version>
 
         <asciidoclet.version>1.5.6</asciidoclet.version>
     </properties>
@@ -1828,7 +1828,7 @@
                                 <ignoredUsedUndeclaredDependency>org.javasimon:javasimon-core</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUsedUndeclaredDependency>
-                                
+
                             </ignoredNonTestScopedDependencies>
                         </configuration>
                     </execution>
@@ -1875,7 +1875,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>${project.source.version}</source>
                         <target>${project.source.version}</target>
@@ -1899,7 +1899,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
+                    <version>3.1.1</version>
                     <!--
                     With 3.0.0-M1 javadoc module fails with:
                     The packaging plugin for this project did not assign a main file to the project but it has attachments. Change packaging to 'pom'.
@@ -2011,7 +2011,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>pl.project13.maven</groupId>
