@@ -1,8 +1,10 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
 
 import com.beust.jcommander.Parameter;
+
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeCommonOptions;
 
 // todo options
 public class DownloadDistributionOptions extends UpgradeCommonOptions {

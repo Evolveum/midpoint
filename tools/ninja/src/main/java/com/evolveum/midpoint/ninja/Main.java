@@ -14,6 +14,9 @@ import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
@@ -104,7 +107,7 @@ public class Main {
             try {
                 action.init(context, options);
 
-                context.getLog().info(NinjaUtils.formatActionStartMessage(action));
+                context.getLog().info(ConsoleFormat.formatActionStartMessage(action));
 
                 action.execute();
             } finally {

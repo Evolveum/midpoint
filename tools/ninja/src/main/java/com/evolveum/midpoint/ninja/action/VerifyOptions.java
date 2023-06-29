@@ -6,16 +6,19 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
 
 /**
  * // todo fix these options, extending Export options is messing up help messages (it's using export.* keys)
+ *
  * @author semancik
  */
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "verify")
@@ -54,6 +57,10 @@ public class VerifyOptions extends ExportOptions {
 
     public static final String P_REPORT_STYLE = "--report-style";
 
+    public static final String P_CONTINUE_VERIFICATION_ON_ERROR = "--continue-verification-on-error";
+
+    public static final String P_FILES = "--files";
+
     @Parameter(names = { P_VERIFICATION_CATEGORY_LONG }, descriptionKey = "verify.verificationCategory",
             converter = VerificationCategoryConverter.class, validateWith = VerificationCategoryConverter.class,
             variableArity = true)
@@ -62,6 +69,12 @@ public class VerifyOptions extends ExportOptions {
     @Parameter(names = { P_REPORT_STYLE }, descriptionKey = "verify.reportStyle",
             converter = ReportStyleConverter.class, validateWith = ReportStyleConverter.class)
     private ReportStyle reportStyle = ReportStyle.PLAIN;
+
+    @Parameter(names = { P_CONTINUE_VERIFICATION_ON_ERROR }, descriptionKey = "verify.continueVerificationOnError")
+    private boolean continueVerificationOnError = true;
+
+    @Parameter(names = { P_FILES }, descriptionKey = "verify.files", variableArity = true)
+    private List<File> files = new ArrayList<>();
 
     public List<VerificationCategory> getVerificationCategories() {
         return verificationCategories;
@@ -77,5 +90,26 @@ public class VerifyOptions extends ExportOptions {
 
     public void setReportStyle(ReportStyle reportStyle) {
         this.reportStyle = reportStyle;
+    }
+
+    // todo make use of this
+    public boolean isContinueVerificationOnError() {
+        return continueVerificationOnError;
+    }
+
+    public void setContinueVerificationOnError(boolean continueVerificationOnError) {
+        this.continueVerificationOnError = continueVerificationOnError;
+    }
+
+    @NotNull
+    public List<File> getFiles() {
+        if (files == null) {
+            files = new ArrayList<>();
+        }
+        return files;
+    }
+
+    public void setFiles(List<File> files) {
+        this.files = files;
     }
 }

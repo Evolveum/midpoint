@@ -183,9 +183,13 @@ public interface NinjaTestMixin {
         final Trace logger = TraceManager.getTrace(getClass());
 
         List<String> lines = IOUtils.readLines(new ByteArrayInputStream(bos.toByteArray()), StandardCharsets.UTF_8);
-        if (logger.isDebugEnabled()) {
-            lines.forEach(line -> logger.debug("{}: {}", prefix, line));
-        }
+
+        lines.forEach(line -> {
+            if (logger.isInfoEnabled()) {
+                logger.info("{}: {}", prefix, line);
+            }
+            System.out.println(line);
+        });
 
         return lines;
     }

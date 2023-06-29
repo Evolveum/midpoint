@@ -3,9 +3,12 @@ package com.evolveum.midpoint.ninja.action.verify;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+import com.evolveum.midpoint.ninja.action.VerifyResult;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -14,18 +17,11 @@ import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.ninja.Main;
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradePhase;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradePriority;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeType;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.validator.ObjectValidator;
-import com.evolveum.midpoint.schema.validator.ValidationItem;
-import com.evolveum.midpoint.schema.validator.ValidationResult;
-import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class VerificationReporter {
@@ -44,17 +40,19 @@ public class VerificationReporter {
             "Skip upgrade [yes/no]"
     );
 
-    private final VerifyOptions options;
-
-    private final PrismContext prismContext;
-
-    private ObjectValidator validator;
-
     public static final CSVFormat CSV_FORMAT;
 
     static {
         CSV_FORMAT = createCsvFormat();
     }
+
+    private final VerifyOptions options;
+
+    private final PrismContext prismContext;
+
+    private ObjectUpgradeValidator validator;
+
+    private VerifyResult result = new VerifyResult();
 
     public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext) {
         this.options = options;
@@ -64,11 +62,11 @@ public class VerificationReporter {
     }
 
     private void init() {
-        validator = new ObjectValidator(prismContext);
+        validator = new ObjectUpgradeValidator(prismContext);
 
         List<VerifyOptions.VerificationCategory> categories = options.getVerificationCategories();
         if (categories.isEmpty()) {
-            validator.setAllWarnings();
+            validator.showAllWarnings();
         } else {
             for (VerifyOptions.VerificationCategory category : categories) {
                 switch (category) {
@@ -119,10 +117,17 @@ public class VerificationReporter {
                 .build();
     }
 
-    public void verify(Writer writer, PrismObject<?> object) throws IOException {
-        ValidationResult result = validator.validate(object);
+    public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
+        UpgradeValidationResult result = validator.validate((PrismObject) object);
 
-        enhanceValidationResult(object, result);
+        for (UpgradeValidationItem item :result.getItems()) {
+            if (item.getPriority() == null){
+                continue;
+            }
+
+            this.result.incrementPriorityItemCount(item.getPriority());
+        }
+
 
         switch (options.getReportStyle()) {
             case PLAIN:
@@ -134,6 +139,14 @@ public class VerificationReporter {
             default:
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
+    }
+
+    public static String getIdentifierFromRecord(CSVRecord record) {
+        if (record == null || record.size() != REPORT_HEADER.size()) {
+            return null;
+        }
+
+        return record.get(6);
     }
 
     public static UUID getUuidFromRecord(CSVRecord record) {
@@ -158,65 +171,35 @@ public class VerificationReporter {
                 || value.equalsIgnoreCase("y");
     }
 
-    private void enhanceValidationResult(PrismObject<?> object, ValidationResult result) {
-        Set<Class<?>> processors = ClassPathUtil.listClasses(Main.class.getPackageName())
-                .stream()
-                .filter(UpgradeObjectHandler.class::isAssignableFrom)
-                .filter(c -> !Modifier.isAbstract(c.getModifiers()))
-                .collect(Collectors.toUnmodifiableSet());
-
-        Set<UpgradeObjectHandler<?>> instances = processors.stream()
-                .map(c -> {
-                    try {
-                        return (UpgradeObjectHandler<?>) c.getConstructor().newInstance();
-                    } catch (Exception ex) {
-                        // todo
-                        ex.printStackTrace();
-
-                        return null;
-                    }
-                })
-                .filter(p -> p != null)
-                .collect(Collectors.toUnmodifiableSet());
-
-        for (ValidationItem validationItem : result.getItems()) {
-            for (UpgradeObjectHandler<?> processor : instances) {
-                if (processor.isApplicable(object, validationItem.getItemPath())) {
-                    // todo finish
-                }
-            }
-        }
-    }
-
-    private void verifyAsPlain(Writer writer, PrismObject<?> object, ValidationResult result) throws IOException {
-        for (ValidationItem validationItem : result.getItems()) {
+    private void verifyAsPlain(Writer writer, PrismObject<?> object, UpgradeValidationResult result) throws IOException {
+        for (UpgradeValidationItem validationItem : result.getItems()) {
             writeValidationItem(writer, object, validationItem);
         }
     }
 
-    private void verifyAsCsv(Writer writer, PrismObject<?> object, ValidationResult result) throws IOException {
+    private void verifyAsCsv(Writer writer, PrismObject<?> object, UpgradeValidationResult result) throws IOException {
         // this is not very nice/clean code, we're creating printer (Closeable), but not closing it, since that would close underlying writer
         CSVPrinter printer = CSV_FORMAT.print(writer);
 
-        for (ValidationItem item : result.getItems()) {
+        for (UpgradeValidationItem item : result.getItems()) {
             printer.printRecord(createReportRecord(item, object));
         }
     }
 
-    private List<String> createReportRecord(ValidationItem item, PrismObject<?> object) {
+    private List<String> createReportRecord(UpgradeValidationItem item, PrismObject<?> object) {
         // todo populate
-        String identifier = null;
-        UpgradePhase phase = null;
-        UpgradePriority priority = null;
-        UpgradeType type = null;
+        String identifier = item.getIdentifier();
+        UpgradePhase phase = item.getPhase();
+        UpgradePriority priority = item.getPriority();
+        UpgradeType type = item.getType();
 
         // this array has to match {@link VerifyConsumerWorker#REPORT_HEADER}
         return Arrays.asList(object.getOid(),
                 object.getDefinition().getTypeName().getLocalPart(),
                 object.getBusinessDisplayName(),
-                Objects.toString(item.getStatus()),
-                Objects.toString(item.getItemPath()),
-                item.getMessage() != null ? item.getMessage().getFallbackMessage() : null,
+                Objects.toString(item.getItem().getStatus()),
+                Objects.toString(item.getItem().getItemPath()),
+                item.getItem().getMessage() != null ? item.getItem().getMessage().getFallbackMessage() : null,
                 identifier,
                 phase != null ? phase.name() : null,
                 priority != null ? priority.name() : null,
@@ -225,20 +208,20 @@ public class VerificationReporter {
         );
     }
 
-    private void writeValidationItem(Writer writer, PrismObject<?> object, ValidationItem validationItem) throws IOException {
-        if (validationItem.getStatus() != null) {
-            writer.append(validationItem.getStatus().toString());
+    private void writeValidationItem(Writer writer, PrismObject<?> object, UpgradeValidationItem validationItem) throws IOException {
+        if (validationItem.getItem().getStatus() != null) {
+            writer.append(validationItem.getItem().getStatus().toString());
             writer.append(" ");
         } else {
             writer.append("INFO ");
         }
         writer.append(object.toString());
         writer.append(" ");
-        if (validationItem.getItemPath() != null) {
-            writer.append(validationItem.getItemPath().toString());
+        if (validationItem.getItem().getItemPath() != null) {
+            writer.append(validationItem.getItem().getItemPath().toString());
             writer.append(" ");
         }
-        writeMessage(writer, validationItem.getMessage());
+        writeMessage(writer, validationItem.getItem().getMessage());
         writer.append("\n");
     }
 
@@ -248,5 +231,9 @@ public class VerificationReporter {
         }
         // TODO: localization?
         writer.append(message.getFallbackMessage());
+    }
+
+    public VerifyResult getResult() {
+        return result;
     }
 }

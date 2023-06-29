@@ -1,14 +1,14 @@
-package com.evolveum.midpoint.ninja.action.upgrade;
+package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import org.apache.commons.io.FileUtils;
+import org.fusesource.jansi.Ansi;
 
-import com.evolveum.midpoint.ninja.action.Action;
-import com.evolveum.midpoint.ninja.action.RunSqlAction;
-import com.evolveum.midpoint.ninja.action.RunSqlOptions;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
 public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
 
@@ -23,6 +23,42 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
                 options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
 
         FileUtils.forceMkdir(tempDirectory);
+
+        // pre-upgrade checks
+        if (!options.isSkipPreCheck()) {
+            PreUpgradeCheckOptions preUpgradeCheckOptions = new PreUpgradeCheckOptions();
+
+            PreUpgradeCheckAction preUpgradeCheckAction = new PreUpgradeCheckAction();
+            preUpgradeCheckAction.init(context, preUpgradeCheckOptions);
+            boolean shouldContinue = executeAction(preUpgradeCheckAction);
+            if (shouldContinue) {
+                log.info(Ansi.ansi().fgGreen().a("Pre-upgrade check succeeded.").reset().toString());
+            } else {
+                log.error(Ansi.ansi().fgRed().a("Pre-upgrade check failed.").reset().toString());
+                return null;
+            }
+        } else {
+            log.info("Pre-upgrade checks skipped.");
+        }
+
+        // verification
+        if (!options.isSkipVerification()) {
+            VerifyOptions verifyOptions = new VerifyOptions();
+            verifyOptions.setMultiThread(options.getVerificationThreads());
+            verifyOptions.setContinueVerificationOnError(options.isContinueVerificationOnError());
+
+            VerifyAction verifyAction = new VerifyAction();
+            verifyAction.init(context, verifyOptions);
+            VerifyResult verifyresult = executeAction(verifyAction);
+            if (!verifyresult.hasCriticalItems()) {
+                log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
+            } else {
+                log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with critical items.").reset().toString());
+                return null;
+            }
+        } else {
+            log.info("Verification skipped.");
+        }
 
         // download distribution
         DownloadDistributionOptions downloadOpts = new DownloadDistributionOptions();
@@ -56,7 +92,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
     }
 
     private <O, T> T executeAction(Action<O, T> action) throws Exception {
-        log.info(NinjaUtils.formatActionStartMessage(action));
+        log.info(ConsoleFormat.formatActionStartMessage(action));
 
         return action.execute();
     }

@@ -40,6 +40,8 @@ public class ConsoleProgressListener implements ProgressListener {
             String size = contentLength == -1 ? "unknown" : FileUtils.byteCountToDisplaySize(contentLength);
 
             stream.println(Ansi.ansi().fgBlack().a("Download size: " + size).reset());
+            // this empy line will be removed with progress update
+            stream.println();
         }
 
         double newProgress = (double) (100 * bytesRead) / contentLength;

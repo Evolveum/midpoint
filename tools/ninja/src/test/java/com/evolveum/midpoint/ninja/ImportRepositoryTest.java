@@ -59,7 +59,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                out -> Assertions.assertThat(out.size()).isEqualTo(6),
                 err -> Assertions.assertThat(err.size()).isZero(),
                 "-m", getMidpointHome(), "import", "--oid", "00000000-8888-6666-0000-100000000001", "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
@@ -84,7 +84,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                out -> Assertions.assertThat(out.size()).isEqualTo(6),
                 err -> Assertions.assertThat(err.size()).isZero(),
                 "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
                 "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
@@ -107,7 +107,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                out -> Assertions.assertThat(out.size()).isEqualTo(6),
                 err -> Assertions.assertThat(err.size()).isZero(),
                 "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
                 "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");

@@ -14,19 +14,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.beust.jcommander.JCommander;
-
-import com.evolveum.midpoint.ninja.action.Action;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.*;
@@ -40,8 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.fusesource.jansi.Ansi;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -236,7 +233,20 @@ public class NinjaUtils {
         return midpointHomeDirectory.getParentFile();
     }
 
-    public static String formatActionStartMessage(Action action) {
-        return Ansi.ansi().a("Starting to ").fgGreen().a(action.getOperationName()).reset().toString();
+    public static void readInput(Function<String, Boolean> responseHandler) throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+            boolean accepted = false;
+            while (!accepted) {
+                String line = br.readLine();
+
+                accepted = responseHandler.apply(line);
+            }
+        }
+    }
+
+    public static void logException(Log log, String msg, Exception ex) {
+        log.error(ConsoleFormat.formatErrorMessageWithParameter(msg, ex.getMessage()));
+
+        log.debug("Exception stack:\n{}", printStackToString(ex));
     }
 }

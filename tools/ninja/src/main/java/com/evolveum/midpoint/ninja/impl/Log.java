@@ -12,7 +12,6 @@ import java.io.PrintStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * TODO get rid of logback magic in here, this is hell. How could I do this. OMG.
  * Created by Viliam Repan (lazyman).
  */
 public class Log {

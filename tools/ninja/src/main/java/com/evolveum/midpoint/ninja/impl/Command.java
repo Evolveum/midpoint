@@ -15,7 +15,7 @@ import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceOptions;
-import com.evolveum.midpoint.ninja.action.upgrade.*;
+import com.evolveum.midpoint.ninja.action.upgrade.action.*;
 
 /**
  * Enumeration of Ninja commands (or actions).
@@ -30,7 +30,7 @@ public enum Command {
 
     COUNT("count", CountOptions.class, CountRepositoryAction.class),
 
-    VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class),
+    VERIFY("verify", VerifyOptions.class, VerifyAction.class),
 
     KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class),
 
@@ -54,8 +54,7 @@ public enum Command {
 
     UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class),
 
-    // todo merge with verify, if there's -f option, then don't start whole context and search repository, just go to file system. same for upgrade-files
-    VERIFY_FILES("verify-files", VerifyFilesOptions.class, VerifyFilesAction.class);
+    PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class);
 
     private final String commandName;
 
