@@ -73,7 +73,7 @@ public class CustomCompositeActivityHandler implements ActivityHandler<Composite
 
     private <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> Activity<?, ?> createChildActivity(
             ActivityDefinition<WD> definition, Activity<CompositeWorkDefinition, ?> parent) {
-        AH handler = handlerRegistry.getHandler(definition);
+        AH handler = handlerRegistry.getHandlerRequired(definition);
         return StandaloneActivity.createNonRoot(definition, handler, parent);
     }
 

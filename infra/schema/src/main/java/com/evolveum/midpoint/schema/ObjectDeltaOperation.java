@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -200,6 +203,40 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
             }
         }
         return null;
+    }
+
+    public static @NotNull String findAddDeltaOidRequired(
+            @NotNull Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges,
+            @NotNull Class<? extends ObjectType> type) {
+        var oids = findAddDeltas(executedChanges, type).stream()
+                .map(odo -> odo.getOid())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        return MiscUtil.extractSingletonRequired(
+                oids,
+                () -> new IllegalStateException(
+                        "Multiple OIDs in ADD deltas of type %s: %s in %s".formatted(
+                                type, oids, executedChanges)),
+                () -> new IllegalStateException("No OID in ADD deltas of type %s in %s".formatted(
+                        type, executedChanges)));
+    }
+
+    /** Returns ADD deltas corresponding to given `objectType` */
+    public static @NotNull <O extends ObjectType> List<ObjectDeltaOperation<? extends O>> findAddDeltas(
+            @NotNull Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, @NotNull Class<O> objectType) {
+        //noinspection unchecked
+        return executedChanges.stream()
+                .filter(odo -> odo.isAdd() && odo.isOfType(objectType))
+                .map(odo -> (ObjectDeltaOperation<? extends O>) odo)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isAdd() {
+        return ObjectDelta.isAdd(objectDelta);
+    }
+
+    private boolean isOfType(@NotNull Class<? extends ObjectType> objectType) {
+        return objectDelta != null && objectDelta.isOfType(objectType);
     }
 
     public static <O extends ObjectType> String findAddDeltaOid(

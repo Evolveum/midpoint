@@ -1715,24 +1715,26 @@ public class TaskQuartzImpl implements Task {
         addArchetypeInformationInternal(archetypeOid, true);
     }
 
-    private void addArchetypeInformationInternal(@NotNull String archetypeOid, boolean assertNoExistingArchetypes) {
+    private void addArchetypeInformationInternal(
+            @NotNull String archetypeOid,
+            boolean assertNoExistingArchetypes) {
         synchronized (prismAccess) {
-            List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
+            var existingArchetypeOids = ObjectTypeUtil.getAssignedArchetypeOids(taskPrism.asObjectable());
             if (assertNoExistingArchetypes) {
-                if (!existingArchetypes.isEmpty()) {
-                    throw new IllegalStateException("Couldn't add archetype " + archetypeOid + " because there is already one: "
-                            + existingArchetypes + "; in " + this);
+                if (!existingArchetypeOids.isEmpty()) {
+                    throw new IllegalStateException(
+                            "Couldn't add archetype %s because there is already one: %s; in %s"
+                                    .formatted(archetypeOid, existingArchetypeOids, this));
                 }
             } else {
                 // We only check that this particular archetype is not already present.
-                if (existingArchetypes.stream()
-                        .anyMatch(ref -> archetypeOid.equals(Referencable.getOid(ref)))) {
+                if (existingArchetypeOids.contains(archetypeOid)) {
                     LOGGER.trace("Archetype {} is already set in {}", archetypeOid, this);
                     return;
                 }
             }
             addContainerable(TaskType.F_ASSIGNMENT,
-                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, beans.prismContext));
+                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE));
             addReferencable(TaskType.F_ROLE_MEMBERSHIP_REF,
                     ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
             addReferencable(TaskType.F_ARCHETYPE_REF,
@@ -1748,11 +1750,6 @@ public class TaskQuartzImpl implements Task {
                 addArchetypeInformationInternal(archetypeOid, false);
             }
         }
-    }
-
-    @Override
-    public void addAuxiliaryArchetypeInformation(@NotNull String archetypeOid) {
-        addArchetypeInformationInternal(archetypeOid, false);
     }
 
     // todo thread safety (creating a clone?)

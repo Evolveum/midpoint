@@ -111,7 +111,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public static ActivityDefinition<?> createChild(
             @NotNull ActivityDefinitionType bean, @NotNull WorkDefinitionFactory workDefinitionFactory) {
         try {
-            AbstractWorkDefinition definition = createFromBean(bean, workDefinitionFactory);
+            AbstractWorkDefinition definition = fromBean(bean, workDefinitionFactory);
             // TODO enhance with defaultWorkDefinition
             if (definition == null) {
                 throw new SchemaException("Child work definition is not present for " + bean);
@@ -138,11 +138,12 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     @NotNull
-    private static <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(ActivityDefinitionType activityBean,
-            Task rootTask, WorkDefinitionFactory factory) throws SchemaException, ConfigurationException {
+    private static <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(
+            ActivityDefinitionType activityBean, Task rootTask, WorkDefinitionFactory factory)
+            throws SchemaException, ConfigurationException {
 
         if (activityBean != null) {
-            WD def = createFromBean(activityBean, factory);
+            WD def = fromBean(activityBean, factory);
             if (def != null) {
                 return def;
             }
@@ -158,8 +159,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 + "known task handler URI is provided. Handler URI = " + rootTask.getHandlerUri());
     }
 
-    private static <WD extends AbstractWorkDefinition> WD createFromBean(ActivityDefinitionType bean,
-            WorkDefinitionFactory factory) throws SchemaException, ConfigurationException {
+    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(
+            ActivityDefinitionType bean, WorkDefinitionFactory factory) throws SchemaException, ConfigurationException {
         if (bean.getComposition() != null) {
             //noinspection unchecked
             return (WD) new CompositeWorkDefinition(bean.getComposition());
@@ -195,6 +196,11 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
     public @NotNull WD getWorkDefinition() {
         return workDefinition;
+    }
+
+    public @NotNull Class<WD> getWorkDefinitionClass() {
+        //noinspection unchecked
+        return (Class<WD>) workDefinition.getClass();
     }
 
     public @NotNull ActivityDistributionDefinition getDistributionDefinition() {

@@ -120,7 +120,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
         try {
             PrismContext prismContext = getPrismContext();
             List<AssignmentType> assignmentsToCreate = rolesToAssign.stream()
-                    .map(ref -> ObjectTypeUtil.createAssignmentTo(ref, prismContext))
+                    .map(ref -> ObjectTypeUtil.createAssignmentTo(ref))
                     .collect(Collectors.toList());
             ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
                     .item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToCreate)

@@ -77,7 +77,7 @@ public class ReconciliationLauncher {
         try {
             // @formatter:off
             task.setRootActivityDefinition(
-                    new ActivityDefinitionType(PrismContext.get())
+                    new ActivityDefinitionType()
                             .beginWork()
                                 .beginReconciliation()
                                     .beginResourceObjects()

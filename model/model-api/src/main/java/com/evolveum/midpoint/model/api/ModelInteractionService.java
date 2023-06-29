@@ -87,6 +87,7 @@ public interface ModelInteractionService {
     String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
     String GET_DEPUTY_ASSIGNEES = CLASS_NAME_WITH_DOT + "getDeputyAssignees";
     String SUBMIT_TASK_FROM_TEMPLATE = CLASS_NAME_WITH_DOT + "submitTaskFromTemplate";
+    String OP_SUBMIT = CLASS_NAME_WITH_DOT + "submit"; // TODO find better name
 
     /**
      * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -536,7 +537,12 @@ public interface ModelInteractionService {
     /**
      * Compile object list view together with collection ref specification if present
      */
-    void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    void compileView(
+            CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType,
+            Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
     @Experimental
     <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
@@ -585,22 +591,37 @@ public interface ModelInteractionService {
             @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
 
     /**
-     * Executes given task in the background, i.e., adds it to the repository.
+     * Executes specified activity.
      *
-     * The state before 4.6 was that GUI was responsible for submitting tasks that were needed for execution of long-running
-     * activities (like recomputation of role members).
+     * Currently hard-wired to do that on background, i.e. by wrapping it into a task, and creating the task via the clockwork.
+     * (So that mappings from e.g. archetypes are executed.)
      *
-     * The optimal state is that GUI declares the work that should be done (like "recompute members of role X") and the model
-     * will then decide the optimal way of doing that (e.g., on foreground or on background) and executes the action.
-     * When determining the way it needs to consider user preferences and/or authorizations, or the situation, like how many
-     * members are there.
+     * Does _not_ require any special authorizations to submit the task.
+     * (The submit operation executes with elevated privileges.)
+     *
+     * The planned future state is that GUI declares the work that should be done (like "recompute members of role X")
+     * and the model will then decide the optimal way of doing that (e.g., on foreground or on background) and executes
+     * the action. When determining the way it needs to consider user preferences and/or authorizations, or the situation,
+     * like how many members are there.
      *
      * The goal is to better isolate GUI from the rest of midPoint, and to provide means for 3rd party GUI implementations.
      * The current method should be seen as a (very rough) placeholder.
-     *
-     * The method does not require any authorizations. This is how it was before 4.6, and it remains so for the near future.
      */
-    void switchToBackground(Task task, OperationResult result);
+    @NotNull String submit(
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull ActivitySubmissionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException;
+
+    /**
+     * As {@link #submit(ActivityDefinitionType, ActivitySubmissionOptions, Task, OperationResult)}
+     * but only prepares the task for execution; does not submit it.
+     */
+    @NotNull TaskType createExecutionTask(
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull ActivitySubmissionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws CommonException;
 
     /**
      * Returns Container Definition of Assignment Type with target type of assignment replaced by more concrete situation

@@ -23,6 +23,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 
 public class ImportWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
+    /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
 
     ImportWorkDefinition(WorkDefinitionSource source) {

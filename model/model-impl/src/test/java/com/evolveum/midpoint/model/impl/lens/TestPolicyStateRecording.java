@@ -192,8 +192,8 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
-                        createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
+                .add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE),
+                        createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE))
                 .asObjectDelta(userBobOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
@@ -222,8 +222,8 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext),
-                        createAssignmentTo(roleATest3bOid, ObjectTypes.ROLE, prismContext))
+                .add(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE),
+                        createAssignmentTo(roleATest3bOid, ObjectTypes.ROLE))
                 .asObjectDelta(userBobOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
@@ -271,8 +271,8 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         given();
         UserType alice = prismContext.createObjectable(UserType.class)
                 .name("alice")
-                .assignment(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext))
-                .assignment(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext));
+                .assignment(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE))
+                .assignment(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE));
 
         when();
         addObject(alice, getTestTask(), getTestOperationResult());
@@ -298,9 +298,9 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     @Test
     public void test230ChuckAssign2a2b() throws Exception {
         given();
-        AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE);
         assignment2a.setId(100L);
-        AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE);
         assignment2b.setId(101L);
         UserType chuck = prismContext.createObjectable(UserType.class)
                 .name("chuck")
@@ -332,9 +332,9 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     @Test
     public void test240DanAssign2a2b() throws Exception {
         given();
-        AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE);
         assignment2a.setId(100L);
-        AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE);
         assignment2b.setId(101L);
         UserType dan = prismContext.createObjectable(UserType.class)
                 .oid("207752fa-9559-496c-b04d-42b5e9af2779")
@@ -366,7 +366,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     @Test
     public void test250EveAssign2b() throws Exception {
         when();
-        AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE);
         assignment2b.setId(200L);
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
@@ -416,7 +416,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         RoleType wrong2 = prismContext.createObjectable(RoleType.class)
                 .name("wrong-2")
                 .description("wrong")
-                .assignment(createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE, prismContext));
+                .assignment(createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE));
 
         when();
         addObject(wrong2, getTestTask(), getTestOperationResult());
@@ -435,7 +435,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     @Test
     public void test320CreateWrongRoleKnownOid() throws Exception {
         given();
-        AssignmentType assignmentCommon = createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignmentCommon = createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE);
         assignmentCommon.setId(300L);
         RoleType wrong3 = prismContext.createObjectable(RoleType.class)
                 .name("wrong-3")

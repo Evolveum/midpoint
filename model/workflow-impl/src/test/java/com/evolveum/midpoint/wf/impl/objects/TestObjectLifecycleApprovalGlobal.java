@@ -172,8 +172,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> judgeDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
-                .add(createAssignmentTo(OID1, ObjectTypes.ROLE, prismContext),
-                        createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext))
+                .add(createAssignmentTo(OID1, ObjectTypes.ROLE),
+                        createAssignmentTo(OID2, ObjectTypes.ROLE))
                 .item(RoleType.F_DESCRIPTION)
                 .replace("hi")
                 .asObjectDelta(roleJudgeOid);
@@ -330,8 +330,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .name("captain")
                 .description("something")
                 .riskLevel("high")
-                .inducement(createAssignmentTo(OID1, ObjectTypes.ROLE, prismContext))
-                .inducement(createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext));
+                .inducement(createAssignmentTo(OID1, ObjectTypes.ROLE))
+                .inducement(createAssignmentTo(OID2, ObjectTypes.ROLE));
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(captain.asPrismObject());
 
         executeTest(new TestDetails() {
@@ -516,8 +516,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .name("thief")
                 .description("something")
                 .riskLevel("high")
-                .inducement(createAssignmentTo(OID1, ObjectTypes.ROLE, prismContext))
-                .inducement(createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext));
+                .inducement(createAssignmentTo(OID1, ObjectTypes.ROLE))
+                .inducement(createAssignmentTo(OID2, ObjectTypes.ROLE));
 
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(thief.asPrismObject());
 

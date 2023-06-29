@@ -220,7 +220,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE);
         assignment.beginActivation().validTo("2099-01-01T00:00:00");
         context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignment)
@@ -271,7 +271,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
+        AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE);
         assignment.beginActivation().validTo("2099-01-01T00:00:00");
         context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignment)
@@ -460,7 +460,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         fillContextWithUser(context, userFrankOid, result);
         context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
-                        ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext)
+                        ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE)
                                 .beginActivation()
                                 .administrativeStatus(ActivationStatusType.DISABLED)
                                 .<AssignmentType>end())

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 
 public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
+    /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
     private final Integer batchSize;
     private final boolean updateLiveSyncTokenInDryRun;
@@ -31,8 +32,7 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
 
     LiveSyncWorkDefinition(WorkDefinitionSource source) {
         Boolean updateLiveSyncTokenInDryRunRaw;
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
+        if (source instanceof LegacyWorkDefinitionSource legacy) {
             resourceObjects = ResourceObjectSetUtil.fromLegacySource(legacy);
             batchSize = legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE, Integer.class);
             updateLiveSyncTokenInDryRunRaw =

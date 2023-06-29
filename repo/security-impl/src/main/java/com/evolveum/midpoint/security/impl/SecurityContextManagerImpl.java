@@ -36,8 +36,8 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     private static final Trace LOGGER = TraceManager.getTrace(SecurityContextManagerImpl.class);
 
     private MidPointPrincipalManager userProfileService = null;
-    private ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();
-    private ThreadLocal<String> temporaryPrincipalOidThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<String> temporaryPrincipalOidThreadLocal = new ThreadLocal<>();
 
     @Override
     public MidPointPrincipalManager getUserProfileService() {

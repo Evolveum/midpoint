@@ -57,8 +57,8 @@ public class ExpressionHandlerImplTest extends AbstractSpringTest
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        // just something to fill into c:actor expression variable
-        MidPointPrincipal principal = new MidPointPrincipal(new UserType());
+        // just something to fill into c:actor expression variable (using random OID)
+        MidPointPrincipal principal = new MidPointPrincipal(new UserType().oid("9f5d66bc-d45c-4d30-97b5-11285a11a2e3"));
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(authentication);
