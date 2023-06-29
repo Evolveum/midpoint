@@ -12,8 +12,7 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-
-import com.evolveum.midpoint.prism.*;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -46,8 +46,13 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
     }
 
     @Override
-    protected Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
-        return new VerifyConsumerWorker(context, options, queue, operation);
+    protected Callable<VerifyResult> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
+        return () -> {
+            VerifyConsumerWorker worker = new VerifyConsumerWorker(context, options, queue, operation);
+            worker.run();
+
+            return worker.getResult();
+        };
     }
 
     @Override
@@ -91,8 +96,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
             }
         }
 
-        // todo fix VerifyResult
-        return null;
+        return reporter.getResult();
     }
 
     private void verifyFile(File file, VerificationReporter reporter, Writer writer) {
@@ -106,8 +110,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
                 reporter.verify(writer, object);
             }
         } catch (Exception ex) {
-            // todo handle error
-            ex.printStackTrace();
+            NinjaUtils.logException(log, "Couldn't verify file '" + file.getPath() + "'", ex);
         }
     }
 }

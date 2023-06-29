@@ -25,6 +25,7 @@ import org.apache.commons.io.FilenameUtils;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.*;
@@ -241,5 +242,11 @@ public class NinjaUtils {
                 accepted = responseHandler.apply(line);
             }
         }
+    }
+
+    public static void logException(Log log, String msg, Exception ex) {
+        log.error(ConsoleFormat.formatErrorMessageWithParameter(msg, ex.getMessage()));
+
+        log.debug("Exception stack:\n{}", printStackToString(ex));
     }
 }

@@ -50,7 +50,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
-    protected abstract Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
+    protected abstract Callable<R> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
 
     @Override
     public R execute() throws Exception {
@@ -76,8 +76,8 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
 
         executor.execute(new ProgressReporterWorker<>(context, options, queue, operation));
 
-        Runnable consumer = createConsumer(queue, operation);
-        executor.execute(consumer);
+        Callable<R> consumer = createConsumer(queue, operation);
+        Future<R> consumerResult = executor.submit(consumer);
 
         // execute rest of the producers
         for (int i = options.getMultiThread(); i < producers.size(); i++) {
@@ -92,7 +92,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
 
         handleResultOnFinish(operation, "Finished " + getOperationName());
 
-        return null;
+        return consumerResult.get();
     }
 
     @Override

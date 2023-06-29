@@ -1,35 +1,50 @@
 package com.evolveum.midpoint.ninja.action;
 
-// todo use this
+import java.util.HashMap;
+import java.util.Map;
+
+import com.evolveum.midpoint.schema.validator.UpgradePriority;
+
 public class VerifyResult {
 
-    private boolean hasCriticalItems;
+    private Map<UpgradePriority, Long> priorities = new HashMap<>();
 
-    private boolean hasNecessaryItems;
-
-    private boolean hasOptionalItems;
-
-    public boolean isHasCriticalItems() {
-        return hasCriticalItems;
+    public boolean hasCriticalItems() {
+        return hasPriorityItem(UpgradePriority.CRITICAL);
     }
 
-    public void setHasCriticalItems(boolean hasCriticalItems) {
-        this.hasCriticalItems = hasCriticalItems;
+    public void incrementCriticalCount() {
+        incrementPriorityItemCount(UpgradePriority.CRITICAL);
     }
 
-    public boolean isHasNecessaryItems() {
-        return hasNecessaryItems;
+    public boolean hasNecessaryItems() {
+        return hasPriorityItem(UpgradePriority.NECESSARY);
     }
 
-    public void setHasNecessaryItems(boolean hasNecessaryItems) {
-        this.hasNecessaryItems = hasNecessaryItems;
+    public void incrementNecessaryCount() {
+        incrementPriorityItemCount(UpgradePriority.NECESSARY);
     }
 
-    public boolean isHasOptionalItems() {
-        return hasOptionalItems;
+    public boolean hasOptionalItems() {
+        return hasPriorityItem(UpgradePriority.OPTIONAL);
     }
 
-    public void setHasOptionalItems(boolean hasOptionalItems) {
-        this.hasOptionalItems = hasOptionalItems;
+    public void incrementOptionalCount() {
+        incrementPriorityItemCount(UpgradePriority.OPTIONAL);
+    }
+
+    public synchronized boolean hasPriorityItem(UpgradePriority priority) {
+        return getItemPriorityCount(priority) > 0L;
+    }
+
+    public synchronized Long getItemPriorityCount(UpgradePriority priority) {
+        Long count = priorities.get(priority);
+        return count != null ? count : 0L;
+    }
+
+    public synchronized void incrementPriorityItemCount(UpgradePriority priority) {
+        Long count = getItemPriorityCount(priority);
+
+        priorities.put(priority, ++count);
     }
 }

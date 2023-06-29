@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -143,7 +144,10 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
     }
 
     @Override
-    protected Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
-        return new UpgradeObjectsConsumerWorker(skipUpgradeForOids, context, options, queue, operation);
+    protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
+        return () -> {
+            new UpgradeObjectsConsumerWorker(skipUpgradeForOids, context, options, queue, operation).run();
+            return null;
+        };
     }
 }

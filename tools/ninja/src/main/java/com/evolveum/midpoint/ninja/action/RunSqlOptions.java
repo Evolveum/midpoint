@@ -53,16 +53,11 @@ public class RunSqlOptions {
     public static final String P_JDBC_URL_LONG = "--jdbc-url";
     public static final String P_JDBC_USERNAME_LONG = "--jdbc-username";
     public static final String P_JDBC_PASSWORD_LONG = "--jdbc-password";
+    public static final String P_JDBC_ASK_PASSWORD_LONG = "--jdbc-ask-password";
     public static final String P_MODE = "--mode";
-
-    // todo there should be upgrade-repository and upgrade-audit
     public static final String P_UPGRADE = "--upgrade";
-
-    // todo there should be create-repository and create-audit
     public static final String P_CREATE = "--create";
     public static final String P_RESULT = "--result";
-
-    public static final String P_JDBC_ASK_PASSWORD_LONG = "--jdbc-ask-password";
 
     @Parameter(names = { P_SCRIPTS_LONG }, descriptionKey = "runSql.scripts", variableArity = true)
     private List<File> scripts = new ArrayList<>();

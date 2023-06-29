@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.schema.validator;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.validator.UpgradePhase;
-import com.evolveum.midpoint.schema.validator.UpgradePriority;
-import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public interface UpgradeObjectProcessor<T extends ObjectType> {
+public interface UpgradeObjectProcessor<T extends Objectable> {
 
     String getIdentifier();
 

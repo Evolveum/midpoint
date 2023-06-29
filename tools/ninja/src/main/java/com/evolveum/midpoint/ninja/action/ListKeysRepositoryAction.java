@@ -76,7 +76,6 @@ public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
             }
         }
 
-        // todo implement dump other keys from keystore
         return null;
     }
 

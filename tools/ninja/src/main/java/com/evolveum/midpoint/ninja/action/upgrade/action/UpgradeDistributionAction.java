@@ -50,7 +50,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
             VerifyAction verifyAction = new VerifyAction();
             verifyAction.init(context, verifyOptions);
             VerifyResult verifyresult = executeAction(verifyAction);
-            if (!verifyresult.isHasCriticalItems()) {
+            if (!verifyresult.hasCriticalItems()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
             } else {
                 log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with critical items.").reset().toString());

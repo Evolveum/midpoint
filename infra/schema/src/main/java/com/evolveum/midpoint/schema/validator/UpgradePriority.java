@@ -7,7 +7,7 @@ public enum UpgradePriority {
      * </p>
      * Pre-upgrade verify check will check against such issues and will stop upgrade if such critical item is found.
      */
-    CRITICALLY,
+    CRITICAL,
 
     /**
      * Midpoint will start, however some operations or tasks may fail because of incorrect configuration.

@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.action.*;
+
+import com.evolveum.midpoint.schema.validator.UpgradePriority;
+
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-import com.evolveum.midpoint.ninja.action.VerifyAction;
-import com.evolveum.midpoint.ninja.action.VerifyOptions;
 
 public class VerifyTest implements NinjaTestMixin {
 
@@ -33,7 +33,10 @@ public class VerifyTest implements NinjaTestMixin {
 
         List<Object> options = List.of(baseOptions, connectionOptions, verifyOptions);
 
-        executeAction(VerifyAction.class, verifyOptions, options);
+        VerifyResult result = executeAction(VerifyAction.class, verifyOptions, options);
+
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(2L);
     }
 
     @Test(enabled = false)

@@ -52,7 +52,6 @@ public enum Command {
 
     UPGRADE_DISTRIBUTION("upgrade-distribution", UpgradeDistributionOptions.class, UpgradeDistributionAction.class),
 
-    // todo merge with upgrade-files, if there's -f option, then don't start whole context and search repository, just go to file system. same for upgrade-files
     UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class),
 
     PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class);

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.evolveum.midpoint.ninja.action.VerifyResult;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -38,17 +40,19 @@ public class VerificationReporter {
             "Skip upgrade [yes/no]"
     );
 
+    public static final CSVFormat CSV_FORMAT;
+
+    static {
+        CSV_FORMAT = createCsvFormat();
+    }
+
     private final VerifyOptions options;
 
     private final PrismContext prismContext;
 
     private ObjectUpgradeValidator validator;
 
-    public static final CSVFormat CSV_FORMAT;
-
-    static {
-        CSV_FORMAT = createCsvFormat();
-    }
+    private VerifyResult result = new VerifyResult();
 
     public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext) {
         this.options = options;
@@ -115,6 +119,15 @@ public class VerificationReporter {
 
     public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
         UpgradeValidationResult result = validator.validate((PrismObject) object);
+
+        for (UpgradeValidationItem item :result.getItems()) {
+            if (item.getPriority() == null){
+                continue;
+            }
+
+            this.result.incrementPriorityItemCount(item.getPriority());
+        }
+
 
         switch (options.getReportStyle()) {
             case PLAIN:
@@ -218,5 +231,9 @@ public class VerificationReporter {
         }
         // TODO: localization?
         writer.append(message.getFallbackMessage());
+    }
+
+    public VerifyResult getResult() {
+        return result;
     }
 }

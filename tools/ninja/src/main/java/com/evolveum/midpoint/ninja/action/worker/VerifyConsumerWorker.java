@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
+import com.evolveum.midpoint.ninja.action.VerifyResult;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
@@ -53,5 +54,9 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
         PrismObject<?> prismObject = object.asPrismObject();
 
         reporter.verify(writer, prismObject);
+    }
+
+    public VerifyResult getResult() {
+        return reporter.getResult();
     }
 }
