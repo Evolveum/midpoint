@@ -57,11 +57,16 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     public ValueChoosePanel(String id, IModel<R> value) {
         super(id, value);
-        setOutputMarkupId(true);
-        initLayer();
     }
 
-    private void initLayer() {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+        setOutputMarkupId(true);
+    }
+
+    private void initLayout() {
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
 
         textWrapper.setOutputMarkupId(true);

@@ -12,8 +12,13 @@ import java.io.StringWriter;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -92,14 +97,13 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
             // TODO add other ones
     );
 
-    private final IModel<String> subjectOidModel = Model.of("");
-
     private final IModel<String> additionalAuthorizationsModel =
             new Model<>("<additionalAuthorizations>\n</additionalAuthorizations>");
 
-    private final IModel<String> typeModel = new Model<>("UserType");
+    private final IModel<QName> typeModel = new Model<>(UserType.COMPLEX_TYPE);
     private final IModel<String> filterModel = new Model<>();
-    private final IModel<String> objectOidModel = Model.of("");
+    private final IModel<ObjectReferenceType> objectModel = Model.of(new ObjectReferenceType());
+    private final IModel<ObjectReferenceType> subjectModel = Model.of(new ObjectReferenceType());
 
     private final IModel<Boolean> selectorTracingModel = Model.of(false);
 
@@ -114,21 +118,34 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        mainForm.add(new TextField<>(ID_SUBJECT_OID, subjectOidModel));
+        mainForm.add(new ValueChoosePanel<>(ID_SUBJECT_OID, subjectModel) {
 
+            @Override
+            protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
+                return (Class<O>) WebComponentUtil.qnameToClass(PrismContext.get(), typeModel.getObject());
+            }
+
+            @Override
+            public List<QName> getSupportedTypes() {
+                return WebComponentUtil.createObjectTypeList();
+            }
+        });
+
+        mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
+        
         var additionalAuthorizationsEditor = new AceEditor(ID_ADDITIONAL_AUTHORIZATIONS, additionalAuthorizationsModel);
         additionalAuthorizationsEditor.setHeight(400);
         additionalAuthorizationsEditor.setResizeToMaxHeight(false);
         mainForm.add(additionalAuthorizationsEditor);
 
-        mainForm.add(new TextField<>(ID_TYPE, typeModel));
+        mainForm.add(new DropDownChoicePanel<>(ID_TYPE, typeModel, () -> WebComponentUtil.createObjectTypeList(), new QNameChoiceRenderer()));
 
         var filterEditor = new AceEditor(ID_OBJECT_FILTER, filterModel);
         filterEditor.setHeight(400);
         filterEditor.setResizeToMaxHeight(false);
         mainForm.add(filterEditor);
 
-        mainForm.add(new TextField<>(ID_OBJECT_OID, objectOidModel));
+//        mainForm.add(new TextField<>(ID_OBJECT_OID, objectOidModel));
 
         mainForm.add(new CheckBox(ID_SELECTOR_TRACING, selectorTracingModel));
 
@@ -215,18 +232,16 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
     /** Returns request without adornments like extra authorizations etc. */
     private AuthorizationEvaluationRequestType createRequestRaw() throws SchemaException {
-        String objectOid = objectOidModel.getObject();
+        ObjectReferenceType objectOid = objectModel.getObject();
         if (objectOid != null) {
             return new AuthorizationEvaluationAccessDecisionRequestType()
-                    .objectRef(new ObjectReferenceType()
-                            .type(ObjectType.COMPLEX_TYPE) // will be fixed when appropriate GUI component is used
-                            .oid(objectOid));
+                    .objectRef(objectOid);
         }
 
-        String typeName = typeModel.getObject();
+        QName typeName = typeModel.getObject();
         if (typeName != null) {
             return new AuthorizationEvaluationFilterProcessingRequestType()
-                    .type(new QName(typeName))
+                    .type(typeName)
                     .filter(createFilterBean());
         }
 
@@ -243,11 +258,9 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
     }
 
     private void setSubjectRef(AuthorizationEvaluationRequestType request) {
-        String subjectOid = subjectOidModel.getObject();
-        if (StringUtils.isNotEmpty(subjectOid)) {
-            request.setSubjectRef(new ObjectReferenceType()
-                    .type(FocusType.COMPLEX_TYPE)
-                    .oid(subjectOid));
+        ObjectReferenceType subjectOid = subjectModel.getObject();
+        if (StringUtils.isNotEmpty(subjectOid.getOid())) {
+            request.setSubjectRef(subjectOid);
         }
     }
 
