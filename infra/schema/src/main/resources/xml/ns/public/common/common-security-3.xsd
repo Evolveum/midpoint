@@ -926,6 +926,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="encryption">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        REMOVED:
+                        <!-- todo reason -->
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENCRYPTION"/>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="decryption">
                 <xsd:annotation>
                     <xsd:appinfo>
