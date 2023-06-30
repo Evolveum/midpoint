@@ -109,7 +109,8 @@ public class PageLogin extends AbstractPageLogin {
         if (loginRecoveryPolicy == null) {
             return "";
         }
-        return getAuthLinkUrl(loginRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
+        return SecurityUtils.getChannelUrlSuffixFromAuthSequence(
+                loginRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
     }
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {

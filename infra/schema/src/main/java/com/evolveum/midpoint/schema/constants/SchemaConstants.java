@@ -285,6 +285,8 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_REMEDIATION_QNAME = new QName(NS_CHANNEL, "remediation");
     public static final String CHANNEL_REMEDIATION_URI = qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
+    public static final QName CHANNEL_LOGIN_RECOVERY_QNAME = new QName(NS_CHANNEL, "loginRecovery");
+    public static final String CHANNEL_LOGIN_RECOVERY_URI = qNameToUri(CHANNEL_LOGIN_RECOVERY_QNAME);
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));

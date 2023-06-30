@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,7 +90,7 @@ public class PageLoginNameRecovery extends AbstractPageLogin {
         form.setOutputMarkupId(true);
         add(form);
 
-        initArchetypeSelectionPanel();
+        initArchetypeSelectionPanel(form);
 
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -103,10 +104,10 @@ public class PageLoginNameRecovery extends AbstractPageLogin {
         add(backButton);
     }
 
-    private void initArchetypeSelectionPanel() {
+    private void initArchetypeSelectionPanel(MidpointForm<?> form) {
         WebMarkupContainer archetypeSelectionPanel = new WebMarkupContainer(ID_ARCHETYPE_SELECTION_PANEL);
         archetypeSelectionPanel.setOutputMarkupId(true);
-        add(archetypeSelectionPanel);
+        form.add(archetypeSelectionPanel);
 
         ListView<Tile<ArchetypeType>> archetypeListPanel = new ListView<>(ID_ARCHETYPES_PANEL, loadTilesModel()) {
 
@@ -129,15 +130,21 @@ public class PageLoginNameRecovery extends AbstractPageLogin {
                     return tiles;
                 }
                 List<ObjectReferenceType> archetypeRefs = archetypeSelectionType.getArchetypeRef();
-                List<ArchetypeType> archetypes = WebComponentUtil.loadReferencedObjectList(archetypeRefs,
-                        OPERATION_LOAD_ARCHETYPE_OBJECTS, PageLoginNameRecovery.this);
-
+                List<ArchetypeType> archetypes = resolveArchetypeObjects(archetypeRefs);
                 archetypes.forEach(archetype -> {
                     tiles.add(createTile(archetype));
                 });
                 return tiles;
             }
         };
+    }
+
+    private List<ArchetypeType> resolveArchetypeObjects(List<ObjectReferenceType> archetypeRefs) {
+        return runPrivileged((Producer<List<ArchetypeType>>) () -> {
+            var loadArchetypesTask = createAnonymousTask(OPERATION_LOAD_ARCHETYPE_OBJECTS);
+            return WebComponentUtil.loadReferencedObjectList(archetypeRefs,
+                    OPERATION_LOAD_ARCHETYPE_OBJECTS, loadArchetypesTask, PageLoginNameRecovery.this);
+        });
     }
 
     private Tile<ArchetypeType> createTile(ArchetypeType archetype) {
@@ -156,6 +163,7 @@ public class PageLoginNameRecovery extends AbstractPageLogin {
         return new TilePanel<>(id, tileModel) {
             @Override
             protected void onClick(AjaxRequestTarget target) {
+                //todo get correlation rule through object template ref from archetype
             }
         };
     }

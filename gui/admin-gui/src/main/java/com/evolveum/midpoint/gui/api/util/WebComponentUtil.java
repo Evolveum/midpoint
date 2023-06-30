@@ -404,13 +404,18 @@ public final class WebComponentUtil {
 
     public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation,
             PageAdminLTE pageBase) {
+        return loadReferencedObjectList(refList, operation, pageBase.createSimpleTask(operation), pageBase);
+    }
+
+    public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation,
+            Task task, PageAdminLTE pageBase) {
         List<O> loadedObjectsList = new ArrayList<>();
         if (refList == null) {
             return loadedObjectsList;
         }
         refList.forEach(objectRef -> {
             OperationResult result = new OperationResult(operation);
-            PrismObject<O> loadedObject = WebModelServiceUtils.resolveReferenceNoFetch(objectRef, pageBase, pageBase.createSimpleTask(operation), result);
+            PrismObject<O> loadedObject = WebModelServiceUtils.resolveReferenceNoFetch(objectRef, pageBase, task, result);
             if (loadedObject != null) {
                 loadedObjectsList.add(loadedObject.asObjectable());
             }
