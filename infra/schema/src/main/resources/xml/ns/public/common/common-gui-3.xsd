@@ -108,6 +108,9 @@
                             Specifies the set of default forms that are used for displaying and
                             editing of objects, such as User, Role, Org, ...
                         </p>
+
+                        REMOVED:
+                        Use panel configuration instead.
                         <!-- TODO: This has to be moved to  objectDetails/objectDetailsPage/forms -->
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -140,7 +143,8 @@
                             Specifies the layout of the user dashboard (home screen):
                             it defines which boxes should be visible, which should be hidden, etc.
 
-                            DEPRECATED, use homePage configuration instead
+                            REMOVED:
+                            Use homePage/widget instead
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2158,6 +2162,9 @@
                         The scope of the search box. Scope may not be applicable to all types of lists/views.
                         E.g. it does not make sense for flat searches. Therefore some views may not even display
                         scope selection at all.
+
+                        REMOVED:
+                        Use scopeConfiguration.defaultValue instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
@@ -2176,6 +2183,9 @@
                         Type selection may not be applicable to all types of lists/views.
                         E.g. it does not make sense for lists that only contain objects of a single type.
                         Therefore some views may not even display object type selection at all.
+
+                        REMOVED:
+                        Use objectTypeConfiguration.defaultValue instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
@@ -2586,10 +2596,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         User friendly display name of the search item (property)
+
+                        REMOVED:
+                        Use SearchItemType.display.label instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchItemType.displayName</a:displayName>
-                        <a:deprecated>true</a:deprecated>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3861,6 +3875,9 @@
                                 Action short name (identifier). This element is not displayed to the user. It is used
                                 for identification of the action and referencing (e.g. previous column). The definitions
                                 that have the same name in different layers (global, role, user) will be merged together.
+
+                                REMOVED:
+                                Use identifier instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiActionType.name</a:displayName>

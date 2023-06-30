@@ -814,7 +814,8 @@
 
                 BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
 
-                DEPRECATED: Use addRemoveAttributeValues element of Update capability instead.
+                REMOVED:
+                Use addRemoveAttributeValues element of Update capability instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:removed>true</a:removed>
@@ -828,7 +829,15 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
+    <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:removed>true</a:removed>
+                <a:removedSince>4.8</a:removedSince>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="AuxiliaryObjectClassesCapabilityType">
         <xsd:annotation>
