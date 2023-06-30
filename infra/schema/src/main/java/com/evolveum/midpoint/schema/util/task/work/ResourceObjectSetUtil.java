@@ -59,8 +59,9 @@ public class ResourceObjectSetUtil {
         }
     }
 
+    /** Returns detached bean so that clients can freely modify it. */
     public static @NotNull ResourceObjectSetType fromConfiguration(ResourceObjectSetType resourceObjects) {
-         return resourceObjects != null ? resourceObjects : new ResourceObjectSetType();
+         return resourceObjects != null ? resourceObjects.clone() : new ResourceObjectSetType();
     }
 
     public static @Nullable ResourceObjectSetType fromTask(TaskType task){

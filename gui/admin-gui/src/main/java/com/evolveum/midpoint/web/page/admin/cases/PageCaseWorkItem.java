@@ -222,10 +222,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         Task task = createSimpleTask(OPERATION_LOAD_DONOR);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> donor = WebModelServiceUtils.loadObject(UserType.class, powerDonorOid,
-                new ArrayList<>(), PageCaseWorkItem.this, task, result);
-
-        return donor;
+        return WebModelServiceUtils.loadObject(UserType.class, powerDonorOid, new ArrayList<>(), this, task, result);
     }
 
     //TODO WTF?

@@ -7,13 +7,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.*;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
+import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -43,9 +47,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -825,49 +827,24 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         return true;
     }
 
-    private void createReclassifyTask(AjaxRequestTarget target) {
-        Task task = getPageBase().createSimpleTask(OPERATION_RECLASSIFY_SHADOWS);
-        OperationResult reclassifyResult = task.getResult();
-
-        try {
-            List<ObjectReferenceType> archetypeRef = Arrays.asList(
-                    new ObjectReferenceType()
-                            .oid(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value())
-                            .type(ArchetypeType.COMPLEX_TYPE));
-
-            TaskType newTask = ResourceTasksPanel.createResourceTask(getPrismContext(), getObjectWrapperObject(), archetypeRef);
-
-            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
-
-            task.getUpdatedTaskObject().getRealValue()
-                    .activity(newTask.getActivity())
-                    .cleanupAfterCompletion(DatatypeFactory.newInstance().newDuration("PT1S"))
-                    .getActivity()
-                    .beginExecution()
-                    .mode(ExecutionModeType.PREVIEW)
-                    .beginConfigurationToUse()
-                    .predefined(PredefinedConfigurationType.DEVELOPMENT);
-
-            task.getUpdatedTaskObject().getRealValue()
-                    .getActivity()
-                    .getWork()
-                    .getImport()
-                    .getResourceObjects()
-                    .objectclass(getObjectClass())
-                    .intent(null)
-                    .kind(null);
-
-            task.makeSingle();
-
-            getPageBase().getTaskManager().switchToBackground(task, reclassifyResult);
-        } catch (Exception ex) {
-            reclassifyResult.recordFatalError(ex);
-        } finally {
-            reclassifyResult.computeStatusIfUnknown();
-            reclassifyResult.setBackgroundTaskOid(task.getOid());
-            getPageBase().showResult(reclassifyResult);
-            target.add(getPageBase().getFeedbackPanel());
-        }
+    private void createReclassifyTask(AjaxRequestTarget target) throws RestartResponseException {
+        getPageBase().taskAwareExecutor(target, OPERATION_RECLASSIFY_SHADOWS)
+                .runVoid((task, result) -> {
+                    ResourceType resource = getObjectWrapperObject().asObjectable();
+                    ResourceTaskCreator.forResource(resource, getPageBase())
+                            .ofFlavor(SynchronizationTaskFlavor.IMPORT)
+                            .withCoordinates(
+                                    getKind(), // FIXME not static
+                                    getIntent(), // FIXME not static
+                                    getObjectClass()) // FIXME not static
+                            .withExecutionMode(ExecutionModeType.PREVIEW)
+                            .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
+                            .withSubmissionOptions(
+                                    ActivitySubmissionOptions.create()
+                                            .withTaskTemplate(new TaskType()
+                                                    .name("Reclassifying objects on " + resource.getName())
+                                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))))
+                            .submit(task, result);
+                });
     }
-
 }

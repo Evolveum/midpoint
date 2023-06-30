@@ -403,12 +403,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     @Experimental
     void addArchetypeInformationIfMissing(@NotNull String archetypeOid);
 
-    /**
-     * As {@link #addArchetypeInformation(String)} but assumes that the archetype is auxiliary one, so does not check if
-     * another archetype (with a different OID) is already there. I.e., checks only the presence of the OID in question.
-     */
-    @Experimental
-    void addAuxiliaryArchetypeInformation(@NotNull String archetypeOid);
     //endregion
 
     //region Task extension "get" operations + also arbitrary "get" operations

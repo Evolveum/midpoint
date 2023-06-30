@@ -50,10 +50,11 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
     @Override
     public Collection<Authorization> transform(Authorization autz) {
         if (unlimited || allActionsAllowed(autz)) {
-            return Arrays.asList(autz);
+            return Collections.singletonList(autz);
         }
         Authorization limitedAutz = autz.clone();
         Iterator<String> actionIterator = limitedAutz.getAction().iterator();
+        //noinspection Java8CollectionRemoveIf: Not all operations are supported on prism collections
         while (actionIterator.hasNext()) {
             String autzAction = actionIterator.next();
             if (!limitActions.contains(autzAction)) {
@@ -61,9 +62,9 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
             }
         }
         if (limitedAutz.getAction().isEmpty()) {
-            return Collections.emptyList();
+            return List.of();
         }
-        return Arrays.asList(limitedAutz);
+        return List.of(limitedAutz);
     }
 
     private boolean allActionsAllowed(Authorization autz) {

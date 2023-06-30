@@ -193,12 +193,12 @@ public class ShadowCleanupActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
+        /** Mutable, disconnected from the source. */
         private final ResourceObjectSetType shadows;
         @NotNull private final Duration interval;
 
         MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
+            if (source instanceof LegacyWorkDefinitionSource legacy) {
                 shadows = ResourceObjectSetUtil.fromLegacySource(legacy);
                 interval = legacy.getExtensionItemRealValue(
                         SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME, Duration.class);

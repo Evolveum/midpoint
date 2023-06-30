@@ -13,10 +13,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,18 +106,42 @@ public class ActivityHandlerRegistry {
         archetypeMap.remove(legacyHandlerUri);
     }
 
-    @NotNull
-    public <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> AH getHandler(
+    public @NotNull <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> AH getHandlerRequired(
             @NotNull ActivityDefinition<WD> activityDefinition) {
-        WorkDefinition workDefinition = activityDefinition.getWorkDefinition();
-        Class<? extends WorkDefinition> workDefinitionClass = workDefinition.getClass();
-        //noinspection unchecked
-        return (AH) requireNonNull(handlersMap.get(workDefinitionClass),
-                        () -> new IllegalStateException("Couldn't find implementation for " + workDefinitionClass +
-                                " in " + activityDefinition));
+        Class<WD> workDefClass = activityDefinition.getWorkDefinitionClass();
+        return requireNonNull(
+                getHandler(workDefClass),
+                () -> new IllegalStateException(
+                        "Couldn't find handler for %s in %s".formatted(workDefClass, activityDefinition)));
     }
 
-    public @Nullable String getArchetypeOid(@NotNull String legacyHandlerUri) {
+    public @Nullable <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> AH getHandler(
+            @NotNull Class<WD> workDefinitionClass) {
+        //noinspection unchecked
+        return (AH) handlersMap.get(workDefinitionClass);
+    }
+
+    /**
+     * Auxiliary method, primarily for external use. Intentionally forgiving; returning `null` if the handler cannot
+     * be reliably determined. It is assumed that the handler is needed for informational purposes and no harm incurs
+     * if it's unknown.
+     */
+    public @Nullable ActivityHandler<?, ?> getHandler(@NotNull ActivityDefinitionType activityDefinitionBean)
+            throws SchemaException, ConfigurationException {
+        AbstractWorkDefinition parsedDefinition = ActivityDefinition.fromBean(activityDefinitionBean, workDefinitionFactory);
+        if (parsedDefinition == null) {
+            return null;
+        }
+        return getHandler(parsedDefinition.getClass());
+    }
+
+    public @Nullable String getDefaultArchetypeOid(@NotNull String legacyHandlerUri) {
         return archetypeMap.get(legacyHandlerUri);
+    }
+
+    public @Nullable String getDefaultArchetypeOid(@NotNull ActivityDefinitionType activityDefinitionBean)
+            throws SchemaException, ConfigurationException {
+        var handler = getHandler(activityDefinitionBean);
+        return handler != null ? handler.getDefaultArchetypeOid() : null;
     }
 }

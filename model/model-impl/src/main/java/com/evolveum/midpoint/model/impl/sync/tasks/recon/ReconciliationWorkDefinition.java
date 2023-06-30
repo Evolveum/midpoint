@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 
 public class ReconciliationWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
+    /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
 
     ReconciliationWorkDefinition(WorkDefinitionSource source) {

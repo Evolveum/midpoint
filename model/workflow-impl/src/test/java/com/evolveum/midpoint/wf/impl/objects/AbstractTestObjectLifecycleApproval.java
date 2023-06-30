@@ -106,7 +106,7 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         PrismReferenceValue pirateOwner = getPrismContext().itemFactory().createReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
         pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
         executeChanges(prismContext.deltaFor(UserType.class)
-                        .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
+                        .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner))
                         .asObjectDelta(USER_PIRATE_OWNER_OID),
                 null, task, result);
         PrismObject<RoleType> pirateAfter = getRole(rolePirateOid);

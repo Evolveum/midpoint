@@ -91,7 +91,6 @@ public class ReportManagerImpl implements ReportManager {
      * @param task
      * @param parentResult describes report which has to be created
      */
-
     @Override
     public void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,

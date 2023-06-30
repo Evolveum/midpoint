@@ -660,7 +660,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private String deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
-            throws SchemaException {
+            throws CommonException {
 
         ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
                 .item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
