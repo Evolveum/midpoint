@@ -383,16 +383,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:schemaMigration>
-                    <a:element>tns:accountPasswordPolicy</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:accountPasswordPolicyRef</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -521,6 +511,24 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>c:SecurityPolicyType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="accountPasswordPolicy" type="c:ValuePolicyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:accountPasswordPolicyRef</a:objectReference>
+                                <a:removed>true</a:removed>
+                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="accountPasswordPolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
+                                <a:removed>true</a:removed>
+                                <a:plannedRemoval>5.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
