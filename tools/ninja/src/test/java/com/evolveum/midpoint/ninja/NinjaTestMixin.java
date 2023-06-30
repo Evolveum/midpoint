@@ -72,7 +72,7 @@ public interface NinjaTestMixin {
     default void clearMidpointTestDatabase(ApplicationContext context) {
         LOGGER.info("Cleaning up the database");
 
-        RepositoryService repository = context.getBean(RepositoryService.class);
+        RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
         if (repository instanceof SqaleRepositoryService) {
             SqaleRepoContext repoCtx = ((SqaleRepositoryService) repository).sqlRepoContext();
             // Just like in model-intest TestSqaleRepositoryBeanConfig.clearDatabase()

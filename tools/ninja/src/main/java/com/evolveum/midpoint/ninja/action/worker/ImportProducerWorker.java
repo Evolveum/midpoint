@@ -62,7 +62,6 @@ public class ImportProducerWorker<T extends Containerable>
     public void run() {
         Log log = context.getLog();
 
-        log.info("Starting import");
         operation.start();
 
         try (InputStream input = openInputStream()) {
