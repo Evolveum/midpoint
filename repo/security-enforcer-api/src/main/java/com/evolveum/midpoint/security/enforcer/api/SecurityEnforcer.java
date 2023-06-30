@@ -7,8 +7,13 @@
 package com.evolveum.midpoint.security.enforcer.api;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.security.api.Authorization;
+
+import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -31,27 +36,62 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
+ * Answers questions about authorizations, for example whether a user is authorized to do something.
+ *
  * @author Radovan Semancik
  */
 public interface SecurityEnforcer {
 
     /**
-     * Returns `true` if the currently logged-in user is authorized for specified action (represented by `operationUrl`),
-     * returns `false` otherwise.
-     *
-     * Does not throw {@link SecurityViolationException}.
-     *
-     * @param phase check authorization for a specific phase. If null then all phases are checked.
+     * General access-decision method. Determines whether given `operationUrl` (in specified `phase`, with `params`)
+     * is allowed for the given `principal`.
      */
-    boolean isAuthorized(
+    @NotNull AccessDecision decideAccess(
+            @Nullable MidPointPrincipal principal,
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params,
-            @Nullable OwnerResolver ownerResolver,
+            @NotNull Options options,
+            @Nullable Consumer<Authorization> applicableAutzConsumer,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException;
+
+    /**
+     * Returns `true` if the currently logged-in user is authorized for specified action (represented by `operationUrl`),
+     * returns `false` otherwise.
+     *
+     * Does not throw {@link SecurityViolationException} if it is not.
+     * (But may throw that exception e.g. if the authority cannot be determined because of some deeper security error.)
+     *
+     * @param phase check authorization for a specific phase. If null then all phases are checked.
+     */
+    default boolean isAuthorized(
+            @NotNull String operationUrl,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull AbstractAuthorizationParameters params,
+            @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException {
+        var decision = decideAccess(
+                getMidPointPrincipal(), operationUrl, phase, params, options, null, task, result);
+        return decision == AccessDecision.ALLOW;
+    }
+
+    default boolean isAuthorizedAll(@NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return isAuthorized(
+                AuthorizationConstants.AUTZ_ALL_URL,
+                null,
+                AuthorizationParameters.EMPTY,
+                Options.create(),
+                task,
+                result);
+    }
 
     /**
      * Simple access control decision similar to that used by spring security.
@@ -64,14 +104,26 @@ public interface SecurityEnforcer {
      * - If any of the operations results in {@link AccessDecision#ALLOW}, the result is {@link AccessDecision#ALLOW}.
      * - Otherwise (i.e., if all operations are {@link AccessDecision#DEFAULT}), the result is {@link AccessDecision#DEFAULT}.
      */
-    <O extends ObjectType, T extends ObjectType> @NotNull AccessDecision decideAccess(
+    default <O extends ObjectType, T extends ObjectType> @NotNull AccessDecision decideAccess(
             @Nullable MidPointPrincipal principal,
             @NotNull List<String> operationUrls,
             @NotNull AuthorizationParameters<O,T> params,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException {
+        AccessDecision finalDecision = AccessDecision.DEFAULT;
+        for (String operationUrl : operationUrls) {
+            AccessDecision decision = decideAccess(
+                    principal, operationUrl, null, params, Options.create(), null, task, result);
+            switch (decision) {
+                case DENY -> { return AccessDecision.DENY; }
+                case ALLOW -> finalDecision = AccessDecision.ALLOW;
+                case DEFAULT -> { /* no change of the final decision */ }
+            }
+        }
+        return finalDecision;
+    }
 
     /**
      * Simplified version of {@link #decideAccess(MidPointPrincipal, List, AuthorizationParameters, Task, OperationResult)}.
@@ -94,23 +146,37 @@ public interface SecurityEnforcer {
      *
      * @param phase check authorization for a specific phase. If null then all phases are checked.
      *
-     * @see #isAuthorized(String, AuthorizationPhaseType, AbstractAuthorizationParameters, OwnerResolver, Task, OperationResult)
+     * @see #isAuthorized(String, AuthorizationPhaseType, AbstractAuthorizationParameters, Options, Task, OperationResult)
      */
     default void authorize(
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params,
-            @Nullable OwnerResolver ownerResolver,
+            @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        if (!isAuthorized(operationUrl, phase, params, ownerResolver, task, result)) {
+        if (!isAuthorized(operationUrl, phase, params, options, task, result)) {
             failAuthorization(operationUrl, phase, params, result);
         }
     }
 
     /**
-     * Convenience variant of {@link #authorize(String, AuthorizationPhaseType, AbstractAuthorizationParameters, OwnerResolver,
+     * Convenience variant of {@link #authorize(String, AuthorizationPhaseType, AbstractAuthorizationParameters, Options,
+     * Task, OperationResult)} with the default options.
+     */
+    default void authorize(
+            @NotNull String operationUrl,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull AbstractAuthorizationParameters params,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        authorize(operationUrl, phase, params, Options.create(), task, result);
+    }
+
+    /**
+     * Convenience variant of {@link #authorize(String, AuthorizationPhaseType, AbstractAuthorizationParameters,
      * Task, OperationResult)} that is to be used when there is no object, target, nor other parameters.
      */
     default void authorize(
@@ -119,7 +185,7 @@ public interface SecurityEnforcer {
             @NotNull OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
-        authorize(operationUrl, null, AuthorizationParameters.EMPTY, null, task, result);
+        authorize(operationUrl, null, AuthorizationParameters.EMPTY, task, result);
     }
 
     @Experimental
@@ -145,29 +211,35 @@ public interface SecurityEnforcer {
 
     /**
      * Compiles relevant security constraints ({@link ObjectSecurityConstraints}) for a current principal against given `object`.
+     *
+     * Returns a map-like object (indexed by operation and phase) covering all operations defined for the object.
+     *
+     * @see ObjectSecurityConstraints
      */
     <O extends ObjectType> @NotNull ObjectSecurityConstraints compileSecurityConstraints(
             @NotNull PrismObject<O> object,
-            @Nullable OwnerResolver ownerResolver,
+            @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
     /**
-     * TODO
+     * Compiles the security constraints related to given `actionUrls` and `phase` for a given principal against the `object`.
+     *
+     * So, unlike {@link #compileSecurityConstraints(PrismObject, Options, Task, OperationResult)}, it is focused
+     * on a given operation, usually `#get`, `#search`, or `#read`.
      *
      * Note that the `value` is currently always {@link PrismObjectValue}. In the future we may lift this restriction,
      * and allow arbitrary {@link PrismValue} instances here. But this is simpler with respect to application of authorizations
      * to these values.
      */
-    @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+    PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
             @Nullable MidPointPrincipal principal,
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
-            @NotNull SecurityEnforcer.Options enforcerOptions,
+            @NotNull Options enforcerOptions,
             @NotNull CompileConstraintsOptions compileConstraintsOptions,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -245,7 +317,6 @@ public interface SecurityEnforcer {
             String operationUrl,
             PrismObject<O> object,
             PrismObject<R> target,
-            OwnerResolver ownerResolver,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
@@ -279,9 +350,8 @@ public interface SecurityEnforcer {
             PlusMinusZero plusMinusZero,
             String decisionContextDesc);
 
-    /** Not fully implemented yet. */
     record Options(
-            @Nullable OwnerResolver ownerResolver,
+            @Nullable OwnerResolver customOwnerResolver,
             @Nullable LogCollector logCollector,
             boolean failOnNoAccess) {
 
@@ -289,18 +359,21 @@ public interface SecurityEnforcer {
             return new Options(null, null, true);
         }
 
-        // ignored for now
-        public @NotNull Options withOwnerResolver(OwnerResolver ownerResolver) {
-            return new Options(ownerResolver, logCollector, failOnNoAccess);
+        /**
+         * Custom owner resolver to be used for this operation.
+         * If not specified, a default resolver (based on a {@link MidPointPrincipalManager}) is used.
+         */
+        public @NotNull Options withCustomOwnerResolver(OwnerResolver resolver) {
+            return new Options(resolver, logCollector, failOnNoAccess);
         }
 
         public @NotNull Options withLogCollector(LogCollector logCollector) {
-            return new Options(ownerResolver, logCollector, failOnNoAccess);
+            return new Options(customOwnerResolver, logCollector, failOnNoAccess);
         }
 
         // ignored for now
         public @NotNull Options withNoFailOnNoAccess() {
-            return new Options(ownerResolver, logCollector, false);
+            return new Options(customOwnerResolver, logCollector, false);
         }
     }
 

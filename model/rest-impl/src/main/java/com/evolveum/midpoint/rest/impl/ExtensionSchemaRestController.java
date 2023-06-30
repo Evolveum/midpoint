@@ -43,7 +43,8 @@ public class ExtensionSchemaRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
-            securityEnforcer.authorize(ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), task, result);
 
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
@@ -99,8 +100,8 @@ public class ExtensionSchemaRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
-            securityEnforcer.authorize(ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(),
-                    null, AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), task, result);
 
             if (name == null) {
                 result.recordFatalError("Name not defined");

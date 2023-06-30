@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.midpoint.test.asserter.CaseWorkItemsAsserter;
@@ -834,20 +835,34 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         TestUtil.assertSetEquals("Wrong action in " + authorization, authorization.getAction(), action);
     }
 
-    protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(
+            String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
-        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
-        assertTrue("Expected isAuthorized for " + QNameUtil.uriToQName(operationUrl).getLocalPart() + " with " + params + ", but we are not authorized", authorized);
+        var options = SecurityEnforcer.Options.create();
+        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, options, task, result);
+        assertTrue(
+                "Expected isAuthorized for %s with %s, but we are not authorized".formatted(
+                        QNameUtil.uriToQName(operationUrl).getLocalPart(), params),
+                authorized);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
 
-    protected <O extends ObjectType, T extends ObjectType> void assertIsNotAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected <O extends ObjectType, T extends ObjectType> void assertIsNotAuthorized(
+            String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
-        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
-        assertFalse("Expected not isAuthorized for " + QNameUtil.uriToQName(operationUrl).getLocalPart() + " with " + params + ", but we are authorized", authorized);
+        var options = SecurityEnforcer.Options.create();
+        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, options, task, result);
+        assertFalse(
+                "Expected not isAuthorized for %s with %s, but we are authorized".formatted(
+                        QNameUtil.uriToQName(operationUrl).getLocalPart(), params),
+                authorized);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }

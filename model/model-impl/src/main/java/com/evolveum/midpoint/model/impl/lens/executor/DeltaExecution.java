@@ -40,8 +40,8 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -455,7 +455,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         try {
             b.securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd),
-                    createOwnerResolver(result), task, result);
+                    enforcerOptionsWithLensOwnerResolver(result), task, result);
 
             b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
             b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
@@ -579,12 +579,11 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         // wave changes already applied.
         PrismObject<E> baseObject = elementContext.getObjectCurrent();
         try {
-            OwnerResolver ownerResolver = createOwnerResolver(result);
             b.securityEnforcer.authorize(
                     ModelAuthorizationAction.MODIFY.getUrl(),
                     AuthorizationPhaseType.EXECUTION,
                     AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta),
-                    ownerResolver,
+                    enforcerOptionsWithLensOwnerResolver(result),
                     task,
                     result);
 
@@ -750,12 +749,11 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
         PrismObject<E> objectOld = elementContext.getObjectOld();
         try {
-            OwnerResolver ownerResolver = createOwnerResolver(result);
             b.securityEnforcer.authorize(
                     ModelAuthorizationAction.DELETE.getUrl(),
                     AuthorizationPhaseType.EXECUTION,
                     AuthorizationParameters.Builder.buildObjectDelete(objectOld),
-                    ownerResolver,
+                    enforcerOptionsWithLensOwnerResolver(result),
                     task,
                     result);
 
@@ -1007,8 +1005,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //endregion
 
     //region Misc
-    private OwnerResolver createOwnerResolver(OperationResult result) {
-        return new LensOwnerResolver<>(context, b.modelObjectResolver, task, result);
+    private SecurityEnforcer.Options enforcerOptionsWithLensOwnerResolver(OperationResult result) {
+        return SecurityEnforcer.Options.create()
+                .withCustomOwnerResolver(
+                        new LensOwnerResolver<>(context, b.modelObjectResolver, task, result));
     }
 
     private void handleProvisioningError(ResourceType resource, Throwable t, OperationResult result)

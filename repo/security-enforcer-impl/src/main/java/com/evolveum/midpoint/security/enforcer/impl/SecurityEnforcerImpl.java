@@ -77,48 +77,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     private SecurityContextManager securityContextManager;
 
     @Override
-    public boolean isAuthorized(
-            @NotNull String operationUrl,
-            @Nullable AuthorizationPhaseType phase,
-            @NotNull AbstractAuthorizationParameters params,
-            @Nullable OwnerResolver ownerResolver,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-        var decision = decideAccessInternal(
-                getMidPointPrincipal(), operationUrl, phase, params, ownerResolver, null, task, result);
-        return decision == AccessDecision.ALLOW;
-    }
-
-    @Override
-    public @NotNull <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(
-            @Nullable MidPointPrincipal principal,
-            @NotNull List<String> operationUrls,
-            @NotNull AuthorizationParameters<O, T> params,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-
-        AccessDecision finalDecision = AccessDecision.DEFAULT;
-        for (String operationUrl : operationUrls) {
-            AccessDecision decision = decideAccessInternal(
-                    principal, operationUrl, null, params, null, null, task, result);
-            switch (decision) {
-                case DENY:
-                    return AccessDecision.DENY;
-                case ALLOW:
-                    finalDecision = AccessDecision.ALLOW;
-                    break;
-                case DEFAULT:
-                    // no change of the final decision
-            }
-        }
-        return finalDecision;
-    }
-
-    @Override
     public void failAuthorization(
             String operationUrl, AuthorizationPhaseType phase, AbstractAuthorizationParameters params, OperationResult result)
             throws SecurityViolationException {
@@ -160,20 +118,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
     }
 
-    private @NotNull AccessDecision decideAccessInternal(
+    @Override
+    public @NotNull AccessDecision decideAccess(
             @Nullable MidPointPrincipal principal,
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params,
-            @Nullable OwnerResolver ownerResolver,
+            @NotNull Options options,
             @Nullable Consumer<Authorization> applicableAutzConsumer,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        var options = Options.create(); // TEMPORARY
         return new EnforcerDecisionOperation(
-                operationUrl, params, applicableAutzConsumer, principal, ownerResolver, options, beans, task)
+                operationUrl, params, applicableAutzConsumer, principal, options, beans, task)
                 .decideAccess(phase, result);
     }
 
@@ -201,22 +159,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public @NotNull <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
-            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull PrismObject<O> object, @NotNull Options options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        var options = Options.create(); // FIXME temporary
         return new CompileConstraintsOperation<O>(
-                getMidPointPrincipal(), ownerResolver, options, beans, CompileConstraintsOptions.create(), task)
+                getMidPointPrincipal(), options, beans, CompileConstraintsOptions.create(), task)
                 .compileSecurityConstraints(object, result);
     }
 
     @Override
-    public @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
+    public PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
             @Nullable MidPointPrincipal principal,
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
             @NotNull Options enforcerOptions,
             @NotNull CompileConstraintsOptions compileConstraintsOptions,
@@ -225,7 +181,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return new CompileConstraintsOperation<>(
-                principal, ownerResolver, enforcerOptions, beans, compileConstraintsOptions, task)
+                principal, enforcerOptions, beans, compileConstraintsOptions, task)
                 .compileValueOperationConstraints(value, phase, actionUrls, result);
     }
 
@@ -295,7 +251,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             CommunicationException, ConfigurationException, SecurityViolationException {
         return new EnforcerFilterOperation<>(
                 operationUrls, filterType, selectorExtractor, includeSpecial, origFilter, limitAuthorizationAction,
-                paramOrderConstraints, gizmo, desc, principal, null, options, beans, task)
+                paramOrderConstraints, gizmo, desc, principal, options, beans, task)
                 .computeSecurityFilter(phase, result);
     }
 
@@ -351,12 +307,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     @Override
     public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
             MidPointPrincipal midPointPrincipal, String operationUrl, PrismObject<O> object,
-            PrismObject<R> target, OwnerResolver ownerResolver, Task task, OperationResult result)
+            PrismObject<R> target, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        // TODO options
-        EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, null, Options.create(), beans, task);
+        EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, Options.create(), beans, task);
         ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
         int i = 0;
         for (Authorization autz : ctx.getAuthorizations()) {
@@ -386,9 +341,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
         AuthorizationLimitationsCollector limitationsCollector = new AuthorizationLimitationsCollector();
         AuthorizationParameters<F, ObjectType> autzParams = AuthorizationParameters.Builder.buildObject(donor);
-        AccessDecision decision = decideAccessInternal(
+        AccessDecision decision = decideAccess(
                 attorneyPrincipal, attorneyAuthorizationAction, null, autzParams,
-                null, limitationsCollector, task, result);
+                Options.create(), limitationsCollector, task, result);
         if (decision != AccessDecision.ALLOW) {
             failAuthorization(attorneyAuthorizationAction, null, autzParams, result);
         }

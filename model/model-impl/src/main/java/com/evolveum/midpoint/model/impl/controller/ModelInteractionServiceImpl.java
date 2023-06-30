@@ -266,23 +266,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints =
-                    securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
+                    securityEnforcer.compileSecurityConstraints(fullObject, SecurityEnforcer.Options.create(), task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
-//            if (securityConstraints.isEmpty()) {
-//                // Nothing allowed => everything denied
-//                // TODO this was not originally reachable, reconsider
-//                result.recordNotApplicable();
-//                return null;
-//            } else
-//            {
-                TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
-                applyArchetypePolicy(objectDefinition, object, task, result);
-                schemaTransformer.applySecurityConstraintsToItemDef(objectDefinition, securityConstraints, phase);
-                if (object.canRepresent(ShadowType.class)) {
-                    applyObjectClassDefinition(objectDefinition, object, phase, task, result);
-                }
-                return objectDefinition;
-//            }
+            TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
+            applyArchetypePolicy(objectDefinition, object, task, result);
+            schemaTransformer.applySecurityConstraintsToItemDef(objectDefinition, securityConstraints, phase);
+            if (object.canRepresent(ShadowType.class)) {
+                applyObjectClassDefinition(objectDefinition, object, phase, task, result);
+            }
+            return objectDefinition;
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
             result.recordFatalError(e);
             throw e;
@@ -392,12 +384,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints =
-                securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
+                securityEnforcer.compileSecurityConstraints(shadow, SecurityEnforcer.Options.create(), task, result);
         LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
-//        if (securityConstraints.isEmpty()) {
-//            // TODO this was not originally reachable, reconsider
-//            return null;
-//        }
 
         AuthorizationDecisionType attributesReadDecision =
                 securityConstraints.computeItemDecision(
@@ -511,8 +499,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return securityEnforcer.getAllowedRequestAssignmentItems(securityContextManager.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, null, task, result);
+    public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
+            PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        return securityEnforcer.getAllowedRequestAssignmentItems(
+                securityContextManager.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, task, result);
     }
 
     @Override
@@ -529,7 +521,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         ObjectSecurityConstraints securityConstraints;
         try {
-            securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null, task, result);
+            securityConstraints = securityEnforcer.compileSecurityConstraints(
+                    focus, SecurityEnforcer.Options.create(), task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
                 SecurityViolationException e) {
             result.recordFatalError(e);
@@ -539,10 +532,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}",
                     focus, securityConstraints.debugDump(1));
         }
-//        if (securityConstraints.isEmpty()) {
-//            // TODO this was not originally reachable, reconsider
-//            return null;
-//        }
 
         // Global decisions: processing #modify authorizations: allow/deny for all items or allow/deny for assignment/inducement item.
         ItemPath assignmentPath;
@@ -566,7 +555,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             spec.setGlobalFilter(prismContext.queryFactory().createNone());
             return spec;
         }
-        AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+        AuthorizationDecisionType allItemsDecision =
+                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
         if (allItemsDecision == AuthorizationDecisionType.ALLOW) {
             RoleSelectionSpecification spec = new RoleSelectionSpecification();
             spec.setGlobalFilter(prismContext.queryFactory().createAll());

@@ -112,7 +112,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext {
         return enforcerOp.getAllSelfPlusRolesOids(delegatorSelection);
     }
 
-    public @Nullable OwnerResolver getOwnerResolver() {
+    @Nullable OwnerResolver getOwnerResolver() {
         return enforcerOp.ownerResolver;
     }
 

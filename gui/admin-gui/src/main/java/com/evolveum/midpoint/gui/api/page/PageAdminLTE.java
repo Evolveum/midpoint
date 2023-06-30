@@ -96,7 +96,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -958,8 +957,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public <O extends ObjectType> boolean isAuthorized(ModelAuthorizationAction action, PrismObject<O> object) {
         try {
-            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
-                    || isAuthorized(action.getUrl(), null, object, null, null, null);
+            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null)
+                    || isAuthorized(action.getUrl(), null, object, null, null);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
@@ -968,20 +967,27 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     public boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return isAuthorized(operationUrl, null, null, null, null, null);
+        return isAuthorized(operationUrl, null, null, null, null);
     }
 
-    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(
+            String operationUrl, AuthorizationPhaseType phase, PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         Task task = getPageTask();
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)
                 .delta(delta)
                 .target(target)
                 .build();
-        boolean isAuthorized = getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
-        if (!isAuthorized && (ModelAuthorizationAction.GET.getUrl().equals(operationUrl) || ModelAuthorizationAction.SEARCH.getUrl().equals(operationUrl))) {
-            isAuthorized = getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(), phase, params, ownerResolver, task, task.getResult());
+        SecurityEnforcer.Options options = SecurityEnforcer.Options.create();
+        boolean isAuthorized = getSecurityEnforcer().isAuthorized(
+                operationUrl, phase, params, options, task, task.getResult());
+        if (!isAuthorized &&
+                (ModelAuthorizationAction.GET.getUrl().equals(operationUrl)
+                        || ModelAuthorizationAction.SEARCH.getUrl().equals(operationUrl))) {
+            isAuthorized = getSecurityEnforcer().isAuthorized(
+                    ModelAuthorizationAction.READ.getUrl(), phase, params, options, task, task.getResult());
         }
         return isAuthorized;
     }

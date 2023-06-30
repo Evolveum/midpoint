@@ -160,8 +160,8 @@ public class CleanupActivityHandler
 
     private void cleanupAudit(CleanupPolicyType p, RunningTask task, OperationResult result) throws CommonException {
         // Global authorization (we cannot filter by containerables yet)
-        securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_AUDIT_RECORDS.getUrl(), null,
-                AuthorizationParameters.EMPTY, null, task, result);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.CLEANUP_AUDIT_RECORDS.getUrl(), task, result);
         auditService.cleanupAudit(p, result);
     }
 
@@ -209,7 +209,8 @@ public class CleanupActivityHandler
                         ModelAuthorizationAction.DELETE.getUrl(),
                         null,
                         AuthorizationParameters.Builder.buildObject(object.asPrismObject()),
-                        null, task, result);
+                        SecurityEnforcer.Options.create(),
+                        task, result);
                 if (authorizedToDelete) {
                     return true;
                 } else {

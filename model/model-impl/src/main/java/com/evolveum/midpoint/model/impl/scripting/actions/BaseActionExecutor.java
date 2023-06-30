@@ -102,8 +102,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             return;
         }
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, context.getTask(), globalResult);
-        } catch (SecurityViolationException | SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+            securityEnforcer.authorizeAll(context.getTask(), globalResult);
+        } catch (CommonException e) {
             throw new ScriptExecutionException("You are not authorized to execute '" + actionName + "' action.");
         }
     }

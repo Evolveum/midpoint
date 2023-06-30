@@ -2186,13 +2186,15 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // a specific class of object is allowed, e.g. if it is allowed to create (some) roles. This is used to
         // determine whether to display a particular menu item.
         assertTrue(testRoleObject.isEmpty());
-        assertIsAuthorized(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.REQUEST,
-                AuthorizationParameters.Builder.buildObject(testRoleObject), null);
+        assertIsAuthorized(
+                ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.REQUEST,
+                AuthorizationParameters.Builder.buildObject(testRoleObject));
 
         testRoleObject.asObjectable().setRiskLevel("hazardous");
         assertFalse(testRoleObject.isEmpty());
-        assertIsNotAuthorized(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.REQUEST,
-                AuthorizationParameters.Builder.buildObject(testRoleObject), null);
+        assertIsNotAuthorized(
+                ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.REQUEST,
+                AuthorizationParameters.Builder.buildObject(testRoleObject));
 
         assertGlobalStateUntouched();
     }

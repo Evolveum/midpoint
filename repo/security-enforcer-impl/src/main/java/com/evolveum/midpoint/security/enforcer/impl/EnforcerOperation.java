@@ -53,14 +53,15 @@ class EnforcerOperation {
 
     EnforcerOperation(
             @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
         this.principal = principal;
         this.username = principal != null ? principal.getUsername() : null;
         this.tracer = createTracer(options);
-        this.ownerResolver = ownerResolver != null ? ownerResolver : beans.securityContextManager.getUserProfileService();
+        var customOwnerResolver = options.customOwnerResolver();
+        this.ownerResolver =
+                customOwnerResolver != null ? customOwnerResolver : beans.securityContextManager.getUserProfileService();
         this.b = beans;
         this.task = task;
     }

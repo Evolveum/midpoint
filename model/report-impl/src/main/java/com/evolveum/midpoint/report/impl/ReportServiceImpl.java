@@ -203,7 +203,8 @@ public class ReportServiceImpl implements ReportService {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
-        return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
+        return securityEnforcer.isAuthorized(
+                ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, SecurityEnforcer.Options.create(), task, result);
     }
 
     @Override
@@ -211,7 +212,8 @@ public class ReportServiceImpl implements ReportService {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
-        return securityEnforcer.isAuthorized(ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, null, task, result);
+        return securityEnforcer.isAuthorized(
+                ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, SecurityEnforcer.Options.create(), task, result);
     }
 
     public CompiledObjectCollectionView createCompiledView(DashboardReportEngineConfigurationType dashboardConfig,
