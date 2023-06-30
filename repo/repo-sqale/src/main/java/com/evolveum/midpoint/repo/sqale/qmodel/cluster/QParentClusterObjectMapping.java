@@ -33,6 +33,7 @@ public class QParentClusterObjectMapping
         addItemMapping(F_DENSITY, stringMapper(q -> q.density));
         addItemMapping(F_CLUSTERS_REF, multiStringMapper(q -> q.clustersRef));
         addItemMapping(F_CONSIST, integerMapper(q -> q.consist));
+        addItemMapping(F_MODE, stringMapper(q -> q.mode));
 
     }
 
@@ -56,6 +57,7 @@ public class QParentClusterObjectMapping
         row.density = clusterObject.getDensity();
         row.clustersRef = stringsToArray(clusterObject.getClustersRef());
         row.consist = clusterObject.getConsist();
+        row.mode = clusterObject.getMode();
 
         return row;
     }

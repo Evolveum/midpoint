@@ -37,11 +37,18 @@ public class PageCluster extends PageAdmin {
     private static final String ID_DATATABLE_CLUSTER_DS = "datatable_cluster_ds";
 
     public static final String PARAMETER_IDENTIFIER = "id";
+    public static final String PARAMETER_MODE = "mode";
 
     String getPageParameterIdentifier() {
         PageParameters params = getPageParameters();
         return params.get(PARAMETER_IDENTIFIER).toString();
     }
+
+    String getPageParameterMode() {
+        PageParameters params = getPageParameters();
+        return params.get(PARAMETER_MODE).toString();
+    }
+
 
     public PageCluster() {
         super();
@@ -50,7 +57,7 @@ public class PageCluster extends PageAdmin {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(new ClusterOperationPanel(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier()).setOutputMarkupId(true));
+        add(new ClusterOperationPanel(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier(), getPageParameterMode()).setOutputMarkupId(true));
     }
 
     public PageBase getPageBase() {

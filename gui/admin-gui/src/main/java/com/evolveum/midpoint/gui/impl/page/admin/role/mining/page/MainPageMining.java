@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -135,7 +136,7 @@ public class MainPageMining extends PageAdmin {
 
     protected void initLayout() {
 
-        add(getDeleteClustersTypeButton());
+//        add(getDeleteClustersTypeButton());
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
@@ -175,8 +176,29 @@ public class MainPageMining extends PageAdmin {
 
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("Density")) {
+                column = new AbstractExportableColumn<>(getHeaderTitle("mode")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ParentClusterType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getMode() != null ?
+                                        model.getObject().getValue().getMode() : null));
+                    }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<ParentClusterType>> rowModel) {
+                        return Model.of("");
+                    }
+
+                    @Override
+                    public String getCssClass() {
+                        return "col-xl-2 ";
+                    }
+                };
+                columns.add(column);
+
+                column = new AbstractExportableColumn<>(getHeaderTitle("density")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
@@ -193,13 +215,12 @@ public class MainPageMining extends PageAdmin {
 
                     @Override
                     public String getCssClass() {
-                        return "col-md-2 col-lg-1";
+                        return "col-xl-2";
                     }
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("Consist")) {
+                column = new AbstractExportableColumn<>(getHeaderTitle("consist")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
@@ -216,13 +237,13 @@ public class MainPageMining extends PageAdmin {
 
                     @Override
                     public String getCssClass() {
-                        return "col-md-2 col-lg-1";
+                        return "col-xl-2";
                     }
                 };
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("Load")) {
+                        createStringResource("RoleMining.button.title.load")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
@@ -234,7 +255,9 @@ public class MainPageMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     PageParameters params = new PageParameters();
+                                    params.set(PageCluster.PARAMETER_MODE, model.getObject().getValue().getMode());
                                     params.set(PageCluster.PARAMETER_IDENTIFIER, model.getObject().getValue().getIdentifier());
+
                                     ((PageBase) getPage()).navigateToNext(PageCluster.class, params);
                                 }
                             };
@@ -254,7 +277,7 @@ public class MainPageMining extends PageAdmin {
 
                     @Override
                     public String getCssClass() {
-                        return "col-md-2 col-lg-1";
+                        return "col-xl-2";
                     }
 
                     @Override
@@ -264,7 +287,7 @@ public class MainPageMining extends PageAdmin {
 
                     @Override
                     public String getSortProperty() {
-                        return ClusterType.F_SIMILAR_GROUPS_COUNT.toString();
+                        return ClusterType.F_ELEMENT_COUNT.toString();
                     }
                 };
                 columns.add(column);
@@ -311,25 +334,12 @@ public class MainPageMining extends PageAdmin {
 
     }
 
-    public AjaxButton getDeleteClustersTypeButton() {
-        AjaxButton ajaxLinkAssign = new AjaxButton("id_delete_clusters_set", Model.of("Delete Clusters Objects")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                OperationResult result = new OperationResult("Delete clusters objects");
-                try {
-                    cleanBeforeClustering(result, ((PageBase) getPage()), null);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        };
-        ajaxLinkAssign.setOutputMarkupId(true);
-        return ajaxLinkAssign;
-    }
-
     @Override
     protected List<String> pageParametersToBeRemoved() {
         return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
+    }
+
+    protected StringResourceModel getHeaderTitle(String identifier) {
+        return createStringResource("RoleMining.cluster.table.column.header." + identifier);
     }
 }

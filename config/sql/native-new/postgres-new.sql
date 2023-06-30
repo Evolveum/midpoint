@@ -1165,12 +1165,10 @@ CREATE TABLE m_cluster_table (
         identifier TEXT,
         parentRef TEXT,
         riskLevel TEXT,
-        roles TEXT[],
-        rolesCount INTEGER,
-        members TEXT[],
-        membersCount INTEGER,
-        similarGroups TEXT[],
-        similarGroupsCount INTEGER,
+        points TEXT[],
+        pointCount INTEGER,
+        elements TEXT[],
+        elementCount INTEGER,
         minOccupation INTEGER,
         maxOccupation INTEGER,
         mean TEXT,
@@ -1202,7 +1200,8 @@ CREATE TABLE m_parent_cluster_table (
         riskLevel TEXT,
         clustersRef TEXT[],
         consist INTEGER,
-        density TEXT
+        density TEXT,
+        mode TEXT
 )
     INHERITS (m_assignment_holder);
 

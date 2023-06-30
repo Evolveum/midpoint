@@ -12,33 +12,33 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 import java.util.List;
 
 public class DataPoint implements Clusterable {
-    private final double[] point;
-    private final String label;
-    List<String> members;
-    List<String> roles;
+    private final double[] vectorPoints;
+    private final String element;
+    List<String> elements;
+    List<String> points;
 
-    public DataPoint(double[] point, String label, List<String> members, List<String> roles) {
-        this.point = point;
-        this.label = label;
-        this.members = members;
-        this.roles = roles;
+    public DataPoint(double[] vectorPoints, String element, List<String> elements, List<String> points) {
+        this.vectorPoints = vectorPoints;
+        this.element = element;
+        this.elements = elements;
+        this.points = points;
     }
 
     @Override
     public double[] getPoint() {
-        return point;
+        return vectorPoints;
     }
 
-    public String getLabel() {
-        return label;
+    public String getElement() {
+        return element;
     }
 
-    public List<String> getMembers() {
-        return members;
+    public List<String> getElements() {
+        return elements;
     }
 
-    public List<String> getRoles() {
-        return roles;
+    public List<String> getPoints() {
+        return points;
     }
 
 }

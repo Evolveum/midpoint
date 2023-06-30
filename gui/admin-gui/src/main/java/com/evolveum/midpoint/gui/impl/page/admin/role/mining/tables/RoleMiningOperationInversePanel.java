@@ -10,11 +10,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.getRolesOid;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.generateIntersectionsMap;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterUtils.generateFrequencyMap;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
 import java.util.*;
+
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,13 +39,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.TextFieldLabelPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.MembersDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ProcessBusinessRolePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -50,15 +54,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class RoleMiningOperationPanel extends Panel {
+public class RoleMiningOperationInversePanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
@@ -80,13 +82,13 @@ public class RoleMiningOperationPanel extends Panel {
     int fullRolesOccupation = 0;
     AjaxButton processButton;
 
-    public RoleMiningOperationPanel(String id, List<ClusteringObjectMapped> users,
+    public RoleMiningOperationInversePanel(String id, List<ClusteringObjectMapped> users,
             List<String> occupiedRoles, boolean sortable) {
         super(id);
 
         HashMap<String, Double> frequencyMap = generateFrequencyMap(users, occupiedRoles);
 
-        BoxedTablePanel<ClusteringObjectMapped> boxedTablePanel = generateRoleMiningTable(users,
+        BoxedTablePanel<String> boxedTablePanel = generateRoleMiningTable(users,
                 occupiedRoles, sortable, minFrequency, frequencyMap, null, maxFrequency);
         boxedTablePanel.setOutputMarkupId(true);
         boxedTablePanel.getDataTable().add(scaleModifier());
@@ -183,27 +185,26 @@ public class RoleMiningOperationPanel extends Panel {
         return form;
     }
 
-    public BoxedTablePanel<ClusteringObjectMapped> generateRoleMiningTable(List<ClusteringObjectMapped> usersMap,
+    public BoxedTablePanel<String> generateRoleMiningTable(List<ClusteringObjectMapped> usersMap,
             List<String> occupiedRoles, boolean sortable, double frequency,
             HashMap<String, Double> frequencyMap, Set<String> intersection, double maxFrequency) {
 
-        RoleMiningProvider<ClusteringObjectMapped> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(usersMap) {
+        RoleMiningProvider<String> provider = new RoleMiningProvider<>(
+                this, new ListModel<>(occupiedRoles) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<ClusteringObjectMapped> object) {
+            public void setObject(List<String> object) {
                 super.setObject(object);
             }
-
         }, sortable);
 
         if (sortable) {
             provider.setSort(UserType.F_NAME.toString(), SortOrder.ASCENDING);
         }
-        BoxedTablePanel<ClusteringObjectMapped> table = new BoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumnsRM(occupiedRoles, frequency, frequencyMap, intersection, maxFrequency),
+        BoxedTablePanel<String> table = new BoxedTablePanel<>(
+                ID_DATATABLE, provider, initColumnsRM(frequency, frequencyMap, intersection, maxFrequency, usersMap),
                 null, true, true);
         table.setItemsPerPage(100);
         table.setOutputMarkupId(true);
@@ -211,10 +212,10 @@ public class RoleMiningOperationPanel extends Panel {
         return table;
     }
 
-    public List<IColumn<ClusteringObjectMapped, String>> initColumnsRM(List<String> occupiedRoles, double frequency, HashMap<String,
-            Double> frequencyMap, Set<String> intersection, double maxFrequency) {
+    public List<IColumn<String, String>> initColumnsRM(double frequency, HashMap<String,
+            Double> frequencyMap, Set<String> intersection, double maxFrequency, List<ClusteringObjectMapped> clusteringObjectMapp) {
 
-        List<IColumn<ClusteringObjectMapped, String>> columns = new ArrayList<>();
+        List<IColumn<String, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
@@ -225,7 +226,7 @@ public class RoleMiningOperationPanel extends Panel {
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<ClusteringObjectMapped> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<String> rowModel) {
 
                 return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
             }
@@ -239,7 +240,7 @@ public class RoleMiningOperationPanel extends Panel {
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<ClusteringObjectMapped> iModel) {
+            public IModel<?> getDataModel(IModel<String> iModel) {
                 return null;
             }
 
@@ -249,15 +250,14 @@ public class RoleMiningOperationPanel extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<ClusteringObjectMapped>> item, String componentId,
-                    IModel<ClusteringObjectMapped> rowModel) {
+            public void populateItem(Item<ICellPopulator<String>> item, String componentId,
+                    IModel<String> rowModel) {
 
                 item.add(AttributeAppender.replace("class", " overflow-auto"));
                 item.add(new AttributeAppender("style", " width:150px"));
 
-                List<String> usersGroup = rowModel.getObject().getElements();
-                String joinedGroup = String.join(", ", usersGroup);
-                Label label = new Label(componentId, "count: " + usersGroup.size() + " | " + joinedGroup);
+                //ROLES COLUMN HEADER
+                Label label = new Label(componentId, rowModel.getObject());
                 item.add(label);
             }
 
@@ -274,34 +274,36 @@ public class RoleMiningOperationPanel extends Panel {
             }
         });
 
-        IColumn<ClusteringObjectMapped, String> column;
-        for (String roleTypePrismObject : occupiedRoles) {
-            String name = "" + roleTypePrismObject;
-            String cellColor = "table-dark";
-            Double fr = frequencyMap.get(roleTypePrismObject);
-            if (frequency > fr) {
-                cellColor = "bg-danger";
-            } else if (maxFrequency < fr) {
-                cellColor = "bg-info";
-            }
+        IColumn<String, String> column;
+        for (ClusteringObjectMapped clusterMap : clusteringObjectMapp) {
+            List<String> roles = clusterMap.getPoints();
 
-            String finalCellColor = cellColor;
-            column = new AbstractColumn<>(createStringResource(name)) {
+            boolean found = intersection != null && new HashSet<>(roles).containsAll(intersection);
+            column = new AbstractColumn<>(createStringResource("")) {
 
                 @Override
-                public void populateItem(Item<ICellPopulator<ClusteringObjectMapped>> cellItem,
-                        String componentId, IModel<ClusteringObjectMapped> model) {
-
+                public void populateItem(Item<ICellPopulator<String>> cellItem,
+                        String componentId, IModel<String> model) {
                     tableStyle(cellItem);
+                    String role = model.getObject();
 
-                    List<String> rolesOid = model.getObject().getPoints();
-                    if (intersection != null
-                            && intersection.contains(roleTypePrismObject)
-                            && new HashSet<>(rolesOid).containsAll(intersection)) {
+                    miningDetection(cellItem, componentId, role);
+
+                }
+
+                private void miningDetection(Item<ICellPopulator<String>> cellItem, String componentId, String role) {
+                    if (found) {
                         filledCell(cellItem, componentId, "bg-success");
                     } else {
-                        if (rolesOid.contains(roleTypePrismObject)) {
-                            filledCell(cellItem, componentId, finalCellColor);
+                        if (roles.contains(role)) {
+                            Double fr = frequencyMap.get(role);
+                            if (frequency > fr) {
+                                filledCell(cellItem, componentId, "bg-danger");
+                            } else if (maxFrequency < fr) {
+                                filledCell(cellItem, componentId, "bg-info");
+                            } else {
+                                filledCell(cellItem, componentId, "table-dark");
+                            }
                         } else {
                             emptyCell(cellItem, componentId);
                         }
@@ -311,24 +313,31 @@ public class RoleMiningOperationPanel extends Panel {
                 @Override
                 public Component getHeader(String componentId) {
 
-                    DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(
-                            WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+                    List<String> membersOids = clusterMap.getElements();
 
-                    return new AjaxLinkTruncatePanel(componentId,
-                            createStringResource(name), createStringResource(name), displayType) {
+                    AjaxButton ajaxButton = new AjaxButton(componentId, Model.of(membersOids.size() + " member(s)")) {
                         @Override
-                        public void onClick(AjaxRequestTarget target) {
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-                            PageParameters parameters = new PageParameters();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, roleTypePrismObject);
-                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                        }
+                            OperationResult operationResult = new OperationResult("getUsers");
+                            List<PrismObject<FocusType>> users = new ArrayList<>();
+                            for (String s : membersOids) {
+                                users.add(getFocusObject((PageBase) getPage(), s, operationResult));
+                            }
+                            MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of("Analyzed members details panel"), users, null) {
+                                @Override
+                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                    super.onClose(ajaxRequestTarget);
+                                }
+                            };
+                            ((PageBase) getPage()).showMainPopup(detailsPanel, ajaxRequestTarget);
 
-                        @Override
-                        public boolean isEnabled() {
-                            return true;
                         }
                     };
+                    ajaxButton.setOutputMarkupId(true);
+
+                    return ajaxButton;
                 }
 
             };

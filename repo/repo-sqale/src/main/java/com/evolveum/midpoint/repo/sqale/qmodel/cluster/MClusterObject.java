@@ -13,18 +13,14 @@ public class MClusterObject extends MObject {
 
     public String identifier;
     public String riskLevel;
-    public Integer rolesCount;
-    public Integer membersCount;
-    public Integer similarGroupsCount;
-    public String[] roles;
-    public String[] members;
-    public String[] similarGroups;
     public String mean;
     public String density;
     public Integer minOccupation;
     public Integer maxOccupation;
-
     public String parentRef;
-
+    public String[] points;
+    public Integer pointCount;
+    public Integer elementCount;
+    public String[] elements;
 
 }

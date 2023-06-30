@@ -28,11 +28,11 @@ public class ClusterUtils {
         int totalMiningTypeObjects = 0;
 
         for (ClusteringObjectMapped user : users) {
-            totalMiningTypeObjects += user.getMembers().size();
-            List<String> roles = user.getRoles();
+            totalMiningTypeObjects += user.getElements().size();
+            List<String> roles = user.getPoints();
             for (String roleId : roles) {
                 if (roleIds.contains(roleId)) {
-                    roleCountMap.put(roleId, roleCountMap.getOrDefault(roleId, 0) + user.getMembers().size());
+                    roleCountMap.put(roleId, roleCountMap.getOrDefault(roleId, 0) + user.getElements().size());
                 }
             }
         }

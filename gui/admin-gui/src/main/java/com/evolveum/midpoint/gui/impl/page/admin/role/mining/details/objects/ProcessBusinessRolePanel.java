@@ -7,28 +7,139 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkIconPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ProcessBusinessRolePanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
+    IntersectionObject minedObjects;
+    String mode;
 
-
-    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, IntersectionObject rowModel) {
+    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, IntersectionObject minedObjects, String mode) {
         super(id, messageModel);
+        this.mode = mode;
+        this.minedObjects = minedObjects;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        PageBase pageBase = (PageBase) getPage();
+        OperationResult operationResult = new OperationResult("prepareObjects");
+        List<PrismObject<FocusType>> elements = new ArrayList<>();
+
+        Set<String> elements1 = minedObjects.getElements();
+        for (String s : elements1) {
+            elements.add(getFocusObject(pageBase, s, operationResult));
+        }
+
+        List<PrismObject<FocusType>> points = new ArrayList<>();
+
+        Set<String> points1 = minedObjects.getPoints();
+        for (String s : points1) {
+            points.add(getFocusObject(pageBase, s, operationResult));
+        }
+
+        DisplayType displayTypeElement;
+        DisplayType displayTypePoints;
+        if (mode.equals("ROLE")) {
+            displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
+                    WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+            displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
+                    WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+
+        } else {
+            displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
+                    WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+            displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
+                    WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+        }
+
+        ListView<PrismObject<FocusType>> listViewElements = new ListView<>("list_elements", elements) {
+            @Override
+            protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
+                PrismObject<FocusType> modelObject = listItem.getModelObject();
+                listItem.add(new AjaxLinkIconPanel("object",
+                        createStringResource(modelObject.getName()),
+                        createStringResource(modelObject.getName()), displayTypeElement) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
+
+                        if (mode.equals("ROLE")) {
+                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
+                        } else {
+                            ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
+                        }
+                    }
+
+                });
+            }
+        };
+        add(listViewElements);
+
+        ListView<PrismObject<FocusType>> listPoints = new ListView<>("list_points", points) {
+            @Override
+            protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
+                PrismObject<FocusType> modelObject = listItem.getModelObject();
+                listItem.add(new AjaxLinkIconPanel("object",
+                        createStringResource(modelObject.getName()),
+                        createStringResource(modelObject.getName()), displayTypePoints) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
+
+                        if (mode.equals("ROLE")) {
+                            ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
+                        } else {
+                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
+                        }
+                    }
+
+                });
+            }
+        };
+        add(listPoints);
+
+        addConfirmationComponents();
+    }
+
+    private void addConfirmationComponents() {
         AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
 
             @Override
@@ -51,7 +162,6 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
         getPageBase().hideMainPopup(ajaxRequestTarget);
     }
-
 
     @Override
     public int getWidth() {

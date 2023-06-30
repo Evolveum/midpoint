@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -21,7 +25,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -29,53 +32,39 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkIconPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class ClusterBasicDetailsPanel extends BasePanel<String> implements Popupable {
+public class MembersDetailsPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
     List<PrismObject<FocusType>> elements;
-    List<PrismObject<FocusType>> points;
     String mode;
 
-
-    public ClusterBasicDetailsPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> elements,
-            List<PrismObject<FocusType>> points, String mode) {
+    public MembersDetailsPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> elements, String pageParameterMode) {
         super(id, messageModel);
-        this.mode = mode;
         this.elements = elements;
-        this.points = points;
+        this.mode = pageParameterMode;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
-        DisplayType displayTypeElement;
-        DisplayType displayTypePoints;
+        DisplayType displayType;
         if (mode.equals("ROLE")) {
-            displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
+            displayType = GuiDisplayTypeUtil.createDisplayType(
                     WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
-            displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
-
         } else {
-            displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
+            displayType = GuiDisplayTypeUtil.createDisplayType(
                     WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
-            displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
         }
-
-        ListView<PrismObject<FocusType>> listViewElements = new ListView<>("list_elements", elements) {
+        ListView<PrismObject<FocusType>> listView = new ListView<>("list", elements) {
             @Override
             protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
                 PrismObject<FocusType> modelObject = listItem.getModelObject();
                 listItem.add(new AjaxLinkIconPanel("object",
                         createStringResource(modelObject.getName()),
-                        createStringResource(modelObject.getName()), displayTypeElement) {
+                        createStringResource(modelObject.getName()), displayType) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
@@ -84,7 +73,7 @@ public class ClusterBasicDetailsPanel extends BasePanel<String> implements Popup
 
                         if (mode.equals("ROLE")) {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                        } else {
+                        }else {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
                         }
                     }
@@ -92,37 +81,7 @@ public class ClusterBasicDetailsPanel extends BasePanel<String> implements Popup
                 });
             }
         };
-        add(listViewElements);
-
-        ListView<PrismObject<FocusType>> listPoints = new ListView<>("list_points", points) {
-            @Override
-            protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
-                PrismObject<FocusType> modelObject = listItem.getModelObject();
-                listItem.add(new AjaxLinkIconPanel("object",
-                        createStringResource(modelObject.getName()),
-                        createStringResource(modelObject.getName()), displayTypePoints) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
-
-                        if (mode.equals("ROLE")) {
-                            ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
-                        } else {
-                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                        }
-                    }
-
-                });
-            }
-        };
-        add(listPoints);
-
-        addConfirmationComponents();
-    }
-
-    private void addConfirmationComponents() {
+        add(listView);
         AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
 
             @Override
@@ -148,12 +107,12 @@ public class ClusterBasicDetailsPanel extends BasePanel<String> implements Popup
 
     @Override
     public int getWidth() {
-        return 1400;
+        return 300;
     }
 
     @Override
     public int getHeight() {
-        return 500;
+        return 400;
     }
 
     @Override
@@ -173,6 +132,6 @@ public class ClusterBasicDetailsPanel extends BasePanel<String> implements Popup
 
     @Override
     public StringResourceModel getTitle() {
-        return new StringResourceModel("RoleMining.todo.title");
+        return new StringResourceModel("RoleMining.members.details.panel.title");
     }
 }

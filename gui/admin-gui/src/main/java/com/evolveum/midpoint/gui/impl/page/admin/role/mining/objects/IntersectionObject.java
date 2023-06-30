@@ -16,22 +16,27 @@ public class IntersectionObject implements Serializable {
 
     public static final String F_TYPE = "type";
 
-    Set<String> rolesId;
+    Set<String> points;
     String type;
-    int members;
-    Integer totalMembers;
+    int currentElements;
+    Integer totalElements;
     double metric;
+    Set<String> elements;
 
-    public IntersectionObject(Set<String> rolesId, double metric, String type, int members, Integer totalMembers) {
-        this.rolesId = rolesId;
+    public IntersectionObject(Set<String> points, double metric, String type, int currentElements, Integer totalElements,Set<String> elements) {
+        this.points = points;
         this.metric = metric;
         this.type = type;
-        this.members = members;
-        this.totalMembers = totalMembers;
+        this.currentElements = currentElements;
+        this.totalElements = totalElements;
+        this.elements = elements;
     }
 
-    public Set<String> getRolesId() {
-        return rolesId;
+    public Set<String> getElements() {
+        return elements;
+    }
+    public Set<String> getPoints() {
+        return points;
     }
 
     public double getMetric() {
@@ -42,12 +47,12 @@ public class IntersectionObject implements Serializable {
         return type;
     }
 
-    public int getMembers() {
-        return members;
+    public int getCurrentElements() {
+        return currentElements;
     }
 
-    public Integer getTotalMembers() {
-        return totalMembers;
+    public Integer getTotalElements() {
+        return totalElements;
     }
 
 }

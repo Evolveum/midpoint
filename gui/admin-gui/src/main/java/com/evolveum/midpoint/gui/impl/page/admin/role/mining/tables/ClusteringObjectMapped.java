@@ -15,24 +15,17 @@ import java.util.Objects;
 public class ClusteringObjectMapped implements Serializable {
     @Serial private static final long serialVersionUID = 1L;
     String targetOid;
-    List<String> roles;
-    List<String> members;
+    List<String> points;
+    List<String> elements;
 
-    public ClusteringObjectMapped(String targetOid, List<String> roles,List<String> members) {
+    public ClusteringObjectMapped(String targetOid, List<String> points,List<String> elements) {
         this.targetOid = targetOid;
-        this.roles = roles;
-        this.members = members;
+        this.points = points;
+        this.elements = elements;
     }
 
-    public void setTargetOid(String targetOid) {
-        this.targetOid = targetOid;
-    }
-    public String getTargetOid() {
-        return targetOid;
-    }
-
-    public List<String> getRoles() {
-        return roles;
+    public List<String> getPoints() {
+        return points;
     }
 
     @Override
@@ -41,17 +34,20 @@ public class ClusteringObjectMapped implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         ClusteringObjectMapped clusteringObjectMapped = (ClusteringObjectMapped) o;
         return Objects.equals(targetOid, clusteringObjectMapped.targetOid) &&
-                Objects.equals(roles, clusteringObjectMapped.roles);
+                Objects.equals(points, clusteringObjectMapped.points);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(targetOid, roles);
+        return Objects.hash(targetOid, points);
     }
 
 
-    public List<String> getMembers() {
-        return members;
+    public List<String> getElements() {
+        return elements;
     }
 
+    public String getTargetOid() {
+        return targetOid;
+    }
 }

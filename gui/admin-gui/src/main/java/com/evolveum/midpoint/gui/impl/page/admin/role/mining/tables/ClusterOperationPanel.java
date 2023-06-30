@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.getRolesOid;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getUserObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getParentById;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -24,14 +25,15 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ClusterBasicDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ClusterDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work.ImageDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageMiningOperation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,25 +42,26 @@ import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
 
 public class ClusterOperationPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
     String identifier;
+    String mode;
 
-    public ClusterOperationPanel(String id, String identifier) {
+    public ClusterOperationPanel(String id, String identifier, String mode) {
         super(id);
         this.identifier = identifier;
+        this.mode = mode;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
         addForm();
-
     }
 
     public void addForm() {
@@ -75,7 +78,7 @@ public class ClusterOperationPanel extends Panel {
                     .build();
         }
         return ((PageBase) getPage()).getPrismContext().queryFor(ClusterType.class).not()
-                .item(ClusterType.F_SIMILAR_GROUPS_COUNT).eq(0)
+                .item(ClusterType.F_ELEMENT_COUNT).eq(0)
                 .build();
     }
 
@@ -107,8 +110,24 @@ public class ClusterOperationPanel extends Panel {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ClusterType>> rowModel) {
 
+                        PageBase pageBase = (PageBase) getPage();
+                        OperationResult operationResult = new OperationResult("prepareObjects");
+                        List<PrismObject<FocusType>> elements = new ArrayList<>();
+
+                        List<String> elements1 = rowModel.getObject().getValue().getElements();
+                        for (String s : elements1) {
+                            elements.add(getFocusObject(pageBase, s, operationResult));
+                        }
+
+                        List<PrismObject<FocusType>> points = new ArrayList<>();
+
+                        List<String> points1 = rowModel.getObject().getValue().getPoints();
+                        for (String s : points1) {
+                            points.add(getFocusObject(pageBase, s, operationResult));
+                        }
+
                         ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("TO DO: details"), rowModel) {
+                                Model.of("TO DO: details"), elements, points, mode) {
                             @Override
                             public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                 super.onClose(ajaxRequestTarget);
@@ -122,7 +141,7 @@ public class ClusterOperationPanel extends Panel {
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("Cluster")) {
+                        createStringResource("RoleMining.cluster.table.column.header.cluster")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
@@ -154,7 +173,7 @@ public class ClusterOperationPanel extends Panel {
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("Density")) {
+                        createStringResource("RoleMining.cluster.table.column.header.density")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
@@ -192,8 +211,8 @@ public class ClusterOperationPanel extends Panel {
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<ClusterType>> model) {
                         cellItem.add(new Label(componentId,
-                                model.getObject().getValue() != null && model.getObject().getValue().getMembersCount() != null ?
-                                        model.getObject().getValue().getMembersCount() : null));
+                                model.getObject().getValue() != null && model.getObject().getValue().getElementCount() != null ?
+                                        model.getObject().getValue().getElementCount() : null));
                     }
 
                     @Override
@@ -203,7 +222,7 @@ public class ClusterOperationPanel extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return ClusterType.F_MEMBERS_COUNT.toString();
+                        return ClusterType.F_ELEMENT_COUNT.toString();
                     }
 
                     @Override
@@ -219,8 +238,8 @@ public class ClusterOperationPanel extends Panel {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<ClusterType>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getRolesCount() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getRolesCount()));
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getPointCount() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue().getPointCount()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -240,13 +259,13 @@ public class ClusterOperationPanel extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return ClusterType.F_ROLES_COUNT.toString();
+                        return ClusterType.F_POINT_COUNT.toString();
                     }
                 };
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("Min roles")) {
+                        createStringResource("RoleMining.cluster.table.column.header.min.roles")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
@@ -278,7 +297,7 @@ public class ClusterOperationPanel extends Panel {
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("Max roles")) {
+                        createStringResource("RoleMining.cluster.table.column.header.max.roles")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
@@ -310,7 +329,7 @@ public class ClusterOperationPanel extends Panel {
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("Mean")) {
+                        createStringResource("RoleMining.cluster.table.column.header.mean")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
@@ -346,45 +365,20 @@ public class ClusterOperationPanel extends Panel {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<ClusterType>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getSimilarGroupsCount() != null) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getElementCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
-                                    Model.of(String.valueOf(model.getObject().getValue().getSimilarGroupsCount()))) {
+                                    Model.of(String.valueOf(model.getObject().getValue().getElementCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    OperationResult result = new OperationResult("Prepare clustered objects");
 
-                                    List<String> similarGroupsId = model.getObject().getValue().getSimilarGroupsId();
-                                    List<ClusteringObjectMapped> mappedUsers = new ArrayList<>();
+                                    PrismObject<ParentClusterType> getParent = getParentById(getPageBase(),
+                                            model.getObject().getValue().getIdentifier(), new OperationResult("getParent"));
+                                    PageParameters params = new PageParameters();
+                                    params.set(PageMiningOperation.PARAMETER_OID, model.getObject().getValue().asPrismObject().getOid());
+                                    params.set(PageMiningOperation.PARAMETER_MODE, getParent.asObjectable().getMode());
+                                    ((PageBase) getPage()).navigateToNext(PageMiningOperation.class, params);
 
-                                    List<String> prevRoles = new ArrayList<>();
-                                    int prevIndex = -1;
-                                    for (String groupOid : similarGroupsId) {
-                                        PrismObject<UserType> user = getUserObject(getPageBase(), groupOid, result);
-                                        List<String> rolesOid = getRolesOid(user.asObjectable());
-                                        Collections.sort(rolesOid);
-                                        if (prevRoles.equals(rolesOid)) {
-                                            ClusteringObjectMapped clusteringObjectMapped = mappedUsers.get(prevIndex);
-                                            clusteringObjectMapped.getMembers().add(groupOid);
-                                        } else {
-                                            mappedUsers.add(new ClusteringObjectMapped(groupOid, rolesOid,
-                                                    new ArrayList<>(Collections.singletonList(groupOid))));
-                                            prevRoles = rolesOid;
-                                            prevIndex++;
-                                        }
-                                    }
-
-                                    List<String> roles = model.getObject().getValue().getRoles();
-
-                                    ClusterDetailsPanel detailsPanel = new ClusterDetailsPanel(((PageBase) getPage())
-                                            .getMainPopupBodyId(), Model.of("Groups"), mappedUsers,
-                                            roles) {
-                                        @Override
-                                        public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                            super.onClose(ajaxRequestTarget);
-                                        }
-                                    };
-                                    ((PageBase) getPage()).showMainPopup(detailsPanel, ajaxRequestTarget);
                                 }
                             };
 
@@ -393,7 +387,7 @@ public class ClusterOperationPanel extends Panel {
                             ajaxButton.add(new AttributeAppender("style", " width:100px; height:20px"));
                             ajaxButton.setOutputMarkupId(true);
 
-                            if (model.getObject().getValue().getSimilarGroupsCount() > 500) {
+                            if (model.getObject().getValue().getElementCount() > 500) {
                                 ajaxButton.setEnabled(false);
                             }
                             cellItem.add(ajaxButton);
@@ -416,7 +410,7 @@ public class ClusterOperationPanel extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return ClusterType.F_SIMILAR_GROUPS_COUNT.toString();
+                        return ClusterType.F_ELEMENT_COUNT.toString();
                     }
                 };
                 columns.add(column);
@@ -427,24 +421,15 @@ public class ClusterOperationPanel extends Panel {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<ClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<ClusterType>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getSimilarGroupsCount() != null) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getElementCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
                                     Model.of("popup")) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-                                    List<String> members = model.getObject().getValue().getSimilarGroupsId();
-                                    OperationResult result = new OperationResult("prepare user objects");
-                                    List<PrismObject<UserType>> users = new ArrayList<>();
-                                    List<String> roles = model.getObject().getValue().getRoles();
-                                    for (String groupOid : members) {
-                                        PrismObject<UserType> user = getUserObject(getPageBase(), groupOid, result);
-                                        users.add(user);
-                                    }
-
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), users, roles, model.getObject().getValue().getIdentifier()) {
+                                            Model.of("Image"), model.getObject().getValue(), mode) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);
@@ -478,7 +463,7 @@ public class ClusterOperationPanel extends Panel {
 
                     @Override
                     public String getSortProperty() {
-                        return ClusterType.F_SIMILAR_GROUPS_COUNT.toString();
+                        return ClusterType.F_ELEMENT_COUNT.toString();
                     }
                 };
                 columns.add(column);

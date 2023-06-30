@@ -12,14 +12,20 @@ import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -37,6 +43,7 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ClusterAlgorithm;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ClusterAlgorithmByRole;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -47,7 +54,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ClusterPanel extends BasePanel<String> implements Popupable {
     private static final String ID_EXECUTE_CLUSTERING_FORM = "thresholds_form_cluster";
@@ -61,12 +67,12 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
 
-    double threshold;
-    int intersectionThreshold;
-    int groupThreshold;
+    double threshold = 0.2;
+    int intersectionThreshold = 10;
+    int groupThreshold = 5;
     String identifier;
 
-    ObjectFilter userQuery;
+    ObjectFilter objectFilter;
     OperationResult result;
 
     public ClusterPanel(String id, IModel<String> messageModel) {
@@ -106,9 +112,27 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         getPageBase().hideMainPopup(ajaxRequestTarget);
     }
 
+    Mode executeMode;
+
     public Form<?> clusterForm() {
 
         Form<?> form = new Form<Void>(ID_EXECUTE_CLUSTERING_FORM);
+
+        ChoiceRenderer<Mode> renderer = new ChoiceRenderer<>("displayString");
+
+        executeMode = Mode.USER;
+        DropDownChoice<Mode> modeSelector = new DropDownChoice<>(
+                "modeSelector", Model.of(executeMode),
+                new ArrayList<>(EnumSet.allOf(Mode.class)), renderer);
+        modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                executeMode = modeSelector.getModelObject();
+            }
+        });
+
+        modeSelector.setOutputMarkupId(true);
+        form.add(modeSelector);
 
         TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
                 Model.of(threshold));
@@ -117,7 +141,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         thresholdField.setVisible(true);
         form.add(thresholdField);
 
-        Label label = new Label(ID_JACCARD_THRESHOLD_FIELD+"_label","Jaccard distance");
+        Label label = new Label(ID_JACCARD_THRESHOLD_FIELD + "_label", "Jaccard distance");
         label.setOutputMarkupId(true);
         form.add(label);
 
@@ -128,7 +152,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         minIntersectionField.setVisible(true);
         form.add(minIntersectionField);
 
-        Label label2 = new Label(ID_INTERSECTION_THRESHOLD_FIELD+"_label","Min intersection");
+        Label label2 = new Label(ID_INTERSECTION_THRESHOLD_FIELD + "_label", "Min intersection");
         label2.setOutputMarkupId(true);
         form.add(label2);
 
@@ -139,10 +163,11 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         minGroupField.setVisible(true);
         form.add(minGroupField);
 
-        Label label3 = new Label(ID_GROUP_THRESHOLD_FIELD+"_label","Min members");
+        Label label3 = new Label(ID_GROUP_THRESHOLD_FIELD + "_label", "Min members");
         label3.setOutputMarkupId(true);
         form.add(label3);
 
+        identifier = "cluster_" + countParentClusters((PageBase) getPage()) + 1;
         TextField<String> identifierField = new TextField<>(ID_IDENTIFIER_FIELD,
                 Model.of(identifier));
         identifierField.setOutputMarkupId(true);
@@ -150,7 +175,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         identifierField.setVisible(true);
         form.add(identifierField);
 
-        Label label4 = new Label(ID_IDENTIFIER_FIELD+"_label","Identifier");
+        Label label4 = new Label(ID_IDENTIFIER_FIELD + "_label", "Identifier");
         label3.setOutputMarkupId(true);
         form.add(label4);
 
@@ -163,11 +188,16 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
                 groupThreshold = minGroupField.getModelObject();
                 identifier = identifierField.getModelObject();
 
-                ClusterAlgorithm clusterAlgorithm = new ClusterAlgorithm(((PageBase) getPage()));
-                List<PrismObject<ClusterType>> clusterTypeList = clusterAlgorithm.executeClustering(threshold,
-                        groupThreshold, intersectionThreshold, identifier, userQuery);
-
-                long startTime = System.currentTimeMillis();
+                List<PrismObject<ClusterType>> clusters = null;
+                if (executeMode.equals(Mode.ROLE)) {
+                    ClusterAlgorithmByRole clusterAlgorithmByRole = new ClusterAlgorithmByRole(((PageBase) getPage()));
+                    clusters = clusterAlgorithmByRole.executeClustering(threshold,
+                            groupThreshold, intersectionThreshold, identifier, objectFilter);
+                } else if (executeMode.equals(Mode.USER)) {
+                    ClusterAlgorithm clusterAlgorithm = new ClusterAlgorithm(((PageBase) getPage()));
+                    clusters = clusterAlgorithm.executeClustering(threshold,
+                            groupThreshold, intersectionThreshold, identifier, objectFilter);
+                }
 
                 OperationResult resultD = new OperationResult("Delete Cluster object");
 
@@ -182,23 +212,18 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
                 int counsist = 0;
                 List<String> childRef = new ArrayList<>();
                 try {
-                    for (PrismObject<ClusterType> clusterTypePrismObject : clusterTypeList) {
+                    for (PrismObject<ClusterType> clusterTypePrismObject : clusters) {
                         importClusterTypeObject(result, ((PageBase) getPage()), clusterTypePrismObject);
                         density += Double.parseDouble(clusterTypePrismObject.asObjectable().getDensity());
-                        counsist += clusterTypePrismObject.asObjectable().getMembersCount();
+                        counsist += clusterTypePrismObject.asObjectable().getElementCount();
                         childRef.add(clusterTypePrismObject.getOid());
                     }
-                    density = density / clusterTypeList.size();
+                    density = density / clusters.size();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
 
-                importParentClusterTypeObject(result, ((PageBase) getPage()), density, counsist, childRef, identifier);
-
-                long endTime = System.currentTimeMillis();
-                long elapsedTime = endTime - startTime;
-                double elapsedSeconds = elapsedTime / 1000.0;
-                System.out.println("Elapsed time: " + elapsedSeconds + " seconds. (update cluster db)");
+                importParentClusterTypeObject(result, ((PageBase) getPage()), density, counsist, childRef, identifier, executeMode);
 
                 target.add(thresholdField);
                 target.add(minIntersectionField);
@@ -268,7 +293,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
                         String midPointQuery = filterModel.getObject().getDslQuery();
 
                         try {
-                            userQuery = getPrismContext().createQueryParser().parseFilter(UserType.class, midPointQuery);
+                            objectFilter = getPrismContext().createQueryParser().parseFilter(FocusType.class, midPointQuery);
                             filterForm.setVisible(false);
                             this.add(AttributeAppender.replace("class", " btn btn-success btn-sm"));
                         } catch (CommonException | RuntimeException e) {

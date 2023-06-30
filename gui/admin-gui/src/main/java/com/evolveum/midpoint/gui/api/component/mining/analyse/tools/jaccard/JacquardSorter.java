@@ -59,7 +59,7 @@ public class JacquardSorter {
         List<DataPoint> sortedUserSets = new ArrayList<>();
         List<DataPoint> remainingUserSets = new ArrayList<>(dataPoints);
 
-        remainingUserSets.sort(Comparator.comparingInt(set -> -set.getRoles().size()));
+        remainingUserSets.sort(Comparator.comparingInt(set -> -set.getPoints().size()));
 
         while (!remainingUserSets.isEmpty()) {
             DataPoint currentUserSet = remainingUserSets.remove(0);
@@ -76,24 +76,24 @@ public class JacquardSorter {
                 for (int i = 1; i < sortedUserSets.size(); i++) {
                     DataPoint prevUserSet = sortedUserSets.get(i - 1);
                     DataPoint nextUserSet = sortedUserSets.get(i);
-                    double similarity = RoleUtils.jacquardSimilarity(currentUserSet.getRoles(),
-                            prevUserSet.getRoles());
-                    double nextSimilarity = RoleUtils.jacquardSimilarity(currentUserSet.getRoles(),
-                            nextUserSet.getRoles());
+                    double similarity = RoleUtils.jacquardSimilarity(currentUserSet.getPoints(),
+                            prevUserSet.getPoints());
+                    double nextSimilarity = RoleUtils.jacquardSimilarity(currentUserSet.getPoints(),
+                            nextUserSet.getPoints());
 
                     if (Math.max(similarity, nextSimilarity) > maxSimilarity
                             && Math.min(similarity, nextSimilarity) >= RoleUtils.jacquardSimilarity(
-                            prevUserSet.getRoles(), nextUserSet.getRoles())) {
+                            prevUserSet.getPoints(), nextUserSet.getPoints())) {
                         maxSimilarity = Math.max(similarity, nextSimilarity);
                         insertIndex = i;
                     }
                 }
 
                 if (insertIndex == -1) {
-                    if (RoleUtils.jacquardSimilarity(currentUserSet.getRoles(),
-                            sortedUserSets.get(0).getRoles())
-                            > RoleUtils.jacquardSimilarity(sortedUserSets.get(0).getRoles(),
-                            sortedUserSets.get(1).getRoles())) {
+                    if (RoleUtils.jacquardSimilarity(currentUserSet.getPoints(),
+                            sortedUserSets.get(0).getPoints())
+                            > RoleUtils.jacquardSimilarity(sortedUserSets.get(0).getPoints(),
+                            sortedUserSets.get(1).getPoints())) {
                         sortedUserSets.add(0, currentUserSet);
                     } else {
                         sortedUserSets.add(currentUserSet);

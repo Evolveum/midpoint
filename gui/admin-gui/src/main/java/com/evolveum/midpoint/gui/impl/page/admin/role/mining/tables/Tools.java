@@ -31,7 +31,7 @@ public class Tools {
     public static String getScaleScript() {
         return "let div = document.querySelector('#myTable');" +
                 "let table = div.querySelector('table');" +
-                "let scale = 1;" +
+                "let scale = 0.5;" +
                 "if (div && table) {" +
                 "  div.onwheel = function(e) {" +
                 "    e.preventDefault();" +
@@ -108,8 +108,8 @@ public class Tools {
                 "}";
     }
 
-    static AttributeAppender scaleModifier() {
-        return AttributeModifier.append("style", "transform: scale(0.3); transform-origin: 0 0;");
+    public static AttributeAppender scaleModifier() {
+        return AttributeModifier.append("style", "transform: scale(0.5); transform-origin: 0 0;");
     }
     public static void tableStyle(@NotNull Item<?> cellItem) {
         MarkupContainer parentContainer = cellItem.getParent().getParent();

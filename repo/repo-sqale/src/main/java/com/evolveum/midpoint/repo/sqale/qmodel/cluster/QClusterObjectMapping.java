@@ -30,12 +30,10 @@ public class QClusterObjectMapping
 
         addItemMapping(F_IDENTIFIER, stringMapper(q -> q.identifier));
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
-        addItemMapping(F_ROLES, multiStringMapper(q -> q.roles));
-        addItemMapping(F_MEMBERS, multiStringMapper(q -> q.members));
-        addItemMapping(F_SIMILAR_GROUPS_ID, multiStringMapper(q -> q.similarGroups));
-        addItemMapping(F_ROLES_COUNT, integerMapper(q -> q.rolesCount));
-        addItemMapping(F_MEMBERS_COUNT, integerMapper(q -> q.membersCount));
-        addItemMapping(F_SIMILAR_GROUPS_COUNT, integerMapper(q -> q.similarGroupsCount));
+        addItemMapping(F_POINTS, multiStringMapper(q -> q.points));
+        addItemMapping(F_ELEMENTS, multiStringMapper(q -> q.elements));
+        addItemMapping(F_POINT_COUNT, integerMapper(q -> q.pointCount));
+        addItemMapping(F_ELEMENT_COUNT, integerMapper(q -> q.elementCount));
         addItemMapping(F_MEAN, stringMapper(q -> q.mean));
         addItemMapping(F_MIN_OCCUPATION, integerMapper(q -> q.minOccupation));
         addItemMapping(F_MAX_OCCUPATION, integerMapper(q -> q.maxOccupation));
@@ -61,16 +59,14 @@ public class QClusterObjectMapping
 
         row.identifier = clusterObject.getIdentifier();
         row.riskLevel = clusterObject.getRiskLevel();
-        row.rolesCount = clusterObject.getRolesCount();
-        row.membersCount = clusterObject.getMembersCount();
-        row.similarGroupsCount = clusterObject.getSimilarGroupsCount();
+        row.pointCount = clusterObject.getPointCount();
+        row.elementCount = clusterObject.getElementCount();
         row.mean = clusterObject.getMean();
         row.density = clusterObject.getDensity();
         row.minOccupation = clusterObject.getMinOccupation();
         row.maxOccupation = clusterObject.getMaxOccupation();
-        row.roles = stringsToArray(clusterObject.getRoles());
-        row.members = stringsToArray(clusterObject.getMembers());
-        row.similarGroups = stringsToArray(clusterObject.getSimilarGroupsId());
+        row.points = stringsToArray(clusterObject.getPoints());
+        row.elements = stringsToArray(clusterObject.getElements());
         row.parentRef = clusterObject.getParentRef();
 
         return row;

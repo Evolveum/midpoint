@@ -12,6 +12,17 @@
         <div>
             <form wicket:id="thresholds_form_cluster">
                 <div class="gap-2 w-100" wicket:id="warningFeedback"></div>
+
+
+                <div class="form-group row">
+                    <label for="mode" class="col-sm-2 col-form-label">
+                        <wicket:message key="roleMiningClusterPanel.mode.label.title"/>
+                    </label>
+                    <div class="col-sm-10">
+                        <select class="btn btn-default btn-sm dropdown-toggle" id="mode" style="width:150px" wicket:id="modeSelector"></select>
+                    </div>
+                </div>
+
                 <div class="form-group row">
                     <label for="identifier" class="col-sm-2 col-form-label" wicket:id="identifier_field_label"></label>
                     <div class="col-sm-10">

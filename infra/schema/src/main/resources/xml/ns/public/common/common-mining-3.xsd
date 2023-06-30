@@ -70,30 +70,26 @@
                     </xsd:element>
 
 
-                    <xsd:element name="roles" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="points" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Unique group of used roles.
+                                Can be a role or user UUID.
+                                There are two simple methods of clustering. In the first method, users are grouped together
+                                based on their roles. This means that users with similar roles, responsibilities, or qualifications
+                                are clustered together.
+                                In the second method, roles are clustered based on the users associated with them.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="similarGroupsId" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="elements" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Similar groups.
+                                Similar groups with respect to the selected clustering mode.
+                                Can be a role or user UUID.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <xsd:element name="members" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Group members.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
 
                     <xsd:element name="identifier" type="xsd:string">
                         <xsd:annotation>
@@ -123,28 +119,15 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
+                    <xsd:element name="pointCount" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Indication role count in the group.
+                                    Indication point count in the group.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ClusterType.roleCount</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="membersCount" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Indication member count in the group.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ClusterType.memberCount</a:displayName>
+                                <a:displayName>ClusterType.pointCount</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -176,9 +159,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-
-
-
                     <xsd:element name="minOccupation" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -192,7 +172,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
 
                     <xsd:element name="maxOccupation" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
@@ -208,7 +187,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="similarGroupsCount" type="xsd:int" minOccurs="0">
+                    <xsd:element name="elementCount" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -216,7 +195,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ClusterType.similarGroupCount</a:displayName>
+                                <a:displayName>ClusterType.elementsCount</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -252,6 +231,17 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ParentClusterType.oid</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="mode" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Process mode.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ClusterType.mode</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

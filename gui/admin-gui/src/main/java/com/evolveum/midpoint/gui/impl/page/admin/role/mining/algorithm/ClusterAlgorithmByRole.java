@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.startTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.prepareExactUsersSetByRoles;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.prepareExactRolesSetByUsers;
 
 import java.util.List;
 import java.util.Map;
@@ -24,22 +24,22 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 
-public class ClusterAlgorithm {
+public class ClusterAlgorithmByRole {
 
-    public ClusterAlgorithm(PageBase pageBase) {
-        ClusterAlgorithm.pageBase = pageBase;
+    public ClusterAlgorithmByRole(PageBase pageBase) {
+        ClusterAlgorithmByRole.pageBase = pageBase;
     }
 
     static PageBase pageBase;
     OperationResult operationResult = new OperationResult("Map UserType object for clustering");
 
     public List<PrismObject<ClusterType>> executeClustering(double eps, int minGroupSize,
-            int minIntersections, String identifier, ObjectFilter userQuery) {
+            int minIntersections, String identifier, ObjectFilter roleQuery) {
 
         long start = startTimer(" prepare clustering object");
 
-        Map<List<String>, List<String>> chunkMap = prepareExactUsersSetByRoles(operationResult, pageBase,
-                minIntersections, userQuery);
+        Map<List<String>, List<String>> chunkMap = prepareExactRolesSetByUsers(operationResult, pageBase,
+                minIntersections, roleQuery);
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
 

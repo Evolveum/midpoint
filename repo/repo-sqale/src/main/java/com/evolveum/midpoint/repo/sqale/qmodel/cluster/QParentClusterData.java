@@ -33,11 +33,15 @@ public class QParentClusterData extends QAssignmentHolder<MParentClusterObject> 
             ColumnMetadata.named("consist").ofType(Types.INTEGER);
     public static final ColumnMetadata CLUSTER_DENSITY =
             ColumnMetadata.named("density").ofType(Types.VARCHAR);
+    public static final ColumnMetadata MODE =
+            ColumnMetadata.named("mode").ofType(Types.VARCHAR);
 
     public final StringPath density = createString("density", CLUSTER_DENSITY);
     public final StringPath identifier = createString("identifier", IDENTIFIER);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
     public final NumberPath<Integer> consist = createInteger("consist", CONSIST);
+    public final StringPath mode = createString("mode", MODE);
+
     public final ArrayPath<String[], String> clustersRef = createArray("clustersRef", String[].class, CLUSTERS_REF);
 
 

@@ -30,53 +30,40 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
             ColumnMetadata.named("identifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata RISK_LEVEL =
             ColumnMetadata.named("riskLevel").ofType(Types.VARCHAR);
-    public static final ColumnMetadata ROLES_COUNT =
-            ColumnMetadata.named("rolesCount").ofType(Types.INTEGER);
-    public static final ColumnMetadata MEMBERS_COUNT =
-            ColumnMetadata.named("membersCount").ofType(Types.INTEGER);
-    public static final ColumnMetadata SIMILAR_GROUPS_COUNT =
-            ColumnMetadata.named("similarGroupsCount").ofType(Types.INTEGER);
+    public static final ColumnMetadata CLUSTER_MEAN =
+            ColumnMetadata.named("mean").ofType(Types.VARCHAR);
+    public static final ColumnMetadata CLUSTER_DENSITY =
+            ColumnMetadata.named("density").ofType(Types.VARCHAR);
+    public static final ColumnMetadata MIN_OCCUPATION =
+            ColumnMetadata.named("minOccupation").ofType(Types.INTEGER);
+    public static final ColumnMetadata MAX_OCCUPATION =
+            ColumnMetadata.named("maxOccupation").ofType(Types.INTEGER);
+    public static final ColumnMetadata POINTS =
+            ColumnMetadata.named("points").ofType(Types.ARRAY);
+    public static final ColumnMetadata POINT_COUNT =
+            ColumnMetadata.named("pointCount").ofType(Types.INTEGER);
+
+    public static final ColumnMetadata ELEMENTS =
+            ColumnMetadata.named("elements").ofType(Types.ARRAY);
+    public static final ColumnMetadata ELEMENT_COUNT =
+            ColumnMetadata.named("elementCount").ofType(Types.INTEGER);
+
+    public final ArrayPath<String[], String> elements =
+            createArray("elements", String[].class, ELEMENTS);
+
+    public final ArrayPath<String[], String> points =
+            createArray("points", String[].class, POINTS);
 
     public final StringPath parentRef = createString("parentRef", PARENT_REF);
     public final StringPath identifier = createString("identifier", IDENTIFIER);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
-    public final NumberPath<Integer> rolesCount = createInteger("rolesCount", ROLES_COUNT);
-    public final NumberPath<Integer> membersCount = createInteger("membersCount", MEMBERS_COUNT);
-    public final NumberPath<Integer> similarGroupsCount = createInteger("similarGroupsCount", SIMILAR_GROUPS_COUNT);
-
-    public static final ColumnMetadata CLUSTER_MEAN =
-            ColumnMetadata.named("mean").ofType(Types.VARCHAR);
+    public final NumberPath<Integer> maxOccupation = createInteger("maxOccupation", MAX_OCCUPATION);
+    public final NumberPath<Integer> minOccupation = createInteger("minOccupation", MIN_OCCUPATION);
+    public final StringPath density = createString("density", CLUSTER_DENSITY);
     public final StringPath mean = createString("mean", CLUSTER_MEAN);
 
-    public static final ColumnMetadata CLUSTER_DENSITY =
-            ColumnMetadata.named("density").ofType(Types.VARCHAR);
-    public final StringPath density = createString("density", CLUSTER_DENSITY);
-
-    public static final ColumnMetadata MIN_OCCUPATION =
-            ColumnMetadata.named("minOccupation").ofType(Types.INTEGER);
-    public final NumberPath<Integer> minOccupation = createInteger("minOccupation", MIN_OCCUPATION);
-
-    public static final ColumnMetadata MAX_OCCUPATION =
-            ColumnMetadata.named("maxOccupation").ofType(Types.INTEGER);
-    public final NumberPath<Integer> maxOccupation = createInteger("maxOccupation", MAX_OCCUPATION);
-
-    public static final ColumnMetadata ROLES =
-            ColumnMetadata.named("roles").ofType(Types.ARRAY);
-
-    public final ArrayPath<String[], String> roles =
-            createArray("roles", String[].class, ROLES);
-
-    public static final ColumnMetadata MEMBERS =
-            ColumnMetadata.named("members").ofType(Types.ARRAY);
-
-    public final ArrayPath<String[], String> members =
-            createArray("members", String[].class, MEMBERS);
-
-    public static final ColumnMetadata SIMILAR_GROUP =
-            ColumnMetadata.named("similarGroups").ofType(Types.ARRAY);
-
-    public final ArrayPath<String[], String> similarGroups =
-            createArray("similarGroups", String[].class, SIMILAR_GROUP);
+    public final NumberPath<Integer> pointCount = createInteger("pointCount", POINT_COUNT);
+    public final NumberPath<Integer> elementCount = createInteger("elementCount", ELEMENT_COUNT);
 
     public QClusterData(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

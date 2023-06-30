@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
-import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.getRolesOid;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -18,13 +16,9 @@ import javax.imageio.ImageIO;
 
 import org.apache.wicket.request.resource.DynamicImageResource;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusteringObjectMapped;
 
 public class CustomImageResource extends DynamicImageResource {
-
-    private final List<String> roleTypeList;
-    private final List<PrismObject<UserType>> users;
 
     public int getWidth() {
         return width;
@@ -36,23 +30,25 @@ public class CustomImageResource extends DynamicImageResource {
 
     int width;
     int height;
-    public CustomImageResource(List<String> roleTypeList, List<PrismObject<UserType>> users) {
-        this.roleTypeList = roleTypeList;
-        this.users = users;
+    List<ClusteringObjectMapped> clusteringObjectMapped;
+    List<String> clusterPoints;
+
+    public CustomImageResource(List<ClusteringObjectMapped> clusteringObjectMapped, List<String> clusterPoints) {
+        this.clusteringObjectMapped = clusteringObjectMapped;
+        this.clusterPoints = clusterPoints;
     }
 
     @Override
     protected byte[] getImageData(Attributes attributes) {
-        width = roleTypeList.size();
-        height = users.size();
+        width = clusterPoints.size();
+        height = clusteringObjectMapped.size();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
 
-
-        for (int x = 0; x < roleTypeList.size(); x++) {
-            String oid = roleTypeList.get(x);
-            for (int y = 0; y < users.size(); y++) {
-                if (getRolesOid(users.get(y).asObjectable()).contains(oid)) {
+        for (int x = 0; x < clusterPoints.size(); x++) {
+            String point = clusterPoints.get(x);
+            for (int y = 0; y < clusteringObjectMapped.size(); y++) {
+                if (clusteringObjectMapped.get(y).getPoints().contains(point)) {
                     graphics.setColor(Color.BLACK);
                 } else {
                     graphics.setColor(Color.WHITE);

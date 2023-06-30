@@ -17,39 +17,39 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusteringOb
 public class ExtractIntersections {
 
     public static @NotNull List<IntersectionObject> generateIntersectionsMap(@NotNull List<ClusteringObjectMapped>
-            userObjects, int minIntersection, double frequency, HashMap<String, Double> frequencyMap,
+            clusteringObjectMapped, int minIntersection, double frequency, HashMap<String, Double> frequencyMap,
             double maxFrequency) {
 
-        List<List<String>> clusterRoles = new ArrayList<>();
-        for (ClusteringObjectMapped prismUser : userObjects) {
-            List<String> roles = prismUser.getRoles();
-            List<String> preparedRoles = new ArrayList<>();
-            for (String oid : roles) {
+        List<List<String>> clusterPoints = new ArrayList<>();
+        for (ClusteringObjectMapped object : clusteringObjectMapped) {
+            List<String> points = object.getPoints();
+            List<String> preparedPoints = new ArrayList<>();
+            for (String oid : points) {
 
                 Double fr = frequencyMap.get(oid);
                 if (frequency > fr || maxFrequency < fr) {
                     continue;
                 }
-                preparedRoles.add(oid);
+                preparedPoints.add(oid);
 
             }
-            clusterRoles.add(preparedRoles);
+            clusterPoints.add(preparedPoints);
         }
 
-        return getOuterIntersectionMap(clusterRoles, minIntersection, userObjects);
+        return getOuterIntersectionMap(clusterPoints, minIntersection, clusteringObjectMapped);
     }
 
-    private static List<IntersectionObject> getOuterIntersectionMap(List<List<String>> roles, int minIntersection,
-            List<ClusteringObjectMapped> userObjects) {
+    private static List<IntersectionObject> getOuterIntersectionMap(List<List<String>> clusterPoints, int minIntersection,
+            List<ClusteringObjectMapped> clusteringObjectMapped) {
 
         HashMap<Set<String>, String> mappedIntersections = new HashMap<>();
 
         Set<Set<String>> outerIntersectionsSet = new HashSet<>();
-        for (int i = 0; i < roles.size(); i++) {
-            Set<String> rolesA = new HashSet<>(roles.get(i));
-            for (int j = i + 1; j < roles.size(); j++) {
-                Set<String> intersection = new HashSet<>(roles.get(j));
-                intersection.retainAll(rolesA);
+        for (int i = 0; i < clusterPoints.size(); i++) {
+            Set<String> pointsA = new HashSet<>(clusterPoints.get(i));
+            for (int j = i + 1; j < clusterPoints.size(); j++) {
+                Set<String> intersection = new HashSet<>(clusterPoints.get(j));
+                intersection.retainAll(pointsA);
 
                 if (intersection.size() >= minIntersection) {
                     List<String> nInter = new ArrayList<>(intersection);
@@ -63,10 +63,10 @@ public class ExtractIntersections {
 
         List<Set<String>> finalIntersections = new ArrayList<>(outerIntersectionsSet);
         for (int i = 0; i < finalIntersections.size(); i++) {
-            Set<String> rolesA = new HashSet<>(finalIntersections.get(i));
+            Set<String> pointsA = new HashSet<>(finalIntersections.get(i));
             for (int j = i + 1; j < finalIntersections.size(); j++) {
                 Set<String> intersection = new HashSet<>(finalIntersections.get(j));
-                intersection.retainAll(rolesA);
+                intersection.retainAll(pointsA);
 
                 if (intersection.size() >= minIntersection) {
                     List<String> nInter = new ArrayList<>(intersection);
@@ -77,10 +77,10 @@ public class ExtractIntersections {
             }
         }
 
-        return prepareIntersectionObjects(userObjects, mappedIntersections);
+        return prepareIntersectionObjects(clusteringObjectMapped, mappedIntersections);
     }
 
-    private static List<IntersectionObject> prepareIntersectionObjects(List<ClusteringObjectMapped> users, HashMap<Set<String>,
+    private static List<IntersectionObject> prepareIntersectionObjects(List<ClusteringObjectMapped> clusteringObjectMapped, HashMap<Set<String>,
             String> intersectionsSet) {
         List<IntersectionObject> intersectionObjectList = new ArrayList<>();
 
@@ -88,13 +88,13 @@ public class ExtractIntersections {
             Set<String> key = entry.getKey();
             String value = entry.getValue();
             int counter = 0;
-            for (ClusteringObjectMapped user : users) {
-                if (new HashSet<>(user.getRoles()).containsAll(key)) {
-                    counter = counter + user.getMembers().size();
+            for (ClusteringObjectMapped object : clusteringObjectMapped) {
+                if (new HashSet<>(object.getPoints()).containsAll(key)) {
+                    counter = counter + object.getElements().size();
                 }
             }
 
-            intersectionObjectList.add(new IntersectionObject(key, counter * key.size(), value, counter, null));
+            intersectionObjectList.add(new IntersectionObject(key, counter * key.size(), value, counter, null, new HashSet<>()));
         }
 
         return intersectionObjectList;
