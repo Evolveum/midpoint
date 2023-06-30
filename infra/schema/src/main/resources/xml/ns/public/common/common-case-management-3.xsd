@@ -228,7 +228,7 @@
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
                                 <a:removed>true</a:removed>
-                                <a:deprecatedSince>5.0</a:deprecatedSince>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

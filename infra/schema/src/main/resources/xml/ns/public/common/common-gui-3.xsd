@@ -115,7 +115,7 @@
                         <a:displayName>AdminGuiConfigurationType.objectForms</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.4</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -148,7 +148,7 @@
                         <a:displayName>AdminGuiConfigurationType.userDashboard</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1232,7 +1232,7 @@
                                 <a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1250,7 +1250,7 @@
                             <xsd:appinfo>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                                 <a:removed>true</a:removed>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1998,7 +1998,7 @@
                                 <a:experimental>true</a:experimental>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                                 <a:removed>true</a:removed>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2163,7 +2163,7 @@
                         <a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
                         <a:since>3.9</a:since>
                         <a:removed>true</a:removed>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                         <a:deprecatedSince>4.3</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2181,7 +2181,7 @@
                         <a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
                         <a:since>3.9</a:since>
                         <a:removed>true</a:removed>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                         <a:deprecatedSince>4.3</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -3866,7 +3866,7 @@
                                 <a:displayName>GuiActionType.name</a:displayName>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.6</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3969,7 +3969,7 @@
                 <a:since>3.9</a:since>
                 <a:experimental>true</a:experimental>
                 <a:removed>true</a:removed>
-                <a:plannedRemoval>5.0</a:plannedRemoval>
+                <a:removedSince>4.8</a:removedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

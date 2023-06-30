@@ -519,7 +519,7 @@
                             <xsd:appinfo>
                                 <a:objectReference>tns:accountPasswordPolicyRef</a:objectReference>
                                 <a:removed>true</a:removed>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -528,7 +528,7 @@
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
                                 <a:removed>true</a:removed>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

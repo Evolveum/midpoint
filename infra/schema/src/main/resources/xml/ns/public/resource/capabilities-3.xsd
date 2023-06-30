@@ -818,7 +818,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:removed>true</a:removed>
-                <a:plannedRemoval>5.0</a:plannedRemoval>
+                <a:removedSince>4.8</a:removedSince>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>

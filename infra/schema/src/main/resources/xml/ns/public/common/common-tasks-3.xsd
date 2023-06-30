@@ -260,7 +260,7 @@
                             <xsd:appinfo>
                                 <a:displayName>TaskType.category</a:displayName>
                                 <a:removed>true</a:removed>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -423,7 +423,7 @@
                             <xsd:appinfo>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -488,7 +488,7 @@
                             <xsd:appinfo>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -502,7 +502,7 @@
                             <xsd:appinfo>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -517,7 +517,7 @@
                                 <a:since>4.3</a:since>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4019,7 +4019,7 @@
                             <xsd:appinfo>
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.3</a:deprecatedSince>
-                                <a:plannedRemoval>5.0</a:plannedRemoval>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

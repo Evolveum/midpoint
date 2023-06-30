@@ -8344,7 +8344,7 @@
                         <!-- Note: it was deprecated, but the midPoint still used it up to (excluding) 4.8 -->
                         <a:deprecatedSince>4.0</a:deprecatedSince>
                         <a:removed>true</a:removed>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -8861,7 +8861,7 @@
                                     <a:since>3.6</a:since>
                                     <a:removed>true</a:removed>
                                     <a:deprecatedSince>4.4</a:deprecatedSince>
-                                    <a:plannedRemoval>5.0</a:plannedRemoval>
+                                    <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9649,7 +9649,7 @@
                         <a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.1</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14578,7 +14578,7 @@
                         <a:displayName>RoleManagementConfigurationType.roleCatalogRef</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14597,7 +14597,7 @@
                         <a:displayName>RoleManagementConfigurationType.roleCatalogCollections</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14614,7 +14614,7 @@
                         <a:displayName>RoleManagementConfigurationType.defaultCollection</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16304,7 +16304,7 @@
                         <a:displayName>CleanupPoliciesType.objectResults</a:displayName>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.3</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16942,7 +16942,7 @@
                     <xsd:appinfo>
                         <a:removed>true</a:removed>
                         <a:deprecatedSince>4.2</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

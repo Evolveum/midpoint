@@ -178,7 +178,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:removed>true</a:removed>
-                <a:plannedRemoval>5.0</a:plannedRemoval>
+                <a:removedSince>4.8</a:removedSince>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

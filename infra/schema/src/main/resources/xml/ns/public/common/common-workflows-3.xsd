@@ -346,6 +346,10 @@
                         Approvers that are expected to be part of this stage.
                         (Some might be "for sure" and some might be "expected", but currently we do not distinguish between these.)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionPreview" type="c:ApprovalStageExecutionPreviewType" minOccurs="0">
@@ -418,7 +422,7 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:removed>true</a:removed>
-                <a:plannedRemoval>5.0</a:plannedRemoval>
+                <a:removedSince>4.8</a:removedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -654,7 +658,7 @@
                         <a:displayName>WfConfigurationType.useLegacyApproversSpecification</a:displayName>
                         <a:displayOrder>120</a:displayOrder>
                         <a:removed>true</a:removed>
-                        <a:plannedRemoval>5.0</a:plannedRemoval>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
