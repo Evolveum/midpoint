@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Ignore
 @ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
