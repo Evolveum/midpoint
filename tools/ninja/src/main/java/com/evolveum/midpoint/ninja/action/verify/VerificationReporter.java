@@ -64,6 +64,8 @@ public class VerificationReporter {
     private void init() {
         validator = new ObjectUpgradeValidator(prismContext);
 
+        validator.setWarnPlannedRemovalVersion(options.getPlannedRemovalVersion());
+
         List<VerifyOptions.VerificationCategory> categories = options.getVerificationCategories();
         if (categories.isEmpty()) {
             validator.showAllWarnings();
@@ -120,14 +122,13 @@ public class VerificationReporter {
     public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
         UpgradeValidationResult result = validator.validate((PrismObject) object);
 
-        for (UpgradeValidationItem item :result.getItems()) {
-            if (item.getPriority() == null){
+        for (UpgradeValidationItem item : result.getItems()) {
+            if (item.getPriority() == null) {
                 continue;
             }
 
             this.result.incrementPriorityItemCount(item.getPriority());
         }
-
 
         switch (options.getReportStyle()) {
             case PLAIN:

@@ -60,6 +60,7 @@ public class VerifyOptions extends ExportOptions {
     public static final String P_CONTINUE_VERIFICATION_ON_ERROR = "--continue-verification-on-error";
 
     public static final String P_FILES = "--files";
+    public static final String P_PLANNED_REMOVAL_VERSION = "--planned-removal-version";
 
     @Parameter(names = { P_VERIFICATION_CATEGORY_LONG }, descriptionKey = "verify.verificationCategory",
             converter = VerificationCategoryConverter.class, validateWith = VerificationCategoryConverter.class,
@@ -75,6 +76,9 @@ public class VerifyOptions extends ExportOptions {
 
     @Parameter(names = { P_FILES }, descriptionKey = "verify.files", variableArity = true)
     private List<File> files = new ArrayList<>();
+
+    @Parameter(names = { P_PLANNED_REMOVAL_VERSION }, descriptionKey = "verify.plannedRemovalVersion")
+    private String plannedRemovalVersion;
 
     public List<VerificationCategory> getVerificationCategories() {
         return verificationCategories;
@@ -111,5 +115,13 @@ public class VerifyOptions extends ExportOptions {
 
     public void setFiles(List<File> files) {
         this.files = files;
+    }
+
+    public String getPlannedRemovalVersion() {
+        return plannedRemovalVersion;
+    }
+
+    public void setPlannedRemovalVersion(String plannedRemovalVersion) {
+        this.plannedRemovalVersion = plannedRemovalVersion;
     }
 }
