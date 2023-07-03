@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Ignore
 @ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
