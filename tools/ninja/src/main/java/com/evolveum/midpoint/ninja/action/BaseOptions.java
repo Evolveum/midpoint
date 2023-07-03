@@ -34,6 +34,9 @@ public class BaseOptions {
     public static final String P_VERSION = "-V";
     public static final String P_VERSION_LONG = "--version";
 
+    public static final String P_BATCH_MODE = "-B";
+    public static final String P_BATCH_MODE_LONG= "--batch-mode";
+
     @Parameter(names = { P_HELP, P_HELP_LONG }, help = true, descriptionKey = "base.help")
     private boolean help = false;
 
@@ -51,6 +54,10 @@ public class BaseOptions {
 
     @ParametersDelegate
     private PolyStringNormalizerOptions polyStringNormalizerOptions = new PolyStringNormalizerOptions();
+
+    // todo implement support for this
+    @Parameter(names = { P_BATCH_MODE, P_BATCH_MODE_LONG }, descriptionKey = "base.batchMode")
+    private boolean batchMode = false;
 
     public boolean isHelp() {
         return help;
@@ -98,5 +105,13 @@ public class BaseOptions {
 
     public void setPolyStringNormalizerOptions(PolyStringNormalizerOptions polyStringNormalizerOptions) {
         this.polyStringNormalizerOptions = polyStringNormalizerOptions;
+    }
+
+    public boolean isBatchMode() {
+        return batchMode;
+    }
+
+    public void setBatchMode(boolean batchMode) {
+        this.batchMode = batchMode;
     }
 }
