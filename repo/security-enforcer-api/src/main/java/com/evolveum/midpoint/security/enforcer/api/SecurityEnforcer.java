@@ -31,7 +31,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -52,7 +51,6 @@ public interface SecurityEnforcer {
             @Nullable AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params,
             @NotNull Options options,
-            @Nullable Consumer<Authorization> applicableAutzConsumer,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
@@ -77,7 +75,7 @@ public interface SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         var decision = decideAccess(
-                getMidPointPrincipal(), operationUrl, phase, params, options, null, task, result);
+                getMidPointPrincipal(), operationUrl, phase, params, options, task, result);
         return decision == AccessDecision.ALLOW;
     }
 
@@ -115,7 +113,7 @@ public interface SecurityEnforcer {
         AccessDecision finalDecision = AccessDecision.DEFAULT;
         for (String operationUrl : operationUrls) {
             AccessDecision decision = decideAccess(
-                    principal, operationUrl, null, params, Options.create(), null, task, result);
+                    principal, operationUrl, null, params, Options.create(), task, result);
             switch (decision) {
                 case DENY -> { return AccessDecision.DENY; }
                 case ALLOW -> finalDecision = AccessDecision.ALLOW;
@@ -188,7 +186,6 @@ public interface SecurityEnforcer {
         authorize(operationUrl, null, AuthorizationParameters.EMPTY, task, result);
     }
 
-    @Experimental
     default void authorizeAll(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         authorize(AuthorizationConstants.AUTZ_ALL_URL, task, result);
@@ -249,7 +246,7 @@ public interface SecurityEnforcer {
     /**
      * Returns a filter that covers all the objects for which the principal is authorized to apply `operationUrls`.
      *
-     * The `searchResultType` parameter defines the class of the object for which should be the returned filter applicable.
+     * The `filterType` parameter defines the class of the object for which should be the returned filter applicable.
      *
      * When the search is considered, if this method returns {@link NoneFilter} then no search should be done.
      * The principal is not authorized for that operation at all.
@@ -257,31 +254,19 @@ public interface SecurityEnforcer {
      * It may return null in case that the original filter was also null.
      *
      * @param limitAuthorizationAction only consider authorizations that are not limited with respect to this action.
-     * If null then all authorizations are considered.
+     * If `null` then all authorizations are considered.
      */
     <T> @Nullable ObjectFilter preProcessObjectFilter(
             @Nullable MidPointPrincipal principal,
-            String[] operationUrls,
-            AuthorizationPhaseType phase,
-            Class<T> searchResultType,
+            @NotNull String[] operationUrls,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull Class<T> filterType,
             @Nullable ObjectFilter origFilter,
-            String limitAuthorizationAction,
-            List<OrderConstraintsType> paramOrderConstraints,
+            @Nullable String limitAuthorizationAction,
+            @NotNull List<OrderConstraintsType> paramOrderConstraints,
             @NotNull Options options,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
-
-    /** Will be removed. */
-    <T extends ObjectType> boolean canSearch(
-            String[] operationUrls,
-            AuthorizationPhaseType phase,
-            Class<T> searchResultType,
-            boolean includeSpecial,
-            ObjectFilter filter,
-            Task task,
-            OperationResult result)
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
@@ -353,10 +338,11 @@ public interface SecurityEnforcer {
     record Options(
             @Nullable OwnerResolver customOwnerResolver,
             @Nullable LogCollector logCollector,
+            @Nullable Consumer<Authorization> applicableAutzConsumer,
             boolean failOnNoAccess) {
 
         public static Options create() {
-            return new Options(null, null, true);
+            return new Options(null, null, null, true);
         }
 
         /**
@@ -364,16 +350,22 @@ public interface SecurityEnforcer {
          * If not specified, a default resolver (based on a {@link MidPointPrincipalManager}) is used.
          */
         public @NotNull Options withCustomOwnerResolver(OwnerResolver resolver) {
-            return new Options(resolver, logCollector, failOnNoAccess);
+            return new Options(resolver, logCollector, applicableAutzConsumer, failOnNoAccess);
         }
 
+        /** Sends all the tracing messages also to the specified collector (besides logging them as usual). */
         public @NotNull Options withLogCollector(LogCollector logCollector) {
-            return new Options(customOwnerResolver, logCollector, failOnNoAccess);
+            return new Options(customOwnerResolver, logCollector, applicableAutzConsumer, failOnNoAccess);
+        }
+
+        /** Sends all the applicable authorizations to the specified consumer. */
+        public @NotNull Options withApplicableAutzConsumer(Consumer<Authorization> applicableAutzConsumer) {
+            return new Options(customOwnerResolver, logCollector, applicableAutzConsumer, failOnNoAccess);
         }
 
         // ignored for now
         public @NotNull Options withNoFailOnNoAccess() {
-            return new Options(customOwnerResolver, logCollector, false);
+            return new Options(customOwnerResolver, logCollector, applicableAutzConsumer, false);
         }
     }
 

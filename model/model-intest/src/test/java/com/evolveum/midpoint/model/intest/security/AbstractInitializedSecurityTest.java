@@ -887,43 +887,6 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         });
     }
 
-    protected void assertCanSearchRoleMemberUsers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertCanSearch("Search user members of role " + roleOid, UserType.class,
-                createMembersQuery(UserType.class, roleOid), expectedResult);
-    }
-
-    protected void assertCanSearchRoleMembers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertCanSearch("Search all members of role " + roleOid, FocusType.class,
-                createMembersQuery(FocusType.class, roleOid), expectedResult);
-    }
-
-    protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(
-            String message, Class<T> resultType, ObjectQuery query, boolean expectedResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        Task task = createPlainTask("assertCanSearch");
-        OperationResult result = task.getResult();
-        String opName = "canSearch(" + message + ")";
-        logAttempt(opName);
-
-        boolean decision = modelInteractionService.canSearch(resultType, (Class<O>) null, false, query, task, result);
-
-        assertSuccess(result);
-        if (expectedResult) {
-            if (decision) {
-                logAllow(opName);
-            } else {
-                failAllow(opName, null);
-            }
-        } else {
-            if (decision) {
-                failDeny(opName);
-            } else {
-                logDeny(opName);
-            }
-        }
-    }
-
     protected <O extends ObjectType> ObjectQuery createMembersQuery(Class<O> resultType, String roleOid) {
         return prismContext.queryFor(resultType).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
     }

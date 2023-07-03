@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -73,10 +74,6 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
@@ -600,18 +597,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
                 securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null,
-                searchResultType, origFilter, targetAuthorizationAction, null,
+                searchResultType, origFilter, targetAuthorizationAction, List.of(),
                 SecurityEnforcer.Options.create(), task, parentResult);
-    }
-
-    @Override
-    public <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType,
-            Class<O> objectType, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        return securityEnforcer.canSearch(
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, resultType, includeSpecial,
-                query.getFilter(), task, result);
     }
 
     @Override

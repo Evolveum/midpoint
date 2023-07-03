@@ -873,13 +873,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));
 
@@ -935,13 +928,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));
 
@@ -992,13 +978,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 2);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, true);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, true);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, true);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, true);
-        assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES.oid, true);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, true);
-
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));
         assertDeny("unassign uninteresting role from rum",
@@ -1042,13 +1021,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, true); // We can read roleMembershipRef from roles that are members of those roles
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, true);
-        assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, true);
 
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));
@@ -1094,13 +1066,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));
         assertDeny("unassign uninteresting role from rum",
@@ -1123,13 +1088,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // list approver role members, this is not allowed
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
         assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, true);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, true);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES.oid, false);
-        assertCanSearchRoleMembers(ROLE_APPROVER_UNASSIGN_ROLES.oid, false);
 
         assertAllow("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));

@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.nonStri
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
-import java.util.function.Consumer;
-
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,21 +36,17 @@ class EnforcerDecisionOperation extends EnforcerOperation {
 
     @NotNull final String operationUrl;
     @NotNull final AbstractAuthorizationParameters params;
-    @Nullable private final Consumer<Authorization> applicableAutzConsumer;
 
     EnforcerDecisionOperation(
             @NotNull String operationUrl,
             @NotNull AbstractAuthorizationParameters params,
-            @Nullable Consumer<Authorization> applicableAutzConsumer,
             @Nullable MidPointPrincipal principal,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
         super(principal, options, beans, task);
-
         this.operationUrl = operationUrl;
         this.params = params;
-        this.applicableAutzConsumer = applicableAutzConsumer;
     }
 
     @NotNull AccessDecision decideAccess(@Nullable AuthorizationPhaseType phase, OperationResult result)
@@ -97,8 +91,9 @@ class EnforcerDecisionOperation extends EnforcerOperation {
                 continue;
             }
 
-            if (applicableAutzConsumer != null) {
-                applicableAutzConsumer.accept(authorization);
+            var autzConsumer = options.applicableAutzConsumer();
+            if (autzConsumer != null) {
+                autzConsumer.accept(authorization);
             }
 
             // The authorization is applicable to this situation. Now we can process the decision.

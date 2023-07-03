@@ -44,6 +44,8 @@ class EnforcerOperation {
     /** {@link OwnerResolver} to be used during this operation. */
     @Nullable final OwnerResolver ownerResolver;
 
+    @NotNull final SecurityEnforcer.Options options;
+
     @NotNull final ProcessingTracer<AbstractTraceEvent> tracer;
 
     /** Useful Spring beans. */
@@ -62,6 +64,7 @@ class EnforcerOperation {
         var customOwnerResolver = options.customOwnerResolver();
         this.ownerResolver =
                 customOwnerResolver != null ? customOwnerResolver : beans.securityContextManager.getUserProfileService();
+        this.options = options;
         this.b = beans;
         this.task = task;
     }

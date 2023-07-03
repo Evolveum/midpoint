@@ -50,7 +50,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     @NotNull private final String[] operationUrls;
     @NotNull final Class<T> filterType;
     @NotNull final AuthorizationSelectorExtractor selectorExtractor;
-    private final boolean includeSpecial;
     final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
     private final List<OrderConstraintsType> paramOrderConstraints;
@@ -61,7 +60,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             @NotNull String[] operationUrls,
             @NotNull Class<T> filterType,
             @NotNull AuthorizationSelectorExtractor selectorExtractor,
-            boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
@@ -75,7 +73,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         this.operationUrls = operationUrls;
         this.filterType = filterType;
         this.selectorExtractor = selectorExtractor;
-        this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
         this.limitAuthorizationAction = limitAuthorizationAction;
         this.paramOrderConstraints = paramOrderConstraints;
@@ -153,7 +150,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         authorization,
                         selectorExtractor.getSelectors(authorization),
                         selectorExtractor.getSelectorLabel(),
-                        includeSpecial,
                         EnforcerFilterOperation.this,
                         result);
 

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
@@ -135,13 +134,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @Nullable AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params,
             @NotNull Options options,
-            @Nullable Consumer<Authorization> applicableAutzConsumer,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.decideAccess(
-                principal, operationUrl, phase, params, options, applicableAutzConsumer, task, result);
+                principal, operationUrl, phase, params, options, task, result);
     }
 
     @Override
@@ -334,23 +332,21 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public @Nullable <T> ObjectFilter preProcessObjectFilter(
-            @Nullable MidPointPrincipal principal, String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType,
-            @Nullable ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints,
-            @NotNull Options options, Task task, OperationResult result)
+            @Nullable MidPointPrincipal principal,
+            @NotNull String @NotNull [] operationUrls,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull Class<T> filterType,
+            @Nullable ObjectFilter origFilter,
+            @Nullable String limitAuthorizationAction,
+            @NotNull List<OrderConstraintsType> paramOrderConstraints,
+            @NotNull Options options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                principal, operationUrls, phase, searchResultType,
+                principal, operationUrls, phase, filterType,
                 origFilter, limitAuthorizationAction, paramOrderConstraints, options, task, result);
-    }
-
-    @Override
-    public <T extends ObjectType> boolean canSearch(String[] operationUrls,
-            AuthorizationPhaseType phase, Class<T> objectType, boolean includeSpecial, ObjectFilter filter,
-            Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        return securityEnforcer.canSearch(operationUrls, phase, objectType, includeSpecial, filter, task, result);
     }
 
     @Override
