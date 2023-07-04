@@ -81,6 +81,9 @@ public class VerificationReporter {
                     case PLANNED_REMOVAL:
                         validator.setWarnPlannedRemoval(true);
                         break;
+                    case REMOVED:
+                        validator.setWarnRemoved(true);
+                        break;
                     default:
                         throw new IllegalArgumentException("Unknown category " + category);
                 }

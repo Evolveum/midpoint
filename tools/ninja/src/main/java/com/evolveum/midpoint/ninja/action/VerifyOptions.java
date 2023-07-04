@@ -41,6 +41,8 @@ public class VerifyOptions extends ExportOptions {
 
         DEPRECATED,
 
+        REMOVED,
+
         PLANNED_REMOVAL,
 
         INCORRECT_OIDS
