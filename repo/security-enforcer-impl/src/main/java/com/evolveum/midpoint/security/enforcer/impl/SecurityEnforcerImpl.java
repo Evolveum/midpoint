@@ -29,7 +29,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -333,28 +332,35 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public <O extends ObjectType> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints,
+            @NotNull ObjectSecurityConstraints securityConstraints,
             @NotNull ObjectDelta<O> delta,
             PrismObject<O> currentObject,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            ItemPath itemPath) {
-        return new ItemDecisionOperation()
-                .onSecurityConstraints(securityConstraints, delta, currentObject, operationUrl, phase, itemPath);
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            @NotNull ItemPath itemPath) {
+        return new ItemDecisionOperation(createSimpleTracer())
+                .determineItemDecision(securityConstraints, delta, currentObject, operationUrl, phase, itemPath);
     }
 
     @Override
-    public <C extends Containerable> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints,
-            PrismContainerValue<C> containerValue,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            @Nullable ItemPath itemPath,
-            PlusMinusZero plusMinusZero,
-            String decisionContextDesc) {
-        boolean removingContainer = plusMinusZero == PlusMinusZero.MINUS;
-        return new ItemDecisionOperation()
-                .onSecurityConstraints2(
-                        securityConstraints, containerValue, removingContainer, operationUrl, phase, itemPath, decisionContextDesc);
+    public <C extends Containerable> AccessDecision determineItemValueDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull PrismContainerValue<C> containerValue,
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            boolean consideringCreation,
+            @NotNull String decisionContextDesc) {
+        return new ItemDecisionOperation(createSimpleTracer())
+                .determineItemValueDecision(
+                        securityConstraints, containerValue, !consideringCreation, operationUrl, phase, decisionContextDesc);
+    }
+
+    /** Temporary implementation. */
+    private ItemDecisionOperation.SimpleTracer createSimpleTracer() {
+        if (LOGGER.isTraceEnabled()) {
+            return (message, params) -> LOGGER.trace(message, params);
+        } else {
+            return (message, params) -> {};
+        }
     }
 }

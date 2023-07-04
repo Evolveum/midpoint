@@ -52,19 +52,19 @@ public class LogBasedEnforcerAndSelectorTracer implements
 
     @Override
     public void trace(@NotNull AbstractTraceEvent event) {
-        boolean additionalTracingAllowed;
+        boolean sendToLogCollectorIfDefined;
         String prefix;
         if (event instanceof SelectorTraceEvent selectorEvent) {
             prefix = getSelectorEventPrefix(selectorEvent);
-            additionalTracingAllowed = logCollector != null && logCollector.isSelectorTracingEnabled();
+            sendToLogCollectorIfDefined = logCollector != null && logCollector.isSelectorTracingEnabled();
         } else if (event instanceof SecurityTraceEvent securityEvent) {
             prefix = getSecurityEventPrefix(securityEvent);
-            additionalTracingAllowed = true;
+            sendToLogCollectorIfDefined = true;
         } else {
             throw new IllegalStateException("Unsupported trace event type: " + event);
         }
 
-        logEvent(event, prefix, additionalTracingAllowed);
+        logEvent(event, prefix, sendToLogCollectorIfDefined);
     }
 
     private static String getSelectorEventPrefix(@NotNull SelectorTraceEvent event) {
@@ -106,21 +106,21 @@ public class LogBasedEnforcerAndSelectorTracer implements
         return prefix;
     }
 
-    private void logEvent(@NotNull AbstractTraceEvent event, String prefix, boolean additionalTracingAllowed) {
+    private void logEvent(@NotNull AbstractTraceEvent event, String prefix, boolean sendToLogCollectorIfDefined) {
         var record = event.defaultTraceRecord();
         var nextLines = record.nextLines();
         if (nextLines == null) {
             if (traceEnabled) {
                 LOGGER.trace("{} {}", prefix, record.firstLine());
             }
-            if (logCollector != null && additionalTracingAllowed) {
+            if (logCollector != null && sendToLogCollectorIfDefined) {
                 logCollector.log(prefix + " " + record.firstLine());
             }
         } else {
             if (traceEnabled) {
                 LOGGER.trace("{} {}\n{}", prefix, record.firstLine(), nextLines);
             }
-            if (logCollector != null && additionalTracingAllowed) {
+            if (logCollector != null && sendToLogCollectorIfDefined) {
                 logCollector.log(
                         prefix + " " + record.firstLine() + "\n"
                                 + applyPrefixToEachLine(prefix + " ", nextLines));

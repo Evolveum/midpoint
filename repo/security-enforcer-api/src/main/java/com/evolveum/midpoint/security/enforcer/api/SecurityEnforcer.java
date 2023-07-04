@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.context.SecurityContext;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -307,6 +306,7 @@ public interface SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
+    /** TODO describe */
     <F extends FocusType> MidPointPrincipal createDonorPrincipal(
             MidPointPrincipal attorneyPrincipal,
             String attorneyAuthorizationAction,
@@ -316,24 +316,35 @@ public interface SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 
-    /** TODO describe */
+    /**
+     * Determines the access to given item (e.g. `assignment`) of given object. Uses pre-computed security constraints.
+     *
+     * The `phase` is marked as not null, because this is how it is currently used.
+     * This is to simplify the code. We can make it nullable in the future, if needed.
+     *
+     * TODO what is the role of `currentObject` w.r.t. `securityConstraints`?
+     */
     <O extends ObjectType> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints,
+            @NotNull ObjectSecurityConstraints securityConstraints,
             @NotNull ObjectDelta<O> delta,
             PrismObject<O> currentObject,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            ItemPath itemPath);
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            @NotNull ItemPath itemPath);
 
-    /** TODO describe */
-    <C extends Containerable> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints,
-            PrismContainerValue<C> containerValue,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            @Nullable ItemPath itemPath,
-            PlusMinusZero plusMinusZero,
-            String decisionContextDesc);
+    /**
+     * Determines the access to given value (`containerValue`) carrying e.g. an assignment. It is assumed that the value
+     * is part of the object, so it has its own "item path".
+     *
+     * Operation URL and phase are used to determine the access from `securityConstraints`.
+     */
+    <C extends Containerable> AccessDecision determineItemValueDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull PrismContainerValue<C> containerValue,
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            boolean consideringCreation,
+            @NotNull String decisionContextDesc);
 
     record Options(
             @Nullable OwnerResolver customOwnerResolver,
@@ -369,11 +380,12 @@ public interface SecurityEnforcer {
         }
     }
 
-    /** TEMPORARY */
+    /** A sink for authorization/selector evaluation messages. Used e.g. for the authorization playground. */
     interface LogCollector {
 
         void log(String message);
 
+        /** Returns `true` if the lower-level tracing (at selector level) is enabled. */
         boolean isSelectorTracingEnabled();
     }
 }

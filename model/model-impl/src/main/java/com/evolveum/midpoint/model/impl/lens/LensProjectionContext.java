@@ -1364,7 +1364,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Override
-    public String getHumanReadableName() {
+    public @NotNull String getHumanReadableName() {
         if (humanReadableName == null) {
             StringBuilder sb = new StringBuilder();
             sb.append("account(");
