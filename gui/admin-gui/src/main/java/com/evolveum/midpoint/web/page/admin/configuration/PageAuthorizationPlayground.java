@@ -132,7 +132,7 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         });
 
         mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
-        
+
         var additionalAuthorizationsEditor = new AceEditor(ID_ADDITIONAL_AUTHORIZATIONS, additionalAuthorizationsModel);
         additionalAuthorizationsEditor.setHeight(400);
         additionalAuthorizationsEditor.setResizeToMaxHeight(false);

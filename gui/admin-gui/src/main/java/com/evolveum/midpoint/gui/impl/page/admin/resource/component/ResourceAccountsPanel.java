@@ -13,6 +13,8 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.StringResourceModel;
+
 @PanelType(name = "resourceAccounts")
 @PanelInstance(
         identifier = "resourceAccounts",
@@ -25,10 +27,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 order = 50
         )
 )
-public class ResourceAccountsPanel extends ResourceContentPanel {
+public class ResourceAccountsPanel extends ResourceObjectsPanel {
 
 
     public ResourceAccountsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
-        super(id, ShadowKindType.ACCOUNT, model, config);
+        super(id, model, config);
+    }
+
+    @Override
+    protected ShadowKindType getKind() {
+        return ShadowKindType.ACCOUNT;
+    }
+
+    @Override
+    protected StringResourceModel getLabelModel() {
+        return getPageBase().createStringResource("PageResource.tab.content.account");
     }
 }

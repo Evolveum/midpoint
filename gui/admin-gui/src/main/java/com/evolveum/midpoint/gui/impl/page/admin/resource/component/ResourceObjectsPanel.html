@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+<div class="d-flex gap-3 m-2">
+    <h3 wicket:id="title" />
+    <div wicket:id="objectType"/>
+    <div>
+        <button wicket:id="configuration" class="btn  btn-sm btn-primary"/>
+    </div>
+    <div wicket:id="showStatistics" class="ml-auto"/>
+</div>
+
+    <div class="col-12">
+        <canvas wicket:id="statistics" width="400" height="80"></canvas>
+    </div>
+
+    <div wicket:id="table"/>
+</wicket:panel>
+</html>
