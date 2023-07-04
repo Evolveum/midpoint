@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -20,14 +19,8 @@ public class PropagationWorkDefinition extends AbstractWorkDefinition {
     private final String resourceOid;
 
     PropagationWorkDefinition(WorkDefinitionSource source) {
-        ObjectReferenceType resourceRef;
-        if (source instanceof LegacyWorkDefinitionSource) {
-            resourceRef = ((LegacyWorkDefinitionSource) source).getObjectRef();
-        } else {
-            resourceRef =
-                    ((PropagationWorkDefinitionType)
-                            ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition()).getResourceRef();
-        }
+        ObjectReferenceType resourceRef = ((PropagationWorkDefinitionType)
+                ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition()).getResourceRef();
         resourceOid = resourceRef != null ? resourceRef.getOid() : null;
     }
 

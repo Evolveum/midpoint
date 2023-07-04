@@ -62,9 +62,6 @@ public class ReconciliationLauncher {
         result.addParam("resource", resource);
         result.addParam("objectclass", objectclass);
 
-        // Set handler URI so we will be called back
-        task.setHandlerUri(ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI);
-
         PolyStringType polyString = new PolyStringType("Reconciling " + resource.getName());
         task.setName(polyString);
 

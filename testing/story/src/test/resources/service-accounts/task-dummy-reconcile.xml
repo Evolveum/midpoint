@@ -8,28 +8,25 @@
 
 <!--Reconciliation task definition for dummy resource -->
 
-<task oid="10335c7c-838f-11e8-93a6-4b1dd0ab58e4"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
-    <!-- Resource printable name -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="10335c7c-838f-11e8-93a6-4b1dd0ab58e4">
     <name>Reconciliation: Dummy</name>
-
-    <extension>
-        <syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
-    </extension>
-
     <taskIdentifier>10335c7c-838f-11e8-93a6-4b1dd0ab58e4</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="0069ac14-8377-11e8-b404-5b5a1a8af0db" type="ResourceType"/>
     <schedule>
         <interval>3</interval>
     </schedule>
-
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="0069ac14-8377-11e8-b404-5b5a1a8af0db"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

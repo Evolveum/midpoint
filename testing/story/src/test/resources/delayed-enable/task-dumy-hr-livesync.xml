@@ -6,19 +6,21 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="d0341fbe-cc84-11e8-8af1-1329734dd152"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="d0341fbe-cc84-11e8-8af1-1329734dd152">
     <name>Live Sync: Dummy HR Resource</name>
-
     <taskIdentifier>d0341fbe-cc84-11e8-8af1-1329734dd152</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>closed</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="eed4209c-cc5f-11e8-95de-a7d866db5e67" type="c:ResourceType"/>
-
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="eed4209c-cc5f-11e8-95de-a7d866db5e67"/>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
 </task>

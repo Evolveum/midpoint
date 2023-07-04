@@ -10,11 +10,9 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,7 +25,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 public class TestParseTaskBulkAction2 extends AbstractSchemaTest {
 
-    public static final File TASK_FILE = new File("src/test/resources/common/task-bulk-action-2.xml");
+    private static final File TASK_FILE = new File("src/test/resources/common/task-bulk-action-2.xml");
 
     @Test
     public void testParseTaskFileToXNode() throws Exception {
@@ -59,8 +57,11 @@ public class TestParseTaskBulkAction2 extends AbstractSchemaTest {
 
         task.checkConsistence();
 
-        Item executeScriptItem = task.findExtensionItem(new QName("executeScript"));
-        ExecuteScriptType executeScript = (ExecuteScriptType) executeScriptItem.getRealValue();
+        ExecuteScriptType executeScript = task.asObjectable()
+                .getActivity()
+                .getWork()
+                .getNonIterativeScripting()
+                .getScriptExecutionRequest();
         Object o = executeScript.getInput().getValue().get(0);
         System.out.println(o);
         assertTrue("Raw value is not parsed", o instanceof RawType && ((RawType) o).getAlreadyParsedValue() != null);
@@ -108,8 +109,11 @@ public class TestParseTaskBulkAction2 extends AbstractSchemaTest {
 
         PrismAsserts.assertEquivalent("Task re-parsed equivalence", task, reparsedTask);
 
-        Item executeScriptItem = reparsedTask.findExtensionItem(new QName("executeScript"));
-        ExecuteScriptType executeScript = (ExecuteScriptType) executeScriptItem.getRealValue();
+        ExecuteScriptType executeScript = reparsedTask.asObjectable()
+                .getActivity()
+                .getWork()
+                .getNonIterativeScripting()
+                .getScriptExecutionRequest();
         Object o = executeScript.getInput().getValue().get(0);
         System.out.println(o);
         assertTrue("Raw value is not parsed", o instanceof RawType && ((RawType) o).getAlreadyParsedValue() != null);

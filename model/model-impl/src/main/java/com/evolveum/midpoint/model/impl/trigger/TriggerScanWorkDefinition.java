@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
@@ -24,14 +23,9 @@ public class TriggerScanWorkDefinition extends AbstractWorkDefinition implements
     @NotNull private final ObjectSetType objects;
 
     TriggerScanWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-            objects = ObjectSetUtil.fromLegacySource(legacySource);
-        } else {
-            TriggerScanWorkDefinitionType typedDefinition = (TriggerScanWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-        }
+        TriggerScanWorkDefinitionType typedDefinition = (TriggerScanWorkDefinitionType)
+                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
     }
 
     @Override

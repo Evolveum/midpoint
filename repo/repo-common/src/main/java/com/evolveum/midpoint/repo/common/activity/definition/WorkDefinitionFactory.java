@@ -7,29 +7,28 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
- * Creates {@link WorkDefinition} instances from their serialized form,
- * either "new" (activity definition bean) or "legacy" (task extension).
+ * Creates {@link WorkDefinition} instances from their serialized (bean) form. Since 4.8 it is limited to the
+ * "new" format, i.e., activity definition bean. The legacy style (task extension) is no longer supported for activity-based
+ * tasks.
  */
 @Component
 public class WorkDefinitionFactory {
@@ -37,25 +36,16 @@ public class WorkDefinitionFactory {
     @Autowired ActivityBasedTaskHandler activityBasedTaskHandler;
 
     private final Map<QName, WorkDefinitionSupplier> byTypeName = new ConcurrentHashMap<>();
-    private final Map<String, WorkDefinitionSupplier> byLegacyHandlerUri = new ConcurrentHashMap<>();
 
     /**
      * Takes care of registering legacy URI in the generic task handler as well.
      */
-    public void registerSupplier(QName typeName, String legacyHandlerUri, WorkDefinitionSupplier supplier) {
+    public void registerSupplier(QName typeName, WorkDefinitionSupplier supplier) {
         byTypeName.put(typeName, supplier);
-        if (legacyHandlerUri != null) {
-            byLegacyHandlerUri.put(legacyHandlerUri, supplier);
-            activityBasedTaskHandler.registerLegacyHandlerUri(legacyHandlerUri);
-        }
     }
 
-    public void unregisterSupplier(QName typeName, String legacyHandlerUri) {
+    public void unregisterSupplier(QName typeName) {
         byTypeName.remove(typeName);
-        if (legacyHandlerUri != null) {
-            byLegacyHandlerUri.remove(legacyHandlerUri);
-            activityBasedTaskHandler.unregisterLegacyHandlerUri(legacyHandlerUri);
-        }
     }
 
     WorkDefinition getWorkFromBean(WorkDefinitionsType definitions) throws SchemaException, ConfigurationException {
@@ -76,22 +66,6 @@ public class WorkDefinitionFactory {
                 byTypeName.get(typeName),
                 () -> new IllegalStateException("No work definition supplier for " + typeName));
         return supplier.provide(definitionWrapper);
-    }
-
-    WorkDefinition getWorkFromTaskLegacy(Task task) throws SchemaException, ConfigurationException {
-        String handlerUri = task.getHandlerUri();
-        if (handlerUri == null) {
-            return null;
-        }
-
-        WorkDefinitionSupplier supplier = byLegacyHandlerUri.get(handlerUri);
-        if (supplier == null) {
-            return null;
-        }
-
-        return supplier.provide(
-                LegacyWorkDefinitionSource.create(
-                        task.getRawTaskObjectClonedIfNecessary().asObjectable()));
     }
 
     @FunctionalInterface

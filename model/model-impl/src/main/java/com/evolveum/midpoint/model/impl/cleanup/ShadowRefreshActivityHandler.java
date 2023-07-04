@@ -14,7 +14,6 @@ import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
@@ -23,7 +22,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificat
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
@@ -41,20 +39,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ShadowRefreshActivityHandler
         extends ModelActivityHandler<ShadowRefreshActivityHandler.MyWorkDefinition, ShadowRefreshActivityHandler> {
 
-    public static final String LEGACY_HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, MyWorkDefinition.class);
+                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, MyWorkDefinition.class);
     }
 
     @Override
@@ -134,14 +131,9 @@ public class ShadowRefreshActivityHandler
         @NotNull private final ObjectSetType objects;
 
         MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-                objects = ObjectSetUtil.fromLegacySource(legacySource);
-            } else {
-                ShadowRefreshWorkDefinitionType typedDefinition = (ShadowRefreshWorkDefinitionType)
-                        ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
-            }
+            ShadowRefreshWorkDefinitionType typedDefinition = (ShadowRefreshWorkDefinitionType)
+                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
             ObjectSetUtil.assumeObjectType(objects, ShadowType.COMPLEX_TYPE);
         }
 

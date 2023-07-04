@@ -66,7 +66,7 @@ public class CustomCompositeActivityHandler implements ActivityHandler<Composite
                 .sorted(Comparator.comparing(
                         ActivityDefinitionType::getOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(definitionBean -> ActivityDefinition.createChild(definitionBean, workDefinitionFactory))
+                .map(definitionBean -> ActivityDefinition.createChild(definitionBean))
                 .map(definition -> createChildActivity(definition, parent))
                 .collect(Collectors.toCollection(ArrayList::new));
     }

@@ -6,51 +6,54 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="44444444-4444-4444-4444-000000001111" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="44444444-4444-4444-4444-000000001111">
     <name>Task2</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                        >
-                <s:search>
-                    <s:type>c:RoleType</s:type>
-                    <s:searchFilter>
-                        <q:equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
-                            <q:path>c:name</q:path>
-                            <q:value>AAAAA</q:value>
-                        </q:equal>
-                    </s:searchFilter>
-                    <s:action>
-                        <s:type>log</s:type>
-                    </s:action>
-                </s:search>
-                <s:sequence>
-                    <s:action>
-                        <s:type>delete</s:type>
-                    </s:action>
-                    <s:action>
-                        <s:type>assign</s:type>
-                        <s:parameter>
-                            <s:name>role</s:name>
-                            <c:value>rome555c-7797-11e2-94a6-001e8c717e5b</c:value>
-                        </s:parameter>
-                    </s:action>
-                    <s:search>
-                        <s:type>UserType</s:type>
-                    </s:search>
-                    <scriptingExpression xmlns="" xsi:type="s:SearchExpressionType">
-                        <s:type>FocusType</s:type>
-                    </scriptingExpression>
-                </s:sequence>
-            </s:pipeline>
-        </scext:executeScript>
-    </extension>
     <taskIdentifier>44444444-4444-4444-4444-000000001111</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionState>runnable</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+    <activity>
+        <work>
+            <nonIterativeScripting>
+                <scriptExecutionRequest>
+                    <s:pipeline>
+                        <s:search>
+                            <s:type>c:RoleType</s:type>
+                            <s:searchFilter>
+                                <q:equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                                    <q:path>c:name</q:path>
+                                    <q:value>AAAAA</q:value>
+                                </q:equal>
+                            </s:searchFilter>
+                            <s:action>
+                                <s:type>log</s:type>
+                            </s:action>
+                        </s:search>
+                        <s:sequence>
+                            <s:action>
+                                <s:type>delete</s:type>
+                            </s:action>
+                            <s:action>
+                                <s:type>assign</s:type>
+                                <s:parameter>
+                                    <s:name>role</s:name>
+                                    <c:value>rome555c-7797-11e2-94a6-001e8c717e5b</c:value>
+                                </s:parameter>
+                            </s:action>
+                            <s:search>
+                                <s:type>UserType</s:type>
+                            </s:search>
+                            <scriptingExpression xmlns="" xsi:type="s:SearchExpressionType">
+                                <s:type>FocusType</s:type>
+                            </scriptingExpression>
+                        </s:sequence>
+                    </s:pipeline>
+                </scriptExecutionRequest>
+            </nonIterativeScripting>
+        </work>
+    </activity>
 </task>

@@ -153,15 +153,20 @@
     <xsd:element name="retryLiveSyncErrors" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
-               Indicates if the LiveSync retries non-handled errors in the next run. Handled-errors are always treated as success and never retried.
-               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry.
-               This is true by default.
+                Indicates if the LiveSync retries non-handled errors in the next run. Handled-errors are always treated as success and never retried.
+                Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry.
+                This is true by default.
+
+                DEPRECATED. Use controlFlow/errorHandling with the reaction of "ignore" instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>TaskExtension.retryLiveSyncErrors</a:displayName>
                 <a:displayOrder>801</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.8</a:deprecatedSince>
+                <a:plannedRemoval>5.0</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

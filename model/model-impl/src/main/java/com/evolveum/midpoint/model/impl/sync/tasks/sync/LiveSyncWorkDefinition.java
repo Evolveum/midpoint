@@ -7,17 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
@@ -31,24 +27,13 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
     private final boolean updateLiveSyncTokenInPreviewMode;
 
     LiveSyncWorkDefinition(WorkDefinitionSource source) {
-        Boolean updateLiveSyncTokenInDryRunRaw;
-        if (source instanceof LegacyWorkDefinitionSource legacy) {
-            resourceObjects = ResourceObjectSetUtil.fromLegacySource(legacy);
-            batchSize = legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE, Integer.class);
-            updateLiveSyncTokenInDryRunRaw =
-                    legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN,
-                            Boolean.class);
-            updateLiveSyncTokenInPreviewMode = false; // not supported here
-        } else {
-            LiveSyncWorkDefinitionType typedDefinition = (LiveSyncWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
-            batchSize = typedDefinition.getBatchSize();
-            updateLiveSyncTokenInDryRunRaw = typedDefinition.isUpdateLiveSyncTokenInDryRun();
-            updateLiveSyncTokenInPreviewMode = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInPreviewMode());
-        }
+        LiveSyncWorkDefinitionType typedDefinition = (LiveSyncWorkDefinitionType)
+                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
+        batchSize = typedDefinition.getBatchSize();
+        updateLiveSyncTokenInPreviewMode = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInPreviewMode());
         ResourceObjectSetUtil.removeQuery(resourceObjects);
-        updateLiveSyncTokenInDryRun = Boolean.TRUE.equals(updateLiveSyncTokenInDryRunRaw);
+        updateLiveSyncTokenInDryRun = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInDryRun());
     }
 
     @Override

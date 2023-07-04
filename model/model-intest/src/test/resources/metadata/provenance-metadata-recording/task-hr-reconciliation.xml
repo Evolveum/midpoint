@@ -6,26 +6,28 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="0c1f0434-6409-47b8-b7f5-2f44510385c2"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="0c1f0434-6409-47b8-b7f5-2f44510385c2">
     <name>task-hr-reconciliation</name>
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-    </extension>
-
     <taskIdentifier>0c1f0434-6409-47b8-b7f5-2f44510385c2</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9" type="c:ResourceType"/> <!-- resource-hr -->
     <schedule>
         <recurrence>recurring</recurrence> <!-- scheduled manually -->
     </schedule>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

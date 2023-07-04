@@ -4,18 +4,21 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="d3351dff-4c72-4985-8a9c-f8d46ffb328f">
+        oid="d3351dff-4c72-4985-8a9c-f8d46ffb328f">
     <name>delete</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:objectQuery/>
-        <mext:objectType>ReportDataType</mext:objectType>
-        <mext:optionRaw>true</mext:optionRaw>
-    </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType">
         <!-- administrator -->
     </ownerRef>
     <executionState>runnable</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3</handlerUri>
+    <activity>
+        <work>
+            <deletion>
+                <objects>
+                    <type>ReportDataType</type>
+                    <query/>
+                </objects>
+            </deletion>
+        </work>
+    </activity>
 </task>

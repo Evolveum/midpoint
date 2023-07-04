@@ -6,41 +6,38 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="91919191-76e0-59e2-86d6-3d4f02d3aadd"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="91919191-76e0-59e2-86d6-3d4f02d3aadd">
     <name>User Recompute: Herman (by expression)</name>
-
-    <extension>
-        <modelext:objectQuery>
-            <q:filter>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <expression>
-                        <script>
-                            <code>
-                                'herman'
-                            </code>
-                        </script>
-                    </expression>
-                </q:equal>
-            </q:filter>
-        </modelext:objectQuery>
-    </extension>
-
     <assignment>
-        <targetRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
+        <targetRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
     </assignment>
-    <archetypeRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
-    <roleMembershipRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
-
+    <archetypeRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
+    <roleMembershipRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
     <!-- No task identifier. It will be generated during import -->
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <query>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <script>
+                                        <code>
+                                            'herman'
+                                        </code>
+                                    </script>
+                                </expression>
+                            </q:equal>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
 </task>

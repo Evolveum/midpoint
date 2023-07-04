@@ -6,29 +6,28 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="10000000-0000-0000-5555-555500000001"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="10000000-0000-0000-5555-555500000001">
     <name>Live Sync: Dummy HR Resource</name>
-
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:kind>generic</mext:kind>
-        <mext:intent>ou</mext:intent>
-        <mext:objectclass>ri:CustomprivilegeObjectClass</mext:objectclass>
-    </extension>
-
     <taskIdentifier>10000000-0000-0000-5555-555500000001</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000001" type="c:ResourceType"/>
     <schedule>
         <interval>1</interval>
     </schedule>
-
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000001"/>
+                    <kind>generic</kind>
+                    <intent>ou</intent>
+                    <objectclass>ri:CustomprivilegeObjectClass</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
 </task>

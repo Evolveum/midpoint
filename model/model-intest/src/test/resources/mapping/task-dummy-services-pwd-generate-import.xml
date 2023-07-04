@@ -6,23 +6,25 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="7a987537-9e87-47db-a62c-a7ba25a8fee5"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="7a987537-9e87-47db-a62c-a7ba25a8fee5">
     <name>Import from services-inbound-pwd-generate</name>
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-    </extension>
-
     <taskIdentifier>7a987537-9e87-47db-a62c-a7ba25a8fee5</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="ae149e1e-5992-4557-829e-8dfc069276b3" type="c:ResourceType"/>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="ae149e1e-5992-4557-829e-8dfc069276b3"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
 </task>

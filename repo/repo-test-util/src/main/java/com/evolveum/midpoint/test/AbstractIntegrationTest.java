@@ -3432,14 +3432,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         taskManager.unsetGlobalTracingOverride();
     }
 
-    protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads, boolean legacy) {
-        if (legacy) {
-            return workerThreadsCustomizerLegacy(threads);
-        } else {
-            return rootActivityWorkerThreadsCustomizer(threads);
-        }
-    }
-
     /** Implants worker threads to the root activity definition. */
     protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
@@ -3498,23 +3490,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return object ->
                 Arrays.stream(customizers)
                         .forEachOrdered(customizer -> customizer.accept(object));
-    }
-
-    private Consumer<PrismObject<TaskType>> workerThreadsCustomizerLegacy(int threads) {
-        return taskObject -> {
-            if (threads != 0) {
-                //noinspection unchecked
-                PrismProperty<Integer> workerThreadsProperty = prismContext.getSchemaRegistry()
-                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
-                        .instantiate();
-                workerThreadsProperty.setRealValue(threads);
-                try {
-                    taskObject.addExtensionItem(workerThreadsProperty);
-                } catch (SchemaException e) {
-                    throw new AssertionError(e);
-                }
-            }
-        };
     }
 
     /**

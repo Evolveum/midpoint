@@ -610,18 +610,6 @@ public interface TaskManager {
     Long getNextRunStartTime(String oid, OperationResult result);
 
     /**
-     * Returns all registered handler URIs.
-     *
-     * @param nonDeprecatedOnly If true, only non-deprecated handler URIs are returned.
-     */
-    Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly);
-
-    /**
-     * Returns all registered handler URIs for given archetype.
-     */
-    Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly);
-
-    /**
      * Registers a handler for a specified handler URI.
      *
      * @param uri URI of the handler, e.g. http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3

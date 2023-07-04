@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -24,18 +22,12 @@ public class CleanupWorkDefinition extends AbstractWorkDefinition {
     private final CleanupPoliciesType cleanupPolicies;
 
     CleanupWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-            cleanupPolicies = legacySource.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES,
-                    CleanupPoliciesType.class);
-        } else {
-            CleanupWorkDefinitionType typedDefinition = (CleanupWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            cleanupPolicies = typedDefinition.getPolicies();
-        }
+        CleanupWorkDefinitionType typedDefinition = (CleanupWorkDefinitionType)
+                ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        cleanupPolicies = typedDefinition.getPolicies();
     }
 
-    public @Nullable CleanupPoliciesType getCleanupPolicies() {
+    @Nullable CleanupPoliciesType getCleanupPolicies() {
         return cleanupPolicies;
     }
 

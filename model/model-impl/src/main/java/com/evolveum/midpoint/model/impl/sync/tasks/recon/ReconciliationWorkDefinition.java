@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
@@ -27,13 +26,9 @@ public class ReconciliationWorkDefinition extends AbstractWorkDefinition impleme
     @NotNull private final ResourceObjectSetType resourceObjects;
 
     ReconciliationWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            resourceObjects = ResourceObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
-        } else {
-            ReconciliationWorkDefinitionType typedDefinition = (ReconciliationWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
-        }
+        ReconciliationWorkDefinitionType typedDefinition = (ReconciliationWorkDefinitionType)
+                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, APPEND);
     }
 

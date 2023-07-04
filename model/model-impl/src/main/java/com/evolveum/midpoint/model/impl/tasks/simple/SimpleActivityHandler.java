@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  * It makes writing non-composite activities a little bit easier. Generally the implementation should contain
  * an implementation of {@link WorkDefinition}, a subclass of {@link SearchBasedActivityRun}, and
- * a configuration code like {@link #getWorkDefinitionSupplier()}, {@link #getLegacyHandlerUri()}, and so on.
+ * a configuration code like {@link #getWorkDefinitionSupplier()}, and so on.
  */
 @Component
 public abstract class SimpleActivityHandler<
@@ -69,13 +69,16 @@ public abstract class SimpleActivityHandler<
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(getWorkDefinitionTypeName(), getLegacyHandlerUri(), getWorkDefinitionClass(),
-                getWorkDefinitionSupplier(), this);
+        handlerRegistry.register(
+                getWorkDefinitionTypeName(),
+                getWorkDefinitionClass(),
+                getWorkDefinitionSupplier(),
+                this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(getWorkDefinitionTypeName(), getLegacyHandlerUri(), getWorkDefinitionClass());
+        handlerRegistry.unregister(getWorkDefinitionTypeName(), getWorkDefinitionClass());
     }
 
     @Override
@@ -92,10 +95,6 @@ public abstract class SimpleActivityHandler<
     protected abstract @NotNull WorkDefinitionSupplier getWorkDefinitionSupplier();
 
     protected abstract @NotNull ExecutionSupplier<O, WD, SAH> getExecutionSupplier();
-
-    protected String getLegacyHandlerUri() {
-        return null;
-    }
 
     protected abstract @NotNull String getShortName();
 

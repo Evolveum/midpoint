@@ -8,14 +8,9 @@
 
 <task oid="ef22bf7b-5d28-4a57-b3a5-6fa58491eeb3"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Live Sync Interrupted: Batched</name>
-
-    <extension>
-        <ext:retryLiveSyncErrors>false</ext:retryLiveSyncErrors> <!-- This is "semi-legacy" style -->
-    </extension>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
@@ -29,5 +24,14 @@
                 <batchSize>10</batchSize>
             </liveSynchronization>
         </work>
+        <controlFlow>
+            <errorHandling>
+                <entry>
+                    <reaction>
+                        <ignore/>
+                    </reaction>
+                </entry>
+            </errorHandling>
+        </controlFlow>
     </activity>
 </task>
