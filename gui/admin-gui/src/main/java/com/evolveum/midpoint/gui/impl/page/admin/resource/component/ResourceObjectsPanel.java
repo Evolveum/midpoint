@@ -199,7 +199,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createShadowTable() {
-        ShadowTablePanel shadowTablePanel = new ShadowTablePanel(ID_TABLE, null, getPanelConfiguration()) {
+        ShadowTablePanel shadowTablePanel = new ShadowTablePanel(ID_TABLE, getPanelConfiguration()) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -278,7 +278,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         provider.setCompiledObjectCollectionView(collection);
         return provider;
     }
-    
+
     protected abstract ShadowKindType getKind();
 
     private ObjectQuery getResourceContentQuery() {

@@ -86,8 +86,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         super(id, AuditEventRecordType.class);
     }
 
-    public AuditLogViewerPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configuration) {
-        super(id, AuditEventRecordType.class, options, configuration);
+    public AuditLogViewerPanel(String id, ContainerPanelConfigurationType configuration) {
+        super(id, AuditEventRecordType.class, configuration);
     }
 
     @Override

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -79,7 +80,7 @@ public class PageOrgs extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<OrgType> table = new MainObjectListPanel<OrgType>(ID_TABLE, OrgType.class, getQueryOptions()) {
+        MainObjectListPanel<OrgType> table = new MainObjectListPanel<OrgType>(ID_TABLE, OrgType.class) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -101,6 +102,11 @@ public class PageOrgs extends PageAdmin {
 
                 };
                 return listInlineMenuHelper.createRowActions(getType());
+            }
+
+            @Override
+            protected ISelectableDataProvider<SelectableBean<OrgType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(null, null, getQueryOptions());
             }
 
             @Override

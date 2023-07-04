@@ -33,17 +33,13 @@ public class MyCaseWorkItemsPanel extends CaseWorkItemsPanel {
         super(id);
     }
 
-    public MyCaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, options);
-    }
-
-    public MyCaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
-        super(id, options, configurationType);
+    public MyCaseWorkItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
+        super(id, configurationType);
     }
 
     //TODO wucik hack. cleanup needed. also, what about my cases? all cases? how to differentiate
     public MyCaseWorkItemsPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
-        super(id, (AssignmentHolderDetailsModel) null, configurationType);
+        super(id, null, configurationType);
     }
 
     protected ObjectFilter getCaseWorkItemsFilter() {

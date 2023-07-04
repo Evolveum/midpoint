@@ -234,7 +234,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         add(totals);
         initShadowStatistics(totals);
 
-        ShadowTablePanel shadowListPanel = new ShadowTablePanel(ID_TABLE, createSearchOptions(), getPanelConfiguration()) {
+        ShadowTablePanel shadowListPanel = new ShadowTablePanel(ID_TABLE, getPanelConfiguration()) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -248,7 +248,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
             @Override
             protected ISelectableDataProvider createProvider() {
-                SelectableBeanObjectDataProvider<ShadowType> provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null);
+                SelectableBeanObjectDataProvider<ShadowType> provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null,
+                        createSearchOptions());
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);

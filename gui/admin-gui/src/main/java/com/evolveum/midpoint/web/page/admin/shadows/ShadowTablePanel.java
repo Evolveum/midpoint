@@ -85,12 +85,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         super(id, ShadowType.class);
     }
 
-    public ShadowTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, ShadowType.class, options);
-    }
-
-    public ShadowTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
-        super(id, ShadowType.class, options, config);
+    public ShadowTablePanel(String id, ContainerPanelConfigurationType config) {
+        super(id, ShadowType.class, config);
     }
 
     @Override
@@ -776,18 +772,18 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
     private IModel<String> createDeleteConfirmString(List<SelectableBean<ShadowType>> selectedShadow) {
         return () -> {
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(getOptions());
-            String deleteIndication = "";
-            if (rootOptions != null && BooleanUtils.isTrue(rootOptions.getNoFetch())) {
-                deleteIndication = ".repo";
-            }
+//            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(getOptions());
+//            String deleteIndication = "";
+//            if (rootOptions != null && BooleanUtils.isTrue(rootOptions.getNoFetch())) {
+//                deleteIndication = ".repo";
+//            }
 
             if (selectedShadow.size() == 1) {
                 ShadowType first = selectedShadow.get(0).getValue();
                 String name = WebComponentUtil.getName(first);
-                return createStringResource("pageContentAccounts.message.deleteConfirmationSingle" + deleteIndication, name).getString();
+                return createStringResource("pageContentAccounts.message.deleteConfirmationSingle", name).getString();
             }
-            return createStringResource("pageContentAccounts.message.deleteConfirmation" + deleteIndication, selectedShadow.size())
+            return createStringResource("pageContentAccounts.message.deleteConfirmation", selectedShadow.size())
                     .getString();
         };
     }
