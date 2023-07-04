@@ -201,12 +201,12 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
             switch (kind) {
-                case ACCOUNT:
-                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
-                case GENERIC:
-                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
-                case ENTITLEMENT:
-                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
+//                case ACCOUNT:
+//                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
+//                case GENERIC:
+//                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+//                case ENTITLEMENT:
+//                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
 
                 default:
                     return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;

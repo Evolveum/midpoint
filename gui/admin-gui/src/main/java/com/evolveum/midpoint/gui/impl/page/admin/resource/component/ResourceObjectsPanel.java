@@ -12,8 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,8 +25,9 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -55,6 +54,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
@@ -199,11 +199,11 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createShadowTable() {
-        ShadowTablePanel shadowTablePanel = new ShadowTablePanel(ID_TABLE, createSearchOptions(), getPanelConfiguration()) {
+        ShadowTablePanel shadowTablePanel = new ShadowTablePanel(ID_TABLE, null, getPanelConfiguration()) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return null;
+                return ResourceObjectsPanel.this.getRepositorySearchTableId();
             }
 
             @Override
@@ -213,11 +213,9 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             protected ISelectableDataProvider<SelectableBean<ShadowType>> createProvider() {
-                SelectableBeanObjectDataProvider<ShadowType> provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null);
-                provider.setEmptyListOnNullQuery(true);
-                provider.setSort(null);
-                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
-                return provider;
+
+                return ResourceObjectsPanel.this.createProvider(getSearchModel(), (CompiledShadowCollectionView) getObjectCollectionView());
+//                return provider;
             }
 
             @Override
@@ -255,20 +253,32 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
     }
+
+    //case GENERIC:
+    //        return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+    //        case ENTITLEMENT:
+    //        return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
+    protected abstract UserProfileStorage.TableId getRepositorySearchTableId();
     protected abstract StringResourceModel getLabelModel();
 
+    protected final RepositoryShadowBeanObjectDataProvider createProvider(IModel<Search<ShadowType>> searchModel, CompiledShadowCollectionView collection) {
+        RepositoryShadowBeanObjectDataProvider provider = new RepositoryShadowBeanObjectDataProvider(
+                getPageBase(), searchModel, null) {
+            @Override
+            protected PageStorage getPageStorage() {
+                return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+            }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
-        GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()
-                .item(ShadowType.F_ASSOCIATION).dontRetrieve();
-        builder = addAdditionalOptions(builder);
-        return builder.build();
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+               return getResourceContentQuery();
+            }
+
+        };
+        provider.setCompiledObjectCollectionView(collection);
+        return provider;
     }
-
-    protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
-        return builder.root().noFetch();
-    }
-
+    
     protected abstract ShadowKindType getKind();
 
     private ObjectQuery getResourceContentQuery() {
@@ -342,9 +352,9 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                     ResourceTaskCreator.forResource(resource, getPageBase())
                             .ofFlavor(SynchronizationTaskFlavor.IMPORT)
                             .withCoordinates(
-                                    getKind(), // FIXME not static
-                                    getIntent(), // FIXME not static
-                                    getObjectClass()) // FIXME not static
+                                    getKind(),
+                                    getIntent(),
+                                    getObjectClass())
                             .withExecutionMode(ExecutionModeType.PREVIEW)
                             .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
                             .withSubmissionOptions(
