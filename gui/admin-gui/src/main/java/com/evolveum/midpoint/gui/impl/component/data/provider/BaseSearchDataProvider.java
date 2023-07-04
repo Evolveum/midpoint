@@ -7,10 +7,14 @@
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -34,6 +38,7 @@ public abstract class BaseSearchDataProvider<C extends Serializable, T extends S
     private Class<C> oldType;
 
     private CompiledObjectCollectionView objectCollectionView;
+    private Collection<SelectorOptions<GetOperationOptions>> options;
 
     public BaseSearchDataProvider(Component component, IModel<Search<C>> search) {
         this(component, search, false, true);
@@ -75,14 +80,14 @@ public abstract class BaseSearchDataProvider<C extends Serializable, T extends S
     }
 
     public Class<C> getType() {
-        return search.getObject() == null ? null : (Class<C>) search.getObject().getTypeClass();
+        return search.getObject() == null ? null : search.getObject().getTypeClass();
     }
 
     @Override
     public long size() {
         if (search.getObject() != null && !search.getObject().getTypeClass().equals(oldType) && isUseCache()) {
             clearCache();
-            oldType = (Class<C>) search.getObject().getTypeClass();
+            oldType = search.getObject().getTypeClass();
         }
         return super.size();
     }

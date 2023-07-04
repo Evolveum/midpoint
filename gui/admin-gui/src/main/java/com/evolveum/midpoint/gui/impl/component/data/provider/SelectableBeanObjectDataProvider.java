@@ -115,11 +115,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         getAvailableData().clear();
     }
 
-    @Override
-    protected GetOperationOptionsBuilder postProcessOptions(GetOperationOptionsBuilder optionsBuilder) {
-        return optionsBuilder;
-    }
-
     public void setTaskConsumer(Consumer<Task> taskConsumer) {
         this.taskConsumer = taskConsumer;
     }

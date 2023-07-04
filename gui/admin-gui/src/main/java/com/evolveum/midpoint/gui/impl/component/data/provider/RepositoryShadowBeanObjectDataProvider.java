@@ -36,7 +36,8 @@ public class RepositoryShadowBeanObjectDataProvider extends SelectableBeanObject
 
     @Override
     protected GetOperationOptionsBuilder postProcessOptions(GetOperationOptionsBuilder optionsBuilder) {
-        optionsBuilder = optionsBuilder.item(ShadowType.F_ASSOCIATION).dontRetrieve()
+        optionsBuilder = optionsBuilder
+                .item(ShadowType.F_ASSOCIATION).dontRetrieve()
                 .noFetch();
 
         if (isEmptyListOnNullQuery()) {
