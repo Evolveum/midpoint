@@ -23,5 +23,5 @@ public interface UpgradeObjectProcessor<T extends Objectable> {
 
     boolean isApplicable(PrismObject<?> object, ItemPath path);
 
-    boolean process(PrismObject<T> object);
+    boolean process(PrismObject<T> object, ItemPath path);
 }

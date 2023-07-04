@@ -57,7 +57,7 @@ public class UpgradeObjectsHandler {
             return null;
         }
 
-        boolean changed = processor.process((PrismObject) cloned);
+        boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
 
         UpgradeValidationItem result = new UpgradeValidationItem(item);
         result.setChanged(changed);

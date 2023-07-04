@@ -57,7 +57,7 @@ public class UserDashboardProcessor implements UpgradeObjectProcessor<Objectable
     }
 
     @Override
-    public boolean process(PrismObject<Objectable> object) {
+    public boolean process(PrismObject<Objectable> object, ItemPath path) {
         return true;
     }
 }

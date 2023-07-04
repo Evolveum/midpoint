@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
@@ -21,6 +24,14 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
 
 @SuppressWarnings("unused")
 public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor<ResourceType> {
+
+    private static final ItemPath PATH_NATIVE = ItemPath.create(
+            ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
+
+    private static final ItemPath PATH_CONFIGURED = ItemPath.create(
+            ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
+
+    private static final List<ItemPath> PATHS = Arrays.asList(PATH_NATIVE, PATH_CONFIGURED);
 
     @Override
     public String getIdentifier() {
@@ -47,26 +58,19 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
         if (!ResourceType.class.equals(object.getCompileTimeClass())) {
             return false;
         }
-        return true;
+
+        return PATHS.stream().anyMatch(p -> p.equivalent(path));
     }
 
     @Override
-    public boolean process(PrismObject<ResourceType> object) {
-        ResourceType resource = object.asObjectable();
-        CapabilitiesType capabilities = resource.getCapabilities();
-        if (capabilities == null) {
-            return false;
-        }
+    public boolean process(PrismObject<ResourceType> object, ItemPath path) {
+        ItemPath collectionPath = path.allExceptLast();
+        CapabilityCollectionType collection = object.findContainer(collectionPath).getRealValue(CapabilityCollectionType.class);
 
-        boolean changed = process(capabilities.getConfigured());
-
-        return process(capabilities.getNative()) || changed;
-    }
-
-    private boolean process(CapabilityCollectionType collection) {
         AddRemoveAttributeValuesCapabilityType addRemoveValues = collection.getAddRemoveAttributeValues();
-        if (addRemoveValues == null || addRemoveValues.isEnabled() == null) {
-            return false;
+        collection.setAddRemoveAttributeValues(null);
+        if (addRemoveValues.isEnabled() == null) {
+            return true;
         }
 
         UpdateCapabilityType update = collection.getUpdate();

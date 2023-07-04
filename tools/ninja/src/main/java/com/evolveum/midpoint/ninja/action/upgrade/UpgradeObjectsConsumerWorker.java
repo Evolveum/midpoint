@@ -76,6 +76,7 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
             identifiers = new HashSet<>();
         }
 
+
 //        if (skipUpgradeForOids.contains(object.getOid())) {
 //            log.info(ConsoleFormat.formatInfoMessageWithParameter(
 //                    "Skipping object: ", prismObject.getBusinessDisplayName() + "(" + object.getOid() + ")"));
