@@ -12,6 +12,8 @@ import java.sql.Types;
 import java.util.List;
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+
 import com.google.common.base.Strings;
 import com.querydsl.sql.ColumnMetadata;
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
@@ -116,7 +118,8 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
             SchemaService schemaService) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext =
-                new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry);
+                new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry,
+                        SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER, SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
         repositoryContext.setQuerydslSqlListener(new SqlLogger());
 
         // Registered mapping needs repository context which needs registry - now we have both:

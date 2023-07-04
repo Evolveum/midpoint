@@ -28,6 +28,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class SqaleUtils {
 
     /**
+     * Global metadata name for schema change number, related to
+     */
+    public static final String SCHEMA_CHANGE_NUMBER = "schemaChangeNumber";
+
+    /**
+     * Global metadata name for schema audit change number
+     */
+    public static final String SCHEMA_AUDIT_CHANGE_NUMBER = "schemaAuditChangeNumber";
+
+    public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 1;
+
+    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 1;
+
+    /**
      * Returns version from midPoint object as a number.
      *
      * @throws IllegalArgumentException if the version is null or non-number

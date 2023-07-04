@@ -9,10 +9,15 @@ package com.evolveum.midpoint.repo.sqale;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
 import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
@@ -51,6 +56,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  */
 public class SqaleRepoContext extends SqlRepoContext {
 
+    private final String schemaChangeNumberLabel;
+
+    private final int schemaChangeNumberValue;
+
     private final UriCache uriCache;
     private final ExtItemCache extItemCache;
 
@@ -60,8 +69,11 @@ public class SqaleRepoContext extends SqlRepoContext {
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
             SchemaService schemaService,
-            QueryModelMappingRegistry mappingRegistry) {
+            QueryModelMappingRegistry mappingRegistry, String schemaChangeNumberLabel, int schemaChangeNumberValue) {
         super(jdbcRepositoryConfiguration, dataSource, schemaService, mappingRegistry);
+
+        this.schemaChangeNumberLabel = schemaChangeNumberLabel;
+        this.schemaChangeNumberValue = schemaChangeNumberValue;
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(AccessCertificationCampaignStateType.class));
@@ -101,8 +113,28 @@ public class SqaleRepoContext extends SqlRepoContext {
         extItemCache = new ExtItemCache();
     }
 
-    // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
+    public void initialize() {
+        try (JdbcSession session = this.newJdbcSession().startReadOnlyTransaction()) {
+            MGlobalMetadata metadata = session.newQuery().from(QGlobalMetadata.DEFAULT)
+                    .select(QGlobalMetadata.DEFAULT)
+                    .where(QGlobalMetadata.DEFAULT.name.eq(schemaChangeNumberLabel))
+                    .limit(1)
+                    .fetchOne();
+            String current = metadata != null ? metadata.value : null;
+            Integer currentAsInt = current != null ? Integer.valueOf(current) : null;
+
+            if (!Objects.equals(currentAsInt, schemaChangeNumberValue)) {
+                throw new SystemException("Can't initialize sqale repository context, database schema version (" + current
+                        + ") doesn't match expected value (" + schemaChangeNumberValue + ") for label '" + schemaChangeNumberLabel
+                        + "'. Seems like mismatch between midPoint executable version and DB schema version. Maybe DB schema was not updated?");
+            }
+        }
+
+        clearCaches();
+    }
+
+    // This has nothing to do with "repo cache" which is higher than this.
     public void clearCaches() {
         uriCache.initialize(this::newJdbcSession);
         extItemCache.initialize(this::newJdbcSession);

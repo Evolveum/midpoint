@@ -61,3 +61,5 @@ $aa$);
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
 -- to match the number used in the last change here!
+-- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
+-- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
