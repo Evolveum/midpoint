@@ -32,13 +32,21 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
     @Override
     default void setDeprecated(boolean deprecated) {
         throw new IllegalStateException("Item Definition is not modifiable");
+    }
 
+    @Override
+    default void setRemoved(boolean removed) {
+        throw new IllegalStateException("Item Definition is not modifiable");
+    }
+
+    @Override
+    default void setRemovedSince(String removedSince) {
+        throw new IllegalStateException("Item Definition is not modifiable");
     }
 
     @Override
     default void setExperimental(boolean experimental) {
         throw new IllegalStateException("Item Definition is not modifiable");
-
     }
 
     @Override

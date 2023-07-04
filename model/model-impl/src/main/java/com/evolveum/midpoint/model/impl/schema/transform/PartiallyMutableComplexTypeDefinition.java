@@ -43,7 +43,16 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     @Override
     default void setDeprecated(boolean deprecated) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
 
+    @Override
+    default void setRemoved(boolean removed) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
+    default void setRemovedSince(String removedSince) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
     @Override
