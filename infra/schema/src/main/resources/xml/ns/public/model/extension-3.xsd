@@ -54,17 +54,13 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <a:extension ref="c:TaskType"/>
-                <a:schemaMigration>
-                    <a:element>tns:liveSyncErrorHandlingStrategy</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:freshnessInterval" minOccurs="0"/>
             <xsd:element ref="tns:dryRun" minOccurs="0"/>
             <xsd:element ref="tns:retryLiveSyncErrors" minOccurs="0"/>
+            <xsd:element ref="tns:liveSyncErrorHandlingStrategy" minOccurs="0"/>
             <xsd:element ref="tns:updateLiveSyncTokenInDryRun" minOccurs="0"/>
             <xsd:element ref="tns:lastScanTimestamp" minOccurs="0"/>
             <xsd:element ref="tns:lastReconciliationStartTimestamp" minOccurs="0"/>
@@ -166,6 +162,23 @@
                 <a:displayOrder>801</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="liveSyncErrorHandlingStrategy" type="c:ActivityErrorHandlingStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a strategy for handling errors during Live Synchronization.
+                DEPRECATED. Use task.errorHandlingStrategy instead.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.liveSyncErrorHandlingStrategy</a:displayName>
+                <a:displayOrder>801</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:removed>true</a:removed>
+                <a:removedSince>4.8</a:removedSince>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

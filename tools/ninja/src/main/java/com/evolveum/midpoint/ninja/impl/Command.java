@@ -14,7 +14,8 @@ import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
-import com.evolveum.midpoint.ninja.opts.*;
+import com.evolveum.midpoint.ninja.action.trace.EditTraceOptions;
+import com.evolveum.midpoint.ninja.action.upgrade.action.*;
 
 /**
  * Enumeration of Ninja commands (or actions).
@@ -29,7 +30,7 @@ public enum Command {
 
     COUNT("count", CountOptions.class, CountRepositoryAction.class),
 
-    VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class),
+    VERIFY("verify", VerifyOptions.class, VerifyAction.class),
 
     KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class),
 
@@ -41,20 +42,30 @@ public enum Command {
 
     EXPORT_MINING("exportMining", ExportMiningOptions.class, ExportMiningRepositoryAction.class),
 
-    TRACE("trace", EditTraceOptions.class, EditTraceAction.class);
+    TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
 
-    // todo reencrypt, modify, bulk, etc
+    DOWNLOAD_DISTRIBUTION("download-distribution", DownloadDistributionOptions.class, DownloadDistributionAction.class),
+
+    RUN_SQL("run-sql", RunSqlOptions.class, RunSqlAction.class),
+
+    UPGRADE_INSTALLATION("upgrade-installation", UpgradeInstallationOptions.class, UpgradeInstallationAction.class),
+
+    UPGRADE_DISTRIBUTION("upgrade-distribution", UpgradeDistributionOptions.class, UpgradeDistributionAction.class),
+
+    UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class),
+
+    PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class);
 
     private final String commandName;
 
     private final Class<?> options;
 
-    private final Class<? extends RepositoryAction<?>> repositoryAction;
+    private final Class<? extends Action<?, ?>> action;
 
-    <T> Command(String commandName, Class<T> options, Class<? extends RepositoryAction<T>> repositoryAction) {
+    <T> Command(String commandName, Class<T> options, Class<? extends Action<T, ?>> action) {
         this.commandName = commandName;
         this.options = options;
-        this.repositoryAction = repositoryAction;
+        this.action = action;
     }
 
     public String getCommandName() {
@@ -69,19 +80,19 @@ public enum Command {
         }
     }
 
-    public static <T> RepositoryAction<T> createRepositoryAction(String command) {
+    public static <T> Action<T, ?> createAction(String command) {
         Command cmd = findCommand(command);
         if (cmd == null) {
             return null;
         }
 
         try {
-            if (cmd.repositoryAction == null) {
+            if (cmd.action == null) {
                 return null;
             }
 
             //noinspection unchecked
-            return (RepositoryAction<T>) cmd.repositoryAction.getDeclaredConstructor().newInstance();
+            return (Action<T, ?>) cmd.action.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }

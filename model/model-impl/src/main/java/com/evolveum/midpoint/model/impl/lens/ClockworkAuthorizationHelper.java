@@ -127,14 +127,10 @@ public class ClockworkAuthorizationHelper {
             PrismObject<O> object = elementContext.getObjectCurrentOrNew();
             stateCheck(object != null, "No object? In: %s", elementContext);
             ObjectSecurityConstraints securityConstraints =
-                    securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
-//            if (securityConstraints.isEmpty()) {
-//                // TODO this was not originally reachable, reconsider
-//                if (LOGGER.isTraceEnabled()) {
-//                    LOGGER.trace("Denied request for element context {}: null security constraints", elementContext.getHumanReadableName());
-//                }
-//                throw new AuthorizationException("Access denied");
-//            }
+                    securityEnforcer.compileSecurityConstraints(
+                            object,
+                            SecurityEnforcer.Options.create().withCustomOwnerResolver(ownerResolver),
+                            task, result);
 
             String deltaOperationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDeltaClone);
             if (isFocus) {
@@ -210,7 +206,8 @@ public class ClockworkAuthorizationHelper {
                         deltaOperationUrl,
                         getRequestAuthorizationPhase(context),
                         AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone),
-                        ownerResolver, task, result);
+                        SecurityEnforcer.Options.create().withCustomOwnerResolver(ownerResolver),
+                        task, result);
             }
 
             if (LOGGER.isTraceEnabled()) {
@@ -423,14 +420,15 @@ public class ClockworkAuthorizationHelper {
                 }
             }
 
-            if (securityEnforcer.isAuthorized(assignActionUrl, requestAutzPhase, autzParams, ownerResolver, task, result)) {
+            var options = SecurityEnforcer.Options.create().withCustomOwnerResolver(ownerResolver);
+            if (securityEnforcer.isAuthorized(assignActionUrl, requestAutzPhase, autzParams, options, task, result)) {
                 LOGGER.debug("{} of target {} to {} allowed with {} authorization",
                         operationDesc, target, object, assignActionUrl);
                 continue;
             }
             if (relationRegistry.isDelegation(relation)) {
                 if (securityEnforcer.isAuthorized(
-                        ModelAuthorizationAction.DELEGATE.getUrl(), requestAutzPhase, autzParams, ownerResolver, task, result)) {
+                        ModelAuthorizationAction.DELEGATE.getUrl(), requestAutzPhase, autzParams, options, task, result)) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("{} of target {} to {} allowed with {} authorization",
                                 operationDesc, target, object, ModelAuthorizationAction.DELEGATE.getUrl());

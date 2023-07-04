@@ -9,25 +9,14 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -35,17 +24,25 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @PageDescriptor(
         urls = {
@@ -122,30 +119,36 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
             @Override
             protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
-                return (Class<O>) WebComponentUtil.qnameToClass(PrismContext.get(), typeModel.getObject());
-            }
-
-            @Override
-            public List<QName> getSupportedTypes() {
-                return WebComponentUtil.createObjectTypeList();
+                //noinspection unchecked
+                return (Class<O>) UserType.class;
             }
         });
-
-        mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
 
         var additionalAuthorizationsEditor = new AceEditor(ID_ADDITIONAL_AUTHORIZATIONS, additionalAuthorizationsModel);
         additionalAuthorizationsEditor.setHeight(400);
         additionalAuthorizationsEditor.setResizeToMaxHeight(false);
         mainForm.add(additionalAuthorizationsEditor);
 
-        mainForm.add(new DropDownChoicePanel<>(ID_TYPE, typeModel, () -> WebComponentUtil.createObjectTypeList(), new QNameChoiceRenderer()));
+        var supportedObjectTypeList = new ArrayList<>(WebComponentUtil.createObjectTypeList());
+        supportedObjectTypeList.add(AssignmentType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(CaseWorkItemType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(AccessCertificationCaseType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(OperationExecutionType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(SimulationResultProcessedObjectType.COMPLEX_TYPE);
+
+        mainForm.add(new DropDownChoicePanel<>(
+                ID_TYPE,
+                typeModel,
+                () -> supportedObjectTypeList,
+                new QNameChoiceRenderer()));
 
         var filterEditor = new AceEditor(ID_OBJECT_FILTER, filterModel);
         filterEditor.setHeight(400);
         filterEditor.setResizeToMaxHeight(false);
         mainForm.add(filterEditor);
-
-//        mainForm.add(new TextField<>(ID_OBJECT_OID, objectOidModel));
+        
+        mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
 
         mainForm.add(new CheckBox(ID_SELECTOR_TRACING, selectorTracingModel));
 
@@ -232,10 +235,10 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
     /** Returns request without adornments like extra authorizations etc. */
     private AuthorizationEvaluationRequestType createRequestRaw() throws SchemaException {
-        ObjectReferenceType objectOid = objectModel.getObject();
-        if (objectOid != null) {
+        ObjectReferenceType objectRef = objectModel.getObject();
+        if (StringUtils.isNotEmpty(objectRef.getOid())) {
             return new AuthorizationEvaluationAccessDecisionRequestType()
-                    .objectRef(objectOid);
+                    .objectRef(objectRef);
         }
 
         QName typeName = typeModel.getObject();

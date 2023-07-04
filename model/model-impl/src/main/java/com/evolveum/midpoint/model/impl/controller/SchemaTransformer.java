@@ -261,7 +261,6 @@ public class SchemaTransformer {
                         securityEnforcer.getMidPointPrincipal(),
                         object.getValue(),
                         phase,
-                        null,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
                         SecurityEnforcer.Options.create(),
                         CompileConstraintsOptions.create(),
@@ -300,7 +299,7 @@ public class SchemaTransformer {
                     ModelAuthorizationAction.RAW_OPERATION.getUrl(),
                     null,
                     AuthorizationParameters.Builder.buildObject(object),
-                    null, task, result);
+                    task, result);
         }
     }
 
@@ -424,7 +423,6 @@ public class SchemaTransformer {
         PrismEntityOpConstraints.ForValueContent readConstraints = securityEnforcer.compileOperationConstraints(
                 securityEnforcer.getMidPointPrincipal(),
                 object.getValue(),
-                null,
                 null,
                 ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
                 SecurityEnforcer.Options.create(),

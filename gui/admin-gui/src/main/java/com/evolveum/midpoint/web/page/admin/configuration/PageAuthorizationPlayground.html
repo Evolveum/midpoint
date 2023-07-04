@@ -24,7 +24,7 @@
                 <div class="col-lg-12">
                     <h3><wicket:message key="PageAuthorizationPlayground.Subject"/></h3>
                     <div style="padding: 15px; margin-bottom: 15px">
-                    Select any subject. For the time being, you may specify the OID here:
+                    Select any subject. Alternatively, the currently logged-in user is used (but ignoring its current authorizations).
                         <div wicket:id="subjectOid"/>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
                     <p>Here you can check the application of authorizations on objects being read.</p>
                 </div>
                 <div>
-                    <label for="objectOid">Please enter the object OID (temporary):</label>
+                    <label for="objectOid">Please select an existing object (optional):</label>
                     <div id="objectOid" wicket:id="objectOid"/>
                 </div>
             </div>

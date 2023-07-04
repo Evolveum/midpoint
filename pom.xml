@@ -232,7 +232,7 @@
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>10.0.0-M1-SNAPSHOT</wicket.version>
+        <wicket.version>10.0.0-M1</wicket.version>
         <wicketstuff.version>9.12.0</wicketstuff.version>
         <wicket.chartjs.version>0.3</wicket.chartjs.version>
         <!-- Groovy 4.0.11 is also default for Spring Boot 3.0.6 -->
@@ -261,8 +261,8 @@
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
         but M5 doesn't work for us anymore either (failing test initialization). -->
-        <surefire.version>3.0.0-M6</surefire.version>
-        <failsafe.version>3.0.0-M6</failsafe.version>
+        <surefire.version>3.1.2</surefire.version>
+        <failsafe.version>3.1.2</failsafe.version>
 
         <asciidoclet.version>1.5.6</asciidoclet.version>
     </properties>
@@ -1821,6 +1821,7 @@
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
+                                <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
 
                                 <!-- Testing dependencies are not troubling us from. -->
                                 <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
@@ -1875,7 +1876,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>${project.source.version}</source>
                         <target>${project.source.version}</target>
@@ -2011,7 +2012,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>pl.project13.maven</groupId>

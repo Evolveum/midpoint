@@ -303,7 +303,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
             ConfigurationException, ObjectNotFoundException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
-            if (!ctx.isClauseApplicable(clause) || !clause.toFilter(ctx)) {
+            if (!clause.toFilter(ctx)) {
                 ctx.traceFilterProcessingEnd(this, false);
                 return false;
             }

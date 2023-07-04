@@ -140,7 +140,6 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
                     null,
                     AuthorizationParameters.Builder.buildObject(definition),
-                    null,
                     task,
                     result);
             return openerHelper.createCampaign(definition, result, task);
@@ -231,8 +230,9 @@ public class CertificationManagerImpl implements CertificationManager {
 
             LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortStringLazy(campaign));
 
-            securityEnforcer.authorize(ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
-                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -280,8 +280,9 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("closeCurrentStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
-                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -320,8 +321,9 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("startRemediation starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            securityEnforcer.authorize(ModelAuthorizationAction.START_CERTIFICATION_REMEDIATION.getUrl(), null,
-                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.START_CERTIFICATION_REMEDIATION.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
             final int currentStageNumber = campaign.getStageNumber();
             final int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -371,8 +373,8 @@ public class CertificationManagerImpl implements CertificationManager {
                 securityEnforcer.authorize(
                         ModelAuthorizationAction.COMPLETE_WORK_ITEM.getUrl(),
                         null,
-                        new ValueAuthorizationParameters<>(workItemInContext.workItem().asPrismContainerValue()),
-                        null, task, result);
+                        ValueAuthorizationParameters.of(workItemInContext.workItem()),
+                        task, result);
             }
             operationsHelper.recordDecision(workItemId, workItemInContext, response, comment, task, result);
         } catch (Throwable t) {
@@ -398,7 +400,7 @@ public class CertificationManagerImpl implements CertificationManager {
                         ModelAuthorizationAction.DELEGATE_WORK_ITEM.getUrl(),
                         null,
                         ValueAuthorizationParameters.of(workItem),
-                        null, task, result);
+                        task, result);
             }
             operationsHelper.delegateWorkItems(campaignOid, workItems, delegateAction, task, result);
         } catch (RuntimeException|CommonException e) {
@@ -428,8 +430,9 @@ public class CertificationManagerImpl implements CertificationManager {
 
         try {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-            securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
-                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
             closerHelper.closeCampaign(campaign, task, result);
             if (!noBackgroundTask) {
                 closingTaskHandler.launch(campaign, result);
@@ -449,8 +452,9 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_REITERATE_CAMPAIGN);
         try {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-            securityEnforcer.authorize(ModelAuthorizationAction.REITERATE_CERTIFICATION_CAMPAIGN.getUrl(), null,
-                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.REITERATE_CERTIFICATION_CAMPAIGN.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
             openerHelper.reiterateCampaign(campaign, task, result);
         } catch (RuntimeException e) {
             result.recordException("Couldn't reiterate certification campaign: unexpected exception: " + e.getMessage(), e);

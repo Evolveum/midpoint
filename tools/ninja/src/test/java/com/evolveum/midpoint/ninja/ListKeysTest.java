@@ -11,14 +11,11 @@ import org.testng.annotations.Test;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListKeysTest extends BaseTest {
+public class ListKeysTest implements NinjaTestMixin {
 
     @Test
     public void simpleListKeys() throws Exception {
-        //todo asserts
-
-        String[] input = new String[]{"-m", getMidpointHome(), "keys"};
-
-        executeTest(null, null, input);
+        // todo assertions
+        executeTest(null, null, "-m", getMidpointHome(), "keys");
     }
 }

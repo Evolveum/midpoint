@@ -607,20 +607,4 @@ public class SecurityHelper implements ModelAuditRecorder {
     public SecurityEnforcer getSecurityEnforcer() {
         return securityEnforcer;
     }
-
-    public boolean isAuthorized(List<String> actions, Task task, OperationResult result) {
-        try {
-            for (String action : actions) {
-                boolean isAuthorized = securityEnforcer.isAuthorized(action,
-                        null, AuthorizationParameters.EMPTY, null, task, result);
-                if (!isAuthorized) {
-                    return false;
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
 }

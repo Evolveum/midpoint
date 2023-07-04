@@ -2230,7 +2230,7 @@
     <xsd:complexType name="PreProvisionActivationMappingType">
         <xsd:annotation>
             <xsd:documentation>
-                This configuration will pre-provision a disabled account defined time before focus’s activation/validFrom date.
+                This configuration will pre-provision a disabled account defined time before focus's activation/validFrom date.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.8</a:since>

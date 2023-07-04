@@ -80,7 +80,6 @@ public class SelectorToFilterTranslator {
                 getNarrowedTargetType(),
                 null,
                 false,
-                (clause, ctx1) -> true,
                 filterCollector,
                 filterEvaluator,
                 ProcessingTracer.loggerBased(logger),

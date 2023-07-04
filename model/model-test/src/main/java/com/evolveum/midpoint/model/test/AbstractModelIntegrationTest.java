@@ -5253,7 +5253,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         createSecurityContext(principal);
         try {
             assertTrue("AuthorizationEvaluator.isAuthorized: Principal " + principal + " NOT authorized for action " + action,
-                    securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result));
+                    securityEnforcer.isAuthorized(
+                            action, phase, AuthorizationParameters.EMPTY, SecurityEnforcer.Options.create(), task, result));
             if (phase == null) {
                 List<String> requiredActions = new ArrayList<>(1);
                 requiredActions.add(action);
@@ -5281,7 +5282,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         SecurityContext origContext = SecurityContextHolder.getContext();
         createSecurityContext(principal);
-        boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result);
+        boolean isAuthorized = securityEnforcer.isAuthorized(
+                action, phase, AuthorizationParameters.EMPTY, SecurityEnforcer.Options.create(), task, result);
         SecurityContextHolder.setContext(origContext);
         assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
     }
@@ -6434,7 +6436,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 modelAuthorizationAction.getUrl(),
                 null,
                 ValueAuthorizationParameters.of(workItem),
-                null,
                 task, result);
     }
 
@@ -6457,7 +6458,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 modelAuthorizationAction.getUrl(),
                 null,
                 ValueAuthorizationParameters.of(workItem),
-                null,
                 task, result);
     }
 

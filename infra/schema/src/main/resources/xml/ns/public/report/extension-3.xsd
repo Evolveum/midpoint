@@ -30,16 +30,11 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <a:extension ref="c:TaskType"/>
-                <a:schemaMigration>
-                    <a:element>tns:reportOutputOid</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use reportDataParam instead.</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:reportParam" minOccurs="0"/>
+            <xsd:element ref="tns:reportOutputOid" minOccurs="0"/>
             <xsd:element ref="tns:reportDataParam" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -54,6 +49,18 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="reportOutputOid" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>OID of created Report Output object. TODO consider replacing with object reference.</xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.reportOutputOid</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:removed>true</a:removed>
+                <a:removedSince>4.8</a:removedSince>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="reportDataParam" type="c:ObjectReferenceType">
         <xsd:annotation>

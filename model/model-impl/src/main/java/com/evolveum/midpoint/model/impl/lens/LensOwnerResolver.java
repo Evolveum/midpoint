@@ -36,7 +36,6 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 
 /**
  * @author semancik
- *
  */
 public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 

@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.ninja.util;
 
+import java.io.File;
+
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
 
 /**
  * Created by Viliam Repan (lazyman).

@@ -429,9 +429,10 @@ public class TreeTablePanel extends BasePanel<String> {
         boolean allowRead = false;
         try {
             allowRead = org == null ||
-                    getPageBase().isAuthorized(ModelAuthorizationAction.GET.getUrl(),
+                    getPageBase().isAuthorized(
+                            ModelAuthorizationAction.GET.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
-                            null, null, null);
+                            null, null);
         } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }
@@ -442,9 +443,10 @@ public class TreeTablePanel extends BasePanel<String> {
         boolean allowModify = false;
         try {
             allowModify = org == null ||
-                    getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+                    getPageBase().isAuthorized(
+                            ModelAuthorizationAction.MODIFY.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
-                            null, null, null);
+                            null, null);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
                 | CommunicationException | ConfigurationException | SecurityViolationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
@@ -455,9 +457,10 @@ public class TreeTablePanel extends BasePanel<String> {
     private boolean isAllowAddNew() {
         boolean allowAddNew = false;
         try {
-            allowAddNew = getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                    AuthorizationPhaseType.REQUEST, (new OrgType(getPageBase().getPrismContext())).asPrismObject(),
-                    null, null, null);
+            allowAddNew = getPageBase().isAuthorized(
+                    ModelAuthorizationAction.ADD.getUrl(),
+                    AuthorizationPhaseType.REQUEST, new OrgType().asPrismObject(),
+                    null, null);
         } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }
@@ -468,9 +471,10 @@ public class TreeTablePanel extends BasePanel<String> {
         boolean allowDelete = false;
         try {
             allowDelete = org == null ||
-                    getPageBase().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
+                    getPageBase().isAuthorized(
+                            ModelAuthorizationAction.DELETE.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
-                            null, null, null);
+                            null, null);
         } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }

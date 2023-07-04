@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.ninja.util;
 
+import java.net.URI;
+
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
-
-import java.net.URI;
 
 /**
  * Created by Viliam Repan (lazyman).
