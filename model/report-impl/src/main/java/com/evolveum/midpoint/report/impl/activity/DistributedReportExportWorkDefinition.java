@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Work definition for multi-node report export.
  */
 class DistributedReportExportWorkDefinition extends AbstractReportWorkDefinition {
 
-    DistributedReportExportWorkDefinition(WorkDefinitionSource source) throws SchemaException {
+    DistributedReportExportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
         super(source);
     }
 

@@ -25,8 +25,7 @@ import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -122,9 +121,8 @@ public class RecomputationActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            RecomputationWorkDefinitionType typedDefinition = (RecomputationWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(WorkDefinitionBean source) {
+            var typedDefinition = (RecomputationWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
             ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
             executionOptions = java.util.Objects.requireNonNullElseGet(

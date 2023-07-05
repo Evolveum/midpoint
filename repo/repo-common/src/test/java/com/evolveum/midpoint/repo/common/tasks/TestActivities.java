@@ -30,7 +30,7 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigura
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ActivityProgressInformationAsserter;
@@ -141,7 +141,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then();
 
-        List<WorkDefinitionWrapper> values = WorkDefinitionUtil.getWorkDefinitions(activityDefinition.getWork());
+        List<WorkDefinitionBean> values = WorkDefinitionUtil.getWorkDefinitionBeans(activityDefinition.getWork());
         displayValue("Work definitions found", values);
 
         Collection<QName> types = WorkDefinitionUtil.getWorkDefinitionTypeNames(activityDefinition.getWork());

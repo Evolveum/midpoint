@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
-import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import com.google.common.base.MoreObjects;
 import jakarta.annotation.PostConstruct;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.conte
 import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -163,8 +162,8 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         private final int steps;
         @NotNull private final NoOpActivityStepInterruptibilityType stepInterruptibility;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            NoOpWorkDefinitionType bean = (NoOpWorkDefinitionType) ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var bean = (NoOpWorkDefinitionType) source.getBean();
             delay = MoreObjects.firstNonNull(bean.getDelay(), 0);
             steps = MoreObjects.firstNonNull(bean.getSteps(), 1);
             stepInterruptibility = MoreObjects.firstNonNull(

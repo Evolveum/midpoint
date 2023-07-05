@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +23,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinit
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -129,9 +129,8 @@ public class NonIterativeScriptingActivityHandler
 
         private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            NonIterativeScriptingWorkDefinitionType typedDefinition = (NonIterativeScriptingWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (NonIterativeScriptingWorkDefinitionType) source.getBean();
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
             argCheck(scriptExecutionRequest.getScriptingExpression() != null, "No scripting expression provided");

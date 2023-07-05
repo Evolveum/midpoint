@@ -22,8 +22,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -169,9 +168,8 @@ public class ObjectIntegrityCheckActivityHandler
         @NotNull private final ObjectSetType objects;
         private final int histogramColumns;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            ObjectIntegrityCheckWorkDefinitionType typedDefinition = (ObjectIntegrityCheckWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (ObjectIntegrityCheckWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
             histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);
         }

@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -27,9 +27,8 @@ public class AbstractReportWorkDefinition extends AbstractWorkDefinition {
     @NotNull private final ObjectReferenceType reportRef;
     private final ReportParameterType reportParams;
 
-    AbstractReportWorkDefinition(WorkDefinitionSource source) throws SchemaException {
-        AbstractReportWorkDefinitionType typedDefinition = (AbstractReportWorkDefinitionType)
-                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+    AbstractReportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
+        var typedDefinition = (AbstractReportWorkDefinitionType) source.getBean();
         reportRef = MiscUtil.requireNonNull(typedDefinition.getReportRef(), () -> "No report definition");
         reportParams = typedDefinition.getReportParam();
     }

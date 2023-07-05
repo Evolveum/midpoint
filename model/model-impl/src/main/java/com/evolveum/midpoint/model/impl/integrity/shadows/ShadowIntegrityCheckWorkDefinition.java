@@ -13,13 +13,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityAspectType;
@@ -44,15 +44,15 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
     @NotNull private final String duplicateShadowsResolver;
     private final boolean checkDuplicatesOnPrimaryIdentifiersOnly;
 
-    ShadowIntegrityCheckWorkDefinition(WorkDefinitionSource source) {
-        ShadowIntegrityCheckWorkDefinitionType typedDefinition = (ShadowIntegrityCheckWorkDefinitionType)
-                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source) {
+        var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) source.getBean();
         shadows = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
+        ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
         aspectsToDiagnose = new HashSet<>(typedDefinition.getDiagnose());
         aspectsToFix = new HashSet<>(typedDefinition.getFix());
-        String duplicateShadowsResolverNullable = typedDefinition.getDuplicateShadowsResolver();
-        ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
-        duplicateShadowsResolver = firstNonNull(duplicateShadowsResolverNullable, DefaultDuplicateShadowsResolver.class.getName());
+        duplicateShadowsResolver = firstNonNull(
+                typedDefinition.getDuplicateShadowsResolver(),
+                DefaultDuplicateShadowsResolver.class.getName());
         checkDuplicatesOnPrimaryIdentifiersOnly = Boolean.TRUE.equals(typedDefinition.isCheckDuplicatesOnPrimaryIdentifiersOnly());
     }
 

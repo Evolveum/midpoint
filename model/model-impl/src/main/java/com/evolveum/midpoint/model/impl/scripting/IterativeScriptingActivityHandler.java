@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +28,6 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -123,9 +123,8 @@ public class IterativeScriptingActivityHandler
         private final ObjectSetType objects;
         private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            IterativeScriptingWorkDefinitionType typedDefinition = (IterativeScriptingWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (IterativeScriptingWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");

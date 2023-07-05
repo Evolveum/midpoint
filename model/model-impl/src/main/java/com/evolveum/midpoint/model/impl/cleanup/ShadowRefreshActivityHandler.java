@@ -23,8 +23,7 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -130,9 +129,8 @@ public class ShadowRefreshActivityHandler
 
         @NotNull private final ObjectSetType objects;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            ShadowRefreshWorkDefinitionType typedDefinition = (ShadowRefreshWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (ShadowRefreshWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
             ObjectSetUtil.assumeObjectType(objects, ShadowType.COMPLEX_TYPE);
         }

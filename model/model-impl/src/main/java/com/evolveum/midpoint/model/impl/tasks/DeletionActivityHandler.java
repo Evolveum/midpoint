@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -37,8 +39,6 @@ import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -148,9 +148,6 @@ public class DeletionActivityHandler
          * are specified, or both are left as default (true).
          */
         private void checkRawModeSettings() {
-            if (getWorkDefinition().legacyRawMode != null) {
-                return;
-            }
             Boolean rawInSearch =
                     getRaw(GetOperationOptionsUtil.optionsBeanToOptions(
                             getWorkDefinition().objects.getSearchOptions()));
@@ -182,7 +179,7 @@ public class DeletionActivityHandler
             if (getRaw(configuredOptions) != null) {
                 return configuredOptions;
             } else {
-                return GetOperationOptions.updateToRaw(configuredOptions, getDefaultRawValue());
+                return GetOperationOptions.updateToRaw(configuredOptions, true);
             }
         }
 
@@ -192,13 +189,8 @@ public class DeletionActivityHandler
                 return executeOptions;
             } else {
                 return executeOptions.clone()
-                        .raw(getDefaultRawValue());
+                        .raw(true);
             }
-        }
-
-        private boolean getDefaultRawValue() {
-            return Objects.requireNonNullElse(
-                    getWorkDefinition().legacyRawMode, true);
         }
 
         @Override
@@ -259,14 +251,11 @@ public class DeletionActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-        @Nullable private final Boolean legacyRawMode;
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            DeletionWorkDefinitionType typedDefinition = (DeletionWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            legacyRawMode = null; // not applicable in new mode
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (DeletionWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects()); // Can contain search options.
             executionOptions = Objects.requireNonNullElseGet(
                     fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
@@ -282,7 +271,6 @@ public class DeletionActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "legacyRawMode", legacyRawMode, indent+1);
             DebugUtil.debugDumpWithLabelLn(sb, "objects (default for raw not yet applied)", objects, indent+1);
             DebugUtil.debugDumpWithLabel(sb, "executionOptions (default for raw not yet applied)",
                     String.valueOf(executionOptions), indent+1);

@@ -12,14 +12,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RecomputationWorkDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,41 +36,40 @@ public class WorkDefinitionFactory {
 
     @Autowired ActivityBasedTaskHandler activityBasedTaskHandler;
 
+    /** Suppliers indexed by work definition type name (e.g. {@link RecomputationWorkDefinitionType}). */
     private final Map<QName, WorkDefinitionSupplier> byTypeName = new ConcurrentHashMap<>();
 
-    /**
-     * Takes care of registering legacy URI in the generic task handler as well.
-     */
-    public void registerSupplier(QName typeName, WorkDefinitionSupplier supplier) {
+    public void registerSupplier(@NotNull QName typeName, @NotNull WorkDefinitionSupplier supplier) {
         byTypeName.put(typeName, supplier);
     }
 
-    public void unregisterSupplier(QName typeName) {
+    public void unregisterSupplier(@NotNull QName typeName) {
         byTypeName.remove(typeName);
     }
 
+    /** Transforms configuration bean (user-friendly form) into parsed {@link WorkDefinition} object. */
     WorkDefinition getWorkFromBean(WorkDefinitionsType definitions) throws SchemaException, ConfigurationException {
-        List<WorkDefinitionWrapper> actions = WorkDefinitionUtil.getWorkDefinitions(definitions);
-        if (actions.isEmpty()) {
+        List<WorkDefinitionBean> beans = WorkDefinitionUtil.getWorkDefinitionBeans(definitions);
+        if (beans.isEmpty()) {
             return null;
-        } else if (actions.size() > 1) {
-            throw new SchemaException("Ambiguous definition: " + actions);
+        } else if (beans.size() > 1) {
+            throw new SchemaException("Ambiguous definition: " + beans);
         } else {
-            return getWorkFromBean(actions.get(0));
+            return getWorkFromBean(beans.get(0));
         }
     }
 
-    private WorkDefinition getWorkFromBean(WorkDefinitionWrapper definitionWrapper)
+    private WorkDefinition getWorkFromBean(WorkDefinitionBean definitionBean)
             throws SchemaException, ConfigurationException {
-        QName typeName = definitionWrapper.getBeanTypeName();
+        QName typeName = definitionBean.getBeanTypeName();
         WorkDefinitionSupplier supplier = MiscUtil.requireNonNull(
                 byTypeName.get(typeName),
                 () -> new IllegalStateException("No work definition supplier for " + typeName));
-        return supplier.provide(definitionWrapper);
+        return supplier.provide(definitionBean);
     }
 
     @FunctionalInterface
     public interface WorkDefinitionSupplier {
-        WorkDefinition provide(@NotNull WorkDefinitionSource source) throws SchemaException, ConfigurationException;
+        WorkDefinition provide(@NotNull WorkDefinitionBean source) throws SchemaException, ConfigurationException;
     }
 }

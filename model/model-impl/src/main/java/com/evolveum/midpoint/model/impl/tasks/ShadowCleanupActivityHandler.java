@@ -14,6 +14,8 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +32,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -186,13 +186,13 @@ public class ShadowCleanupActivityHandler
         private final ResourceObjectSetType shadows;
         @NotNull private final Duration interval;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (ShadowCleanupWorkDefinitionType) source.getBean();
+
             shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
-            interval = typedDefinition.getInterval();
             ResourceObjectSetUtil.setDefaultQueryApplicationMode(shadows, APPEND); // "replace" would be very dangerous
 
+            interval = typedDefinition.getInterval();
             argCheck(interval != null, "No freshness interval specified");
             if (interval.getSign() == 1) {
                 interval.negate();

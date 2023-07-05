@@ -29,8 +29,7 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -139,9 +138,8 @@ public class ExplicitChangeExecutionActivityHandler
 
         @NotNull private final List<ChangeExecutionRequest> requests = new ArrayList<>();
 
-        MyWorkDefinition(WorkDefinitionSource source) throws ConfigurationException {
-            ExplicitChangeExecutionWorkDefinitionType typedDefinition = (ExplicitChangeExecutionWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) throws ConfigurationException {
+            var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) source.getBean();
             Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
             ModelExecuteOptions rootOptions =
                     ModelExecuteOptions.fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
