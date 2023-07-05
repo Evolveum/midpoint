@@ -22,6 +22,9 @@
     <activity>
         <work>
             <recomputation>
+                <objects>
+                    <type>UserType</type>
+                </objects>
                 <executionOptions>
                     <reconcileFocus>true</reconcileFocus>
                     <partialProcessing>

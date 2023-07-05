@@ -19,7 +19,11 @@
     <executionState>runnable</executionState>
     <activity>
         <work>
-            <recomputation/>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+            </recomputation>
         </work>
     </activity>
 </task>
