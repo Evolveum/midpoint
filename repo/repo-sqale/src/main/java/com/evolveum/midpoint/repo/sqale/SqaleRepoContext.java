@@ -126,8 +126,9 @@ public class SqaleRepoContext extends SqlRepoContext {
                     .limit(1)
                     .fetchOne();
             String current = metadata != null ? metadata.value : null;
+            Integer currentAsInt = current != null ? Integer.valueOf(current) : null;
 
-            if (!Objects.equals(current, schemaChangeNumberValue)) {
+            if (!Objects.equals(currentAsInt, schemaChangeNumberValue)) {
                 throw new SystemException("Can't initialize sqale repository context, database schema version (" + current
                         + ") doesn't match expected value (" + schemaChangeNumberValue + ") for label '" + schemaChangeNumberLabel
                         + "'. Seems like mismatch between midPoint executable version and DB schema version. Maybe DB schema was not updated?");
