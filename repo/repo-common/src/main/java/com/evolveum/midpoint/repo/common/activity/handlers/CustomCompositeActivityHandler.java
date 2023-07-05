@@ -66,14 +66,14 @@ public class CustomCompositeActivityHandler implements ActivityHandler<Composite
                 .sorted(Comparator.comparing(
                         ActivityDefinitionType::getOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(definitionBean -> ActivityDefinition.createChild(definitionBean, workDefinitionFactory))
+                .map(definitionBean -> ActivityDefinition.createChild(definitionBean))
                 .map(definition -> createChildActivity(definition, parent))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> Activity<?, ?> createChildActivity(
             ActivityDefinition<WD> definition, Activity<CompositeWorkDefinition, ?> parent) {
-        AH handler = handlerRegistry.getHandler(definition);
+        AH handler = handlerRegistry.getHandlerRequired(definition);
         return StandaloneActivity.createNonRoot(definition, handler, parent);
     }
 

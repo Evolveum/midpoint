@@ -152,7 +152,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
         PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
         executeChanges(prismContext.deltaFor(UserType.class)
-                        .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
+                        .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner))
                         .asObjectDelta(userEmployeeOwnerOid),
                 null, task, result);
         display("Employee role", getRole(roleEmployeeOid));

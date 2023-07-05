@@ -41,21 +41,19 @@ public class ActivityTree implements DebugDumpable {
 
     @NotNull private final ActivityTreeStateOverview treeStateOverview;
 
-    @NotNull private final CommonTaskBeans beans;
+    @NotNull private final CommonTaskBeans beans = CommonTaskBeans.get();
 
     private <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> ActivityTree(
             @NotNull ActivityDefinition<WD> rootDefinition,
-            @NotNull Task rootTask,
-            @NotNull CommonTaskBeans beans) {
-        AH handler = beans.activityHandlerRegistry.getHandler(rootDefinition);
+            @NotNull Task rootTask) {
+        AH handler = beans.activityHandlerRegistry.getHandlerRequired(rootDefinition);
         this.rootActivity = StandaloneActivity.createRoot(rootDefinition, handler, this);
-        this.beans = beans;
         this.treeStateOverview = new ActivityTreeStateOverview(rootTask, beans);
     }
 
-    public static ActivityTree create(Task rootTask, CommonTaskBeans beans) throws SchemaException, ConfigurationException {
-        ActivityDefinition<?> rootDefinition = ActivityDefinition.createRoot(rootTask, beans);
-        return new ActivityTree(rootDefinition, rootTask, beans);
+    public static ActivityTree create(Task rootTask) throws SchemaException, ConfigurationException {
+        ActivityDefinition<?> rootDefinition = ActivityDefinition.createRoot(rootTask);
+        return new ActivityTree(rootDefinition, rootTask);
     }
 
     @NotNull

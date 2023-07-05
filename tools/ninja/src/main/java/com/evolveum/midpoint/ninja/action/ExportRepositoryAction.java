@@ -7,24 +7,27 @@
 package com.evolveum.midpoint.ninja.action;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
 import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Ninja action realizing "export" command.
  */
-public class ExportRepositoryAction extends AbstractRepositorySearchAction<ExportOptions> {
+public class ExportRepositoryAction extends AbstractRepositorySearchAction<ExportOptions, Void> {
 
     @Override
-    protected String getOperationShortName() {
+    public String getOperationName() {
         return "export";
     }
 
     @Override
-    protected Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
-        return new ExportConsumerWorker(context, options, queue, operation);
+    protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
+        return () -> {
+            new ExportConsumerWorker(context, options, queue, operation).run();
+            return null;
+        };
     }
 }

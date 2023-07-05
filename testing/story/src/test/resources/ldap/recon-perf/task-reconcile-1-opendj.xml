@@ -6,25 +6,25 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="a62c53e2-6830-11e9-8592-ef14755a7258"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="a62c53e2-6830-11e9-8592-ef14755a7258">
     <name>Reconciliation: OpenDj (1 thread)</name>
-
-    <extension>
-        <mext:objectclass>ri:inetOrgPerson</mext:objectclass>
-        <mext:workerThreads>1</mext:workerThreads>
-    </extension>
-
     <taskIdentifier>a62c53e2-6830-11e9-8592-ef14755a7258</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/> <!-- OpenDj -->
-
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <distribution>
+            <workerThreads>1</workerThreads>
+        </distribution>
+    </activity>
 </task>

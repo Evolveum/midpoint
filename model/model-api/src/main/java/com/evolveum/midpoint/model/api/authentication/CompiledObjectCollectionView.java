@@ -13,10 +13,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -27,15 +25,21 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 /**
- * @author semancik
+ * Compiled form of either object collection view or an implicit object collection, such as (e.g.) an {@link ArchetypeType}.
  *
+ * (TODO is this correct?)
+ *
+ * @author semancik
  */
 @Experimental
 public class CompiledObjectCollectionView implements DebugDumpable, Serializable {
@@ -71,13 +75,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
-        super();
         containerType = null;
         viewIdentifier = null;
     }
 
     public CompiledObjectCollectionView(QName objectType, String viewIdentifier) {
-        super();
         this.containerType = objectType;
         this.viewIdentifier = viewIdentifier;
     }
@@ -348,5 +350,22 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public void setDefaultView(boolean defaultView) {
         this.defaultView = defaultView;
+    }
+
+    /** Returns a reference to the archetype if this collection view is archetype-based. */
+    public @Nullable ObjectReferenceType getArchetypeRef() {
+        if (collection == null) {
+            return null;
+        }
+        ObjectReferenceType collectionRef = collection.getCollectionRef();
+        if (collectionRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType())) {
+            return collectionRef;
+        } else {
+            return null;
+        }
+    }
+
+    public @Nullable String getArchetypeOid() {
+        return getOid(getArchetypeRef());
     }
 }

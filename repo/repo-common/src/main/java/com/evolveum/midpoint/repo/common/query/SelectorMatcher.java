@@ -42,7 +42,7 @@ public class SelectorMatcher {
 
     @NotNull private final ValueSelector selector;
 
-    private ProcessingTracer<SelectorTraceEvent> tracer;
+    private ProcessingTracer<? super SelectorTraceEvent> tracer;
 
     private ObjectFilterExpressionEvaluator filterEvaluator;
 

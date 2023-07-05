@@ -6,37 +6,32 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="aadb61f6-5bd2-4802-a44d-02f7911eb270"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="aadb61f6-5bd2-4802-a44d-02f7911eb270">
     <name>Recompute users (1 thread) - no role/shadow cache</name>
-
-    <extension>
-        <mext:objectType>UserType</mext:objectType>
-        <mext:objectQuery>
-            <q:filter>
-                <q:substring>
-                    <q:path>name</q:path>
-                    <q:value>user</q:value>
-                    <q:anchorStart>true</q:anchorStart>
-                </q:substring>
-            </q:filter>
-        </mext:objectQuery>
-    </extension>
-
     <taskIdentifier>aadb61f6-5bd2-4802-a44d-02f7911eb270</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-
     <executionEnvironment>
         <cachingProfile>no-roles-and-shadows</cachingProfile>
     </executionEnvironment>
-
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>name</q:path>
+                                <q:value>user</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
 </task>

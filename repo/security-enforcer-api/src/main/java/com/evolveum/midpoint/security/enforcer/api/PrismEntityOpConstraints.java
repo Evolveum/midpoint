@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 import org.jetbrains.annotations.NotNull;
 
-/** Compiled security constraints applicable to a prism entity ({@link Item} or {@link PrismValue}). */
+/** Compiled security constraints for a given operation applicable to a prism entity ({@link Item} or {@link PrismValue}). */
 public interface PrismEntityOpConstraints extends DebugDumpable {
 
     /**

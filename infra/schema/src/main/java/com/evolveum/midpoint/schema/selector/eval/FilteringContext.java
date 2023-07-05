@@ -44,12 +44,6 @@ public class FilteringContext extends SelectorProcessingContext {
     /** TODO explain and revise the use of this (not sure about its exact form) */
     private final boolean maySkipOnSearch;
 
-    /**
-     * Externally-imposed constraint on the applicability of selected clauses.
-     * (Used to e.g. turn off evaluation of `self` clauses in some contexts.)
-     */
-    @Nullable private final ClauseApplicabilityPredicate clauseApplicabilityPredicate;
-
     @NotNull final FilterCollector filterCollector;
 
     public FilteringContext(
@@ -57,10 +51,9 @@ public class FilteringContext extends SelectorProcessingContext {
             @NotNull Class<?> restrictedType,
             @Nullable ObjectFilter originalFilter,
             boolean maySkipOnSearch,
-            @Nullable ClauseApplicabilityPredicate clauseApplicabilityPredicate,
             @NotNull FilterCollector filterCollector,
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
-            @NotNull ProcessingTracer<SelectorTraceEvent> tracer,
+            @NotNull ProcessingTracer<? super SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,
@@ -80,7 +73,6 @@ public class FilteringContext extends SelectorProcessingContext {
         this.restrictedType = restrictedType;
         this.originalFilter = originalFilter;
         this.maySkipOnSearch = maySkipOnSearch;
-        this.clauseApplicabilityPredicate = clauseApplicabilityPredicate;
         this.filterCollector = filterCollector;
     }
 
@@ -153,7 +145,6 @@ public class FilteringContext extends SelectorProcessingContext {
                 filterType,
                 originalFilter,
                 maySkipOnSearch,
-                clauseApplicabilityPredicate,
                 filterCollector,
                 filterEvaluator,
                 tracer,
@@ -163,10 +154,5 @@ public class FilteringContext extends SelectorProcessingContext {
                 objectResolver,
                 description.child(idDelta, textDelta),
                 delegatorSelection);
-    }
-
-    public boolean isClauseApplicable(SelectorClause clause) {
-        return clauseApplicabilityPredicate == null
-                || clauseApplicabilityPredicate.test(clause, this);
     }
 }

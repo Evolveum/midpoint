@@ -538,8 +538,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     @Override
-    protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-        showMessageWithoutLinkForTask(task, target);
+    protected boolean shouldHideTaskLink() {
+        // This panel is used in wizard (at least I think so), hence we don't want to show task links.
+        return true;
     }
 
     @Override

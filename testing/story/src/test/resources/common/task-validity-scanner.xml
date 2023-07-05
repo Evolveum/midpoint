@@ -7,11 +7,7 @@
   -->
 
 <task oid="00000000-0000-0000-0000-000000000006"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>Validity Scanner</name>
 
@@ -19,10 +15,15 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/focus-validity-scanner/handler-3</handlerUri>
     <binding>tight</binding>
     <schedule>
         <interval>1</interval>
     </schedule>
+
+    <activity>
+        <work>
+            <focusValidityScan/>
+        </work>
+    </activity>
 
 </task>

@@ -17,7 +17,6 @@ import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.impl.util.EndPointsUrlMapping;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.api.*;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +32,6 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -128,18 +126,19 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         securityEnforcer.failAuthorization(operationUrl, phase, params, result);
     }
 
-    // MidPoint pages invoke this method (through PageBase)
     @Override
-    public boolean isAuthorized(
+    public @NotNull AccessDecision decideAccess(
+            @Nullable MidPointPrincipal principal,
             @NotNull String operationUrl,
             @Nullable AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params,
-            @Nullable OwnerResolver ownerResolver,
+            @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
+        return securityEnforcer.decideAccess(
+                principal, operationUrl, phase, params, options, task, result);
     }
 
     @Override
@@ -217,21 +216,23 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         decideInternal(principal, requiredActions, authentication, object, task);
     }
 
-    protected MidPointPrincipal getPrincipalFromAuthentication(Authentication authentication, Object object, Object configAttributes) {
+    protected MidPointPrincipal getPrincipalFromAuthentication(
+            Authentication authentication, Object object, Object configAttributes) {
         Object principalObject = authentication.getPrincipal();
-        if (!(principalObject instanceof MidPointPrincipal)) {
-            if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
-                SecurityUtil.logSecurityDeny(object, ": Not logged in");
-                LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: DENY (not logged in)",
-                        authentication, object, configAttributes);
-                throw new InsufficientAuthenticationException("Not logged in.");
-            }
-            LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: ERROR (wrong principal)",
-                    authentication, object, configAttributes);
-            throw new IllegalArgumentException("Expected that spring security principal will be of type " +
-                    MidPointPrincipal.class.getName() + " but it was " + (principalObject == null ? null : principalObject.getClass()));
+        if (principalObject instanceof MidPointPrincipal) {
+            return (MidPointPrincipal) principalObject;
         }
-        return (MidPointPrincipal) principalObject;
+        if (authentication.getPrincipal() instanceof String
+                && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
+            SecurityUtil.logSecurityDeny(object, ": Not logged in");
+            LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: DENY (not logged in)",
+                    authentication, object, configAttributes);
+            throw new InsufficientAuthenticationException("Not logged in.");
+        }
+        LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: ERROR (wrong principal)",
+                authentication, object, configAttributes);
+        throw new IllegalArgumentException("Expected that spring security principal will be of type " +
+                MidPointPrincipal.class.getName() + " but it was " + (principalObject == null ? null : principalObject.getClass()));
     }
 
     protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task) {
@@ -304,32 +305,19 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public @NotNull <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(
-            @Nullable MidPointPrincipal principal,
-            @NotNull List<String> operationUrls,
-            @NotNull AuthorizationParameters<O, T> params,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        return securityEnforcer.decideAccess(principal, operationUrls, params, task, result);
-    }
-
-    @Override
     public @NotNull <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
-            @NotNull PrismObject<O> object, @Nullable OwnerResolver ownerResolver,
+            @NotNull PrismObject<O> object, @NotNull Options options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
+        return securityEnforcer.compileSecurityConstraints(object, options, task, result);
     }
 
     @Override
-    public PrismEntityOpConstraints.@NotNull ForValueContent compileOperationConstraints(
+    public @NotNull PrismEntityOpConstraints.ForValueContent compileOperationConstraints(
             @Nullable MidPointPrincipal principal,
             @NotNull PrismObjectValue<?> value,
             @Nullable AuthorizationPhaseType phase,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull String[] actionUrls,
             @NotNull Options enforcerOptions,
             @NotNull CompileConstraintsOptions compileConstraintsOptions,
@@ -338,28 +326,26 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.compileOperationConstraints(
-                principal, value, phase, ownerResolver, actionUrls, enforcerOptions, compileConstraintsOptions, task, result);
+                principal, value, phase, actionUrls, enforcerOptions, compileConstraintsOptions, task, result);
     }
 
     @Override
     public @Nullable <T> ObjectFilter preProcessObjectFilter(
-            @Nullable MidPointPrincipal principal, String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType,
-            @Nullable ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints,
-            @NotNull Options options, Task task, OperationResult result)
+            @Nullable MidPointPrincipal principal,
+            @NotNull String @NotNull [] operationUrls,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull Class<T> filterType,
+            @Nullable ObjectFilter origFilter,
+            @Nullable String limitAuthorizationAction,
+            @NotNull List<OrderConstraintsType> paramOrderConstraints,
+            @NotNull Options options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                principal, operationUrls, phase, searchResultType,
+                principal, operationUrls, phase, filterType,
                 origFilter, limitAuthorizationAction, paramOrderConstraints, options, task, result);
-    }
-
-    @Override
-    public <T extends ObjectType> boolean canSearch(String[] operationUrls,
-            AuthorizationPhaseType phase, Class<T> objectType, boolean includeSpecial, ObjectFilter filter,
-            Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        return securityEnforcer.canSearch(operationUrls, phase, objectType, includeSpecial, filter, task, result);
     }
 
     @Override
@@ -375,9 +361,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <F extends FocusType> MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal,
-            String attorneyAuthorizationAction, PrismObject<F> donor, Task task,
-            OperationResult result)
+    public <F extends FocusType> MidPointPrincipal createDonorPrincipal(
+            MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<F> donor,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return securityEnforcer.createDonorPrincipal(attorneyPrincipal, attorneyAuthorizationAction, donor, task, result);
@@ -396,8 +382,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     @Override
     public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
             MidPointPrincipal midPointPrincipal, String actionUri, PrismObject<O> object, PrismObject<R> target,
-            OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return securityEnforcer.getAllowedRequestAssignmentItems(midPointPrincipal, actionUri, object, target, ownerResolver, task, result);
+            Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return securityEnforcer.getAllowedRequestAssignmentItems(
+                midPointPrincipal, actionUri, object, target, task, result);
     }
 
     @Override
@@ -412,22 +401,24 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public <O extends ObjectType> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints,
+            @NotNull ObjectSecurityConstraints securityConstraints,
             @NotNull ObjectDelta<O> delta,
             PrismObject<O> currentObject,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            ItemPath itemPath) {
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            @NotNull ItemPath itemPath) {
         return securityEnforcer.determineItemDecision(securityConstraints, delta, currentObject, operationUrl, phase, itemPath);
     }
 
     @Override
-    public <C extends Containerable> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints, PrismContainerValue<C> containerValue,
-            String operationUrl, AuthorizationPhaseType phase, @Nullable ItemPath itemPath,
-            PlusMinusZero plusMinusZero, String decisionContextDesc) {
-        return securityEnforcer.determineItemDecision(
-                securityConstraints, containerValue, operationUrl, phase, itemPath, plusMinusZero, decisionContextDesc);
+    public <C extends Containerable> AccessDecision determineItemValueDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull PrismContainerValue<C> containerValue,
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            boolean consideringCreation,
+            @NotNull String decisionContextDesc) {
+        return securityEnforcer.determineItemValueDecision(
+                securityConstraints, containerValue, operationUrl, phase, consideringCreation, decisionContextDesc);
     }
-
 }

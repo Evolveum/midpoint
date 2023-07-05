@@ -38,7 +38,6 @@ class CancelCaseAction extends RequestedAction<CancelCaseRequest> {
                 ModelAuthorizationAction.CANCEL_CASE.getUrl(),
                 null,
                 AuthorizationParameters.Builder.buildObject(operation.getCurrentCase().asPrismObject()),
-                null,
                 operation.getTask(),
                 result);
 

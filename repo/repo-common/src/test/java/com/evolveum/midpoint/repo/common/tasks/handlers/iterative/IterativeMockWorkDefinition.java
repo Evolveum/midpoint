@@ -13,15 +13,16 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import com.google.common.base.MoreObjects;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.util.DebugUtil;
+
+import org.jetbrains.annotations.NotNull;
 
 public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
@@ -42,8 +43,8 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     private final long delay;
 
-    IterativeMockWorkDefinition(WorkDefinitionSource source) {
-        PrismContainerValue<?> pcv = ((WorkDefinitionWrapper.UntypedWorkDefinitionWrapper) source).getUntypedDefinition();
+    IterativeMockWorkDefinition(@NotNull WorkDefinitionBean source) {
+        PrismContainerValue<?> pcv = source.getValue();
         this.from = MoreObjects.firstNonNull(pcv.getPropertyRealValue(FROM_NAME, Integer.class), 0);
         this.to = MoreObjects.firstNonNull(pcv.getPropertyRealValue(TO_NAME, Integer.class), from);
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);

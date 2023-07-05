@@ -41,11 +41,17 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
     @NotNull final Task task;
     @NotNull final ModelBeans b = ModelBeans.get();
 
-    @NotNull private final MyLogCollector logCollector = new MyLogCollector();
+    @NotNull private final MyLogCollector logCollector;
 
     AuthorizationDiagEvaluation(@NotNull REQ request, @NotNull Task task) {
         this.request = request;
         this.task = task;
+        this.logCollector = new MyLogCollector(isSelectorTracingEnabled(request));
+    }
+
+    private boolean isSelectorTracingEnabled(REQ request) {
+        var tracing = request.getTracing();
+        return tracing != null && Boolean.TRUE.equals(tracing.isSelectorTracingEnabled());
     }
 
     static AuthorizationDiagEvaluation<?> of(@NotNull AuthorizationEvaluationRequestType request, @NotNull Task task)
@@ -176,7 +182,6 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
                     principal,
                     object.asPrismObject().getValue(),
                     null,
-                    null, // TODO owner resolver
                     getActionUrls(),
                     createOptions(),
                     CompileConstraintsOptions.create(),
@@ -296,6 +301,12 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
 
         private final StringBuilder sb = new StringBuilder();
 
+        private final boolean selectorTracingEnabled;
+
+        MyLogCollector(boolean selectorTracingEnabled) {
+            this.selectorTracingEnabled = selectorTracingEnabled;
+        }
+
         @Override
         public void log(String message) {
             sb.append(message).append("\n");
@@ -303,6 +314,10 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
 
         public @NotNull String getLog() {
             return sb.toString();
+        }
+
+        public boolean isSelectorTracingEnabled() {
+            return selectorTracingEnabled;
         }
     }
 }

@@ -11,6 +11,6 @@ package com.evolveum.midpoint.ninja.action;
  *
  * @param <O> options class
  */
-public abstract class RepositoryAction<O> extends Action<O> {
+public abstract class RepositoryAction<O, R> extends Action<O, R> {
 
 }

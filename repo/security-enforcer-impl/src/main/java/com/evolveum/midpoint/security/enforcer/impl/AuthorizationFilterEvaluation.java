@@ -33,7 +33,6 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
     @Nullable private final ObjectFilter originalFilter;
     @NotNull private final List<ValueSelector> objectSelectors;
     @NotNull private final String selectorLabel;
-    private final boolean includeSpecial;
     private ObjectFilter autzFilter = null;
     private boolean applicable;
 
@@ -44,13 +43,11 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             @NotNull Authorization authorization,
             @NotNull List<ValueSelector> objectSelectors,
             @NotNull String selectorLabel,
-            boolean includeSpecial,
             @NotNull EnforcerOperation op,
             @NotNull OperationResult result) {
         super(id, authorization, op, result);
         this.filterType = filterType;
         this.originalFilter = originalFilter;
-        this.includeSpecial = includeSpecial;
         this.objectSelectors = objectSelectors;
         this.selectorLabel = selectorLabel;
     }
@@ -86,7 +83,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             var evaluation = new SelectorFilterEvaluation<>(
                     selectorId(i), adjusted, filterType, originalFilter, adjusted.getDescription(),
                     selectorLabel, AuthorizationFilterEvaluation.this, result);
-            if (evaluation.processFilter(includeSpecial)) {
+            if (evaluation.processFilter()) {
                 autzFilter = ObjectQueryUtil.filterOr(autzFilter, evaluation.getSecurityFilter());
                 applicable = true; // At least one selector is applicable => the whole authorization is applicable
             }

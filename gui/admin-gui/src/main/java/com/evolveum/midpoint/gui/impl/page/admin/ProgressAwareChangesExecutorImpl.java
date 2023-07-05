@@ -10,19 +10,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.util.exception.NotLoggedInException;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessModel;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +46,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restartOnLoginPageException;
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createExplicitChangeExecutionDef;
 
@@ -193,13 +191,22 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
         }
     }
 
-
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesInBackground(Collection<ObjectDelta<? extends ObjectType>> deltas,
+    private Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesInBackground(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
             ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
 
         try {
-            configureTask(deltas, options, task);
-            progressAwarePage.getModelInteractionService().switchToBackground(task, result);
+
+            progressAwarePage.getModelInteractionService().submit(
+                    createExplicitChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)),
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(new TaskType()
+                                    .name("Execute changes")
+                                    .channel(SchemaConstants.CHANNEL_USER_URI)),
+                    task, result);
+
+        } catch (NotLoggedInException e) {
+            throw restartOnLoginPageException();
         } catch (Exception e) {
             result.recordFatalError(e);
         } finally {
@@ -208,23 +215,5 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
 
         progressAwarePage.finishProcessing(target,true, result);
         return null;
-    }
-
-    private void configureTask(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task)
-            throws SchemaException {
-        MidPointPrincipal user = AuthUtil.getPrincipalUser();
-        if (user == null) {
-            throw new RestartResponseException(PageLogin.class);
-        } else {
-            task.setOwner(user.getFocus().asPrismObject());
-        }
-
-        task.setRootActivityDefinition(
-                createExplicitChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)));
-
-        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
-        task.setName("Execute changes");
-        task.setInitiallyRunnable();
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
     }
 }

@@ -100,8 +100,6 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertRole(ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT)
                 .assertRoleMemberhipRefs(1);
 
-        assertCanSearchPirateMembers(true);
-
         ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
         DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
         assertNotNull("Preview evaluated assignment triple is null", evaluatedAssignmentTriple);
@@ -127,8 +125,6 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertName(USER_MANCOMB_USERNAME)
                 .assertAssignments(0)
                 .assertRoleMembershipRefs(0);
-
-        assertCanSearchPirateMembers(false);
 
         // Even though canSearch returns false, we can still try the search.
         // The authorization is enforcementStrategy=maySkipOnSearch. And it
@@ -188,8 +184,6 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertRole(ROLE_PIRATE_OID)
                 .assertRoleMemberhipRefs(1);
 
-        assertCanSearchPirateMembers(true);
-
         SearchResultList<PrismObject<UserType>> members = searchPirateMembers(1);
         assertUser(members.get(0), "pirate role member")
                 .assertName(USER_MANCOMB_USERNAME)
@@ -200,20 +194,6 @@ public class TestRoleMembers extends AbstractStoryTest {
         // THEN
         then();
 
-    }
-
-    private void assertCanSearchPirateMembers(boolean expected) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        assertEquals("Wrong canSearch on pirate members", expected, canSearchPirateMembers());
-    }
-
-    private boolean canSearchPirateMembers() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = taskManager.createTaskInstance(TestRoleMembers.class.getName() + ".canSearchPirateMembers");
-        OperationResult result = task.getResult();
-        ObjectQuery query = createMembersQuery(ROLE_PIRATE_OID);
-        // Object is null here by purpose. Maybe the object does not really makes any sense in canSearch() ?
-        boolean canSearch = modelInteractionService.canSearch(UserType.class, null, false, query, task, result);
-        assertSuccess(result);
-        return canSearch;
     }
 
     private SearchResultList<PrismObject<UserType>> searchPirateMembers(int expectedResults) throws Exception {

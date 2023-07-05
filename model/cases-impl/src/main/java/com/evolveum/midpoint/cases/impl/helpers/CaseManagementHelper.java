@@ -65,8 +65,9 @@ public class CaseManagementHelper {
             throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
             SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
         CaseType rootCase = caseTree.getUserObject();
-        securityEnforcer.authorize(ModelAuthorizationAction.CANCEL_CASE.getUrl(), null,
-                AuthorizationParameters.Builder.buildObject(rootCase.asPrismObject()), null, task, result);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.CANCEL_CASE.getUrl(), null,
+                AuthorizationParameters.Builder.buildObject(rootCase.asPrismObject()), task, result);
         if (!SchemaConstants.CASE_STATE_CLOSED.equals(rootCase.getState())) {
             if (isApprovalCase(rootCase)) {
                 CancelCaseRequest request = new CancelCaseRequest(rootCase.getOid());
@@ -137,8 +138,9 @@ public class CaseManagementHelper {
             ConfigurationException, ExpressionEvaluationException {
         CaseType aCase = caseTree.getUserObject();
         if (!isRoot) {
-            securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
-                    AuthorizationParameters.Builder.buildObjectDelete(aCase.asPrismObject()), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
+                    AuthorizationParameters.Builder.buildObjectDelete(aCase.asPrismObject()), task, result);
         }
 
         for (TreeNode<CaseType> child : caseTree.getChildren()) {

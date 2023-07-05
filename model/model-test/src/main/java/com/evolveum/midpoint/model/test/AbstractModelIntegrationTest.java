@@ -240,6 +240,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
+
+    /**
+     * Is the computation of access metadata (on `roleMembershipRef`) enabled? Currently, it influences some asserts
+     * on audit events.
+     *
+     * Set only _AFTER_ the initialization is complete - in {@link #postInitSystem(Task, OperationResult)} method.
+     */
     private boolean accessesMetadataEnabled;
 
     public AbstractModelIntegrationTest() {
@@ -269,9 +276,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(true);
-
-        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
-                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     @Override
@@ -279,6 +283,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (dummyResourceCollection != null) {
             dummyResourceCollection.resetResources();
         }
+        accessesMetadataEnabled = SystemConfigurationTypeUtil.isAccessesMetadataEnabled(
+                systemObjectCache.getSystemConfigurationBean(initResult));
     }
 
     protected boolean isAvoidLoggingChange() {
@@ -5247,7 +5253,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         createSecurityContext(principal);
         try {
             assertTrue("AuthorizationEvaluator.isAuthorized: Principal " + principal + " NOT authorized for action " + action,
-                    securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result));
+                    securityEnforcer.isAuthorized(
+                            action, phase, AuthorizationParameters.EMPTY, SecurityEnforcer.Options.create(), task, result));
             if (phase == null) {
                 List<String> requiredActions = new ArrayList<>(1);
                 requiredActions.add(action);
@@ -5275,7 +5282,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         SecurityContext origContext = SecurityContextHolder.getContext();
         createSecurityContext(principal);
-        boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result);
+        boolean isAuthorized = securityEnforcer.isAuthorized(
+                action, phase, AuthorizationParameters.EMPTY, SecurityEnforcer.Options.create(), task, result);
         SecurityContextHolder.setContext(origContext);
         assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
     }
@@ -6428,7 +6436,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 modelAuthorizationAction.getUrl(),
                 null,
                 ValueAuthorizationParameters.of(workItem),
-                null,
                 task, result);
     }
 
@@ -6451,7 +6458,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 modelAuthorizationAction.getUrl(),
                 null,
                 ValueAuthorizationParameters.of(workItem),
-                null,
                 task, result);
     }
 

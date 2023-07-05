@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -89,17 +90,13 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
     }
 
     private ItemName getPathBaseOnMappingType() {
-        switch (getMappingType()) {
-            case INBOUND:
-                return ResourceAttributeDefinitionType.F_INBOUND;
-            case OUTBOUND:
-                return ResourceAttributeDefinitionType.F_OUTBOUND;
-            default:
-                return null;
+        if (getMappingType() != null) {
+            return getMappingType().getContainerName();
         }
+        return null;
     }
 
-    protected abstract WrapperContext.AttributeMappingType getMappingType();
+    protected abstract MappingDirection getMappingType();
 
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> toDelete) {
         if (toDelete == null || toDelete.isEmpty()) {

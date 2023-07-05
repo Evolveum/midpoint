@@ -20,8 +20,8 @@ import java.util.Collection;
  * Service that exposes security functions for internal use inside midPoint and for other
  * spring-security-enabled purposes.
  *
- * This is using simple  MidPointPrincipal that is NOT GUI-enriched. Therefore it is NOT
- * suitable for use in GUI. See GuiProfiledPrincipalManager for that purpose.
+ * This is using simple {@link MidPointPrincipal} that is NOT GUI-enriched. Therefore it is NOT
+ * suitable for use in GUI. See `GuiProfiledPrincipalManager` for that purpose.
  *
  * @author lazyman
  * @author Igor Farinic
@@ -33,13 +33,22 @@ public interface MidPointPrincipalManager extends OwnerResolver {
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
-    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    MidPointPrincipal getPrincipal(
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException;
 
     void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);
 

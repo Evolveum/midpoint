@@ -1138,9 +1138,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         objectCollection.setCollection(collection);
         report.setObjectCollection(objectCollection);
         report.getAssignment()
-                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE, prismContext));
+                .add(ObjectTypeUtil.createAssignmentTo(
+                        SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
         report.getArchetypeRef()
-                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
+                .add(ObjectTypeUtil.createObjectRef(
+                        SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
 
         PageReport pageReport = new PageReport(report.asPrismObject());
         getPageBase().navigateToNext(pageReport);

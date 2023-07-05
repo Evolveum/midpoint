@@ -23,9 +23,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ItemSecurityConstraints extends DebugDumpable {
 
-    /** Is the operation allowed completely over the whole value (all of its items)? */
-    boolean isCompletelyAllowed();
-
     /**
      * Returns the explicit allow-deny decision (if present) that is common to all paths in the value.
      *

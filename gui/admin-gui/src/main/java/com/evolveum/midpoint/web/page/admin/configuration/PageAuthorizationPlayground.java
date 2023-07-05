@@ -9,19 +9,14 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -29,17 +24,25 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @PageDescriptor(
         urls = {
@@ -76,6 +79,8 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
     private static final String ID_SAMPLE = "sample";
 
+    private static final String ID_SELECTOR_TRACING = "selectorTracing";
+
     private static final String ID_EXECUTE = "execute";
 
     private static final String ID_RESULT_TEXT = "resultText";
@@ -89,14 +94,15 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
             // TODO add other ones
     );
 
-    private final IModel<String> subjectOidModel = Model.of("");
-
     private final IModel<String> additionalAuthorizationsModel =
             new Model<>("<additionalAuthorizations>\n</additionalAuthorizations>");
 
-    private final IModel<String> typeModel = new Model<>("UserType");
+    private final IModel<QName> typeModel = new Model<>(UserType.COMPLEX_TYPE);
     private final IModel<String> filterModel = new Model<>();
-    private final IModel<String> objectOidModel = Model.of("");
+    private final IModel<ObjectReferenceType> objectModel = Model.of(new ObjectReferenceType());
+    private final IModel<ObjectReferenceType> subjectModel = Model.of(new ObjectReferenceType());
+
+    private final IModel<Boolean> selectorTracingModel = Model.of(false);
 
     private final IModel<String> resultModel = new Model<>();
     private final IModel<String> computationModel = new Model<>();
@@ -109,21 +115,42 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        mainForm.add(new TextField<>(ID_SUBJECT_OID, subjectOidModel));
+        mainForm.add(new ValueChoosePanel<>(ID_SUBJECT_OID, subjectModel) {
+
+            @Override
+            protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
+                //noinspection unchecked
+                return (Class<O>) UserType.class;
+            }
+        });
 
         var additionalAuthorizationsEditor = new AceEditor(ID_ADDITIONAL_AUTHORIZATIONS, additionalAuthorizationsModel);
         additionalAuthorizationsEditor.setHeight(400);
         additionalAuthorizationsEditor.setResizeToMaxHeight(false);
         mainForm.add(additionalAuthorizationsEditor);
 
-        mainForm.add(new TextField<>(ID_TYPE, typeModel));
+        var supportedObjectTypeList = new ArrayList<>(WebComponentUtil.createObjectTypeList());
+        supportedObjectTypeList.add(AssignmentType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(CaseWorkItemType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(AccessCertificationCaseType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(OperationExecutionType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(SimulationResultProcessedObjectType.COMPLEX_TYPE);
+
+        mainForm.add(new DropDownChoicePanel<>(
+                ID_TYPE,
+                typeModel,
+                () -> supportedObjectTypeList,
+                new QNameChoiceRenderer()));
 
         var filterEditor = new AceEditor(ID_OBJECT_FILTER, filterModel);
         filterEditor.setHeight(400);
         filterEditor.setResizeToMaxHeight(false);
         mainForm.add(filterEditor);
 
-        mainForm.add(new TextField<>(ID_OBJECT_OID, objectOidModel));
+        mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
+
+        mainForm.add(new CheckBox(ID_SELECTOR_TRACING, selectorTracingModel));
 
         mainForm.add(
                 new AjaxSubmitButton(ID_EXECUTE, createStringResource("PageAuthorizationPlayground.button.evaluate")) {
@@ -183,6 +210,7 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
             setSubjectRef(request);
             addExplicitAuthorizations(request);
+            setTracing(request);
 
             var response = getModelDiagnosticService().evaluateAuthorizations(request, task, result);
 
@@ -207,18 +235,16 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
 
     /** Returns request without adornments like extra authorizations etc. */
     private AuthorizationEvaluationRequestType createRequestRaw() throws SchemaException {
-        String objectOid = objectOidModel.getObject();
-        if (objectOid != null) {
+        ObjectReferenceType objectRef = objectModel.getObject();
+        if (StringUtils.isNotEmpty(objectRef.getOid())) {
             return new AuthorizationEvaluationAccessDecisionRequestType()
-                    .objectRef(new ObjectReferenceType()
-                            .type(ObjectType.COMPLEX_TYPE) // will be fixed when appropriate GUI component is used
-                            .oid(objectOid));
+                    .objectRef(objectRef);
         }
 
-        String typeName = typeModel.getObject();
+        QName typeName = typeModel.getObject();
         if (typeName != null) {
             return new AuthorizationEvaluationFilterProcessingRequestType()
-                    .type(new QName(typeName))
+                    .type(typeName)
                     .filter(createFilterBean());
         }
 
@@ -235,11 +261,9 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
     }
 
     private void setSubjectRef(AuthorizationEvaluationRequestType request) {
-        String subjectOid = subjectOidModel.getObject();
-        if (StringUtils.isNotEmpty(subjectOid)) {
-            request.setSubjectRef(new ObjectReferenceType()
-                    .type(FocusType.COMPLEX_TYPE)
-                    .oid(subjectOid));
+        ObjectReferenceType subjectOid = subjectModel.getObject();
+        if (StringUtils.isNotEmpty(subjectOid.getOid())) {
+            request.setSubjectRef(subjectOid);
         }
     }
 
@@ -251,5 +275,10 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
                     CloneUtil.cloneCollectionMembers(
                             additional.getAuthorization()));
         }
+    }
+
+    private void setTracing(AuthorizationEvaluationRequestType request) {
+        request.tracing(new AuthorizationEvaluationTracingOptionsType()
+                .selectorTracingEnabled(selectorTracingModel.getObject()));
     }
 }

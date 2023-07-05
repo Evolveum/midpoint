@@ -604,6 +604,16 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public boolean isRemoved() {
+        return false;
+    }
+
+    @Override
+    public String getRemovedSince() {
+        return null;
+    }
+
+    @Override
     public boolean isExperimental() {
         return false;
     }

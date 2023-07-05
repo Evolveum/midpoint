@@ -296,7 +296,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             protected void populateItem(ListItem<Tile<PersonOfInterest>> item) {
-                TilePanel<PersonOfInterest> tp = new TilePanel<>(ID_TILE, item.getModel()) {
+                TilePanel<Tile<PersonOfInterest>, PersonOfInterest> tp = new TilePanel<>(ID_TILE, item.getModel()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {

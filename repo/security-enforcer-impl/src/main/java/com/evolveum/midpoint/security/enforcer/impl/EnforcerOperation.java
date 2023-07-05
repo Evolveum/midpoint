@@ -10,6 +10,8 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.traces.details.AbstractTraceEvent;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +44,9 @@ class EnforcerOperation {
     /** {@link OwnerResolver} to be used during this operation. */
     @Nullable final OwnerResolver ownerResolver;
 
-    @NotNull final ProcessingTracer<SecurityTraceEvent> tracer;
+    @NotNull final SecurityEnforcer.Options options;
+
+    @NotNull final ProcessingTracer<AbstractTraceEvent> tracer;
 
     /** Useful Spring beans. */
     @NotNull final Beans b;
@@ -51,21 +55,23 @@ class EnforcerOperation {
 
     EnforcerOperation(
             @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
         this.principal = principal;
         this.username = principal != null ? principal.getUsername() : null;
         this.tracer = createTracer(options);
-        this.ownerResolver = ownerResolver != null ? ownerResolver : beans.securityContextManager.getUserProfileService();
+        var customOwnerResolver = options.customOwnerResolver();
+        this.ownerResolver =
+                customOwnerResolver != null ? customOwnerResolver : beans.securityContextManager.getUserProfileService();
+        this.options = options;
         this.b = beans;
         this.task = task;
     }
 
     // temporary
-    private ProcessingTracer<SecurityTraceEvent> createTracer(SecurityEnforcer.Options options) {
-        return new LogBasedEnforcerTracer(options.logCollector());
+    private ProcessingTracer<AbstractTraceEvent> createTracer(SecurityEnforcer.Options options) {
+        return new LogBasedEnforcerAndSelectorTracer(options.logCollector());
     }
 
     Collection<Authorization> getAuthorizations() {

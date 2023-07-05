@@ -1032,16 +1032,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
         PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
                 targetObjectOid, pageBase, task, result);
-        ItemSecurityConstraints constraints = null;
         try {
-            constraints =
-                    pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
-
+            return pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(
+                    operationObject, targetRefObject, task, result);
         } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
+            return null;
         }
-        return constraints;
     }
 
     protected void removeButtonClickPerformed(AssignmentEditorDto assignmentDto, AjaxRequestTarget target) {

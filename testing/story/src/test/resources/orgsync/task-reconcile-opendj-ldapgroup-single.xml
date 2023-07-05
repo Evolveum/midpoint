@@ -8,24 +8,22 @@
 
 <!--Reconciliation task definition for OpenDJ resource, all defaults -->
 
-<task oid="10000000-0000-0000-5555-555500000014"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="10000000-0000-0000-5555-555500000014">
     <name>Reconciliation: OpenDJ ldapGroup</name>
-
-    <extension>
-        <mext:kind>entitlement</mext:kind>
-        <mext:intent>ldapGroup</mext:intent>
-    </extension>
-
     <taskIdentifier>10000000-0000-0000-5555-555500000014</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+                    <kind>entitlement</kind>
+                    <intent>ldapGroup</intent>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

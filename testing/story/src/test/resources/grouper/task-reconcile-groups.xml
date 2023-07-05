@@ -6,30 +6,22 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="1fde833d-7105-40fb-b59a-c863a1f53609"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="1fde833d-7105-40fb-b59a-c863a1f53609">
     <name>Reconcile groups</name>
-
-    <extension>
-        <mext:objectclass>ri:GroupObjectClass</mext:objectclass>
-<!--        <mext:tracing>-->
-<!--            <interval>1</interval>-->
-<!--            <tracingProfile>-->
-<!--                <ref>functional</ref>-->
-<!--            </tracingProfile>-->
-<!--        </mext:tracing>-->
-    </extension>
-
     <taskIdentifier>1fde833d-7105-40fb-b59a-c863a1f53609</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-    <objectRef oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233" type="ResourceType" />        <!-- Grouper -->
+    <objectRef oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233" type="ResourceType"/> <!-- Grouper -->
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233"/>
+                    <objectclass>ri:GroupObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

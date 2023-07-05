@@ -394,7 +394,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         GetBucketOperationOptionsBuilder optionsBuilder = GetBucketOperationOptionsBuilder.anOptions()
                 .withDistributionDefinition(
-                        ActivityDistributionDefinition.create(coordinator.getRootActivityDefinitionOrClone(), () -> null));
+                        ActivityDistributionDefinition.create(coordinator.getRootActivityDefinitionOrClone()));
 
         if (customizer != null) {
             customizer.accept(optionsBuilder);
@@ -925,7 +925,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
     }
 
     private ActivityDistributionDefinition getDistributionDefinition(Task task) {
-        return ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone(), () -> null);
+        return ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone());
     }
 
     private void assertBoundariesAndBucketCount(BucketContentFactory contentFactory,

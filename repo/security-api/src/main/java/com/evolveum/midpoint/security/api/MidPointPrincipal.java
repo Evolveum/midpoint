@@ -11,8 +11,9 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.LocaleUtils;
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 /**
  * Simple midPoint principal. This principal should contain only the concepts that are
  * essential for midPoint core to work. It should not contain user interface concepts
@@ -35,11 +38,19 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpable {
     @Serial private static final long serialVersionUID = 8299738301872077768L;
 
-    // Focus should not be final in case of session refresh, we need new focus object.
+    /** Focus should not be final in case of session refresh: we need new focus object there. */
+    @SuppressWarnings("NotNullFieldNotInitialized") // initialized, but IDEA is not smart enough here
     @NotNull private FocusType focus;
+
+    /** OID of the {@link #focus}. Does not change in the case of session refresh; at least not now. */
+    @NotNull private final String focusOid;
+
+    /** Lazily evaluated from the focus. */
+    private ActivationStatusType effectiveActivationStatus;
+
     private Locale preferredLocale;
     @NotNull private final List<Authorization> authorizations = new ArrayList<>();
-    private ActivationStatusType effectiveActivationStatus;
+
     private SecurityPolicyType applicableSecurityPolicy;
 
     /** Delegations with privileges limitations; TODO better name */
@@ -49,8 +60,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     private MidPointPrincipal previousPrincipal;
 
     public MidPointPrincipal(@NotNull FocusType focus) {
-        Validate.notNull(focus, "Focus must not be null.");
-        this.focus = focus;
+        focusOid = MiscUtil.argNonNull(focus.getOid(), "No OID in principal focus object: %s", focus);
+        setOrReplaceFocus(focus);
     }
 
     @Override
@@ -123,9 +134,20 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         return focus;
     }
 
-    public void replaceFocus(FocusType newFocus) {
+    public PrismObject<? extends FocusType> getFocusPrismObject() {
+        return focus.asPrismObject();
+    }
+
+    /** Must not change focus OID (at least for now). */
+    public void setOrReplaceFocus(@NotNull FocusType newFocus) {
+        String newOid = newFocus.getOid();
+        argCheck(
+                focusOid.equals(newOid),
+                "An attempt to change focus OID from %s to %s",
+                focusOid, newOid);
+
         focus = newFocus;
-        // Effective activation status is derived from focus and its cached
+        // Effective activation status is derived from focus and it's cached
         effectiveActivationStatus = null;
     }
 
@@ -220,12 +242,9 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         return sb.toString();
     }
 
-    public ObjectReferenceType toObjectReference() {
-        if (focus.getOid() != null) {
-            return ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT);
-        } else {
-            return null;
-        }
+    public @NotNull ObjectReferenceType toObjectReference() {
+        assert focus.getOid() != null;
+        return ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT);
     }
 
     @Override

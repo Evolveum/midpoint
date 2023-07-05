@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111111122"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>sheldon</name>
+    <description>Bazinga</description>
+    <fullName>Sheldon Cooper</fullName>
+    <givenName>Sheldon</givenName>
+    <familyName>Cooper</familyName>
+    <additionalName>Lee</additionalName>
+    <honorificSuffix>Ph.D., Sc.D.</honorificSuffix>
+    <emailAddress>sheldon.cooper@evolveum.com</emailAddress>
+
+    <credentials>
+        <password>
+            <value>
+                <clearValue>Penny,GetYourOwnWi-fi</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

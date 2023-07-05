@@ -42,7 +42,6 @@ public class ReconciliationActivityHandler
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationActivityHandler.class);
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value();
 
     /**
@@ -54,14 +53,14 @@ public class ReconciliationActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(ReconciliationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                ReconciliationWorkDefinitionType.COMPLEX_TYPE,
                 ReconciliationWorkDefinition.class, ReconciliationWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ReconciliationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                ReconciliationWorkDefinition.class);
+        handlerRegistry.unregister(ReconciliationWorkDefinitionType.COMPLEX_TYPE, ReconciliationWorkDefinition.class);
     }
 
     @Override

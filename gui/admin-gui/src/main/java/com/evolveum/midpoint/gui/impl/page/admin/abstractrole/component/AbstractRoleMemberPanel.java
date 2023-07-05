@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -65,7 +64,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -96,6 +94,8 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "members")
 @PanelInstance(identifier = "roleMembers",
@@ -374,7 +374,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     .exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
-                    .ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), getRelationsForSearch()))
+                    .ref(MemberOperationsQueryUtil.createReferenceValuesList(getModelObject(), getRelationsForSearch()))
                     .endBlock().build();
         }
         return null;
@@ -526,42 +526,36 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            protected Task executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query, @NotNull QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-                Task task = super.executeMemberOperation(targetObject, query, relation, type, target, pageBase);
-                processTaskAfterOperation(task, target);
-                return task;
+            protected QName getRelationIfIsStable() {
+                return stableRelation;
             }
 
             @Override
-            protected QName getRelationIfIsStable() {
-                return stableRelation;
+            protected boolean shouldHideTaskLink() {
+                return AbstractRoleMemberPanel.this.shouldHideTaskLink();
+            }
+
+            @Override
+            public Component getFeedbackPanel() {
+                return AbstractRoleMemberPanel.this.getFeedback();
             }
         };
         browser.setOutputMarkupId(true);
         return browser;
     }
 
-    protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
-    }
-
-    protected void showMessageWithoutLinkForTask(Task task, AjaxRequestTarget target) {
-        getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
-                && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
-
-        if (!task.getResult().isInProgress()) {
-            getPageBase().showResult(task.getResult());
-        } else {
-            getPageBase().info(createStringResource(
-                    "AbstractRoleMemberPanel.message.info.created.task",
-                    task.getResult().getOperation())
-                    .getString());
-//            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
-//            showedResult.setStatus(task.getResult().getStatus());
-//            getPageBase().showResult(showedResult);
-        }
-
-        refreshTable(target);
-        target.add(getFeedback());
+    /**
+     * Should the "show task" link be hidden for tasks submitted from this panel?
+     * This feature is used in wizards to avoid complexity for users.
+     *
+     * TODO originally, the role wizard showed "AbstractRoleMemberPanel.message.info.created.task"
+     *  ("Task "{0}" has been created in the background") when there was a background task started.
+     *  I originally planned to do so for any tasks. But is that really better than simply showing
+     *  the original operation name with a blue color indicating "in progress" state and a text note
+     *  "(running in background)"?
+     */
+    protected boolean shouldHideTaskLink() {
+        return false;
     }
 
     protected AjaxIconButton createUnassignButton(String buttonId) {
@@ -678,7 +672,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private boolean containsDirectAssignment(IModel<?> rowModel, boolean isHeader) {
-        AssignmentHolderType assignmentHolder = getAssignmetHolderFromRow(rowModel);
+        AssignmentHolderType assignmentHolder = getAssignmentHolderFromRow(rowModel);
 
         if (assignmentHolder == null) {
             return isHeader;
@@ -693,10 +687,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return false;
     }
 
-    private AssignmentHolderType getAssignmetHolderFromRow(IModel<?> rowModel) {
-        if (rowModel != null && (rowModel.getObject() instanceof SelectableBean)
-                && ((SelectableBean<?>) rowModel.getObject()).getValue() instanceof AssignmentHolderType) {
-            return (AssignmentHolderType) ((SelectableBean<?>) rowModel.getObject()).getValue();
+    private AssignmentHolderType getAssignmentHolderFromRow(@Nullable IModel<?> rowModel) {
+        if (rowModel != null
+                && (rowModel.getObject() instanceof SelectableBean<?> selectableBean)
+                && (selectableBean.getValue() instanceof AssignmentHolderType assignmentHolder)) {
+            return assignmentHolder;
         }
         return null;
     }
@@ -844,7 +839,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         } else {
             confirmModel = createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel");
 
-            QueryScope scope = getQueryScope();
+            QueryScope scope = getMemberQueryScope();
             ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
                     ((PageBase) getPage()).getMainPopupBodyId(), confirmModel) {
                 private static final long serialVersionUID = 1L;
@@ -876,17 +871,17 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 }
 
                 protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                    deleteMembersPerformed(rowModel, scope, type, relations, target);
+                    deleteMembersPerformed(scope, type, relations, target);
                 }
 
                 @Override
                 protected boolean isFocusTypeSelectorVisible() {
-                    return getAssignmetHolderFromRow(rowModel) == null && !QueryScope.SELECTED.equals(scope);
+                    return !QueryScope.SELECTED.equals(scope);
                 }
 
                 @Override
                 protected QName getDefaultObjectType() {
-                    return getSearchType();
+                    return getMemberSearchType();
                 }
 
             };
@@ -929,21 +924,17 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
-                Task task = MemberOperationsHelper.createRecomputeMembersTask(
+            protected PrismObject<TaskType> createTask(AjaxRequestTarget target) {
+                var pageBase = getPageBase();
+                var taskCreator = new MemberOperationsTaskCreator.Recompute(
                         AbstractRoleMemberPanel.this.getModelObject(),
-                        getQueryScope(),
-                        getSearchType(),
-                        getActionQuery(rowModel, getQueryScope(), getRelationsForRecomputeTask()),
-                        target, getPageBase());
-                if (task == null) {
-                    return null;
-                }
-                PrismObject<TaskType> recomputeTask = task.getRawTaskObjectClone();
-                TaskType recomputeTaskType = recomputeTask.asObjectable();
-                recomputeTaskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(
-                        SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
-                return recomputeTask;
+                        getMemberSearchType(),
+                        getMemberQuery(null, getMemberQueryScope(), getRelationsForRecomputeTask()),
+                        getMemberQueryScope(),
+                        pageBase);
+                return pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                        .hideSuccessfulStatus()
+                        .run(taskCreator::createTask);
             }
 
             @Override
@@ -953,12 +944,15 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                MemberOperationsHelper.createAndSubmitRecomputeMembersTask(
+                var pageBase = getPageBase();
+                var taskCreator = new MemberOperationsTaskCreator.Recompute(
                         AbstractRoleMemberPanel.this.getModelObject(),
-                        getQueryScope(),
-                        getSearchType(),
-                        getActionQuery(rowModel, getQueryScope(), getRelationsForRecomputeTask()),
-                        target, getPageBase());
+                        getMemberSearchType(),
+                        getMemberQuery(null, getMemberQueryScope(), getRelationsForRecomputeTask()),
+                        getMemberQueryScope(),
+                        pageBase);
+                pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                        .runVoid(taskCreator::createAndSubmitTask);
             }
 
         };
@@ -970,7 +964,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
-        QueryScope scope = getQueryScope();
+        QueryScope scope = getMemberQueryScope();
         StringResourceModel confirmModel;
 
         if (rowModel != null || getSelectedObjectsCount() > 0) {
@@ -1008,31 +1002,36 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                 @Override
                 protected boolean isFocusTypeSelectorVisible() {
-                    return getAssignmetHolderFromRow(rowModel) == null && !QueryScope.SELECTED.equals(scope);
+                    return !QueryScope.SELECTED.equals(scope);
                 }
 
                 protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                    unassignMembersPerformed(rowModel, type, isSubtreeScope()
-                            && QueryScope.ALL.equals(scope) ? QueryScope.ALL_DIRECT : scope, relations, target);
+                    unassignMembersPerformed(
+                            null,
+                            type,
+                            isSubtreeScope() && QueryScope.ALL.equals(scope) ? QueryScope.ALL_DIRECT : scope,
+                            relations,
+                            target);
                 }
 
                 @Override
-                protected PrismObject<TaskType> getTask(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                    if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
+                protected PrismObject<TaskType> createTask(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+                    if (checkRelationNotSelected(
+                            relations, "No relation was selected. Cannot perform unassign members", target)) {
                         return null;
                     }
-                    Task task = MemberOperationsHelper.createUnassignMembersTask(
+                    var pageBase = getPageBase();
+                    var taskCreator = new MemberOperationsTaskCreator.Unassign(
                             AbstractRoleMemberPanel.this.getModelObject(),
-                            scope,
                             type,
-                            getActionQuery(rowModel, scope, relations),
+                            getMemberQuery(null, scope, relations),
+                            scope,
                             relations,
-                            target, getPageBase());
+                            pageBase);
 
-                    if (task == null) {
-                        return null;
-                    }
-                    return task.getRawTaskObjectClone();
+                    return pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                            .hideSuccessfulStatus()
+                            .run(taskCreator::createTask);
                 }
 
                 @Override
@@ -1046,7 +1045,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         return FocusType.COMPLEX_TYPE;
                     }
 
-                    return getSearchType();
+                    return getMemberSearchType();
 
                 }
 
@@ -1078,16 +1077,19 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
 
-                AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
+                AssignmentHolderType object = getAssignmentHolderFromRow(rowModel);
                 if (object != null) {
                     executeRecompute(object, target);
                 } else {
-                    MemberOperationsHelper.createAndSubmitRecomputeMembersTask(
+                    var pageBase = getPageBase();
+                    var taskCreator = new MemberOperationsTaskCreator.Recompute(
                             AbstractRoleMemberPanel.this.getModelObject(),
-                            getQueryScope(),
-                            getSearchType(),
-                            getActionQuery(rowModel, getQueryScope(), getSupportedRelations()),
-                            target, getPageBase());
+                            getMemberSearchType(),
+                            getMemberQuery(rowModel, getMemberQueryScope(), getSupportedRelations()),
+                            getMemberQueryScope(),
+                            getPageBase());
+                    pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                            .runVoid(taskCreator::createAndSubmitTask);
                 }
             }
         };
@@ -1099,17 +1101,19 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
 
-                AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
+                AssignmentHolderType object = getAssignmentHolderFromRow(rowModel);
                 if (object != null) {
                     executeDelete(object, target);
-
                 } else {
-                    MemberOperationsHelper.createAndSubmitDeleteMembersTask(
+                    var pageBase = getPageBase();
+                    var taskCreator = new MemberOperationsTaskCreator.Delete(
                             AbstractRoleMemberPanel.this.getModelObject(),
-                            getQueryScope(),
-                            getSearchType(),
-                            getActionQuery(rowModel, getQueryScope(), getSupportedRelations()),
-                            target, getPageBase());
+                            getMemberSearchType(),
+                            getMemberQuery(rowModel, getMemberQueryScope(), getSupportedRelations()),
+                            getMemberQueryScope(),
+                            pageBase);
+                    pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                            .runVoid(taskCreator::createAndSubmitTask);
                 }
             }
         };
@@ -1137,20 +1141,21 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
+                AssignmentHolderType object = getAssignmentHolderFromRow(rowModel);
                 if (object != null) {
                     executeUnassign(object, relation, target);
 
                 } else {
-
-                    Task task = MemberOperationsHelper.createAndSubmitUnassignMembersTask(
+                    var pageBase = getPageBase();
+                    var taskCreator = new MemberOperationsTaskCreator.Unassign(
                             AbstractRoleMemberPanel.this.getModelObject(),
-                            getQueryScope(),
-                            getSearchType(),
-                            getActionQuery(rowModel, getQueryScope(), getSupportedRelations()),
+                            getMemberSearchType(),
+                            getMemberQuery(rowModel, getMemberQueryScope(), getSupportedRelations()),
+                            getMemberQueryScope(),
                             getSupportedRelations(),
-                            target, getPageBase());
-                    processTaskAfterOperation(task, target);
+                            pageBase);
+                    pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                            .runVoid(taskCreator::createAndSubmitTask);
                 }
             }
         };
@@ -1330,30 +1335,38 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
     }
 
-    protected void deleteMembersPerformed(IModel<?> rowModel, QueryScope scope, QName memberType, Collection<QName> relations, AjaxRequestTarget target) {
+    private void deleteMembersPerformed(
+            QueryScope scope, QName memberType, Collection<QName> relations, AjaxRequestTarget target) {
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform delete members", target)) {
             return;
         }
-        MemberOperationsHelper.createAndSubmitDeleteMembersTask(
+        var pageBase = getPageBase();
+        var helper = new MemberOperationsTaskCreator.Delete(
                 getModelObject(),
-                scope,
                 memberType,
-                getActionQuery(rowModel, scope, relations),
-                target, getPageBase());
+                getMemberQuery(null, scope, relations),
+                scope,
+                pageBase);
+        pageBase.taskAwareExecutor(target, helper.getOperationName())
+                .runVoid(helper::createAndSubmitTask);
     }
 
-    protected void unassignMembersPerformed(IModel<?> rowModel, QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+    protected void unassignMembersPerformed(
+            IModel<?> rowModel, QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
             return;
         }
-        MemberOperationsHelper.createAndSubmitUnassignMembersTask(
+        var pageBase = getPageBase();
+        var helper = new MemberOperationsTaskCreator.Unassign(
                 getModelObject(),
-                scope,
                 type,
-                getActionQuery(rowModel, scope, relations),
+                getMemberQuery(rowModel, scope, relations),
+                scope,
                 relations,
-                target, getPageBase());
-        target.add(this);
+                pageBase);
+        pageBase.taskAwareExecutor(target, helper.getOperationName())
+                .runVoid(helper::createAndSubmitTask);
+        target.add(this); // Why not for other actions?
     }
 
     private boolean checkRelationNotSelected(Collection<QName> relations, String message, AjaxRequestTarget target) {
@@ -1373,31 +1386,29 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return getSupportedRelations();
     }
 
-    protected ObjectQuery getActionQuery(IModel<?> rowModel, QueryScope scope, @NotNull Collection<QName> relations) {
-        AssignmentHolderType assignmentHolder = getAssignmetHolderFromRow(rowModel);
-        if (assignmentHolder == null) {
-            return getActionQuery(scope, relations);
+    private ObjectQuery getMemberQuery(IModel<?> rowModel, QueryScope scope, @NotNull Collection<QName> relations) {
+        AssignmentHolderType assignmentHolder = getAssignmentHolderFromRow(rowModel);
+        if (assignmentHolder != null) {
+            return MemberOperationsQueryUtil.createSelectedObjectsQuery(List.of(assignmentHolder));
+        } else {
+            return getMemberQuery(scope, relations);
         }
-        return MemberOperationsHelper.createSelectedObjectsQuery(Collections.singletonList(assignmentHolder));
     }
 
-    protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
-        switch (scope) {
-            case ALL:
-                return createAllMemberQuery(relations);
-            case ALL_DIRECT:
-                return MemberOperationsHelper.createDirectMemberQuery(
-                        getModelObject(),
-                        getSearchType(),
-                        relations,
-                        getTenantValue(),
-                        getProjectValue());
-            case SELECTED:
-                return MemberOperationsHelper.createSelectedObjectsQuery(
-                        getSelectedRealObjects());
-        }
-
-        return null;
+    protected ObjectQuery getMemberQuery(@NotNull QueryScope scope, @NotNull Collection<QName> relations) {
+        return switch (scope) {
+            case ALL -> createAllMemberQuery(relations);
+            case ALL_DIRECT ->
+                    MemberOperationsQueryUtil.createDirectMemberQuery(
+                            getModelObject(),
+                            getMemberSearchType(),
+                            relations,
+                            getTenantValue(),
+                            getProjectValue());
+            case SELECTED ->
+                    MemberOperationsQueryUtil.createSelectedObjectsQuery(
+                            getSelectedRealObjects());
+        };
     }
 
     private ObjectReferenceType getTenantValue() {
@@ -1432,7 +1443,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return (WebMarkupContainer) get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER));
     }
 
-    protected QueryScope getQueryScope() {
+    protected QueryScope getMemberQueryScope() {
         // TODO if all selected objects have OIDs we can eliminate getOids call
         if (CollectionUtils.isNotEmpty(
                 ObjectTypeUtil.getOids(getSelectedRealObjects()))) {
@@ -1458,7 +1469,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return false;
     }
 
-    protected @NotNull QName getSearchType() {
+    protected @NotNull QName getMemberSearchType() {
         //noinspection unchecked
         return ObjectTypes.getObjectType(getMemberPanelStorage().getSearch().getTypeClass())
                 .getTypeQName();
@@ -1486,7 +1497,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
         return getPrismContext().queryFor(FocusType.class)
-                .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
+                .item(FocusType.F_ROLE_MEMBERSHIP_REF)
+                .ref(MemberOperationsQueryUtil.createReferenceValuesList(getModelObject(), relations))
                 .build();
     }
 

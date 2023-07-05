@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -99,7 +98,7 @@ public class PageCertDefinition extends PageAdminCertification {
 
     //region Data
     private void initModels() {
-        definitionModel = new LoadableModel<CertDefinitionDto>(false) {
+        definitionModel = new LoadableModel<>(false) {
             @Override
             protected CertDefinitionDto load() {
                 if (definitionOid != null) {
@@ -142,10 +141,10 @@ public class PageCertDefinition extends PageAdminCertification {
     private CertDefinitionDto createDefinition() throws SchemaException {
         AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
         definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
-        AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
+        AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType();
         stage.setName("Stage 1");
         stage.setNumber(1);
-        stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
+        stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType());
         definition.getStageDefinition().add(stage);
         return new CertDefinitionDto(definition, this);
     }
@@ -153,8 +152,10 @@ public class PageCertDefinition extends PageAdminCertification {
 
     //region Layout
     private void initLayout() {
-        CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
-                new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION), WebComponentUtil.getSummaryPanelSpecification(AccessCertificationDefinitionType.class, getCompiledGuiProfile()));
+        CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(
+                ID_SUMMARY_PANEL,
+                new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION),
+                WebComponentUtil.getSummaryPanelSpecification(AccessCertificationDefinitionType.class, getCompiledGuiProfile()));
         summaryPanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(definitionModel.getObject().getOldDefinition().getOid())));
         add(summaryPanel);
 
@@ -262,15 +263,14 @@ public class PageCertDefinition extends PageAdminCertification {
             } else {
                 delta = DeltaFactory.Object.createAddDelta(newObject.asPrismObject());
             }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Access definition delta:\n{}", delta.debugDump());
-            }
+            LOGGER.trace("Access definition delta:\n{}", delta.debugDumpLazily());
             delta.normalize();
             if (!delta.isEmpty()) {
                 getPrismContext().adopt(delta);
-                ModelExecuteOptions options = new ModelExecuteOptions(getPrismContext());
-                options.raw(true);
-                getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, result);
+                getModelService().executeChanges(
+                        List.of(delta),
+                        new ModelExecuteOptions().raw(),
+                        task, result);
             }
             result.computeStatus();
         } catch (Exception ex) {

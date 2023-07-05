@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.prism.Containerable;
@@ -44,8 +45,8 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
     }
 
     @Override
-    protected WrapperContext.AttributeMappingType getMappingType() {
-        return WrapperContext.AttributeMappingType.INBOUND;
+    protected MappingDirection getMappingType() {
+        return MappingDirection.INBOUND;
     }
 
     @Override

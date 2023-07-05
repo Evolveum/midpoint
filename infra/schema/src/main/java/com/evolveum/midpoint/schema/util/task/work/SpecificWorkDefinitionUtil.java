@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.util.task.work;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -17,7 +18,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-/** Utils for managing work definition for specific activities. */
+/**
+ * Utils for managing work definition for specific activities.
+ *
+ * FIXME reconcile with {@link ActivityDefinitionBuilder}
+ */
 public class SpecificWorkDefinitionUtil {
 
     public static ActivityDefinitionType createExplicitChangeExecutionDef(

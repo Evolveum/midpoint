@@ -52,8 +52,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
     protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
-
-    protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
+    private static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
             "initial-objects/mark", "800-mark-protected.xml",
             SystemObjectsType.MARK_PROTECTED.value());
 

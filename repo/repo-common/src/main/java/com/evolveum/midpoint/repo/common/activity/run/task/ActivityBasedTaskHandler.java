@@ -16,7 +16,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,15 +64,6 @@ public class ActivityBasedTaskHandler implements TaskHandler {
 
     public CommonTaskBeans getBeans() {
         return beans;
-    }
-
-    @Override
-    public @Nullable String getArchetypeOid(@Nullable String handlerUri) {
-        if (handlerUri == null) {
-            return null;
-        } else {
-            return beans.activityHandlerRegistry.getArchetypeOid(handlerUri);
-        }
     }
 
     /**

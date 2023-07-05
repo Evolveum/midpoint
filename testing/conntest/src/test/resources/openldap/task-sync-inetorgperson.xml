@@ -6,29 +6,27 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="cd1e0ff2-0099-11e5-9e22-001e8c717e5b"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="cd1e0ff2-0099-11e5-9e22-001e8c717e5b">
     <name>Synchronization: OpenLDAP</name>
-
-    <extension>
-        <syncext:objectclass>ri:inetOrgPerson</syncext:objectclass>
-    </extension>
-
     <taskIdentifier>cd1e0ff2-0099-11e5-9e22-001e8c717e5b</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-    <objectRef oid="2a7c7130-7a34-11e4-bdf6-001e8c717e5b" xsi:type="c:ResourceType"/>
+    <objectRef oid="2a7c7130-7a34-11e4-bdf6-001e8c717e5b" type="c:ResourceType"/>
     <binding>tight</binding>
     <schedule>
         <interval>3</interval>
     </schedule>
-
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="2a7c7130-7a34-11e4-bdf6-001e8c717e5b"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
 </task>

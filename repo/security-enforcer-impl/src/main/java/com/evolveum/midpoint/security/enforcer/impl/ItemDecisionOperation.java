@@ -31,17 +31,19 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
-/** TODO polish */
+/** Misc methods that determine the access decision based on whether given item/items are "allowed" or not. */
 class ItemDecisionOperation {
 
-    /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
-    private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
+    private final SimpleTracer simpleTracer;
 
-    AccessDecision onAllowedItems(
+    ItemDecisionOperation(@NotNull SimpleTracer simpleTracer) {
+        this.simpleTracer = simpleTracer;
+    }
+
+    /** Checking whether `allowedItems` allow an operation with given params (object/value) to proceed. */
+    AccessDecision decideUsingAllowedItems(
             @NotNull AutzItemPaths allowedItems,
             @NotNull AuthorizationPhaseType phase,
             @NotNull AbstractAuthorizationParameters params) {
@@ -116,7 +118,7 @@ class ItemDecisionOperation {
                     decision = AccessDecision.combine(decision, subDecision);
                 } else {
                     if (modDecision == AccessDecision.DENY) {
-                        LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
+                        simpleTracer.trace("DENY operation because item {} in the delta is not allowed", itemPath);
                         // We do not want to break the loop immediately here. We want all the denied items to get logged
                     }
                     decision = AccessDecision.combine(decision, modDecision);
@@ -233,7 +235,9 @@ class ItemDecisionOperation {
      */
     private AccessDecision decideOnContainerValueByItems(
             @NotNull PrismContainerValue<?> containerValue,
-            ItemDecisionFunction itemDecisionFunction, boolean removingContainerValue, String contextDesc) {
+            ItemDecisionFunction itemDecisionFunction,
+            boolean removingContainerValue,
+            String contextDesc) {
         AccessDecision decision = null;
         // TODO: problem with empty containers such as orderConstraint in assignment. Skip all empty items ... for now.
         for (Item<?, ?> item : containerValue.getItems()) {
@@ -258,7 +262,7 @@ class ItemDecisionOperation {
                 }
             } else {
                 if (itemDecision == AccessDecision.DENY) {
-                    LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
+                    simpleTracer.trace("DENY operation because item {} in the object is not allowed", itemPath);
                     // We do not want to break the loop immediately here. We want all the denied items to get logged.
                 }
                 decision = AccessDecision.combine(decision, itemDecision);
@@ -269,29 +273,26 @@ class ItemDecisionOperation {
     }
 
     private void logContainerValueItemDecision(AccessDecision subDecision, String contextDesc, ItemPath path) {
-        if (LOGGER.isTraceEnabled()) { // TODO get ctx here
-            if (subDecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
-                LOGGER.trace("    item {} for {}: decision={}", path, contextDesc, subDecision);
-            }
+        if (subDecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
+            simpleTracer.trace("item {} for {}: decision={}", path, contextDesc, subDecision);
         }
     }
 
     private void logContainerValueDecision(
             AccessDecision decision, String contextDesc, PrismContainerValue<?> cval) {
-        if (LOGGER.isTraceEnabled()) { // TODO get ctx here
-            if (decision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
-                LOGGER.trace("    container {} for {} (processed sub-items): decision={}", cval.getPath(), contextDesc, decision);
-            }
+        if (decision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
+            simpleTracer.trace(
+                    "container {} for {} (processed sub-items): decision={}", cval.getPath(), contextDesc, decision);
         }
     }
 
-    <O extends ObjectType> AccessDecision onSecurityConstraints(
-            ObjectSecurityConstraints securityConstraints,
-            ObjectDelta<O> delta,
+    <O extends ObjectType> AccessDecision determineItemDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull ObjectDelta<O> delta,
             PrismObject<O> currentObject,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            ItemPath itemPath) {
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            @NotNull ItemPath itemPath) {
         ItemDecisionFunction itemDecisionFunction = (nameOnlyItemPath, removingContainer) ->
                 decideUsingSecurityConstraints(
                         nameOnlyItemPath, removingContainer, securityConstraints, operationUrl, phase, itemPath);
@@ -306,7 +307,7 @@ class ItemDecisionOperation {
             boolean removingContainer,
             @NotNull ObjectSecurityConstraints securityConstraints,
             @NotNull String operationUrl,
-            AuthorizationPhaseType phase,
+            @NotNull AuthorizationPhaseType phase,
             @Nullable ItemPath itemRootPath) {
         if (isAllowedByDefault(nameOnlySubItemPath, phase, removingContainer)) {
             return null;
@@ -318,19 +319,22 @@ class ItemDecisionOperation {
                 securityConstraints.findItemDecision(nameOnlySubItemPath, operationUrl, phase));
     }
 
-    /** TODO rename */
-    AccessDecision onSecurityConstraints2(
-            ObjectSecurityConstraints securityConstraints,
-            PrismContainerValue<?> containerValue,
+    AccessDecision determineItemValueDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull PrismContainerValue<?> containerValue,
             boolean removingContainer,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            @Nullable ItemPath itemPath,
-            String decisionContextDesc) {
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            @NotNull String decisionContextDesc) {
         return decideOnContainerValueByItems(
                 containerValue,
                 (nameOnlyItemPath, lRemovingContainer) -> decideUsingSecurityConstraints(
-                        nameOnlyItemPath, lRemovingContainer, securityConstraints, operationUrl, phase, itemPath),
+                        nameOnlyItemPath, lRemovingContainer, securityConstraints, operationUrl, phase, null),
                 removingContainer, decisionContextDesc);
+    }
+
+    /** Temporary implementation. */
+    interface SimpleTracer {
+        void trace(String message, Object... params);
     }
 }

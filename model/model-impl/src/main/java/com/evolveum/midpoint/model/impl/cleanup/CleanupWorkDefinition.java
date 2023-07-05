@@ -8,14 +8,12 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupWorkDefinitionType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CleanupWorkDefinition extends AbstractWorkDefinition {
@@ -23,19 +21,12 @@ public class CleanupWorkDefinition extends AbstractWorkDefinition {
     @Nullable
     private final CleanupPoliciesType cleanupPolicies;
 
-    CleanupWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-            cleanupPolicies = legacySource.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES,
-                    CleanupPoliciesType.class);
-        } else {
-            CleanupWorkDefinitionType typedDefinition = (CleanupWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            cleanupPolicies = typedDefinition.getPolicies();
-        }
+    CleanupWorkDefinition(@NotNull WorkDefinitionBean source) {
+        var typedDefinition = (CleanupWorkDefinitionType) source.getBean();
+        cleanupPolicies = typedDefinition.getPolicies();
     }
 
-    public @Nullable CleanupPoliciesType getCleanupPolicies() {
+    @Nullable CleanupPoliciesType getCleanupPolicies() {
         return cleanupPolicies;
     }
 

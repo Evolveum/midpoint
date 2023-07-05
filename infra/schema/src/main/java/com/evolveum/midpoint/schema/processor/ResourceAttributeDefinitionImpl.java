@@ -376,6 +376,16 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public boolean isRemoved() {
+        return rawDefinition.isRemoved();
+    }
+
+    @Override
+    public String getRemovedSince() {
+        return rawDefinition.getRemovedSince();
+    }
+
+    @Override
     public boolean isExperimental() {
         return rawDefinition.isExperimental();
     }

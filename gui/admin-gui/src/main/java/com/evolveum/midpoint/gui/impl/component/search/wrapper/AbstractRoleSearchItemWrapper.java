@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.panel.AbstractSearchItemPanel;
 import com.evolveum.midpoint.gui.impl.component.search.panel.MemberSearchPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -87,13 +87,14 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
 
         if(isIndirect()) {
             filter = prismContext.queryFor(type)
-                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(ref, relations))
+                    .item(FocusType.F_ROLE_MEMBERSHIP_REF)
+                    .ref(MemberOperationsQueryUtil.createReferenceValuesList(ref, relations))
                     .buildFilter();
         } else {
             S_FilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
-                    .ref(MemberOperationsHelper.createReferenceValuesList(ref, relations));
+                    .ref(MemberOperationsQueryUtil.createReferenceValuesList(ref, relations));
 
             if (!isIndirect()) {
                 if (tenantSearchDefined()) { //TODO is empty?

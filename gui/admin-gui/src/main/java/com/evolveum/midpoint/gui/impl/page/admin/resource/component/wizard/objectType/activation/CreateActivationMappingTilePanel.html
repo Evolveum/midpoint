@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="catalog-tile-panel d-flex w-100">
+        <div class="logo d-flex justify-content-center mr-2"
+                style="border-radius: 10px; height: 48px; min-height: 48px; min-width: 48px; width: 48px;">
+            <i class="text-lightblue align-self-center" wicket:id="icon"/>
+        </div>
+        <div class="catalog-tile-panel d-flex flex-column flex-fill">
+            <div class="d-flex">
+                <span class="small text-gray font-weight-bold text-break mr-auto" wicket:id="title"/>
+                <span class="small text-center badge badge-danger ml-auto" wicket:id="tag"/>
+            </div>
+            <span class="small mt-1 text-secondary tile-description text-left" wicket:id="description" style="-webkit-line-clamp: 2;"/>
+        </div>
+    </div>
+</wicket:panel>
+</html>

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * {@link AbstractRepositorySearchAction} because we need containers here and objects are quite
  * deeply embedded in the existing classes.
  */
-public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOptions> {
+public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOptions, Void> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -38,13 +38,18 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
     public static final String OPERATION_SHORT_NAME = "exportAudit";
     public static final String OPERATION_NAME = ExportAuditRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
+    @Override
+    public String getOperationName() {
+        return "export audit";
+    }
+
     protected Runnable createConsumer(
             BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
         return new ExportAuditConsumerWorker(context, options, queue, operation);
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus operation = new OperationStatus(context, result);
 
@@ -83,10 +88,12 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
         }
 
         handleResultOnFinish(operation, "Finished " + OPERATION_SHORT_NAME);
+
+        return null;
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getOutput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

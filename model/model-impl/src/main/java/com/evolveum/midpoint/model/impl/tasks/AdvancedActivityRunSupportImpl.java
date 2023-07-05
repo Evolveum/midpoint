@@ -127,8 +127,8 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
 
     @Override
     public void checkRawAuthorization(Task task, OperationResult result) throws CommonException {
-        securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null,
-                AuthorizationParameters.EMPTY, null, task, result);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.RAW_OPERATION.getUrl(), task, result);
     }
 
     @Override

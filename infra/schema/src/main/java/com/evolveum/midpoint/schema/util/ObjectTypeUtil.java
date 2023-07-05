@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -207,9 +208,18 @@ public class ObjectTypeUtil {
         return objectTypeType.getElementName().getLocalPart();
     }
 
-    @NotNull
-    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref, @Nullable PrismContext prismContext) {
-        AssignmentType assignment = new AssignmentType(prismContext);
+    @Deprecated
+    public static AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref, @Nullable PrismContext prismContext) {
+        return createAssignmentTo(ref);
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static AssignmentType createAssignmentToNullSafe(ObjectReferenceType ref) {
+        return ref != null ? createAssignmentTo(ref) : null;
+    }
+
+    public static @NotNull AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref) {
+        AssignmentType assignment = new AssignmentType();
         if (QNameUtil.match(ref.getType(), ResourceType.COMPLEX_TYPE)) {
             ConstructionType construction = new ConstructionType();
             construction.setResourceRef(ref);
@@ -220,16 +230,28 @@ public class ObjectTypeUtil {
         return assignment;
     }
 
-    @NotNull
-    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismReferenceValue ref, @Nullable PrismContext prismContext) {
-        ObjectReferenceType ort = new ObjectReferenceType();
-        ort.setupReferenceValue(ref);
-        return createAssignmentTo(ort, prismContext);
+    @Deprecated
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(
+            @NotNull PrismReferenceValue ref, @Nullable PrismContext ignored) {
+        return createAssignmentTo(ref);
     }
 
     @NotNull
-    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismContext prismContext) {
-        return createAssignmentTo(createObjectRef(oid, type), prismContext);
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismReferenceValue ref) {
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setupReferenceValue(ref);
+        return createAssignmentTo(ort);
+    }
+
+    @Deprecated
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(
+            @NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismContext ignored) {
+        return createAssignmentTo(oid, type);
+    }
+
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull String oid, @NotNull ObjectTypes type) {
+        return createAssignmentTo(createObjectRef(oid, type));
     }
 
     @NotNull
@@ -432,8 +454,15 @@ public class ObjectTypeUtil {
         }
     }
 
-    public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
+    public static ObjectReferenceType createObjectRef(@NotNull String oid, @NotNull ObjectTypes type) {
         return createObjectRef(oid, null, type);
+    }
+
+    @Contract("null, _ -> null; !null, _ -> !null")
+    public static ObjectReferenceType createObjectRefNullSafe(@Nullable String oid, @NotNull ObjectTypes type) {
+        return oid != null ?
+                createObjectRef(oid, null, type) :
+                null;
     }
 
     public static ObjectReferenceType createObjectRef(String oid, PolyStringType name, ObjectTypes type) {
@@ -1225,6 +1254,28 @@ public class ObjectTypeUtil {
                     "Value not embedded within a %s but in '%s': %s"
                             .formatted(expectedRootType.getSimpleName(), MiscUtil.getValueWithClass(rootValue), value));
         }
+    }
+
+    public static List<ObjectReferenceType> getAssignedArchetypeRefs(@NotNull AssignmentHolderType object) {
+        return getAssignedArchetypeRefStream(object)
+                .toList();
+    }
+
+    public static boolean hasAssignedArchetype(@NotNull AssignmentHolderType object) {
+        return !getAssignedArchetypeOids(object).isEmpty();
+    }
+
+    public static Set<String> getAssignedArchetypeOids(@NotNull AssignmentHolderType object) {
+        return getAssignedArchetypeRefStream(object)
+                .map(ref -> ref.getOid())
+                .collect(Collectors.toSet());
+    }
+
+    private static Stream<ObjectReferenceType> getAssignedArchetypeRefStream(@NotNull AssignmentHolderType object) {
+        return object.getAssignment().stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(ref -> QNameUtil.match(ArchetypeType.COMPLEX_TYPE, ref.getType()));
     }
 
     @FunctionalInterface

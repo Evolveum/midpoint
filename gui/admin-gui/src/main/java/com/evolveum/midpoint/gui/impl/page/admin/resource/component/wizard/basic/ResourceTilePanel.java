@@ -27,24 +27,24 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class ResourceTilePanel<O extends Serializable> extends BasePanel<TemplateTile<O>> {
+public class ResourceTilePanel<O extends Serializable, T extends TemplateTile<O>> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
 
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
-    private static final String ID_DESCRIPTION = "description";
+    protected static final String ID_DESCRIPTION = "description";
 
     private static final String ID_TAG = "tag";
 
-    public ResourceTilePanel(String id, IModel<TemplateTile<O>> model) {
+    public ResourceTilePanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         add(AttributeAppender.append(
                 "class",
                 "card selectable col-12 catalog-tile-panel d-flex flex-column align-items-center p-3 pb-5 pt-4 h-100 mb-0 btn"));
@@ -67,19 +67,28 @@ public class ResourceTilePanel<O extends Serializable> extends BasePanel<Templat
         add(descriptionPanel);
 
         Label tagPanel = new Label(ID_TAG, () -> {
+            if (getModelObject().getTags().isEmpty()) {
+                return null;
+            }
             DisplayType tag = getModelObject().getTags().iterator().next();
             return tag != null ? WebComponentUtil.getTranslatedPolyString(tag.getLabel()) : null;
         });
         tagPanel.add(new VisibleBehaviour(() -> getModelObject().getTags() != null));
         add(tagPanel);
 
-        add(new AjaxEventBehavior("click") {
+        if (addClickBehaviour()) {
+            add(new AjaxEventBehavior("click") {
 
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                ResourceTilePanel.this.onClick(target);
-            }
-        });
+                @Override
+                protected void onEvent(AjaxRequestTarget target) {
+                    ResourceTilePanel.this.onClick(target);
+                }
+            });
+        }
+    }
+
+    protected boolean addClickBehaviour() {
+        return true;
     }
 
     protected void onClick(AjaxRequestTarget target) {

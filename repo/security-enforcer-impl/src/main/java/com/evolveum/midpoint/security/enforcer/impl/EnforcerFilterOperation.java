@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -51,7 +50,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     @NotNull private final String[] operationUrls;
     @NotNull final Class<T> filterType;
     @NotNull final AuthorizationSelectorExtractor selectorExtractor;
-    private final boolean includeSpecial;
     final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
     private final List<OrderConstraintsType> paramOrderConstraints;
@@ -62,22 +60,19 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             @NotNull String[] operationUrls,
             @NotNull Class<T> filterType,
             @NotNull AuthorizationSelectorExtractor selectorExtractor,
-            boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
             @NotNull FilterGizmo<F> gizmo,
             String desc,
             @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, options, beans, task);
+        super(principal, options, beans, task);
         this.operationUrls = operationUrls;
         this.filterType = filterType;
         this.selectorExtractor = selectorExtractor;
-        this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
         this.limitAuthorizationAction = limitAuthorizationAction;
         this.paramOrderConstraints = paramOrderConstraints;
@@ -155,7 +150,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         authorization,
                         selectorExtractor.getSelectors(authorization),
                         selectorExtractor.getSelectorLabel(),
-                        includeSpecial,
                         EnforcerFilterOperation.this,
                         result);
 

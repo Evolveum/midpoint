@@ -8,31 +8,29 @@
 
 <!-- Refresh task with an explicit search filter. MID-5293 -->
 
-<task oid="220865f2-65a5-11e9-a835-9b2de4ec0be6"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="220865f2-65a5-11e9-a835-9b2de4ec0be6">
     <name>Shadow refresh: Dummy Resource</name>
-
-    <extension>
-        <modelext:objectQuery>
-            <q:filter>
-                <q:ref>
-                    <q:path>resourceRef</q:path>
-                    <q:value>
-                        <q:oid>10000000-0000-0000-0000-000000000004</q:oid>
-                    </q:value>
-                </q:ref>
-            </q:filter>
-        </modelext:objectQuery>
-    </extension>
-
     <taskIdentifier>220865f2-65a5-11e9-a835-9b2de4ec0be6</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
+    <activity>
+        <work>
+            <shadowRefresh>
+                <shadows>
+                    <query>
+                        <q:filter>
+                            <q:ref>
+                                <q:path>resourceRef</q:path>
+                                <q:value>
+                                    <q:oid>10000000-0000-0000-0000-000000000004</q:oid>
+                                </q:value>
+                            </q:ref>
+                        </q:filter>
+                    </query>
+                </shadows>
+            </shadowRefresh>
+        </work>
+    </activity>
 </task>
