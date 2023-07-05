@@ -6,22 +6,23 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9">
     <name>import from source</name>
-
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="a1c7dcb8-07f8-4626-bea7-f10d9df7ec9f" type="ResourceType"/> <!-- resource-source -->
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="a1c7dcb8-07f8-4626-bea7-f10d9df7ec9f"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
 </task>

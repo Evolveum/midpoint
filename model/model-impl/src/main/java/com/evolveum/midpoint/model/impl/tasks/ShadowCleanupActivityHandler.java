@@ -14,12 +14,9 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,12 +24,11 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
@@ -66,8 +62,6 @@ public class ShadowCleanupActivityHandler
         ShadowCleanupActivityHandler.MyWorkDefinition,
         ShadowCleanupActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.DELETE_NOT_UPDATE_SHADOW_TASK_HANDLER_URI;
-
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCleanupActivityHandler.class);
 
     @Override
@@ -88,11 +82,6 @@ public class ShadowCleanupActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override // TODO or should the archetype be "cleanup"?
@@ -198,16 +187,10 @@ public class ShadowCleanupActivityHandler
         @NotNull private final Duration interval;
 
         MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource legacy) {
-                shadows = ResourceObjectSetUtil.fromLegacySource(legacy);
-                interval = legacy.getExtensionItemRealValue(
-                        SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME, Duration.class);
-            } else {
-                ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)
-                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
-                interval = typedDefinition.getInterval();
-            }
+            ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)
+                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+            shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
+            interval = typedDefinition.getInterval();
             ResourceObjectSetUtil.setDefaultQueryApplicationMode(shadows, APPEND); // "replace" would be very dangerous
 
             argCheck(interval != null, "No freshness interval specified");

@@ -6,40 +6,37 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="412218e4-184b-11e5-9c9b-3c970e467874"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="412218e4-184b-11e5-9c9b-3c970e467874">
     <name>Delete Dummy Shadows</name>
-
-    <extension>
-        <modelext:objectType>ShadowType</modelext:objectType>
-        <modelext:objectQuery>
-            <q:filter>
-                <q:and>
-                    <q:ref>
-                        <q:path>resourceRef</q:path>
-                        <q:value>
-                                <oid>10000000-0000-0000-0000-000000000003</oid>
-                        </q:value>
-                    </q:ref>
-                    <q:equal>
-                        <q:path>objectClass</q:path>
-                        <q:value>ri:inetOrgPerson</q:value>
-                    </q:equal>
-                </q:and>
-            </q:filter>
-        </modelext:objectQuery>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3</handlerUri>
     <binding>tight</binding>
-
+    <activity>
+        <work>
+            <deletion>
+                <objects>
+                    <type>ShadowType</type>
+                    <query>
+                        <q:filter>
+                            <q:and>
+                                <q:ref>
+                                    <q:path>resourceRef</q:path>
+                                    <q:value>
+                                        <oid>10000000-0000-0000-0000-000000000003</oid>
+                                    </q:value>
+                                </q:ref>
+                                <q:equal>
+                                    <q:path>objectClass</q:path>
+                                    <q:value>ri:inetOrgPerson</q:value>
+                                </q:equal>
+                            </q:and>
+                        </q:filter>
+                    </query>
+                </objects>
+            </deletion>
+        </work>
+    </activity>
 </task>

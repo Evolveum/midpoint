@@ -70,14 +70,14 @@ public class DistributedReportExportActivityHandler
     @PostConstruct
     public void register() {
         registry.register(
-                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
+                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE,
                 DistributedReportExportWorkDefinition.class, DistributedReportExportWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         registry.unregister(
-                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
+                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE,
                 DistributedReportExportWorkDefinition.class);
     }
 

@@ -15,7 +15,6 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,13 +39,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class ShadowIntegrityCheckActivityHandler
         extends ModelActivityHandler<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE,
                 ShadowIntegrityCheckWorkDefinition.class, ShadowIntegrityCheckWorkDefinition::new, this);
     }
 
@@ -54,7 +52,6 @@ public class ShadowIntegrityCheckActivityHandler
     public void unregister() {
         handlerRegistry.unregister(
                 ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE,
-                LEGACY_HANDLER_URI,
                 ShadowIntegrityCheckWorkDefinition.class);
     }
 

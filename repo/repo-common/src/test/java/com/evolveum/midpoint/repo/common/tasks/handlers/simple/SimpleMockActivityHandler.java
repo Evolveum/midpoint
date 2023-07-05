@@ -27,21 +27,21 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 @Component
 public class SimpleMockActivityHandler extends AbstractMockActivityHandler<SimpleMockWorkDefinition, SimpleMockActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/simple-mock/handler-3";
-
     @Autowired private ActivityHandlerRegistry handlerRegistry;
     @Autowired private CommonMockActivityHelper mockHelper;
     @Autowired private MockRecorder recorder;
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 SimpleMockWorkDefinition.class, SimpleMockWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
+        handlerRegistry.unregister(
+                SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 SimpleMockWorkDefinition.class);
     }
 

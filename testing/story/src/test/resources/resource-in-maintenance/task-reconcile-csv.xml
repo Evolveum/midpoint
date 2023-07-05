@@ -6,22 +6,22 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="9b17f4f6-3085-4210-b160-883c0e842780"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="9b17f4f6-3085-4210-b160-883c0e842780">
     <name>Reconciliation: CSV</name>
-
-    <extension>
-        <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
-    </extension>
-
     <taskIdentifier>9b17f4f6-3085-4210-b160-883c0e842780</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>closed</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="25dd0010-5115-4ac0-960f-4889d1b960ff" type="ResourceType"/>
-
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="25dd0010-5115-4ac0-960f-4889d1b960ff"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

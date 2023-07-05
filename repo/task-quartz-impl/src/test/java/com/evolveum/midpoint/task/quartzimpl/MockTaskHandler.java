@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -86,11 +84,6 @@ public class MockTaskHandler implements TaskHandler {
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
         return runResult;
-    }
-
-    @Override
-    public String getArchetypeOid(@Nullable String handlerUri) {
-        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 
     boolean hasRun() {

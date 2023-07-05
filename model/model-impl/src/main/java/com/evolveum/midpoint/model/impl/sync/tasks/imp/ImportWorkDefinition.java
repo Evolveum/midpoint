@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
@@ -27,13 +26,9 @@ public class ImportWorkDefinition extends AbstractWorkDefinition implements Reso
     @NotNull private final ResourceObjectSetType resourceObjects;
 
     ImportWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            resourceObjects = ResourceObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
-        } else {
-            ImportWorkDefinitionType typedDefinition = (ImportWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
-        }
+        ImportWorkDefinitionType typedDefinition = (ImportWorkDefinitionType)
+                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, REPLACE);
     }
 

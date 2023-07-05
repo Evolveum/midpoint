@@ -6,26 +6,25 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="b6af0823-7d2c-4752-a04d-80bcfa7f0f2a"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="b6af0823-7d2c-4752-a04d-80bcfa7f0f2a">
     <name>Reconciliation</name>
-
-    <extension>
-        <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
-        <mext:workerThreads>4</mext:workerThreads>
-    </extension>
-
     <taskIdentifier>b6af0823-7d2c-4752-a04d-80bcfa7f0f2a</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-
+    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <distribution>
+            <workerThreads>4</workerThreads>
+        </distribution>
+    </activity>
 </task>

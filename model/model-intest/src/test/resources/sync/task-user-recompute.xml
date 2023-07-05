@@ -6,30 +6,24 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- User recompute task definition -->
-
-<task oid="91919191-76e0-59e2-86d6-3d4f02d3aaaa"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:my="http://whatever.com/my"
-    xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-                              http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="91919191-76e0-59e2-86d6-3d4f02d3aaaa">
     <name>User Recompute</name>
-
-    <extension>
-    </extension>
-
     <assignment>
-        <targetRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
+        <targetRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
     </assignment>
-    <archetypeRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
-    <roleMembershipRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
-
+    <archetypeRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
+    <roleMembershipRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
     <!-- No task identifier. It will be generated during import -->
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
 </task>

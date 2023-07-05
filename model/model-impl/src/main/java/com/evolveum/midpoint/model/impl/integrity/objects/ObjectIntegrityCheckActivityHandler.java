@@ -4,13 +4,10 @@ package com.evolveum.midpoint.model.impl.integrity.objects;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
-
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -18,12 +15,12 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
@@ -47,8 +44,6 @@ public class ObjectIntegrityCheckActivityHandler
             ObjectType,
             ObjectIntegrityCheckActivityHandler.MyWorkDefinition,
             ObjectIntegrityCheckActivityHandler> {
-
-    public static final String LEGACY_HANDLER_URI = ModelPublicConstants.OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectIntegrityCheckActivityHandler.class);
 
@@ -74,11 +69,6 @@ public class ObjectIntegrityCheckActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override
@@ -180,16 +170,10 @@ public class ObjectIntegrityCheckActivityHandler
         private final int histogramColumns;
 
         MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-                objects = ObjectSetUtil.fromLegacySource(legacySource);
-                histogramColumns = DEFAULT_HISTOGRAM_COLUMNS;
-            } else {
-                ObjectIntegrityCheckWorkDefinitionType typedDefinition = (ObjectIntegrityCheckWorkDefinitionType)
-                        ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-                histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);
-            }
+            ObjectIntegrityCheckWorkDefinitionType typedDefinition = (ObjectIntegrityCheckWorkDefinitionType)
+                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);
         }
 
         @Override

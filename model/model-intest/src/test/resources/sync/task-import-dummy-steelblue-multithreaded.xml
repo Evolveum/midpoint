@@ -6,26 +6,27 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="d553eec5-0e03-4efd-80ba-18e6715c26aa"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="d553eec5-0e03-4efd-80ba-18e6715c26aa">
     <name>Import: Dummy SteelBlue</name>
-
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-        <ext:workerThreads>6</ext:workerThreads>
-    </extension>
-
     <taskIdentifier>d553eec5-0e03-4efd-80ba-18e6715c26aa</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="8d97261a-ef5e-4199-9700-670577441c7f" type="ResourceType"/>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="8d97261a-ef5e-4199-9700-670577441c7f"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <distribution>
+            <workerThreads>6</workerThreads>
+        </distribution>
+    </activity>
 </task>

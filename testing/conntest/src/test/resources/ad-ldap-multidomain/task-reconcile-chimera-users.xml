@@ -6,24 +6,22 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="6e2689dc-88fa-11e9-a382-0baf927677fd"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="6e2689dc-88fa-11e9-a382-0baf927677fd">
     <name>Reconciliation: Chimera users</name>
-
-    <extension>
-        <syncext:objectclass>ri:user</syncext:objectclass>
-    </extension>
-
     <taskIdentifier>6e2689dc-88fa-11e9-a382-0baf927677fd</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="ResourceType"/> <!-- Chimera -->
-
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85"/>
+                    <objectclass>ri:user</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

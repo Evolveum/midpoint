@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
@@ -24,13 +23,9 @@ public class AsyncUpdateWorkDefinition extends AbstractWorkDefinition implements
     @NotNull private final ResourceObjectSetType resourceObjects;
 
     AsyncUpdateWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            resourceObjects = ResourceObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
-        } else {
-            AsyncUpdateWorkDefinitionType typedDefinition = (AsyncUpdateWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getUpdatedResourceObjects());
-        }
+        AsyncUpdateWorkDefinitionType typedDefinition = (AsyncUpdateWorkDefinitionType)
+                ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getUpdatedResourceObjects());
         ResourceObjectSetUtil.removeQuery(resourceObjects);
     }
 

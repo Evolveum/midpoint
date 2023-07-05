@@ -5,27 +5,34 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<c:task xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="5658878f-7d80-4530-afd6-69561d9762fd"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <c:name>Delete shadows</c:name>
-    <c:extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-                 xmlns:se="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-        <mext:workerThreads>4</mext:workerThreads>
-        <mext:objectType>ShadowType</mext:objectType>
-        <mext:useRepositoryDirectly>true</mext:useRepositoryDirectly>
-        <se:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
-            <s:action>
-                <s:type>delete</s:type>
-                <s:parameter>
-                    <s:name>raw</s:name>
-                    <c:value>true</c:value>
-                </s:parameter>
-            </s:action>
-        </se:executeScript>
-    </c:extension>
-    <c:taskIdentifier>5658878f-7d80-4530-afd6-69561d9762fd</c:taskIdentifier>
-    <c:ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <c:executionState>runnable</c:executionState>
-    <c:category>BulkActions</c:category>
-    <c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</c:handlerUri>
-</c:task>
+<task xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        oid="5658878f-7d80-4530-afd6-69561d9762fd">
+    <name>Delete shadows</name>
+    <taskIdentifier>5658878f-7d80-4530-afd6-69561d9762fd</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <objects>
+                    <type>ShadowType</type>
+                    <useRepositoryDirectly>true</useRepositoryDirectly>
+                </objects>
+                <scriptExecutionRequest>
+                    <s:action>
+                        <s:type>delete</s:type>
+                        <s:parameter>
+                            <s:name>raw</s:name>
+                            <c:value>true</c:value>
+                        </s:parameter>
+                    </s:action>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+        <distribution>
+            <workerThreads>4</workerThreads>
+        </distribution>
+    </activity>
+</task>

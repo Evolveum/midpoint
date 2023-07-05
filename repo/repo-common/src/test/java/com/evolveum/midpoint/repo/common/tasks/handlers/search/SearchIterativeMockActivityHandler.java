@@ -32,13 +32,15 @@ public class SearchIterativeMockActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(SearchIterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, null,
+        handlerRegistry.register(
+                SearchIterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 SearchIterativeMockWorkDefinition.class, SearchIterativeMockWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(SearchIterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, null,
+        handlerRegistry.unregister(
+                SearchIterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 SearchIterativeMockWorkDefinition.class);
     }
 

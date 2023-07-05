@@ -14,6 +14,6 @@
     <ownerRef oid="8e6943e0-848d-4bf0-8c9e-4ba6bdf6c518" type="c:UserType"/> <!-- does not exist -->
     <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
 
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
 </task>

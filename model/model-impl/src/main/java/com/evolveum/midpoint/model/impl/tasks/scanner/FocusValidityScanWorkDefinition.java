@@ -7,20 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.*;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.getTimeValidityConstraints;
-import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.hasNotificationActions;
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -29,18 +26,11 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
     private final TimeValidityPolicyConstraintType validityConstraint;
 
     FocusValidityScanWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-            objects = ObjectSetUtil.fromLegacySource(legacySource);
-            queryStyle = ValidityScanQueryStyleType.SINGLE_QUERY;
-            validityConstraint = null;
-        } else {
-            FocusValidityScanWorkDefinitionType typedDefinition = (FocusValidityScanWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-            queryStyle = Objects.requireNonNullElse(typedDefinition.getQueryStyle(), ValidityScanQueryStyleType.SINGLE_QUERY);
-            validityConstraint = typedDefinition.getValidityConstraint();
-        }
+        FocusValidityScanWorkDefinitionType typedDefinition = (FocusValidityScanWorkDefinitionType)
+                ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+        objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+        queryStyle = Objects.requireNonNullElse(typedDefinition.getQueryStyle(), ValidityScanQueryStyleType.SINGLE_QUERY);
+        validityConstraint = typedDefinition.getValidityConstraint();
         // We allow user to use types above FocusType if he needs to check e.g. assignments validity
         // on AssignmentHolderType objects.
         ObjectSetUtil.applyDefaultObjectType(objects, FocusType.COMPLEX_TYPE);

@@ -22,6 +22,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -31,7 +34,6 @@ import org.testng.annotations.Test;
 import org.testng.collections.Sets;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -1007,27 +1009,40 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         when();
 
-        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
-        task.getExtensionOrClone()
+        task.getOrCreateExtension()
                 .findOrCreateProperty(USER_NAME_TASK_EXTENSION_PROPERTY)
                 .addRealValue(USER_ADMINISTRATOR_USERNAME);
         task.getExtensionOrClone()
                 .findOrCreateProperty(USER_DESCRIPTION_TASK_EXTENSION_PROPERTY)
                 .addRealValue("admin description");
-        task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
+
+        // Quite a hack but let's keep it for now
+        var taskTemplate = task.getUpdatedTaskObject().clone().asObjectable();
+        taskTemplate.name("a task");
 
         dummyTransport.clearMessages();
         boolean notificationsDisabled = notificationManager.isDisabled();
         notificationManager.setDisabled(false);
 
-        taskManager.switchToBackground(task, result);
+        var definition =
+                ActivityDefinitionBuilder.create(
+                                new WorkDefinitionsType()
+                                        .nonIterativeScripting(new NonIterativeScriptingWorkDefinitionType()
+                                                .scriptExecutionRequest(exec)))
+                        .build();
 
-        waitForTaskFinish(task.getOid(), false);
-        task.refresh(result);
+        var taskOid = modelInteractionService.submit(
+                definition,
+                ActivitySubmissionOptions.create().withTaskTemplate(taskTemplate),
+                task,
+                result);
+
+        var taskAfter = waitForTaskFinish(taskOid, false);
 
         then();
-        display(task.getResult());
-        TestUtil.assertSuccess(task.getResult());
+        display(taskAfter.getResult());
+        TestUtil.assertSuccess(taskAfter.getResult());
+
         PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
         display("admin after operation", admin);
         assertEquals("Wrong description", "admin description", admin.asObjectable().getDescription());
@@ -1050,21 +1065,30 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         when();
 
-        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
-        task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
-
         dummyTransport.clearMessages();
         boolean notificationsDisabled = notificationManager.isDisabled();
         notificationManager.setDisabled(false);
 
-        taskManager.switchToBackground(task, result);
+        var definition =
+                ActivityDefinitionBuilder.create(
+                                new WorkDefinitionsType()
+                                        .nonIterativeScripting(new NonIterativeScriptingWorkDefinitionType()
+                                                .scriptExecutionRequest(exec)))
+                        .build();
 
-        waitForTaskFinish(task.getOid(), false);
-        task.refresh(result);
+        var taskOid = modelInteractionService.submit(
+                definition,
+                ActivitySubmissionOptions.create().withTaskTemplate(
+                        new TaskType()
+                                .name("a task")),
+                task,
+                result);
+
+        var taskAfter = waitForTaskFinish(taskOid, false);
 
         then();
-        display(task.getResult());
-        TestUtil.assertSuccess(task.getResult());
+        display(taskAfter.getResult());
+        TestUtil.assertSuccess(taskAfter.getResult());
         PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
         display("admin after operation", admin);
         assertAssignedRole(admin, ROLE_EMPTY_OID);
@@ -1436,7 +1460,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
      * MID-8056
      */
     @Test
-    public void test620CustomScripting() throws CommonException, IOException {
+    public void test620CustomScripting() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -37,11 +36,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * This is similar to the task handler registry. However, the task handlers were identified by URI, whereas
  * activity handlers have no such direct identifier. They are selected by work definition class
- * (like `RecomputationWorkDefinition`) that is itself found in the work definition factory by either work definition
- * bean type name (like `RecomputationWorkDefinitionType`) or legacy task handler URI (like `.../recompute/handler-3`).
+ * (like `RecomputationWorkDefinition`) that is itself found in the work definition factory by the work definition
+ * bean type name (like `RecomputationWorkDefinitionType`).
  */
 @Component
-@Experimental
 public class ActivityHandlerRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityHandlerRegistry.class);
@@ -54,21 +52,13 @@ public class ActivityHandlerRegistry {
     @NotNull private final Map<Class<? extends WorkDefinition>, ActivityHandler<?, ?>> handlersMap = new ConcurrentHashMap<>();
 
     /**
-     * Maps legacy handler URI to archetype OID. This is a temporary tool for the current GUI.
-     */
-    @NotNull private final Map<String, String> archetypeMap = new ConcurrentHashMap<>();
-
-    /**
      * Registers both the work definition factory and the activity handler.
      */
-    public void register(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass,
+    public void register(
+            QName typeName, Class<? extends WorkDefinition> definitionClass,
             WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler) {
-        workDefinitionFactory.registerSupplier(typeName, legacyHandlerUri, supplier);
+        workDefinitionFactory.registerSupplier(typeName, supplier);
         registerHandler(definitionClass, activityHandler);
-        String defaultArchetypeOid = activityHandler.getDefaultArchetypeOid();
-        if (legacyHandlerUri != null && defaultArchetypeOid != null) {
-            registerArchetypeOid(legacyHandlerUri, defaultArchetypeOid);
-        }
     }
 
     /**
@@ -79,19 +69,12 @@ public class ActivityHandlerRegistry {
         handlersMap.put(definitionClass, activityHandler);
     }
 
-    private void registerArchetypeOid(String legacyHandlerUri, String archetypeOid) {
-        archetypeMap.put(legacyHandlerUri, archetypeOid);
-    }
-
     /**
      * Unregisters work definition factory and activity handler.
      */
-    public void unregister(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass) {
-        workDefinitionFactory.unregisterSupplier(typeName, legacyHandlerUri);
+    public void unregister(QName typeName, Class<? extends WorkDefinition> definitionClass) {
+        workDefinitionFactory.unregisterSupplier(typeName);
         unregisterHandler(definitionClass);
-        if (legacyHandlerUri != null) {
-            unregisterArchetypeOid(legacyHandlerUri);
-        }
     }
 
     /**
@@ -100,10 +83,6 @@ public class ActivityHandlerRegistry {
     public void unregisterHandler(Class<? extends WorkDefinition> definitionClass) {
         LOGGER.trace("Unregistering activity handler for {}", definitionClass);
         handlersMap.remove(definitionClass);
-    }
-
-    private void unregisterArchetypeOid(String legacyHandlerUri) {
-        archetypeMap.remove(legacyHandlerUri);
     }
 
     public @NotNull <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> AH getHandlerRequired(
@@ -128,15 +107,11 @@ public class ActivityHandlerRegistry {
      */
     public @Nullable ActivityHandler<?, ?> getHandler(@NotNull ActivityDefinitionType activityDefinitionBean)
             throws SchemaException, ConfigurationException {
-        AbstractWorkDefinition parsedDefinition = ActivityDefinition.fromBean(activityDefinitionBean, workDefinitionFactory);
+        AbstractWorkDefinition parsedDefinition = ActivityDefinition.fromBean(activityDefinitionBean);
         if (parsedDefinition == null) {
             return null;
         }
         return getHandler(parsedDefinition.getClass());
-    }
-
-    public @Nullable String getDefaultArchetypeOid(@NotNull String legacyHandlerUri) {
-        return archetypeMap.get(legacyHandlerUri);
     }
 
     public @Nullable String getDefaultArchetypeOid(@NotNull ActivityDefinitionType activityDefinitionBean)

@@ -81,8 +81,6 @@ public abstract class WorkDefinitionWrapper implements WorkDefinitionSource {
                 return null;
             } else if (source instanceof UntypedWorkDefinitionWrapper) {
                 return ((UntypedWorkDefinitionWrapper) source).getUntypedDefinition();
-            } else if (source instanceof LegacyWorkDefinitionSource) {
-                return ((LegacyWorkDefinitionSource) source).getTaskExtension();
             } else {
                 throw new IllegalArgumentException("Expected untyped action, got " + source);
             }

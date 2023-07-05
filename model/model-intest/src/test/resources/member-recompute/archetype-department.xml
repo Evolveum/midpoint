@@ -54,10 +54,12 @@
                         <taskCustomizer>
                             <script>
                                 <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+
                                     log.info('Task being prepared = {}', preparedTask.asPrismObject().debugDump())
                                     preparedTask.description = 'Hello there'
                                     workerThreads = midpoint.getExtensionOptionRealValue('memberRecomputationWorkerThreads')
-                                    basic.setTaskWorkerThreads(preparedTask, workerThreads)
+                                    basic.setTaskWorkerThreads(preparedTask as TaskType, workerThreads as Integer)
                                     preparedTask
                                 </code>
                             </script>

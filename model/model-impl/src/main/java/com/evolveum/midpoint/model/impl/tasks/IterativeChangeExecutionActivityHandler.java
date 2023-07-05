@@ -12,27 +12,23 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.Collections;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.run.*;
-
-import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
@@ -41,6 +37,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -53,7 +50,6 @@ public class IterativeChangeExecutionActivityHandler
             IterativeChangeExecutionActivityHandler.MyWorkDefinition,
             IterativeChangeExecutionActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(IterativeChangeExecutionActivityHandler.class);
 
     @Override
@@ -74,11 +70,6 @@ public class IterativeChangeExecutionActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, IterativeChangeExecutionActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override
@@ -146,19 +137,11 @@ public class IterativeChangeExecutionActivityHandler
         private final ModelExecuteOptions executionOptions;
 
         MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                objects = ObjectSetUtil.fromLegacySource(legacy);
-                delta = legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
-                executionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
-            } else {
-                IterativeChangeExecutionWorkDefinitionType typedDefinition = (IterativeChangeExecutionWorkDefinitionType)
-                        ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-                delta = typedDefinition.getDelta();
-                executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
-            }
-
+            IterativeChangeExecutionWorkDefinitionType typedDefinition = (IterativeChangeExecutionWorkDefinitionType)
+                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            delta = typedDefinition.getDelta();
+            executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
             argCheck(delta != null, "No delta specified");
         }
 

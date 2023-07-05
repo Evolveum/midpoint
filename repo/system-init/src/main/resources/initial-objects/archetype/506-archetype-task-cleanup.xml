@@ -81,27 +81,4 @@
             </mapping>
         </focusMappings>
     </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <source>
-                    <path>activity</path>
-                </source>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-                <condition>
-                    <script>
-                        <code>
-                            activity == null
-                        </code>
-                    </script>
-                </condition>
-            </mapping>
-        </focusMappings>
-    </inducement>
 </archetype>

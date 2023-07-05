@@ -6,24 +6,25 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="7d79f012-d861-11e8-b788-07bda6c5bb24"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="7d79f012-d861-11e8-b788-07bda6c5bb24">
     <name>Import: OpenDJ groups resource</name>
-
-    <extension>
-        <mext:objectclass>ri:organizationalUnit</mext:objectclass>
-        <mext:kind>entitlement</mext:kind>
-        <mext:intent>group-org-global</mext:intent>
-    </extension>
-
     <taskIdentifier>7d79f012-d861-11e8-b788-07bda6c5bb24</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+                    <kind>entitlement</kind>
+                    <intent>group-org-global</intent>
+                    <objectclass>ri:organizationalUnit</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
 </task>

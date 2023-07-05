@@ -34,7 +34,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
@@ -49,7 +48,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 public class CleanupActivityHandler
         extends ModelActivityHandler<CleanupWorkDefinition, CleanupActivityHandler> {
 
-    public static final String LEGACY_HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
 
     private static final Trace LOGGER = TraceManager.getTrace(CleanupActivityHandler.class);
@@ -63,13 +61,14 @@ public class CleanupActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(CleanupWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                CleanupWorkDefinitionType.COMPLEX_TYPE,
                 CleanupWorkDefinition.class, CleanupWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, CleanupWorkDefinition.class);
+        handlerRegistry.unregister(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, CleanupWorkDefinition.class);
     }
 
     @Override

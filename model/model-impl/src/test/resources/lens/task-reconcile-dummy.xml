@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2020 Evolveum and contributors
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,25 +9,20 @@
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        oid="b5ee6532-b779-4bee-b713-d394346170f7">
-    <name>task-hr-import</name>
-    <taskIdentifier>b5ee6532-b779-4bee-b713-d394346170f7</taskIdentifier>
+        oid="8bf1e8d3-75c0-40ee-9c65-d96ee709f007">
+    <name>Reconciliation: Dummy</name>
+    <taskIdentifier>10000000-0000-0000-5656-565600000004</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState>
-    <objectRef oid="bb9b9bca-5d47-446a-83ed-6c5411ac219f" type="c:ResourceType"/> <!-- resource-hr -->
-    <schedule>
-        <recurrence>recurring</recurrence> <!-- scheduled manually -->
-    </schedule>
+    <executionState>closed</executionState> <!-- running on demand -->
+    <objectRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     <activity>
         <work>
-            <import>
+            <reconciliation>
                 <resourceObjects>
-                    <resourceRef oid="bb9b9bca-5d47-446a-83ed-6c5411ac219f"/>
-                    <kind>account</kind>
-                    <intent>default</intent>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
                     <objectclass>ri:AccountObjectClass</objectclass>
                 </resourceObjects>
-            </import>
+            </reconciliation>
         </work>
     </activity>
 </task>

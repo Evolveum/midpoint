@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
@@ -48,13 +47,13 @@ public class ClassicReportImportActivityHandler
 
     @PostConstruct
     public void register() {
-        registry.register(ClassicReportImportWorkDefinitionType.COMPLEX_TYPE, null,
+        registry.register(ClassicReportImportWorkDefinitionType.COMPLEX_TYPE,
                 ClassicReportImportWorkDefinition.class, ClassicReportImportWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        registry.unregister(ClassicReportImportWorkDefinitionType.COMPLEX_TYPE, null,
+        registry.unregister(ClassicReportImportWorkDefinitionType.COMPLEX_TYPE,
                 ClassicReportImportWorkDefinition.class);
     }
 
@@ -63,11 +62,6 @@ public class ClassicReportImportActivityHandler
             @NotNull ActivityRunInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> context,
             @NotNull OperationResult result) {
         return new ClassicReportImportActivityRun(context);
-    }
-
-    @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
-        return ActivityStateDefinition.normal();
     }
 
     @Override
