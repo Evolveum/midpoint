@@ -24,7 +24,7 @@ public class ValueAuthorizationParameters<V extends PrismValue> implements Abstr
 
     @Nullable private final V value;
 
-    public ValueAuthorizationParameters(@Nullable V value) {
+    private ValueAuthorizationParameters(@Nullable V value) {
         this.value = value;
     }
 

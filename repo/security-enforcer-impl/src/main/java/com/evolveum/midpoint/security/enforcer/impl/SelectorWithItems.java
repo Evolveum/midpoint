@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.Authorization;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,20 +33,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * This is a selector + items (positive/negative) specification.
+ * Sometimes we call it also an "extended selector"; until better term is found.
  *
- * It is a separate object, as it has to be adjusted to match a specific use (value matching or filter creation).
- * See {@link #adjust(Class)}.
+ * Its meaning is to select some values (object or sub-object), and all or just some of their sub-items.
  *
- * TODO provide better class name
+ * It is directly derived from an {@link Authorization}.
+ *
+ * It is a separate Java object, because it sometimes has to be adjusted to match a specific use
+ * (value matching or filter creation). See {@link #adjustToSubObjectFilter(Class)} and {@link #asTieredSelectors(Class)} methods.
+ *
+ * @see TieredSelectorWithItems
  */
-public class Specification {
+public class SelectorWithItems {
 
     @NotNull private final ValueSelector selector;
     @NotNull private final PathSet positives;
     @NotNull private final PathSet negatives;
+
+    /** TODO what kind of description is here? */
     @NotNull private final String description;
 
-    private Specification(
+    private SelectorWithItems(
             @NotNull ValueSelector selector,
             @NotNull PathSet positives,
             @NotNull PathSet negatives,
@@ -55,11 +64,12 @@ public class Specification {
         this.description = description;
     }
 
-    public static Specification of(@NotNull ValueSelector selector) {
-        return new Specification(selector, PathSet.empty(), PathSet.empty(), "");
+    /** TODO explain the meaning of this method i.e. why there are no paths? */
+    public static SelectorWithItems of(@NotNull ValueSelector selector) {
+        return new SelectorWithItems(selector, PathSet.of(), PathSet.of(), "");
     }
 
-    public static Specification of(
+    public static SelectorWithItems of(
             @NotNull ValueSelector selector,
             @NotNull PathSet positives,
             @NotNull PathSet negatives,
@@ -67,11 +77,11 @@ public class Specification {
         configCheck(positives.isEmpty() || negatives.isEmpty(),
                 "'item' and 'exceptItem' cannot be combined: %s vs %s in %s",
                 positives, negatives, description);
-        return new Specification(selector, positives, negatives, description);
+        return new SelectorWithItems(selector, positives, negatives, description);
     }
 
-    public static @NotNull Specification all() {
-        return new Specification(ValueSelector.empty(), PathSet.of(), PathSet.of(), "");
+    public static @NotNull SelectorWithItems all() {
+        return new SelectorWithItems(ValueSelector.empty(), PathSet.of(), PathSet.of(), "");
     }
 
     public @NotNull String getDescription() {
@@ -90,28 +100,25 @@ public class Specification {
         return negatives;
     }
 
-    /** Returns `true` it this specification (at least partially) covers given item. */
-    private boolean overlaps(@NotNull ItemPath path) {
-        if (!positives.isEmpty()) {
-            return positives.containsRelated(path);
-        } else {
-            // Negative scenario: we are OK unless the whole item is excluded
-            return !negatives.containsSubpathOrEquivalent(path);
-        }
-    }
+    /**
+     * Adjusts this selector to match given (presumably sub-object) filter type.
+     *
+     * For example, if the original selector-with-items is targeted at {@link UserType} (maybe allowing some parts of the users'
+     * assignments), and we are constructing a filter for assignments ({@link AssignmentType}), we may try to adapt the selector
+     * by stepping down: creating a new selector for {@link AssignmentType} with a parent clause pointing to the original
+     * selector.
+     */
+    <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType) throws SchemaException {
 
-    // Later, we can take the original filter into account.
-    <T> Specification adjust(@NotNull Class<T> filterType) throws SchemaException {
-
-        Class<?> selectorType = selector.getTypeOrDefault();
-        if (selectorType.isAssignableFrom(filterType)) {
-            return this;
-        }
-        // If both types are at object level, let us continue even if there's no match (TODO reconsider!)
-        if (ObjectType.class.isAssignableFrom(selectorType) && ObjectType.class.isAssignableFrom(filterType)) {
-            return this; // or null?
+        Class<?> selectorType = selector.getEffectiveType();
+        if (selectorType.isAssignableFrom(filterType) || filterType.isAssignableFrom(selectorType)) {
+            return this; // There is an overlap
         }
 
+        // We could check whether filter is already at the root level. But the getCandidateAdjustments will handle that case.
+
+        // We are guessing what object/path we are selecting. For more modern searches (e.g. assignments) this should
+        // be part of the original filter, so we ideally should check that. TODO implement this
         for (Adjustment candidateAdjustment : getCandidateAdjustments(filterType)) {
             var newParentType = PrismContext.get().getSchemaRegistry()
                     .selectMoreSpecific(selector.getTypeName(), candidateAdjustment.typeName);
@@ -119,13 +126,19 @@ public class Specification {
                 continue; // No intersection -> try another candidate
             }
 
-            // The check of overlapping is necessary to avoid conversion from non-related positive path set to an empty
-            // positive path set (after computing the remainder below).
-            if (!overlaps(candidateAdjustment.path)) {
-                continue; // The spec does not allow (even not partial) access to the current item.
+            // It may happen that the selector is completely unrelated. For example,
+            //
+            // 1. filterType=AssignmentType,
+            // 2. the enhanced selector pointing to UserType (so far so good)
+            // but 3. with the paths of (e.g.) givenName and familyName.
+            //
+            // If we'd not exclude it here, the resulting selector would have no paths ("remainder" computation would provide
+            // empty sets), and that would be wrong - as that indicates that the whole content is covered.
+            if (!overlapsItem(candidateAdjustment.path)) {
+                continue;
             }
 
-            return new Specification(
+            return new SelectorWithItems(
                     ValueSelector.of(
                             TypeClause.of(filterType),
                             ParentClause.of(
@@ -137,6 +150,16 @@ public class Specification {
         }
 
         return null;
+    }
+
+    /** Returns `true` it this specification (at least partially) covers given item. */
+    private boolean overlapsItem(@NotNull ItemPath path) {
+        if (!positives.isEmpty()) {
+            return positives.containsRelated(path);
+        } else {
+            // Negative scenario: we are OK unless the whole item is excluded
+            return !negatives.containsSubpathOrEquivalent(path);
+        }
     }
 
     /**
@@ -162,14 +185,19 @@ public class Specification {
         return candidates.isEmpty() ? null : candidates.get(candidates.size() - 1);
     }
 
-    @Nullable TopDownSpecification asTopDown(@NotNull Class<? extends Objectable> rootType) {
+    /**
+     * Decomposes the current selector into a matching tiers of {@link TieredSelectorWithItems}, starting at the specified
+     * root type.
+     */
+    @Nullable TieredSelectorWithItems asTieredSelectors(@NotNull Class<? extends Objectable> rootType) {
 
-        if (ObjectTypeUtil.isObjectable(selector.getTypeOrDefault())) {
-            // No parent expected here
-            return asTopDown();
+        if (!selector.isSubObject()) {
+            // No parent expected here; we remove the parent clause just to be sure.
+            return TieredSelectorWithItems.withNoChild(
+                    this.withParentClauseRemoved());
         }
 
-        var builder = new TopDownSpecBuilder(this);
+        var builder = new TieredSelectorBuilder(this);
 
         // First, let us step up through explicit parent clauses.
         ValueSelector currentSelector = selector;
@@ -179,11 +207,12 @@ public class Specification {
                 break;
             }
             builder.addParent(explicitParent);
-            currentSelector = explicitParent.getParent();
+            currentSelector = explicitParent.getParentSelector();
         }
 
         // If we are not on top yet, let us try to use implicit adjustments.
-        var currentType = currentSelector.getTypeOrDefault();
+        // FIXME this will be probably removed, as we will require explicit parent clauses
+        var currentType = currentSelector.getEffectiveType();
         Class<?> builtRootType;
         if (ObjectTypeUtil.isObjectable(currentType)) {
             builtRootType = currentType;
@@ -195,7 +224,7 @@ public class Specification {
             ValueSelector rootSelector = ValueSelector.forType(adjustmentToRoot.typeName);
             builder.addParent(
                     ParentClause.of(rootSelector, adjustmentToRoot.path));
-            builtRootType = rootSelector.getTypeOrDefault();
+            builtRootType = rootSelector.getEffectiveType();
         }
 
         // Now we are on top, let us finish.
@@ -206,27 +235,27 @@ public class Specification {
         }
     }
 
-    private TopDownSpecification asTopDown() {
-        return new TopDownSpecification(this.withParentClauseRemoved());
-    }
-
-    private @NotNull Specification withParentClauseRemoved() {
+    private @NotNull SelectorWithItems withParentClauseRemoved() {
         return withSelectorReplaced(
                 selector.withParentRemoved());
     }
 
-    private Specification withSelectorReplaced(@NotNull ValueSelector newSelector) {
-        return new Specification(newSelector, positives, negatives, description);
+    private SelectorWithItems withSelectorReplaced(@NotNull ValueSelector newSelector) {
+        return new SelectorWithItems(newSelector, positives, negatives, description);
     }
 
     @Override
     public String toString() {
-        return "Specification{" +
+        return getClass().getSimpleName() + "{" +
                 "selector=" + selector +
                 ", positives=" + positives +
                 ", negatives=" + negatives +
                 ", description='" + description + '\'' +
                 '}';
+    }
+
+    boolean isParentLess() {
+        return selector.isParentLess();
     }
 
     private record Adjustment(@NotNull QName typeName, @NotNull ItemPath path) {
@@ -265,14 +294,15 @@ public class Specification {
         }
     }
 
-    private static class TopDownSpecBuilder {
+    /** The {@link TieredSelectorWithItems} has everything final (by design), so we need to build it in a separate class. */
+    private static class TieredSelectorBuilder {
 
-        @NotNull private final Specification base;
+        @NotNull private final SelectorWithItems base;
 
         /** Reusing (misusing?) {@link ParentClause} as a path-selector pair container. Rewrite if needed. */
         @NotNull private final List<ParentClause> stepsUp = new ArrayList<>();
 
-        private TopDownSpecBuilder(@NotNull Specification base) {
+        private TieredSelectorBuilder(@NotNull SelectorWithItems base) {
             this.base = base;
         }
 
@@ -280,20 +310,20 @@ public class Specification {
             stepsUp.add(stepUp);
         }
 
-        @NotNull TopDownSpecification build() {
-            TopDownSpecification current = new TopDownSpecification(base.withParentClauseRemoved());
+        @NotNull TieredSelectorWithItems build() {
+            TieredSelectorWithItems current = TieredSelectorWithItems.withNoChild(base.withParentClauseRemoved());
             for (ParentClause step : stepsUp) {
                 ItemPath pathToChild = step.getPath();
                 List<?> segments = pathToChild.getSegments();
                 stateCheck(!segments.isEmpty(), "No segments? current: %s, step: %s", current, step);
                 for (int i = segments.size() - 1; i > 0; i--) {
-                    current = TopDownSpecification.withChild(
+                    current = TieredSelectorWithItems.withChild(
                             ValueSelector.empty(),
                             ItemPath.toName(segments.get(i)),
                             current);
                 }
-                current = TopDownSpecification.withChild(
-                        step.getParent().withParentRemoved(),
+                current = TieredSelectorWithItems.withChild(
+                        step.getParentSelector().withParentRemoved(),
                         ItemPath.toName(segments.get(0)),
                         current);
             }

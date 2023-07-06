@@ -13,8 +13,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
-import com.evolveum.midpoint.security.enforcer.impl.TopDownSpecification;
-import com.evolveum.midpoint.security.enforcer.impl.ObjectSpecParser;
+import com.evolveum.midpoint.security.enforcer.impl.TieredSelectorWithItems;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,13 +29,13 @@ import com.evolveum.midpoint.util.exception.*;
 /**
  * Informs whether given {@link PrismValue} and its contained sub-items are covered in the specified context.
  *
- * (The context can be e.g. items/values that are allowed or denied by a particular operation.)
+ * (The context can be e.g. items/values that are allowed or denied by a particular operation, e.g. `#get`.)
  *
  * @see PrismItemCoverageInformation
  */
 class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
 
-    /** Match information for specified sub-items. */
+    /** Coverage information for specified sub-items (applies to container values only). */
     @NotNull private final NameKeyedMap<ItemName, PrismItemCoverageInformation> itemsMap = new NameKeyedMap<>();
 
     /**
@@ -89,19 +88,24 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         }
     }
 
-    /** Returns `null` if the authorization is irrelevant for the current object. */
+    /**
+     * Computes the coverage information for given `value` and authorization.
+     * (Typically, to be merged with coverages of the same value from other authorizations.)
+     *
+     * Returns `null` if the authorization is irrelevant for the current value.
+     */
     static @Nullable PrismValueCoverageInformation forAuthorization(
             @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
-        Collection<TopDownSpecification> specs = ObjectSpecParser.forAutzAndValue(value, evaluation);
-        if (!specs.isEmpty()) {
+        Collection<TieredSelectorWithItems> tieredSelectors = TieredSelectorWithItems.forAutzAndValue(value, evaluation);
+        if (!tieredSelectors.isEmpty()) {
             PrismValueCoverageInformation merged = PrismValueCoverageInformation.noCoverage();
             int i = 0;
-            for (TopDownSpecification spec : specs) {
+            for (TieredSelectorWithItems tieredSelector : tieredSelectors) {
                 merged.merge(
-                        forTopDownSpec(evaluation.selectorId(i++), value, value, spec, evaluation));
+                        forTieredSelector(evaluation.selectorId(i++), value, value, tieredSelector, evaluation));
             }
             return merged;
         } else {
@@ -109,28 +113,28 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         }
     }
 
-    private static PrismValueCoverageInformation forTopDownSpec(
+    private static PrismValueCoverageInformation forTieredSelector(
             @NotNull String id,
             @NotNull PrismValue value,
             @NotNull PrismValue rootValue,
-            @NotNull TopDownSpecification objectSpec,
+            @NotNull TieredSelectorWithItems tieredSelector,
             @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
 
-        ValueSelector selector = objectSpec.getSelector();
-        assert selector.getParentClause() == null;
+        ValueSelector valueSelector = tieredSelector.getSelector();
+        assert valueSelector.getParentClause() == null;
 
-        if (!evaluation.isSelectorApplicable(id, selector, value, "TODO")) {
+        if (!evaluation.isSelectorApplicable(id, valueSelector, value, "TODO")) {
             return PrismValueCoverageInformation.noCoverage();
         }
 
-        PathSet positives = objectSpec.getPositives();
-        PathSet negatives = objectSpec.getNegatives();
-        var linkToChild = objectSpec.getLinkToChild();
+        PathSet positives = tieredSelector.getPositives();
+        PathSet negatives = tieredSelector.getNegatives();
+        var linkToChild = tieredSelector.getLinkToChild();
         if (!positives.isEmpty() || linkToChild != null) {
             var coverage = forPositivePaths(positives);
             if (linkToChild != null) {
-                coverage.merge(forChildSpec(id + "v", linkToChild, value, rootValue, evaluation));
+                coverage.merge(forChildTieredSelector(id + "v", linkToChild, value, rootValue, evaluation));
             }
             return coverage;
         } else {
@@ -138,9 +142,9 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         }
     }
 
-    private static PrismValueCoverageInformation forChildSpec(
+    private static PrismValueCoverageInformation forChildTieredSelector(
             String id,
-            TopDownSpecification.Link linkToChild,
+            TieredSelectorWithItems.Link linkToChild,
             PrismValue parentValue,
             PrismValue rootValue,
             AuthorizationEvaluation evaluation)
@@ -162,7 +166,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         int valId = 0;
         for (PrismValue itemValue : item.getValues()) {
             PrismValueCoverageInformation subValueCoverage =
-                    forTopDownSpec(id + ".val" + (valId++), itemValue, rootValue, linkToChild.getChild(), evaluation);
+                    forTieredSelector(id + ".val" + (valId++), itemValue, rootValue, linkToChild.getChild(), evaluation);
             if (subValueCoverage.getCoverage() != NONE) {
                 itemCoverageInformation.addForValue(itemValue, subValueCoverage);
             }

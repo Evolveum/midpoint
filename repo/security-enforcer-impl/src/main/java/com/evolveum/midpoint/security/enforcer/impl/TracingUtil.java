@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
-import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
@@ -21,24 +20,13 @@ public class TracingUtil {
 
     // TODO resolve spacing somehow
     static final String SEC = "SEC";
-    static final String PARTIAL_SEC = " ".repeat(1) + "PART";
+    static final String PARTIAL_SEC_SPACE = " ".repeat(1);
     static final String AUTZ_SPACE = " ".repeat(2);
     static final String SEL_SPACE = " ".repeat(4);
     static final String INTERIOR_SPACE = "  ";
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */
     public static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
-
-    // TODO what to do with this?!
-    static String describe(Object object) {
-        if (object instanceof Authorization) {
-            return ((Authorization) object).getHumanReadableDesc();
-        } else if (object instanceof ObjectSelectorType) {
-            return getHumanReadableDesc((ObjectSelectorType) object);
-        } else {
-            return String.valueOf(object); // to be extended if needed
-        }
-    }
 
     static String getTypeName(Class<?> type) {
         return type != null ? type.getSimpleName() : null;
@@ -61,6 +49,10 @@ public class TracingUtil {
             String name = selector.getName();
             if (name != null) {
                 sb.append(" '").append(name).append("'");
+            }
+            var type = selector.getType();
+            if (type != null) {
+                sb.append(" (type: ").append(type.getLocalPart()).append(")");
             }
             return sb.toString();
         }

@@ -19,6 +19,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * Basically, it can answer questions whether the operation is allowed for given item (with children) or all item paths.
  *
+ * Contained in {@link ObjectSecurityConstraints}. However, the latter contains information about multiple operations and phases.
+ * This one does not.
+ *
  * @author semancik
  */
 public interface ItemSecurityConstraints extends DebugDumpable {

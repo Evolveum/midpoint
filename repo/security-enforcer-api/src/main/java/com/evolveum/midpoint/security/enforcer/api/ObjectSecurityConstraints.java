@@ -9,7 +9,6 @@ package com.evolveum.midpoint.security.enforcer.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -23,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * Extracted relevant security constraints related to given object.
  * Unlike {@link PrismEntityOpConstraints}, this one covers all operations (represented by action URLs).
  *
- * @see SecurityEnforcer#compileSecurityConstraints(PrismObject, OwnerResolver, Task, OperationResult)
+ * @see SecurityEnforcer#compileSecurityConstraints(PrismObject, SecurityEnforcer.Options, Task, OperationResult)
  * @see PrismEntityOpConstraints
  */
 public interface ObjectSecurityConstraints extends DebugDumpable {
