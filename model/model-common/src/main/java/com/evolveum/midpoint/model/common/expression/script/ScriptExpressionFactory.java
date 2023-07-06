@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -59,7 +60,9 @@ public class ScriptExpressionFactory implements Cache {
 
     private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
-    @NotNull private final Map<String, ScriptEvaluator> evaluatorMap = new HashMap<>();
+    /** Indexed by full language URL, always non-null. Values are non-null as well. Concurrency is just for sure. */
+    @NotNull private final Map<String, ScriptEvaluator> evaluatorMap = new ConcurrentHashMap<>();
+
     @NotNull private final ObjectResolver objectResolver;
     @NotNull private final PrismContext prismContext;
 
@@ -122,11 +125,11 @@ public class ScriptExpressionFactory implements Cache {
     }
 
     @VisibleForTesting
-    public void registerEvaluator(ScriptEvaluator evaluator) {
+    public void registerEvaluator(@NotNull ScriptEvaluator evaluator) {
         registerEvaluator(evaluator.getLanguageUrl(), evaluator);
     }
 
-    private void registerEvaluator(String language, ScriptEvaluator evaluator) {
+    private void registerEvaluator(@NotNull String language, @NotNull ScriptEvaluator evaluator) {
         if (evaluatorMap.containsKey(language)) {
             throw new IllegalArgumentException("Evaluator for language " + language + " already registered");
         }
@@ -177,36 +180,39 @@ public class ScriptExpressionFactory implements Cache {
         expression.setScriptExpressionProfile(
                 processScriptExpressionProfile(
                         expressionProfile,
-                        evaluator.getLanguageUrl(), // We need "normalized" language URI here
+                        evaluator.getLanguageUrl(), // We need "normalized" language URI here hence not taking from script bean
                         shortDesc));
 
         return expression;
     }
 
     private ScriptExpressionProfile processScriptExpressionProfile(
-            ExpressionProfile expressionProfile, String language, String shortDesc) throws SecurityViolationException {
+            ExpressionProfile expressionProfile, @NotNull String language, String shortDesc) throws SecurityViolationException {
         if (expressionProfile == null) {
             return null;
         }
-        ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+        ExpressionEvaluatorProfile evaluatorProfile =
+                expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
         if (evaluatorProfile == null) {
-            if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
+            if (expressionProfile.getDefaultDecision() == AccessDecision.ALLOW) {
                 return null;
             } else {
-                throw new SecurityViolationException("Access to script expression evaluator " +
-                        " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
+                throw new SecurityViolationException(
+                        "Access to script expression evaluator not allowed (expression profile: %s) in %s"
+                                .formatted(expressionProfile.getIdentifier(), shortDesc));
             }
         }
         ScriptExpressionProfile scriptProfile = evaluatorProfile.getScriptExpressionProfile(language);
-        if (scriptProfile == null) {
-            if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
-                return null;
-            } else {
-                throw new SecurityViolationException("Access to script language " + language +
-                        " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
-            }
+        if (scriptProfile != null) {
+            return scriptProfile;
         }
-        return scriptProfile;
+
+        if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
+            return null;
+        } else {
+            throw new SecurityViolationException("Access to script language " + language +
+                    " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
+        }
     }
 
     private @NotNull Collection<FunctionLibrary> getCustomFunctionLibraries(

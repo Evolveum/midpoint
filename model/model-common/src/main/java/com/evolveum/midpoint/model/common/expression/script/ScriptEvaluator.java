@@ -29,9 +29,9 @@ public interface ScriptEvaluator {
     String getLanguageName();
 
     /**
-     * Returns URL of the language that this evaluator can handle
+     * Returns (canonical) URL of the language that this evaluator can handle
      */
-    String getLanguageUrl();
+    @NotNull String getLanguageUrl();
 
     /**
      * Can indicate that script evaluator is not initialized, e.g. optional script evaluators

@@ -45,8 +45,7 @@ class ArchetypeDeterminer {
      */
     @NotNull Set<String> determineArchetypeOids(@Nullable ObjectType object) {
         Set<String> oids;
-        if (object instanceof AssignmentHolderType) {
-            AssignmentHolderType assignmentHolder = (AssignmentHolderType) object;
+        if (object instanceof AssignmentHolderType assignmentHolder) {
             oids = getArchetypeOidsFromAssignments(assignmentHolder);
         } else {
             oids = Set.of();

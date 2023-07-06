@@ -111,7 +111,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
     }
 
     @Override
-    public String getLanguageUrl() {
+    public @NotNull String getLanguageUrl() {
         return LANGUAGE_URL;
     }
 }

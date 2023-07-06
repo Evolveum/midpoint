@@ -31,7 +31,7 @@ public class ScriptExpressionEvaluationContext {
 
     private ScriptExpressionEvaluatorType expressionType;
     private VariablesMap variables;
-    private ItemDefinition outputDefinition;
+    private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ScriptExpressionReturnTypeType suggestedReturnType;
     private ObjectResolver objectResolver;
@@ -64,11 +64,11 @@ public class ScriptExpressionEvaluationContext {
         this.variables = variables;
     }
 
-    public ItemDefinition getOutputDefinition() {
+    public ItemDefinition<?> getOutputDefinition() {
         return outputDefinition;
     }
 
-    public void setOutputDefinition(ItemDefinition outputDefinition) {
+    public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
         this.outputDefinition = outputDefinition;
     }
 

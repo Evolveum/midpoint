@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Decision about access to something. Used as an output of authorization processing code. But may be also used
  * for other things, such as decisions to access classes and methods in sandboxes.
@@ -70,17 +72,13 @@ public enum AccessDecision {
         throw new IllegalStateException("Unexpected combine " + oldDecision + "+" + newDecision);
     }
 
-    public static AccessDecision translate(AuthorizationDecisionType authorizationDecisionType) {
-        if (authorizationDecisionType == null) {
+    public static @NotNull AccessDecision translate(AuthorizationDecisionType bean) {
+        if (bean == null) {
             return AccessDecision.DEFAULT;
         }
-        switch (authorizationDecisionType) {
-            case ALLOW:
-                return ALLOW;
-            case DENY:
-                return DENY;
-            default:
-                throw new IllegalStateException("Unknown AuthorizationDecisionType " + authorizationDecisionType);
-        }
+        return switch (bean) {
+            case ALLOW -> ALLOW;
+            case DENY -> DENY;
+        };
     }
 }

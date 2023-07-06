@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  * <p>
@@ -77,7 +79,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     }
 
     @Override
-    public String getLanguageUrl() {
+    public @NotNull String getLanguageUrl() {
         return MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + getLanguageName();
     }
 

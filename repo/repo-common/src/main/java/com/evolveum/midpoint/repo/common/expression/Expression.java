@@ -236,7 +236,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         } else {
             ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(evaluator.getElementName());
             if (evaluatorProfile == null) {
-                if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
+                if (expressionProfile.getDefaultDecision() == AccessDecision.ALLOW) {
                     context.setExpressionEvaluatorProfile(null);
                 } else {
                     throw new SecurityViolationException("Access to expression evaluator " + evaluator.shortDebugDump() +

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -60,21 +59,34 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     }
 
     protected void checkRestrictions(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
-        ScriptExpressionProfile scriptExpressionProfile = context.getScriptExpressionProfile();
+        var scriptExpressionProfile = context.getScriptExpressionProfile();
         if (scriptExpressionProfile == null) {
-            // no restrictions
-            return;
+            return; // no restrictions
         }
+
         if (scriptExpressionProfile.hasRestrictions()) {
-            throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
-                    + " does not support restrictions as imposed by expression profile " + context.getExpressionProfile().getIdentifier()
-                    + "; script execution prohibited in " + context.getContextDescription());
+            if (!doesSupportRestrictions()) {
+                throw new SecurityViolationException(
+                        ("Script interpreter for language %s does not support restrictions as imposed by expression profile %s;"
+                                + " script execution prohibited in %s").formatted(
+                                getLanguageName(),
+                                context.getExpressionProfile().getIdentifier(),
+                                context.getContextDescription()));
+            } else {
+                // restrictions will be checked when executing the script
+            }
+        } else {
+            // No restrictions
+            if (scriptExpressionProfile.getDefaultDecision() != AccessDecision.ALLOW) {
+                throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
+                        + " is not allowed in expression profile " + context.getExpressionProfile().getIdentifier()
+                        + "; script execution prohibited in " + context.getContextDescription());
+            }
         }
-        if (scriptExpressionProfile.getDecision() != AccessDecision.ALLOW) {
-            throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
-                    + " is not allowed in expression profile " + context.getExpressionProfile().getIdentifier()
-                    + "; script execution prohibited in " + context.getContextDescription());
-        }
+    }
+
+    protected boolean doesSupportRestrictions() {
+        return false;
     }
 
     /**

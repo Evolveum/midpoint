@@ -85,7 +85,7 @@ public class ExpressionTestUtil {
                 new ConstExpressionEvaluatorFactory(protector, constManager));
 
         // path
-        PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, protector);
+        var pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, protector);
         pathFactory.setObjectResolver(resolver);
         expressionFactory.registerEvaluatorFactory(pathFactory);
 
@@ -102,9 +102,9 @@ public class ExpressionTestUtil {
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(functions, resolver);
 
-        GroovyScriptEvaluator groovyEvaluator = new GroovyScriptEvaluator(
-                prismContext, protector, LocalizationTestUtil.getLocalizationService());
-        scriptExpressionFactory.registerEvaluator(groovyEvaluator);
+        scriptExpressionFactory.registerEvaluator(
+                new GroovyScriptEvaluator(
+                        prismContext, protector, LocalizationTestUtil.getLocalizationService()));
 
         Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator(
                 "ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());

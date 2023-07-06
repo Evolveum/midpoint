@@ -91,7 +91,7 @@ public class TestExpression extends AbstractModelCommonTest {
     private long lastScriptExecutionCount;
 
     @BeforeClass
-    public void setup() throws SchemaException, SAXException, IOException {
+    public void setup() throws SchemaException, SAXException, IOException, ConfigurationException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
@@ -481,7 +481,8 @@ public class TestExpression extends AbstractModelCommonTest {
         return null;
     }
 
-    protected ExpressionProfile compileExpressionProfile(String profileName) throws SchemaException, IOException {
+    private ExpressionProfile compileExpressionProfile(String profileName)
+            throws SchemaException, IOException, ConfigurationException {
         if (profileName == null) {
             return null;
         }
@@ -492,11 +493,7 @@ public class TestExpression extends AbstractModelCommonTest {
         }
         ExpressionProfileCompiler compiler = new ExpressionProfileCompiler();
         ExpressionProfiles profiles = compiler.compile(expressions);
-        ExpressionProfile profile = profiles.getProfile(profileName);
-        if (profile == null) {
-            throw new SchemaException("Profile '" + profileName + "' not found in system config");
-        }
-        return profile;
+        return profiles.getProfile(profileName);
     }
 
     protected File getSystemConfigurationFile() {

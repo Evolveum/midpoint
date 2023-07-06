@@ -8,7 +8,8 @@ package com.evolveum.midpoint.model.common.archetypes;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+
+import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
@@ -228,7 +229,7 @@ public class ArchetypeManager implements Cache {
         ArchetypeType structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(allArchetypes);
         List<ArchetypeType> auxiliaryArchetypes = allArchetypes.stream()
                 .filter(ArchetypeTypeUtil::isAuxiliary)
-                .collect(Collectors.toList());
+                .toList();
         if (structuralArchetype == null && !auxiliaryArchetypes.isEmpty()) {
             throw new SchemaException("Auxiliary archetype cannot be assigned without structural archetype");
         }
@@ -388,13 +389,15 @@ public class ArchetypeManager implements Cache {
         return objectPolicyConfiguration.getLifecycleStateModel();
     }
 
-    public <O extends ObjectType> ExpressionProfile determineExpressionProfile(PrismObject<O> object, OperationResult result)
+    /**
+     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
+     */
+    public <O extends ObjectType> ExpressionProfile determineExpressionProfile(
+            @NotNull PrismObject<O> object, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
+        Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
         ArchetypePolicyType archetypePolicy = determineArchetypePolicy(object, result);
-        if (archetypePolicy == null) {
-            return null;
-        }
-        String expressionProfileId = archetypePolicy.getExpressionProfile();
+        String expressionProfileId = archetypePolicy != null ? archetypePolicy.getExpressionProfile() : null;
         return systemObjectCache.getExpressionProfile(expressionProfileId, result);
     }
 

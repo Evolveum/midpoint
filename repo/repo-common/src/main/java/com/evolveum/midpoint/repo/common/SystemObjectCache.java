@@ -8,11 +8,16 @@ package com.evolveum.midpoint.repo.common;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +81,7 @@ public class SystemObjectCache implements Cache {
     private PrismObject<SecurityPolicyType> securityPolicy;
     private Long securityPolicyCheckTimestamp;
 
+    /** Compiled expression profiles (from system configuration). */
     private volatile ExpressionProfiles expressionProfiles;
 
     @PostConstruct
@@ -242,31 +248,30 @@ public class SystemObjectCache implements Cache {
         return cacheRepositoryService.searchObjects(ArchetypeType.class, null, createReadOnlyCollection(), result);
     }
 
-    public ExpressionProfile getExpressionProfile(String identifier, OperationResult result) throws SchemaException {
+    @Contract("null, _ -> null; !null, _ -> !null")
+    public ExpressionProfile getExpressionProfile(String identifier, OperationResult result)
+            throws SchemaException, ConfigurationException {
         if (identifier == null) {
             return null;
         }
         if (expressionProfiles == null) {
-            compileExpressionProfiles(result);
+            expressionProfiles = compileExpressionProfiles(result);
         }
         return expressionProfiles.getProfile(identifier);
     }
 
-    private void compileExpressionProfiles(OperationResult result) throws SchemaException {
-        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+    private ExpressionProfiles compileExpressionProfiles(OperationResult result) throws SchemaException, ConfigurationException {
+        SystemConfigurationType systemConfiguration = getSystemConfigurationBean(result);
         if (systemConfiguration == null) {
             // This should only happen in tests - if ever. Empty expression profiles are just fine.
-            expressionProfiles = new ExpressionProfiles();
-            return;
+            return new ExpressionProfiles(List.of());
         }
-        SystemConfigurationExpressionsType expressions = systemConfiguration.asObjectable().getExpressions();
+        SystemConfigurationExpressionsType expressions = systemConfiguration.getExpressions();
         if (expressions == null) {
-            // Mark that there is no need to recompile. There are no profiles.
-            expressionProfiles = new ExpressionProfiles();
-            return;
+            return new ExpressionProfiles(List.of());
+        } else {
+            return new ExpressionProfileCompiler().compile(expressions);
         }
-        ExpressionProfileCompiler compiler = new ExpressionProfileCompiler();
-        expressionProfiles = compiler.compile(expressions);
     }
 
     // We could use SystemConfigurationChangeListener instead but in the future there could be more object types
