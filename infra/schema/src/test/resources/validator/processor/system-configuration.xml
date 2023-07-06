@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="3947d3b1-b6e8-46ec-b382-1bde67da6f07">
+
+    <roleManagement>
+        <roleCatalogCollections>
+            <collection>
+                <collectionUri>allRoles</collectionUri>
+            </collection>
+            <collection>
+                <collectionUri>myCustomCollection</collectionUri>
+            </collection>
+        </roleCatalogCollections>
+    </roleManagement>
+    <adminGuiConfiguration>
+        <accessRequest>
+            <roleCatalog>
+                <collection>
+                    <identifier>myCustomCollection</identifier>
+                    <collectionIdentifier>myCustomCollection</collectionIdentifier>
+                </collection>
+            </roleCatalog>
+        </accessRequest>
+    </adminGuiConfiguration>
+</systemConfiguration>
