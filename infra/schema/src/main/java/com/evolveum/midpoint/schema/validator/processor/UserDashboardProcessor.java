@@ -15,11 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class UserDashboardProcessor implements UpgradeObjectProcessor<Objectable> {
 
     @Override
-    public String getIdentifier() {
-        return "GUI-1234";
-    }
-
-    @Override
     public UpgradePriority getPriority() {
         return UpgradePriority.OPTIONAL;
     }
