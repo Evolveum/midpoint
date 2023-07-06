@@ -1,8 +1,10 @@
 package com.evolveum.midpoint.schema.validator;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
-public class UpgradeValidationItem {
+public class UpgradeValidationItem implements DebugDumpable {
 
     private final ValidationItem item;
 
@@ -72,5 +74,18 @@ public class UpgradeValidationItem {
 
     public ValidationItem getItem() {
         return item;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(UpgradeValidationResult.class, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "item", item, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "changed", changed, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "identifier", identifier, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "phase", phase, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "priority", priority, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
+        return sb.toString();
     }
 }

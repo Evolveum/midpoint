@@ -18,15 +18,20 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
-import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
-import com.evolveum.midpoint.schema.validator.UpgradeObjectsHandler;
-import com.evolveum.midpoint.schema.validator.UpgradeValidationItem;
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
+import com.evolveum.midpoint.schema.validator.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class TestUpgradeProcessors extends AbstractSchemaTest {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TestUpgradeProcessors.class);
 
     private static final File RESOURCES = new File("./src/test/resources/validator/processor");
 
@@ -51,6 +56,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         UpgradeValidationResult result = validator.validate(object);
 
         Assertions.assertThat(result).isNotNull();
+        LOGGER.info("Validation result:\n{}", result.debugDump());
 
         resultConsumer.accept(result);
     }
@@ -68,6 +74,10 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                 identifiers.put(identifier, p.getClass());
             }
         });
+
+        identifiers.keySet().stream()
+                .sorted()
+                .forEach(identifier -> LOGGER.info(identifier + " -> " + identifiers.get(identifier).getName()));
     }
 
     @Test
@@ -108,9 +118,26 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
             Assertions.assertThat(item.isChanged()).isTrue();
 
-             item = assertGetItem(result, getProcessorIdentifier(RoleCatalogRefProcessor.class));
+            item = assertGetItem(result, getProcessorIdentifier(RoleCatalogRefProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
             Assertions.assertThat(item.isChanged()).isTrue();
+
+            // todo assert deltas
+        });
+    }
+
+    @Test
+    public void test40TestRole() throws Exception {
+        testUpgradeValidator("role.xml", result -> {
+            Assertions.assertThat(result.getItems()).hasSize(1);
+
+            UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(PersonaTargetSubtypeProcessor.class));
+            UpgradeValidationItemAsserter asserter = new UpgradeValidationItemAsserter(item);
+            asserter.assertUnchanged();
+            asserter.assertPhase(UpgradePhase.BEFORE);
+            asserter.assertPath(ItemPath.create(
+                    RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_PERSONA_CONSTRUCTION, PersonaConstructionType.F_TARGET_SUBTYPE));
+            Assertions.assertThat(item.getDelta().getModifiedItems()).isEmpty();
 
             // todo assert deltas
         });
