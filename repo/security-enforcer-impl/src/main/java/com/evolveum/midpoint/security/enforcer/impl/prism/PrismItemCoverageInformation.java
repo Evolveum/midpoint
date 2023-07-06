@@ -21,24 +21,24 @@ import com.evolveum.midpoint.util.DebugUtil;
 /**
  * Informs whether given {@link Item} and its values are covered in the specified context.
  *
- * (The context can be e.g. items/values that are allowed or denied by a particular operation.)
+ * (The context can be e.g. items/values that are allowed or denied by a particular operation, e.g. `#get`)
  *
  * @see PrismValueCoverageInformation
  */
 class PrismItemCoverageInformation implements PrismEntityCoverageInformation {
 
-    /** Match information for specified values of the current item. */
+    /** Coverage information for specified values of the current item. */
     @NotNull private final Map<PrismValue, PrismValueCoverageInformation> valueMap = new HashMap<>();
 
-    /** Match information for other values, not mentioned in {@link #valueMap}. */
+    /** Coverage information for all other values, not mentioned in {@link #valueMap}. */
     @NotNull private final PrismValueCoverageInformation otherValues;
 
     private PrismItemCoverageInformation(@NotNull PrismValueCoverageInformation otherValues) {
         this.otherValues = otherValues;
     }
 
-    static PrismItemCoverageInformation single(@NotNull PrismValueCoverageInformation coverageInformation) {
-        return new PrismItemCoverageInformation(coverageInformation);
+    static PrismItemCoverageInformation single(@NotNull PrismValueCoverageInformation defaultCoverageInformation) {
+        return new PrismItemCoverageInformation(defaultCoverageInformation);
     }
 
     static PrismItemCoverageInformation fullCoverage() {

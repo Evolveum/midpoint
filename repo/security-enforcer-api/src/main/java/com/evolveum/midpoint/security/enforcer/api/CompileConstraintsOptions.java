@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.security.enforcer.api;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
+@Experimental
 public class CompileConstraintsOptions {
 
     /**
+     * FIXME this will be implemented in a different way (LensContext authorizations will be computed precisely)
+     *
      * If `true`, sub-object selectors (i.e. ones that deal with values of containers, references, and properties)
      * are skipped. This is used e.g. when dealing with objects and deltas in lens element context, where the data being
      * processed may differ from the data upon which the authorizations are derived. (Hence, we can safely deal only with

@@ -94,8 +94,8 @@ public class LogBasedEnforcerAndSelectorTracer implements
         }
 
         String prefix;
-        if (event instanceof SecurityTraceEvent.PartialFilterOperationRelated<?>) {
-            prefix = extraPrefix + PARTIAL_SEC + typeMark;
+        if (event instanceof SecurityTraceEvent.PartialFilterOperationRelated<?> p) {
+            prefix = extraPrefix + PARTIAL_SEC_SPACE + p.getId() + typeMark;
         } else if (event instanceof OperationRelated<?>) {
             prefix = extraPrefix + SEC + typeMark;
         } else if (event instanceof AuthorizationRelated a) {

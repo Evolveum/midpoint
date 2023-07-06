@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 class EnforcerOperation {
 
     /** Principal to be used: either current or externally-provided one. */
-    @Nullable final MidPointPrincipal principal;
+    @Nullable private final MidPointPrincipal principal;
 
     /** Username of the {@link #principal} */
     @Nullable final String username;

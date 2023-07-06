@@ -33,14 +33,14 @@ class SelectorFilterEvaluation<T>
 
     SelectorFilterEvaluation(
             @NotNull String id,
-            @NotNull Specification specification,
+            @NotNull SelectorWithItems extendedSelector,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter originalFilter,
             @NotNull String desc,
             String selectorLabel,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) {
-        super(id, specification.getSelector(), null, desc, authorizationEvaluation, result);
+        super(id, extendedSelector.getSelector(), null, desc, authorizationEvaluation, result);
         this.searchType = filterType;
         this.originalFilter = originalFilter;
         this.selectorLabel = selectorLabel;
