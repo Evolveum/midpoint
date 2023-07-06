@@ -8,22 +8,20 @@
 package com.evolveum.midpoint.schema.validator.processor;
 
 import java.io.File;
+import java.util.List;
 import java.util.function.Consumer;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
-
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationItem;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class TestUpgradeProcessors extends AbstractSchemaTest {
 
@@ -55,11 +53,34 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     }
 
     @Test
-    public void test100TestResource() throws Exception {
+    public void test10TestResource() throws Exception {
         testUpgradeValidator("resource.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
                     .hasSize(2);
+
+            // todo assert items
         });
+    }
+
+    @Test
+    public void test20TestCaseTaskRef() throws Exception {
+        testUpgradeValidator("case.xml", result -> {
+            Assertions.assertThat(result.getItems()).hasSize(1);
+
+            UpgradeValidationItem item = assertGetItem(result, 0);
+            Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(1);
+            Assertions.assertThat(item.isChanged()).isTrue();
+            // todo assert delta
+        });
+    }
+
+    private UpgradeValidationItem assertGetItem(UpgradeValidationResult result, int index) {
+        Assertions.assertThat(result).isNotNull();
+
+        List<UpgradeValidationItem> items = result.getItems();
+        Assertions.assertThat(items).hasSizeGreaterThan(index);
+
+        return items.get(index);
     }
 }

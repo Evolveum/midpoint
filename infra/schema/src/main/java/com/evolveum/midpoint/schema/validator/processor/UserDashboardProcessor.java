@@ -16,7 +16,7 @@ public class UserDashboardProcessor implements UpgradeObjectProcessor<Objectable
 
     @Override
     public String getIdentifier() {
-        return "GUI-1234";
+        return "UserDashboard";
     }
 
     @Override
