@@ -10,10 +10,7 @@ import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -218,19 +215,62 @@ public class NinjaUtils {
         return types;
     }
 
-    public static File computeInstallationDirectory(File installationDirectory, NinjaContext context) {
+    public static File computeInstallationDirectory(File installationDirectory, NinjaContext context) throws NinjaException {
         final ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
-        File midpointHomeDirectory = new File(connectionOptions.getMidpointHome());
+        String mpHome = connectionOptions.getMidpointHome();
+        File midpointHomeDirectory = mpHome != null ? new File(connectionOptions.getMidpointHome()) : null;
 
         return computeInstallationDirectory(installationDirectory, midpointHomeDirectory);
     }
 
-    public static File computeInstallationDirectory(File installationDirectory, File midpointHomeDirectory) {
+    public static File computeInstallationDirectory(File installationDirectory, File midpointHomeDirectory) throws NinjaException {
+        File installation;
         if (installationDirectory != null) {
-            return installationDirectory;
+            installation = installationDirectory;
+        } else {
+            if (midpointHomeDirectory != null) {
+                installation = midpointHomeDirectory.getParentFile();
+            } else {
+                throw new NinjaException("Neither installation directory nor midpoint.home is specified");
+            }
         }
 
-        return midpointHomeDirectory.getParentFile();
+        File bin = new File(installation, "bin");
+        if (!validateDirectory(bin, "midpoint\\.(sh|bat)", "start\\.(sh|bat)", "stop\\.(sh|bat)")) {
+            throw new NinjaException("Installation directory " + installation.getPath() + " doesn't contain bin/ with midpoint, "
+                    + "start, and stop scripts. Probably wrong installation path, or customized installation.");
+        }
+
+        File lib = new File(installation, "lib");
+        if (!validateDirectory(lib, "midpoint\\.(war|jar)")) {
+            throw new NinjaException("Installation directory " + installation.getPath() + " doesn't contain lib/ with midpoint "
+                    + "(jar/war). Probably wrong installation path, or customized installation.");
+        }
+
+        return installation;
+    }
+
+    private static boolean validateDirectory(File dir, String... expectedFileNames) {
+        if (!dir.exists() || !dir.isDirectory()) {
+            return false;
+        }
+
+        String[] fileNames = dir.list();
+        for (String fileName : expectedFileNames) {
+            if (!containsFileNames(fileNames, fileName)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean containsFileNames(String[] names, String filenameRegex) {
+        if (names == null) {
+            return false;
+        }
+
+        return Arrays.stream(names).anyMatch(s -> s.matches(filenameRegex));
     }
 
     public static void readInput(Function<String, Boolean> responseHandler) throws IOException {

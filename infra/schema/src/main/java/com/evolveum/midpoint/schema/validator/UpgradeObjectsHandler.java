@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsHandler {
 
-    private static final List<UpgradeObjectProcessor<?>> PROCESSORS;
+    public static final List<UpgradeObjectProcessor<?>> PROCESSORS;
 
     static {
         PROCESSORS = initProcessors();

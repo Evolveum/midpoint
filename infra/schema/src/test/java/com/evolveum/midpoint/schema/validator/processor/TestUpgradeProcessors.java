@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.schema.validator.processor;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.assertj.core.api.Assertions;
@@ -19,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
+import com.evolveum.midpoint.schema.validator.UpgradeObjectsHandler;
 import com.evolveum.midpoint.schema.validator.UpgradeValidationItem;
 import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -50,6 +53,21 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         Assertions.assertThat(result).isNotNull();
 
         resultConsumer.accept(result);
+    }
+
+    @Test
+    public void test00CheckIdentifierUniqueness() {
+        Map<String, Class<?>> identifiers = new HashMap<>();
+        UpgradeObjectsHandler.PROCESSORS.forEach(p -> {
+            String identifier = p.getIdentifier();
+            Class<?> existing = identifiers.get(identifier);
+            if (existing != null) {
+                Assertions.fail("Processor (" + p.getClass().getName() + ") identifier (" + identifier
+                        + ") is not unique, collides with class " + existing.getName());
+            } else {
+                identifiers.put(identifier, p.getClass());
+            }
+        });
     }
 
     @Test
