@@ -19,11 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 public class CaseTaskRefProcessor implements UpgradeObjectProcessor<CaseType> {
 
     @Override
-    public String getIdentifier() {
-        return "CaseTaskRef";
-    }
-
-    @Override
     public UpgradePhase getPhase() {
         return UpgradePhase.BEFORE;
     }

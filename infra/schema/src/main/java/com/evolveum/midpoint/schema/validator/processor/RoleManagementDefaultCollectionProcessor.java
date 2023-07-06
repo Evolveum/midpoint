@@ -13,18 +13,21 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
+// todo tests
+@SuppressWarnings("unused")
+public class RoleManagementDefaultCollectionProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
 
     @Override
     public UpgradePhase getPhase() {
-        return UpgradePhase.AFTER;
+        // todo before in 4.7.* but after in 4.4.*
+        return UpgradePhase.BEFORE;
     }
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.OPTIONAL;
+        return UpgradePriority.NECESSARY;
     }
 
     @Override
@@ -34,12 +37,11 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        // todo implement
-        return false;
+        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class);
     }
 
     @Override
-    public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
+    public boolean process(PrismObject<SystemConfigurationType> object, ItemPath path) {
         // todo implement
         return false;
     }

@@ -34,11 +34,6 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
     private static final List<ItemPath> PATHS = Arrays.asList(PATH_NATIVE, PATH_CONFIGURED);
 
     @Override
-    public String getIdentifier() {
-        return "AddRemoveAttributeValues";
-    }
-
-    @Override
     public UpgradePhase getPhase() {
         return UpgradePhase.BEFORE;
     }

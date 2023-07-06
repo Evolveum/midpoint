@@ -15,7 +15,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface UpgradeObjectProcessor<T extends Objectable> {
 
-    String getIdentifier();
+    default String getIdentifier() {
+        return getClass().getSimpleName().replaceFirst("Processor$", "");
+    }
 
     UpgradePhase getPhase();
 
