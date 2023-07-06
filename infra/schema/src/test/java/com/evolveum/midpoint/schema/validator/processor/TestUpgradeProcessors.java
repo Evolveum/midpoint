@@ -86,19 +86,46 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("case.xml", result -> {
             Assertions.assertThat(result.getItems()).hasSize(1);
 
-            UpgradeValidationItem item = assertGetItem(result, 0);
+            UpgradeValidationItem item = assertGetItem(result, new ProcessorMixin() {
+            }.getIdentifier(CaseTaskRefProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(1);
             Assertions.assertThat(item.isChanged()).isTrue();
             // todo assert delta
         });
     }
 
-    private UpgradeValidationItem assertGetItem(UpgradeValidationResult result, int index) {
+    private String getProcessorIdentifier(Class<?> processorClass) {
+        return new ProcessorMixin() {
+        }.getIdentifier(processorClass);
+    }
+
+    @Test
+    public void test30TestSystemConfig() throws Exception {
+        testUpgradeValidator("system-configuration.xml", result -> {
+            Assertions.assertThat(result.getItems()).hasSize(2);
+
+            UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
+            Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
+            Assertions.assertThat(item.isChanged()).isTrue();
+
+             item = assertGetItem(result, getProcessorIdentifier(RoleCatalogRefProcessor.class));
+            Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
+            Assertions.assertThat(item.isChanged()).isTrue();
+
+            // todo assert deltas
+        });
+    }
+
+    private UpgradeValidationItem assertGetItem(UpgradeValidationResult result, String identifier) {
         Assertions.assertThat(result).isNotNull();
 
         List<UpgradeValidationItem> items = result.getItems();
-        Assertions.assertThat(items).hasSizeGreaterThan(index);
+        UpgradeValidationItem item = items.stream()
+                .filter(i -> identifier.equals(i.getIdentifier()))
+                .findFirst()
+                .orElse(null);
+        Assertions.assertThat(item).isNotNull();
 
-        return items.get(index);
+        return item;
     }
 }

@@ -8,6 +8,7 @@
     oid="3947d3b1-b6e8-46ec-b382-1bde67da6f07">
 
     <roleManagement>
+        <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
         <roleCatalogCollections>
             <collection>
                 <collectionUri>allRoles</collectionUri>
@@ -17,14 +18,4 @@
             </collection>
         </roleCatalogCollections>
     </roleManagement>
-    <adminGuiConfiguration>
-        <accessRequest>
-            <roleCatalog>
-                <collection>
-                    <identifier>myCustomCollection</identifier>
-                    <collectionIdentifier>myCustomCollection</collectionIdentifier>
-                </collection>
-            </roleCatalog>
-        </accessRequest>
-    </adminGuiConfiguration>
 </systemConfiguration>

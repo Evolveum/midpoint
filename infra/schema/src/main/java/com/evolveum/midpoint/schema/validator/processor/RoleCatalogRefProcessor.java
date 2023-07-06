@@ -7,19 +7,20 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleCatalogType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+// todo tests
 @SuppressWarnings("unused")
-public class RoleCatalogCollectionsProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
+public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemConfigurationType>, ProcessorMixin {
 
     @Override
     public UpgradePhase getPhase() {
@@ -40,32 +41,22 @@ public class RoleCatalogCollectionsProcessor implements UpgradeObjectProcessor<S
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
         return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class,
-                ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ROLE_CATALOG_COLLECTIONS));
+                ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ROLE_CATALOG_REF));
     }
 
     @Override
     public boolean process(PrismObject<SystemConfigurationType> object, ItemPath path) {
         SystemConfigurationType system = object.asObjectable();
         RoleManagementConfigurationType roleManagement = system.getRoleManagement();
-        ObjectCollectionsUseType roleCatalogCollections = roleManagement.getRoleCatalogCollections();
-        if (roleCatalogCollections == null) {
+        ObjectReferenceType roleCatalogRef = roleManagement.getRoleCatalogRef();
+        if (roleCatalogRef == null) {
             return false;
         }
 
         RoleCatalogType roleCatalog = getRoleCatalog(system);
+        roleCatalog.setRoleCatalogRef(roleCatalogRef);
 
-        List<RoleCollectionViewType> views = roleCatalogCollections.getCollection().stream()
-                .map(oc -> {
-                    RoleCollectionViewType collection = new RoleCollectionViewType();
-                    collection.setIdentifier(oc.getCollectionUri());
-                    collection.setCollectionIdentifier(oc.getCollectionUri());
-                    return collection;
-                })
-                .collect(Collectors.toList());
-
-        roleCatalog.getCollection().addAll(views);
-
-        roleManagement.setRoleCatalogCollections(null);
+        roleManagement.setRoleCatalogRef(null);
 
         return true;
     }

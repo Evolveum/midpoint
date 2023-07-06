@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 // todo test
@@ -37,7 +38,8 @@ public class DefaultAssignmentConstraintsProcessor implements UpgradeObjectProce
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class);
+        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class,
+                ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_DEFAULT_ASSIGNMENT_CONSTRAINTS));
     }
 
     @Override
