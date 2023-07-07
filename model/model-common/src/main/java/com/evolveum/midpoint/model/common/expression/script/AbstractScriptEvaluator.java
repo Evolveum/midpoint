@@ -105,7 +105,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         // Variables
         VariablesMap variables = context.getVariables();
         if (variables != null) {
-            for (Entry<String, TypedValue> variableEntry : variables.entrySet()) {
+            for (Entry<String, TypedValue<?>> variableEntry : variables.entrySet()) {
                 if (variableEntry.getKey() == null) {
                     // This is the "root" node. We have no use for it in script expressions, just skip it
                     continue;

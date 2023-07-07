@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,7 +45,6 @@ public class AssignmentTargetSearchExpressionEvaluator
             PrismContainerDefinition<AssignmentType> outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
         super(
                 elementName,
@@ -54,7 +52,6 @@ public class AssignmentTargetSearchExpressionEvaluator
                 outputDefinition,
                 protector,
                 objectResolver,
-                securityContextManager,
                 localizationService);
     }
 

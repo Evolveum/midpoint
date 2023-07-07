@@ -32,6 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTrac
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
+ * FIXME review this description
+ *
  * The expressions should be created by ExpressionFactory. They expect correct setting of
  * expression evaluator and proper conversion form the XML ExpressionType. Factory does this.
  *

@@ -62,7 +62,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         this.result = result;
     }
 
-    public void init() throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+    public void init() throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         predefinedRange = setDefinitionBean.getPredefined();
         ExpressionType conditionBean = setDefinitionBean.getCondition();
         if (conditionBean != null) {
@@ -80,16 +80,11 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
 
     public boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (predefinedRange != null) {
-            switch (predefinedRange) {
-                case NONE:
-                    return false;
-                case ALL:
-                    return true;
-                case MATCHING_PROVENANCE:
-                    return isOfMatchingProvenance(pval);
-                default:
-                    throw new IllegalStateException("Unknown pre value: " + predefinedRange);
-            }
+            return switch (predefinedRange) {
+                case NONE -> false;
+                case ALL -> true;
+                case MATCHING_PROVENANCE -> isOfMatchingProvenance(pval);
+            };
         } else {
             return condition == null || evalCondition(pval);
         }

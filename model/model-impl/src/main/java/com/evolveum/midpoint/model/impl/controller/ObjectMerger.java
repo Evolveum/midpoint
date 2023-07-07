@@ -78,23 +78,15 @@ public class ObjectMerger {
     public static final String SIDE_LEFT = "left";
     public static final String SIDE_RIGHT = "right";
 
-    @Autowired(required = true)
-    private ModelObjectResolver objectResolver;
-
-    @Autowired(required = true)
-    private SystemObjectCache systemObjectCache;
-
-    @Autowired(required = true)
-    private ExpressionFactory expressionFactory;
-
-    @Autowired(required = true)
-    PrismContext prismContext;
+    @Autowired private ModelObjectResolver objectResolver;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private PrismContext prismContext;
 
     // TODO: circular dependency to model controller. Not good.
     // But cannot fix it right now. TODO: later refactor.
     // MID-3459
-    @Autowired(required = true)
-    private ModelService modelController;
+    @Autowired private ModelService modelController;
 
     public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
@@ -532,10 +524,12 @@ public class ObjectMerger {
             return null;
         }
 
-        Expression<PrismValue, ItemDefinition> valueExpression;
+        Expression<PrismValue, ItemDefinition<?>> valueExpression;
         if (itemMergeConfig.getValueExpression() != null) {
             ExpressionType expressionType = itemMergeConfig.getValueExpression();
-            valueExpression = expressionFactory.makeExpression(expressionType, itemDefinition, MiscSchemaUtil.getExpressionProfile(),
+            //noinspection unchecked
+            valueExpression = expressionFactory.makeExpression(
+                    expressionType, itemDefinition, MiscSchemaUtil.getExpressionProfile(),
                     "value expression for item " + itemPath + " in merge configuration " + mergeConfigurationName,
                     task, result);
         } else {
@@ -559,8 +553,9 @@ public class ObjectMerger {
                 if (itemRight == null) {
                     itemDelta.setValueToReplace();
                 } else {
-                    Collection<PrismValue> valuesToTake = getValuesToTake(objectLeft, objectRight,
-                            SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
+                    Collection<PrismValue> valuesToTake =
+                            getValuesToTake(
+                                    objectLeft, objectRight, SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
                     //noinspection unchecked
                     itemDelta.setValuesToReplace(valuesToTake);
                 }
@@ -642,24 +637,32 @@ public class ObjectMerger {
         return diff;
     }
 
-    private <O extends ObjectType, I extends Item> Collection<PrismValue> getValuesToTake(PrismObject<O> objectLeft, PrismObject<O> objectRight,
-            String side, I origItem, MergeStrategyType strategy, Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
+    private <O extends ObjectType, I extends Item<?, ?>> Collection<PrismValue> getValuesToTake(
+            PrismObject<O> objectLeft,
+            PrismObject<O> objectRight,
+            String side,
+            I origItem,
+            MergeStrategyType strategy,
+            Expression<PrismValue, ItemDefinition<?>> valueExpression,
+            Task task,
+            OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         if (origItem == null) {
             return new ArrayList<>(0);
         }
         if (strategy == MergeStrategyType.TAKE) {
             //noinspection unchecked
-            return cleanContainerIds(origItem.getClonedValues());
+            return (Collection<PrismValue>) cleanContainerIds(origItem.getClonedValues());
         } else if (strategy == MergeStrategyType.EXPRESSION) {
             if (valueExpression == null) {
                 throw new ConfigurationException("Expression strategy specified but no expression present");
             }
             //noinspection unchecked
-            List<PrismValue> origValues = origItem.getValues();
+            List<PrismValue> origValues = (List<PrismValue>) origItem.getValues();
             Collection<PrismValue> valuesToTake = new ArrayList<>(origValues.size());
             for (PrismValue origValue: origValues) {
-                Collection<PrismValue> expressionOutput = evaluateValueExpression(objectLeft, objectRight, side, origValue, valueExpression, task, result);
+                Collection<PrismValue> expressionOutput = evaluateValueExpression(
+                        objectLeft, objectRight, side, origValue, valueExpression, task, result);
                 if (expressionOutput != null) {
                     valuesToTake.addAll(expressionOutput);
                 }
@@ -671,7 +674,7 @@ public class ObjectMerger {
     }
 
 
-    private Collection<PrismValue> cleanContainerIds(Collection<PrismValue> pvals) {
+    private <V extends PrismValue> Collection<V> cleanContainerIds(Collection<V> pvals) {
         if (pvals == null) {
             return null;
         }
@@ -685,7 +688,7 @@ public class ObjectMerger {
 
     private <O extends ObjectType> Collection<PrismValue> evaluateValueExpression(PrismObject<O> objectLeft,
             PrismObject<O> objectRight, String side, PrismValue origValue,
-            Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
+            Expression<PrismValue, ItemDefinition<?>> valueExpression, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         VariablesMap variables = new VariablesMap();

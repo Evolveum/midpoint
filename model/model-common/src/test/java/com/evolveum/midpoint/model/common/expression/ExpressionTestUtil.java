@@ -64,7 +64,7 @@ public class ExpressionTestUtil {
             ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock) {
 
         ExpressionFactory expressionFactory =
-                new ExpressionFactory(null, LocalizationTestUtil.getLocalizationService());
+                new ExpressionFactory(LocalizationTestUtil.getLocalizationService());
         expressionFactory.setObjectResolver(resolver);
 
         // NOTE: we need to register the evaluator factories to expressionFactory manually here

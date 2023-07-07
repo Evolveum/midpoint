@@ -11,7 +11,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,14 +24,13 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -115,9 +113,14 @@ public class ExpressionHandlerImplTest extends AbstractSpringTest
         logger.debug("Expression: {}", SchemaDebugUtil.prettyPrint(expression));
 
         OperationResult result = createOperationResult();
-        String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", null, result);
+        String name = expressionHandler.evaluateExpression(
+                accountType, expression, "test expression", createTask(), result);
         logger.info(result.debugDump());
 
         assertEquals("Wrong expression result", "hbarbossa", name);
+    }
+
+    private Task createTask() {
+        return new NullTaskImpl();
     }
 }

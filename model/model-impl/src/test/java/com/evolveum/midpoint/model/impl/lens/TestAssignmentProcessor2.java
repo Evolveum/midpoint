@@ -1856,23 +1856,23 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
      * "Go back N" inducements in the presence of various relations.
      * Each target has a note about expected evaluation order ("a", "ab", "abc", ...).
      *
-     * abde/A6 ----[I]----+
-     * |            |
-     * (e)           |
-     * |            V
-     * abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
-     * |            | |                              |
-     * (c)           |(d)                             |
-     * |            V |                              |
-     * A2/ab ....... A4/ab                            |
-     * |                                             |
-     * (b)                                            |
-     * |                                             |
-     * A1/a <.........same evaluation order......... A8/a
-     * ^
-     * (a)
-     * |
-     * jack
+     *                  abde/A6 ----[I]----+
+     *                        |            |
+     *                       (e)           |
+     *                        |            V
+     *   abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
+     *        |            | |                              |
+     *       (c)           |(d)                             |
+     *        |            V |                              |
+     *       A2/ab ....... A4/ab                            |
+     *        |                                             |
+     *       (b)                                            |
+     *        |                                             |
+     *       A1/a <.........same evaluation order......... A8/a
+     *        ^
+     *       (a)
+     *        |
+     *      jack
      */
 
     @Test(enabled = FIFTH_PART)

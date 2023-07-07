@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,13 +58,13 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException {
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition, // nullable in interface, but required here
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for literal expression evaluator");
 

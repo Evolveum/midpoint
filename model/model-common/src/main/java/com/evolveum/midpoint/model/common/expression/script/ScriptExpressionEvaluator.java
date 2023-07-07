@@ -49,9 +49,8 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
             D outputDefinition,
             Protector protector,
             ScriptExpression scriptExpression,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
-        super(elementName, scriptBean, outputDefinition, protector, securityContextManager, localizationService);
+        super(elementName, scriptBean, outputDefinition, protector, localizationService);
         this.scriptExpression = scriptExpression;
     }
 

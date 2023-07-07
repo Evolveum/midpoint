@@ -162,8 +162,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         ExpressionType expression = parseExpression(expressionFile);
         VariablesMap variables = prepareVariables(variablesStyle);
         Task task = getTestTask();
-        ExpressionEvaluationContext expressionContext =
-                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), task);
+        var expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), task);
 
         return evaluatePropertyExpression(expression, PrimitiveType.STRING, expressionContext, task.getResult());
     }
@@ -237,7 +236,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         return variables;
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> PrismValueDeltaSetTriple<V> evaluateExpression(
+    private <V extends PrismValue, D extends ItemDefinition<?>> PrismValueDeltaSetTriple<V> evaluateExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {

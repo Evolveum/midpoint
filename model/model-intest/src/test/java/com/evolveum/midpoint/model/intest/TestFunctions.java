@@ -317,7 +317,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
                         expressionBean, outputDefinition, getExpressionProfile(), "", task, result);
-        ExpressionEvaluationContext ctx = new ExpressionEvaluationContext(List.of(), new VariablesMap(), "", task);
+        var ctx = new ExpressionEvaluationContext(List.of(), new VariablesMap(), "", task);
         Collection<PrismPropertyValue<String>> nonNegativeValues = expression.evaluate(ctx, result).getNonNegativeValues();
         PrismPropertyValue<String> value = MiscUtil.extractSingletonRequired(
                 nonNegativeValues,

@@ -849,7 +849,7 @@ public class ExpressionUtil {
 
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
+    public static <V extends PrismValue, D extends ItemDefinition<?>> V evaluateExpression(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -869,7 +869,7 @@ public class ExpressionUtil {
     }
 
     @NotNull
-    public static <V extends PrismValue, D extends ItemDefinition> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
+    public static <V extends PrismValue, D extends ItemDefinition<?>> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1065,13 +1065,13 @@ public class ExpressionUtil {
         throw new IllegalStateException("notreached");
     }
 
-    public static void addActorVariable(VariablesMap scriptVariables, SecurityContextManager securityContextManager, PrismContext prismContext) {
+    public static void addActorVariableIfNeeded(VariablesMap variables, SecurityContextManager securityContextManager) {
         // There can already be a value, because for mappings, we create the
         // variable before parsing sources.
         // For other scripts we do it just before the execution, to catch all
         // possible places where scripts can be executed.
 
-        PrismObject<? extends FocusType> oldActor = (PrismObject<? extends FocusType>) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
+        var oldActor = variables.getValue(ExpressionConstants.VAR_ACTOR);
         if (oldActor != null) {
             return;
         }
@@ -1080,19 +1080,14 @@ public class ExpressionUtil {
         try {
             if (securityContextManager != null) {
                 if (!securityContextManager.isAuthenticated()) {
-                    // This is most likely evaluation of role
-                    // condition before
-                    // the authentication is complete.
-                    PrismObjectDefinition<? extends FocusType> actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-                    scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null, actorDef);
+                    // This is most likely evaluation of role condition before the authentication is complete. FIXME UserType?
+                    var actorDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+                    variables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null, actorDef);
                     return;
                 }
                 MidPointPrincipal principal = securityContextManager.getPrincipal();
                 if (principal != null) {
-                    FocusType principalFocus = principal.getFocus();
-                    if (principalFocus != null) {
-                        actor = principalFocus.asPrismObject();
-                    }
+                    actor = principal.getFocus().asPrismObject();
                 }
             }
             if (actor == null) {
@@ -1104,11 +1099,11 @@ public class ExpressionUtil {
         }
         PrismObjectDefinition<? extends FocusType> actorDef;
         if (actor == null) {
-            actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+            actorDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         } else {
             actorDef = actor.getDefinition();
         }
-        scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor, actorDef);
+        variables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor, actorDef);
     }
 
     public static <D extends ItemDefinition> Object convertToOutputValue(Long longValue, D outputDefinition,
@@ -1242,7 +1237,7 @@ public class ExpressionUtil {
             ExpressionType conditionExpressionType,
             ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
-            String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(), expressionProfile, shortDesc, task, result);
     }
 
@@ -1275,7 +1270,7 @@ public class ExpressionUtil {
     /**
      * Used in cases when we do not have a definition.
      */
-    public static ItemDefinition determineDefinitionFromValueClass(PrismContext prismContext, String name, Class<?> valueClass, QName typeQName) {
+    public static ItemDefinition<?> determineDefinitionFromValueClass(PrismContext prismContext, String name, Class<?> valueClass, QName typeQName) {
         if (valueClass == null) {
             return null;
         }

@@ -67,7 +67,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
         try {
             expression = expressionFactory
                     .makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException e) {
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException e) {
             ValidationError error = new ValidationError();
             error.setMessage("Cannot make expression: " + e.getMessage());
             validatable.error(error);
