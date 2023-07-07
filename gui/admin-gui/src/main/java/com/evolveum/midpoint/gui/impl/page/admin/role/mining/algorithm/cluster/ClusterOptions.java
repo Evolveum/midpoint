@@ -23,6 +23,10 @@ public class ClusterOptions implements Serializable {
     private int assignThreshold;
     ClusterObjectUtils.Mode mode;
     String name;
+    int defaultIntersectionSearch = 10;
+    int defaultOccupancySearch = 10;
+    double defaultMinFrequency = 0.4;
+    double defaultMaxFrequency = 1;
 
     public ClusterOptions(PageBase pageBase, ClusterObjectUtils.Mode mode) {
         this.pageBase = pageBase;
@@ -114,6 +118,38 @@ public class ClusterOptions implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getDefaultIntersectionSearch() {
+        return defaultIntersectionSearch;
+    }
+
+    public void setDefaultIntersectionSearch(int defaultIntersectionSearch) {
+        this.defaultIntersectionSearch = defaultIntersectionSearch;
+    }
+
+    public int getDefaultOccupancySearch() {
+        return defaultOccupancySearch;
+    }
+
+    public void setDefaultOccupancySearch(int defaultOccupancySearch) {
+        this.defaultOccupancySearch = defaultOccupancySearch;
+    }
+
+    public double getDefaultMinFrequency() {
+        return defaultMinFrequency;
+    }
+
+    public void setDefaultMinFrequency(double defaultMinFrequency) {
+        this.defaultMinFrequency = defaultMinFrequency;
+    }
+
+    public double getDefaultMaxFrequency() {
+        return defaultMaxFrequency;
+    }
+
+    public void setDefaultMaxFrequency(double defaultMaxFrequency) {
+        this.defaultMaxFrequency = defaultMaxFrequency;
     }
 
 }

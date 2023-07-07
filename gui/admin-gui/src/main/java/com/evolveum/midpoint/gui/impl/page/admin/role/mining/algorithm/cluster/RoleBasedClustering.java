@@ -48,7 +48,7 @@ public class RoleBasedClustering implements Clusterable {
         PageBase pageBase = clusterOptions.getPageBase();
         ObjectFilter query = clusterOptions.getQuery();
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
-                threshold, minIntersections, query);
+                threshold, query);
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
 
@@ -60,12 +60,11 @@ public class RoleBasedClustering implements Clusterable {
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
         endTimer(start, "clustering");
 
-        String identifier = clusterOptions.getIdentifier();
-        return new ClusterAlgorithmUtils().processClusters(pageBase, identifier, dataPoints, clusters);
+        return new ClusterAlgorithmUtils().processClusters(pageBase, dataPoints, clusters, clusterOptions);
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull PageBase pageBase,
-            int threshold, int minIntersection, ObjectFilter roleQuery) {
+            int threshold, ObjectFilter roleQuery) {
 
         //role //user
         ListMultimap<String, String> userTypeMap = ArrayListMultimap.create();

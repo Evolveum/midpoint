@@ -44,6 +44,8 @@ public class UserBasedClustering implements Clusterable {
         int minIntersections = clusterOptions.getMinIntersections();
         int assignThreshold = clusterOptions.getAssignThreshold();
         int threshold = Math.max(assignThreshold, minIntersections);
+        clusterOptions.setAssignThreshold(threshold);
+        clusterOptions.setMinIntersections(minIntersections);
 
         PageBase pageBase = clusterOptions.getPageBase();
 
@@ -61,7 +63,7 @@ public class UserBasedClustering implements Clusterable {
         endTimer(start, "clustering");
 
         String identifier = clusterOptions.getIdentifier();
-        return new ClusterAlgorithmUtils().processClusters(pageBase, identifier, dataPoints, clusters);
+        return new ClusterAlgorithmUtils().processClusters(pageBase, dataPoints, clusters, clusterOptions);
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, PageBase pageBase,

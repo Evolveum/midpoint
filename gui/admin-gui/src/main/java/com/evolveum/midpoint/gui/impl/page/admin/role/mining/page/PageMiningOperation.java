@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.findPossibleBusinessRole;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusterAlgorithmUtils.loadDefaultIntersection;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getScaleScript;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.Mode;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,7 +21,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 
 @PageDescriptor(
         urls = {
@@ -110,13 +112,14 @@ public class PageMiningOperation extends PageAdmin {
     protected void onInitialize() {
         super.onInitialize();
 
+        ClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+        mergedIntersection = loadDefaultIntersection(cluster);
+
         loadMiningTableData();
 
         loadMiningTable(miningOperationChunk);
 
-        EmptyPanel tableIntersection = new EmptyPanel(ID_DATATABLE_INTERSECTIONS);
-        tableIntersection.setOutputMarkupId(true);
-        add(tableIntersection);
+        add(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection).setOutputMarkupId(true));
 
         AjaxButton ajaxButton = executeBusinessSearchPanel();
         add(ajaxButton);
@@ -188,7 +191,8 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     private void loadMiningTableData() {
-        miningOperationChunk = new MiningOperationChunk(getPageParameterOid(), (PageBase) getPage(),
+        ClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+        miningOperationChunk = new MiningOperationChunk(cluster, (PageBase) getPage(),
                 getPageParameterMode(), result, compress);
     }
 
@@ -307,7 +311,7 @@ public class PageMiningOperation extends PageAdmin {
             protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<IntersectionObject> rowModel) {
                 intersection = rowModel.getObject().getPoints();
 
-                updateMiningTable(ajaxRequestTarget, false);
+                updateMiningTable(ajaxRequestTarget, true);
                 processButton.setVisible(true);
                 ajaxRequestTarget.add(processButton);
             }

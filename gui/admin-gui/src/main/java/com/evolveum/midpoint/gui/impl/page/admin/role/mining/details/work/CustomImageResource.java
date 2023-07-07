@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
@@ -45,23 +46,49 @@ public class CustomImageResource extends DynamicImageResource {
     @Override
     protected byte[] getImageData(Attributes attributes) {
 
+        ClusterObjectUtils.Mode mode1 = ClusterObjectUtils.Mode.valueOf(mode);
+
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
-        width = miningRoleTypeChunks.size();
-        height = miningUserTypeChunks.size();
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = image.createGraphics();
 
-        for (int x = 0; x < miningRoleTypeChunks.size(); x++) {
-            String point = miningRoleTypeChunks.get(x).getRoles().get(0);
-            for (int y = 0; y < miningUserTypeChunks.size(); y++) {
-                if (miningUserTypeChunks.get(y).getRoles().contains(point)) {
-                    graphics.setColor(Color.BLACK);
-                } else {
-                    graphics.setColor(Color.WHITE);
+        BufferedImage image;
+        Graphics2D graphics;
+
+        if (mode1.equals(ClusterObjectUtils.Mode.ROLE)) {
+            width = miningRoleTypeChunks.size();
+            height = miningUserTypeChunks.size();
+            image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            graphics = image.createGraphics();
+
+            for (int x = 0; x < miningRoleTypeChunks.size(); x++) {
+                String point = miningRoleTypeChunks.get(x).getRoles().get(0);
+                for (int y = 0; y < miningUserTypeChunks.size(); y++) {
+                    if (miningUserTypeChunks.get(y).getRoles().contains(point)) {
+                        graphics.setColor(Color.BLACK);
+                    } else {
+                        graphics.setColor(Color.WHITE);
+                    }
+
+                    graphics.fillRect(x, y, 1, 1);
                 }
+            }
+        } else {
+            width = miningUserTypeChunks.size();
+            height = miningRoleTypeChunks.size();
+            image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            graphics = image.createGraphics();
 
-                graphics.fillRect(x, y, 1, 1);
+            for (int x = 0; x < miningUserTypeChunks.size(); x++) {
+                String point = miningUserTypeChunks.get(x).getUsers().get(0);
+                for (int y = 0; y < miningRoleTypeChunks.size(); y++) {
+                    if (miningRoleTypeChunks.get(y).getUsers().contains(point)) {
+                        graphics.setColor(Color.BLACK);
+                    } else {
+                        graphics.setColor(Color.WHITE);
+                    }
+
+                    graphics.fillRect(x, y, 1, 1);
+                }
             }
         }
 

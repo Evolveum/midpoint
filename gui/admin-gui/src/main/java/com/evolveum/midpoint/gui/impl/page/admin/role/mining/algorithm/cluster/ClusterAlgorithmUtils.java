@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.findPossibleBusinessRole;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.startTimer;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
@@ -15,6 +16,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.jetbrains.annotations.NotNull;
@@ -30,17 +40,18 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class ClusterAlgorithmUtils {
 
     @NotNull
-    public List<PrismObject<ClusterType>> processClusters(PageBase pageBase, String identifier, List<DataPoint> dataPoints,
-            List<Cluster<DataPoint>> clusters) {
+    public List<PrismObject<ClusterType>> processClusters(PageBase pageBase, List<DataPoint> dataPoints,
+            List<Cluster<DataPoint>> clusters, ClusterOptions clusterOptions) {
         long start;
         start = startTimer("generate clusters mp objects");
         List<PrismObject<ClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, clusters.size())
-                .mapToObj(i -> prepareClusters(pageBase, clusters.get(i).getPoints(), String.valueOf(i), identifier, dataPoints))
+                .mapToObj(i -> prepareClusters(pageBase, clusters.get(i).getPoints(), String.valueOf(i),
+                        dataPoints, clusterOptions))
                 .collect(Collectors.toList());
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
-        PrismObject<ClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, identifier);
+        PrismObject<ClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
@@ -106,11 +117,12 @@ public class ClusterAlgorithmUtils {
     }
 
     public PrismObject<ClusterType> prepareClusters(PageBase pageBase, List<DataPoint> dataPointCluster, String clusterIndex,
-            String identifier, List<DataPoint> dataPoints) {
+            List<DataPoint> dataPoints, ClusterOptions clusterOptions) {
         List<DataPoint> sortedDataPoints = JaccardSorter.sort(dataPointCluster);
 
-        ClusterStatistic clusterStatistic = statisticLoad(sortedDataPoints, dataPoints, clusterIndex, identifier);
-        return generateClusterObject(pageBase, clusterStatistic);
+        ClusterStatistic clusterStatistic = statisticLoad(sortedDataPoints, dataPoints, clusterIndex, clusterOptions.getIdentifier());
+
+        return generateClusterObject(pageBase, clusterStatistic, clusterOptions);
     }
 
     public PrismObject<ClusterType> prepareOutlierClusters(PageBase pageBase, List<DataPoint> dataPoints,
@@ -145,10 +157,12 @@ public class ClusterAlgorithmUtils {
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, identifier, new ArrayList<>(pointsSet), elementsOid,
                 sumPoints, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density, new HashMap<>(), null);
 
-        return generateClusterObject(pageBase, clusterStatistic);
+        return generateClusterObject(pageBase, clusterStatistic, null);
     }
 
-    private @NotNull PrismObject<ClusterType> generateClusterObject(PageBase pageBase, ClusterStatistic clusterStatistic) {
+    private @NotNull PrismObject<ClusterType> generateClusterObject(PageBase pageBase, ClusterStatistic clusterStatistic,
+            ClusterOptions clusterOptions) {
+
         PrismObject<ClusterType> clusterTypePrismObject = null;
         try {
             clusterTypePrismObject = pageBase.getPrismContext()
@@ -174,7 +188,84 @@ public class ClusterAlgorithmUtils {
         clusterType.setName(clusterStatistic.getName());
         clusterType.setIdentifier(clusterStatistic.getIdentifier());
 
+        List<String> jsonObjectList = new ArrayList<>();
+        List<IntersectionObject> possibleBusinessRole = new ArrayList<>();
+        OperationResult operationResult = new OperationResult("Prepare data for intersection");
+        resolveDefaultIntersection(pageBase, clusterType, jsonObjectList, possibleBusinessRole,
+                operationResult, clusterOptions);
+
         return clusterTypePrismObject;
     }
 
+    private static void resolveDefaultIntersection(PageBase pageBase, ClusterType clusterType,
+            List<String> jsonObjectList, List<IntersectionObject> possibleBusinessRole,
+            OperationResult operationResult, ClusterOptions clusterOptions) {
+
+        if (clusterOptions != null) {
+            ClusterObjectUtils.Mode mode = clusterOptions.getMode();
+            int group = Math.min(clusterOptions.getDefaultOccupancySearch(), clusterOptions.getMinGroupSize());
+            int intersection = Math.min(clusterOptions.getDefaultIntersectionSearch(), clusterOptions.getMinIntersections());
+            double defaultMaxFrequency = clusterOptions.getDefaultMaxFrequency();
+            double defaultMinFrequency = clusterOptions.getDefaultMinFrequency();
+
+            if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+                MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
+                        ClusterObjectUtils.Mode.ROLE, operationResult, true);
+                possibleBusinessRole = findPossibleBusinessRole(miningOperationChunk, defaultMinFrequency,
+                        defaultMaxFrequency,
+                        group, intersection, mode);
+            } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
+                MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
+                        ClusterObjectUtils.Mode.USER, operationResult, true);
+                possibleBusinessRole = findPossibleBusinessRole(miningOperationChunk, defaultMinFrequency,
+                        defaultMaxFrequency,
+                        intersection, group, mode);
+            }
+
+            loadIntersections(jsonObjectList, possibleBusinessRole);
+
+            clusterType.getDefaultDetection().addAll(jsonObjectList);
+        }
+    }
+
+    private static void loadIntersections(List<String> jsonObjectList, List<IntersectionObject> possibleBusinessRole) {
+        for (IntersectionObject intersectionObject : possibleBusinessRole) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("points", new JSONArray(intersectionObject.getPoints()));
+            jsonObject.put("type", intersectionObject.getType());
+            jsonObject.put("currentElements", intersectionObject.getCurrentElements());
+            jsonObject.put("totalElements", intersectionObject.getTotalElements());
+            jsonObject.put("metric", intersectionObject.getMetric());
+            jsonObject.put("elements", new JSONArray(intersectionObject.getElements()));
+            jsonObjectList.add(String.valueOf(jsonObject));
+        }
+    }
+
+    public static List<IntersectionObject> loadDefaultIntersection(ClusterType clusterType) {
+        List<String> defaultDetection = clusterType.getDefaultDetection();
+        List<IntersectionObject> mergedIntersection = new ArrayList<>();
+        for (String jsonString : defaultDetection) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+
+            JSONArray pointsArray = jsonObject.getJSONArray("points");
+            String type = jsonObject.getString("type");
+            int currentElements = jsonObject.getInt("currentElements");
+            Integer totalElements = jsonObject.optInt("totalElements");
+            double metric = jsonObject.getDouble("metric");
+            JSONArray elementsArray = jsonObject.getJSONArray("elements");
+
+            Set<String> points = new HashSet<>();
+            for (int i = 0; i < pointsArray.length(); i++) {
+                points.add(pointsArray.getString(i));
+            }
+
+            Set<String> elements = new HashSet<>();
+            for (int i = 0; i < elementsArray.length(); i++) {
+                elements.add(elementsArray.getString(i));
+            }
+            mergedIntersection.add(new IntersectionObject(points, metric, type, currentElements, totalElements, elements));
+        }
+
+        return mergedIntersection;
+    }
 }

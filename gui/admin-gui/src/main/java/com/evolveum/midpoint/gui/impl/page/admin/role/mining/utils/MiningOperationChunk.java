@@ -30,20 +30,18 @@ public class MiningOperationChunk implements Serializable {
     List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
     List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
 
-    public MiningOperationChunk(@NotNull String clusterObjectOid,
+    public MiningOperationChunk(@NotNull ClusterType clusterType,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult, boolean chunk) {
 
         if (chunk) {
-            getChunkedMiningClusterStructure(clusterObjectOid, pageBase, mode, operationResult);
+            getChunkedMiningClusterStructure(clusterType, pageBase, mode, operationResult);
         } else {
-            getMiningClusterStructure(clusterObjectOid, pageBase, mode, operationResult);
+            getMiningClusterStructure(clusterType, pageBase, mode, operationResult);
         }
     }
 
-    private void getMiningClusterStructure(@NotNull String clusterObjectOid,
+    private void getMiningClusterStructure(@NotNull ClusterType cluster,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult) {
-
-        ClusterType cluster = getClusterTypeObject(pageBase, clusterObjectOid).asObjectable();
 
         ListMultimap<String, String> roleChunk = ArrayListMultimap.create();
 
@@ -52,12 +50,20 @@ public class MiningOperationChunk implements Serializable {
             int usersCount = members.size();
             for (String membersOid : members) {
                 PrismObject<UserType> user = getUserTypeObject(pageBase, membersOid, operationResult);
+
+                if(user == null){
+                    continue;
+                }
+
                 List<String> rolesOid = getRolesOid(user.asObjectable());
                 int size = rolesOid.size();
-                double frequency = size / (double) usersCount;
-                String userName = getUserTypeObject(pageBase, membersOid, operationResult).getName().toString();
-                miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(membersOid), rolesOid, userName,
-                        frequency,Status.NEUTRAL));
+                double frequency = Math.min(size / (double) usersCount, 1);
+                String chunkName = "Unknown User";
+                if (user.getName() != null) {
+                    chunkName = user.getName().toString();
+                }
+                miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(membersOid), rolesOid, chunkName,
+                        frequency, Status.NEUTRAL));
 
                 for (String roleId : rolesOid) {
                     roleChunk.putAll(roleId, Collections.singletonList(user.getOid()));
@@ -66,12 +72,15 @@ public class MiningOperationChunk implements Serializable {
 
             for (String key : roleChunk.keySet()) {
                 List<String> strings = roleChunk.get(key);
-                double frequency = strings.size() / (double) usersCount;
+                double frequency = Math.min(strings.size() / (double) usersCount, 1);
 
                 PrismObject<RoleType> role = getRoleTypeObject(pageBase, key, operationResult);
-                String chunkName = role.getName().toString();
+                String chunkName = "Unknown Role";
+                if (role != null) {
+                    chunkName = role.getName().toString();
+                }
 
-                miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), strings, chunkName, frequency,Status.NEUTRAL));
+                miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), strings, chunkName, frequency, Status.NEUTRAL));
             }
 
         } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
@@ -85,10 +94,16 @@ public class MiningOperationChunk implements Serializable {
                 List<String> users = extractOid(userMembers);
 
                 int size = users.size();
-                double frequency = size / (double) rolesCount;
-                String roleName = getRoleTypeObject(pageBase, rolesOid, operationResult).getName().toString();
+                double frequency = Math.min(size / (double) rolesCount, 1);
+
+                PrismObject<RoleType> role = getRoleTypeObject(pageBase, rolesOid, operationResult);
+                String chunkName = "Unknown Role";
+                if (role != null) {
+                    chunkName = role.getName().toString();
+                }
+
                 miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(rolesOid),
-                        users, roleName, frequency,Status.NEUTRAL));
+                        users, chunkName, frequency, Status.NEUTRAL));
 
                 for (String user : users) {
                     userChunk.putAll(user, Collections.singletonList(rolesOid));
@@ -97,21 +112,21 @@ public class MiningOperationChunk implements Serializable {
 
             for (String key : userChunk.keySet()) {
                 List<String> strings = userChunk.get(key);
-                double frequency = strings.size() / (double) rolesCount;
-
+                double frequency = Math.min(strings.size() / (double) rolesCount, 1);
                 PrismObject<UserType> user = getUserTypeObject(pageBase, key, operationResult);
-                String chunkName = user.getName().toString();
+                String chunkName = "Unknown User";
+                if (user != null) {
+                    chunkName = user.getName().toString();
+                }
 
-                miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), strings, chunkName, frequency,Status.NEUTRAL));
+                miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), strings, chunkName, frequency, Status.NEUTRAL));
             }
         }
 
     }
 
-    private void getChunkedMiningClusterStructure(@NotNull String clusterObjectOid,
+    private void getChunkedMiningClusterStructure(@NotNull ClusterType cluster,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult) {
-
-        ClusterType cluster = getClusterTypeObject(pageBase, clusterObjectOid).asObjectable();
 
         //this set of roles List<String> has users String...
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
@@ -120,6 +135,9 @@ public class MiningOperationChunk implements Serializable {
             List<String> members = cluster.getElements();
             for (String membersOid : members) {
                 PrismObject<UserType> user = getUserTypeObject(pageBase, membersOid, operationResult);
+                if(user == null){
+                    continue;
+                }
                 List<String> rolesOid = getRolesOid(user.asObjectable());
                 Collections.sort(rolesOid);
                 userChunk.putAll(rolesOid, Collections.singletonList(membersOid));
@@ -140,27 +158,33 @@ public class MiningOperationChunk implements Serializable {
             for (List<String> key : userChunk.keySet()) {
                 List<String> usersElements = userChunk.get(key);
                 int size = key.size();
-                double frequency = size / (double) usersCount;
+                double frequency = Math.min(size / (double) usersCount, 1);
                 int usersSize = usersElements.size();
                 String chunkName = "Group (" + usersSize + " Users)";
                 if (usersSize == 1) {
                     PrismObject<UserType> user = getUserTypeObject(pageBase, usersElements.get(0), operationResult);
-                    chunkName = user.getName().toString();
+                    chunkName = "Unknown User";
+                    if (user != null) {
+                        chunkName = user.getName().toString();
+                    }
                 }
-                miningUserTypeChunks.add(new MiningUserTypeChunk(usersElements, key, chunkName, frequency,Status.NEUTRAL));
+                miningUserTypeChunks.add(new MiningUserTypeChunk(usersElements, key, chunkName, frequency, Status.NEUTRAL));
             }
 
             for (List<String> key : roleChunk.keySet()) {
                 List<String> roles = roleChunk.get(key);
                 int size = key.size();
-                double frequency = size / (double) usersCount;
+                double frequency = Math.min(size / (double) usersCount, 1);
                 int rolesSize = roles.size();
                 String chunkName = "Group (" + rolesSize + " Roles)";
                 if (rolesSize == 1) {
                     PrismObject<RoleType> role = getRoleTypeObject(pageBase, roles.get(0), operationResult);
-                    chunkName = role.getName().toString();
+                    chunkName = "Unknown Role";
+                    if (role != null) {
+                        chunkName = role.getName().toString();
+                    }
                 }
-                miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency,Status.NEUTRAL));
+                miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
             }
 
         } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
@@ -190,27 +214,35 @@ public class MiningOperationChunk implements Serializable {
             for (List<String> key : userChunk.keySet()) {
                 List<String> roles = userChunk.get(key);
                 int size = key.size();
-                double frequency = size / (double) rolesCount;
+                double frequency = Math.min(size / (double) rolesCount, 1);
                 int rolesSize = roles.size();
                 String chunkName = "Group (" + rolesSize + " Roles)";
                 if (rolesSize == 1) {
                     PrismObject<RoleType> role = getRoleTypeObject(pageBase, roles.get(0), operationResult);
-                    chunkName = role.getName().toString();
+                    chunkName = "Unknown Role";
+                    if (role != null) {
+                        chunkName = role.getName().toString();
+                    }
+
                 }
-                miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency,Status.NEUTRAL));
+                miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
             }
 
             for (List<String> key : roleChunk.keySet()) {
                 List<String> users = roleChunk.get(key);
                 int size = key.size();
-                double frequency = size / (double) rolesCount;
+                double frequency = Math.min(size / (double) rolesCount, 1);
                 int userSize = users.size();
                 String chunkName = "Group (" + userSize + " Users)";
                 if (userSize == 1) {
                     PrismObject<UserType> user = getUserTypeObject(pageBase, users.get(0), operationResult);
-                    chunkName = user.getName().toString();
+                    chunkName = "Unknown User";
+                    if (user != null) {
+                        chunkName = user.getName().toString();
+                    }
+
                 }
-                miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency,Status.NEUTRAL));
+                miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, Status.NEUTRAL));
             }
         }
 

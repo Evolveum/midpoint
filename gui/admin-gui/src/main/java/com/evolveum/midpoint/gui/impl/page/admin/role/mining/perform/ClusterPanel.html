@@ -9,7 +9,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="d-flex flex-column gap-2">
+
         <div>
+            <div class="show-empty-button d-flex justify-content-center w-100" wicket:id="show_cluster_panel"></div>
             <form wicket:id="thresholds_form_cluster">
                 <div class="gap-2 w-100" wicket:id="warningFeedback"></div>
 
@@ -19,7 +21,8 @@
                     <label for="mode" class="col-sm-2 col-form-label" wicket:id="modeSelector_label"></label>
 
                     <div class="col-sm-10">
-                        <select class="btn btn-default btn-sm dropdown-toggle" id="mode" style="width:150px" wicket:id="modeSelector"></select>
+                        <select class="btn btn-default btn-sm dropdown-toggle" id="mode" style="width:150px"
+                                wicket:id="modeSelector"></select>
                     </div>
                 </div>
 
@@ -33,36 +36,40 @@
                 <div class="form-group row">
                     <label for="identifier" class="col-sm-2 col-form-label" wicket:id="identifier_field_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="identifier" placeholder="Identifier" wicket:id="identifier_field">
+                        <input type="text" class="form-control" id="identifier" placeholder="Identifier"
+                                wicket:id="identifier_field">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="jaccardDistance" class="col-sm-2 col-form-label" wicket:id="eps_cluster_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="jaccardDistance" placeholder="Jaccard Distance" wicket:id="eps_cluster">
+                        <input type="text" class="form-control" id="jaccardDistance" placeholder="Jaccard Distance"
+                                wicket:id="eps_cluster">
                     </div>
                 </div>
-
-
 
 
                 <div class="form-group row">
                     <label for="minAssign" class="col-sm-2 col-form-label" wicket:id="assign_min_occupy_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="minAssign" placeholder="Assign threshold" wicket:id="assign_min_occupy">
+                        <input type="text" class="form-control" id="minAssign" placeholder="Assign threshold"
+                                wicket:id="assign_min_occupy">
                     </div>
                 </div>
 
                 <div class="form-group row">
-                    <label for="intersectionMin" class="col-sm-2 col-form-label" wicket:id="intersection_field_min_cluster_label"></label>
+                    <label for="intersectionMin" class="col-sm-2 col-form-label"
+                            wicket:id="intersection_field_min_cluster_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="intersectionMin" placeholder="Intersection threshold" wicket:id="intersection_field_min_cluster">
+                        <input type="text" class="form-control" id="intersectionMin" placeholder="Intersection threshold"
+                                wicket:id="intersection_field_min_cluster">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="groupMin" class="col-sm-2 col-form-label" wicket:id="group_min_cluster_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="groupMin" placeholder="Group threshold" wicket:id="group_min_cluster">
+                        <input type="text" class="form-control" id="groupMin" placeholder="Group threshold"
+                                wicket:id="group_min_cluster">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -70,7 +77,8 @@
                     <label for="userQuery" class="col-sm-2 col-form-label" wicket:id="filter_field_label"></label>
 
                     <div class="col-sm-2">
-                        <button type="button" style="width:120px;" id="userQuery" class="btn btn-default btn-sm" wicket:id="filterForm_submit"></button>
+                        <button type="button" style="width:120px;" id="userQuery" class="btn btn-default btn-sm"
+                                wicket:id="filterForm_submit"></button>
                     </div>
                     <div class="col-sm-8">
                         <form wicket:id="userFilter">
@@ -78,8 +86,72 @@
                         </form>
                     </div>
                 </div>
-                <input class="btn btn-default form-control" type="submit" value="Execute" wicket:id="ajax_submit_link_cluster"/>
+
+                <div class="d-flex flex-wrap gap-2 w-100">
+                    <div class="col-12 d-flex justify-content-center">
+                        <input class="btn btn-default btn-sm" style="width:150px" type="submit" value="Save cluster options"
+                                wicket:id="ajax_submit_cluster_parameter"/>
+                    </div>
+                </div>
+
             </form>
+        </div>
+
+        <div class="border-top my-3 row justify-content-center"></div>
+
+
+        <div class="d-flex flex-column gap-2">
+            <div>
+                <div class="show-empty-button d-flex justify-content-center w-100" wicket:id="show_mining_panel"></div>
+                <form wicket:id="default_intersection_option_form">
+
+
+                    <div class="form-group row">
+                        <label for="intersectionField" class="col-sm-2 col-form-label" wicket:id="intersection_label"></label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="intersectionField" placeholder="Intersection"
+                                    wicket:id="intersectionField">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="minOccupancyField" class="col-sm-2 col-form-label" wicket:id="occupancy_label"></label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="minOccupancyField" placeholder="Occupancy"
+                                    wicket:id="minOccupancyField">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="minFrequency" class="col-sm-2 col-form-label" wicket:id="minFrequency_label"></label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="minFrequency" placeholder="Min frequency"
+                                    wicket:id="minFrequency">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="maxFrequency" class="col-sm-2 col-form-label" wicket:id="maxFrequency_label"></label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="maxFrequency" placeholder="Max frequency"
+                                    wicket:id="maxFrequency">
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 w-100">
+                        <div class="col-12 d-flex justify-content-center">
+                            <input class="btn btn-default btn-sm" style="width:150px" wicket:id="submit_default_option_search"
+                                    type="submit" value="Edit mining options"/>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <div class="my-3 row justify-content-center"></div>
+
+        <div class="d-flex flex-column gap-2">
+            <input class="btn btn-default form-control" type="submit" value="Execute" wicket:id="ajax_submit_link_cluster"/>
         </div>
 
     </div>

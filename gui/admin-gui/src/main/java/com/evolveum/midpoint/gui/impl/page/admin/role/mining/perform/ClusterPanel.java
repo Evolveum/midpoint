@@ -47,8 +47,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -57,9 +59,9 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
     private static final String ID_EXECUTE_CLUSTERING_FORM = "thresholds_form_cluster";
     private static final String ID_WARNING_FEEDBACK = "warningFeedback";
     private static final String ID_JACCARD_THRESHOLD_FIELD = "eps_cluster";
-
+    protected static final String ID_SHOW_MINING_PANEL = "show_mining_panel";
+    protected static final String ID_SHOW_CLUSTER_PANEL = "show_cluster_panel";
     private static final String ID_NAME_FIELD = "name_field";
-
     private static final String ID_INTERSECTION_THRESHOLD_FIELD = "intersection_field_min_cluster";
     private static final String ID_MIN_ASSIGN = "assign_min_occupy";
     private static final String ID_GROUP_THRESHOLD_FIELD = "group_min_cluster";
@@ -68,6 +70,10 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
 
     OperationResult result;
     ClusterOptions clusterOptions;
+    private boolean editMiningOption = false;
+    private boolean editClusterOption = true;
+    AjaxSubmitButton executeClustering;
+    AjaxSubmitButton filterSubmitButton;
 
     public ClusterPanel(String id, IModel<String> messageModel) {
         super(id, messageModel);
@@ -77,155 +83,20 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
     protected void onInitialize() {
         super.onInitialize();
         this.clusterOptions = new ClusterOptions((PageBase) getPage(), Mode.USER);
-        add(clusterForm());
 
-        WebMarkupContainer webMarkupContainer = new WebMarkupContainer("container");
-        webMarkupContainer.setOutputMarkupId(true);
-        add(webMarkupContainer);
+        Form<?> cluseterForm = clusterForm();
+        add(cluseterForm);
 
+        AjaxButton showClusterPanelButton = showClusterPanel(cluseterForm);
+        add(showClusterPanelButton);
+        defaultIntersectionForm();
+        addExecuteClusteringButton();
     }
 
-    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-        getPageBase().hideMainPopup(ajaxRequestTarget);
-    }
-
-    public Form<?> clusterForm() {
-
-        Form<?> form = new Form<Void>(ID_EXECUTE_CLUSTERING_FORM);
-
-        LabelWithHelpPanel labelMode = new LabelWithHelpPanel("modeSelector_label", Model.of("Process mode")) {
+    private void addExecuteClusteringButton() {
+        executeClustering = new AjaxSubmitButton(ID_SUBMIT_BUTTON) {
             @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        labelMode.setOutputMarkupId(true);
-        form.add(labelMode);
-
-        ChoiceRenderer<Mode> renderer = new ChoiceRenderer<>("displayString");
-
-        DropDownChoice<Mode> modeSelector = new DropDownChoice<>(
-                "modeSelector", Model.of(clusterOptions.getMode()),
-                new ArrayList<>(EnumSet.allOf(Mode.class)), renderer);
-        modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                clusterOptions.setMode(modeSelector.getModelObject());
-            }
-        });
-
-        modeSelector.setOutputMarkupId(true);
-        form.add(modeSelector);
-
-        clusterOptions.setName("p_cluster_" + (countParentClusterTypeObjects((PageBase) getPage()) + 1));
-
-        TextField<String> nameField = new TextField<>(ID_NAME_FIELD,
-                Model.of(clusterOptions.getName()));
-        nameField.setOutputMarkupId(true);
-        nameField.setOutputMarkupPlaceholderTag(true);
-        nameField.setVisible(true);
-        form.add(nameField);
-
-        LabelWithHelpPanel labelName = new LabelWithHelpPanel(ID_NAME_FIELD + "_label", Model.of("Name")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        labelName.setOutputMarkupId(true);
-        form.add(labelName);
-
-        TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
-                Model.of(clusterOptions.getSimilarity()));
-        thresholdField.setOutputMarkupId(true);
-        thresholdField.setOutputMarkupPlaceholderTag(true);
-        thresholdField.setVisible(true);
-        form.add(thresholdField);
-
-        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_JACCARD_THRESHOLD_FIELD + "_label", Model.of("Similarity")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        label.setOutputMarkupId(true);
-        form.add(label);
-
-        TextField<Integer> minIntersectionField = new TextField<>(ID_INTERSECTION_THRESHOLD_FIELD,
-                Model.of(clusterOptions.getMinIntersections()));
-        minIntersectionField.setOutputMarkupId(true);
-        minIntersectionField.setOutputMarkupPlaceholderTag(true);
-        minIntersectionField.setVisible(true);
-        form.add(minIntersectionField);
-
-        LabelWithHelpPanel label1 = new LabelWithHelpPanel(ID_MIN_ASSIGN + "_label", Model.of("Min assignments")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        label1.setOutputMarkupId(true);
-        form.add(label1);
-
-        TextField<Integer> minAssign = new TextField<>(ID_MIN_ASSIGN,
-                Model.of(clusterOptions.getAssignThreshold()));
-        minAssign.setOutputMarkupId(true);
-        minAssign.setOutputMarkupPlaceholderTag(true);
-        minAssign.setVisible(true);
-        form.add(minAssign);
-
-        LabelWithHelpPanel label2 = new LabelWithHelpPanel(ID_INTERSECTION_THRESHOLD_FIELD + "_label", Model.of("Min intersection")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        label2.setOutputMarkupId(true);
-        form.add(label2);
-
-        TextField<Integer> minGroupField = new TextField<>(ID_GROUP_THRESHOLD_FIELD,
-                Model.of(clusterOptions.getMinGroupSize()));
-        minGroupField.setOutputMarkupId(true);
-        minGroupField.setOutputMarkupPlaceholderTag(true);
-        minGroupField.setVisible(true);
-        form.add(minGroupField);
-
-        LabelWithHelpPanel label3 = new LabelWithHelpPanel(ID_GROUP_THRESHOLD_FIELD + "_label", Model.of("Min members")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        label3.setOutputMarkupId(true);
-        form.add(label3);
-
-        clusterOptions.setIdentifier("p_cid_" + (countParentClusterTypeObjects((PageBase) getPage()) + 1));
-        TextField<String> identifierField = new TextField<>(ID_IDENTIFIER_FIELD,
-                Model.of(clusterOptions.getIdentifier()));
-        identifierField.setOutputMarkupId(true);
-        identifierField.setOutputMarkupPlaceholderTag(true);
-        identifierField.setVisible(true);
-        form.add(identifierField);
-
-        LabelWithHelpPanel label4 = new LabelWithHelpPanel(ID_IDENTIFIER_FIELD + "_label", Model.of("Identifier")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return Model.of("d");
-            }
-        };
-        label4.setOutputMarkupId(true);
-        form.add(label4);
-
-        objectFiltersPanel(form);
-        AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink(ID_SUBMIT_BUTTON, form) {
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                clusterOptions.setName(nameField.getModelObject());
-                clusterOptions.setSimilarity(thresholdField.getModelObject());
-                clusterOptions.setMinIntersections(minIntersectionField.getModelObject());
-                clusterOptions.setMinGroupSize(minGroupField.getModelObject());
-                clusterOptions.setIdentifier(identifierField.getModelObject());
-                clusterOptions.setAssignThreshold(minAssign.getModelObject());
+            protected void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
 
                 ClusteringExecutor clusteringExecutor = new ClusteringExecutor(clusterOptions.getMode());
                 List<PrismObject<ClusterType>> clusters = clusteringExecutor.execute(clusterOptions);
@@ -265,10 +136,354 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
                 options.put("minGroup", clusterOptions.getMinGroupSize());
 
                 importParentClusterTypeObject(result, ((PageBase) getPage()), density, counsist, childRef, options);
+            }
+        };
+        executeClustering.setOutputMarkupId(true);
+        executeClustering.setOutputMarkupPlaceholderTag(true);
+        executeClustering.setVisible(true);
+        executeClustering.add(new EnableBehaviour(() -> !isEditMiningOption() && !isEditClusterOption()));
+        add(executeClustering);
+    }
 
+    public void defaultIntersectionForm() {
+
+        Form<?> form = new Form<>("default_intersection_option_form");
+        form.setOutputMarkupId(true);
+        form.setOutputMarkupPlaceholderTag(true);
+        form.setVisible(false);
+        add(form);
+
+        TextField<Integer> intersectionField = new TextField<>("intersectionField",
+                Model.of(clusterOptions.getDefaultIntersectionSearch()));
+        intersectionField.setOutputMarkupId(true);
+        intersectionField.setOutputMarkupPlaceholderTag(true);
+        intersectionField.setVisible(true);
+        intersectionField.add(new EnableBehaviour(this::isEditMiningOption));
+        form.add(intersectionField);
+        LabelWithHelpPanel intersectionLabel = new LabelWithHelpPanel("intersection_label",
+                Model.of("Min intersection")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.default.intersection");
+            }
+        };
+        intersectionLabel.setOutputMarkupId(true);
+        form.add(intersectionLabel);
+
+        TextField<Integer> occupancyField = new TextField<>("minOccupancyField",
+                Model.of(clusterOptions.getDefaultOccupancySearch()));
+        occupancyField.setOutputMarkupId(true);
+        occupancyField.setOutputMarkupPlaceholderTag(true);
+        occupancyField.setVisible(true);
+        occupancyField.add(new EnableBehaviour(this::isEditMiningOption));
+
+        form.add(occupancyField);
+        LabelWithHelpPanel occupancyLabel = new LabelWithHelpPanel("occupancy_label",
+                Model.of("Min occupancy")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.default.occupancy");
+            }
+        };
+        occupancyLabel.setOutputMarkupId(true);
+        form.add(occupancyLabel);
+
+        TextField<Double> minFrequencyField = new TextField<>("minFrequency",
+                Model.of(clusterOptions.getDefaultMinFrequency()));
+        minFrequencyField.setOutputMarkupId(true);
+        minFrequencyField.setOutputMarkupPlaceholderTag(true);
+        minFrequencyField.setVisible(true);
+        minFrequencyField.add(new EnableBehaviour(this::isEditMiningOption));
+        form.add(minFrequencyField);
+        LabelWithHelpPanel minFrequencyLabel = new LabelWithHelpPanel("minFrequency_label",
+                Model.of("Min frequency")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.default.min.frequency");
+            }
+        };
+        minFrequencyLabel.setOutputMarkupId(true);
+        form.add(minFrequencyLabel);
+
+        TextField<Double> maxFrequencyField = new TextField<>("maxFrequency",
+                Model.of(clusterOptions.getDefaultMaxFrequency()));
+        maxFrequencyField.setOutputMarkupId(true);
+        maxFrequencyField.setOutputMarkupPlaceholderTag(true);
+        maxFrequencyField.setVisible(true);
+        maxFrequencyField.add(new EnableBehaviour(this::isEditMiningOption));
+        form.add(maxFrequencyField);
+        LabelWithHelpPanel maxFrequencyLabel = new LabelWithHelpPanel("maxFrequency_label",
+                Model.of("Max frequency")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.default.max.frequency");
+            }
+        };
+        maxFrequencyLabel.setOutputMarkupId(true);
+        form.add(maxFrequencyLabel);
+
+        AjaxSubmitButton ajaxSubmitButton = new AjaxSubmitButton("submit_default_option_search") {
+            @Override
+            protected void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
+                if (isEditMiningOption()) {
+                    setEditMiningOption(false);
+                    clusterOptions.setDefaultIntersectionSearch(intersectionField.getModelObject());
+                    clusterOptions.setDefaultOccupancySearch(occupancyField.getModelObject());
+                    clusterOptions.setDefaultMinFrequency(minFrequencyField.getModelObject());
+                    clusterOptions.setDefaultMaxFrequency(maxFrequencyField.getModelObject());
+                    intersectionField.setEnabled(false);
+                    this.add(AttributeAppender.replace("value",
+                            createStringResource("RoleMining.edit.options.mining")));
+                    this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+                } else {
+                    setEditMiningOption(true);
+                    this.add(AttributeAppender.replace("value",
+                            createStringResource("RoleMining.save.options.mining")));
+                    this.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
+                }
+
+                ajaxRequestTarget.add(executeClustering);
+                ajaxRequestTarget.add(intersectionField);
+                ajaxRequestTarget.add(occupancyField);
+                ajaxRequestTarget.add(minFrequencyField);
+                ajaxRequestTarget.add(maxFrequencyField);
+                ajaxRequestTarget.add(this);
+
+            }
+        };
+        ajaxSubmitButton.setOutputMarkupId(true);
+        ajaxSubmitButton.setOutputMarkupPlaceholderTag(true);
+        form.add(ajaxSubmitButton);
+
+        add(form);
+        AjaxButton showAdditionalOptions = showDefaultMiningPanel(form);
+        add(showAdditionalOptions);
+
+    }
+
+    @NotNull
+    private AjaxButton showDefaultMiningPanel(Form<?> form) {
+        AjaxButton showAdditionalOptions = new AjaxButton(ID_SHOW_MINING_PANEL) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(@NotNull AjaxRequestTarget target) {
+                form.setVisible(!form.isVisible());
+                target.add(form);
+                target.add(this);
+            }
+
+            @Override
+            public IModel<?> getBody() {
+                return getNameOfMiningOptionsButton(form.isVisible());
+            }
+        };
+
+        showAdditionalOptions.setOutputMarkupId(true);
+        showAdditionalOptions.add(AttributeAppender.append("style", "cursor: pointer;"));
+        return showAdditionalOptions;
+    }
+
+    @NotNull
+    private AjaxButton showClusterPanel(Form<?> form) {
+        AjaxButton showAdditionalOptions = new AjaxButton(ID_SHOW_CLUSTER_PANEL) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(@NotNull AjaxRequestTarget target) {
+                form.setVisible(!form.isVisible());
+                target.add(form);
+                target.add(this);
+            }
+
+            @Override
+            public IModel<?> getBody() {
+                return getNameOfClusterOptionsButton(form.isVisible());
+            }
+        };
+
+        showAdditionalOptions.setOutputMarkupId(true);
+        showAdditionalOptions.add(AttributeAppender.append("style", "cursor: pointer;"));
+        return showAdditionalOptions;
+    }
+
+    public Form<?> clusterForm() {
+
+        Form<?> form = new Form<Void>(ID_EXECUTE_CLUSTERING_FORM);
+        form.setOutputMarkupId(true);
+        form.setOutputMarkupPlaceholderTag(true);
+        form.setVisible(true);
+
+        LabelWithHelpPanel labelMode = new LabelWithHelpPanel("modeSelector_label",
+                Model.of("Process mode")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.mode");
+            }
+        };
+        labelMode.setOutputMarkupId(true);
+        form.add(labelMode);
+
+        ChoiceRenderer<Mode> renderer = new ChoiceRenderer<>("displayString");
+
+        DropDownChoice<Mode> modeSelector = new DropDownChoice<>(
+                "modeSelector", Model.of(clusterOptions.getMode()),
+                new ArrayList<>(EnumSet.allOf(Mode.class)), renderer);
+        modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                clusterOptions.setMode(modeSelector.getModelObject());
+            }
+        });
+        modeSelector.setOutputMarkupId(true);
+        modeSelector.setOutputMarkupPlaceholderTag(true);
+        modeSelector.setVisible(true);
+        modeSelector.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(modeSelector);
+
+        clusterOptions.setName("p_cluster_" + (countParentClusterTypeObjects((PageBase) getPage()) + 1));
+
+        TextField<String> nameField = new TextField<>(ID_NAME_FIELD,
+                Model.of(clusterOptions.getName()));
+        nameField.setOutputMarkupId(true);
+        nameField.setOutputMarkupPlaceholderTag(true);
+        nameField.setVisible(true);
+        nameField.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(nameField);
+
+        LabelWithHelpPanel labelName = new LabelWithHelpPanel(ID_NAME_FIELD + "_label",
+                Model.of("Name")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.name");
+            }
+        };
+        labelName.setOutputMarkupId(true);
+        form.add(labelName);
+
+        TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
+                Model.of(clusterOptions.getSimilarity()));
+        thresholdField.setOutputMarkupId(true);
+        thresholdField.setOutputMarkupPlaceholderTag(true);
+        thresholdField.setVisible(true);
+        thresholdField.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(thresholdField);
+
+        LabelWithHelpPanel thresholdLabel = new LabelWithHelpPanel(ID_JACCARD_THRESHOLD_FIELD + "_label",
+                Model.of("Similarity")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.similarity");
+            }
+        };
+        thresholdLabel.setOutputMarkupId(true);
+        form.add(thresholdLabel);
+
+        TextField<Integer> minIntersectionField = new TextField<>(ID_INTERSECTION_THRESHOLD_FIELD,
+                Model.of(clusterOptions.getMinIntersections()));
+        minIntersectionField.setOutputMarkupId(true);
+        minIntersectionField.setOutputMarkupPlaceholderTag(true);
+        minIntersectionField.setVisible(true);
+        minIntersectionField.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(minIntersectionField);
+
+        LabelWithHelpPanel intersectionLabel = new LabelWithHelpPanel(ID_INTERSECTION_THRESHOLD_FIELD + "_label",
+                Model.of("Min intersection")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.intersection");
+            }
+        };
+        intersectionLabel.setOutputMarkupId(true);
+        form.add(intersectionLabel);
+
+        TextField<Integer> minAssign = new TextField<>(ID_MIN_ASSIGN,
+                Model.of(clusterOptions.getAssignThreshold()));
+        minAssign.setOutputMarkupId(true);
+        minAssign.setOutputMarkupPlaceholderTag(true);
+        minAssign.setVisible(true);
+        minAssign.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(minAssign);
+
+        LabelWithHelpPanel assignmentsLabel = new LabelWithHelpPanel(ID_MIN_ASSIGN + "_label",
+                Model.of("Min assignments")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.min.assign");
+            }
+        };
+        assignmentsLabel.setOutputMarkupId(true);
+        form.add(assignmentsLabel);
+
+        TextField<Integer> minGroupField = new TextField<>(ID_GROUP_THRESHOLD_FIELD,
+                Model.of(clusterOptions.getMinGroupSize()));
+        minGroupField.setOutputMarkupId(true);
+        minGroupField.setOutputMarkupPlaceholderTag(true);
+        minGroupField.setVisible(true);
+        minGroupField.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(minGroupField);
+
+        LabelWithHelpPanel groupLabel = new LabelWithHelpPanel(ID_GROUP_THRESHOLD_FIELD + "_label",
+                Model.of("Min members")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.min.members");
+            }
+        };
+        groupLabel.setOutputMarkupId(true);
+        form.add(groupLabel);
+
+        clusterOptions.setIdentifier("p_cid_" + (countParentClusterTypeObjects((PageBase) getPage()) + 1));
+        TextField<String> identifierField = new TextField<>(ID_IDENTIFIER_FIELD,
+                Model.of(clusterOptions.getIdentifier()));
+        identifierField.setOutputMarkupId(true);
+        identifierField.setOutputMarkupPlaceholderTag(true);
+        identifierField.setVisible(true);
+        identifierField.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(identifierField);
+
+        LabelWithHelpPanel identifierLabel = new LabelWithHelpPanel(ID_IDENTIFIER_FIELD + "_label",
+                Model.of("Identifier")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.identifier");
+            }
+        };
+        identifierLabel.setOutputMarkupId(true);
+        form.add(identifierLabel);
+
+        objectFiltersPanel(form);
+        AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink("ajax_submit_cluster_parameter", form) {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+
+                if (isEditClusterOption()) {
+                    setEditClusterOption(false);
+                    clusterOptions.setName(nameField.getModelObject());
+                    clusterOptions.setSimilarity(thresholdField.getModelObject());
+                    clusterOptions.setMinIntersections(minIntersectionField.getModelObject());
+                    clusterOptions.setMinGroupSize(minGroupField.getModelObject());
+                    clusterOptions.setIdentifier(identifierField.getModelObject());
+                    clusterOptions.setAssignThreshold(minAssign.getModelObject());
+                    this.add(AttributeAppender.replace("value",
+                            createStringResource("RoleMining.edit.options.cluster")));
+                    this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+                } else {
+                    setEditClusterOption(true);
+                    this.add(AttributeAppender.replace("value",
+                            createStringResource("RoleMining.save.options.cluster")));
+                    this.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
+                }
+
+                target.add(filterSubmitButton);
+                target.add(executeClustering);
+                target.add(nameField);
+                target.add(identifierField);
+                target.add(minAssign);
                 target.add(thresholdField);
                 target.add(minIntersectionField);
                 target.add(minGroupField);
+                target.add(this);
             }
         };
 
@@ -315,7 +530,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
                 createStringResource("roleMiningClusterPanel.query.label.title")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return Model.of("d");
+                return createStringResource("RoleMining.option.filter");
             }
         };
         label.setOutputMarkupId(true);
@@ -332,7 +547,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         filterForm.add(queryDslField);
         panel.add(filterForm);
 
-        AjaxSubmitButton filterSubmitButton = new AjaxSubmitButton("filterForm_submit") {
+        filterSubmitButton = new AjaxSubmitButton("filterForm_submit") {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -387,6 +602,11 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
 
         filterSubmitButton.setOutputMarkupId(true);
         filterSubmitButton.add(AttributeAppender.append("style", "cursor: pointer;"));
+
+        filterSubmitButton.setOutputMarkupId(true);
+        filterSubmitButton.setOutputMarkupPlaceholderTag(true);
+        filterSubmitButton.setVisible(true);
+        filterSubmitButton.add(new EnableBehaviour(this::isEditClusterOption));
         panel.add(filterSubmitButton);
     }
 
@@ -394,6 +614,34 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
         this.result = result;
         resultPanel.setVisible(true);
         target.add(resultPanel);
+    }
+
+    private StringResourceModel getNameOfMiningOptionsButton(boolean visible) {
+        return createStringResource("RoleMining.mining.panel.showAdditionalOptions.button." + !visible);
+    }
+
+    private StringResourceModel getNameOfClusterOptionsButton(boolean visible) {
+        return createStringResource("RoleMining.cluster.panel.showAdditionalOptions.button." + !visible);
+    }
+
+    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+        getPageBase().hideMainPopup(ajaxRequestTarget);
+    }
+
+    private boolean isEditMiningOption() {
+        return editMiningOption;
+    }
+
+    private void setEditMiningOption(boolean editMiningOption) {
+        this.editMiningOption = editMiningOption;
+    }
+
+    public boolean isEditClusterOption() {
+        return editClusterOption;
+    }
+
+    public void setEditClusterOption(boolean editClusterOption) {
+        this.editClusterOption = editClusterOption;
     }
 
     @Override

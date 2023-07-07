@@ -268,29 +268,38 @@ public class ClusterObjectUtils {
         }
     }
 
-    public static @NotNull PrismObject<UserType> getUserTypeObject(@NotNull PageBase pageBase, String oid,
+    public static PrismObject<UserType> getUserTypeObject(@NotNull PageBase pageBase, String oid,
             OperationResult result) {
         try {
             return pageBase.getRepositoryService().getObject(UserType.class, oid, null, result);
-        } catch (ObjectNotFoundException | SchemaException e) {
+        } catch (ObjectNotFoundException e) {
+            LOGGER.warn("Object not found" + e);
+            return null;
+        } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static @NotNull PrismObject<FocusType> getFocusTypeObject(@NotNull PageBase pageBase, String oid,
+    public static PrismObject<FocusType> getFocusTypeObject(@NotNull PageBase pageBase, String oid,
             OperationResult result) {
         try {
             return pageBase.getRepositoryService().getObject(FocusType.class, oid, null, result);
-        } catch (ObjectNotFoundException | SchemaException e) {
+        } catch (ObjectNotFoundException e) {
+            LOGGER.warn("Object not found" + e);
+            return null;
+        } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static @NotNull PrismObject<RoleType> getRoleTypeObject(@NotNull PageBase pageBase, String oid,
+    public static PrismObject<RoleType> getRoleTypeObject(@NotNull PageBase pageBase, String oid,
             OperationResult result) {
         try {
             return pageBase.getRepositoryService().getObject(RoleType.class, oid, null, result);
-        } catch (ObjectNotFoundException | SchemaException e) {
+        } catch (ObjectNotFoundException e) {
+            LOGGER.warn("Object not found" + e);
+            return null;
+        } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
     }
