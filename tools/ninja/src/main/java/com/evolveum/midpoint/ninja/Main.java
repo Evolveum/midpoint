@@ -68,6 +68,8 @@ public class Main {
 
         BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
+        ConsoleFormat.setBatchMode(base.isBatchMode());
+
         if (base.isVerbose() && base.isSilent()) {
             err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");

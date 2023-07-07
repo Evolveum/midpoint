@@ -9,8 +9,13 @@ public final class ConsoleFormat {
     private ConsoleFormat() {
     }
 
+    public static void setBatchMode(boolean batchMode) {
+        Ansi.setEnabled(batchMode);
+    }
+
     public static String formatActionStartMessage(Action action) {
-        return Ansi.ansi().a("Starting ").fgGreen().a(action.getOperationName()).reset().toString();
+        String operation = action.getOperationName();
+        return Ansi.ansi().a("Starting ").fgGreen().a(operation).reset().toString();
     }
 
     public static String formatSuccessMessageWithParameter(String message, Object parameter) {

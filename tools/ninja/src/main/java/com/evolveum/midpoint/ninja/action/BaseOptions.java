@@ -55,7 +55,6 @@ public class BaseOptions {
     @ParametersDelegate
     private PolyStringNormalizerOptions polyStringNormalizerOptions = new PolyStringNormalizerOptions();
 
-    // todo implement support for this
     @Parameter(names = { P_BATCH_MODE, P_BATCH_MODE_LONG }, descriptionKey = "base.batchMode")
     private boolean batchMode = false;
 
