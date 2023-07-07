@@ -10,12 +10,11 @@ import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWorker<UpgradeObjectsOptions, T> {
@@ -82,49 +81,20 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 //        }
 //
 
-        ObjectUpgradeValidator validator = new ObjectUpgradeValidator(context.getPrismContext());
-        UpgradeValidationResult result = validator.validate(prismObject);
-        if (!result.hasChanges()) {
+        PrismObject cloned = prismObject.clone();
+        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context);
+        boolean changed = executor.execute(cloned);
+        if (!changed) {
             return;
         }
-
-        PrismObject cloned = prismObject.clone();
-        result.getItems().forEach(item -> {
-            if (!item.isChanged()) {
-                return;
-            }
-
-            if (!matchesOption(options.getIdentifiers(), item.getIdentifier())) {
-                return;
-            }
-
-            if (!matchesOption(options.getTypes(), item.getType())) {
-                return;
-            }
-
-            if (!matchesOption(options.getPhases(), item.getPhase())) {
-                return;
-            }
-
-            if (!matchesOption(options.getPriorities(), item.getPriority())) {
-                return;
-            }
-
-            try {
-                ObjectDelta delta = item.getDelta();
-                if (!delta.isEmpty()) {
-                    delta.applyTo(cloned);
-                }
-            } catch (SchemaException ex) {
-                // todo error handling
-                ex.printStackTrace();
-            }
-        });
 
         OperationResult opResult = new OperationResult("Modify object");
         try {
             ObjectDelta<?> delta = cloned.diff(prismObject);
-            repository.modifyObject(object.getClass(), object.getOid(), delta.getModifications(), opResult);
+            Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
+            RepoModifyOptions opts = modifications.isEmpty() ? RepoModifyOptions.createForceReindex() : new RepoModifyOptions();
+
+            repository.modifyObject(object.getClass(), object.getOid(), delta.getModifications(), opts, opResult);
         } catch (Exception ex) {
             log.error("Couldn't modify object");
         } finally {
@@ -132,13 +102,5 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
             // todo if not success, print?
         }
-    }
-
-    private <T> boolean matchesOption(List<T> options, T option) {
-        if (options == null || options.isEmpty()) {
-            return true;
-        }
-
-        return options.stream().anyMatch(o -> o.equals(option));
     }
 }
