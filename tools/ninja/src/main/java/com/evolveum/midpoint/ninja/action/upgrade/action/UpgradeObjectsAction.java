@@ -1,11 +1,14 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -16,12 +19,17 @@ import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismParser;
-import com.evolveum.midpoint.prism.PrismSerializer;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationItem;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
 
 // todo handle initial objects somehow
 // compare vanilla previous with vanilla new ones and also vanilla previous with current in MP repository,
@@ -29,6 +37,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
     private Map<UUID, Set<String>> skipUpgradeForOids;
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        UpgradeObjectsOptions opts = NinjaUtils.getOptions(allOptions, UpgradeObjectsOptions.class);
+        if (opts != null && !opts.getFiles().isEmpty()) {
+            return NinjaApplicationContextLevel.NO_REPOSITORY;
+        }
+
+        return super.getApplicationContextLevel(allOptions);
+    }
 
     @Override
     public Void execute() throws Exception {
@@ -66,27 +84,41 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismParser parser = prismContext.parserFor(file).language(PrismContext.LANG_XML).context(parsingContext);
 
-        PrismSerializer<String> serializer = prismContext.xmlSerializer();
-//        serializer.serializeAnyData()
-//        try (Writer writer = new FileWriter(file)) {
-//            List<PrismObject<?>> objects = parser.parseObjects();
-//            for (PrismObject<?> object : objects) {
-//                UpgradeObjectsHandler upgradeHandler = new UpgradeObjectsHandler();
-//                UpgradeObjectResult result = upgradeHandler.handle(prismObject);
-//
-//                if (result.isChanged()) {
-//                    ObjectDelta<?> delta = result.getDelta();
-//                    if (delta != null && !delta.isEmpty()) {
-//                        delta.applyTo(object);
-//                    }
-//                }
-//
-//            }
-//        } catch (Exception ex) {
-//            // todo handle error
-//            ex.printStackTrace();
-//        }
-        // todo implement
+        List<PrismObject<?>> objects = new ArrayList<>();
+        try {
+            objects = parser.parseObjects();
+        } catch (Exception ex) {
+            // todo handle error
+            ex.printStackTrace();
+        }
+
+        boolean changed = false;
+        Handler executor = new Handler(options, context);
+        for (PrismObject object : objects) {
+            boolean changedOne = executor.execute(object);
+            if (changedOne) {
+                changed = true;
+            }
+        }
+
+        if (!changed) {
+            return;
+        }
+
+        try (Writer writer = new FileWriter(file)) {
+            PrismSerializer<String> serializer = prismContext.xmlSerializer();
+            String xml;
+            if (objects.size() > 1) {
+                xml = serializer.serializeObjects(objects);
+            } else {
+                // will get cleaner xml without "objects" element
+                xml = serializer.serialize(objects.get(0));
+            }
+            writer.write(xml);
+        } catch (Exception ex) {
+            // todo handle error
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -149,5 +181,85 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             new UpgradeObjectsConsumerWorker(skipUpgradeForOids, context, options, queue, operation).run();
             return null;
         };
+    }
+
+    private static class Handler {
+
+        private UpgradeObjectsOptions options;
+
+        private NinjaContext context;
+
+        private Handler(UpgradeObjectsOptions options, NinjaContext context) {
+            this.options = options;
+            this.context = context;
+        }
+
+        /**
+         * Filters out items that are not applicable for upgrade, applies delta to object.
+         *
+         * @param object
+         * @param <O>
+         * @return true if object was changed
+         * @throws Exception
+         */
+        public <O extends ObjectType> boolean execute(PrismObject<O> object) {
+            final PrismContext prismContext = context.getPrismContext();
+
+            ObjectUpgradeValidator validator = new ObjectUpgradeValidator(prismContext);
+            validator.showAllWarnings();
+            UpgradeValidationResult result = validator.validate(object);
+            if (!result.hasChanges()) {
+                return false;
+            }
+
+            List<UpgradeValidationItem> applicableItems = filterApplicableItems(result.getItems());
+            if (applicableItems.isEmpty()) {
+                return false;
+            }
+
+            applicableItems.forEach(item -> {
+                try {
+                    ObjectDelta delta = item.getDelta();
+                    if (!delta.isEmpty()) {
+                        delta.applyTo(object);
+                    }
+                } catch (SchemaException ex) {
+                    // todo error handling
+                    ex.printStackTrace();
+                }
+            });
+
+            return true;
+        }
+
+        private List<UpgradeValidationItem> filterApplicableItems(List<UpgradeValidationItem> items) {
+            return items.stream().filter(item -> {
+                if (!item.isChanged()) {
+                    return false;
+                }
+
+                if (!matchesOption(options.getIdentifiers(), item.getIdentifier())) {
+                    return false;
+                }
+
+                if (!matchesOption(options.getTypes(), item.getType())) {
+                    return false;
+                }
+
+                if (!matchesOption(options.getPhases(), item.getPhase())) {
+                    return false;
+                }
+
+                return matchesOption(options.getPriorities(), item.getPriority());
+            }).collect(Collectors.toList());
+        }
+
+        private <T> boolean matchesOption(List<T> options, T option) {
+            if (options == null || options.isEmpty()) {
+                return true;
+            }
+
+            return options.stream().anyMatch(o -> o.equals(option));
+        }
     }
 }

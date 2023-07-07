@@ -32,4 +32,12 @@ public class UpgradeValidationResult implements DebugDumpable {
         DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
         return sb.toString();
     }
+
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
+    public boolean hasChanges() {
+        return items.stream().anyMatch(i -> i.isChanged());
+    }
 }
