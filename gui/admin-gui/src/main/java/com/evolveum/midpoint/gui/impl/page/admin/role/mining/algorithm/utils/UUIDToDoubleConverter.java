@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 
 import java.util.UUID;
 

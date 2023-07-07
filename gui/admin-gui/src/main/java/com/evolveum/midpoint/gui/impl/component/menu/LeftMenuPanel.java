@@ -398,8 +398,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
-        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
-        roleMenu.addMenuItem(new MenuItem("RBAM", PageRoleMiningRBAM.class));
+//        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
+//        roleMenu.addMenuItem(new MenuItem("RBAM", PageRoleMiningRBAM.class));
         roleMenu.addMenuItem(new MenuItem("Mining", MainPageMining.class));
 
         return roleMenu;

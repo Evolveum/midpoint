@@ -91,6 +91,14 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="defaultDetection" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Detection of suitable role combinations based on default settings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="identifier" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -232,6 +240,14 @@
                             <xsd:appinfo>
                                 <a:displayName>ParentClusterType.oid</a:displayName>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Cluster options.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 

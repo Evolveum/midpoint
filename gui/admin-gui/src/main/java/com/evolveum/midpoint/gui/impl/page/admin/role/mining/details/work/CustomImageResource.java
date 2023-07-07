@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -14,9 +14,13 @@ import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-import org.apache.wicket.request.resource.DynamicImageResource;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusteringObjectMapped;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
+
+import org.apache.wicket.request.resource.DynamicImageResource;
 
 public class CustomImageResource extends DynamicImageResource {
 
@@ -30,25 +34,28 @@ public class CustomImageResource extends DynamicImageResource {
 
     int width;
     int height;
-    List<ClusteringObjectMapped> clusteringObjectMapped;
-    List<String> clusterPoints;
+    MiningOperationChunk miningOperationChunk;
+    String mode;
 
-    public CustomImageResource(List<ClusteringObjectMapped> clusteringObjectMapped, List<String> clusterPoints) {
-        this.clusteringObjectMapped = clusteringObjectMapped;
-        this.clusterPoints = clusterPoints;
+    public CustomImageResource(MiningOperationChunk miningOperationChunk, String mode) {
+        this.miningOperationChunk = miningOperationChunk;
+        this.mode = mode;
     }
 
     @Override
     protected byte[] getImageData(Attributes attributes) {
-        width = clusterPoints.size();
-        height = clusteringObjectMapped.size();
+
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
+        List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
+        width = miningRoleTypeChunks.size();
+        height = miningUserTypeChunks.size();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
 
-        for (int x = 0; x < clusterPoints.size(); x++) {
-            String point = clusterPoints.get(x);
-            for (int y = 0; y < clusteringObjectMapped.size(); y++) {
-                if (clusteringObjectMapped.get(y).getPoints().contains(point)) {
+        for (int x = 0; x < miningRoleTypeChunks.size(); x++) {
+            String point = miningRoleTypeChunks.get(x).getRoles().get(0);
+            for (int y = 0; y < miningUserTypeChunks.size(); y++) {
+                if (miningUserTypeChunks.get(y).getRoles().contains(point)) {
                     graphics.setColor(Color.BLACK);
                 } else {
                     graphics.setColor(Color.WHITE);

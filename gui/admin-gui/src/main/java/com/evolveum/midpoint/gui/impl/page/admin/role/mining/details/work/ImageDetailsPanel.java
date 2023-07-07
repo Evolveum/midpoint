@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getImageScaleScript;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
-
-import java.util.List;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.Mode;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -21,29 +19,24 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusteringObjectMapped;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.CustomImageResource;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
-    private static final String ID_BUTTON_OK = "ok";
-    private static final String ID_CANCEL_OK = "cancel";
     private static final String ID_IMAGE = "image";
 
-    ClusterType cluster;
+    String clusterOid;
     String mode;
 
     OperationResult result = new OperationResult("GetObject");
 
-    public ImageDetailsPanel(String id, IModel<String> messageModel, ClusterType cluster, String mode) {
+    public ImageDetailsPanel(String id, IModel<String> messageModel, String clusterOid, String mode) {
         super(id, messageModel);
         this.mode = mode;
-        this.cluster = cluster;
+        this.clusterOid = clusterOid;
     }
 
     @Override
@@ -54,18 +47,12 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private void initLayout() {
 
-        List<ClusteringObjectMapped> clusteringObjectMapped = null;
-        if (mode.equals(ClusterObjectUtils.Mode.ROLE.getDisplayString())) {
-            clusteringObjectMapped = generateClusterMappedStructureRoleMode(cluster, getPageBase());
-        } else if (mode.equals(ClusterObjectUtils.Mode.USER.getDisplayString())) {
-            clusteringObjectMapped = generateClusterMappedStructure(cluster, getPageBase(), result);
-        }
-
-        List<String> clusterPoints = cluster.getPoints();
+        MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterOid, (PageBase) getPage(),
+                Mode.valueOf(mode), result, false);
 
         CustomImageResource imageResource;
 
-        imageResource = new CustomImageResource(clusteringObjectMapped, clusterPoints);
+        imageResource = new CustomImageResource(miningOperationChunk, mode);
 
         Image image = new Image(ID_IMAGE, imageResource);
 
@@ -86,24 +73,6 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
         add(image);
 
-        AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
-            }
-        };
-        add(confirmButton);
-
-        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_OK,
-                createStringResource("Button.cancel")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onClose(target);
-            }
-        };
-        add(cancelButton);
-
     }
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
@@ -112,12 +81,12 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     @Override
     public int getWidth() {
-        return 1700;
+        return 1000;
     }
 
     @Override
     public int getHeight() {
-        return 1100;
+        return 800;
     }
 
     @Override
@@ -137,7 +106,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     @Override
     public StringResourceModel getTitle() {
-        return new StringResourceModel("Details.panel");
+        return createStringResource("");
     }
 
 }

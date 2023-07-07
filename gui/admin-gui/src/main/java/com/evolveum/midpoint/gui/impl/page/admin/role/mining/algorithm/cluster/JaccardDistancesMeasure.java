@@ -5,13 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
-
-import org.apache.commons.math3.exception.DimensionMismatchException;
-import org.apache.commons.math3.ml.distance.DistanceMeasure;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.math3.exception.DimensionMismatchException;
+import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 public class JaccardDistancesMeasure implements DistanceMeasure {
     int minIntersection;
@@ -26,17 +26,6 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         int intersectionCount = 0;
         Set<Double> setA = new HashSet<>();
         int setBunique = 0;
-
-//        for (double num : a) {
-//            setA.add(num);
-//        }
-//        for (double num : b) {
-//            if (setA.contains(num)) {
-//                intersectionCount++;
-//            }else {
-//                setA.add(num);
-//            }
-//        }
 
         if (a.length > b.length) {
             for (double num : a) {

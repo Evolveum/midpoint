@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,7 +25,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,10 +45,11 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
 
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
-    IntersectionObject minedObjects;
-    String mode;
+    MiningOperationChunk minedObjects;
+    ClusterObjectUtils.Mode mode;
 
-    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, IntersectionObject minedObjects, String mode) {
+    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, MiningOperationChunk minedObjects,
+            ClusterObjectUtils.Mode mode) {
         super(id, messageModel);
         this.mode = mode;
         this.minedObjects = minedObjects;
@@ -57,29 +60,60 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
         super.onInitialize();
         PageBase pageBase = (PageBase) getPage();
         OperationResult operationResult = new OperationResult("prepareObjects");
+
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = minedObjects.getMiningRoleTypeChunks();
+        List<MiningUserTypeChunk> miningUserTypeChunks = minedObjects.getMiningUserTypeChunks();
+
         List<PrismObject<FocusType>> elements = new ArrayList<>();
-
-        Set<String> elements1 = minedObjects.getElements();
-        for (String s : elements1) {
-            elements.add(getFocusObject(pageBase, s, operationResult));
-        }
-
         List<PrismObject<FocusType>> points = new ArrayList<>();
-
-        Set<String> points1 = minedObjects.getPoints();
-        for (String s : points1) {
-            points.add(getFocusObject(pageBase, s, operationResult));
-        }
 
         DisplayType displayTypeElement;
         DisplayType displayTypePoints;
-        if (mode.equals("ROLE")) {
+        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+
+            for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
+                if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                    List<String> roles = miningRoleTypeChunk.getRoles();
+                    for (String s : roles) {
+                        elements.add(getFocusTypeObject(pageBase, s, operationResult));
+                    }
+                }
+            }
+
+            for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
+                if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                    List<String> users = miningUserTypeChunk.getUsers();
+                    for (String s : users) {
+                        points.add(getFocusTypeObject(pageBase, s, operationResult));
+                    }
+                }
+            }
+
             displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
                     WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
             displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
                     WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
 
         } else {
+
+            for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
+                if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                    List<String> roles = miningRoleTypeChunk.getRoles();
+                    for (String s : roles) {
+                        points.add(getFocusTypeObject(pageBase, s, operationResult));
+                    }
+                }
+            }
+
+            for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
+                if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                    List<String> users = miningUserTypeChunk.getUsers();
+                    for (String s : users) {
+                        elements.add(getFocusTypeObject(pageBase, s, operationResult));
+                    }
+                }
+            }
+
             displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
                     WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
             displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
@@ -99,7 +133,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals("ROLE")) {
+                        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
                         } else {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
@@ -124,7 +158,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals("ROLE")) {
+                        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
                         } else {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);

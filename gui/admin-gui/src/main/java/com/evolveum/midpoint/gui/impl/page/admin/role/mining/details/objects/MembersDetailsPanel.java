@@ -9,10 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -25,19 +21,19 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkIconPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class MembersDetailsPanel extends BasePanel<String> implements Popupable {
 
-    private static final String ID_BUTTON_OK = "ok";
-    private static final String ID_CANCEL_OK = "cancel";
     List<PrismObject<FocusType>> elements;
     String mode;
 
@@ -82,23 +78,7 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
             }
         };
         add(listView);
-        AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
-            }
-        };
-        add(confirmButton);
-
-        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_OK,
-                createStringResource("Button.cancel")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onClose(target);
-            }
-        };
-        add(cancelButton);
     }
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
@@ -107,8 +87,9 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
 
     @Override
     public int getWidth() {
-        return 300;
+        return 200;
     }
+
 
     @Override
     public int getHeight() {

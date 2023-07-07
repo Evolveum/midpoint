@@ -22,5 +22,6 @@ public class MClusterObject extends MObject {
     public Integer pointCount;
     public Integer elementCount;
     public String[] elements;
+    public String[] defaultDetection;
 
 }

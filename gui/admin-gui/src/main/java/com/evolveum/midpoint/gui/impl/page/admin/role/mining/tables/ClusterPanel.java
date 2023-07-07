@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getParentById;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getParentClusterByIdentifier;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -45,14 +45,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
 
-public class ClusterOperationPanel extends Panel {
+public class ClusterPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
     String identifier;
     String mode;
 
-    public ClusterOperationPanel(String id, String identifier, String mode) {
+    public ClusterPanel(String id, String identifier, String mode) {
         super(id);
         this.identifier = identifier;
         this.mode = mode;
@@ -116,14 +116,14 @@ public class ClusterOperationPanel extends Panel {
 
                         List<String> elements1 = rowModel.getObject().getValue().getElements();
                         for (String s : elements1) {
-                            elements.add(getFocusObject(pageBase, s, operationResult));
+                            elements.add(getFocusTypeObject(pageBase, s, operationResult));
                         }
 
                         List<PrismObject<FocusType>> points = new ArrayList<>();
 
                         List<String> points1 = rowModel.getObject().getValue().getPoints();
                         for (String s : points1) {
-                            points.add(getFocusObject(pageBase, s, operationResult));
+                            points.add(getFocusTypeObject(pageBase, s, operationResult));
                         }
 
                         ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
@@ -372,11 +372,12 @@ public class ClusterOperationPanel extends Panel {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-                                    PrismObject<ParentClusterType> getParent = getParentById(getPageBase(),
+                                    PrismObject<ParentClusterType> getParent = getParentClusterByIdentifier(getPageBase(),
                                             model.getObject().getValue().getIdentifier(), new OperationResult("getParent"));
                                     PageParameters params = new PageParameters();
                                     params.set(PageMiningOperation.PARAMETER_OID, model.getObject().getValue().asPrismObject().getOid());
                                     params.set(PageMiningOperation.PARAMETER_MODE, getParent.asObjectable().getMode());
+//                                    params.set(PageMiningOperation.PARAMETER_OPTION,getParent.asObjectable().getOptions());
                                     ((PageBase) getPage()).navigateToNext(PageMiningOperation.class, params);
 
                                 }
@@ -429,7 +430,7 @@ public class ClusterOperationPanel extends Panel {
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), model.getObject().getValue(), mode) {
+                                            Model.of("Image"), model.getObject().getValue().asPrismObject().getOid(), mode) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);

@@ -1167,6 +1167,7 @@ CREATE TABLE m_cluster_table (
         riskLevel TEXT,
         points TEXT[],
         pointCount INTEGER,
+        defaultDetection TEXT[],
         elements TEXT[],
         elementCount INTEGER,
         minOccupation INTEGER,
@@ -1201,7 +1202,8 @@ CREATE TABLE m_parent_cluster_table (
         clustersRef TEXT[],
         consist INTEGER,
         density TEXT,
-        mode TEXT
+        mode TEXT,
+        options TEXT
 )
     INHERITS (m_assignment_holder);
 

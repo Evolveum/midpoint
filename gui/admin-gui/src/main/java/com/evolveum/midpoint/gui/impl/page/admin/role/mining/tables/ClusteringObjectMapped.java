@@ -18,7 +18,7 @@ public class ClusteringObjectMapped implements Serializable {
     List<String> points;
     List<String> elements;
 
-    public ClusteringObjectMapped(String targetOid, List<String> points,List<String> elements) {
+    public ClusteringObjectMapped(String targetOid, List<String> points, List<String> elements) {
         this.targetOid = targetOid;
         this.points = points;
         this.elements = elements;
@@ -30,8 +30,8 @@ public class ClusteringObjectMapped implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
         ClusteringObjectMapped clusteringObjectMapped = (ClusteringObjectMapped) o;
         return Objects.equals(targetOid, clusteringObjectMapped.targetOid) &&
                 Objects.equals(points, clusteringObjectMapped.points);
@@ -41,7 +41,6 @@ public class ClusteringObjectMapped implements Serializable {
     public int hashCode() {
         return Objects.hash(targetOid, points);
     }
-
 
     public List<String> getElements() {
         return elements;

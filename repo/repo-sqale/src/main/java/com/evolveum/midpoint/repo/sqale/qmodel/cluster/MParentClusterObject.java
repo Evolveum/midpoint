@@ -16,8 +16,7 @@ public class MParentClusterObject extends MObject {
     public Integer consist;
     public String density;
     public String[] clustersRef;
-
     public String mode;
-
+    public String options;
 
 }

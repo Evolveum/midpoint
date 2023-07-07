@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterOperationPanel;
-
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -57,12 +57,16 @@ public class PageCluster extends PageAdmin {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(new ClusterOperationPanel(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier(), getPageParameterMode()).setOutputMarkupId(true));
+        add(new ClusterPanel(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier(), getPageParameterMode()).setOutputMarkupId(true));
     }
 
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }
 
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("RoleMining.page.cluster.title");
+    }
 }
 

@@ -25,6 +25,8 @@ public class QParentClusterData extends QAssignmentHolder<MParentClusterObject> 
 
     public static final ColumnMetadata CLUSTERS_REF =
             ColumnMetadata.named("clustersRef").ofType(Types.ARRAY);
+    public static final ColumnMetadata CLUSTERS_OPTIONS =
+            ColumnMetadata.named("options").ofType(Types.VARCHAR);
     public static final ColumnMetadata IDENTIFIER =
             ColumnMetadata.named("identifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata RISK_LEVEL =
@@ -43,6 +45,8 @@ public class QParentClusterData extends QAssignmentHolder<MParentClusterObject> 
     public final StringPath mode = createString("mode", MODE);
 
     public final ArrayPath<String[], String> clustersRef = createArray("clustersRef", String[].class, CLUSTERS_REF);
+
+    public final StringPath options = createString("options", CLUSTERS_OPTIONS);
 
 
 

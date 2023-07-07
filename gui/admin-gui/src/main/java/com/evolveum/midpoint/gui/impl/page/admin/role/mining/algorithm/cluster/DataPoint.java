@@ -5,16 +5,21 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
+
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.commons.math3.ml.clustering.Clusterable;
 
-import java.util.List;
-
-public class DataPoint implements Clusterable {
+public class DataPoint implements Clusterable, Serializable {
     private final double[] vectorPoints;
     private final String element;
+
+    //(USER Type)
     List<String> elements;
+
+    //(ROLE Type)
     List<String> points;
 
     public DataPoint(double[] vectorPoints, String element, List<String> elements, List<String> points) {

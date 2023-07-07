@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.openjson.JSONObject;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -191,10 +192,78 @@ public class MainPageMining extends PageAdmin {
                         return Model.of("");
                     }
 
+                };
+                columns.add(column);
+
+                column = new AbstractExportableColumn<>(getHeaderTitle("similarity.option")) {
+
                     @Override
-                    public String getCssClass() {
-                        return "col-xl-2 ";
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ParentClusterType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getOptions() != null ?
+                                        new JSONObject(model.getObject().getValue().getOptions()).getString("similarity") : null));
                     }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<ParentClusterType>> rowModel) {
+                        return Model.of("");
+                    }
+
+                };
+                columns.add(column);
+
+                column = new AbstractExportableColumn<>(getHeaderTitle("intersection.option")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ParentClusterType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getOptions() != null ?
+                                        new JSONObject(model.getObject().getValue().getOptions()).getString("minIntersection") : null));
+                    }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<ParentClusterType>> rowModel) {
+                        return Model.of("");
+                    }
+
+                };
+                columns.add(column);
+
+                column = new AbstractExportableColumn<>(getHeaderTitle("minAssign.option")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ParentClusterType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getOptions() != null ?
+                                        new JSONObject(model.getObject().getValue().getOptions()).getString("assignThreshold") : null));
+                    }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<ParentClusterType>> rowModel) {
+                        return Model.of("");
+                    }
+
+                };
+                columns.add(column);
+
+                column = new AbstractExportableColumn<>(getHeaderTitle("group.option")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ParentClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<ParentClusterType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getOptions() != null ?
+                                        new JSONObject(model.getObject().getValue().getOptions()).getString("minGroup") : null));
+                    }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<ParentClusterType>> rowModel) {
+                        return Model.of("");
+                    }
+
                 };
                 columns.add(column);
 
@@ -213,10 +282,6 @@ public class MainPageMining extends PageAdmin {
                         return Model.of("");
                     }
 
-                    @Override
-                    public String getCssClass() {
-                        return "col-xl-2";
-                    }
                 };
                 columns.add(column);
 
@@ -235,10 +300,6 @@ public class MainPageMining extends PageAdmin {
                         return Model.of("");
                     }
 
-                    @Override
-                    public String getCssClass() {
-                        return "col-xl-2";
-                    }
                 };
                 columns.add(column);
 
@@ -275,10 +336,6 @@ public class MainPageMining extends PageAdmin {
                         }
                     }
 
-                    @Override
-                    public String getCssClass() {
-                        return "col-xl-2";
-                    }
 
                     @Override
                     public boolean isSortable() {

@@ -39,6 +39,7 @@ public class QClusterObjectMapping
         addItemMapping(F_MAX_OCCUPATION, integerMapper(q -> q.maxOccupation));
         addItemMapping(F_DENSITY, stringMapper(q -> q.density));
         addItemMapping(F_DENSITY, stringMapper(q -> q.parentRef));
+        addItemMapping(F_DEFAULT_DETECTION, multiStringMapper(q -> q.defaultDetection));
 
     }
 
@@ -68,6 +69,7 @@ public class QClusterObjectMapping
         row.points = stringsToArray(clusterObject.getPoints());
         row.elements = stringsToArray(clusterObject.getElements());
         row.parentRef = clusterObject.getParentRef();
+        row.defaultDetection = stringsToArray(clusterObject.getDefaultDetection());
 
         return row;
     }

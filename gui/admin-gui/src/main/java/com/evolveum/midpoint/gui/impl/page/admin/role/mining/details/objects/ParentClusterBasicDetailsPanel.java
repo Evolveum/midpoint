@@ -7,17 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
 
 public class ParentClusterBasicDetailsPanel extends BasePanel<String> implements Popupable {
 

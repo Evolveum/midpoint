@@ -15,11 +15,18 @@
 
 
                 <div class="form-group row">
-                    <label for="mode" class="col-sm-2 col-form-label">
-                        <wicket:message key="roleMiningClusterPanel.mode.label.title"/>
-                    </label>
+
+                    <label for="mode" class="col-sm-2 col-form-label" wicket:id="modeSelector_label"></label>
+
                     <div class="col-sm-10">
                         <select class="btn btn-default btn-sm dropdown-toggle" id="mode" style="width:150px" wicket:id="modeSelector"></select>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="name" class="col-sm-2 col-form-label" wicket:id="name_field_label"></label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="name" placeholder="Name" wicket:id="name_field">
                     </div>
                 </div>
 
@@ -35,22 +42,33 @@
                         <input type="text" class="form-control" id="jaccardDistance" placeholder="Jaccard Distance" wicket:id="eps_cluster">
                     </div>
                 </div>
+
+
+
+
+                <div class="form-group row">
+                    <label for="minAssign" class="col-sm-2 col-form-label" wicket:id="assign_min_occupy_label"></label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="minAssign" placeholder="Assign threshold" wicket:id="assign_min_occupy">
+                    </div>
+                </div>
+
                 <div class="form-group row">
                     <label for="intersectionMin" class="col-sm-2 col-form-label" wicket:id="intersection_field_min_cluster_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="intersectionMin" placeholder="Jaccard Distance" wicket:id="intersection_field_min_cluster">
+                        <input type="text" class="form-control" id="intersectionMin" placeholder="Intersection threshold" wicket:id="intersection_field_min_cluster">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="groupMin" class="col-sm-2 col-form-label" wicket:id="group_min_cluster_label"></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="groupMin" placeholder="Jaccard Distance" wicket:id="group_min_cluster">
+                        <input type="text" class="form-control" id="groupMin" placeholder="Group threshold" wicket:id="group_min_cluster">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="userQuery" class="col-sm-2 col-form-label">
-                        <wicket:message key="roleMiningClusterPanel.query.label.title"/>
-                    </label>
+
+                    <label for="userQuery" class="col-sm-2 col-form-label" wicket:id="filter_field_label"></label>
+
                     <div class="col-sm-2">
                         <button type="button" style="width:120px;" id="userQuery" class="btn btn-default btn-sm" wicket:id="filterForm_submit"></button>
                     </div>
@@ -60,13 +78,10 @@
                         </form>
                     </div>
                 </div>
-                <input class="btn btn-default form-control" type="submit" value="Update clusters" wicket:id="ajax_submit_link_cluster"/>
+                <input class="btn btn-default form-control" type="submit" value="Execute" wicket:id="ajax_submit_link_cluster"/>
             </form>
         </div>
-        <div class="main-button-bar justify-content-end">
-            <a class="btn btn-primary btn-sm" wicket:id="cancel"></a>
-            <a class="btn btn-primary btn-sm" wicket:id="ok"></a>
-        </div>
+
     </div>
 </wicket:panel>
 </html>

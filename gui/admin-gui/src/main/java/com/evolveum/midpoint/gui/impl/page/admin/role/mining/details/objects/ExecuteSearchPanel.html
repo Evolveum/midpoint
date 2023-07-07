@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~ Copyright (c) 2010-2013 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,11 +9,15 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
+
     <div>
+
+
         <form
                 wicket:id="thresholds_form">
 
-            <div class="row col gap-2" style="width:1600px">
+            <div class="d-flex flex-column gap-2">
+
                 <div
                         wicket:id="threshold_frequency"></div>
 
@@ -23,23 +27,24 @@
                 <div
                         wicket:id="threshold_intersection"></div>
 
-                <input class="btn btn-default" type="submit" value="Update"
+                <div
+                        wicket:id="threshold_occupancy"></div>
+
+                <input class="btn btn-default" type="submit" value="Execute search"
                         wicket:id="ajax_submit_link"/>
 
-                <div class="col d-flex justify-content-end">
-                    <div class="btn btn-default"
-                            wicket:id="process_selections_id"></div>
-                </div>
+<!--                <div class="col d-flex ">-->
+<!--                    <div class="ml-4 btn btn-default"-->
+<!--                            wicket:id="process_selections_id"></div>-->
+<!--                </div>-->
 
             </div>
         </form>
 
     </div>
 
-    <div id="myTable" style="width:1600px; max-height:1000px;"
-            wicket:id="datatable_extra"></div>
 
-    <div style="width:1600px;"
-            wicket:id="table_intersection"></div>
+
+
 </wicket:panel>
 </html>

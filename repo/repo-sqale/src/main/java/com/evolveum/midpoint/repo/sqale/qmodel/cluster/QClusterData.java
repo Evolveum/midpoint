@@ -48,11 +48,17 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
     public static final ColumnMetadata ELEMENT_COUNT =
             ColumnMetadata.named("elementCount").ofType(Types.INTEGER);
 
+    public static final ColumnMetadata DEFAULT_DETECTION =
+            ColumnMetadata.named("defaultDetection").ofType(Types.ARRAY);
+
     public final ArrayPath<String[], String> elements =
             createArray("elements", String[].class, ELEMENTS);
 
     public final ArrayPath<String[], String> points =
             createArray("points", String[].class, POINTS);
+
+    public final ArrayPath<String[], String> defaultDetection =
+            createArray("defaultDetection", String[].class, DEFAULT_DETECTION);
 
     public final StringPath parentRef = createString("parentRef", PARENT_REF);
     public final StringPath identifier = createString("identifier", IDENTIFIER);

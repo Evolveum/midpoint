@@ -34,6 +34,7 @@
 @import "role-mining-static-header";
 @import "role-mining-static-header-name";
 @import "role-mining-static-row-header";
+@import "role-mining-no-border";
 
 
 .role-mining-rotated-header{
@@ -47,6 +48,10 @@
   border: 1px solid #f4f4f4;	  border: 1px solid #f4f4f4;
 }
 
+.role-mining-no-border {
+    border-left: none !important;
+    border-right: none !important;
+}
 
 .role-mining-static-header {
   width: 40px;

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -33,8 +34,11 @@ public class TextFieldLabelPanel extends Panel {
 
         Label label = new Label(ID_DETAILS, Model.of(labelInfo));
         label.setOutputMarkupId(true);
+        label.add(AttributeModifier.replace("style", "width:" + getWidthLabel() + "px;"));
+
         add(label);
         TextField<?> thresholdField2 = new TextField<>(ID_INPUT, model);
+        thresholdField2.add(AttributeModifier.replace("style", "width:" + getWidth() + "px;"));
         thresholdField2.setOutputMarkupId(true);
 
         thresholdField2.setOutputMarkupPlaceholderTag(true);
@@ -43,6 +47,12 @@ public class TextFieldLabelPanel extends Panel {
 
     }
 
+    public int getWidthLabel() {
+        return 200;
+    }
+    public int getWidth() {
+        return 70;
+    }
 
     public TextField<?> getBaseFormComponent() {
         return (TextField<?>) get(ID_INPUT);

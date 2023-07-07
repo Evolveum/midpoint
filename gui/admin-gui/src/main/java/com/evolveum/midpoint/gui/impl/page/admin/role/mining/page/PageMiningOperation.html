@@ -15,42 +15,53 @@
     <wicket:child/>
 
 
-    <div>
+    <!--    <div>-->
+
+
+    <!--        <form-->
+    <!--                wicket:id="thresholds_form">-->
+
+    <!--            <div class="row col gap-2" style="width:1600px">-->
+    <!--                <div-->
+    <!--                        wicket:id="threshold_frequency"></div>-->
+
+    <!--                <div-->
+    <!--                        wicket:id="threshold_frequency_max"></div>-->
+
+    <!--                <div-->
+    <!--                        wicket:id="threshold_intersection"></div>-->
+
+    <!--                <input class="btn btn-default" type="submit" value="Update"-->
+    <!--                        wicket:id="ajax_submit_link"/>-->
+
+    <!--                <div class="col d-flex ">-->
+    <!--                    <div class="ml-4 btn btn-default"-->
+    <!--                            wicket:id="process_selections_id"></div>-->
+    <!--                </div>-->
+
+    <!--            </div>-->
+    <!--        </form>-->
+
+    <!--    </div>-->
+
+
+    <div class="d-flex justify-content-between" style="width:1500px" ;>
+
+        <input class="btn btn-default" type="submit" value="Business role mining"
+                wicket:id="business_role_mining"/>
+
 
         <div>
-            <button class="btn btn-default"
-                    wicket:id="table_style" value="Inverse"></button>
+            <div class="ml-4 btn btn-default"
+                    wicket:id="process_selections_id"></div>
         </div>
-        <form
-                wicket:id="thresholds_form">
-
-            <div class="row col gap-2" style="width:1600px">
-                <div
-                        wicket:id="threshold_frequency"></div>
-
-                <div
-                        wicket:id="threshold_frequency_max"></div>
-
-                <div
-                        wicket:id="threshold_intersection"></div>
-
-                <input class="btn btn-default" type="submit" value="Update"
-                        wicket:id="ajax_submit_link"/>
-
-                <div class="col d-flex justify-content-end">
-                    <div class="btn btn-default"
-                            wicket:id="process_selections_id"></div>
-                </div>
-
-            </div>
-        </form>
-
     </div>
 
-    <div id="myTable" style="width:1400px; max-height:1000px;"
+
+    <div style="width:1500px; max-height:800px;"
             wicket:id="datatable_extra"></div>
 
-    <div style="width:1600px;"
+    <div style="width:1500px;"
             wicket:id="table_intersection"></div>
 
 </wicket:extend>
