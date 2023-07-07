@@ -191,7 +191,6 @@ public class VerificationReporter {
     }
 
     private List<String> createReportRecord(UpgradeValidationItem item, PrismObject<?> object) {
-        // todo populate
         String identifier = item.getIdentifier();
         UpgradePhase phase = item.getPhase();
         UpgradePriority priority = item.getPriority();

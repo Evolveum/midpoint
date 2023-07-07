@@ -14,6 +14,9 @@ import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
+import com.evolveum.midpoint.ninja.util.InputParameterException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
@@ -113,6 +116,8 @@ public class Main {
             } finally {
                 action.destroy();
             }
+        } catch (InputParameterException ex) {
+            err.println("ERROR: " + ex.getMessage());
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {
