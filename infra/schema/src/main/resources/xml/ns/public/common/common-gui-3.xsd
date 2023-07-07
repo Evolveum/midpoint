@@ -385,6 +385,13 @@
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
+            <xsd:element name="autoCompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of autocomplete search used to search for users.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -392,6 +399,10 @@
                         Expression should use variable "input" which will contain value from autocomplete text field used for search.
                         By default, SUBSTRING search on UserType.name is used.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="userDisplayName" type="tns:ExpressionType" minOccurs="0">
@@ -400,14 +411,22 @@
                         Expression that can be used to return String value which describes user object returned by search.
                         By default, `user.getFullName() + "(" + user.getName() + ")"` is used.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0">
+            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0" default="2">
                 <xsd:annotation>
                     <xsd:documentation>
                         Minimum number of characters that needs to be typed into autocomplete widget before search will start.
                         Default value: 2
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -553,9 +572,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         If true, menu item will be created. It will allow user to request roles based on other user assigned roles.
+
+                        DEPRECATED: use rolesOfTeammate instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="rolesOfTeammate" type="tns:RolesOfTeammateType" minOccurs="0"/>
             <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -567,6 +593,52 @@
             <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RolesOfTeammateType">
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
+            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AutocompleteSearchConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!-- todo document + annotations -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search filter template with expression that is used together with collection ref specification.
+                        Expression should use variable "input" which will contain value from autocomplete text field used for search.
+                        By default, SUBSTRING search on ObjectType.name is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that can be used to return String value which describes user object returned by search.
+                        By default, object.getName() is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimum number of characters that needs to be typed into autocomplete widget before search will start.
+                        Default value: 2
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutCommentType">
