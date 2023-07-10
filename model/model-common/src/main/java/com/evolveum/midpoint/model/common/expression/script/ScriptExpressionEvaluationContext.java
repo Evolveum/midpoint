@@ -22,8 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 /**
- * @author semancik
+ * The whole evaluation of a script: {@link ScriptExpressionEvaluatorType} compiled into {@link ScriptExpression} and evaluated.
  *
+ * The "context" can be understood just like e.g. `LensContext` - the whole operation, including the script itself.
+ *
+ * @see ScriptEvaluator#evaluate(ScriptExpressionEvaluationContext)
+ *
+ * @author semancik
  */
 public class ScriptExpressionEvaluationContext {
 

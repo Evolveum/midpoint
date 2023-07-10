@@ -109,6 +109,7 @@ public class ReportServiceImpl implements ReportService {
 
         Preconditions.checkNotNull(report, "Report must not be null.");
 
+        // TODO why do we circumvent the standard expression evaluation mechanism here (for scripts)?
         List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
         if (evaluators.size() == 1
                 && evaluators.get(0).getValue() instanceof ScriptExpressionEvaluatorType scriptExpressionBean) {

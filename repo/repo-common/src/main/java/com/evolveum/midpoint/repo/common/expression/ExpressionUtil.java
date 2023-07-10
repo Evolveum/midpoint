@@ -1295,7 +1295,8 @@ public class ExpressionUtil {
     /**
      * Works only for simple evaluators that do not have any profile settings.
      */
-    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
+    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?> evaluator, ExpressionEvaluationContext context)
+            throws SecurityViolationException {
         ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
         if (profile == null) {
             return; // no restrictions

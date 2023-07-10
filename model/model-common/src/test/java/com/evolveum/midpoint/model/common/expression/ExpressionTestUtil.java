@@ -112,9 +112,8 @@ public class ExpressionTestUtil {
             scriptExpressionFactory.registerEvaluator(jsEvaluator);
         }
 
-        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory =
-                new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, null);
-        expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
+        expressionFactory.registerEvaluatorFactory(
+                new ScriptExpressionEvaluatorFactory(scriptExpressionFactory));
 
         return expressionFactory;
     }

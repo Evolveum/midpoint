@@ -318,7 +318,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
         String language = Objects.requireNonNull(expressionType.getLanguage());
         ScriptExpression expression = new ScriptExpression(
-                scriptExpressionfactory.getEvaluators().get(language), expressionType);
+                scriptExpressionfactory.getEvaluatorSimple(language), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
         expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));

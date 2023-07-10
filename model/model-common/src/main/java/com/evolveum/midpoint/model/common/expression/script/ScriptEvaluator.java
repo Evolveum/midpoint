@@ -19,7 +19,10 @@ import com.evolveum.midpoint.util.exception.*;
  */
 public interface ScriptEvaluator {
 
-    @NotNull <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
+    /**
+     * Evaluates given script in given context. Everything is wrapped into {@link ScriptExpressionEvaluationContext} object.
+     */
+    @NotNull <V extends PrismValue> List<V> evaluate(@NotNull ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 

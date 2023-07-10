@@ -62,6 +62,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
      */
     @NotNull private static final ScriptExpressionProfile BUILTIN_SCRIPT_EXPRESSION_PROFILE;
 
+    /** Called by Spring but also by lower-level tests */
     public GroovyScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
 
@@ -84,7 +85,8 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected Class<?> compileScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
+    protected Class<?> compileScript(String codeString, ScriptExpressionEvaluationContext context)
+            throws ExpressionEvaluationException, SecurityViolationException {
         try {
             return getGroovyLoader(context).parseClass(codeString, context.getContextDescription());
         } catch (MultipleCompilationErrorsException e) {

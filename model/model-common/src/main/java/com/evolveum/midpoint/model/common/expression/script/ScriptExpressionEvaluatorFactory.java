@@ -41,7 +41,6 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_SCRIPT;
 
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
-    @Autowired private SecurityContextManager securityContextManager;
     @Autowired private LocalizationService localizationService;
     @Autowired private Protector protector;
 
@@ -50,10 +49,8 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     }
 
     @VisibleForTesting
-    public ScriptExpressionEvaluatorFactory(
-            ScriptExpressionFactory scriptExpressionFactory, SecurityContextManager securityContextManager) {
+    public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory) {
         this.scriptExpressionFactory = scriptExpressionFactory;
-        this.securityContextManager = securityContextManager;
     }
 
     @Override

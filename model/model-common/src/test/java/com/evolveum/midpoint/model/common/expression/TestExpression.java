@@ -514,11 +514,11 @@ public class TestExpression extends AbstractModelCommonTest {
     /**
      * Newer JDK is not shipped with JavaScript/ECMAScript engine, we want to skip related tests.
      */
-    protected void skipIfEcmaScriptEngineNotSupported() {
+    void skipIfEcmaScriptEngineNotSupported() {
         ScriptExpressionEvaluatorFactory evaluatorFactory = (ScriptExpressionEvaluatorFactory)
                 expressionFactory.getEvaluatorFactory(SchemaConstantsGenerated.C_SCRIPT);
-        if (!evaluatorFactory.getScriptExpressionFactory().getEvaluators()
-                .containsKey("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript")) {
+        if (evaluatorFactory.getScriptExpressionFactory().getEvaluatorSimple(
+                "http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript") == null) {
             display("Script engine for ECMAScript missing, skipping the tests.");
             throw new SkipException("Script engine not available");
         }
