@@ -113,10 +113,21 @@ public class ScriptingExpressionEvaluator {
 
     /**
      * Entry point for privileged execution.
-     * Note that privileged execution means
+     *
+     * Note that privileged execution means the `root` authorization is not checked for some sensitive operations like custom
+     * script execution.
+     *
+     * See {@link ExecutionContext#isPrivileged()}.
+     *
+     * TEMPORARY.
      */
-    public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull VariablesMap initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(executeScript, initialVariables, true, false, task, result);
+    public ExecutionContext evaluateExpressionPrivileged(
+            @NotNull ExecuteScriptType executeScript,
+            @NotNull VariablesMap initialVariables,
+            Task task,
+            OperationResult result) throws ScriptExecutionException {
+        return evaluateExpression(
+                executeScript, initialVariables, true, false, task, result);
     }
 
     /**
