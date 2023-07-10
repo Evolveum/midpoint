@@ -106,13 +106,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             ObjectQuery objectQuery;
             if (unresolvedObjectQuery != null) {
                 VariablesMap variables = new VariablesMap();
-                //noinspection unchecked
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
                 try {
-                    objectQuery = ExpressionUtil
-                            .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionProfile, expressionFactory, prismContext,
-                                    "bulk action query", context.getTask(), globalResult);
-                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                    objectQuery = ExpressionUtil.evaluateQueryExpressions(
+                            unresolvedObjectQuery, variables, expressionProfile, expressionFactory, prismContext,
+                            "bulk action query", context.getTask(), globalResult);
+                } catch (CommonException e) {
                     // TODO continue on any error?
                     throw new ScriptExecutionException("Couldn't evaluate expressions in object query: " + e.getMessage(), e);
                 }

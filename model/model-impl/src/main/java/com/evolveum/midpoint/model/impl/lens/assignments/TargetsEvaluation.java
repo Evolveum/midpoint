@@ -231,9 +231,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 filterEvaluator, ctx.task, result);
     }
 
-    @NotNull
-    private ReferenceResolver.FilterEvaluator createFilterEvaluator(AssignmentPathSegmentImpl segment,
-            EvaluationContext<AH> ctx) {
+    private @NotNull ReferenceResolver.FilterEvaluator createFilterEvaluator(
+            AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx) {
         return (rawFilter, result1) -> {
                 ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                         new ModelExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, result1));
@@ -241,7 +240,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                     // TODO: expression profile should be determined from the holding object archetype
                     ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                     VariablesMap variables = createVariables(segment, ctx, result1);
-                    return ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, expressionProfile,
+                    return ExpressionUtil.evaluateFilterExpressions(
+                            rawFilter, variables, expressionProfile,
                             ctx.ae.mappingFactory.getExpressionFactory(), ctx.ae.prismContext,
                             " evaluating resource filter expression ", ctx.task, result1);
                 } finally {

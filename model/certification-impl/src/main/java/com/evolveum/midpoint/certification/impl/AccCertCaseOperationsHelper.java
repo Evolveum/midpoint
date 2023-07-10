@@ -330,7 +330,8 @@ public class AccCertCaseOperationsHelper {
             variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase, aCase.asPrismContainerValue().getDefinition());
             variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);
             for (ExpressionType expression : delegateAction.getApproverExpression()) {
-                rv.addAll(expressionHelper.evaluateRefExpressionChecked(expression, variables, "computing delegates", task, result));
+                rv.addAll(expressionHelper.evaluateRefExpressionChecked(
+                        expression, variables, "computing delegates", task, result));
             }
         }
         return rv;

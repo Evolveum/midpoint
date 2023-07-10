@@ -54,7 +54,8 @@ public interface AdvancedActivityRunSupport {
             throws SchemaException, ActivityRunException;
 
     /** Assuming that query has expressions. */
-    ObjectQuery evaluateQueryExpressions(@NotNull ObjectQuery query, ExpressionProfile expressionProfile,
+    ObjectQuery evaluateQueryExpressions(
+            @NotNull ObjectQuery query, ExpressionProfile expressionProfile,
             @NotNull RunningTask task, OperationResult result) throws CommonException;
 
     /**

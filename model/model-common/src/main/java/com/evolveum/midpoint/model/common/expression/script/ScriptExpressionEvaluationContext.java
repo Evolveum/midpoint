@@ -34,7 +34,7 @@ public class ScriptExpressionEvaluationContext {
 
     private static final ThreadLocal<ScriptExpressionEvaluationContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
-    private ScriptExpressionEvaluatorType expressionType;
+    private ScriptExpressionEvaluatorType scriptBean;
     private VariablesMap variables;
     private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
@@ -53,12 +53,12 @@ public class ScriptExpressionEvaluationContext {
 
     private ScriptEvaluationTraceType trace;
 
-    public ScriptExpressionEvaluatorType getExpressionType() {
-        return expressionType;
+    ScriptExpressionEvaluatorType getScriptBean() {
+        return scriptBean;
     }
 
-    public void setExpressionType(ScriptExpressionEvaluatorType expressionType) {
-        this.expressionType = expressionType;
+    public void setScriptBean(ScriptExpressionEvaluatorType scriptBean) {
+        this.scriptBean = scriptBean;
     }
 
     public VariablesMap getVariables() {

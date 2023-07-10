@@ -211,7 +211,7 @@ public class CollectionProcessor {
         return true;
     }
 
-    public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
         Class<O> targetClass = collectionView.getTargetClass(prismContext);
         stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
@@ -235,7 +235,7 @@ public class CollectionProcessor {
         return view;
     }
 
-    public void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec,
+    private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec,
             Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -511,8 +511,9 @@ public class CollectionProcessor {
     private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        VariablesMap variables = new VariablesMap();      // do we want to put any variables here?
-        return ExpressionUtil.evaluateFilterExpressions(filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
+        VariablesMap variables = new VariablesMap(); // do we want to put any variables here?
+        return ExpressionUtil.evaluateFilterExpressions(
+                filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
     }
 

@@ -501,11 +501,6 @@ public abstract class SearchBasedActivityRun<
         return beans.getAdvancedActivityRunSupport().isPresent();
     }
 
-    protected ExpressionProfile getExpressionProfile() {
-        // TODO Determine from task object archetype
-        return MiscSchemaUtil.getExpressionProfile();
-    }
-
     public final SchemaService getSchemaService() {
         return beans.schemaService;
     }

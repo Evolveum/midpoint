@@ -247,7 +247,14 @@ public class LensUtil {
         PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
+                expressionFactory.makeExpression(
+                        tokenExpressionType,
+                        outputDefinition,
+                        MiscSchemaUtil.getExpressionProfile(),
+                        "iteration token expression in "+accountContext.getHumanReadableName(),
+                        task,
+                        result);
 
         Collection<Source<?,?>> sources = new ArrayList<>();
         MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,

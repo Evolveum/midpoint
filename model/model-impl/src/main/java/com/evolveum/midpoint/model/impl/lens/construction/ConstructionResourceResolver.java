@@ -55,7 +55,6 @@ class ConstructionResourceResolver {
         }
         ObjectReferenceType resourceRef = construction.constructionBean.getResourceRef();
         if (resourceRef != null) {
-            //noinspection unchecked
             PrismObject<ResourceType> resourceFromRef = resourceRef.asReferenceValue().getObject();
             if (resourceFromRef != null) {
                 return new ResolvedConstructionResource(resourceFromRef.asObjectable());
@@ -122,11 +121,12 @@ class ConstructionResourceResolver {
 
         assert construction.constructionBean != null;
         ObjectFilter origFilter = PrismContext.get().getQueryConverter()
-                .parseFilter(construction.constructionBean.getResourceRef().getFilter(),
-                ResourceType.class);
+                .parseFilter(construction.constructionBean.getResourceRef().getFilter(), ResourceType.class);
         LOGGER.debug("Orig filter {}", origFilter);
-        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
-                construction.expressionProfile, ModelBeans.get().commonBeans.expressionFactory, PrismContext.get(),
+        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
+                origFilter, variables,
+                construction.expressionProfile,
+                ModelBeans.get().commonBeans.expressionFactory, PrismContext.get(),
                 " evaluating resource filter expression ", task, result);
         LOGGER.debug("evaluatedFilter filter {}", evaluatedFilter);
 

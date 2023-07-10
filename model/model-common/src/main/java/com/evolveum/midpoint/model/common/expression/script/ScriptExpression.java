@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  * The expressions should be created by ExpressionFactory. They expect correct setting of
  * expression evaluator and proper conversion form the XML ExpressionType. Factory does this.
  *
+ * FIXME resolve the duplication with {@link ScriptExpressionEvaluationContext}
+ *
  * @author Radovan Semancik
  */
 public class ScriptExpression {
@@ -44,7 +46,7 @@ public class ScriptExpression {
     private static final String OP_EVALUATE = ScriptExpression.class.getName() + ".evaluate";
 
     private final ScriptEvaluator evaluator;
-    private final ScriptExpressionEvaluatorType scriptType;
+    private final ScriptExpressionEvaluatorType scriptBean;
 
     private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
@@ -57,8 +59,8 @@ public class ScriptExpression {
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
     private static final int MAX_CODE_CHARS = 42;
 
-    ScriptExpression(ScriptEvaluator evaluator, ScriptExpressionEvaluatorType scriptType) {
-        this.scriptType = scriptType;
+    ScriptExpression(ScriptEvaluator evaluator, ScriptExpressionEvaluatorType scriptBean) {
+        this.scriptBean = scriptBean;
         this.evaluator = evaluator;
     }
 
@@ -112,10 +114,11 @@ public class ScriptExpression {
 
     @NotNull
     public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
-        if (context.getExpressionType() == null) {
-            context.setExpressionType(scriptType);
+        if (context.getScriptBean() == null) {
+            context.setScriptBean(scriptBean);
         }
         if (context.getFunctions() == null) {
             context.setFunctions(functions);
@@ -145,7 +148,7 @@ public class ScriptExpression {
             ScriptEvaluationTraceType trace = new ScriptEvaluationTraceType();
             result.addTrace(trace);
             context.setTrace(trace);
-            trace.setScriptExpressionEvaluator(context.getExpressionType());
+            trace.setScriptExpressionEvaluator(context.getScriptBean());
         } else {
             context.setTrace(null);
         }
@@ -162,13 +165,13 @@ public class ScriptExpression {
             traceExpressionSuccess(context, expressionResult);
             return expressionResult;
 
-        } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error ex) {
+        } catch (CommonException | RuntimeException | Error ex) {
             traceExpressionFailure(context, ex);
-            result.recordFatalError(ex.getMessage(), ex);
+            result.recordException(ex);
             throw ex;
         } finally {
             context.cleanupThreadLocal(oldContext);
-            result.computeStatusIfUnknown();
+            result.close();
             context.setResult(parentResult); // a bit of hack
         }
     }
@@ -177,15 +180,24 @@ public class ScriptExpression {
         if (!isTrace()) {
             return;
         }
-        trace("Script expression trace:\n" +
-                        "---[ SCRIPT expression {}]---------------------------\n" +
-                        "Language: {}\n" +
-                        "Relativity mode: {}\n" +
-                        "Variables:\n{}\n" +
-                        "Profile: {}\n" +
-                        "Code:\n{}\n" +
-                        "Result: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
-                formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
+        trace("""
+                        Script expression trace:
+                        ---[ SCRIPT expression {}]---------------------------
+                        Language: {}
+                        Relativity mode: {}
+                        Variables:
+                        {}
+                        Profile: {}
+                        Code:
+                        {}
+                        Result: {}""",
+                context.getContextDescription(),
+                evaluator.getLanguageName(),
+                scriptBean.getRelativityMode(),
+                formatVariables(context.getVariables()),
+                formatProfile(),
+                formatCode(),
+                SchemaDebugUtil.prettyPrint(returnValue));
     }
 
     private void traceExpressionFailure(ScriptExpressionEvaluationContext context, Throwable exception) {
@@ -193,24 +205,37 @@ public class ScriptExpression {
         if (!isTrace()) {
             return;
         }
-        trace("Script expression failure:\n" +
-                        "---[ SCRIPT expression {}]---------------------------\n" +
-                        "Language: {}\n" +
-                        "Relativity mode: {}\n" +
-                        "Variables:\n{}\n" +
-                        "Profile: {}\n" +
-                        "Code:\n{}\n" +
-                        "Error: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
-                formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(exception));
+        trace("""
+                        Script expression failure:
+                        ---[ SCRIPT expression {}]---------------------------
+                        Language: {}
+                        Relativity mode: {}
+                        Variables:
+                        {}
+                        Profile: {}
+                        Code:
+                        {}
+                        Error: {}""",
+                context.getContextDescription(),
+                evaluator.getLanguageName(),
+                scriptBean.getRelativityMode(),
+                formatVariables(context.getVariables()),
+                formatProfile(),
+                formatCode(),
+                SchemaDebugUtil.prettyPrint(exception));
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isTrace() {
-        return LOGGER.isTraceEnabled() || (scriptType != null && scriptType.isTrace() == Boolean.TRUE);
+        return isExplicitlyTraced() || LOGGER.isTraceEnabled();
+    }
+
+    private boolean isExplicitlyTraced() {
+        return scriptBean != null && Boolean.TRUE.equals(scriptBean.isTrace());
     }
 
     private void trace(String msg, Object... args) {
-        if (scriptType != null && scriptType.isTrace() == Boolean.TRUE) {
+        if (isExplicitlyTraced()) {
             LOGGER.info(msg, args);
         } else {
             LOGGER.trace(msg, args);
@@ -242,7 +267,7 @@ public class ScriptExpression {
     }
 
     private String formatCode() {
-        return DebugUtil.excerpt(scriptType.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);
+        return DebugUtil.excerpt(scriptBean.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);
     }
 
     @Override

@@ -127,7 +127,7 @@ public class ReportServiceImpl implements ReportService {
                                 ? ObjectVariableModeType.OBJECT
                                 : defaultScriptConfiguration.getObjectVariableMode());
             }
-            context.setExpressionType(scriptExpressionBean);
+            context.setScriptBean(scriptExpressionBean);
             context.setObjectResolver(objectResolver);
 
             ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(

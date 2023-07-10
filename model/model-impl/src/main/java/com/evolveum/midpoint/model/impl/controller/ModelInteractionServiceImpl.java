@@ -2224,7 +2224,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables,
             ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
-        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
+        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(
+                compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
         if (filter == null) {
             LOGGER.warn("Couldn't find filter");

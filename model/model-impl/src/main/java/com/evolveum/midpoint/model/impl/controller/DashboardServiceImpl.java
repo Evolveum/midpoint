@@ -276,7 +276,8 @@ public class DashboardServiceImpl implements DashboardService {
             query = prismContext.queryFor(AuditEventRecordType.class).build();
         } else {
             query = prismContext.queryFactory().createQuery();
-            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(objectFilter, new VariablesMap(), MiscSchemaUtil.getExpressionProfile(),
+            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
+                    objectFilter, new VariablesMap(), MiscSchemaUtil.getExpressionProfile(),
                     expressionFactory, prismContext, "collection filter", task, result);
             query.setFilter(evaluatedFilter);
         }

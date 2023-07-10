@@ -672,9 +672,16 @@ public class ModelImplUtils {
         return targetRef;
     }
 
-    @NotNull
-    public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
-                ScriptExpression scriptExpression, LensContext<F> lensContext, VariablesMap variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public static <V extends PrismValue, F extends ObjectType> @NotNull List<V> evaluateScript(
+            ScriptExpression scriptExpression,
+            LensContext<F> lensContext,
+            VariablesMap variables,
+            boolean useNew,
+            String shortDesc,
+            Task task,
+            OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                 new ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()

@@ -86,7 +86,8 @@ public class CustomFunctions {
             } else {
                 // Better throwing an exception than introducing memory leak if initialization-time result is used.
                 // This situation should never occur anyway.
-                throw new IllegalStateException("No operation result in ScriptExpressionEvaluationContext for the current thread found");
+                throw new IllegalStateException(
+                        "No operation result in ScriptExpressionEvaluationContext for the current thread found");
             }
         } else {
             // Better throwing an exception than introducing memory leak if initialization-time result is used.

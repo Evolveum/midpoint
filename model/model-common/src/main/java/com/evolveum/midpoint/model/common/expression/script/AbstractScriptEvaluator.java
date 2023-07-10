@@ -74,7 +74,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 
         checkProfileRestrictions(context);
 
-        String codeString = context.getExpressionType().getCode();
+        String codeString = context.getScriptBean().getCode();
         if (codeString == null) {
             throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
         }
@@ -159,13 +159,13 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                 }
                 String variableName = variableEntry.getKey();
                 ValueVariableModeType valueVariableMode = ObjectUtils.defaultIfNull(
-                        context.getExpressionType().getValueVariableMode(), ValueVariableModeType.REAL_VALUE);
+                        context.getScriptBean().getValueVariableMode(), ValueVariableModeType.REAL_VALUE);
 
                 //noinspection rawtypes
                 TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(
                         variableEntry.getValue(), variableName,
                         context.getObjectResolver(), context.getContextDescription(),
-                        context.getExpressionType().getObjectVariableMode(),
+                        context.getScriptBean().getObjectVariableMode(),
                         valueVariableMode,
                         prismContext, context.getTask(), context.getResult());
 

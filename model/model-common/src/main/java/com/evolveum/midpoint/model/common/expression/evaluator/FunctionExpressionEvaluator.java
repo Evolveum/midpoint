@@ -65,7 +65,8 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         checkEvaluatorProfile(context);
 
         ObjectReferenceType functionLibraryRef = expressionEvaluatorBean.getLibraryRef();

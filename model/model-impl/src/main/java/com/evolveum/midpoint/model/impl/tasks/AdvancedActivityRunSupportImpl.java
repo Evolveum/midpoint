@@ -91,7 +91,8 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     }
 
     @Override
-    public ObjectQuery evaluateQueryExpressions(@NotNull ObjectQuery query, ExpressionProfile expressionProfile,
+    public ObjectQuery evaluateQueryExpressions(
+            @NotNull ObjectQuery query, ExpressionProfile expressionProfile,
             @NotNull RunningTask task, OperationResult result)
             throws CommonException {
         PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);

@@ -142,7 +142,9 @@ public class ScriptingExpressionEvaluator {
         Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
         try {
-            VariablesMap frozenVariables = VariablesUtil.initialPreparation(initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext, expressionProfile, task, result);
+            VariablesMap frozenVariables = VariablesUtil.initialPreparation(
+                    initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext,
+                    expressionProfile, task, result);
             PipelineData pipelineData = PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext);
             ExecutionContext context = new ExecutionContext(executeScript.getOptions(), task, this,
                     privileged, recordProgressAndIterationStatistics, frozenVariables);
