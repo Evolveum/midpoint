@@ -248,4 +248,17 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<ValueFilter
         }
     }
     // endregion
+
+    public UuidPath getOidPath() {
+        return oidPath;
+    }
+
+    public NumberPath<Integer> getRelationIdPath() {
+        return relationIdPath;
+    }
+
+    public EnumPath<MObjectType> getTypePath() {
+        return typePath;
+    }
+
 }
