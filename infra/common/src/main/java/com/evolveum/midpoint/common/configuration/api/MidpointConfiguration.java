@@ -19,6 +19,8 @@ public interface MidpointConfiguration {
     String MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY = "midpoint.logging.alt.filename";
     String MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY = "midpoint.logging.alt.prefix";
 
+    String MIDPOINT_SKIP_VERSION_CHECK="midpoint.skipVersionCheck";
+
     String USER_HOME_PROPERTY = "user.home";
 
     String MIDPOINT_CONFIG_FILE_PROPERTY = "midpoint.configFile";
