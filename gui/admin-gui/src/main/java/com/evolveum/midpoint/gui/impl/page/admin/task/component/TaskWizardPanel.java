@@ -83,6 +83,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
             }
 
             @Override
+            protected IModel<String> getSubTextModel() {
+                return createStringResource("TaskWizardPanel.wizard.step.basic.help");
+            }
+
+            @Override
             public String getStepId() {
                 return "basic";
             }
@@ -129,6 +134,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                 }
 
                 @Override
+                protected IModel<String> getSubTextModel() {
+                    return createStringResource("TaskWizardPanel.wizard.step.work.help");
+                }
+
+                @Override
                 public String getStepId() {
                     return "resourceObjects";
                 }
@@ -164,6 +174,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                 @Override
                 public IModel<String> getTitle() {
                     return createStringResource("TaskWizardPanel.wizard.step.execution");
+                }
+
+                @Override
+                protected IModel<String> getSubTextModel() {
+                    return createStringResource("TaskWizardPanel.wizard.step.execution.help");
                 }
 
                 @Override
@@ -211,6 +226,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                 }
 
                 @Override
+                protected IModel<String> getSubTextModel() {
+                    return createStringResource("TaskWizardPanel.wizard.step.schedule.help");
+                }
+
+                @Override
                 public String getStepId() {
                     return "schedule";
                 }
@@ -242,6 +262,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
             @Override
             public IModel<String> getTitle() {
                 return createStringResource("TaskWizardPanel.wizard.step.distribution");
+            }
+
+            @Override
+            protected IModel<String> getSubTextModel() {
+                return createStringResource("TaskWizardPanel.wizard.step.distribution.help");
             }
 
             @Override
