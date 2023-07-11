@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.selector.eval.OrgTreeEvaluator;
 
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,9 +138,16 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_SEARCH_CONTAINERS = "searchContainers";
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_SEARCH_REFERENCES = "searchReferences";
+
+
     String OP_SEARCH_REFERENCES_ITERATIVE = "searchReferencesIterative";
     String OP_SEARCH_REFERENCES_ITERATIVE_PAGE = "searchReferencesIterativePage";
     String OP_COUNT_REFERENCES = "countReferences";
+
+    String OP_SEARCH_AGGREGATE = "searchAggregate";
+    String OP_COUNT_AGGREGATE = "countAggregate";
+
+
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
     String OP_HAS_CONFLICT = "hasConflict";
@@ -152,6 +160,9 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + OP_DELETE_OBJECT;
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS;
     String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + OP_SEARCH_CONTAINERS;
+
+    String SEARCH_AGGREGATE = CLASS_NAME_WITH_DOT + OP_SEARCH_AGGREGATE;
+    String COUNT_AGGREGATE = CLASS_NAME_WITH_DOT + OP_COUNT_AGGREGATE;
     String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + OP_COUNT_CONTAINERS;
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT;
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + OP_COUNT_OBJECTS;
@@ -587,6 +598,20 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
      * @param parentResult Operation result
      */
     void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+
+    @Experimental
+    @ApiStatus.Internal
+    @NotNull
+    default SearchResultList<PrismContainerValue<?>> searchAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException("Not Supported");
+    }
+
+    @Experimental
+    @ApiStatus.Internal
+    default int countAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException("Not Supported");
+    }
 
     /**
      * Provide repository run-time configuration and diagnostic information.
