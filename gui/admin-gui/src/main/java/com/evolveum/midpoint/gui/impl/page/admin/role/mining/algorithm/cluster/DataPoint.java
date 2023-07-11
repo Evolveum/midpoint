@@ -14,7 +14,6 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 
 public class DataPoint implements Clusterable, Serializable {
     private final double[] vectorPoints;
-    private final String element;
 
     //(USER Type)
     List<String> elements;
@@ -22,9 +21,8 @@ public class DataPoint implements Clusterable, Serializable {
     //(ROLE Type)
     List<String> points;
 
-    public DataPoint(double[] vectorPoints, String element, List<String> elements, List<String> points) {
+    public DataPoint(double[] vectorPoints, List<String> elements, List<String> points) {
         this.vectorPoints = vectorPoints;
-        this.element = element;
         this.elements = elements;
         this.points = points;
     }
@@ -32,10 +30,6 @@ public class DataPoint implements Clusterable, Serializable {
     @Override
     public double[] getPoint() {
         return vectorPoints;
-    }
-
-    public String getElement() {
-        return element;
     }
 
     public List<String> getElements() {

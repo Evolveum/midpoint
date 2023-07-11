@@ -30,7 +30,6 @@ public class ExtractIntersections {
 
         } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
             loadRolesIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
-
         }
 
         return intersections;

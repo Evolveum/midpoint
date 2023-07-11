@@ -30,7 +30,6 @@ import org.apache.commons.math3.ml.clustering.Cluster;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.JaccardSorter;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.UUIDToDoubleConverter;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,60 +66,112 @@ public class ClusterAlgorithmUtils {
                 String point = points.get(i);
                 vectorPoints[i] = UUIDToDoubleConverter.convertUUid(point);
             }
-            dataPoints.add(new DataPoint(vectorPoints, elements.get(0), elements, points));
+            dataPoints.add(new DataPoint(vectorPoints, elements, points));
         }
         return dataPoints;
     }
 
-    public ClusterStatistic statisticLoad(List<DataPoint> sortedClusterDataPoints, List<DataPoint> allDataPoints,
+    public ClusterStatistic statisticLoad(List<DataPoint> clusterDataPoints, List<DataPoint> allDataPoints,
             String clusterIndex, String identifier) {
 
         int totalPoints = 0;
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
-        Set<String> occupiedUsers = new HashSet<>();
-        int clusterSize = sortedClusterDataPoints.size();
-        HashMap<String, Double> frequencyMap = new HashMap<>();
+        int clusterGroupSize = clusterDataPoints.size();
 
-        for (DataPoint clusterDataPoint : sortedClusterDataPoints) {
+        Set<String> elementsOids = new HashSet<>();
+        Set<String> occupiedPoints = new HashSet<>();
+
+        for (DataPoint clusterDataPoint : clusterDataPoints) {
             allDataPoints.remove(clusterDataPoint);
             List<String> points = clusterDataPoint.getPoints();
             List<String> elements = clusterDataPoint.getElements();
-            occupiedUsers.addAll(elements);
+            elementsOids.addAll(elements);
 
             int pointsCount = points.size();
             totalPoints += pointsCount;
             minVectorPoint = Math.min(minVectorPoint, pointsCount);
             maxVectorPoint = Math.max(maxVectorPoint, pointsCount);
 
-            for (String point : points) {
-                frequencyMap.compute(point, (key, counter) -> counter == null ? 1 : counter + 1);
-            }
-
+            occupiedPoints.addAll(points);
         }
 
-        double meanPoints = (double) totalPoints / clusterSize;
-        double density = (totalPoints / (double) (sortedClusterDataPoints.size() * frequencyMap.size())) * 100;
+        int pointsCount = occupiedPoints.size();
+
+        double meanPoints = (double) totalPoints / clusterGroupSize;
+
+        double density = Math.min((totalPoints / (double) (clusterDataPoints.size() * pointsCount)) * 100, 100);
 
         PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
 
-        int finalTotalPoints = totalPoints;
-        frequencyMap.replaceAll((key, value) -> value / finalTotalPoints);
+        return new ClusterStatistic(name, identifier, elementsOids, elementsOids.size(), pointsCount, minVectorPoint,
+                maxVectorPoint, clusterGroupSize, meanPoints, density);
+    }
 
-        List<String> occupiedRoles = frequencyMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-                .map(Map.Entry::getKey)
-                .toList();
+    @NotNull
+    public List<PrismObject<ClusterType>> processIdenticalGroup(PageBase pageBase, List<DataPoint> dataPoints,
+            ClusterOptions clusterOptions) {
+        long start;
+        start = startTimer("generate clusters mp objects");
+        List<DataPoint> dataPointsOutliers = new ArrayList<>();
+        List<PrismObject<ClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, dataPoints.size())
+                .mapToObj(i -> prepareIdenticalGroup(pageBase, dataPoints.get(i), String.valueOf(i), clusterOptions, dataPointsOutliers))
+                .filter(Objects::nonNull) // Filter out null elements
+                .collect(Collectors.toList());
 
-        return new ClusterStatistic(name, identifier, occupiedRoles, occupiedUsers, totalPoints, minVectorPoint,
-                maxVectorPoint, clusterSize, meanPoints, density, frequencyMap, null);
+        endTimer(start, "generate clusters mp objects");
+
+        start = startTimer("generate outliers mp objects");
+        PrismObject<ClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
+        clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
+        endTimer(start, "generate outliers mp objects");
+        return clusterTypeObjectWithStatistic;
+    }
+
+    public ClusterStatistic statisticIdenticalLoad(DataPoint clusterDataPoints,
+            String clusterIndex, String identifier, int minGroupSize, List<DataPoint> dataPointsOutliers) {
+
+        int totalPoints = 0;
+        int minVectorPoint;
+        int maxVectorPoint;
+        int clusterGroupSize = clusterDataPoints.getElements().size();
+
+        Set<String> elementsOids = new HashSet<>(clusterDataPoints.getElements());
+        Set<String> occupiedPoints = new HashSet<>(clusterDataPoints.getPoints());
+
+        if (elementsOids.size() < minGroupSize) {
+            dataPointsOutliers.add(clusterDataPoints);
+            return null;
+        }
+
+        int elementsCount = elementsOids.size();
+        int pointsCount = occupiedPoints.size();
+        totalPoints += pointsCount * elementsCount;
+        minVectorPoint = pointsCount;
+        maxVectorPoint = pointsCount;
+
+        double density = Math.min((totalPoints / (double) (elementsCount * pointsCount)) * 100, 100);
+
+        PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
+
+        return new ClusterStatistic(name, identifier, elementsOids, elementsCount, pointsCount, minVectorPoint,
+                maxVectorPoint, clusterGroupSize, pointsCount, density);
+    }
+
+    public PrismObject<ClusterType> prepareIdenticalGroup(PageBase pageBase, DataPoint dataPointCluster, String clusterIndex, ClusterOptions clusterOptions, List<DataPoint> dataPointsOutliers) {
+
+        int minGroupSize = clusterOptions.getMinGroupSize();
+        ClusterStatistic clusterStatistic = statisticIdenticalLoad(dataPointCluster, clusterIndex, clusterOptions.getIdentifier(), minGroupSize, dataPointsOutliers);
+
+        if (clusterStatistic != null) {
+            return generateClusterObject(pageBase, clusterStatistic, clusterOptions);
+        } else {return null;}
     }
 
     public PrismObject<ClusterType> prepareClusters(PageBase pageBase, List<DataPoint> dataPointCluster, String clusterIndex,
             List<DataPoint> dataPoints, ClusterOptions clusterOptions) {
-        List<DataPoint> sortedDataPoints = JaccardSorter.sort(dataPointCluster);
 
-        ClusterStatistic clusterStatistic = statisticLoad(sortedDataPoints, dataPoints, clusterIndex, clusterOptions.getIdentifier());
+        ClusterStatistic clusterStatistic = statisticLoad(dataPointCluster, dataPoints, clusterIndex, clusterOptions.getIdentifier());
 
         return generateClusterObject(pageBase, clusterStatistic, clusterOptions);
     }
@@ -154,8 +205,8 @@ public class ClusterAlgorithmUtils {
 
         PolyStringType name = PolyStringType.fromOrig("outliers");
 
-        ClusterStatistic clusterStatistic = new ClusterStatistic(name, identifier, new ArrayList<>(pointsSet), elementsOid,
-                sumPoints, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density, new HashMap<>(), null);
+        ClusterStatistic clusterStatistic = new ClusterStatistic(name, identifier, elementsOid, elementsOid.size(),
+                sumPoints, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density);
 
         return generateClusterObject(pageBase, clusterStatistic, null);
     }
@@ -172,15 +223,13 @@ public class ClusterAlgorithmUtils {
         }
         assert clusterTypePrismObject != null;
 
-        Set<String> occupiedUsers = clusterStatistic.getOccupiedUsers();
-        List<String> occupiedRoles = clusterStatistic.getOccupiedRoles();
+        Set<String> occupiedUsers = clusterStatistic.getElementsOid();
 
         ClusterType clusterType = clusterTypePrismObject.asObjectable();
         clusterType.setOid(String.valueOf(UUID.randomUUID()));
-        clusterType.setElementCount(occupiedUsers.size());
+        clusterType.setElementCount(clusterStatistic.getTotalElements());
         clusterType.getElements().addAll(occupiedUsers);
-        clusterType.getPoints().addAll(occupiedRoles);
-        clusterType.setPointCount(occupiedRoles.size());
+        clusterType.setPointCount(clusterStatistic.getTotalPoints());
         clusterType.setMean(String.format("%.3f", clusterStatistic.getMeanPoints()));
         clusterType.setDensity(String.format("%.3f", clusterStatistic.getDensity()));
         clusterType.setMinOccupation(clusterStatistic.getMinVectorPoint());
@@ -210,13 +259,13 @@ public class ClusterAlgorithmUtils {
 
             if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
-                        ClusterObjectUtils.Mode.ROLE, operationResult, true);
+                        ClusterObjectUtils.Mode.ROLE, operationResult, true, false);
                 possibleBusinessRole = findPossibleBusinessRole(miningOperationChunk, defaultMinFrequency,
                         defaultMaxFrequency,
                         group, intersection, mode);
             } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
-                        ClusterObjectUtils.Mode.USER, operationResult, true);
+                        ClusterObjectUtils.Mode.USER, operationResult, true, false);
                 possibleBusinessRole = findPossibleBusinessRole(miningOperationChunk, defaultMinFrequency,
                         defaultMaxFrequency,
                         intersection, group, mode);

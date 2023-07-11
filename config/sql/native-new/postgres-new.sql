@@ -1165,7 +1165,7 @@ CREATE TABLE m_cluster_table (
         identifier TEXT,
         parentRef TEXT,
         riskLevel TEXT,
-        points TEXT[],
+--        points TEXT[],
         pointCount INTEGER,
         defaultDetection TEXT[],
         elements TEXT[],

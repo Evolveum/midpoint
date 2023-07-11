@@ -148,6 +148,36 @@ public class MiningIntersectionTable extends Panel {
 
         });
 
+        columns.add(new AbstractExportableColumn<>(getHeaderTitle("intersection.count")) {
+
+            @Override
+            public String getSortProperty() {
+                return IntersectionObject.F_METRIC;
+            }
+
+            @Override
+            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
+                return null;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
+                    IModel<IntersectionObject> rowModel) {
+
+                item.add(new Label(componentId, rowModel.getObject().getPoints().size()));
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(componentId, getHeaderTitle("intersection.count"));
+            }
+
+        });
         columns.add(new AbstractExportableColumn<>(getHeaderTitle("occupancy.current")) {
 
             @Override
@@ -178,6 +208,7 @@ public class MiningIntersectionTable extends Panel {
             }
 
         });
+
 
         columns.add(new AbstractExportableColumn<>(getHeaderTitle("occupancy.total")) {
 
@@ -224,6 +255,8 @@ public class MiningIntersectionTable extends Panel {
             }
 
         });
+
+
         columns.add(new AbstractExportableColumn<>(getHeaderTitle("display")) {
 
             @Override

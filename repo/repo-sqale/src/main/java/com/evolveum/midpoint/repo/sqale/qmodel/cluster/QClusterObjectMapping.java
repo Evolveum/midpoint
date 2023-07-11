@@ -30,7 +30,7 @@ public class QClusterObjectMapping
 
         addItemMapping(F_IDENTIFIER, stringMapper(q -> q.identifier));
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
-        addItemMapping(F_POINTS, multiStringMapper(q -> q.points));
+//        addItemMapping(F_POINTS, multiStringMapper(q -> q.points));
         addItemMapping(F_ELEMENTS, multiStringMapper(q -> q.elements));
         addItemMapping(F_POINT_COUNT, integerMapper(q -> q.pointCount));
         addItemMapping(F_ELEMENT_COUNT, integerMapper(q -> q.elementCount));
@@ -66,7 +66,7 @@ public class QClusterObjectMapping
         row.density = clusterObject.getDensity();
         row.minOccupation = clusterObject.getMinOccupation();
         row.maxOccupation = clusterObject.getMaxOccupation();
-        row.points = stringsToArray(clusterObject.getPoints());
+//        row.points = stringsToArray(clusterObject.getPoints());
         row.elements = stringsToArray(clusterObject.getElements());
         row.parentRef = clusterObject.getParentRef();
         row.defaultDetection = stringsToArray(clusterObject.getDefaultDetection());

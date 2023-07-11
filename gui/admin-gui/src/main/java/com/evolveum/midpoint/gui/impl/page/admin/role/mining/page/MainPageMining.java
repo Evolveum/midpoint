@@ -36,7 +36,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ParentClusterBasicDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.perform.ClusterPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.perform.ExecuteClusteringPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -356,7 +356,7 @@ public class MainPageMining extends PageAdmin {
             protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation,
                     CompiledObjectCollectionView collectionView) {
 
-                ClusterPanel detailsPanel = new ClusterPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                ExecuteClusteringPanel detailsPanel = new ExecuteClusteringPanel(((PageBase) getPage()).getMainPopupBodyId(),
                         Model.of("New cluster")) {
                     @Override
                     public void onClose(AjaxRequestTarget ajaxRequestTarget) {

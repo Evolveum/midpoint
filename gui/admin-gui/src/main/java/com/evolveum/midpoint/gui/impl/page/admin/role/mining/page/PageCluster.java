@@ -13,7 +13,7 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.ClusterPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.PageClusters;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -57,7 +57,7 @@ public class PageCluster extends PageAdmin {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(new ClusterPanel(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier(), getPageParameterMode()).setOutputMarkupId(true));
+        add(new PageClusters(ID_DATATABLE_CLUSTER_DS, getPageParameterIdentifier(), getPageParameterMode()).setOutputMarkupId(true));
     }
 
     public PageBase getPageBase() {

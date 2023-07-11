@@ -48,21 +48,25 @@ public class UserBasedClustering implements Clusterable {
         clusterOptions.setMinIntersections(minIntersections);
 
         PageBase pageBase = clusterOptions.getPageBase();
-
+        //roles //users
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
                 threshold, clusterOptions.getQuery());
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
 
-        start = startTimer("clustering");
         double eps = 1 - clusterOptions.getSimilarity();
         int minGroupSize = clusterOptions.getMinGroupSize();
+
+        //TODO
+        if (eps == 0.0) {
+            return new ClusterAlgorithmUtils().processIdenticalGroup(pageBase, dataPoints, clusterOptions);
+        }
+        start = startTimer("clustering");
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minIntersections);
         DBSCANClusterer<DataPoint> dbscan = new DBSCANClusterer<>(eps, minGroupSize, distanceMeasure);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
         endTimer(start, "clustering");
 
-        String identifier = clusterOptions.getIdentifier();
         return new ClusterAlgorithmUtils().processClusters(pageBase, dataPoints, clusters, clusterOptions);
     }
 

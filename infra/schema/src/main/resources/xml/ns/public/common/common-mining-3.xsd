@@ -50,7 +50,7 @@
                     <xsd:element name="oid" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                OID of the object processed. Usually known, even for objects that are to be created.
+                                OID of the object.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ClusterType.oid</a:displayName>
@@ -69,24 +69,10 @@
                         </xsd:annotation>
                     </xsd:element>
 
-
-                    <xsd:element name="points" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Can be a role or user UUID.
-                                There are two simple methods of clustering. In the first method, users are grouped together
-                                based on their roles. This means that users with similar roles, responsibilities, or qualifications
-                                are clustered together.
-                                In the second method, roles are clustered based on the users associated with them.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="elements" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Similar groups with respect to the selected clustering mode.
-                                Can be a role or user UUID.
+                                This can be a role or user UUID. Based on the selected MODE.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -94,7 +80,7 @@
                     <xsd:element name="defaultDetection" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Detection of suitable role combinations based on default settings.
+                                Detection of suitable role combinations based on default settings (bussines role search).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -235,7 +221,7 @@
                     <xsd:element name="oid" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                OID of the object processed. Usually known, even for objects that are to be created.
+                                OID of the object.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ParentClusterType.oid</a:displayName>
@@ -302,7 +288,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Indication role count in the group.
+                                    Indication points count in the group.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>

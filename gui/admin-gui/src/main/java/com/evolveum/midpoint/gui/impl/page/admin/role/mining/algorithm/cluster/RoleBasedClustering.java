@@ -55,6 +55,12 @@ public class RoleBasedClustering implements Clusterable {
         start = startTimer("clustering");
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minIntersections);
         double eps = 1 - clusterOptions.getSimilarity();
+
+        //TODO
+        if (eps == 0.0) {
+            return new ClusterAlgorithmUtils().processIdenticalGroup(pageBase, dataPoints, clusterOptions);
+        }
+
         int minGroupSize = clusterOptions.getMinGroupSize();
         DBSCANClusterer<DataPoint> dbscan = new DBSCANClusterer<>(eps, minGroupSize, distanceMeasure);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);

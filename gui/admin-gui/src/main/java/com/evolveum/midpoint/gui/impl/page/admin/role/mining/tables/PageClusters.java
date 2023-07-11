@@ -45,14 +45,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
 
-public class ClusterPanel extends Panel {
+public class PageClusters extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
     String identifier;
     String mode;
 
-    public ClusterPanel(String id, String identifier, String mode) {
+    public PageClusters(String id, String identifier, String mode) {
         super(id);
         this.identifier = identifier;
         this.mode = mode;
@@ -121,10 +121,10 @@ public class ClusterPanel extends Panel {
 
                         List<PrismObject<FocusType>> points = new ArrayList<>();
 
-                        List<String> points1 = rowModel.getObject().getValue().getPoints();
-                        for (String s : points1) {
-                            points.add(getFocusTypeObject(pageBase, s, operationResult));
-                        }
+//                        List<String> points1 = rowModel.getObject().getValue().getPoints();
+//                        for (String s : points1) {
+//                            points.add(getFocusTypeObject(pageBase, s, operationResult));
+//                        }
 
                         ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                 Model.of("TO DO: details"), elements, points, mode) {
@@ -388,9 +388,9 @@ public class ClusterPanel extends Panel {
                             ajaxButton.add(new AttributeAppender("style", " width:100px; height:20px"));
                             ajaxButton.setOutputMarkupId(true);
 
-                            if (model.getObject().getValue().getElementCount() > 500) {
-                                ajaxButton.setEnabled(false);
-                            }
+//                            if (model.getObject().getValue().getElementCount() > 500) {
+//                                ajaxButton.setEnabled(false);
+//                            }
                             cellItem.add(ajaxButton);
 
                         } else {

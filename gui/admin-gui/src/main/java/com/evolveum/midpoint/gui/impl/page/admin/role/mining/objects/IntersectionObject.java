@@ -23,7 +23,8 @@ public class IntersectionObject implements Serializable {
     double metric;
     Set<String> elements;
 
-    public IntersectionObject(Set<String> points, double metric, String type, int currentElements, Integer totalElements,Set<String> elements) {
+    public IntersectionObject(Set<String> points, double metric, String type, int currentElements,
+            Integer totalElements, Set<String> elements) {
         this.points = points;
         this.metric = metric;
         this.type = type;
@@ -35,6 +36,7 @@ public class IntersectionObject implements Serializable {
     public Set<String> getElements() {
         return elements;
     }
+
     public Set<String> getPoints() {
         return points;
     }

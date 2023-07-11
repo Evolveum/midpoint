@@ -16,11 +16,6 @@ public class MiningUserTypeChunk implements Serializable {
     List<String> roles;
     String chunkName;
     double frequency;
-
-    public void setStatus(ClusterObjectUtils.Status status) {
-        this.status = status;
-    }
-
     ClusterObjectUtils.Status status;
 
     public MiningUserTypeChunk(List<String> users, List<String> roles, String chunkName, double frequency, ClusterObjectUtils.Status status) {
@@ -50,5 +45,10 @@ public class MiningUserTypeChunk implements Serializable {
     public double getFrequency() {
         return frequency;
     }
+
+    public void setStatus(ClusterObjectUtils.Status status) {
+        this.status = status;
+    }
+
 
 }

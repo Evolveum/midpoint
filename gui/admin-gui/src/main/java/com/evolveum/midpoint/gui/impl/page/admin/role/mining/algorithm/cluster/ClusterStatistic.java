@@ -8,57 +8,48 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ClusterStatistic implements Serializable {
 
-    List<String> occupiedRoles;
-    Set<String> occupiedUsers;
+    Set<String> elementsOid;
     int totalPoints;
+    int totalElements;
     int minVectorPoint;
     int maxVectorPoint;
     int clusterSize;
     double meanPoints;
-    HashMap<String, Double> frequencyMap;
     double density;
     PolyStringType name;
     String identifier;
-    List<String> defaultIntersection;
 
-    public ClusterStatistic(PolyStringType name, String identifier, List<String> occupiedRoles, Set<String> occupiedUsers,
-            int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density,
-            HashMap<String, Double> frequencyMap,List<String> defaultIntersection) {
-        this.occupiedRoles = occupiedRoles;
-        this.occupiedUsers = occupiedUsers;
+    public ClusterStatistic(PolyStringType name, String identifier, Set<String> elementsOid, int totalElements,
+            int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
+        this.elementsOid = elementsOid;
         this.totalPoints = totalPoints;
         this.minVectorPoint = minVectorPoint;
         this.maxVectorPoint = maxVectorPoint;
         this.clusterSize = clusterSize;
         this.meanPoints = meanPoints;
-        this.frequencyMap = frequencyMap;
+//        this.frequencyMap = frequencyMap;
         this.density = density;
         this.name = name;
         this.identifier = identifier;
-        this.defaultIntersection = defaultIntersection;
+        this.totalElements = totalElements;
     }
 
-    public List<String> getDefaultIntersection() {
-        return defaultIntersection;
+    public int getTotalElements() {
+        return totalElements;
     }
+
     public String getIdentifier() {
         return identifier;
     }
 
-    public List<String> getOccupiedRoles() {
-        return occupiedRoles;
-    }
-
-    public Set<String> getOccupiedUsers() {
-        return occupiedUsers;
+    public Set<String> getElementsOid() {
+        return elementsOid;
     }
 
     public int getTotalPoints() {
@@ -81,9 +72,9 @@ public class ClusterStatistic implements Serializable {
         return meanPoints;
     }
 
-    public HashMap<String, Double> getFrequencyMap() {
-        return frequencyMap;
-    }
+//    public HashMap<String, Double> getFrequencyMap() {
+//        return frequencyMap;
+//    }
 
     public double getDensity() {
         return density;

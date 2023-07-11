@@ -55,7 +55,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-public class ClusterPanel extends BasePanel<String> implements Popupable {
+public class ExecuteClusteringPanel extends BasePanel<String> implements Popupable {
     private static final String ID_EXECUTE_CLUSTERING_FORM = "thresholds_form_cluster";
     private static final String ID_WARNING_FEEDBACK = "warningFeedback";
     private static final String ID_JACCARD_THRESHOLD_FIELD = "eps_cluster";
@@ -75,7 +75,7 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
     AjaxSubmitButton executeClustering;
     AjaxSubmitButton filterSubmitButton;
 
-    public ClusterPanel(String id, IModel<String> messageModel) {
+    public ExecuteClusteringPanel(String id, IModel<String> messageModel) {
         super(id, messageModel);
     }
 
@@ -134,6 +134,10 @@ public class ClusterPanel extends BasePanel<String> implements Popupable {
                 options.put("similarity", clusterOptions.getSimilarity());
                 options.put("minIntersection", clusterOptions.getMinIntersections());
                 options.put("minGroup", clusterOptions.getMinGroupSize());
+                options.put("detectIntersection", clusterOptions.getDefaultIntersectionSearch());
+                options.put("detectMaxFrequency", clusterOptions.getDefaultMaxFrequency());
+                options.put("detectMinFrequency", clusterOptions.getDefaultMinFrequency());
+                options.put("detectOccupancy", clusterOptions.getDefaultOccupancySearch());
 
                 importParentClusterTypeObject(result, ((PageBase) getPage()), density, counsist, childRef, options);
             }

@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.findPossibleBusinessRole;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusterAlgorithmUtils.loadDefaultIntersection;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.Mode;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
 
@@ -112,12 +112,15 @@ public class PageMiningOperation extends PageAdmin {
     protected void onInitialize() {
         super.onInitialize();
 
+        long start = startTimer("load");
         ClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
         mergedIntersection = loadDefaultIntersection(cluster);
-
         loadMiningTableData();
+        endTimer(start, "end load");
 
+        start = startTimer("table");
         loadMiningTable(miningOperationChunk);
+        endTimer(start, "end mining table");
 
         add(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection).setOutputMarkupId(true));
 
@@ -193,7 +196,7 @@ public class PageMiningOperation extends PageAdmin {
     private void loadMiningTableData() {
         ClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
         miningOperationChunk = new MiningOperationChunk(cluster, (PageBase) getPage(),
-                getPageParameterMode(), result, compress);
+                getPageParameterMode(), result, compress, true);
     }
 
     private void loadMiningTable(MiningOperationChunk miningOperationChunk) {
