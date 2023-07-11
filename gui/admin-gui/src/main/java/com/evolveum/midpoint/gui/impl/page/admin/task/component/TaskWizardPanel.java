@@ -81,6 +81,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
             public IModel<String> getTitle() {
                 return createStringResource("TaskWizardPanel.wizard.step.basic");
             }
+
+            @Override
+            public String getStepId() {
+                return "basic";
+            }
         });
 
         TaskType task = getAssignmentHolderModel().getObjectType();
@@ -122,6 +127,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                 public IModel<String> getTitle() {
                     return createStringResource("TaskWizardPanel.wizard.step.work.resourceObjects");
                 }
+
+                @Override
+                public String getStepId() {
+                    return "resourceObjects";
+                }
             });
         }
 
@@ -154,6 +164,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                 @Override
                 public IModel<String> getTitle() {
                     return createStringResource("TaskWizardPanel.wizard.step.execution");
+                }
+
+                @Override
+                public String getStepId() {
+                    return "execution";
                 }
             });
         }
@@ -195,6 +210,10 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                     return createStringResource("TaskWizardPanel.wizard.step.schedule");
                 }
 
+                @Override
+                public String getStepId() {
+                    return "schedule";
+                }
             });
         }
 
@@ -228,6 +247,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 getHelper().onSaveObjectPerformed(target);
+            }
+
+            @Override
+            public String getStepId() {
+                return "distribution";
             }
         });
 
