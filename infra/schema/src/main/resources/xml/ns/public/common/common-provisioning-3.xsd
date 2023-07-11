@@ -2124,7 +2124,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="disableInsteadDelete" type="tns:AbstractPredefinedActivationMappingType" minOccurs="0">
+            <xsd:element name="disableInsteadOfDelete" type="tns:AbstractPredefinedActivationMappingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         If an account is unassigned and there is no other existing assignment for an account midPoint

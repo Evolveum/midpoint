@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTilePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,6 +34,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapper<
         ? extends Containerable>, MappingTile<PrismContainerValueWrapper<? extends Containerable>>> {
@@ -94,6 +97,15 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
             }
         };
         configureButton.showTitleAsLabel(true);
+        if (getModelObject().getValue().getItems().size() == 1) {
+            @NotNull ItemName itemName = getModelObject().getValue().getItems().iterator().next().getItemName();
+            if (itemName.equivalent(MappingType.F_LIFECYCLE_STATE)) {
+                configureButton.add(AttributeAppender.append("class", "disabled"));
+                configureButton.add(AttributeAppender.append(
+                        "title",
+                        PageBase.createStringResourceStatic("MappingTilePanel.disabledConfiguration")));
+            }
+        }
         add(configureButton);
 
         Label help = new Label(ID_HELP);

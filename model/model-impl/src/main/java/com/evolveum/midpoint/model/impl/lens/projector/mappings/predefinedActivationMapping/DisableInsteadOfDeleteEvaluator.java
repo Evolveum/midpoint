@@ -30,11 +30,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * This evaluator change midpoint default behaviour and disable account.
  * Disabling the account instead of deleting is a common requirement.
  */
-public class DisableInsteadDeleteEvaluator extends PredefinedActivationMappingEvaluator {
+public class DisableInsteadOfDeleteEvaluator extends PredefinedActivationMappingEvaluator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DisableInsteadDeleteEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DisableInsteadOfDeleteEvaluator.class);
 
-    public DisableInsteadDeleteEvaluator(ResourceActivationDefinitionType activationDefinitionBean) {
+    public DisableInsteadOfDeleteEvaluator(ResourceActivationDefinitionType activationDefinitionBean) {
         super(activationDefinitionBean);
     }
 
@@ -73,14 +73,14 @@ public class DisableInsteadDeleteEvaluator extends PredefinedActivationMappingEv
 
     @Override
     public <F extends FocusType> boolean isConfigured(Task task) {
-        if (getActivationDefinitionBean().getDisableInsteadDelete() == null) {
+        if (getActivationDefinitionBean().getDisableInsteadOfDelete() == null) {
             LOGGER.trace(
                     "DisableInsteadDeleteEvaluator: non-exist configuration for disableInsteadDelete in: {}, skipping",
                     getActivationDefinitionBean());
             return false;
         }
 
-        AbstractPredefinedActivationMappingType disableInsteadDeleteBean = getActivationDefinitionBean().getDisableInsteadDelete();
+        AbstractPredefinedActivationMappingType disableInsteadDeleteBean = getActivationDefinitionBean().getDisableInsteadOfDelete();
         if (!task.canSee(disableInsteadDeleteBean.getLifecycleState())) {
             LOGGER.trace("DisableInsteadDeleteEvaluator: not applicable to the execution mode, skipping");
             return false;

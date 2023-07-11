@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 
@@ -51,7 +53,7 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
             String id,
             MappingDirection mappingDirection,
             IModel<PrismContainerValueWrapper<ResourceActivationDefinitionType>> parentModel, ResourceDetailsModel detailsModel) {
-        super(id, Model.of("CreateActivationMappingPopup.title"));
+        super(id, PageBase.createStringResourceStatic("CreateActivationMappingPopup.title"));
         this.mappingDirection = mappingDirection;
         this.parentModel = parentModel;
         this.detailsModel = detailsModel;
@@ -101,7 +103,9 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
                 return new CreateActivationMappingTilePanel(id, model) {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
-                        createNewValue(getModelObject(), target);
+                        if (model.getObject().canCreateNewValue()) {
+                            createNewValue(getModelObject(), target);
+                        }
                     }
                 };
             }
@@ -131,6 +135,10 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
         PrismContainerValueWrapper<ResourceActivationDefinitionType> parent = parentModel.getObject();
         try {
             PrismContainerWrapper<Containerable> childContainer = parent.findContainer(path);
+            if (childContainer.isSingleValue()) {
+                childContainer.getValues().clear();
+                childContainer.getItem().clear();
+            }
             PrismContainerValue<Containerable> newValue = childContainer.getItem().createNewValue();
             PrismContainerValueWrapper<Containerable> valueWrapper = WebPrismUtil.createNewValueWrapper(
                     childContainer, newValue, getPageBase(), detailsModel.createWrapperContext());
@@ -154,6 +162,9 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
         }
         PrismContainerWrapper<Containerable> child = parentModel.getObject().findContainer(definition.getItemName());
         if (child.getValues().isEmpty()){
+            return true;
+        }
+        if (ValueStatus.DELETED.equals(child.getValues().iterator().next().getStatus())) {
             return true;
         }
         return false;

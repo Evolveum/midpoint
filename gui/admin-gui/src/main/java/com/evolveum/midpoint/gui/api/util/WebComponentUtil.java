@@ -5834,7 +5834,7 @@ public final class WebComponentUtil {
             return "fa fa-arrow-right-to-bracket";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_LOCKOUT_STATUS)) {
             return "fa fa-user-lock";
-        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_DELETE)) {
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_OF_DELETE)) {
             return "fa fa-user-slash";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DELAYED_DELETE)) {
             return "fa fa-clock";
