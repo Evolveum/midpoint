@@ -16,13 +16,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ListMultimap;
@@ -31,7 +24,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.UUIDToDoubleConverter;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -154,7 +151,7 @@ public class ClusterAlgorithmUtils {
 
         PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
 
-        return new ClusterStatistic(name, identifier, elementsOids, elementsCount, pointsCount, minVectorPoint,
+        return new ClusterStatistic(name, identifier, occupiedPoints, elementsOids, elementsCount, pointsCount, minVectorPoint,
                 maxVectorPoint, clusterGroupSize, pointsCount, density);
     }
 
@@ -238,10 +235,23 @@ public class ClusterAlgorithmUtils {
         clusterType.setIdentifier(clusterStatistic.getIdentifier());
 
         List<String> jsonObjectList = new ArrayList<>();
-        List<IntersectionObject> possibleBusinessRole = new ArrayList<>();
-        OperationResult operationResult = new OperationResult("Prepare data for intersection");
-        resolveDefaultIntersection(pageBase, clusterType, jsonObjectList, possibleBusinessRole,
-                operationResult, clusterOptions);
+        if (clusterOptions != null && clusterOptions.getSimilarity() == 1) {
+            JSONObject jsonObject = new JSONObject();
+            //TODO change points elements logic
+            jsonObject.put("points", new JSONArray(clusterStatistic.getElementsOid()));
+            jsonObject.put("type", "outer");
+            jsonObject.put("currentElements", clusterStatistic.getTotalElements());
+            jsonObject.put("totalElements", clusterStatistic.getTotalElements());
+            jsonObject.put("metric", String.valueOf(clusterStatistic.getTotalElements() * clusterStatistic.getTotalPoints()));
+            jsonObject.put("elements", new JSONArray(clusterStatistic.getPointsOid()));
+            jsonObjectList.add(String.valueOf(jsonObject));
+            clusterType.getDefaultDetection().addAll(jsonObjectList);
+        } else {
+            List<IntersectionObject> possibleBusinessRole = new ArrayList<>();
+            OperationResult operationResult = new OperationResult("Prepare data for intersection");
+            resolveDefaultIntersection(pageBase, clusterType, jsonObjectList, possibleBusinessRole,
+                    operationResult, clusterOptions);
+        }
 
         return clusterTypePrismObject;
     }

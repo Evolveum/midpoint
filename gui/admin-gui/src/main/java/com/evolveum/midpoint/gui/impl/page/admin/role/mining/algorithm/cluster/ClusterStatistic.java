@@ -24,6 +24,7 @@ public class ClusterStatistic implements Serializable {
     double density;
     PolyStringType name;
     String identifier;
+    Set<String> pointsOid;
 
     public ClusterStatistic(PolyStringType name, String identifier, Set<String> elementsOid, int totalElements,
             int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
@@ -34,6 +35,23 @@ public class ClusterStatistic implements Serializable {
         this.clusterSize = clusterSize;
         this.meanPoints = meanPoints;
 //        this.frequencyMap = frequencyMap;
+        this.pointsOid = null;
+        this.density = density;
+        this.name = name;
+        this.identifier = identifier;
+        this.totalElements = totalElements;
+    }
+
+    public ClusterStatistic(PolyStringType name, String identifier, Set<String> pointsOid, Set<String> elementsOid, int totalElements,
+            int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
+        this.elementsOid = elementsOid;
+        this.totalPoints = totalPoints;
+        this.minVectorPoint = minVectorPoint;
+        this.maxVectorPoint = maxVectorPoint;
+        this.clusterSize = clusterSize;
+        this.meanPoints = meanPoints;
+//        this.frequencyMap = frequencyMap;
+        this.pointsOid = pointsOid;
         this.density = density;
         this.name = name;
         this.identifier = identifier;
@@ -42,6 +60,10 @@ public class ClusterStatistic implements Serializable {
 
     public int getTotalElements() {
         return totalElements;
+    }
+
+    public Set<String> getPointsOid() {
+        return pointsOid;
     }
 
     public String getIdentifier() {
