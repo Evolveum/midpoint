@@ -135,7 +135,7 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
 
                 @Override
                 protected IModel<String> getSubTextModel() {
-                    return createStringResource("TaskWizardPanel.wizard.step.work.help");
+                    return createStringResource("TaskWizardPanel.wizard.step.work.resourceObjects.help");
                 }
 
                 @Override
