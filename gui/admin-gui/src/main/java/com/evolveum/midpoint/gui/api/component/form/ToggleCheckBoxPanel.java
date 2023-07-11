@@ -6,106 +6,58 @@
  */
 package com.evolveum.midpoint.gui.api.component.form;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+
+import java.io.Serial;
+
 public class ToggleCheckBoxPanel extends InputPanel {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CHECK = "check";
     private static final String ID_LABEL = "label";
-    private static final String ID_ICON = "icon";
+    private static final String ID_DESCRIPTION = "description";
 
-    private IModel<Boolean> checkboxModel;
-    private IModel<DisplayType> displayModel;
+    private final IModel<Boolean> checkboxModel;
+    private final IModel<String> labelModel;
+    private final IModel<String> descriptionModel;
 
-    public ToggleCheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
-        this(id, checkboxModel, null);
-    }
-
-    public ToggleCheckBoxPanel(String id, IModel<Boolean> checkboxModel, IModel<DisplayType> displayModel) {
+    public ToggleCheckBoxPanel(String id,
+            IModel<Boolean> checkboxModel,
+            IModel<String> labelModel,
+            IModel<String> descriptionModel) {
         super(id);
         this.checkboxModel = checkboxModel;
-        this.displayModel = displayModel;
+        this.labelModel = labelModel;
+        this.descriptionModel = descriptionModel;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
 
-        CheckBox check = new CheckBox(ID_CHECK, getCheckboxModel());
-        check.add(new OnChangeAjaxBehavior() {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                System.out.println("ToggleCheckBoxPanel.onUpdate");
-            }
-        });
-//        check.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        CheckBox check = new CheckBox(ID_CHECK, checkboxModel);
+        check.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         check.setOutputMarkupId(true);
         check.add(new EnableBehaviour(this::isCheckboxEnabled));
         add(check);
 
-        Label label = new Label(ID_LABEL, getLabelModel());
-//        label.add(AttributeModifier.replace("for", (IModel<String>) check::getMarkupId));
+        Label label = new Label(ID_LABEL, labelModel);
         add(label);
 
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-//        icon.add(AttributeModifier.append("class", this::getIconModel));
-        icon.add(new VisibleBehaviour(() -> notNullModel(getIconModel())));
-        add(icon);
+        Label description = new Label(ID_DESCRIPTION, descriptionModel);
+        add(description);
 
-//        add(new AttributeModifier("title", this::getTooltipModel));
     }
 
-    private IModel<String> getLabelModel() {
-        return () -> {
-            if (displayModel == null) {
-                return null;
-            }
-            return WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(displayModel.getObject()));
-        };
-    }
-
-    private IModel<String> getTooltipModel() {
-        return () -> {
-            if (displayModel == null) {
-                return null;
-            }
-            return GuiDisplayTypeUtil.getHelp(displayModel.getObject());
-        };
-    }
-
-    private IModel<String> getIconModel() {
-        return () -> {
-            if (displayModel == null) {
-                return null;
-            }
-            return GuiDisplayTypeUtil.getIconCssClass(displayModel.getObject());
-        };
-    }
-
-    private boolean notNullModel(IModel<?> model) {
-        return model != null && model.getObject() != null;
-    }
 
     public CheckBox getPanelComponent() {
         return (CheckBox) get(ID_CHECK);
@@ -122,10 +74,6 @@ public class ToggleCheckBoxPanel extends InputPanel {
 
     protected boolean isCheckboxEnabled() {
         return true;
-    }
-
-    public IModel<Boolean> getCheckboxModel() {
-        return checkboxModel;
     }
 
     public FormComponent getBaseFormComponent() {

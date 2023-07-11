@@ -11,15 +11,8 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.CatalogItemDetailsPanel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -28,12 +21,13 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -46,7 +40,6 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_CLOSE = "close";
 
-//    private IModel<Boolean> simulate;
     private IModel<SynchronizationTaskFlavor> flavorModel;
 
     private Fragment footer;
@@ -59,12 +52,6 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-//        simulate = new LoadableModel<>() {
-//            @Override
-//            protected Boolean load() {
-//                return false;
-//            }
-//        };
         flavorModel = new LoadableModel<>() {
             @Override
             protected SynchronizationTaskFlavor load() {
@@ -101,16 +88,10 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
         };
         add(templateChoicePanel);
 
-        IModel<DisplayType> displayModel = () -> {
-            DisplayType displayType = new DisplayType();
-            displayType.setLabel(WebComponentUtil.createPolyFromOrigString("Simulation task"));
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString("Create in simulation mode"));
-            return displayType;
-        };
-
         ToggleCheckBoxPanel simulationPanel = new ToggleCheckBoxPanel(ID_SIMULATE,
-                Model.of(false), displayModel);
-
+                Model.of(false),
+                createStringResource("TaskCreationPopup.simulate.label"),
+                createStringResource("TaskCreationPopup.simulate.tooltip"));
         simulationPanel.setOutputMarkupId(true);
         add(simulationPanel);
 
@@ -119,7 +100,9 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     private void initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
 
-        AjaxIconButton createNewTask = new AjaxIconButton(ID_BUTTON_CREATE_NEW_TASK, () -> "fa fa-arrow", createStringResource("TaskCreationPopup.createNewTask")) {
+        AjaxIconButton createNewTask = new AjaxIconButton(ID_BUTTON_CREATE_NEW_TASK,
+                () -> "fa fa-arrow",
+                createStringResource("TaskCreationPopup.createNewTask")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
