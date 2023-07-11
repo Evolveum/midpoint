@@ -9,7 +9,6 @@ package com.evolveum.midpoint.test.asserter;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -197,7 +196,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public SynchronizationInfoAsserter<TaskAsserter<RA>> synchronizationInformation(ActivityPath activityPath) {
         ActivityStatisticsType statistics = getStatisticsOrNew(activityPath);
         ActivitySynchronizationStatisticsType syncStatistics = requireNonNullElseGet(
-                statistics.getSynchronization(), () -> new ActivitySynchronizationStatisticsType(getPrismContext()));
+                statistics.getSynchronization(), () -> new ActivitySynchronizationStatisticsType());
 
         SynchronizationInfoAsserter<TaskAsserter<RA>> asserter = new SynchronizationInfoAsserter<>(syncStatistics, this, getDetails());
         copySetupTo(asserter);
@@ -208,7 +207,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> rootItemProcessingInformation() {
         ActivityStatisticsType statistics = getStatisticsOrNew(ActivityPath.empty());
         ActivityItemProcessingStatisticsType itemProcessingStatistics = requireNonNullElseGet(
-                statistics.getItemProcessing(), () -> new ActivityItemProcessingStatisticsType(getPrismContext()));
+                statistics.getItemProcessing(), () -> new ActivityItemProcessingStatisticsType());
 
         ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> asserter =
                 new ActivityItemProcessingStatisticsAsserter<>(itemProcessingStatistics, this, getDetails());
@@ -304,6 +303,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public TaskAsserter<RA> assertHandledError() {
         OperationResultType result = getTaskBean().getResult();
         if (result != null) {
@@ -554,6 +554,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     // Simple version until more elaborate asserter is created
+    @SuppressWarnings("WeakerAccess")
     public TaskAsserter<RA> assertInternalOperationExecutionCount(String operation, int expected) {
         assertThat(getInternalOperationExecutionCount(operation))
                 .as("operation '" + operation + "' exec count")

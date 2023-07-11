@@ -6,27 +6,34 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="50142510-8003-4a47-993a-2434119f5028">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="50142510-8003-4a47-993a-2434119f5028">
     <name>Import Accounts</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ExtensionType">
-        <mext:kind>account</mext:kind>
-        <mext:intent>default</mext:intent>
-        <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
-        <mext:workerThreads>4</mext:workerThreads>
-    </extension>
     <taskIdentifier>50142510-8003-4a47-993a-2434119f5028</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
     <executionState>runnable</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="f2dd9222-6aff-4099-b5a2-04ae6b3a00b7" relation="org:default" type="c:ResourceType"/>
     <binding>loose</binding>
     <schedule>
         <misfireAction>executeImmediately</misfireAction>
     </schedule>
     <threadStopAction>restart</threadStopAction>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="f2dd9222-6aff-4099-b5a2-04ae6b3a00b7"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <distribution>
+            <workerThreads>4</workerThreads>
+        </distribution>
+    </activity>
 </task>

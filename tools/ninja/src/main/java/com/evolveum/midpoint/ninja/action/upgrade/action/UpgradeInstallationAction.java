@@ -2,15 +2,21 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions, Void> {
 
-    private static final String VAR_DIRECTORY = "var";
+    private static final boolean IS_POSIX = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
 
     @Override
     public String getOperationName() {
@@ -24,6 +30,9 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         final boolean backupFiles = options.isBackup();
 
         File midpointInstallation = NinjaUtils.computeInstallationDirectory(options.getInstallationDirectory(), context);
+        if (midpointInstallation == null) {
+            throw new NinjaException("Undefined midpoint installation directory");
+        }
 
         File backupDirectory = null;
         if (backupFiles) {
@@ -34,34 +43,54 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         }
 
         for (File file : emptyIfNull(distributionDirectory.listFiles())) {
-            String fileName = file.getName();
+            backupAndCopyFiles(file, new File(midpointInstallation, file.getName()), backupFiles, backupDirectory);
+        }
 
-            if (backupFiles) {
-                File newFile = new File(midpointInstallation, fileName);
+        return null;
+    }
 
-                if (!VAR_DIRECTORY.equals(fileName)) {
-                    if (newFile.exists()) {
-                        FileUtils.moveToDirectory(newFile, backupDirectory, false);
-                    }
-                } else {
-                    // don't back up var directory, upgrade shouldn't touch it, back up only content if needed
-                    FileUtils.forceMkdir(new File(backupDirectory, fileName));
+    private void backupAndCopyFiles(File from, File to, boolean doBackup, File backupDirectory) throws IOException {
+        if (from.isFile()) {
+            Set<PosixFilePermission> permissions = null;
+            if (to.exists()) {
+                permissions = IS_POSIX ? Files.getPosixFilePermissions(to.toPath()) : null;
+
+                if (doBackup) {
+                    FileUtils.copyFile(to, new File(backupDirectory, to.getName()), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
 
-            if (VAR_DIRECTORY.equals(fileName)) {
-                copyFiles(file, new File(midpointInstallation, fileName), new File(backupDirectory, fileName), backupFiles);
-            } else {
-                File targetFile = new File(midpointInstallation, fileName);
-                deleteExisting(targetFile);
+            FileUtils.copyFile(from, to, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+            if (permissions != null) {
+                Files.setPosixFilePermissions(to.toPath(), permissions);
+            }
 
-                FileUtils.moveToDirectory(file, midpointInstallation, false);
+            return;
+        }
+
+        // handling directory
+        Set<PosixFilePermission> permissions = null;
+        if (to.exists()) {
+            permissions = IS_POSIX ? Files.getPosixFilePermissions(to.toPath()) : null;
+
+            if (doBackup) {
+                File backedUp = new File(backupDirectory, to.getName());
+                backedUp.mkdir();
+
+                if (permissions != null) {
+                    Files.setPosixFilePermissions(backedUp.toPath(), permissions);
+                }
             }
         }
 
-        log.info("");
+        to.mkdir();
+        if (permissions != null) {
+            Files.setPosixFilePermissions(to.toPath(), permissions);
+        }
 
-        return null;
+        for (File file : emptyIfNull(from.listFiles())) {
+            backupAndCopyFiles(file, new File(to, file.getName()), doBackup, new File(backupDirectory, from.getName()));
+        }
     }
 
     private File[] emptyIfNull(File[] files) {
@@ -70,38 +99,5 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         }
 
         return files;
-    }
-
-    private void deleteExisting(File targetFile) throws IOException {
-        if (!targetFile.exists()) {
-            return;
-        }
-
-        if (targetFile.isDirectory()) {
-            FileUtils.deleteDirectory(targetFile);
-        } else {
-            targetFile.delete();
-        }
-    }
-
-    private void copyFiles(File srcDir, File dstDir, File backupDir, boolean backup) throws IOException {
-        File[] files = srcDir.listFiles();
-        if (files == null) {
-            return;
-        }
-
-        for (File file : files) {
-            String fileName = file.getName();
-
-            if (backup) {
-                File newFile = new File(dstDir, fileName);
-                if (newFile.exists()) {
-                    FileUtils.moveToDirectory(newFile, backupDir, false);
-                }
-            }
-
-            deleteExisting(new File(dstDir, fileName));
-            FileUtils.moveToDirectory(file, dstDir, false);
-        }
     }
 }

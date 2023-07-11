@@ -7,44 +7,21 @@
 
 package com.evolveum.midpoint.schema.util.task.work;
 
-import static com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil.*;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 public class ResourceObjectSetUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSetUtil.class);
-
-    public static @NotNull ResourceObjectSetType fromLegacySource(@NotNull LegacyWorkDefinitionSource source) {
-        PrismContainerValue<?> extension = source.getTaskExtension();
-        return new ResourceObjectSetType()
-                .resourceRef(source.getObjectRef())
-                .objectclass(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS, QName.class))
-                .kind(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_KIND, ShadowKindType.class))
-                .intent(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_INTENT, String.class))
-                .query(getQueryLegacy(source))
-                .searchOptions(getSearchOptionsLegacy(extension))
-                .failedObjectsSelector(getFailedObjectsSelector(extension));
-    }
-
-    // TODO move to PCV
-    static <T> T getItemRealValue(PrismContainerValue<?> pcv, ItemName name, Class<T> type) {
-        return pcv != null ? pcv.getItemRealValue(name, type) : null;
-    }
 
     public static void removeQuery(ResourceObjectSetType set) {
         if (set.getQuery() != null) {

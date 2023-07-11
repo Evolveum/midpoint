@@ -48,15 +48,6 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         return odo;
     }
 
-    private boolean hasObject() {
-        return odo != null && odo.hasAnyObject();
-    }
-
-    @Override
-    public boolean hasValue() {
-        return hasObject();
-    }
-
     public PrismObject<O> getOldObject() {
         if (odo == null) {
             return null;
@@ -72,7 +63,7 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
     }
 
     public PrismObjectValue<O> getValue() {
-        PrismObject<O> object = odo.getAnyObject();
+        PrismObject<O> object = getAnyObject();
         return object != null ? object.getValue() : null;
     }
 

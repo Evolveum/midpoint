@@ -65,6 +65,16 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public boolean isRemoved() {
+        return metadataValueWrapper.isRemoved();
+    }
+
+    @Override
+    public String getRemovedSince() {
+        return metadataValueWrapper.getRemovedSince();
+    }
+
+    @Override
     public boolean isExperimental() {
         return metadataValueWrapper.isExperimental();
     }

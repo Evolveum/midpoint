@@ -32,7 +32,6 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -402,22 +401,24 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public <O extends ObjectType> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints,
+            @NotNull ObjectSecurityConstraints securityConstraints,
             @NotNull ObjectDelta<O> delta,
             PrismObject<O> currentObject,
-            String operationUrl,
-            AuthorizationPhaseType phase,
-            ItemPath itemPath) {
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            @NotNull ItemPath itemPath) {
         return securityEnforcer.determineItemDecision(securityConstraints, delta, currentObject, operationUrl, phase, itemPath);
     }
 
     @Override
-    public <C extends Containerable> AccessDecision determineItemDecision(
-            ObjectSecurityConstraints securityConstraints, PrismContainerValue<C> containerValue,
-            String operationUrl, AuthorizationPhaseType phase, @Nullable ItemPath itemPath,
-            PlusMinusZero plusMinusZero, String decisionContextDesc) {
-        return securityEnforcer.determineItemDecision(
-                securityConstraints, containerValue, operationUrl, phase, itemPath, plusMinusZero, decisionContextDesc);
+    public <C extends Containerable> AccessDecision determineItemValueDecision(
+            @NotNull ObjectSecurityConstraints securityConstraints,
+            @NotNull PrismContainerValue<C> containerValue,
+            @NotNull String operationUrl,
+            @NotNull AuthorizationPhaseType phase,
+            boolean consideringCreation,
+            @NotNull String decisionContextDesc) {
+        return securityEnforcer.determineItemValueDecision(
+                securityConstraints, containerValue, operationUrl, phase, consideringCreation, decisionContextDesc);
     }
-
 }

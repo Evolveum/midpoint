@@ -17,8 +17,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * Detailed information on how is given prism entity ({@link Item} or {@link PrismValue}) covered by
  * (e.g.) set of authorizations.
  */
-interface PrismEntityCoverageInformation extends DebugDumpable {
+public interface PrismEntityCoverageInformation extends DebugDumpable {
 
     @NotNull PrismEntityCoverage getCoverage();
-
 }

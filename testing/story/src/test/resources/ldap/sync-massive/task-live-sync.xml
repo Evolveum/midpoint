@@ -6,29 +6,27 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="eba4a816-2a05-11e9-9123-03a2334b9b4c"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="eba4a816-2a05-11e9-9123-03a2334b9b4c">
     <name>Live Sync: OpenDJ</name>
-
-    <extension>
-        <syncext:objectclass>ri:inetOrgPerson</syncext:objectclass>
-    </extension>
-
     <taskIdentifier>eba4a816-2a05-11e9-9123-03a2334b9b4c</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
     <binding>tight</binding>
     <schedule>
         <interval>1</interval>
     </schedule>
-
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
 </task>

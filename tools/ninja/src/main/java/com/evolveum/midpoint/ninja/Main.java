@@ -14,6 +14,9 @@ import java.util.Objects;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
+import com.evolveum.midpoint.ninja.util.InputParameterException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.fusesource.jansi.AnsiConsole;
@@ -68,6 +71,8 @@ public class Main {
 
         BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
+        ConsoleFormat.setBatchMode(base.isBatchMode());
+
         if (base.isVerbose() && base.isSilent()) {
             err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");
@@ -111,6 +116,8 @@ public class Main {
             } finally {
                 action.destroy();
             }
+        } catch (InputParameterException ex) {
+            err.println("ERROR: " + ex.getMessage());
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {

@@ -103,7 +103,7 @@ class EnforcerDecisionOperation extends EnforcerOperation {
                 overallDecision = AccessDecision.ALLOW;
                 // Do NOT break here. Other authorization statements may still deny the operation
             } else { // "deny" authorization
-                var itemsMatchResult = evaluation.matchesItems(params);
+                var itemsMatchResult = evaluation.matchesOnItems(params);
                 if (itemsMatchResult.value()) {
                     evaluation.traceAuthorizationDenyRelevant(operationUrl, itemsMatchResult);
                     overallDecision = AccessDecision.DENY;
@@ -120,11 +120,13 @@ class EnforcerDecisionOperation extends EnforcerOperation {
 
         if (overallDecision == AccessDecision.ALLOW) {
             if (allowedItems.includesAllItems()) {
-                tracePhasedDecisionOperationNote(phase, "Empty list of allowed items, operation allowed");
+                tracePhasedDecisionOperationNote(phase, "Allowing all items => operation allowed");
             } else {
                 // The object and delta must not contain any item that is not explicitly allowed.
                 tracePhasedDecisionOperationNote(phase, "Checking for allowed items: %s", allowedItems);
-                var itemsDecision = new ItemDecisionOperation().onAllowedItems(allowedItems, phase, params);
+                ItemDecisionOperation.SimpleTracer simpleTracer =
+                        (message, msgParams) -> tracePhasedDecisionOperationNote(phase, message, msgParams);
+                var itemsDecision = new ItemDecisionOperation(simpleTracer).decideUsingAllowedItems(allowedItems, phase, params);
                 if (itemsDecision != AccessDecision.ALLOW) {
                     tracePhasedDecisionOperationNote(
                             phase, "NOT ALLOWED operation because the 'items' decision is %s", itemsDecision);

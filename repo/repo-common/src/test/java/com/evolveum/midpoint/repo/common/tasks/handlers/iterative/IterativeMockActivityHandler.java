@@ -32,13 +32,14 @@ public class IterativeMockActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(IterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, null,
+        handlerRegistry.register(
+                IterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 IterativeMockWorkDefinition.class, IterativeMockWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(IterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, null,
+        handlerRegistry.unregister(IterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 IterativeMockWorkDefinition.class);
     }
 

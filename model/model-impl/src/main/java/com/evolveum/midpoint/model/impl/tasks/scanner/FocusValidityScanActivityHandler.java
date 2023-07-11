@@ -31,20 +31,19 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class FocusValidityScanActivityHandler
         extends ModelActivityHandler<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE,
                 FocusValidityScanWorkDefinition.class, FocusValidityScanWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, FocusValidityScanWorkDefinition.class);
+                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, FocusValidityScanWorkDefinition.class);
     }
 
     @Override

@@ -5,31 +5,37 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<task xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
         oid="1dfb1e5c-ec1a-42f4-8fe7-a072249a3ee5">
     <name>Change description task template (iterative)</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:execute>
-                <s:script>
-                    <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-
-                        log.info('Modifying user {}', input)
-                        def deltas = midpoint.deltaFor(UserType.class)
-                        .item(UserType.F_DESCRIPTION)
-                        .replace('hello ' + basic.stringify(input.name))
-                        .asObjectDeltas(input.oid)
-                        log.info('Change:\n{}', deltas.iterator().next().debugDump())
-                        midpoint.executeChanges(deltas, null)
-                    </code>
-                </s:script>
-            </s:execute>
-        </scext:executeScript>
-        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">UserType</mext:objectType>
-    </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                                log.info('Modifying user {}', input)
+                                def deltas = midpoint.deltaFor(UserType.class)
+                                        .item(UserType.F_DESCRIPTION)
+                                        .replace('hello ' + basic.stringify(input.name))
+                                        .asObjectDeltas(input.oid)
+                                log.info('Change:\n{}', deltas.iterator().next().debugDump())
+                                midpoint.executeChanges(deltas, null)
+                            </code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
 </task>

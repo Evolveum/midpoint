@@ -9,26 +9,18 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import static java.util.Comparator.*;
 
-import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.common.base.MoreObjects;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Defines reporting features of the activity, like logging, tracing, profiling, and reports.
@@ -58,89 +50,13 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
      * The task can be null for children of custom composite activities.
      */
     @NotNull
-    public static ActivityReportingDefinition create(@Nullable ActivityDefinitionType definitionBean, @Nullable Task task) {
+    public static ActivityReportingDefinition create(@Nullable ActivityDefinitionType definitionBean) {
         ActivityReportingDefinitionType bean =
                 definitionBean != null && definitionBean.getReporting() != null ?
                         definitionBean.getReporting().clone() :
-                        new ActivityReportingDefinitionType(PrismContext.get());
-
-        if (bean.getLogging() == null) {
-            bean.setLogging(createLoggingConfigurationFromTask(task));
-        }
-
-        if (bean.getTracing().isEmpty()) {
-            CollectionUtils.addIgnoreNull(bean.getTracing(), createTracingDefinitionFromTask(task));
-        }
-
-        if (bean.getProfiling() == null) {
-            bean.setProfiling(createProfilingConfigurationFromTask(task));
-        }
+                        new ActivityReportingDefinitionType();
 
         return new ActivityReportingDefinition(bean);
-    }
-
-    /**
-     * Creates a detached logging configuration from a task (if not null).
-     */
-    private static @Nullable ActivityLoggingOptionsType createLoggingConfigurationFromTask(Task task) {
-        if (task == null) {
-            return null;
-        }
-
-        ActivityReportingDefinitionType bean =
-                task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS);
-
-        if (bean != null && bean.getLogging() != null) {
-            return bean.getLogging().clone();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Creates a detached tracing configuration from a task (if not null).
-     */
-    private static @Nullable ActivityTracingDefinitionType createTracingDefinitionFromTask(Task task) {
-        if (task == null) {
-            return null;
-        }
-
-        ActivityTracingDefinitionType bean =
-                task.getContainerableOrClone(SchemaConstants.MODEL_EXTENSION_TRACING, ActivityTracingDefinitionType.class);
-        if (bean != null) {
-            return bean.clone();
-        }
-
-        // Creating artificial configuration from components
-        Integer interval = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL);
-        TracingProfileType tracingProfile = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-        PrismProperty<TracingRootType> tracingRoots = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_ROOT);
-
-        if (interval == null && tracingProfile == null && tracingRoots == null) {
-            return null;
-        } else {
-            ActivityTracingDefinitionType newBean = new ActivityTracingDefinitionType(PrismContext.get())
-                    .interval(interval)
-                    .tracingProfile(CloneUtil.clone(tracingProfile));
-            if (tracingRoots != null) {
-                newBean.getTracingPoint().addAll(tracingRoots.getRealValues());
-            }
-            return newBean;
-        }
-    }
-
-    private static @Nullable ActivityProfilingDefinitionType createProfilingConfigurationFromTask(Task task) {
-        if (task == null) {
-            return null;
-        }
-
-        Integer interval = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_PROFILING_INTERVAL);
-        if (interval == null) {
-            return null;
-        } else {
-            return new ActivityProfilingDefinitionType(PrismContext.get())
-                    .interval(interval);
-        }
     }
 
     public @NotNull List<ActivityTracingDefinitionType> getTracingConfigurationsSorted() {

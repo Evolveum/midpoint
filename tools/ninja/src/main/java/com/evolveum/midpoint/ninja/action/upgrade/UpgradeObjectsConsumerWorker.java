@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -11,13 +8,13 @@ import com.evolveum.midpoint.ninja.action.upgrade.action.UpgradeObjectsOptions;
 import com.evolveum.midpoint.ninja.action.worker.BaseWorker;
 import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.validator.UpgradeObjectsHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWorker<UpgradeObjectsOptions, T> {
@@ -69,8 +66,9 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
     }
 
     private void processObject(RepositoryService repository, T object) {
-        PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
+        PrismObject prismObject = object.asPrismObject();
 
+        // todo skip upgrade for specific objects based on CSV report
         Set<String> identifiers = skipUpgradeForOids.get(UUID.fromString(object.getOid()));
         if (identifiers == null) {
             identifiers = new HashSet<>();
@@ -82,22 +80,27 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 //            return;
 //        }
 //
-//        UpgradeObjectsHandler upgradeHandler = new UpgradeObjectsHandler();
-//        UpgradeObjectResult result = upgradeHandler.handle(prismObject);
-//
-//        if (result.isChanged()) {
-//            ObjectDelta<?> delta = result.getDelta();
-//
-//            OperationResult opResult = new OperationResult("Modify object");
-//            try {
-//                repository.modifyObject(object.getClass(), object.getOid(), delta.getModifications(), opResult);
-//            } catch (Exception ex) {
-//                log.error("Couldn't modify object");
-//            } finally {
-//                opResult.computeStatusIfUnknown();
-//
-//                // todo if not success, print?
-//            }
-//        }
+
+        PrismObject cloned = prismObject.clone();
+        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context);
+        boolean changed = executor.execute(cloned);
+        if (!changed) {
+            return;
+        }
+
+        OperationResult opResult = new OperationResult("Modify object");
+        try {
+            ObjectDelta<?> delta = cloned.diff(prismObject);
+            Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
+            RepoModifyOptions opts = modifications.isEmpty() ? RepoModifyOptions.createForceReindex() : new RepoModifyOptions();
+
+            repository.modifyObject(object.getClass(), object.getOid(), delta.getModifications(), opts, opResult);
+        } catch (Exception ex) {
+            log.error("Couldn't modify object");
+        } finally {
+            opResult.computeStatusIfUnknown();
+
+            // todo if not success, print?
+        }
     }
 }

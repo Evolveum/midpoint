@@ -11,7 +11,6 @@ public class ObjectUpgradeValidator {
     private final ObjectValidator validator;
 
     public ObjectUpgradeValidator(@NotNull PrismContext prismContext) {
-
         this.validator = new ObjectValidator(prismContext);
     }
 
@@ -25,6 +24,10 @@ public class ObjectUpgradeValidator {
 
     public void setWarnPlannedRemovalVersion(String value) {
         this.validator.setWarnPlannedRemovalVersion(value);
+    }
+
+    public void setWarnRemoved(boolean value) {
+        this.validator.setWarnRemoved(value);
     }
 
     public void setWarnIncorrectOids(boolean value) {

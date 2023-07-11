@@ -74,14 +74,15 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
-        Specification base = Specification.of(
-                selector, authorization.getItems(), authorization.getExceptItems(), TracingUtil.getHumanReadableDesc(selector));
-        Specification adjusted = base.adjust(filterType);
-        if (adjusted == null) {
-            // TODO log
+        String selectorDesc = TracingUtil.getHumanReadableDesc(selector);
+        SelectorWithItems baseSelector =
+                SelectorWithItems.of(selector, authorization.getItems(), authorization.getExceptItems(), selectorDesc);
+        SelectorWithItems adjustedSelector = baseSelector.adjustToSubObjectFilter(filterType);
+        if (adjustedSelector == null) {
+            traceAutzProcessingNote("No adjustment for selector exists: %s", selectorDesc);
         } else {
             var evaluation = new SelectorFilterEvaluation<>(
-                    selectorId(i), adjusted, filterType, originalFilter, adjusted.getDescription(),
+                    selectorId(i), adjustedSelector, filterType, originalFilter, adjustedSelector.getDescription(),
                     selectorLabel, AuthorizationFilterEvaluation.this, result);
             if (evaluation.processFilter()) {
                 autzFilter = ObjectQueryUtil.filterOr(autzFilter, evaluation.getSecurityFilter());

@@ -43,8 +43,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class CompositeMockActivityHandler
         extends AbstractMockActivityHandler<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/composite-mock/handler-3";
-
     @Autowired ActivityHandlerRegistry registry;
     @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired private CommonMockActivityHelper mockHelper;
@@ -53,14 +51,14 @@ public class CompositeMockActivityHandler
 
     @PostConstruct
     public void register() {
-        registry.register(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
+        registry.register(
+                CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 CompositeMockWorkDefinition.class, CompositeMockWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        workDefinitionFactory.unregisterSupplier(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
-                LEGACY_HANDLER_URI);
+        workDefinitionFactory.unregisterSupplier(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME);
         registry.unregisterHandler(CompositeMockWorkDefinition.class);
     }
 

@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CartSummaryPanel extends BasePanel<RequestAccess> implements AccessRequestStep {
+public class CartSummaryPanel extends BasePanel<RequestAccess> implements AccessRequestMixin {
 
     private static final long serialVersionUID = 1L;
 

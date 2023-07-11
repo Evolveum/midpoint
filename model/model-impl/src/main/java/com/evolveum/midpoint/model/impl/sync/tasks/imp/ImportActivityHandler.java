@@ -9,8 +9,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -25,18 +23,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class ImportActivityHandler
         extends ModelActivityHandler<ImportWorkDefinition, ImportActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(ImportWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                ImportWorkDefinitionType.COMPLEX_TYPE,
                 ImportWorkDefinition.class, ImportWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ImportWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.unregister(
+                ImportWorkDefinitionType.COMPLEX_TYPE,
                 ImportWorkDefinition.class);
     }
 

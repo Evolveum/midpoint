@@ -14,18 +14,13 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,15 +30,15 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -61,7 +56,6 @@ public class DeletionActivityHandler
             DeletionActivityHandler.MyWorkDefinition,
         DeletionActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.DELETE_TASK_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(DeletionActivityHandler.class);
 
     @Override
@@ -82,11 +76,6 @@ public class DeletionActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, DeletionActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override
@@ -159,9 +148,6 @@ public class DeletionActivityHandler
          * are specified, or both are left as default (true).
          */
         private void checkRawModeSettings() {
-            if (getWorkDefinition().legacyRawMode != null) {
-                return;
-            }
             Boolean rawInSearch =
                     getRaw(GetOperationOptionsUtil.optionsBeanToOptions(
                             getWorkDefinition().objects.getSearchOptions()));
@@ -193,7 +179,7 @@ public class DeletionActivityHandler
             if (getRaw(configuredOptions) != null) {
                 return configuredOptions;
             } else {
-                return GetOperationOptions.updateToRaw(configuredOptions, getDefaultRawValue());
+                return GetOperationOptions.updateToRaw(configuredOptions, true);
             }
         }
 
@@ -203,13 +189,8 @@ public class DeletionActivityHandler
                 return executeOptions;
             } else {
                 return executeOptions.clone()
-                        .raw(getDefaultRawValue());
+                        .raw(true);
             }
-        }
-
-        private boolean getDefaultRawValue() {
-            return Objects.requireNonNullElse(
-                    getWorkDefinition().legacyRawMode, true);
         }
 
         @Override
@@ -270,33 +251,15 @@ public class DeletionActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-        @Nullable private final Boolean legacyRawMode;
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-
-                legacyRawMode = Objects.requireNonNullElse(
-                        legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class),
-                        true); // "Raw=true" is the default
-
-                objects = ObjectSetUtil.fromLegacySource(legacy);
-                // Before 4.4, the DeleteTaskHandler did not fetch search nor execution options from the task.
-                // Therefore, we delete the search options, so they will NOT be inadvertently used.
-                objects.setSearchOptions(null);
-
-                executionOptions = ModelExecuteOptions.create(); // Before 4.4 we did not support execution options.
-            } else {
-                DeletionWorkDefinitionType typedDefinition = (DeletionWorkDefinitionType)
-                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                legacyRawMode = null; // not applicable in new mode
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects()); // Can contain search options.
-                executionOptions = Objects.requireNonNullElseGet(
-                        fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
-                        ModelExecuteOptions::create);
-            }
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (DeletionWorkDefinitionType) source.getBean();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects()); // Can contain search options.
+            executionOptions = Objects.requireNonNullElseGet(
+                    fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
+                    ModelExecuteOptions::create);
             // Intentionally not setting default object type nor query. These must be defined.
             // Corresponding safety checks are done before real execution.
         }
@@ -308,7 +271,6 @@ public class DeletionActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "legacyRawMode", legacyRawMode, indent+1);
             DebugUtil.debugDumpWithLabelLn(sb, "objects (default for raw not yet applied)", objects, indent+1);
             DebugUtil.debugDumpWithLabel(sb, "executionOptions (default for raw not yet applied)",
                     String.valueOf(executionOptions), indent+1);

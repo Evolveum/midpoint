@@ -25,10 +25,8 @@ import com.evolveum.midpoint.wf.impl.processors.primary.ApprovalMetadataHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -154,11 +152,6 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
             task.setChannel(modelContext.getChannel());
         }
         clockwork.run(modelContext, task, result);
-    }
-
-    @Override
-    public String getArchetypeOid(@Nullable String handlerUri) {
-        return SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value();
     }
 
     @PostConstruct

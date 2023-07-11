@@ -18,10 +18,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -105,10 +103,5 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
             return runResult;
         }
-    }
-
-    @Override
-    public String getArchetypeOid(@Nullable String handlerUri) {
-        return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 }

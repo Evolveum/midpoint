@@ -6,22 +6,23 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="9e2887cd-3f45-46e7-82ee-20454ba25d94"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="9e2887cd-3f45-46e7-82ee-20454ba25d94">
     <name>reconciliation of hacked</name>
-
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-    <objectRef oid="8aad610b-0e35-4604-9139-2f864ac4eac2" type="ResourceType"/> <!-- resource-source -->
+    <objectRef oid="8aad610b-0e35-4604-9139-2f864ac4eac2" type="ResourceType"/> <!-- resource-hacked -->
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="8aad610b-0e35-4604-9139-2f864ac4eac2"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

@@ -21,14 +21,10 @@ public class PhasedConstraints implements DebugDumpable {
     private final ItemSecurityConstraintsImpl execConstraints = new ItemSecurityConstraintsImpl();
 
     public @NotNull ItemSecurityConstraintsImpl get(@NotNull AuthorizationPhaseType phase) {
-        switch (phase) {
-            case REQUEST:
-                return requestConstraints;
-            case EXECUTION:
-                return execConstraints;
-            default:
-                throw new AssertionError(phase);
-        }
+        return switch (phase) {
+            case REQUEST -> requestConstraints;
+            case EXECUTION -> execConstraints;
+        };
     }
 
     @Override

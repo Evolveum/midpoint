@@ -65,4 +65,24 @@ public class PhaseSelector {
             }
         }
     }
+
+    public @NotNull String getSymbol() {
+        StringBuilder sb = new StringBuilder();
+        if (strict) {
+            sb.append('!');
+        } else {
+            sb.append('.'); // not very nice (assumes the use in "PART.xx" id)
+        }
+        if (phase == null) {
+            sb.append('b');
+        } else {
+            sb.append(
+                    switch (phase) {
+                        case REQUEST -> 'r';
+                        case EXECUTION -> 'e';
+                    }
+            );
+        }
+        return sb.toString();
+    }
 }

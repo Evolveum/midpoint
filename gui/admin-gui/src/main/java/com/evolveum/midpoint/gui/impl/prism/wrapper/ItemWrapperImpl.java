@@ -168,6 +168,16 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
+    public boolean isRemoved() {
+        return getItemDefinition().isRemoved();
+    }
+
+    @Override
+    public String getRemovedSince() {
+        return getItemDefinition().getRemovedSince();
+    }
+
+    @Override
     public ItemStatus getStatus() {
         return status;
     }

@@ -28,11 +28,6 @@ public class ItemSecurityConstraintsImpl implements ItemSecurityConstraints {
     /** Items covered by negative (`DENY`) authorizations. */
     private final AutzItemPaths deniedItems = new AutzItemPaths();
 
-    @Override
-    public boolean isCompletelyAllowed() {
-        return allowedItems.includesAllItems() && deniedItems.includesNoItems();
-    }
-
     void collectItems(Authorization autz) {
         if (autz.isAllow()) {
             allowedItems.collectItems(autz);

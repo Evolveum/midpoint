@@ -31,7 +31,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class TestParseTaskBulkAction extends AbstractSchemaTest {
 
-    public static final File TASK_FILE = new File("src/test/resources/common/task-bulk-action-1.xml");
+    private static final File TASK_FILE = new File("src/test/resources/common/task-bulk-action-1.xml");
 
     @Test
     public void testParseTaskFileToXNode() throws Exception {
@@ -130,11 +130,6 @@ public class TestParseTaskBulkAction extends AbstractSchemaTest {
         PrismPropertyValue<TaskExecutionStateType> executionStateValue = executionStateProperty.getValue();
         TaskExecutionStateType executionState = executionStateValue.getValue();
         assertEquals("Wrong execution state", TaskExecutionStateType.RUNNABLE, executionState);
-
-        PrismContainer extension = task.getExtension();
-        PrismContainerValue extensionValue = extension.getValue();
-        assertTrue("Extension parent", extensionValue.getParent() == extension);
-        assertNull("Extension ID", extensionValue.getId());
 
     }
 

@@ -56,7 +56,7 @@ public class ActivityBasedTaskRun implements TaskRun {
     public TaskRunResult run(OperationResult result) throws TaskException {
 
         try {
-            activityTree = ActivityTree.create(getRootTask(), getBeans());
+            activityTree = ActivityTree.create(getRootTask());
             localRootPath = ActivityStateUtil.getLocalRootPath(runningTask.getWorkState());
 
             localRootActivity = activityTree.getActivity(localRootPath);

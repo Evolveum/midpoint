@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsHandler {
 
-    private static final List<UpgradeObjectProcessor<?>> PROCESSORS;
+    public static final List<UpgradeObjectProcessor<?>> PROCESSORS;
 
     static {
         PROCESSORS = initProcessors();
@@ -57,7 +57,7 @@ public class UpgradeObjectsHandler {
             return null;
         }
 
-        boolean changed = processor.process((PrismObject) cloned);
+        boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
 
         UpgradeValidationItem result = new UpgradeValidationItem(item);
         result.setChanged(changed);

@@ -5,43 +5,45 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-      oid="829c2d59-91c0-493f-9501-afc336e991c8"
-      version="14">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="829c2d59-91c0-493f-9501-afc336e991c8"
+        version="14">
     <name>Create user</name>
-    <extension xmlns:se="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-               xsi:type="c:ExtensionType">
-        <se:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
-            <s:action>
-                <s:type>add</s:type>
-            </s:action>
-            <s:input>
-                <s:value xsi:type="c:UserType">
-                    <name>joe</name>
-                    <fullName>Joe Doe</fullName>
-                    <givenName>Joe</givenName>
-                    <familyName>Doe</familyName>
-                </s:value>
-            </s:input>
-            <s:variables>
-                <s:variable>
-                    <s:name>test</s:name>
-                    <s:expression>
-                        <c:value xsi:type="xsd:int">12345</c:value>
-                    </s:expression>
-                </s:variable>
-            </s:variables>
-        </se:executeScript>
-    </extension>
     <taskIdentifier>1507208317101:451769069</taskIdentifier>
-    <ownerRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-              oid="00000000-0000-0000-0000-000000000002"
-              relation="org:default"
-              type="tns:UserType"><!-- administrator --></ownerRef>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
     <executionState>closed</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
     <binding>tight</binding>
+    <activity>
+        <work>
+            <nonIterativeScripting>
+                <scriptExecutionRequest>
+                    <s:action>
+                        <s:type>add</s:type>
+                    </s:action>
+                    <s:input>
+                        <s:value xsi:type="c:UserType">
+                            <name>joe</name>
+                            <fullName>Joe Doe</fullName>
+                            <givenName>Joe</givenName>
+                            <familyName>Doe</familyName>
+                        </s:value>
+                    </s:input>
+                    <s:variables>
+                        <s:variable>
+                            <s:name>test</s:name>
+                            <s:expression>
+                                <c:value xsi:type="xsd:int">12345</c:value>
+                            </s:expression>
+                        </s:variable>
+                    </s:variables>
+                </scriptExecutionRequest>
+            </nonIterativeScripting>
+        </work>
+    </activity>
 </task>

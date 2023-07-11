@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
@@ -53,15 +54,18 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
 
         Collection<String> handlers;
         if (assignmentTypes.isEmpty()) {
-            handlers = getTaskManager().getAllHandlerUris(true);
+            //handlers = getTaskManager().getAllHandlerUris(true);
+            handlers = List.of(); // FIXME the handlers are gone now
         } else if (assignmentTypes.size() == 1) {
             AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
-            handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
+            // handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
+            handlers = List.of(); // FIXME the handlers are gone now
         } else {
             try {
                 ArchetypeType archetype = archetypeManager.determineStructuralArchetype(task, ctx.getResult());
                 // TODO what if there's no archetype?
-                handlers = getTaskManager().getHandlerUrisForArchetype(archetype.getOid(), true);
+                //handlers = getTaskManager().getHandlerUrisForArchetype(archetype.getOid(), true);
+                handlers = List.of(); // FIXME the handlers are gone now
             } catch (SchemaException e) {
                 throw new UnsupportedOperationException("More than 1 structural archetype, this is not supported", e);
             }

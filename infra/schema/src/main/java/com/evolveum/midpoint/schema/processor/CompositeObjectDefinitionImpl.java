@@ -141,6 +141,16 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public boolean isRemoved() {
+        return structuralDefinition.isRemoved();
+    }
+
+    @Override
+    public String getRemovedSince() {
+        return structuralDefinition.getRemovedSince();
+    }
+
+    @Override
     public String getDeprecatedSince() {
         return structuralDefinition.getDeprecatedSince();
     }

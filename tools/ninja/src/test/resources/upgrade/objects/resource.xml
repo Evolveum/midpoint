@@ -2,8 +2,13 @@
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 
     <capabilities>
-        <configured>
+        <native>
             <cap:addRemoveAttributeValues/>
+        </native>
+        <configured>
+            <cap:addRemoveAttributeValues>
+                <cap:enabled>true</cap:enabled>
+            </cap:addRemoveAttributeValues>
         </configured>
     </capabilities>
 </resource>

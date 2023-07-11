@@ -11,7 +11,7 @@
     <name>task-tree-parent</name>
     <taskIdentifier>10000000-0000-0000-0000-123450000021</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>running</executionStatus>
+    <executionState>running</executionState>
     <schedulingState>waiting</schedulingState>
     <waitingReason>otherTasks</waitingReason>
 </task>

@@ -27,13 +27,14 @@ import org.springframework.context.ApplicationContext;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.AuditFactory;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 
-// todo proper logging
 public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
     @Override
@@ -57,11 +58,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
         }
 
         ConnectionOptions connectionOpts = NinjaUtils.getOptions(allOptions, ConnectionOptions.class);
-        if (connectionOpts == null || StringUtils.isEmpty(connectionOpts.getMidpointHome())) {
-            return true;
-        }
-
-        return false;
+        return connectionOpts == null || StringUtils.isEmpty(connectionOpts.getMidpointHome());
     }
 
     @Override
@@ -134,15 +131,15 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
 
     private HikariDataSource setupCustomDataSource() {
         if (StringUtils.isEmpty(options.getJdbcUrl())) {
-            throw new IllegalStateException("JDBC url parameter not defined");
+            throw new InputParameterException("JDBC url parameter not defined");
         }
 
         if (StringUtils.isEmpty(options.getJdbcUsername())) {
-            throw new IllegalStateException("JDBC username parameter not defined");
+            throw new InputParameterException("JDBC username parameter not defined");
         }
 
         if (StringUtils.isEmpty(options.getPassword())) {
-            throw new IllegalStateException("JDBC password parameter not defined");
+            throw new InputParameterException("JDBC password parameter not defined");
         }
 
         HikariConfig config = new HikariConfig();
@@ -235,15 +232,16 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
     }
 
     private void printStatementResults(Statement stmt, boolean hasResult, int index) throws SQLException {
+        String resultHeader = ConsoleFormat.formatInfoMessageWithParameter("Result #", index) + ": ";
         if (!hasResult) {
             int updateCount = stmt.getUpdateCount();
             if (updateCount != -1) {
-                context.out.println("Result #" + index + ": " + updateCount + " updated rows ");
+                context.out.println(resultHeader + updateCount + " updated rows ");
             }
             return;
         }
 
-        context.out.println("Result set #" + index + ":");
+        context.out.println(resultHeader);
         try (ResultSet set = stmt.getResultSet()) {
             printResultSet(set);
         }

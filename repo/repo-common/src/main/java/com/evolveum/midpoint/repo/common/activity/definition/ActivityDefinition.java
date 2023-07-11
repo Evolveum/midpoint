@@ -7,18 +7,14 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import java.util.function.Supplier;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,22 +49,18 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /** Definition for execution mode. Currently only partially tailorable (setting the mode) but that may change. */
     @NotNull private final ActivityExecutionModeDefinition executionModeDefinition;
 
-    @NotNull private final WorkDefinitionFactory workDefinitionFactory;
-
     private ActivityDefinition(String explicitlyDefinedIdentifier,
             @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
             @NotNull ActivityReportingDefinition reportingDefinition,
-            @NotNull ActivityExecutionModeDefinition executionModeDefinition,
-            @NotNull WorkDefinitionFactory workDefinitionFactory) {
+            @NotNull ActivityExecutionModeDefinition executionModeDefinition) {
         this.explicitlyDefinedIdentifier = explicitlyDefinedIdentifier;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
         this.reportingDefinition = reportingDefinition;
         this.executionModeDefinition = executionModeDefinition;
-        this.workDefinitionFactory = workDefinitionFactory;
     }
 
     /**
@@ -77,29 +69,33 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * 1. "activity" bean
      * 2. handler URI
      */
-    public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(Task rootTask, CommonTaskBeans beans)
+    public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(Task rootTask)
             throws SchemaException, ConfigurationException {
-        WorkDefinitionFactory factory = beans.workDefinitionFactory;
-
         ActivityDefinitionType bean = rootTask.getRootActivityDefinitionOrClone();
-        WD rootWorkDefinition = createRootWorkDefinition(bean, rootTask, factory);
-        rootWorkDefinition.addTailoringFrom(bean);
 
-        ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
-        ActivityDistributionDefinition distributionDefinition =
-                ActivityDistributionDefinition.create(bean, getWorkerThreadsSupplier(rootTask));
-        ActivityReportingDefinition reportingDefinition = ActivityReportingDefinition.create(bean, rootTask);
-        ActivityExecutionModeDefinition executionModeDefinition =
-                ActivityExecutionModeDefinition.create(bean, getDefaultModeSupplier(rootTask));
+        WD rootWorkDefinition = createRootWorkDefinition(bean);
+        if (rootWorkDefinition == null) {
+            throw new SchemaException(
+                    "Root work definition cannot be obtained for %s: no activity definition is provided. Handler URI = %s"
+                            .formatted(rootTask, rootTask.getHandlerUri()));
+        }
+        assert bean != null;
+
+        return createActivityDefinition(rootWorkDefinition, bean);
+    }
+
+    private static @NotNull <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createActivityDefinition(
+            WD workDefinition, ActivityDefinitionType definitionBean) {
+
+        workDefinition.addTailoringFrom(definitionBean);
 
         return new ActivityDefinition<>(
-                bean != null ? bean.getIdentifier() : null,
-                rootWorkDefinition,
-                controlFlowDefinition,
-                distributionDefinition,
-                reportingDefinition,
-                executionModeDefinition,
-                factory);
+                definitionBean.getIdentifier(),
+                workDefinition,
+                ActivityControlFlowDefinition.create(definitionBean),
+                ActivityDistributionDefinition.create(definitionBean),
+                ActivityReportingDefinition.create(definitionBean),
+                ActivityExecutionModeDefinition.create(definitionBean));
     }
 
     /**
@@ -108,59 +104,27 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * It is taken from the "activity" bean, combined with (compatible) information from "defaultWorkDefinition"
      * beans all the way up.
      */
-    public static ActivityDefinition<?> createChild(
-            @NotNull ActivityDefinitionType bean, @NotNull WorkDefinitionFactory workDefinitionFactory) {
+    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean) {
         try {
-            AbstractWorkDefinition definition = fromBean(bean, workDefinitionFactory);
+            AbstractWorkDefinition definition = fromBean(bean);
             // TODO enhance with defaultWorkDefinition
             if (definition == null) {
                 throw new SchemaException("Child work definition is not present for " + bean);
             }
-            definition.addTailoringFrom(bean);
-
-            ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
-            ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
-            ActivityReportingDefinition monitoringDefinition = ActivityReportingDefinition.create(bean, null);
-            ActivityExecutionModeDefinition executionModeDefinition =
-                    ActivityExecutionModeDefinition.create(bean, () -> ExecutionModeType.FULL);
-
-            return new ActivityDefinition<>(
-                    bean.getIdentifier(),
-                    definition,
-                    controlFlowDefinition,
-                    distributionDefinition,
-                    monitoringDefinition,
-                    executionModeDefinition,
-                    workDefinitionFactory);
+            return createActivityDefinition(definition, bean);
         } catch (SchemaException | ConfigurationException e) {
             throw new IllegalArgumentException("Couldn't create activity definition from a bean: " + e.getMessage(), e);
         }
     }
 
-    @NotNull
-    private static <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(
-            ActivityDefinitionType activityBean, Task rootTask, WorkDefinitionFactory factory)
+    private static @Nullable <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(
+            @NotNull ActivityDefinitionType activityBean)
             throws SchemaException, ConfigurationException {
-
-        if (activityBean != null) {
-            WD def = fromBean(activityBean, factory);
-            if (def != null) {
-                return def;
-            }
-        }
-
-        //noinspection unchecked
-        WD def = (WD) factory.getWorkFromTaskLegacy(rootTask);
-        if (def != null) {
-            return def;
-        }
-
-        throw new SchemaException("Root work definition cannot be obtained for " + rootTask + ": no activity nor "
-                + "known task handler URI is provided. Handler URI = " + rootTask.getHandlerUri());
+        return fromBean(activityBean);
     }
 
-    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(
-            ActivityDefinitionType bean, WorkDefinitionFactory factory) throws SchemaException, ConfigurationException {
+    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(ActivityDefinitionType bean)
+            throws SchemaException, ConfigurationException {
         if (bean.getComposition() != null) {
             //noinspection unchecked
             return (WD) new CompositeWorkDefinition(bean.getComposition());
@@ -168,7 +132,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
         if (bean.getWork() != null) {
             //noinspection unchecked
-            return (WD) factory.getWorkFromBean(bean.getWork()); // returned value can be null
+            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(bean.getWork()); // returned value can be null
         }
 
         return null;
@@ -176,17 +140,6 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
     public @NotNull ExecutionModeType getExecutionMode() {
         return executionModeDefinition.getMode();
-    }
-
-    private static Supplier<ExecutionModeType> getDefaultModeSupplier(Task task) {
-        return () -> {
-            Boolean taskDryRun = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-            return Boolean.TRUE.equals(taskDryRun) ? ExecutionModeType.DRY_RUN : ExecutionModeType.FULL;
-        };
-    }
-
-    private static Supplier<Integer> getWorkerThreadsSupplier(Task task) {
-        return () -> task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
     }
 
     @Deprecated
@@ -279,8 +232,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 controlFlowDefinition.clone(),
                 distributionDefinition.clone(),
                 reportingDefinition.clone(),
-                executionModeDefinition.clone(),
-                workDefinitionFactory);
+                executionModeDefinition.clone());
     }
 
     public @NotNull ActivityReportingDefinition getReportingDefinition() {

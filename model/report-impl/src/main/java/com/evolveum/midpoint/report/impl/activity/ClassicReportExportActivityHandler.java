@@ -42,7 +42,6 @@ public class ClassicReportExportActivityHandler
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassicReportExportActivityHandler.class);
 
-    private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/report/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value();
 
     @Autowired ActivityHandlerRegistry registry;
@@ -51,13 +50,14 @@ public class ClassicReportExportActivityHandler
 
     @PostConstruct
     public void register() {
-        registry.register(ClassicReportExportWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        registry.register(
+                ClassicReportExportWorkDefinitionType.COMPLEX_TYPE,
                 ClassicReportExportWorkDefinition.class, ClassicReportExportWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        registry.unregister(ClassicReportExportWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        registry.unregister(ClassicReportExportWorkDefinitionType.COMPLEX_TYPE,
                 ClassicReportExportWorkDefinition.class);
     }
 
