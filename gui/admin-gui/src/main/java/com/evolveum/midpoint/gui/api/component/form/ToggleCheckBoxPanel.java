@@ -13,9 +13,15 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -47,21 +53,27 @@ public class ToggleCheckBoxPanel extends InputPanel {
         super.onInitialize();
 
         CheckBox check = new CheckBox(ID_CHECK, getCheckboxModel());
-        check.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        check.add(new OnChangeAjaxBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                System.out.println("ToggleCheckBoxPanel.onUpdate");
+            }
+        });
+//        check.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         check.setOutputMarkupId(true);
         check.add(new EnableBehaviour(this::isCheckboxEnabled));
         add(check);
 
         Label label = new Label(ID_LABEL, getLabelModel());
-        label.add(AttributeModifier.replace("for", (IModel<String>) check::getMarkupId));
+//        label.add(AttributeModifier.replace("for", (IModel<String>) check::getMarkupId));
         add(label);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeModifier.append("class", this::getIconModel));
+//        icon.add(AttributeModifier.append("class", this::getIconModel));
         icon.add(new VisibleBehaviour(() -> notNullModel(getIconModel())));
         add(icon);
 
-        add(new AttributeModifier("title", this::getTooltipModel));
+//        add(new AttributeModifier("title", this::getTooltipModel));
     }
 
     private IModel<String> getLabelModel() {
@@ -118,5 +130,16 @@ public class ToggleCheckBoxPanel extends InputPanel {
 
     public FormComponent getBaseFormComponent() {
         return getPanelComponent();
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript("$(\"[data-bootstrap-switch]\").bootstrapSwitch({\n"
+                + "  onSwitchChange: function(e, state) { \n"
+                + "    $('#" + getPanelComponent().getMarkupId() + "').trigger('change');\n"
+                + "  }\n"
+                + "});"));
     }
 }

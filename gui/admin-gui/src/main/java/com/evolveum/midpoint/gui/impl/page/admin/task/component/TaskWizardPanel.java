@@ -126,7 +126,7 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
         }
 
         //TODO this is not very clean, should be somehow passed to the wizard
-        boolean isSimulationTask = task.getActivity().getExecution() != null && ExecutionModeType.PREVIEW == task.getActivity().getExecution().getMode();
+        boolean isSimulationTask = task.getActivity().getExecution() != null && task.getActivity().getExecution().getMode() != null;
 
         if (isSimulationTask) {
             steps.add(new AbstractFormWizardStepPanel<>(getAssignmentHolderModel()) {

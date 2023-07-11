@@ -19,9 +19,11 @@ import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -44,7 +46,7 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_CLOSE = "close";
 
-    private IModel<Boolean> simulate;
+//    private IModel<Boolean> simulate;
     private IModel<SynchronizationTaskFlavor> flavorModel;
 
     private Fragment footer;
@@ -57,12 +59,12 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-        simulate = new LoadableModel<>() {
-            @Override
-            protected Boolean load() {
-                return false;
-            }
-        };
+//        simulate = new LoadableModel<>() {
+//            @Override
+//            protected Boolean load() {
+//                return false;
+//            }
+//        };
         flavorModel = new LoadableModel<>() {
             @Override
             protected SynchronizationTaskFlavor load() {
@@ -107,10 +109,8 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
         };
 
         ToggleCheckBoxPanel simulationPanel = new ToggleCheckBoxPanel(ID_SIMULATE,
-                simulate, displayModel) {
+                Model.of(false), displayModel);
 
-
-        };
         simulationPanel.setOutputMarkupId(true);
         add(simulationPanel);
 
@@ -123,7 +123,7 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                createNewTaskPerformed(flavorModel.getObject(), simulate.getObject(), target);
+                onCreateTask(target);
             }
         };
         createNewTask.showTitleAsLabel(true);
@@ -156,6 +156,11 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
             case ARCHETYPE_IMPORT_TASK -> SynchronizationTaskFlavor.IMPORT;
             default -> null;
         };
+    }
+
+    private void onCreateTask(AjaxRequestTarget target) {
+        ToggleCheckBoxPanel toggleCheckBoxPanel = (ToggleCheckBoxPanel) get(ID_SIMULATE);
+        createNewTaskPerformed(flavorModel.getObject(), toggleCheckBoxPanel.getValue(), target);
     }
 
     protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {

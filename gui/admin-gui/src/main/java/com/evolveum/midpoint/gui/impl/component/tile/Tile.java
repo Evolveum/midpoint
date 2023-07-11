@@ -85,8 +85,4 @@ public class Tile<T extends Serializable> implements Comparable<Tile>, Serializa
         return this.title.compareTo(o.getTitle());
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return Objects.equals(value, ((Tile) obj).getValue());
-    }
 }
