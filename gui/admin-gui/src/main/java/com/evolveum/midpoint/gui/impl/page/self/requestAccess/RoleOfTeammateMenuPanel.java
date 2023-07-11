@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -25,6 +26,7 @@ import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
@@ -37,7 +39,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AutocompleteSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleCatalogType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -163,7 +168,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
                 .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
     }
 
-    public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {
+    public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> implements AutocompleteConfigurationMixin {
 
         @Serial private static final long serialVersionUID = 1L;
 
@@ -179,14 +184,17 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
                 return null;
             }
 
-            ExpressionType displayExpression = panel.getAutocompleteConfiguration().getDisplayExpression();
-            if (displayExpression != null) {
-                PrismObject<?> obj = WebModelServiceUtils.loadObject(ref, panel.getPageBase());
+            AutocompleteSearchConfigurationType config = panel.getAutocompleteConfiguration();
+            if (config.getDisplayExpression() != null) {
+                PrismObject<UserType> obj = WebModelServiceUtils.loadObject(ref, panel.getPageBase());
                 if (obj != null) {
-                    String name = panel.getDisplayNameFromExpression(
-                            "", panel.getAutocompleteConfiguration().getDisplayExpression(), obj, panel);
-                    if (name != null) {
+                    String name = getDisplayNameFromExpression(
+                            "User display name (teammate)", config.getDisplayExpression(),
+                            o -> panel.getDefaultUserDisplayName(o), obj, panel);
+                    if (StringUtils.isNotEmpty(name)) {
                         ref.setTargetName(new PolyStringType(name));
+                    } else {
+                        ref.setTargetName(new PolyStringType(obj.getName()));
                     }
                 }
             }

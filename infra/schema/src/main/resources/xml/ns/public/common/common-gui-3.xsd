@@ -385,7 +385,7 @@
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
-            <xsd:element name="autoCompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
+            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Configuration of autocomplete search used to search for users.
@@ -398,6 +398,9 @@
                         Search filter template with expression that is used together with collection ref specification.
                         Expression should use variable "input" which will contain value from autocomplete text field used for search.
                         By default, SUBSTRING search on UserType.name is used.
+
+                        DEPRECATED:
+                        Use autocompleteConfiguration.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -410,6 +413,9 @@
                     <xsd:documentation>
                         Expression that can be used to return String value which describes user object returned by search.
                         By default, `user.getFullName() + "(" + user.getName() + ")"` is used.
+
+                        DEPRECATED:
+                        Use autocompleteConfiguration.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -422,6 +428,9 @@
                     <xsd:documentation>
                         Minimum number of characters that needs to be typed into autocomplete widget before search will start.
                         Default value: 2
+
+                        DEPRECATED:
+                        Use autocompleteConfiguration.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -618,19 +627,17 @@
                     <xsd:documentation>
                         Search filter template with expression that is used together with collection ref specification.
                         Expression should use variable "input" which will contain value from autocomplete text field used for search.
-                        By default, SUBSTRING search on ObjectType.name is used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="displayExpression" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression that can be used to return String value which describes user object returned by search.
-                        By default, object.getName() is used.
+                        Expression that can be used to return String value which describes object returned by search.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0">
+            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0" default="2">
                 <xsd:annotation>
                     <xsd:documentation>
                         Minimum number of characters that needs to be typed into autocomplete widget before search will start.
