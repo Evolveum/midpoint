@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.common.activity.definition;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.util.ConfigurationSpecificationTypeUtil;
@@ -40,24 +39,18 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
         this.bean = bean;
     }
 
-    public static @NotNull ActivityExecutionModeDefinition create(
-            @Nullable ActivityDefinitionType activityDefinitionBean,
-            @NotNull Supplier<ExecutionModeType> defaultModeSupplier) {
+    public static @NotNull ActivityExecutionModeDefinition create(@Nullable ActivityDefinitionType activityDefinitionBean) {
         if (activityDefinitionBean == null) {
             return new ActivityExecutionModeDefinition(
                     new ActivityExecutionModeDefinitionType()
-                            .mode(defaultModeSupplier.get()));
+                            .mode(ExecutionModeType.FULL));
         }
         ActivityExecutionModeDefinitionType originalBean = activityDefinitionBean.getExecution();
         ActivityExecutionModeDefinitionType clonedBean =
                 originalBean != null ? originalBean.clone() : new ActivityExecutionModeDefinitionType();
         if (clonedBean.getMode() == null) {
             ExecutionModeType legacyMode = activityDefinitionBean.getExecutionMode();
-            if (legacyMode != null) {
-                clonedBean.setMode(legacyMode);
-            } else {
-                clonedBean.setMode(defaultModeSupplier.get());
-            }
+            clonedBean.setMode(Objects.requireNonNullElse(legacyMode, ExecutionModeType.FULL));
         }
         return new ActivityExecutionModeDefinition(clonedBean);
     }
@@ -100,32 +93,33 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
     public TaskExecutionMode getTaskExecutionMode() throws ConfigurationException {
         ExecutionModeType mode = getMode();
         switch (mode) {
-            case FULL:
+            case FULL -> {
                 if (isProductionConfiguration()) {
                     return TaskExecutionMode.PRODUCTION;
                 } else {
                     throw new ConfigurationException("Full execution mode requires the use of production configuration");
                 }
-            case PREVIEW:
+            }
+            case PREVIEW -> {
                 if (isProductionConfiguration()) {
                     return TaskExecutionMode.SIMULATED_PRODUCTION;
                 } else {
                     return TaskExecutionMode.SIMULATED_DEVELOPMENT;
                 }
-            case SHADOW_MANAGEMENT_PREVIEW:
+            }
+            case SHADOW_MANAGEMENT_PREVIEW -> {
                 if (isProductionConfiguration()) {
                     return TaskExecutionMode.SIMULATED_SHADOWS_PRODUCTION;
                 } else {
                     return TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT;
                 }
-            case DRY_RUN:
-            case NONE:
-            case BUCKET_ANALYSIS:
+            }
+            case DRY_RUN, NONE, BUCKET_ANALYSIS -> {
                 // These modes are treated in a special way - will be probably changed later
                 // It is also unclear whether to insist on production configuration here.
                 return TaskExecutionMode.PRODUCTION;
-            default:
-                throw new AssertionError(mode);
+            }
+            default -> throw new AssertionError(mode);
         }
     }
 

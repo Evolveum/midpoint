@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
-import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import com.google.common.base.MoreObjects;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,12 +22,8 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.conte
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,13 +44,13 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(NoOpWorkDefinitionType.COMPLEX_TYPE, TaskConstants.NOOP_TASK_HANDLER_URI,
+        handlerRegistry.register(NoOpWorkDefinitionType.COMPLEX_TYPE,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(NoOpWorkDefinitionType.COMPLEX_TYPE, TaskConstants.NOOP_TASK_HANDLER_URI,
+        handlerRegistry.unregister(NoOpWorkDefinitionType.COMPLEX_TYPE,
                 MyWorkDefinition.class);
     }
 
@@ -167,24 +162,12 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         private final int steps;
         @NotNull private final NoOpActivityStepInterruptibilityType stepInterruptibility;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            Integer rawSteps;
-            Integer rawDelay;
-            NoOpActivityStepInterruptibilityType rawStepInterruptibility;
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                rawSteps = legacy.getExtensionItemRealValue(SchemaConstants.NOOP_STEPS_QNAME, Integer.class);
-                rawDelay = legacy.getExtensionItemRealValue(SchemaConstants.NOOP_DELAY_QNAME, Integer.class);
-                rawStepInterruptibility = null;
-            } else {
-                NoOpWorkDefinitionType bean = (NoOpWorkDefinitionType) ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                rawSteps = bean.getSteps();
-                rawDelay = bean.getDelay();
-                rawStepInterruptibility = bean.getStepInterruptibility();
-            }
-            delay = MoreObjects.firstNonNull(rawDelay, 0);
-            steps = MoreObjects.firstNonNull(rawSteps, 1);
-            stepInterruptibility = MoreObjects.firstNonNull(rawStepInterruptibility, NoOpActivityStepInterruptibilityType.NONE);
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var bean = (NoOpWorkDefinitionType) source.getBean();
+            delay = MoreObjects.firstNonNull(bean.getDelay(), 0);
+            steps = MoreObjects.firstNonNull(bean.getSteps(), 1);
+            stepInterruptibility = MoreObjects.firstNonNull(
+                    bean.getStepInterruptibility(), NoOpActivityStepInterruptibilityType.NONE);
         }
 
         private Interval getInterval() {

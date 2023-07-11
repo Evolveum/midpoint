@@ -122,6 +122,8 @@ public class TypeClause extends SelectorClause {
                     filterType.getSimpleName(), restrictedType.getSimpleName());
             return false;
         }
+        // FIXME what if restrictedType is assignable from filterType?
+        //  e.g. we are looking for RoleType but we have a authorization/selector for type=AbstractRoleType
     }
 
     synchronized @NotNull Class<?> getTypeClass() {

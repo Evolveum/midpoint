@@ -82,7 +82,7 @@
      <logger name="com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
-     <logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.ClockworkRequestAuthorizer" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.expr.OrgStructFunctionsImpl" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />

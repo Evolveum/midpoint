@@ -13,7 +13,6 @@ import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -30,18 +29,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class AsyncUpdateActivityHandler
         extends ModelActivityHandler<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/async-update/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value();
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(AsyncUpdateWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                AsyncUpdateWorkDefinitionType.COMPLEX_TYPE,
                 AsyncUpdateWorkDefinition.class, AsyncUpdateWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(AsyncUpdateWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.unregister(
+                AsyncUpdateWorkDefinitionType.COMPLEX_TYPE,
                 AsyncUpdateWorkDefinition.class);
     }
 

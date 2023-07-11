@@ -6,14 +6,13 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="f996d5c4-0cc8-4544-9410-8154a89080fd"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="f996d5c4-0cc8-4544-9410-8154a89080fd">
     <name>Shadow Refresh</name>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
-
+    <activity>
+        <work>
+            <shadowRefresh/>
+        </work>
+    </activity>
 </task>

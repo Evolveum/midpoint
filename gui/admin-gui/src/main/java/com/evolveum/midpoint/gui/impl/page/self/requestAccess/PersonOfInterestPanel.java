@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,32 +34,18 @@ import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -69,9 +56,9 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestStep {
+public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String STEP_ID = "poi";
 
@@ -103,9 +90,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private static class PersonOfInterest implements Serializable {
 
-        private String groupIdentifier;
+        private final String groupIdentifier;
 
-        private TileType type;
+        private final TileType type;
 
         public PersonOfInterest(String groupIdentifier, TileType type) {
             this.groupIdentifier = groupIdentifier;
@@ -129,13 +116,13 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private static final String ID_MULTISELECT = "multiselect";
     private static final String ID_USER_SELECTION_LABEL = "userSelectionLabel";
 
-    private PageBase page;
+    private final PageBase page;
 
     private LoadableModel<List<Tile<PersonOfInterest>>> tiles;
 
     private IModel<SelectionState> selectionState;
 
-    private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
+    private final IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
 
     public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -249,14 +236,14 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
         }
 
-        Tile tile = new Tile(icon, label);
+        Tile<PersonOfInterest> tile = new Tile<>(icon, label);
         tile.setValue(new PersonOfInterest(selection.getIdentifier(), TileType.GROUP_OTHERS));
 
         return tile;
     }
 
     private Tile<PersonOfInterest> createDefaultTile(TileType type) {
-        Tile tile = new Tile(type.getIcon(), getString(type));
+        Tile<PersonOfInterest> tile = new Tile<>(type.getIcon(), getString(type));
         tile.setValue(new PersonOfInterest(null, type));
 
         return tile;
@@ -339,6 +326,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 new ObjectReferenceProvider(this));
 
         GroupSelectionType group = getSelectedGroupSelection();
+        AutocompleteSearchConfigurationType autocompleteConfig = group.getAutoCompleteConfiguration();
+        if (autocompleteConfig == null) {
+            autocompleteConfig = new AutocompleteSearchConfigurationType();
+        }
+
         int minLength = 2;
         if (group != null && group.getAutocompleteMinChars() != null) {
             minLength = group.getAutocompleteMinChars();
@@ -507,7 +499,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         SearchFilterType search;
         if (collection.getCollectionRef() != null) {
             com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            PrismObject obj = WebModelServiceUtils.loadObject(collectionRef, page);
+            PrismObject<?> obj = WebModelServiceUtils.loadObject(collectionRef, page);
             if (obj == null) {
                 return null;
             }
@@ -544,7 +536,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
                 List.of(UserType.COMPLEX_TYPE), true, page, filter) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
@@ -671,9 +663,31 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return result != null ? result : new TargetSelectionType();
     }
 
+    private SearchFilterType getSearchFilterTemplate() {
+        GroupSelectionType group = getSelectedGroupSelection();
+        if (group == null || group.getAutoCompleteConfiguration() == null) {
+            return null;
+        }
+
+        if (group.getAutoCompleteConfiguration() != null) {
+            return group.getAutoCompleteConfiguration().getSearchFilterTemplate();
+        }
+
+        return group.getSearchFilterTemplate();
+    }
+
+    private ObjectFilter getAutocompleteFilter(String text) {
+        return createAutocompleteFilter(text, getSearchFilterTemplate(), (t) -> createDefaultFilter(t), page);
+    }
+
+    private ObjectFilter createDefaultFilter(String text) {
+        return getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+    }
+
     public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {
 
-        private static final long serialVersionUID = 1L;
+        @Serial private static final long serialVersionUID = 1L;
 
         private PersonOfInterestPanel panel;
 
@@ -693,15 +707,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         @Override
         public void query(String text, int page, Response<ObjectReferenceType> response) {
-            ObjectFilter filter = null;
+            ObjectFilter filter = null; // todo shouldn't we use this? probably load some collection filter from group or sometthing?
 
-            Tile<PersonOfInterest> selected = panel.getSelectedTile();
-            String identifier = null;
-            if (selected != null) {
-                identifier = selected.getValue().groupIdentifier;
-            }
-
-            ObjectFilter autocompleteFilter = createAutocompleteFilter(text);
+            ObjectFilter autocompleteFilter = panel.getAutocompleteFilter(text);
 
             ObjectFilter full = autocompleteFilter;
             if (filter != null) {
@@ -730,45 +738,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
         }
 
-        private ObjectFilter createAutocompleteFilter(String text) {
-            GroupSelectionType group = panel.getSelectedGroupSelection();
-            if (group == null) {
-                return createDefaultFilter(text);
-            }
-
-            SearchFilterType filterTemplate = group.getSearchFilterTemplate();
-            if (filterTemplate == null) {
-                return createDefaultFilter(text);
-            }
-
-            Task task = panel.page.getPageTask();
-            OperationResult result = task.getResult();
-            try {
-                PrismContext ctx = PrismContext.get();
-                ObjectFilter filter = ctx.getQueryConverter().parseFilter(filterTemplate, UserType.class);
-
-                PrismPropertyDefinition<String> def = ctx.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME,
-                        DOMUtil.XSD_STRING);
-
-                VariablesMap variables = new VariablesMap();
-                variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);
-
-                return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
-                        panel.page.getExpressionFactory(), ctx, "group selection search filter template", task, result);
-            } catch (Exception ex) {
-                result.recordFatalError(ex);
-                LoggingUtils.logUnexpectedException(LOGGER,
-                        "Couldn't evaluate object filter with expression for group selection and search filter template", ex);
-            }
-
-            return createDefaultFilter(text);
-        }
-
-        private ObjectFilter createDefaultFilter(String text) {
-            return panel.getPrismContext().queryFor(UserType.class)
-                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
-        }
-
         private String getDisplayName(PrismObject<UserType> o) {
             if (o == null) {
                 return null;
@@ -789,7 +758,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 return getDefaultUserDisplayName(o);
             }
 
-            String displayName = getUserDisplayNameFromExpression(identifier, group.getUserDisplayName(), o);
+            String displayName = panel.getDisplayNameFromExpression(
+                    "User display name for group selection '" + identifier + "' expression",
+                    group.getUserDisplayName(), o, panel);
 
             return StringUtils.isNotEmpty(displayName) ? displayName : getDefaultUserDisplayName(o);
         }
@@ -799,47 +770,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             String fullName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getFullName());
 
             return StringUtils.isNotEmpty(fullName) ? fullName + " (" + name + ")" : name;
-        }
-
-        private String getUserDisplayNameFromExpression(String identifier, ExpressionType expressionType, PrismObject<UserType> object) {
-            String contextDesc = "User display name for group selection '" + identifier + "' expression";
-
-            ModelServiceLocator locator = panel.page;
-
-            Task task = panel.page.getPageTask();
-            OperationResult result = task.getResult();
-
-            try {
-                ExpressionFactory factory = locator.getExpressionFactory();
-                PrismContext ctx = object.getPrismContext();
-                PrismPropertyDefinition<String> outputDefinition = ctx.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-                        DOMUtil.XSD_STRING);
-                Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                        factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
-
-                VariablesMap variables = new VariablesMap();
-                variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
-
-                ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
-                context.setExpressionFactory(factory);
-                PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
-                if (outputTriple == null) {
-                    return null;
-                }
-                Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
-                if (outputValues.isEmpty()) {
-                    return null;
-                }
-                if (outputValues.size() > 1) {
-                    return null;
-                }
-                return outputValues.iterator().next().getRealValue();
-            } catch (Exception ex) {
-                result.recordFatalError(ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate expression for group selection and user display name", ex);
-            }
-
-            return null;
         }
 
         @Override

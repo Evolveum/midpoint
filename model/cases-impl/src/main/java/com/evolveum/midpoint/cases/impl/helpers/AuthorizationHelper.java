@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.cases.impl.helpers;
 
-import java.util.Objects;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -77,7 +75,7 @@ public class AuthorizationHelper {
                     operation.action.getUrl(),
                     null,
                     ValueAuthorizationParameters.of(workItem),
-                    null,
+                    SecurityEnforcer.Options.create(),
                     task, result);
         } catch (CommonException e) {
             throw new SystemException(e.getMessage(), e);

@@ -10,10 +10,11 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -24,10 +25,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -45,8 +43,6 @@ public class ReindexActivityHandler
             ObjectType,
             ReindexActivityHandler.MyWorkDefinition,
             ReindexActivityHandler> {
-
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
@@ -66,11 +62,6 @@ public class ReindexActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ReindexActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override
@@ -127,14 +118,9 @@ public class ReindexActivityHandler
 
         private final ObjectSetType objects;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                objects = ObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
-            } else {
-                ReindexingWorkDefinitionType typedDefinition = (ReindexingWorkDefinitionType)
-                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-            }
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (ReindexingWorkDefinitionType) source.getBean();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
         }
 
         @Override

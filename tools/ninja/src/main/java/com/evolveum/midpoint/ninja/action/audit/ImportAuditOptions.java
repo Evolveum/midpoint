@@ -12,7 +12,7 @@ import java.util.Set;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-import com.evolveum.midpoint.ninja.opts.BasicImportOptions;
+import com.evolveum.midpoint.ninja.action.BasicImportOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "importAudit")

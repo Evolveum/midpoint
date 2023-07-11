@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.action.RepositoryAction;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
@@ -26,9 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.jetbrains.annotations.NotNull;
-
-public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningOptions> {
+public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningOptions, Void> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -36,13 +36,18 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
     public static final String OPERATION_SHORT_NAME = "exportMining";
     public static final String OPERATION_NAME = ExportMiningRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
+    @Override
+    public String getOperationName() {
+        return "export mining data";
+    }
+
     protected Runnable createConsumer(
             BlockingQueue<FocusType> queue, OperationStatus operation) {
         return new ExportMiningConsumerWorker(context, options, queue, operation);
     }
 
     @Override
-    public void execute() throws Exception {
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus operation = new OperationStatus(context, result);
 
@@ -78,10 +83,12 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
         }
 
         handleResultOnFinish(operation, "Finished " + OPERATION_SHORT_NAME);
+
+        return null;
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getOutput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -32,15 +35,12 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.init.StartupConfiguration;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,7 +56,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -505,22 +504,18 @@ public class PageAbout extends PageAdminConfiguration {
     private void reindexRepositoryObjectsPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SUBMIT_REINDEX);
         try {
-            TaskManager taskManager = getTaskManager();
-            Task task = taskManager.createTaskInstance();
-            MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (user == null) {
-                throw new RestartResponseException(PageLogin.class);
-            } else {
-                task.setOwner(user.getFocus().asPrismObject());
-            }
-            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
-            task.setChannel(SchemaConstants.CHANNEL_USER_URI);
-            task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
-            task.setName("Reindex repository objects");
-            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-            getModelInteractionService().switchToBackground(task, result);
-        } catch (SecurityViolationException | SchemaException | RuntimeException | ExpressionEvaluationException |
-                ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+            Task task = getTaskManager().createTaskInstance();
+            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, result);
+            getModelInteractionService().submit(
+                    ActivityDefinitionBuilder.create(
+                                    new ReindexingWorkDefinitionType())
+                            .build(),
+                    ActivitySubmissionOptions.create().withTaskTemplate(
+                            new TaskType()
+                                    .name("Reindex repository objects")
+                                    .channel(SchemaConstants.CHANNEL_USER_URI)),
+                    task, result);
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -658,13 +653,16 @@ public class PageAbout extends PageAdminConfiguration {
 
             activities.add(createInitialImportActivity(order));
 
-            task.setName("Delete all objects");
-            task.setRootActivityDefinition(definition);
-            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-            task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
-            task.setCleanupAfterCompletion(XmlTypeConverter.createDuration("P1D"));
-
-            getModelInteractionService().switchToBackground(task, result);
+            getModelInteractionService().submit(
+                    definition,
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(new TaskType()
+                                    .name("Delete all objects")
+                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("P1D")))
+                            .withArchetypes(
+                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                                    SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value()),
+                    task, result);
         } catch (Exception ex) {
             result.computeStatusIfUnknown();
             result.recordFatalError("Couldn't create delete all task", ex);

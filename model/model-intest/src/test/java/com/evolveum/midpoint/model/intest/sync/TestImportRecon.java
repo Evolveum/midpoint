@@ -170,8 +170,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "task-reconcile-dummy-graveyard.xml", "c2665533-bae3-4d06-966c-8e8705bc37da", 20_000);
     private static final TestTask TASK_RECONCILE_DUMMY_REAPING_DRY_RUN = new TestTask(
             TEST_DIR, "task-reconcile-dummy-reaping-dry-run.xml", "2c51a65a-84bc-4496-a34f-5e3070131da9", 20_000);
-    private static final TestObject<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY = TestObject.file(
-            TEST_DIR, "task-import-dummy-lime-limited-legacy.xml", "4e2f83b8-5312-4924-af7e-52805ad20b3e");
+    private static final TestObject<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED = TestObject.file(
+            TEST_DIR, "task-import-dummy-lime-limited-migrated.xml", "4e2f83b8-5312-4924-af7e-52805ad20b3e");
     private static final TestObject<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED = TestObject.file(
             TEST_DIR, "task-import-dummy-lime-limited.xml", "db3b4438-67a8-4614-a320-382b4cbace41");
     private static final TestObject<TaskType> TASK_DELETE_DUMMY_SHADOWS = TestObject.file(
@@ -658,7 +658,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * Import limited to single object: MID-6798. (Legacy specification.)
+     * Import limited to single object: MID-6798. (Legacy specification migrated to the new one.)
      */
     @Test
     public void test161aImportFromResourceDummyLimeLimitedLegacy() throws Exception {
@@ -676,13 +676,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY, task, result);
+        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED, task, result);
         loginAdministrator();
-        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY.oid, false);
+        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED.oid, false);
 
         then();
 
-        Task importTask = taskManager.getTaskPlain(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY.oid, result);
+        Task importTask = taskManager.getTaskPlain(TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED.oid, result);
 
         dumpStatistics(importTask);
         // @formatter:off

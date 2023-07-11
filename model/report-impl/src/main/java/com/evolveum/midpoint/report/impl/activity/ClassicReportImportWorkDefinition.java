@@ -9,10 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,20 +23,10 @@ class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
 
     @NotNull private final ObjectReferenceType reportDataRef;
 
-    ClassicReportImportWorkDefinition(WorkDefinitionSource source) throws SchemaException {
+    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
         super(source);
-        ObjectReferenceType rawReportDataRef;
-
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-            rawReportDataRef =
-                    legacy.getExtensionItemRealValue(ReportConstants.REPORT_DATA_PROPERTY_NAME, ObjectReferenceType.class);
-        } else {
-            ClassicReportImportWorkDefinitionType typedDefinition = (ClassicReportImportWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            rawReportDataRef = typedDefinition.getReportDataRef();
-        }
-        reportDataRef = MiscUtil.requireNonNull(rawReportDataRef, () -> "No report data object specified");
+        var typedDefinition = (ClassicReportImportWorkDefinitionType) source.getBean();
+        reportDataRef = MiscUtil.requireNonNull(typedDefinition.getReportDataRef(), () -> "No report data object specified");
     }
 
     @NotNull ObjectReferenceType getReportDataRef() {

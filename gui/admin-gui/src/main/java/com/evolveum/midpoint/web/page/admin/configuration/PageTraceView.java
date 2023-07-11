@@ -263,8 +263,8 @@ public class PageTraceView extends PageAdminConfiguration {
 
         try {
             // TODO consider using ReportManager to get trace input stream
-            getSecurityEnforcer().authorize(ModelAuthorizationAction.READ_TRACE.getUrl(), null,
-                    AuthorizationParameters.EMPTY, null, task, result);
+            getSecurityEnforcer().authorize(
+                    ModelAuthorizationAction.READ_TRACE.getUrl(), task, result);
 
             PrismObject<ReportDataType> reportOutput = getModelService().getObject(ReportDataType.class,
                     oid, null, task, result);

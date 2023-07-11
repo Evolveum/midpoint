@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 
@@ -362,7 +363,9 @@ public abstract class SchemaConstants {
     public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
             new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
 
+    @VisibleForTesting // should be ignored by production code since 4.8
     public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
+    @VisibleForTesting // should be ignored by production code since 4.8
     public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 
     // Temporary

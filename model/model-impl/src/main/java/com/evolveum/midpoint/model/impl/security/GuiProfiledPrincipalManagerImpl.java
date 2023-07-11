@@ -18,8 +18,6 @@ import java.util.Set;
 
 import jakarta.annotation.PostConstruct;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +48,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
-import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -75,7 +72,8 @@ import com.google.common.collect.ImmutableSet;
  * @author semancik
  */
 @Service(value = "guiProfiledPrincipalManager")
-public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
+public class GuiProfiledPrincipalManagerImpl
+        implements CacheListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
@@ -127,9 +125,11 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        PrismObject<FocusType> focus;
+        PrismObject<? extends FocusType> focus;
         try {
             focus = findByUsername(username, clazz, result);
             if (focus == null) {
@@ -149,7 +149,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     @Override
     public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        PrismObject<FocusType> focus;
+        PrismObject<? extends FocusType> focus;
         try {
             focus = searchFocus(clazz, query, result);
             if (focus == null) {
@@ -167,13 +167,17 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(getUserByOid(oid, clazz, result).asPrismObject());
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(focus, null, result);
     }
@@ -210,7 +214,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
             List<UserSessionManagementType> loggedPrincipals = new ArrayList<>();
             for (Object principal : loggedInUsers) {
 
-                if (!(principal instanceof GuiProfiledPrincipal)) {
+                if (!(principal instanceof GuiProfiledPrincipal midPointPrincipal)) {
                     continue;
                 }
 
@@ -218,7 +222,6 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
                 if (sessionInfos == null || sessionInfos.isEmpty()) {
                     continue;
                 }
-                GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
 
                 UserSessionManagementType userSessionManagementType = new UserSessionManagementType();
                 userSessionManagementType.setFocus(midPointPrincipal.getFocus());
@@ -242,11 +245,10 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
             List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
             for (Object principal : loggedInUsers) {
 
-                if (!(principal instanceof GuiProfiledPrincipal)) {
+                if (!(principal instanceof GuiProfiledPrincipal midPointPrincipal)) {
                     continue;
                 }
 
-                GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
                 if (!principalOids.contains(midPointPrincipal.getOid())) {
                     continue;
                 }
@@ -296,19 +298,19 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         }
     }
 
-    private PrismObject<FocusType> findByUsername(String username, Class<? extends FocusType> clazz, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PolyString usernamePoly = new PolyString(username);
-        ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
-
-
-        //noinspection rawtypes,unchecked
-        return searchFocus(clazz, query, result);
+    private PrismObject<? extends FocusType> findByUsername(
+            String username, Class<? extends FocusType> clazz, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return searchFocus(
+                clazz,
+                ObjectQueryUtil.createNormNameQuery(new PolyString(username), prismContext),
+                result);
     }
 
-    private PrismObject<FocusType> searchFocus(Class<? extends FocusType> clazz, ObjectQuery query, OperationResult result) throws SchemaException {
-        LOGGER.trace("Looking for user, query:\n" + query.debugDump());
-        List<PrismObject<FocusType>> list = (SearchResultList)
-                repositoryService.searchObjects(clazz, query, null, result);
+    private PrismObject<? extends FocusType> searchFocus(
+            Class<? extends FocusType> clazz, ObjectQuery query, OperationResult result) throws SchemaException {
+        LOGGER.trace("Looking for user, query:\n{}", query.debugDumpLazily(1));
+        var list = repositoryService.searchObjects(clazz, query, null, result);
         LOGGER.trace("Users found: {}.", list.size());
         if (list.size() != 1) {
             return null;
@@ -462,7 +464,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         PrismObject<? extends FocusType> focus;
         try {
             focus = repositoryService.getObject(principal.getFocus().getClass(), focusOid, null, result);
-            principal.replaceFocus(focus.asObjectable());
+            principal.setOrReplaceFocus(focus.asObjectable());
             if (!principal.isEnabled()) {
                 // User is disabled
                 var terminate = new TerminateSessionEvent();

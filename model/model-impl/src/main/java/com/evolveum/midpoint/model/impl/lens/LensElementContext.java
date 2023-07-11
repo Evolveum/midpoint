@@ -34,8 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.prism.Objectable;
@@ -763,7 +761,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return getDebugDumpTitle()+" "+suffix;
     }
 
-    public abstract String getHumanReadableName();
+    public abstract @NotNull String getHumanReadableName();
     //endregion
 
     //region Consistency checks

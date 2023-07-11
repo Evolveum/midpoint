@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeletionWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import javax.xml.namespace.QName;
@@ -41,8 +40,9 @@ public class PageAdminConfiguration extends PageAdmin {
      *
      * The task is created with the default mode i.e. raw.
      */
-    String deleteObjectsAsync(@NotNull QName type, @Nullable ObjectQuery objectQuery, @NotNull String taskName,
-            @NotNull OperationResult result) throws SchemaException {
+    String deleteObjectsAsync(
+            @NotNull QName type, @Nullable ObjectQuery objectQuery, @NotNull String taskName, @NotNull OperationResult result)
+            throws CommonException {
 
         Task task = createSimpleTask(result.getOperation());
 
@@ -58,13 +58,15 @@ public class PageAdminConfiguration extends PageAdmin {
                 .end();
         // @formatter:on
 
-        task.setName(taskName);
-        task.setRootActivityDefinition(definition);
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-        task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
-
-        getModelInteractionService().switchToBackground(task, result);
-        return task.getOid();
+        return getModelInteractionService().submit(
+                definition,
+                ActivitySubmissionOptions.create()
+                        .withTaskTemplate(new TaskType()
+                                .name(taskName))
+                        .withArchetypes(
+                                SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                                SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value()),
+                task, result);
     }
 
     private @NotNull QueryType createQueryBean(@Nullable ObjectQuery query) throws SchemaException {

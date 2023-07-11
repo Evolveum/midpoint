@@ -78,7 +78,4 @@ public class ValidationItem implements DebugDumpable, ShortDumpable {
         sb.append(")");
         return sb.toString();
     }
-
-
-
 }

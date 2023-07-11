@@ -642,7 +642,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         // WHEN/THEN
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE, prismContext)
+                .add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE)
                         .description("description"))
                 .asObjectDelta(USER_JACK.oid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
@@ -970,7 +970,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE, prismContext)
+                .add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE)
                         .description("description"))
                 .asObjectDelta(USER_JACK.oid);
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
@@ -1339,15 +1339,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         PrismObject<UserType> jack = getUser(USER_JACK.oid);
         ObjectDelta<UserType> addRole1Delta = prismContext
                 .deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext))
+                .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE))
                 .asObjectDelta(USER_JACK.oid);
         ObjectDelta<UserType> addRole2Delta = prismContext
                 .deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext))
+                .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE))
                 .asObjectDelta(USER_JACK.oid);
         ObjectDelta<UserType> addRole3Delta = prismContext
                 .deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE, prismContext))
+                .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE))
                 .asObjectDelta(USER_JACK.oid);
         ObjectDelta<UserType> changeDescriptionDelta = prismContext
                 .deltaFor(UserType.class)
@@ -1484,12 +1484,12 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }
 
         List<AssignmentType> assignmentsToAdd = new ArrayList<>();
-        assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
-        assignmentsToAdd.add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext));
-        assignmentsToAdd.add(createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE, prismContext));
-        assignmentsToAdd.add(createAssignmentTo(roleRole25Oid, ObjectTypes.ROLE, prismContext));
+        assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE));
+        assignmentsToAdd.add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE));
+        assignmentsToAdd.add(createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE));
+        assignmentsToAdd.add(createAssignmentTo(roleRole25Oid, ObjectTypes.ROLE));
         if (also24) {
-            assignmentsToAdd.add(createAssignmentTo(roleRole24Oid, ObjectTypes.ROLE, prismContext));
+            assignmentsToAdd.add(createAssignmentTo(roleRole24Oid, ObjectTypes.ROLE));
         }
         ObjectDelta<UserType> primaryDelta = prismContext
                 .deltaFor(UserType.class)

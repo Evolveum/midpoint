@@ -131,7 +131,7 @@ public class TaskActivityManager {
 
     public @NotNull Activity<?, ?> getActivity(Task rootTask, ActivityPath activityPath)
             throws SchemaException, ConfigurationException {
-        return ActivityTree.create(rootTask, beans)
+        return ActivityTree.create(rootTask)
                 .getActivity(activityPath);
     }
 

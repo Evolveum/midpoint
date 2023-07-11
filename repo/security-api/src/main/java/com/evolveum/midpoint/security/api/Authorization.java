@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,11 +25,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
- * @author semancik
+ * Parsed form of {@link AuthorizationType}.
  *
+ * @author semancik
  */
 public class Authorization implements GrantedAuthority, DebugDumpable {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final AuthorizationType authorizationBean;
     private String sourceDescription;

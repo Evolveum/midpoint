@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.NotLoggedInException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +45,28 @@ public class AuthUtil {
 
     private static final String DOT_CLASS = AuthUtil.class.getName() + ".";
     private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
+
+    public static @Nullable MidPointPrincipal getMidpointPrincipal() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var principal = authentication != null ? authentication.getPrincipal() : null;
+        return principal instanceof MidPointPrincipal mp ? mp : null;
+    }
+
+    public static @NotNull FocusType getPrincipalObjectRequired() throws NotLoggedInException {
+        return MiscUtil.requireNonNull(getMidpointPrincipal(), () -> new NotLoggedInException())
+                .getFocus();
+    }
+
+    public static @NotNull ObjectReferenceType getPrincipalRefRequired() throws NotLoggedInException {
+        return MiscUtil.requireNonNull(getMidpointPrincipal(), () -> new NotLoggedInException())
+                .toObjectReference();
+    }
+
+    public static @NotNull GuiProfiledPrincipal getGuiProfiledPrincipalRequired() throws NotLoggedInException {
+        return MiscUtil.requireNonNull(
+                getPrincipalUser(),
+                () -> new NotLoggedInException());
+    }
 
     public static GuiProfiledPrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.ninja.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).

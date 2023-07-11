@@ -17,21 +17,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Objectable;
-
-import com.evolveum.midpoint.prism.query.FilterCreationUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-
-import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
-
-import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
-
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.query.FilterCreationUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
 import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -60,7 +56,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
      */
     @NotNull private final List<SelectorClause> clauses;
 
-    /** For additional information, like name, description, and so on. Immutable. */
+    /** For additional information, like name, description, and so on. May be missing for generated selectors. Immutable. */
     @Nullable private final ObjectSelectorType bean;
 
     private ValueSelector(
@@ -77,6 +73,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
         }
     }
 
+    /** Covers all values. */
     public static @NotNull ValueSelector empty() {
         return new ValueSelector(null, null, List.of(), null);
     }
@@ -303,7 +300,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
             ConfigurationException, ObjectNotFoundException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
-            if (!ctx.isClauseApplicable(clause) || !clause.toFilter(ctx)) {
+            if (!clause.toFilter(ctx)) {
                 ctx.traceFilterProcessingEnd(this, false);
                 return false;
             }
@@ -317,7 +314,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
         return parentClause;
     }
 
-    public @NotNull Class<?> getTypeOrDefault() {
+    public @NotNull Class<?> getEffectiveType() {
         if (typeClause != null) {
             return typeClause.getTypeClass();
         } else {
@@ -434,11 +431,15 @@ public class ValueSelector implements DebugDumpable, Serializable {
     }
 
     public boolean isSubObject() {
-        return !Objectable.class.isAssignableFrom(getTypeOrDefault());
+        return !ObjectTypeUtil.isObjectable(getEffectiveType());
     }
 
     @SuppressWarnings({ "WeakerAccess", "BooleanMethodIsAlwaysInverted" })
     public boolean isPureSelf() {
         return clauses.size() == 1 && clauses.get(0) instanceof SelfClause;
+    }
+
+    public boolean isParentLess() {
+        return parentClause == null;
     }
 }

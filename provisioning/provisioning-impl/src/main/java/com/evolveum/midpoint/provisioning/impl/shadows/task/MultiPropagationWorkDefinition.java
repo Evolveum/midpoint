@@ -9,26 +9,21 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiPropagationWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class MultiPropagationWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
     private final ObjectSetType resources;
 
-    MultiPropagationWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            resources = ObjectSetUtil.fromRef(
-                    ((LegacyWorkDefinitionSource) source).getObjectRef(), ResourceType.COMPLEX_TYPE);
-        } else {
-            resources =
-                    ((MultiPropagationWorkDefinitionType)
-                            ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition()).getResources();
-        }
+    MultiPropagationWorkDefinition(@NotNull WorkDefinitionBean source) {
+        resources = ((MultiPropagationWorkDefinitionType) source.getBean()).getResources();
         ObjectSetUtil.assumeObjectType(resources, ResourceType.COMPLEX_TYPE);
     }
 

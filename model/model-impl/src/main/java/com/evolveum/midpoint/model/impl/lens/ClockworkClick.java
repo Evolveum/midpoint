@@ -107,7 +107,7 @@ public class ClockworkClick<F extends ObjectType> {
 
             checkIndestructible(result);
             if (!context.isRequestAuthorized()) {
-                beans.clockworkAuthorizationHelper.authorizeContextRequest(context, task, result);
+                ClockworkRequestAuthorizer.authorizeContextRequest(context, task, result);
             }
 
             beans.medic.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);

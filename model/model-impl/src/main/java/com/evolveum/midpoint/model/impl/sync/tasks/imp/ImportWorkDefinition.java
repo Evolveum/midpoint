@@ -9,10 +9,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
@@ -23,16 +21,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 
 public class ImportWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
+    /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
 
-    ImportWorkDefinition(WorkDefinitionSource source) {
-        if (source instanceof LegacyWorkDefinitionSource) {
-            resourceObjects = ResourceObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
-        } else {
-            ImportWorkDefinitionType typedDefinition = (ImportWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
-        }
+    ImportWorkDefinition(@NotNull WorkDefinitionBean source) {
+        var typedDefinition = (ImportWorkDefinitionType) source.getBean();
+        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, REPLACE);
     }
 

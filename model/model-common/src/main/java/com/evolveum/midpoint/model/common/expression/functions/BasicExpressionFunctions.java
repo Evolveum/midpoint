@@ -1229,21 +1229,9 @@ public class BasicExpressionFunctions {
     }
 
     /**
-     * Sets "worker threads" task extension property.
-     *
-     * Do not use for activity-based tasks.
-     */
-    @Deprecated
-    public void setTaskWorkerThreadsLegacy(@NotNull TaskType task, Integer value) throws SchemaException {
-        Objects.requireNonNull(task, "task is not specified");
-        ObjectTypeUtil.setExtensionPropertyRealValues(prismContext, task.asPrismContainerValue(),
-                SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, value);
-    }
-
-    /**
      * Sets "worker threads" distribution parameter for the root task activity.
      */
-    public void setTaskWorkerThreads(@NotNull TaskType task, Integer value) throws SchemaException {
+    public void setTaskWorkerThreads(@NotNull TaskType task, Integer value) {
         Objects.requireNonNull(task, "task is not specified");
         ActivityDefinitionType activity = task.getActivity();
         Objects.requireNonNull(activity, "task has no activity");
@@ -1252,7 +1240,7 @@ public class BasicExpressionFunctions {
             if (value == null) {
                 return; // we don't want to create empty containers if not needed
             } else {
-                activity.setDistribution(new ActivityDistributionDefinitionType(PrismContext.get()));
+                activity.setDistribution(new ActivityDistributionDefinitionType());
             }
         }
         activity.getDistribution().setWorkerThreads(value);

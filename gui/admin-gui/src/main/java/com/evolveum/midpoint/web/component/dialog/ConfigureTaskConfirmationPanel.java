@@ -52,7 +52,7 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ((PageBase) getPage()).hideMainPopup(target);
-                WebComponentUtil.dispatchToObjectDetailsPage(getTask(target), true, ConfigureTaskConfirmationPanel.this);
+                WebComponentUtil.dispatchToObjectDetailsPage(createTask(target), true, ConfigureTaskConfirmationPanel.this);
             }
         };
         configuredButton.setOutputMarkupId(true);
@@ -60,7 +60,7 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
         panel.add(configuredButton);
     }
 
-    protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
+    protected PrismObject<TaskType> createTask(AjaxRequestTarget target) {
         return null;
     }
 

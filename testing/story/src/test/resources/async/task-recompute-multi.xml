@@ -6,40 +6,31 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="8b21b493-c85e-4a77-800f-a9063d1cfe8c"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="8b21b493-c85e-4a77-800f-a9063d1cfe8c">
     <name>Recompute users</name>
-
-    <extension>
-        <mext:objectType>UserType</mext:objectType>
-        <mext:objectQuery>
-            <q:filter>
-                <q:substring>
-                    <q:path>name</q:path>
-                    <q:value>user</q:value>
-                    <q:anchorStart>true</q:anchorStart>
-                </q:substring>
-            </q:filter>
-        </mext:objectQuery>
-        <mext:workerThreads>3</mext:workerThreads>
-        <!--<mext:tracing>-->
-        <!--    <interval>100</interval>-->
-        <!--    <tracingProfile>-->
-        <!--        <ref>performance</ref>-->
-        <!--        <fileNamePattern>recompute %{timestamp} %{focusName}</fileNamePattern>-->
-        <!--    </tracingProfile>-->
-        <!--</mext:tracing>-->
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>name</q:path>
+                                <q:value>user</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+        <distribution>
+            <workerThreads>3</workerThreads>
+        </distribution>
+    </activity>
 </task>

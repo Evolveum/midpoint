@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class OperationStatus {
 
     public enum State {
-        NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED;
+        NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED
     }
 
     private final NinjaContext context;

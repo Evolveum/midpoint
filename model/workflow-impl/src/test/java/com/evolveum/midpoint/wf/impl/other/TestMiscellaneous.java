@@ -397,7 +397,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         ObjectDelta<? extends ObjectType> delta =
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                        .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
+                        .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE))
                         .asObjectDelta(USER_JACK.oid);
         ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
@@ -426,7 +426,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         ObjectDelta<? extends ObjectType> delta =
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
+                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE))
                         .asObjectDelta(USER_JACK.oid);
         // @formatter:on
 
@@ -463,7 +463,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         ObjectDelta<? extends ObjectType> delta =
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
+                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE))
                         .asObjectDelta(USER_JACK.oid);
         // @formatter:on
 
@@ -499,7 +499,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         ObjectDelta<? extends ObjectType> delta =
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_VAULT_ACCESS.oid, ObjectTypes.ROLE, prismContext))
+                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_VAULT_ACCESS.oid, ObjectTypes.ROLE))
                         .asObjectDelta(USER_LAUNCHPAD.oid);
         // @formatter:on
 
@@ -575,7 +575,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         ObjectDelta<? extends ObjectType> delta =
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_VAULT_ACCESS.oid, ObjectTypes.ROLE, prismContext))
+                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_VAULT_ACCESS.oid, ObjectTypes.ROLE))
                         .asObjectDelta(USER_LAUNCHPAD.oid);
         // @formatter:on
 

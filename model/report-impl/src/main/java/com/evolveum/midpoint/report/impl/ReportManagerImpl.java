@@ -91,7 +91,6 @@ public class ReportManagerImpl implements ReportManager {
      * @param task
      * @param parentResult describes report which has to be created
      */
-
     @Override
     public void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -326,8 +325,8 @@ public class ReportManagerImpl implements ReportManager {
 
             // Extra safety check: traces can be retrieved only when special authorization is present
             if (ObjectTypeUtil.hasArchetypeRef(reportData, SystemObjectsType.ARCHETYPE_TRACE.value())) {
-                securityEnforcer.authorize(ModelAuthorizationAction.READ_TRACE.getUrl(), null,
-                        AuthorizationParameters.EMPTY, null, task, result);
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.READ_TRACE.getUrl(), task, result);
                 reportType = "trace";
             }
 

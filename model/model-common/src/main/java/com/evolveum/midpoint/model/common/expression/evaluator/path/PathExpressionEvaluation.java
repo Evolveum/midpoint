@@ -88,6 +88,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
         } else if (variableValue instanceof PrismValue) {
             return new ValueResolutionContext((PrismValue) variableValue, context.getContextDescription());
         } else if (variableValueAndDefinition.getTypeClass().isAssignableFrom(variableValue.getClass())) {
+            // FIXME this fails for ObjectType variable values, as getTypeClass() is null for them
             return ValueResolutionContext.fromRealValue(variableValue, context.getContextDescription(), evaluator.getPrismContext());
         } else {
             throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");

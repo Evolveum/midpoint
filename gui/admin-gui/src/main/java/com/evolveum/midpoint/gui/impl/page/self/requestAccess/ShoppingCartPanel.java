@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements AccessRequestStep {
+public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements AccessRequestMixin {
 
     private static final long serialVersionUID = 1L;
     public static final String STEP_ID = "cart";

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> implements Popupable{
+public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_OBJECT_TYPE = "type";
     private static final String ID_RELATION = "relation";
@@ -134,7 +134,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
 
                 ListMultipleChoicePanel<QName> relation = getRelationPanel(getParent());
                 Collection<QName> relationChosen = relation.getModelObject();
-                PrismObject<TaskType> task = getTask(typeChosen, relationChosen, target);
+                PrismObject<TaskType> task = createTask(typeChosen, relationChosen, target);
                 if (task == null) {
                     return;
                 }
@@ -160,7 +160,12 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         return false;
     }
 
-    protected PrismObject<TaskType> getTask(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+    /**
+     * Creates a task that will execute requested bulk operation (like "unassign all role members").
+     * The task may be presented to the user for editing before direct execution.
+     * Returns `null` if the operation is not supported; or that it was cancelled for some reason.
+     */
+    protected PrismObject<TaskType> createTask(QName type, Collection<QName> relations, AjaxRequestTarget target) {
         return null;
     }
 

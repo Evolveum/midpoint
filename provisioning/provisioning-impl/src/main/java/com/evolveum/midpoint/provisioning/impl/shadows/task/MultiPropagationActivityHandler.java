@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiPropagationWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class MultiPropagationActivityHandler
         implements ActivityHandler<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> {
 
-    public static final String LEGACY_HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/multi-handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
     @Autowired ActivityHandlerRegistry handlerRegistry;
@@ -35,13 +33,13 @@ public class MultiPropagationActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(MultiPropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(MultiPropagationWorkDefinitionType.COMPLEX_TYPE,
                 MultiPropagationWorkDefinition.class, MultiPropagationWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(MultiPropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.unregister(MultiPropagationWorkDefinitionType.COMPLEX_TYPE,
                 MultiPropagationWorkDefinition.class);
     }
 

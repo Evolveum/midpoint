@@ -6,21 +6,22 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="8d6f6a54-cfdc-4439-9f6a-06ff2a0ba273"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="8d6f6a54-cfdc-4439-9f6a-06ff2a0ba273">
     <name>Reconciliation: clubs</name>
-
-    <extension>
-        <syncext:objectclass>ri:GroupObjectClass</syncext:objectclass>
-    </extension>
-
     <taskIdentifier>8d6f6a54-cfdc-4439-9f6a-06ff2a0ba273</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/> <!-- administrator -->
     <executionState>closed</executionState> <!-- will be executed on demand -->
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="a79a332a-b469-4092-b3f7-063165ce1024" type="ResourceType"/> <!-- clubs -->
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="a79a332a-b469-4092-b3f7-063165ce1024"/>
+                    <objectclass>ri:GroupObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
 </task>

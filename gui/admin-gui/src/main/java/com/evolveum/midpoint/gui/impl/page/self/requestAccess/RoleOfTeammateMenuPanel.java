@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
-
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -30,6 +27,8 @@ import org.wicketstuff.select2.Select2Choice;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -38,18 +37,21 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<ListGroupMenuItem<T>> {
+public class RoleOfTeammateMenuPanel<T extends Serializable>
+        extends BasePanel<ListGroupMenuItem<T>> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogPanel.class);
+
+    private static final int AUTOCOMPLETE_MIN_INPUT_LENGTH = 2;
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
@@ -61,12 +63,17 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
     private static final String ID_INPUT = "input";
     private static final String ID_MANUAL = "manual";
 
-    private IModel<ObjectReferenceType> selectionModel;
+    private final IModel<ObjectReferenceType> selectionModel;
 
-    public RoleOfTeammateMenuPanel(String id, IModel<ListGroupMenuItem<T>> model, IModel<ObjectReferenceType> selectionModel) {
+    private final IModel<RoleCatalogType> roleCatalogConfigurationModel;
+
+    public RoleOfTeammateMenuPanel(
+            String id, IModel<ListGroupMenuItem<T>> model, IModel<ObjectReferenceType> selectionModel,
+            IModel<RoleCatalogType> roleCatalogConfigurationModel) {
         super(id, model);
 
         this.selectionModel = selectionModel != null ? selectionModel : Model.of((ObjectReferenceType) null);
+        this.roleCatalogConfigurationModel = roleCatalogConfigurationModel;
 
         initLayout();
     }
@@ -80,7 +87,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         container.add(new VisibleBehaviour(() -> getModelObject().isActive()));
         add(container);
 
-        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel(), 0) {
+        MenuItemLinkPanel<?> link = new MenuItemLinkPanel<>(ID_LINK, getModel(), 0) {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
@@ -92,8 +99,13 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         add(link);
 
         Select2Choice<ObjectReferenceType> select = new Select2Choice<>(ID_INPUT, selectionModel, new ObjectReferenceProvider(this));
+
+        Integer minInput = getAutocompleteConfiguration().getAutocompleteMinChars();
+        if (minInput == null) {
+            minInput = AUTOCOMPLETE_MIN_INPUT_LENGTH;
+        }
         select.getSettings()
-                .setMinimumInputLength(2);
+                .setMinimumInputLength(minInput);
         select.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
@@ -103,7 +115,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         });
         container.add(select);
 
-        AjaxLink manual = new AjaxLink<>(ID_MANUAL) {
+        AjaxLink<?> manual = new AjaxLink<>(ID_MANUAL) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -111,6 +123,21 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
             }
         };
         container.add(manual);
+    }
+
+    private AutocompleteSearchConfigurationType getAutocompleteConfiguration() {
+        RoleCatalogType config = roleCatalogConfigurationModel.getObject();
+
+        AutocompleteSearchConfigurationType autocomplete = null;
+        if (config.getRolesOfTeammate() != null) {
+            autocomplete = config.getRolesOfTeammate().getAutocompleteConfiguration();
+        }
+
+        if (autocomplete == null) {
+            autocomplete = new AutocompleteSearchConfigurationType();
+        }
+
+        return autocomplete;
     }
 
     protected void onManualSelectionPerformed(AjaxRequestTarget target) {
@@ -125,13 +152,24 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
 
     }
 
+    private ObjectFilter getAutocompleteFilter(String text) {
+        SearchFilterType template = getAutocompleteConfiguration().getSearchFilterTemplate();
+
+        return createAutocompleteFilter(text, template, (t) -> createDefaultFilter(t), getPageBase());
+    }
+
+    private ObjectFilter createDefaultFilter(String text) {
+        return getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+    }
+
     public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {
 
-        private static final long serialVersionUID = 1L;
+        @Serial private static final long serialVersionUID = 1L;
 
-        private BasePanel panel;
+        private final RoleOfTeammateMenuPanel<?> panel;
 
-        public ObjectReferenceProvider(BasePanel panel) {
+        public ObjectReferenceProvider(RoleOfTeammateMenuPanel<?> panel) {
             this.panel = panel;
         }
 
@@ -141,16 +179,20 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
                 return null;
             }
 
-            if (ref.getTargetName() != null) {
-                return ref.getTargetName().getOrig();
+            ExpressionType displayExpression = panel.getAutocompleteConfiguration().getDisplayExpression();
+            if (displayExpression != null) {
+                PrismObject<?> obj = WebModelServiceUtils.loadObject(ref, panel.getPageBase());
+                if (obj != null) {
+                    String name = panel.getDisplayNameFromExpression(
+                            "", panel.getAutocompleteConfiguration().getDisplayExpression(), obj, panel);
+                    if (name != null) {
+                        ref.setTargetName(new PolyStringType(name));
+                    }
+                }
             }
 
-            PrismObject obj = WebModelServiceUtils.loadObject(ref, panel.getPageBase());
-            if (obj != null) {
-                String name = WebComponentUtil.getDisplayNameOrName(obj);
-                if (name != null) {
-                    ref.setTargetName(new PolyStringType(name));
-                }
+            if (ref.getTargetName() != null) {
+                return ref.getTargetName().getOrig();
             }
 
             return WebComponentUtil.getDisplayNameOrName(ref);
@@ -163,8 +205,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
 
         @Override
         public void query(String text, int page, Response<ObjectReferenceType> response) {
-            ObjectFilter substring = panel.getPrismContext().queryFor(UserType.class)
-                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+            ObjectFilter substring = panel.getAutocompleteFilter(text);
 
             ObjectQuery query = panel.getPrismContext()
                     .queryFor(UserType.class)

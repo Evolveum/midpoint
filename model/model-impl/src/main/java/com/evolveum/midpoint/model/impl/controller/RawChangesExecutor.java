@@ -238,10 +238,12 @@ class RawChangesExecutor {
         }
         PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
         if (!preAuthorized) {
-            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(),
-                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
-            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
-                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.RAW_OPERATION.getUrl(),
+                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), task, result1);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.ADD.getUrl(),
+                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), task, result1);
         }
         String oid;
         try {
@@ -276,7 +278,7 @@ class RawChangesExecutor {
                         .asObjectable();
                 objectToDetermineDetailsForAudit = existingObject;
             } catch (Throwable t) {
-                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result)) {
+                if (!securityEnforcer.isAuthorizedAll(task, result)) {
                     throw t;
                 } else {
                     existingObject = PrismContext.get().createObjectable(clazz);
@@ -288,10 +290,12 @@ class RawChangesExecutor {
             }
             ModelController.checkIndestructible(existingObject);
             if (!preAuthorized) {
-                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(),
-                        null, AuthorizationParameters.Builder.buildObjectDelete(asPrismObject(existingObject)), null, task, result);
-                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
-                        null, AuthorizationParameters.Builder.buildObjectDelete(asPrismObject(existingObject)), null, task, result);
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.RAW_OPERATION.getUrl(), null,
+                        AuthorizationParameters.Builder.buildObjectDelete(asPrismObject(existingObject)), task, result);
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.DELETE.getUrl(), null,
+                        AuthorizationParameters.Builder.buildObjectDelete(asPrismObject(existingObject)), task, result);
             }
             try {
                 if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
@@ -341,8 +345,10 @@ class RawChangesExecutor {
                 //noinspection unchecked
                 AuthorizationParameters<T, ObjectType> autzParams =
                         AuthorizationParameters.Builder.buildObjectDelta((PrismObject<T>) existingObject.asPrismObject(), delta);
-                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result);
-                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result);
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, task, result);
+                securityEnforcer.authorize(
+                        ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, task, result);
             }
             try {
                 if (TaskType.class.isAssignableFrom(clazz)) {

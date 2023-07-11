@@ -6,26 +6,27 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="c1351099-eabf-4ca3-b157-9a7b6c16b960"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="c1351099-eabf-4ca3-b157-9a7b6c16b960">
     <name>Reconcile: Dummy SteelBlue</name>
-
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-        <ext:workerThreads>6</ext:workerThreads>
-    </extension>
-
     <taskIdentifier>c1351099-eabf-4ca3-b157-9a7b6c16b960</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="8d97261a-ef5e-4199-9700-670577441c7f" type="ResourceType"/>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="8d97261a-ef5e-4199-9700-670577441c7f"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <distribution>
+            <workerThreads>6</workerThreads>
+        </distribution>
+    </activity>
 </task>

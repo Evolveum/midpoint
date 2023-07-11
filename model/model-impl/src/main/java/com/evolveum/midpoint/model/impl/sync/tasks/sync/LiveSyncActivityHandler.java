@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,19 +30,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class LiveSyncActivityHandler
         extends ModelActivityHandler<LiveSyncWorkDefinition, LiveSyncActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value();
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(LiveSyncWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+        handlerRegistry.register(
+                LiveSyncWorkDefinitionType.COMPLEX_TYPE,
                 LiveSyncWorkDefinition.class, LiveSyncWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(LiveSyncWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                LiveSyncWorkDefinition.class);
+        handlerRegistry.unregister(LiveSyncWorkDefinitionType.COMPLEX_TYPE, LiveSyncWorkDefinition.class);
     }
 
     @Override

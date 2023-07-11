@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Action for importing audit event records to the repository.
  */
-public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOptions> {
+public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOptions, Void> {
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -32,7 +32,12 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
     public static final String OPERATION_NAME = ImportAuditRepositoryAction.class.getName() + "." + OPERATION_SHORT_NAME;
 
     @Override
-    public void execute() throws Exception {
+    public String getOperationName() {
+        return "import audit";
+    }
+
+    @Override
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_NAME);
         OperationStatus progress = new OperationStatus(context, result);
 
@@ -62,10 +67,12 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
         }
 
         handleResultOnFinish(progress, "Audit import finished");
+
+        return null;
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getInput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

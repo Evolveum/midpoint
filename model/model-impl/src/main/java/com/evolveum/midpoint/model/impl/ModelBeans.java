@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
@@ -124,7 +126,6 @@ public class ModelBeans {
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired public SynchronizationService synchronizationService;
     @Autowired public ClockworkAuditHelper clockworkAuditHelper;
-    @Autowired public ClockworkAuthorizationHelper clockworkAuthorizationHelper;
     @Autowired public PolicyRuleScriptExecutor policyRuleScriptExecutor;
     @Autowired public Migrator migrator;
     @Autowired public PersonaProcessor personaProcessor;
@@ -146,5 +147,6 @@ public class ModelBeans {
     @Autowired public SimulationResultManagerImpl simulationResultManager;
     @Autowired public MarkManager markManager;
     @Autowired public AuthorizationMigrator authorizationMigrator;
+    @Autowired public ActivityHandlerRegistry activityHandlerRegistry;
     @Autowired public DataAccessProcessor dataAccessProcessor; // temporary
 }

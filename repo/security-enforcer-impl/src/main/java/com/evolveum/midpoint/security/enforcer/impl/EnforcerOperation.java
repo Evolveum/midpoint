@@ -36,13 +36,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 class EnforcerOperation {
 
     /** Principal to be used: either current or externally-provided one. */
-    @Nullable final MidPointPrincipal principal;
+    @Nullable private final MidPointPrincipal principal;
 
     /** Username of the {@link #principal} */
     @Nullable final String username;
 
     /** {@link OwnerResolver} to be used during this operation. */
     @Nullable final OwnerResolver ownerResolver;
+
+    @NotNull final SecurityEnforcer.Options options;
 
     @NotNull final ProcessingTracer<AbstractTraceEvent> tracer;
 
@@ -53,14 +55,16 @@ class EnforcerOperation {
 
     EnforcerOperation(
             @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
         this.principal = principal;
         this.username = principal != null ? principal.getUsername() : null;
         this.tracer = createTracer(options);
-        this.ownerResolver = ownerResolver != null ? ownerResolver : beans.securityContextManager.getUserProfileService();
+        var customOwnerResolver = options.customOwnerResolver();
+        this.ownerResolver =
+                customOwnerResolver != null ? customOwnerResolver : beans.securityContextManager.getUserProfileService();
+        this.options = options;
         this.b = beans;
         this.task = task;
     }

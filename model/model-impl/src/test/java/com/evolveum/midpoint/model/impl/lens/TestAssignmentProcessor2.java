@@ -389,7 +389,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         policyRuleAssignment.setPolicyRule(rule);
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
-                        ObjectTypeUtil.createAssignmentTo(ROLE_R1_OID, ObjectTypes.ROLE, prismContext),
+                        ObjectTypeUtil.createAssignmentTo(ROLE_R1_OID, ObjectTypes.ROLE),
                         policyRuleAssignment)
                 .asObjectDelta(USER_BARBOSSA_OID);
         executeChangesAssertSuccess(objectDelta, null, task, result);
@@ -463,7 +463,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        AssignmentType deputyOfBarbossaAssignment = ObjectTypeUtil.createAssignmentTo(USER_BARBOSSA_OID, ObjectTypes.USER, prismContext);
+        AssignmentType deputyOfBarbossaAssignment = ObjectTypeUtil.createAssignmentTo(USER_BARBOSSA_OID, ObjectTypes.USER);
         deputyOfBarbossaAssignment.getTargetRef().setRelation(SchemaConstants.ORG_DEPUTY);
         AssignmentType policyRuleAssignment = new AssignmentType();
         PolicyRuleType rule = new PolicyRuleType();

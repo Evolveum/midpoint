@@ -20,7 +20,7 @@
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3a110</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
 
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
 

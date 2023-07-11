@@ -312,7 +312,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
         PrismContainerValue<AssignmentType> assignmentValue = ObjectTypeUtil
-                .createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE, getPrismContext())
+                .createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE)
                 .asPrismContainerValue();
         assignmentContainer.add(assignmentValue);
 
@@ -347,8 +347,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
         PrismContainerValue<AssignmentType> assignmentValue =
-                ObjectTypeUtil.createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE,
-                                getPrismContext())
+                ObjectTypeUtil.createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE)
                         .asPrismContainerValue();
         assignmentValue.setId(9999L);
         assignmentContainer.add(assignmentValue);
@@ -457,7 +456,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
-                .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
+                .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE))
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_LIFECYCLE_STATE).replace("draft")
                 .item(UserType.F_GIVEN_NAME).replace("bill")
                 .asObjectDelta(OID);
@@ -486,7 +485,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
-                .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
+                .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE))
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_LIFECYCLE_STATE).replace("draft")
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_DESCRIPTION).replace("descr")
                 .item(UserType.F_ASSIGNMENT, 77L, AssignmentType.F_LIFECYCLE_STATE).replace("active")

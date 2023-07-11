@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +31,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -59,7 +61,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -180,15 +181,18 @@ public abstract class PageBase extends PageAdminLTE {
         this(null);
     }
 
-    public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public <O extends ObjectType, T extends ObjectType> void authorize(
+            String operationUrl, AuthorizationPhaseType phase,
+            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target,
+            OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)
                 .delta(delta)
                 .target(target)
                 .build();
-        getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
+        getSecurityEnforcer().authorize(operationUrl, phase, params, getPageTask(), result);
     }
 
     public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
@@ -1013,5 +1017,9 @@ public abstract class PageBase extends PageAdminLTE {
         MessagePanel panel = new MessagePanel(panelId, type,
                 createStringResource(message, params), false);
         return panel;
+    }
+
+    public TaskAwareExecutor taskAwareExecutor(@NotNull AjaxRequestTarget target, @NotNull String operationName) {
+        return new TaskAwareExecutor(this, target, operationName);
     }
 }

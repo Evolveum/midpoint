@@ -166,7 +166,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
         if (archetypeRef != null) {
             AssignmentHolderType holder = assignmentHolder.asObjectable();
-            archetypeRef.forEach(a -> holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a, getPrismContext())));
+            archetypeRef.forEach(a -> holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a)));
 
         }
 
