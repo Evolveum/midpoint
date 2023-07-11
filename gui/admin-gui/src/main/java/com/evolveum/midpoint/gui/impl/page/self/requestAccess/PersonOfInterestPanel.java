@@ -304,7 +304,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             return new AutocompleteSearchConfigurationType();
         }
 
-        AutocompleteSearchConfigurationType config = group.getAutoCompleteConfiguration();
+        AutocompleteSearchConfigurationType config = group.getAutocompleteConfiguration();
         if (config != null) {
             return config;
         }
