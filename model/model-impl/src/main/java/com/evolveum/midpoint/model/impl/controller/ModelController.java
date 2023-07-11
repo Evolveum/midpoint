@@ -274,7 +274,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 // if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
                 for (ObjectDelta<? extends ObjectType> delta : deltas) {
                     if (delta.isAdd()) {
-                        ModelImplUtils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, result);
+                        ModelImplUtils.resolveReferences(
+                                delta.getObjectToAdd(), cacheRepositoryService,
+                                false, false, EvaluationTimeType.IMPORT,
+                                true, result);
                     }
                 }
             }

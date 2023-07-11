@@ -68,11 +68,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
@@ -232,7 +228,8 @@ public class ModelImplUtils {
      * @param enforceReferentialIntegrity If true, missing reference causes fatal error when processing (if false, only warning is issued).
      * @param forceFilterReevaluation If true, references are reevaluated even if OID is present. (Given that filter is present as well, of course.)
      */
-    public static <T extends ObjectType> void resolveReferences(PrismObject<T> object, RepositoryService repository,
+    public static <T extends ObjectType> void resolveReferences(
+            PrismObject<T> object, RepositoryService repository,
                 boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,
                 boolean throwExceptionOnFailure,
                 OperationResult result) {
@@ -241,7 +238,8 @@ public class ModelImplUtils {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
-            resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+            resolveRef(
+                    (PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
                     resolutionTime, object.toString(), throwExceptionOnFailure, result);
         };
         object.accept(visitor);
@@ -251,8 +249,8 @@ public class ModelImplUtils {
      * Resolves references contained in ADD and REPLACE value sets for item modifications in a given ObjectDelta.
      * (specially treats collisions with values to be deleted)
      */
-
-    public static <T extends ObjectType> void resolveReferences(ObjectDelta<T> objectDelta, RepositoryService repository,
+    public static <T extends ObjectType> void resolveReferences(
+            ObjectDelta<T> objectDelta, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation,
             EvaluationTimeType resolutionTime, boolean throwExceptionOnFailure,
             OperationResult result) {
@@ -261,7 +259,8 @@ public class ModelImplUtils {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
-            resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+            resolveRef(
+                    (PrismReferenceValue) visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
                     resolutionTime, objectDelta.toString(), throwExceptionOnFailure, result);
         };
         // We could use objectDelta.accept(visitor), but we want to visit only values to add and replace
@@ -299,38 +298,35 @@ public class ModelImplUtils {
         }
     }
 
-    public static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
-            boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
+    /**
+     * Resolves a filter in a reference. Skips the resolution if there's an expression in a filter.
+     * (Currently checks only the top level!)
+     */
+    public static void resolveRef(
+            PrismReferenceValue refVal, RepositoryService repository,
+            boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTime,
             String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
         PrismContext prismContext = PrismContext.get();
         String refName = refVal.getParent() != null ?
                 refVal.getParent().getElementName().toString() : "(unnamed)";
 
-        if ((refVal.getResolutionTime() != null && refVal.getResolutionTime() != evaluationTimeType) ||
-                (refVal.getResolutionTime() == null && evaluationTimeType != EvaluationTimeType.IMPORT)) {
-            LOGGER.trace("Skipping resolution of reference {} in {} because the resolutionTime is set to {}", refName, contextDesc, refVal.getResolutionTime());
+        var effectiveResolutionTime = refVal.getEffectiveResolutionTime();
+        if (effectiveResolutionTime != evaluationTime) {
+            LOGGER.trace("Skipping resolution of reference {} in {} because the resolutionTime is set to {}",
+                    refName, contextDesc, effectiveResolutionTime);
             return;
         }
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_RESOLVE_REFERENCE);
         result.addContext(OperationResult.CONTEXT_ITEM, refName);
 
-        QName typeQName = null;
-        if (refVal.getTargetType() != null) {
-            typeQName = refVal.getTargetType();
-        }
-        if (typeQName == null) {
-            PrismReferenceDefinition definition = (PrismReferenceDefinition) refVal.getParent().getDefinition();
-            if (definition != null) {
-                typeQName = definition.getTargetTypeName();
-            }
-        }
+        QName typeQName = refVal.determineTargetTypeName();
         Class<? extends ObjectType> type = ObjectType.class;
         if (typeQName != null) {
             type = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
             if (type == null) {
-                result.recordWarning("Unknown type specified in reference or definition of reference " + refName + ": "
-                        + typeQName);
+                result.recordWarning(
+                        "Unknown type specified in reference or definition of reference " + refName + ": " + typeQName);
                 type = ObjectType.class;
             }
         }
@@ -396,14 +392,14 @@ public class ModelImplUtils {
         // No OID and we have filter. Let's check the filter a bit
         ObjectFilter objFilter;
         try{
-            PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+            PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
             objFilter = prismContext.getQueryConverter().parseFilter(filter, objDef);
         } catch (SchemaException ex){
             LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
             throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
         }
 
-        LOGGER.trace("Resolving using filter {}", objFilter.debugDump());
+        LOGGER.trace("Resolving using filter {}", objFilter.debugDumpLazily());
         List<PrismObject<? extends ObjectType>> objects;
         QName objectType = refVal.getTargetType();
         if (objectType == null) {
@@ -415,7 +411,7 @@ public class ModelImplUtils {
             return;
         }
 
-        if (containExpression(objFilter)){
+        if (containExpression(objFilter)) {
             result.recordSuccessIfUnknown();
             return;
         }
@@ -464,20 +460,11 @@ public class ModelImplUtils {
         result.recordSuccessIfUnknown();
     }
 
+    // TODO what about expressions in deeper filters (e.g. when using AND/OR/NOT?)
     private static boolean containExpression(ObjectFilter filter) {
-        if (filter == null) {
-            return false;
-        }
-        if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null) {
-            return true;
-        }
-        if (filter instanceof FullTextFilter && ((FullTextFilter) filter).getExpression() != null) {
-            return true;
-        }
-        if (filter instanceof ValueFilter && ((ValueFilter) filter).getExpression() != null) {
-            return true;
-        }
-        return false;
+        return filter instanceof InOidFilter inOidFilter && inOidFilter.getExpression() != null
+                || filter instanceof FullTextFilter fullTextFilter && fullTextFilter.getExpression() != null
+                || filter instanceof ValueFilter<?, ?> valueFilter && valueFilter.getExpression() != null;
     }
 
     public static void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, Protector protector, ModelExecuteOptions options,
@@ -495,9 +482,10 @@ public class ModelImplUtils {
         }
     }
 
-    public static void setRequestee(Task task, LensContext context) {
+    public static void setRequestee(Task task, LensContext<?> context) {
         PrismObject<? extends ObjectType> object;
-        if (context != null && context.getFocusContext() != null
+        if (context != null
+                && context.getFocusContext() != null
                 && UserType.class.isAssignableFrom(context.getFocusContext().getObjectTypeClass())) {
             object = context.getFocusContext().getObjectAny();
         } else {

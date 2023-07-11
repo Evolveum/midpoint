@@ -147,7 +147,9 @@ public class ModelCrudService {
         OperationResult result = parentResult.createSubresult(ADD_OBJECT);
         result.addParam(OperationResult.PARAM_OBJECT, object);
 
-        ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, result);
+        ModelImplUtils.resolveReferences(
+                object, repository, false, false,
+                EvaluationTimeType.IMPORT, true, result);
 
         String oid;
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
