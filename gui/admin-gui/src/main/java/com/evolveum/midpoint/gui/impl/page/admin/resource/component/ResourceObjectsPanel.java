@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -78,6 +80,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_STATISTICS = "statistics";
     private static final String ID_SHOW_STATISTICS = "showStatistics";
+    private static final String ID_CREATE_TASK = "createTask";
+    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private IModel<Boolean> showStatisticsModel = Model.of(false);
 
@@ -90,6 +94,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         createPanelTitle();
         createObjectTypeChoice();
         createConfigureButton();
+        createTaskCreateButton();
 
         createShowStatistics();
         createStatisticsPanel();
@@ -213,9 +218,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             protected ISelectableDataProvider<SelectableBean<ShadowType>> createProvider() {
-
                 return ResourceObjectsPanel.this.createProvider(getSearchModel(), (CompiledShadowCollectionView) getObjectCollectionView());
-//                return provider;
             }
 
             @Override
@@ -252,6 +255,63 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    private void createTaskCreateButton() {
+        AjaxIconButton createTask = new AjaxIconButton(ID_CREATE_TASK, new Model<>("fa fa-tasks"),
+                createStringResource("ResourceObjectsPanel.button.createTask")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                createTaskPerformed(target);
+            }
+        };
+        createTask.showTitleAsLabel(true);
+        createTask.setOutputMarkupId(true);
+        add(createTask);
+    }
+
+    private void createTaskPerformed(AjaxRequestTarget target) {
+        TaskCreationPopup createTaskPopup = new TaskCreationPopup(getPageBase().getMainPopupBodyId(), () -> getSelectedObjectType()) {
+
+            @Override
+            protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
+                ResourceObjectsPanel.this.createNewTaskPerformed(flavor, simulate, target);
+            }
+        };
+        getPageBase().showMainPopup(createTaskPopup, target);
+
+    }
+
+    private void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean isSimulation, AjaxRequestTarget target) {
+        var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
+                .hideSuccessfulStatus()
+                .run((task, result) -> {
+
+                    ResourceType resource = getObjectDetailsModels().getObjectType();
+                    ResourceTaskCreator creator =
+                            ResourceTaskCreator.forResource(resource, getPageBase())
+                                    .ofFlavor(flavor)
+                                    .ownedByCurrentUser()
+                                    .withCoordinates(
+                                            getKind(), // FIXME not static
+                                            getIntent(), // FIXME not static
+                                            getObjectClass()); // FIXME not static
+
+                    if (isSimulation) {
+                        creator = creator
+                                .withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                                .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
+                                .withSimulationResultDefinition(
+                                        new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
+                    }
+
+                    return creator.create(task, result);
+                });
+
+        if (newTask != null) {
+            WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+        }
     }
 
     //case GENERIC:

@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:extend>
+        <fieldset wicket:id="taskButtonsContainer" class="objectButtons">
+            <legend><wicket:message key="TaskOperationalButtonsPanel.buttons.task"/></legend>
+            <a class="mr-2 btn btn-sm" wicket:id="taskButtons"/>
+        </fieldset>
+        <fieldset wicket:id="refreshingButtonsContainer" class="objectButtons">
+            <legend><wicket:message key="TaskOperationalButtonsPanel.buttons.refresh"/></legend>
+            <a class="mr-2 btn btn-sm btn-default" wicket:id="refreshingButtons"/>
+        </fieldset>
+    </wicket:extend>
+</wicket:panel>
+</html>
