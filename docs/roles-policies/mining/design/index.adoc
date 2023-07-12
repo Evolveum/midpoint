@@ -3,6 +3,8 @@
 :page-nav-title: Role Mining Design Notes
 :page-upkeep-status: green
 
+This page provides design notes for Role Mining features of midPoint 4.8.
+
 == Technical
 
 === Data preparing
@@ -11,8 +13,7 @@ The first step to mining business roles is to load appropriate datasets.
 
 Loading this data is divided into several parts.
 
-The main difference lies in the chosen mining mode.
-We divide it into two ways.
+The main difference lies in the chosen mining mode, either user-based or role-based.
 In both cases, the data is mapped by loading UserType objects.
 
 
@@ -31,6 +32,7 @@ These conditions are determined by the following input parameters:
 * Conditions (input parameters)
 
 ** Min Assignments: The minimum number of role type assignments required for individual users.
+RS: Probably not very useful, but we can keep it for completeness.
 ** Axiom Query Filter: Only user queries are included (?).
 
 
@@ -67,7 +69,7 @@ These conditions are determined by the following input parameters:
 
 * Conditions (input parameters)
 
-** Min Assignments: The minimum number of users that contains specific role.
+** Min Assignments: The minimum number of users that are members of a specific role (users that have the role assigned).
 This parameter can be understood as the frequency of role assignments.
 (For example, roles with an occupancy rate ranging from 80% to 90% can be selected.)
 ** Axiom query filter: UserType
@@ -121,18 +123,29 @@ image::images/cluster_img.png[Role mining location,width=800,align=center]
 
 * List<DataPoint>: Data input that will be clustered.
 * Min Intersection: The minimum intersection required between the compared
-List<String> points and List<String> points in order to be included in the group.
-* Min Group Size: The minimum size required for a clustered group.
+List<String> points and List<String> points in order to be included in the cluster.
+* Min Cluster Size: The minimum size required for a clustered group.
+If the algorithm would detect a cluster that is smaller than this parameter, such cluster will not be created.
+Note: this is mininum size in (compressed) groups, not actual users/roles.
+Setting this parameter even to a small number can have non-intuitive results.
 * J(A,B) similarity:  (in the background we use difference, it is the same as 1.0 -
 similarity = 1.0 - J(A,B).
 
-NOTE: 100% = 1.0 is not allowed for clustering algorithm process. A 100% match is detected when processing the parameters as input to the clustering
-algorithm. In other words, List<DataPoint> is composed of identical objects, if they exist, and it is the input to the algorithm.
+NOTE: 100% = 1.0 is not allowed for clustering algorithm process.
+A 100% match is detected when processing the parameters as input to the clustering algorithm.
+In other words, List<DataPoint> is composed of identical objects, if they exist, and it is the input to the algorithm.
 If 100% similarity is selected, the clustering algorithm is not applied, but the mapped input data is analyzed directly (currently implemented (status experimental)).
 
 .Cluster parameters.
 image::images/cluster_options.png[Role mining location,width=1200,align=center]
 
+TIP: Is the pre-grouping of input data really useful?
+What if we do not pre-group the data, and pass it all directly to DBSCAN?
+Clustering will be probably better, as currently the DBSCAN does not consider group size.
+Therefore it may "overlook" a cluster of two huge groups, while it will probably detect a cluster of tens of tiny groups.
+DBSCAN with ungrouped data will take longer, but how much longer?
+Maybe it is worth it.
+Or maybe we need our own DBSCAN implementation which will consider group size.
 
 ====  Distance measure
 
