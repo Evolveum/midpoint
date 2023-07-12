@@ -165,7 +165,7 @@
             <xsd:element name="focusIdentification" type="tns:FocusIdentificationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="hint" type="tns:HintAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="archetypeBased" type="tns:ArchetypeBasedModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -393,7 +393,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ArchetypeBasedModuleType">
+    <xsd:complexType name="ArchetypeSelectionModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Module is used for the user authentication using the rules from the set of archetypes. For example, for "lost my
@@ -405,7 +405,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
                 <xsd:sequence>
                     <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionType" minOccurs="0">
                         <xsd:annotation>

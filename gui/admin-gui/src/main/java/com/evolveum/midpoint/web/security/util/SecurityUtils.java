@@ -214,7 +214,7 @@ public class SecurityUtils {
         return channel.getUrlSuffix();
     }
 
-    public static ArchetypeBasedModuleType getLoginRecoveryAuthModule(SecurityPolicyType securityPolicy) {
+    public static ArchetypeSelectionModuleType getLoginRecoveryAuthModule(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null || securityPolicy.getAuthentication() == null
                 || securityPolicy.getAuthentication().getModules() == null) {
             return null;
@@ -233,8 +233,8 @@ public class SecurityUtils {
             //for now only one archetype based module is supported for login recovery functionality
             var loginRecoveryModule = modules.get(0);
             var recoveryModuleIdentifier = loginRecoveryModule.getIdentifier();
-            List<ArchetypeBasedModuleType> archetypeBasedModules =
-                    securityPolicy.getAuthentication().getModules().getArchetypeBased();
+            List<ArchetypeSelectionModuleType> archetypeBasedModules =
+                    securityPolicy.getAuthentication().getModules().getArchetypeSelection();
             return archetypeBasedModules
                     .stream()
                     .filter(m -> m.getIdentifier().equals(recoveryModuleIdentifier))

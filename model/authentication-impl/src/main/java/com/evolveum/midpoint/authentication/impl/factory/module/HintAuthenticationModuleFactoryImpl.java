@@ -6,19 +6,16 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.HintAuthenticationModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configurer.FocusIdentificationModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.configurer.HintModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.provider.FocusIdentificationProvider;
 import com.evolveum.midpoint.authentication.impl.provider.HintAuthenticationProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.stereotype.Component;
 
 /**
  * @author skublik

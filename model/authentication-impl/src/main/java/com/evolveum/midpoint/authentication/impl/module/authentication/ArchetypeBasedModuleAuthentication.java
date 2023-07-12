@@ -13,7 +13,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 public class ArchetypeBasedModuleAuthentication extends CredentialModuleAuthenticationImpl {
 
     public ArchetypeBasedModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
-        super(AuthenticationModuleNameConstants.CORRELATION_ATTRIBUTES_VERIFICATION, sequenceModule);
+        super(AuthenticationModuleNameConstants.ARCHETYPE_SELECTION, sequenceModule);
+        setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {

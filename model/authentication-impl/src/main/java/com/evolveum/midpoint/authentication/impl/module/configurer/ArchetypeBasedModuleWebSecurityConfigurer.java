@@ -8,16 +8,21 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.filter.ArchetypeSelectionAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.CorrelationAttributesVerificationAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointAttributeConfigurer;
+import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ArchetypeBasedModuleWebSecurityConfiguration;
 
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
-public class ArchetypeBasedModuleWebSecurityConfigurer<C extends ArchetypeBasedModuleWebSecurityConfiguration>
-        extends ModuleWebSecurityConfigurer<C> {
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+public class ArchetypeBasedModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
 
     public ArchetypeBasedModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
@@ -26,17 +31,17 @@ public class ArchetypeBasedModuleWebSecurityConfigurer<C extends ArchetypeBasedM
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        CorrelationAttributesVerificationAuthenticationFilter verificationFilter =
-                new CorrelationAttributesVerificationAuthenticationFilter();
+        ArchetypeSelectionAuthenticationFilter archetypeSelectionFilter =
+                new ArchetypeSelectionAuthenticationFilter();
         http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        getOrApply(http, new MidpointAttributeConfigurer<>(verificationFilter))
-                .loginPage("/loginRecovery")
+        getOrApply(http, new MidpointAttributeConfigurer<>(archetypeSelectionFilter))
+                .loginPage("/archetypeSelection")
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler())).permitAll();
-//        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
-//                .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/loginRecovery"));
+        getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
+                .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/archetypeSelection"));
 
         http.logout().clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
@@ -44,7 +49,7 @@ public class ArchetypeBasedModuleWebSecurityConfigurer<C extends ArchetypeBasedM
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
 
-        http.addFilterBefore(verificationFilter, CorrelationAttributesVerificationAuthenticationFilter.class);
+        http.addFilterAfter(archetypeSelectionFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
 }

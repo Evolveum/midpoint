@@ -286,8 +286,6 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_REMEDIATION_QNAME = new QName(NS_CHANNEL, "remediation");
     public static final String CHANNEL_REMEDIATION_URI = qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
-    public static final QName CHANNEL_LOGIN_RECOVERY_QNAME = new QName(NS_CHANNEL, "loginRecovery");
-    public static final String CHANNEL_LOGIN_RECOVERY_URI = qNameToUri(CHANNEL_LOGIN_RECOVERY_QNAME);
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
@@ -457,6 +455,11 @@ public abstract class SchemaConstants {
     // Password reset channel. This is *reset*, which means that the user does not know the old password and cannot log in.
     public static final QName CHANNEL_RESET_PASSWORD_QNAME = new QName(NS_CHANNEL, "resetPassword");
     public static final String CHANNEL_RESET_PASSWORD_URI = qNameToUri(CHANNEL_RESET_PASSWORD_QNAME);
+
+
+    public static final QName CHANNEL_LOGIN_RECOVERY_QNAME = new QName(NS_CHANNEL, "loginRecovery");
+    public static final String CHANNEL_LOGIN_RECOVERY_URI = qNameToUri(CHANNEL_LOGIN_RECOVERY_QNAME);
+
 
     // Catch-all channel for all user operations in user interface.
     public static final String CHANNEL_USER_LOCAL = "user";
