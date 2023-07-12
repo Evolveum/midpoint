@@ -868,11 +868,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.5</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:name</a:element>
-                    <a:version>4.5</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
