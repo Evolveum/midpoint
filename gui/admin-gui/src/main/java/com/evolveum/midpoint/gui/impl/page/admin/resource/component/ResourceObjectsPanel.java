@@ -112,9 +112,9 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
     private void createObjectTypeChoice() {
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                () -> getObjectDetailsModels().getDefaultObjectType(getKind()),
+                Model.of(getObjectDetailsModels().getDefaultObjectType(getKind())),
                 () -> getObjectDetailsModels().getResourceObjectTypesDefinitions(getKind()),
-                new ResourceObjectTypeChoiceRenderer(), false);
+                new ResourceObjectTypeChoiceRenderer(), true);
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -441,7 +441,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private QName getObjectClass() {
         ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
         if (objectType != null) {
-            return objectType.getDelineation().getObjectClass();
+            return objectType.getDelineation() != null ? objectType.getDelineation().getObjectClass() : null;
         }
         return null;
     }

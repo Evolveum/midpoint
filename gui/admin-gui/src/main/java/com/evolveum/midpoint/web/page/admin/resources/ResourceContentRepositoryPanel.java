@@ -33,6 +33,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+//Do not use, use ResourceObjectsPanel or ResourceUncategorizedPanel instead
+@Deprecated(forRemoval = true)
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     private static final long serialVersionUID = 1L;
 

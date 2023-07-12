@@ -61,6 +61,8 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         initLayout();
     }
 
+    //TODO rewrite to ResourceObjectsPanel or maybe better ResourceUncategorizedPanel. We
+    // want to show all objects from resource, not only shadows as those might not exist yet.
     private void initLayout() {
         ResourceContentPanel table = new ResourceContentPanel(
                 ID_TABLE,
