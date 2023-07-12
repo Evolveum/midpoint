@@ -46,6 +46,8 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -1716,11 +1718,24 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             jdbcSession.executeStatement("select 1");
             details.add(new LabeledString("select-1-round-trip-ms",
                     String.valueOf(System.currentTimeMillis() - startMs)));
+
+            addGlobalMetadataInfo(jdbcSession, details);
         }
 
         details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
 
         return diag;
+    }
+
+    private void addGlobalMetadataInfo(JdbcSession jdbcSession, List<LabeledString> details) {
+        List<MGlobalMetadata> list = jdbcSession.newQuery()
+                .from(QGlobalMetadata.DEFAULT)
+                .select(QGlobalMetadata.DEFAULT)
+                .fetch();
+
+        for (MGlobalMetadata metadata : list) {
+            details.add(new LabeledString(metadata.name, metadata.value));
+        }
     }
 
     @Override

@@ -505,7 +505,7 @@ public class PageAbout extends PageAdminConfiguration {
         OperationResult result = new OperationResult(OPERATION_SUBMIT_REINDEX);
         try {
             Task task = getTaskManager().createTaskInstance();
-            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, result);
             getModelInteractionService().submit(
                     ActivityDefinitionBuilder.create(
                                     new ReindexingWorkDefinitionType())

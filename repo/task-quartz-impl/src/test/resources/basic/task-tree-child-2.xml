@@ -19,7 +19,7 @@
     <taskIdentifier>10000000-0000-0000-0000-123450000021-2</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <parent>10000000-0000-0000-0000-123450000021</parent>
-    <executionStatus>suspended</executionStatus>
+    <executionState>suspended</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
 </task>

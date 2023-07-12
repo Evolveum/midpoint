@@ -84,11 +84,18 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
 
     static abstract class PartialFilterOperationRelated<F> extends OperationRelated<EnforcerFilterOperation<?, F>> {
 
+        @NotNull private final EnforcerFilterOperation<?, F>.PartialOp partialOp;
+
         PartialFilterOperationRelated(
-                @NotNull EnforcerFilterOperation<?, F> operation,
+                @NotNull EnforcerFilterOperation<?, F>.PartialOp partialOp,
                 @Nullable String message,
                 @Nullable Object[] arguments) {
-            super(operation, message, arguments);
+            super(partialOp.getEnforcerFilterOperation(), message, arguments);
+            this.partialOp = partialOp;
+        }
+
+        public @NotNull String getId() {
+            return partialOp.getId();
         }
     }
 
@@ -100,10 +107,10 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
         private final String queryItemsSpecDump;
 
         PartialFilterOperationStarted(
-                @NotNull EnforcerFilterOperation<?, F> operation,
+                @NotNull EnforcerFilterOperation<?, F>.PartialOp partialOp,
                 @NotNull PhaseSelector phaseSelector,
                 @NotNull String queryItemsSpecDump) {
-            super(operation, null, null);
+            super(partialOp, null, null);
             this.phaseSelector = phaseSelector;
             this.queryItemsSpecDump = queryItemsSpecDump;
         }
@@ -125,13 +132,12 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
         private final F filter;
 
         PartialFilterOperationFinished(
-                @NotNull EnforcerFilterOperation<?, F> operation,
                 @NotNull EnforcerFilterOperation<?, F>.PartialOp partialOp,
                 @NotNull PhaseSelector phaseSelector,
                 @NotNull F filter,
                 @Nullable String message,
                 Object... arguments) {
-            super(operation, message, arguments);
+            super(partialOp, message, arguments);
             this.partialOp = partialOp;
             this.phaseSelector = phaseSelector;
             this.filter = filter;

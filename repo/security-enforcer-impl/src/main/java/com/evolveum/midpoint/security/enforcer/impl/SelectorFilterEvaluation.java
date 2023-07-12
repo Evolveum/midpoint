@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescrip
 import com.evolveum.midpoint.schema.selector.eval.FilterCollector;
 import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.selector.spec.SelfClause;
 import com.evolveum.midpoint.util.exception.*;
 
 class SelectorFilterEvaluation<T>
@@ -34,21 +33,21 @@ class SelectorFilterEvaluation<T>
 
     SelectorFilterEvaluation(
             @NotNull String id,
-            @NotNull Specification specification,
+            @NotNull SelectorWithItems extendedSelector,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter originalFilter,
             @NotNull String desc,
             String selectorLabel,
             @NotNull AuthorizationEvaluation authorizationEvaluation,
             @NotNull OperationResult result) {
-        super(id, specification.getSelector(), null, desc, authorizationEvaluation, result);
+        super(id, extendedSelector.getSelector(), null, desc, authorizationEvaluation, result);
         this.searchType = filterType;
         this.originalFilter = originalFilter;
         this.selectorLabel = selectorLabel;
         this.filterCollector = FilterCollector.defaultOne();
     }
 
-    boolean processFilter(boolean includeSpecial)
+    boolean processFilter()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
@@ -57,14 +56,6 @@ class SelectorFilterEvaluation<T>
                 selector.getTypeClass(searchType),
                 originalFilter,
                 authorizationEvaluation.authorization.maySkipOnSearch(),
-                (clause, ctx1) -> {
-                    if (!includeSpecial && clause instanceof SelfClause) {
-                        ctx1.traceClauseNotApplicable(clause, "'self' clause should be skipped");
-                        return false;
-                    } else {
-                        return true;
-                    }
-                },
                 filterCollector,
                 createFilterEvaluator(),
                 authorizationEvaluation.op.tracer,

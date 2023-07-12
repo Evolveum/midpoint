@@ -13,39 +13,41 @@
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="a66d6763-eced-47b7-b57d-7bf6be27dcdb" version="5">
     <name>Execute changes</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:objectDeltas>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:UserType</t:objectType>
-            <t:oid>07cc8c14-f94a-4da9-86ab-0246fc63bb6b</t:oid>
-            <t:itemDelta>
-                <t:modificationType>add</t:modificationType>
-                <t:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:linkRef</t:path>
-                <t:value xmlns="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="c:ShadowType" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ObjectReferenceType">
-                    <object>
-                        <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
-                        <c:objectClass>ri:AccountObjectClass</c:objectClass>
-                        <c:kind>account</c:kind>
-                        <c:intent>default</c:intent>
-                        <c:attributes>
-                            <icfs:password xsi:type="t:ProtectedStringType">pass1234word</icfs:password>
-                        </c:attributes>
-                    </object>
-                </t:value>
-            </t:itemDelta>
-        </mext:objectDeltas>
-        <mext:executeOptions>
-            <force>false</force>
-            <reconcile>false</reconcile>
-            <executeImmediatelyAfterApproval>false</executeImmediatelyAfterApproval>
-        </mext:executeOptions>
-    </extension>
     <taskIdentifier>1585065525794-0-1</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
         <!-- administrator -->
     </ownerRef>
     <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
     <executionState>closed</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/execute-deltas/handler-3</handlerUri>
-    <binding>tight</binding>
+    <activity>
+        <work>
+            <explicitChangeExecution>
+                <delta>
+                    <t:changeType>modify</t:changeType>
+                    <t:objectType>c:UserType</t:objectType>
+                    <t:oid>07cc8c14-f94a-4da9-86ab-0246fc63bb6b</t:oid>
+                    <t:itemDelta>
+                        <t:modificationType>add</t:modificationType>
+                        <t:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:linkRef</t:path>
+                        <t:value xmlns="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="c:ShadowType" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ObjectReferenceType">
+                            <object>
+                                <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
+                                <c:objectClass>ri:AccountObjectClass</c:objectClass>
+                                <c:kind>account</c:kind>
+                                <c:intent>default</c:intent>
+                                <c:attributes>
+                                    <icfs:password xsi:type="t:ProtectedStringType">pass1234word</icfs:password>
+                                </c:attributes>
+                            </object>
+                        </t:value>
+                    </t:itemDelta>
+                </delta>
+                <executionOptions>
+                    <force>false</force>
+                    <reconcile>false</reconcile>
+                    <executeImmediatelyAfterApproval>false</executeImmediatelyAfterApproval>
+                </executionOptions>
+            </explicitChangeExecution>
+        </work>
+    </activity>
 </task>

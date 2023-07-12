@@ -8832,11 +8832,6 @@
            <xsd:appinfo>
                <a:container/>
                <a:since>3.6</a:since>
-               <a:schemaMigration>
-                   <a:element>tns:targetSubtype</a:element>
-                   <a:version>4.8</a:version>
-                   <a:operation>removed</a:operation>
-               </a:schemaMigration>
            </xsd:appinfo>
        </xsd:annotation>
         <xsd:complexContent>
@@ -8849,6 +8844,23 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.6</a:since>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="targetSubtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Object subtype of the target persona.
+                                    Constructions with the same type and subtype configuration are
+                                    interpreted as if they describe the same persona.
+
+                                    REMOVED, use archetypeRef instead
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                    <a:since>3.6</a:since>
+                                    <a:removed>true</a:removed>
+                                    <a:deprecatedSince>4.4</a:deprecatedSince>
+                                    <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9595,11 +9607,6 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:propertyConstraint</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9629,6 +9636,19 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectPolicyConfigurationType.itemConstraint</a:displayName>
                         <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="propertyConstraint" type="tns:ItemConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Use itemConstraint instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.1</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14534,27 +14554,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:schemaMigration>
-                    <a:element>tns:roleCatalogRef</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>moved</a:operation>
-                    <a:comment>Moved to adminGuiConfiguration/accessRequest/roleCatalog/roleCatalogRef</a:comment>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:roleCatalogCollections</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>moved</a:operation>
-                    <a:comment>Moved to adminGuiConfiguration/accessRequest/roleCatalog/collection. Requires value converting
-                        (roleCatalogCollections.collection.collectionUri -> collection.identifier)</a:comment>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:defaultCollection</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>moved</a:operation>
-                    <a:comment>Moved to adminGuiConfiguration/accessRequest/roleCatalog/collection. Requires value converting
-                        (roleCatalogCollections.collection.collectionUri -> collection.identifier;
-                        collection.default should be set to true)</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14566,6 +14565,63 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="roleCatalogRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the root object of the role catalog.
+
+                        REMOVED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                        <a:displayName>RoleManagementConfigurationType.roleCatalogRef</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleCatalogCollections" type="tns:ObjectCollectionsUseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies the set of object collections ("role catalog views") to display in role
+                        catalog. If this element is not specified then the default (hardcoded) collections
+                        will be displayed. If this element is specified then only those collections specified
+                        in this element are displayed.
+
+                        REMOVED:
+                        Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
+                        Requires value converting (roleCatalogCollections.collection.collectionUri -> collection.identifier)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:displayName>RoleManagementConfigurationType.roleCatalogCollections</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultCollection" type="tns:ObjectCollectionUseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies the default object collections ("role catalog view") to display in role
+                        catalog.
+
+                        REMOVED:
+                        Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
+                        Requires value converting (roleCatalogCollections.collection.collectionUri -> collection.identifier;
+                        collection.default should be set to true)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:displayName>RoleManagementConfigurationType.defaultCollection</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="defaultAssignmentConstraints" type="tns:AssignmentConstraintsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16208,11 +16264,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:schemaMigration>
-                    <a:element>tns:objectResults</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16248,6 +16299,16 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.outputReports</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectResults" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.objectResults</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16786,11 +16847,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:schemaMigration>
-                    <a:element>tns:reconcileAffected</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16869,6 +16925,29 @@
                         reconciliation will not be forced (but it may still happen if other configuration
                         loads full projection).
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reconcileAffected" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to reconcile affected objects after executing changes.
+                        Typical use: after a role is changed, all users that have been assigned this role
+                        would be reconciled.
+
+                        Because it is difficult to determine all affected objects (e.g. users that have
+                        indirectly assigned a role), midPoint does a reasonable attempt to determine
+                        and reconcile them. E.g. it may be limited to a direct assignees.
+
+                        Also, because of time complexity, the reconciliation may be executed in
+                        a separate background task.
+
+                        Support was removed in 4.2. It is replaced by new "Linked objects" functionality.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0">

@@ -6,26 +6,28 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="da0a48bb-1294-475e-bcd3-51bfb9813885"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="da0a48bb-1294-475e-bcd3-51bfb9813885">
     <name>task-hr-import</name>
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-    </extension>
-
     <taskIdentifier>da0a48bb-1294-475e-bcd3-51bfb9813885</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9" type="c:ResourceType"/> <!-- resource-hr -->
     <schedule>
         <recurrence>recurring</recurrence> <!-- scheduled manually -->
     </schedule>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
 </task>

@@ -11,10 +11,17 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.ShortDumpable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +40,15 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  * Then, it is queried by calling {@link #includes(ItemPath)} to determine whether given item path is _completely_
  * covered by this set.
  *
+ * An alternative approach is represented by {@link PrismEntityOpConstraints} and its implementations:
+ *
+ * . This (older) class is used e.g. in {@link ObjectSecurityConstraints} implementation, returned e.g. by
+ * {@link SecurityEnforcer#compileSecurityConstraints(PrismObject, SecurityEnforcer.Options, Task, OperationResult)} method.
+ *
+ * . The newer class ({@link PrismEntityOpConstraints}) is used e.g. as a return value of narrow-focused
+ * {@link SecurityEnforcer#compileOperationConstraints(MidPointPrincipal, PrismObjectValue, AuthorizationPhaseType, String[],
+ * SecurityEnforcer.Options, CompileConstraintsOptions, Task, OperationResult)}.
+ *
  * @author semancik
  */
 public class PositiveNegativeItemPaths implements ShortDumpable {
@@ -48,14 +64,6 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 
     public boolean includesAllItems() {
         return allItemsIncluded;
-    }
-
-    /**
-     * If returns `true`, then this specification provably includes no items, i.e. {@link #includes(ItemPath)}
-     * would return `false` when called with any argument.
-     */
-    public boolean includesNoItems() {
-        return includedItems.isEmpty() && excludedItems.isEmpty() && !allItemsIncluded;
     }
 
     protected @NotNull List<? extends ItemPath> getIncludedItems() {

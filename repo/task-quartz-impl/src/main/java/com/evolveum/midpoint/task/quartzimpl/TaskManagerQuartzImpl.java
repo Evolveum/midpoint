@@ -36,12 +36,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
@@ -727,16 +725,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Override
     public TaskHandler getHandler(String uri) {
         return handlerRegistry.getHandler(uri);
-    }
-
-    @Override
-    public Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly) {
-        return handlerRegistry.getAllHandlerUris(nonDeprecatedOnly);
-    }
-
-    @Override
-    public Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
-        return handlerRegistry.getHandlerUrisForArchetype(archetypeOid, nonDeprecatedOnly);
     }
 
     @Override

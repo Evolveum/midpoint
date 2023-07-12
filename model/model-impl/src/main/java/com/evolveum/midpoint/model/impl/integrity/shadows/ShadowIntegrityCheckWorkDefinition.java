@@ -9,22 +9,17 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityAspectType;
@@ -44,35 +39,21 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
             "resourceRef", ShadowIntegrityAspectType.RESOURCE_REF);
 
     @NotNull private final ObjectSetType shadows;
-    @NotNull private final Set<ShadowIntegrityAspectType> aspectsToDiagnose = new HashSet<>();
-    @NotNull private final Set<ShadowIntegrityAspectType> aspectsToFix = new HashSet<>();
+    @NotNull private final Set<ShadowIntegrityAspectType> aspectsToDiagnose;
+    @NotNull private final Set<ShadowIntegrityAspectType> aspectsToFix;
     @NotNull private final String duplicateShadowsResolver;
     private final boolean checkDuplicatesOnPrimaryIdentifiersOnly;
 
-    ShadowIntegrityCheckWorkDefinition(WorkDefinitionSource source) {
-        String duplicateShadowsResolverNullable;
-        Boolean checkDuplicatesOnPrimaryIdentifiersOnlyNullable;
-        if (source instanceof LegacyWorkDefinitionSource) {
-            LegacyWorkDefinitionSource legacySource = (LegacyWorkDefinitionSource) source;
-            shadows = ObjectSetUtil.fromLegacySource(legacySource);
-            aspectsToDiagnose.addAll(parseAspects(legacySource, SchemaConstants.MODEL_EXTENSION_DIAGNOSE));
-            aspectsToFix.addAll(parseAspects(legacySource, SchemaConstants.MODEL_EXTENSION_FIX));
-            duplicateShadowsResolverNullable = legacySource.getExtensionItemRealValue(
-                    SchemaConstants.MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER, String.class);
-            checkDuplicatesOnPrimaryIdentifiersOnlyNullable = legacySource.getExtensionItemRealValue(
-                    SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY, Boolean.class);
-        } else {
-            ShadowIntegrityCheckWorkDefinitionType typedDefinition = (ShadowIntegrityCheckWorkDefinitionType)
-                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            shadows = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
-            aspectsToDiagnose.addAll(typedDefinition.getDiagnose());
-            aspectsToFix.addAll(typedDefinition.getFix());
-            duplicateShadowsResolverNullable = typedDefinition.getDuplicateShadowsResolver();
-            checkDuplicatesOnPrimaryIdentifiersOnlyNullable = typedDefinition.isCheckDuplicatesOnPrimaryIdentifiersOnly();
-        }
+    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source) {
+        var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) source.getBean();
+        shadows = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
         ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
-        duplicateShadowsResolver = firstNonNull(duplicateShadowsResolverNullable, DefaultDuplicateShadowsResolver.class.getName());
-        checkDuplicatesOnPrimaryIdentifiersOnly = Boolean.TRUE.equals(checkDuplicatesOnPrimaryIdentifiersOnlyNullable);
+        aspectsToDiagnose = new HashSet<>(typedDefinition.getDiagnose());
+        aspectsToFix = new HashSet<>(typedDefinition.getFix());
+        duplicateShadowsResolver = firstNonNull(
+                typedDefinition.getDuplicateShadowsResolver(),
+                DefaultDuplicateShadowsResolver.class.getName());
+        checkDuplicatesOnPrimaryIdentifiersOnly = Boolean.TRUE.equals(typedDefinition.isCheckDuplicatesOnPrimaryIdentifiersOnly());
     }
 
     @Override
@@ -103,20 +84,5 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
 
     boolean fixes(ShadowIntegrityAspectType aspect) {
         return aspectsToFix.contains(aspect);
-    }
-
-    private Collection<ShadowIntegrityAspectType> parseAspects(LegacyWorkDefinitionSource legacySource, ItemName name) {
-        return legacySource.getExtensionItemRealValues(name, String.class).stream()
-                .map(this::resolveStringValue)
-                .collect(Collectors.toSet());
-    }
-
-    private @NotNull ShadowIntegrityAspectType resolveStringValue(String string) {
-        ShadowIntegrityAspectType aspect = KNOWN_KEYS.get(string);
-        if (aspect != null) {
-            return aspect;
-        } else {
-            throw new IllegalArgumentException("Unknown aspect: " + string + ". Known ones are: " + KNOWN_KEYS.keySet());
-        }
     }
 }

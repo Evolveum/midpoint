@@ -229,9 +229,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private <AH extends AssignmentHolderType> ButtonInlineMenuItem createUnassignAction() {
         PrismObject<AH> obj = getFocusObject();
         try {
-            boolean isUnassignAuthorized = getPageBase().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
+            boolean isUnassignAuthorized = getPageBase().isAuthorized(
+                    AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
                     AuthorizationPhaseType.REQUEST, obj,
-                    null, null, null);
+                    null, null);
             if (isUnassignAuthorized) {
                 return createUnassignButtonInlineMenuItem(getAssignmentsLimitReachedUnassignTitleModel());
             }
@@ -645,9 +646,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     protected <AH extends AssignmentHolderType> boolean isNewObjectButtonVisible(PrismObject<AH> focusObject) {
         try {
-            return getPageBase().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
+            return getPageBase().isAuthorized(
+                    AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
                     AuthorizationPhaseType.REQUEST, focusObject,
-                    null, null, null);
+                    null, null);
         } catch (Exception ex) {
             return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
         }

@@ -6,81 +6,93 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.security.*;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
+import java.util.List;
+import javax.crypto.SecretKey;
+
+import org.apache.commons.codec.binary.Base64;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.context.ApplicationContext;
-
-import javax.crypto.SecretKey;
-import java.security.*;
-import java.security.cert.Certificate;
-import java.util.Enumeration;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> {
+public class ListKeysRepositoryAction extends Action<ListKeysOptions, Void> {
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public String getOperationName() {
+        return "list keys";
+    }
+
+    @Override
+    public LogTarget getLogTarget() {
         return LogTarget.SYSTEM_ERR;
     }
 
     @Override
-    public void execute() throws Exception {
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        return NinjaApplicationContextLevel.NO_REPOSITORY;
+    }
+
+    @Override
+    public Void execute() throws Exception {
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 
         if (protector instanceof KeyStoreBasedProtector) {
             KeyStoreBasedProtector p = (KeyStoreBasedProtector) protector;
-            System.out.println("Location: " + p.getKeyStorePath());
+            context.out.println("Location: " + p.getKeyStorePath());
         }
 
         KeyStore keyStore = protector.getKeyStore();
 
-        System.out.println("Type: " + keyStore.getType());
+        context.out.println("Type: " + keyStore.getType());
 
         Provider provider = keyStore.getProvider();
-        System.out.println("Provider: " + provider.getName());
+        context.out.println("Provider: " + provider.getName());
 
         Enumeration<String> aliases = keyStore.aliases();
 
         while (aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
 
-            System.out.println("======");
+            context.out.println("======");
 
             describeAlias(keyStore, alias, protector);
 
             if (aliases.hasMoreElements()) {
-                System.out.println("======");
+                context.out.println("======");
             }
         }
 
-        // todo implement dump other keys from keystore
+        return null;
     }
 
     private void describeAlias(KeyStore keyStore, String alias, Protector protector)
             throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException, EncryptionException {
 
-        System.out.println("Alias: " + alias);
-        System.out.println("Creation date: " + keyStore.getCreationDate(alias));
+        context.out.println("Alias: " + alias);
+        context.out.println("Creation date: " + keyStore.getCreationDate(alias));
 
         Certificate cert = keyStore.getCertificate(alias);
         if (cert != null) {
-            System.out.println("Certificate: " + cert);
+            context.out.println("Certificate: " + cert);
         }
 
         Certificate[] chain = keyStore.getCertificateChain(alias);
         if (chain != null) {
-            System.out.println("Certificate chain: " + chain);
+            context.out.println("Certificate chain: " + chain);
         }
 
         char[] password = getPassword();
@@ -94,18 +106,18 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
 
         KeyStore.SecretKeyEntry sEntry = (KeyStore.SecretKeyEntry) entry;
         SecretKey key = sEntry.getSecretKey();
-        System.out.println("Secret key entry");
+        context.out.println("Secret key entry");
 
-        System.out.println("  Algorithm: " + key.getAlgorithm());
-        System.out.println("  Format: " + key.getFormat());
-        System.out.println("  Key length: " + key.getEncoded().length * 8);
-        System.out.println("  SHA1 digest: " + getSecretKeyDigest(key));
+        context.out.println("  Algorithm: " + key.getAlgorithm());
+        context.out.println("  Format: " + key.getFormat());
+        context.out.println("  Key length: " + key.getEncoded().length * 8);
+        context.out.println("  SHA1 digest: " + getSecretKeyDigest(key));
 
         if (protector instanceof KeyStoreBasedProtector) {
             KeyStoreBasedProtector impl = (KeyStoreBasedProtector) protector;
 
             String name = impl.getSecretKeyDigest(key);
-            System.out.println("  Key name: " + name);
+            context.out.println("  Key name: " + name);
         }
     }
 

@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.security.enforcer.impl.PhaseSelector.nonStri
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.EXECUTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
-import java.util.function.Consumer;
-
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -39,22 +36,17 @@ class EnforcerDecisionOperation extends EnforcerOperation {
 
     @NotNull final String operationUrl;
     @NotNull final AbstractAuthorizationParameters params;
-    @Nullable private final Consumer<Authorization> applicableAutzConsumer;
 
     EnforcerDecisionOperation(
             @NotNull String operationUrl,
             @NotNull AbstractAuthorizationParameters params,
-            @Nullable Consumer<Authorization> applicableAutzConsumer,
             @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, options, beans, task);
-
+        super(principal, options, beans, task);
         this.operationUrl = operationUrl;
         this.params = params;
-        this.applicableAutzConsumer = applicableAutzConsumer;
     }
 
     @NotNull AccessDecision decideAccess(@Nullable AuthorizationPhaseType phase, OperationResult result)
@@ -99,8 +91,9 @@ class EnforcerDecisionOperation extends EnforcerOperation {
                 continue;
             }
 
-            if (applicableAutzConsumer != null) {
-                applicableAutzConsumer.accept(authorization);
+            var autzConsumer = options.applicableAutzConsumer();
+            if (autzConsumer != null) {
+                autzConsumer.accept(authorization);
             }
 
             // The authorization is applicable to this situation. Now we can process the decision.
@@ -110,7 +103,7 @@ class EnforcerDecisionOperation extends EnforcerOperation {
                 overallDecision = AccessDecision.ALLOW;
                 // Do NOT break here. Other authorization statements may still deny the operation
             } else { // "deny" authorization
-                var itemsMatchResult = evaluation.matchesItems(params);
+                var itemsMatchResult = evaluation.matchesOnItems(params);
                 if (itemsMatchResult.value()) {
                     evaluation.traceAuthorizationDenyRelevant(operationUrl, itemsMatchResult);
                     overallDecision = AccessDecision.DENY;
@@ -127,11 +120,13 @@ class EnforcerDecisionOperation extends EnforcerOperation {
 
         if (overallDecision == AccessDecision.ALLOW) {
             if (allowedItems.includesAllItems()) {
-                tracePhasedDecisionOperationNote(phase, "Empty list of allowed items, operation allowed");
+                tracePhasedDecisionOperationNote(phase, "Allowing all items => operation allowed");
             } else {
                 // The object and delta must not contain any item that is not explicitly allowed.
                 tracePhasedDecisionOperationNote(phase, "Checking for allowed items: %s", allowedItems);
-                var itemsDecision = new ItemDecisionOperation().onAllowedItems(allowedItems, phase, params);
+                ItemDecisionOperation.SimpleTracer simpleTracer =
+                        (message, msgParams) -> tracePhasedDecisionOperationNote(phase, message, msgParams);
+                var itemsDecision = new ItemDecisionOperation(simpleTracer).decideUsingAllowedItems(allowedItems, phase, params);
                 if (itemsDecision != AccessDecision.ALLOW) {
                     tracePhasedDecisionOperationNote(
                             phase, "NOT ALLOWED operation because the 'items' decision is %s", itemsDecision);

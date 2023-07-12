@@ -182,7 +182,6 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
                     principal,
                     object.asPrismObject().getValue(),
                     null,
-                    null, // TODO owner resolver
                     getActionUrls(),
                     createOptions(),
                     CompileConstraintsOptions.create(),

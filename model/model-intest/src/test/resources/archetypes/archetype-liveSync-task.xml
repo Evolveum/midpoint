@@ -60,17 +60,4 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
 </archetype>

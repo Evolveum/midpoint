@@ -123,8 +123,7 @@ public class ModelDiagController implements ModelDiagnosticService {
             ExpressionEvaluationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.createSubresult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
-                    AuthorizationParameters.EMPTY, null, task, result); // only admin can do this
+            securityEnforcer.authorizeAll(task, result); // only admin can do this
             repositoryService.testOrgClosureConsistency(repairIfNecessary, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -147,8 +146,7 @@ public class ModelDiagController implements ModelDiagnosticService {
                 isAdmin = false;
             } else {
                 // otherwise admin authorization is required
-                securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
-                        AuthorizationParameters.EMPTY, null, task, result);
+                securityEnforcer.authorizeAll(task, result);
                 isAdmin = true;
             }
             RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
@@ -603,7 +601,7 @@ public class ModelDiagController implements ModelDiagnosticService {
             throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createSubresult(GET_LOG_FILE_CONTENT);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorizeAll(task, result);
             File logFile = getLogFile(result);
             LogFileContentType rv = getLogFileFragment(logFile, fromPosition, maxSize);
             result.recordSuccess();
@@ -650,10 +648,12 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     @Override
-    public long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
+    public long getLogFileSize(Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            ConfigurationException, CommunicationException {
         OperationResult result = parentResult.createSubresult(GET_LOG_FILE_SIZE);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorizeAll(task, result);
             File logFile = getLogFile(result);
             long size = logFile.length();
             result.recordSuccess();
@@ -691,7 +691,7 @@ public class ModelDiagController implements ModelDiagnosticService {
             ConfigurationException, ExpressionEvaluationException, IOException {
         OperationResult result = parentResult.createSubresult(GET_MEMORY_INFORMATION);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorizeAll(task, result);
             String pid = SystemUtil.getMyPid();
             if (pid == null) {
                 result.recordPartialError("Cannot determine current process ID");

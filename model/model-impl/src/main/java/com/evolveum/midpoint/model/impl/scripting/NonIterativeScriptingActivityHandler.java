@@ -8,28 +8,22 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-
-import com.evolveum.midpoint.repo.common.activity.run.*;
-
-import com.evolveum.midpoint.task.api.RunningTask;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,7 +44,6 @@ public class NonIterativeScriptingActivityHandler
 
     @Autowired private ScriptingService scriptingService;
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(NonIterativeScriptingActivityHandler.class);
 
     private static final String OP_EXECUTE = NonIterativeScriptingActivityHandler.class.getName() + ".execute";
@@ -58,14 +51,14 @@ public class NonIterativeScriptingActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, MyWorkDefinition.class);
+                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, MyWorkDefinition.class);
     }
 
     @Override
@@ -136,15 +129,9 @@ public class NonIterativeScriptingActivityHandler
 
         private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                scriptExecutionRequest = ((LegacyWorkDefinitionSource) source)
-                        .getExtensionItemRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
-            } else {
-                NonIterativeScriptingWorkDefinitionType typedDefinition = (NonIterativeScriptingWorkDefinitionType)
-                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
-            }
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (NonIterativeScriptingWorkDefinitionType) source.getBean();
+            scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
             argCheck(scriptExecutionRequest.getScriptingExpression() != null, "No scripting expression provided");
         }

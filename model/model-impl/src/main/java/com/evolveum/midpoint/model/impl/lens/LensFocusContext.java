@@ -357,7 +357,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
     }
 
-    public String getHumanReadableName() {
+    public @NotNull String getHumanReadableName() {
         StringBuilder sb = new StringBuilder();
         sb.append("focus(");
         PrismObject<O> object = getObjectNew();

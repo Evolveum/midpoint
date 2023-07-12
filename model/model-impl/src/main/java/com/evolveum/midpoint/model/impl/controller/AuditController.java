@@ -286,9 +286,11 @@ public class AuditController implements ModelAuditService {
     private void authorize(ModelAuthorizationAction action, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.REQUEST,
-                AuthorizationParameters.EMPTY, null, task, result);
-        securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.EXECUTION,
-                AuthorizationParameters.EMPTY, null, task, result);
+        securityEnforcer.authorize(
+                action.getUrl(), AuthorizationPhaseType.REQUEST,
+                AuthorizationParameters.EMPTY, task, result);
+        securityEnforcer.authorize(
+                action.getUrl(), AuthorizationPhaseType.EXECUTION,
+                AuthorizationParameters.EMPTY, task, result);
     }
 }

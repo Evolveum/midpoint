@@ -10,16 +10,12 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
@@ -28,10 +24,8 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -49,10 +43,8 @@ public class RecomputationActivityHandler
             RecomputationActivityHandler.MyWorkDefinition,
             RecomputationActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECOMPUTE_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(RecomputationActivityHandler.class);
 
-    private static final QName DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC = UserType.COMPLEX_TYPE;  // This is pre-4.4 behavior
     private static final QName DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC = FocusType.COMPLEX_TYPE; // This is more reasonable
 
     @Override
@@ -73,11 +65,6 @@ public class RecomputationActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, RecomputationActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override
@@ -134,22 +121,12 @@ public class RecomputationActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            ModelExecuteOptions rawExecutionOptions;
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                objects = ObjectSetUtil.fromLegacySource(legacy);
-                rawExecutionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
-                ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC);
-            } else {
-                RecomputationWorkDefinitionType typedDefinition = (RecomputationWorkDefinitionType)
-                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-                rawExecutionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
-                ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
-            }
+        MyWorkDefinition(WorkDefinitionBean source) {
+            var typedDefinition = (RecomputationWorkDefinitionType) source.getBean();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
             executionOptions = java.util.Objects.requireNonNullElseGet(
-                    rawExecutionOptions,
+                    fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
                     () -> ModelExecuteOptions.create().reconcile()); // Default for compatibility reasons
         }
 

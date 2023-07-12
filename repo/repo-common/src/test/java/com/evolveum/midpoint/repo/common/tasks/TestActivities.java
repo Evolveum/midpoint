@@ -30,8 +30,9 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigura
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ActivityProgressInformationAsserter;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -56,14 +57,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * Tests basic features of the activity framework:
  *
- * 1. running simple mock activity ({@link #test100RunSimpleLegacyTask()}, {@link #test120RunSimpleTask()}),
- * 2. running mock semi-composite activity ({@link #test110RunCompositeLegacyTask()}, {@link #test130RunCompositeTask()}),
+ * 1. running simple mock activity ({@link #test120RunSimpleTask()}),
+ * 2. running mock semi-composite activity ({@link #test130RunCompositeTask()}),
  * 3. running custom composite activity ({@link #test140RunCustomCompositeTask()}),
  * 4. running mock iterative activity, including bucketing ({@link #test150RunMockIterativeTask()}, {@link #test155RunBucketedMockIterativeTask()}),
  * 5. running mock search-based activity, including bucketing ({@link #test160RunMockSearchBasedTask()}, {@link #test170RunBucketedTask()}),
@@ -90,26 +90,23 @@ public class TestActivities extends AbstractRepoCommonTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/activities");
 
-    private static final TestResource<TaskType> TASK_100_MOCK_SIMPLE_LEGACY = new TestResource<>(TEST_DIR, "task-100-mock-simple-legacy.xml", "7523433a-a537-4943-96e9-58b6c57566e8");
-    private static final TestResource<TaskType> TASK_110_MOCK_COMPOSITE_LEGACY = new TestResource<>(TEST_DIR, "task-110-mock-composite-legacy.xml", "b5fd4ecf-2163-4079-99ec-d56e8a96ca94");
-    private static final TestResource<TaskType> TASK_115_NO_OP_LEGACY = new TestResource<>(TEST_DIR, "task-115-no-op-legacy.xml", "2e577670-e422-47d9-a915-92e8ddfee087");
-    private static final TestResource<TaskType> TASK_120_MOCK_SIMPLE = new TestResource<>(TEST_DIR, "task-120-mock-simple.xml", "6a1a58fa-ce09-495d-893f-3093cdcc00b6");
-    private static final TestResource<TaskType> TASK_130_MOCK_COMPOSITE = new TestResource<>(TEST_DIR, "task-130-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
-    private static final TestResource<TaskType> TASK_135_NO_OP = new TestResource<>(TEST_DIR, "task-135-no-op.xml", "d1c750b0-eddc-445f-b907-d19c8ed754b5");
-    private static final TestResource<TaskType> TASK_140_CUSTOM_COMPOSITE = new TestResource<>(TEST_DIR, "task-140-custom-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
-    private static final TestResource<TaskType> TASK_150_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
-    private static final TestResource<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = new TestResource<>(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
-    private static final TestResource<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
-    private static final TestResource<TaskType> TASK_170_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
-    private static final TestResource<TaskType> TASK_180_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
-    private static final TestResource<TaskType> TASK_185_BUCKETED_TREE_ANALYSIS = new TestResource<>(TEST_DIR, "task-185-bucketed-tree-analysis.xml", "12f07ab1-41c3-4dba-bf47-3d2a032fa555");
-    private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
-    private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
-    private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
-    private static final TestResource<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
-    private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
-    private static final TestResource<TaskType> TASK_310_WORKERS_SCAVENGING = new TestResource<>(TEST_DIR, "task-310-workers-scavenging.xml", "1e956013-5997-47bd-8885-4da2340dddfc");
-    private static final TestResource<TaskType> TASK_400_LONG_RUNNING = new TestResource<>(TEST_DIR, "task-400-long-running.xml", "f179b67d-a4b2-4bd0-af8a-7f814d9f069c");
+    private static final TestObject<TaskType> TASK_120_MOCK_SIMPLE = TestObject.file(TEST_DIR, "task-120-mock-simple.xml", "6a1a58fa-ce09-495d-893f-3093cdcc00b6");
+    private static final TestObject<TaskType> TASK_130_MOCK_COMPOSITE = TestObject.file(TEST_DIR, "task-130-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
+    private static final TestObject<TaskType> TASK_135_NO_OP = TestObject.file(TEST_DIR, "task-135-no-op.xml", "d1c750b0-eddc-445f-b907-d19c8ed754b5");
+    private static final TestObject<TaskType> TASK_140_CUSTOM_COMPOSITE = TestObject.file(TEST_DIR, "task-140-custom-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
+    private static final TestObject<TaskType> TASK_150_MOCK_ITERATIVE = TestObject.file(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
+    private static final TestObject<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = TestObject.file(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
+    private static final TestObject<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = TestObject.file(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
+    private static final TestObject<TaskType> TASK_170_MOCK_BUCKETED = TestObject.file(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
+    private static final TestObject<TaskType> TASK_180_BUCKETED_TREE = TestObject.file(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
+    private static final TestObject<TaskType> TASK_185_BUCKETED_TREE_ANALYSIS = TestObject.file(TEST_DIR, "task-185-bucketed-tree-analysis.xml", "12f07ab1-41c3-4dba-bf47-3d2a032fa555");
+    private static final TestObject<TaskType> TASK_190_SUSPENDING_COMPOSITE = TestObject.file(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
+    private static final TestObject<TaskType> TASK_200_SUBTASK = TestObject.file(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
+    private static final TestObject<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = TestObject.file(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
+    private static final TestObject<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = TestObject.file(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
+    private static final TestObject<TaskType> TASK_300_WORKERS_SIMPLE = TestObject.file(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
+    private static final TestObject<TaskType> TASK_310_WORKERS_SCAVENGING = TestObject.file(TEST_DIR, "task-310-workers-scavenging.xml", "1e956013-5997-47bd-8885-4da2340dddfc");
+    private static final TestObject<TaskType> TASK_400_LONG_RUNNING = TestObject.file(TEST_DIR, "task-400-long-running.xml", "f179b67d-a4b2-4bd0-af8a-7f814d9f069c");
 
     @Autowired private MockRecorder recorder;
     @Autowired private CommonTaskBeans beans;
@@ -144,220 +141,13 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then();
 
-        List<WorkDefinitionWrapper> values = WorkDefinitionUtil.getWorkDefinitions(activityDefinition.getWork());
+        List<WorkDefinitionBean> values = WorkDefinitionUtil.getWorkDefinitionBeans(activityDefinition.getWork());
         displayValue("Work definitions found", values);
 
         Collection<QName> types = WorkDefinitionUtil.getWorkDefinitionTypeNames(activityDefinition.getWork());
         displayValue("Actions types found", types);
 
         // TODO asserts
-    }
-
-    /**
-     * Mock-simple activity configured in a legacy way.
-     */
-    @Test
-    public void test100RunSimpleLegacyTask() throws Exception {
-        given();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        recorder.reset();
-
-        Task task1 = taskAdd(TASK_100_MOCK_SIMPLE_LEGACY, result);
-
-        when();
-
-        waitForTaskClose(task1.getOid(), result, 10000);
-
-        then();
-
-        task1.refresh(result);
-        // @formatter:off
-        assertTask(task1, "after")
-                .display()
-                .assertClosed()
-                .assertSuccess()
-                .assertProgress(1)
-                .activityState()
-                    .assertTreeRealizationComplete()
-                    .rootActivity()
-                        .assertComplete()
-                        .assertNoSynchronizationStatistics()
-                        .assertNoActionsExecutedInformation()
-                        .assertPersistenceSingleRealization();
-        // @formatter:on
-
-        displayDumpable("recorder", recorder);
-        assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
-
-        assertProgress(task1.getOid(), "after")
-                .display()
-                .assertRealizationState(ActivityProgressInformation.RealizationState.COMPLETE)
-                .assertNoBucketInformation()
-                .assertItems(1, null);
-
-        assertPerformance(task1.getOid(), "after")
-                .display()
-                .assertItemsProcessed(1)
-                .assertErrors(0)
-                .assertProgress(1)
-                .assertHasWallClockTime()
-                .assertHasThroughput();
-    }
-
-    /**
-     * Mock-composite activity configured in a legacy way.
-     */
-    @Test
-    public void test110RunCompositeLegacyTask() throws Exception {
-        given();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        recorder.reset();
-
-        Task task1 = taskAdd(TASK_110_MOCK_COMPOSITE_LEGACY, result);
-
-        when();
-
-        waitForTaskClose(task1.getOid(), result, 10000);
-
-        then();
-
-        task1.refresh(result);
-        // @formatter:off
-        assertTask(task1, "after")
-                .display()
-                .assertClosed()
-                .assertSuccess()
-                .assertProgress(2)
-                .activityState()
-                    .assertTreeRealizationComplete()
-                    .rootActivity()
-                        .assertComplete()
-                        .assertNoSynchronizationStatistics()
-                        .assertNoActionsExecutedInformation()
-                        .assertPersistenceSingleRealization()
-                        .child("opening")
-                            .assertPersistenceSingleRealization()
-                        .end()
-                        .child("closing")
-                            .assertPersistencePerpetual()
-                        .end()
-                    .end()
-                .end();
-        // @formatter:on
-
-        displayDumpable("recorder", recorder);
-        assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
-
-        // @formatter:off
-        assertProgress(task1.getOid(), "after")
-                .display()
-                .assertComplete()
-                .assertNoBucketInformation()
-                .assertNoItemsInformation()
-                .assertChildren(2)
-                .child("opening")
-                    .assertComplete()
-                    .assertNoBucketInformation()
-                    .assertItems(1, null)
-                .end()
-                .child("closing")
-                    .assertComplete()
-                    .assertNoBucketInformation()
-                    .assertItems(1, null);
-
-        assertPerformance(task1.getOid(), "after")
-                .display()
-                .assertNotApplicable()
-                .assertChildren(2)
-                .child("opening")
-                    .assertItemsProcessed(1)
-                    .assertErrors(0)
-                    .assertProgress(1)
-                    .assertHasWallClockTime()
-                    .assertHasThroughput()
-                .end()
-                .child("closing")
-                    .assertItemsProcessed(1)
-                    .assertErrors(0)
-                    .assertProgress(1)
-                    .assertHasWallClockTime()
-                    .assertNoThroughput();
-        // @formatter:on
-    }
-
-    /**
-     * NoOp activity configured in a legacy way.
-     */
-    @Test
-    public void test115RunNoOpLegacyTask() throws Exception {
-        given();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        Task task1 = taskAdd(TASK_115_NO_OP_LEGACY, result);
-
-        when();
-
-        waitForTaskClose(task1.getOid(), result, 10000);
-
-        then();
-
-        task1.refresh(result);
-        assertNoOpTaskAfter(task1, true);
-    }
-
-    private void assertNoOpTaskAfter(Task task1, boolean legacy) throws SchemaException, ObjectNotFoundException {
-        // @formatter:off
-        assertTask(task1, "after")
-                .display()
-                .assertClosed()
-                .assertSuccess()
-                .assertProgress(5)
-                .activityState()
-                    .assertTreeRealizationComplete()
-                    .rootActivity()
-                        .assertComplete()
-                        .assertNoSynchronizationStatistics()
-                        .assertNoActionsExecutedInformation()
-                        .assertPersistenceSingleRealization()
-                    .end()
-                .end();
-
-        Consumer<ActivityProgressInformationAsserter<?>> progressChecker =
-                (asserter) -> asserter
-                        .display()
-                        .assertComplete()
-                        .assertBuckets(1, 1)
-                        .assertItems(5, 5);
-
-        if (legacy) {
-            assertProgress(task1.getOid(), TREE_OVERVIEW_ONLY, "after")
-                    .display()
-                    .assertComplete()
-                    .assertNoBucketInformation() // this is not filled in the overview by default
-                    .assertNoItemsInformation(); // this is not filled in the overview by default
-        } else {
-            progressChecker.accept(assertProgress(task1.getOid(), TREE_OVERVIEW_ONLY, "after"));
-        }
-        progressChecker.accept(assertProgress(task1.getOid(), TREE_OVERVIEW_PREFERRED, "after"));
-        progressChecker.accept(assertProgress(task1.getOid(), FULL_STATE_PREFERRED, "after"));
-        progressChecker.accept(assertProgress(task1.getOid(), FULL_STATE_ONLY, "after"));
-
-        assertPerformance(task1.getOid(), "after")
-                .display()
-                .assertItemsProcessed(5)
-                .assertErrors(0)
-                .assertProgress(5)
-                .assertHasWallClockTime()
-                .assertHasThroughput();
-        // @formatter:on
     }
 
     /**
@@ -464,7 +254,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     }
 
     /**
-     * NoOp activity configured in a legacy way.
+     * NoOp activity configured in a modern way.
      */
     @Test
     public void test135RunNoOpTask() throws Exception {
@@ -482,7 +272,46 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        assertNoOpTaskAfter(task1, false);
+        assertNoOpTaskAfter(task1);
+    }
+
+    private void assertNoOpTaskAfter(Task task1) throws SchemaException, ObjectNotFoundException {
+        // @formatter:off
+        assertTask(task1, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .assertProgress(5)
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertNoSynchronizationStatistics()
+                        .assertNoActionsExecutedInformation()
+                        .assertPersistenceSingleRealization()
+                    .end()
+                .end();
+
+        Consumer<ActivityProgressInformationAsserter<?>> progressChecker =
+                (asserter) -> asserter
+                        .display()
+                        .assertComplete()
+                        .assertBuckets(1, 1)
+                        .assertItems(5, 5);
+
+        progressChecker.accept(assertProgress(task1.getOid(), TREE_OVERVIEW_ONLY, "after"));
+        progressChecker.accept(assertProgress(task1.getOid(), TREE_OVERVIEW_PREFERRED, "after"));
+        progressChecker.accept(assertProgress(task1.getOid(), FULL_STATE_PREFERRED, "after"));
+        progressChecker.accept(assertProgress(task1.getOid(), FULL_STATE_ONLY, "after"));
+
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(5)
+                .assertErrors(0)
+                .assertProgress(5)
+                .assertHasWallClockTime()
+                .assertHasThroughput();
+        // @formatter:on
     }
 
     /**
@@ -1340,6 +1169,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         String secondOid = ActivityReportUtil.getReportDataOid(task1.getWorkState(), ActivityPath.fromId("second"),
                 ActivityReportsType.F_BUCKETS, taskManager.getNodeId());
         assertThat(secondOid).as("second buckets report OID").isNotNull();
+        //noinspection DataFlowIssue The IntelliJ IDEA does not recognize secondOid as non-null here
         try (var reader = SimpleReportReader.createForLocalReportData(
                 secondOid, List.of("content-from", "content-to", "size"), beans, result)) {
             List<List<String>> rows = reader.getRows();

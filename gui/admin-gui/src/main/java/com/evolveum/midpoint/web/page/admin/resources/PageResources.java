@@ -111,7 +111,7 @@ public class PageResources extends PageAdmin {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class, getQueryOptions()) {
+        MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
@@ -123,7 +123,7 @@ public class PageResources extends PageAdmin {
             protected ISelectableDataProvider<SelectableBean<ResourceType>> createProvider() {
                 if (isNativeRepo()) {
                     SelectableBeanObjectDataProvider<ResourceType> provider = createSelectableBeanObjectDataProvider(() ->
-                            getCustomizeContentQuery(), null);
+                            getCustomizeContentQuery(), null, getQueryOptions());
                     provider.setEmptyListOnNullQuery(true);
                     provider.setSort(null);
                     provider.setDefaultCountIfNull(Integer.MAX_VALUE);

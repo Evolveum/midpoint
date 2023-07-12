@@ -5,13 +5,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="b5a8b51d-d834-4803-a7d0-c81bcc58113e">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="b5a8b51d-d834-4803-a7d0-c81bcc58113e">
     <name>Shadow Integrity Check</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:diagnose>uniqueness</mext:diagnose>
-        <mext:fix>uniqueness</mext:fix>
-    </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadow-integrity-check/handler-3</handlerUri>
+    <activity>
+        <work>
+            <shadowIntegrityCheck>
+                <diagnose>uniqueness</diagnose>
+                <fix>uniqueness</fix>
+            </shadowIntegrityCheck>
+        </work>
+    </activity>
 </task>

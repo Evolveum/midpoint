@@ -25,13 +25,24 @@ import com.evolveum.midpoint.util.exception.*;
 
 import javax.xml.namespace.QName;
 
+/**
+ * A clause that:
+ *
+ * . Puts the (presumably) sub-object selector into the context of either a prism object, or upper-level container.
+ * (Using a type in the {@link #parentSelector} and a {@link #path}.)
+ *
+ * . Optionally restricts the set of candidate parent values (of object or container).
+ */
 public class ParentClause extends SelectorClause {
 
-    @NotNull private final ValueSelector parent;
+    /** Selector that should be applied onto the parent value. */
+    @NotNull private final ValueSelector parentSelector;
+
+    /** Path from the parent value to the current value. */
     @NotNull private final ItemPath path;
 
-    private ParentClause(@NotNull ValueSelector parent, @NotNull ItemPath path) {
-        this.parent = parent;
+    private ParentClause(@NotNull ValueSelector parentSelector, @NotNull ItemPath path) {
+        this.parentSelector = parentSelector;
         this.path = path;
     }
 
@@ -44,8 +55,8 @@ public class ParentClause extends SelectorClause {
         return "parent";
     }
 
-    public @NotNull ValueSelector getParent() {
-        return parent;
+    public @NotNull ValueSelector getParentSelector() {
+        return parentSelector;
     }
 
     public @NotNull ItemPath getPath() {
@@ -63,7 +74,7 @@ public class ParentClause extends SelectorClause {
             traceNotApplicable(ctx, "value has no parent");
             return false;
         }
-        boolean matches = parent.matches(parent2, ctx.child("p", "parent"));
+        boolean matches = parentSelector.matches(parent2, ctx.child("p", "parent"));
         traceApplicability(ctx, matches, "parent specification matches: %s", matches);
         return matches;
     }
@@ -73,7 +84,7 @@ public class ParentClause extends SelectorClause {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         PrismContext prismContext = PrismContext.get();
-        QName parentTypeName = parent.getTypeName();
+        QName parentTypeName = parentSelector.getTypeName();
         if (parentTypeName == null) {
             throw new ConfigurationException("Parent specification must have type name");
         }
@@ -94,7 +105,7 @@ public class ParentClause extends SelectorClause {
                 null, // the original filter is not interesting (or, should we look for parent there?)
                 "p", "parent");
 
-        var applicable = parent.toFilter(childCtx);
+        var applicable = parentSelector.toFilter(childCtx);
         if (!applicable) {
             traceNotApplicable(ctx, "parent selector not applicable");
             return false;
@@ -114,6 +125,6 @@ public class ParentClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append(" path=").append(path);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "parent selector", parent, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "parent selector", parentSelector, indent + 1);
     }
 }

@@ -6,22 +6,25 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="10000000-0000-0000-5555-555500da0204"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="10000000-0000-0000-5555-555500da0204">
     <name>Live Sync: Dark Violet Dummy Resource</name>
-
     <taskIdentifier>10000000-0000-0000-5555-555500da0404</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-0000000da204" type="c:ResourceType"/>
     <binding>tight</binding>
     <schedule>
         <interval>1</interval>
     </schedule>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-0000000da204"/>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
 </task>

@@ -232,9 +232,9 @@
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>10.0.0-M1-SNAPSHOT</wicket.version>
+        <wicket.version>10.0.0-M1</wicket.version>
         <wicketstuff.version>9.12.0</wicketstuff.version>
-        <wicket.chartjs.version>0.1</wicket.chartjs.version>
+        <wicket.chartjs.version>0.3</wicket.chartjs.version>
         <!-- Groovy 4.0.11 is also default for Spring Boot 3.0.6 -->
         <groovy.version>4.0.11</groovy.version>
         <xmlsec.version>2.2.4</xmlsec.version>
@@ -1821,6 +1821,7 @@
                                       but report can not detect this uses (and if you change scope, it can not compile target project -->
                                 <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
+                                <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
 
                                 <!-- Testing dependencies are not troubling us from. -->
                                 <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
@@ -1899,7 +1900,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>2.8.2</version>
                     <!--
                     With 3.0.0-M1 javadoc module fails with:
                     The packaging plugin for this project did not assign a main file to the project but it has attachments. Change packaging to 'pom'.

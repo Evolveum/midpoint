@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<configuration>
+    <midpoint>
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
+        <repository>
+            <type>native</type>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/ninja_upgrade_tests</jdbcUrl>
+            <jdbcUsername>ninja_upgrade_tests</jdbcUsername>
+            <jdbcPassword>ninja_upgrade_tests</jdbcPassword>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+        <profilingEnabled>true</profilingEnabled>
+        <taskManager>
+            <clustered>true</clustered>
+        </taskManager>
+        <nodeId>first-node</nodeId>
+    </midpoint>
+</configuration>

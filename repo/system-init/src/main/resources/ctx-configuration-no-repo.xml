@@ -9,47 +9,18 @@
 <!--
 This is an EXPERIMENTAL configuration, to be used in ninja in offline mode.
 Avoid using for anything else.
-
-TODO deduplicate with ctx-configuration.xml.
 -->
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:context="http://www.springframework.org/schema/context"
         xsi:schemaLocation="
             http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-            http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
         default-lazy-init="false">
 
-    <bean id="midpointConfiguration"
-            class="com.evolveum.midpoint.init.StartupConfiguration"
-            init-method="init"/>
+    <import resource="ctx-configuration-10-system-init.xml"/>
 
-    <!-- protector initialization -->
-    <bean id="keyStoreFactory"
-            class="com.evolveum.midpoint.init.ConfigurableProtectorFactory"
-            init-method="init"/>
+    <import resource="ctx-configuration-20-protector.xml"/>
 
-    <bean id="protector"
-            factory-bean="keyStoreFactory"
-            factory-method="getProtector"/>
-
-    <!-- prism context initialization -->
-    <bean id="midPointPrismContextFactory"
-            class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
-        <property name="configuration" ref="midpointConfiguration"/>
-    </bean>
-
-    <bean id="prismContext"
-            factory-bean="midPointPrismContextFactory"
-            factory-method="createInitializedPrismContext">
-        <property name="defaultProtector" ref="protector"/>
-    </bean>
-
-    <!--  Scan for components: ??? what components? -->
-    <context:component-scan base-package="com.evolveum.midpoint.schema"/>
-    <context:component-scan base-package="com.evolveum.midpoint.init"/>
-    <context:annotation-config/>
+    <import resource="ctx-configuration-40-prism.xml"/>
 
 </beans>

@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="c637b877-efe8-43ae-b87f-738bff9062fb">
+    <name>delete-missing-query</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <deletion>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+            </deletion>
+        </work>
+    </activity>
+</task>

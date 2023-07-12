@@ -108,7 +108,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private LoadableDetachableModel<Search<C>> searchModel;
 
-    private Collection<SelectorOptions<GetOperationOptions>> options;
+//    private Collection<SelectorOptions<GetOperationOptions>> options;
 
     private String additionalBoxCssClasses;
 
@@ -126,16 +126,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         this(id, defaultType, null);
     }
 
-    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id);
-        this.defaultType = defaultType;
-        this.options = options;
-    }
+//    public ContainerableListPanel(String id, Class<C> defaultType, @Deprecated Collection<SelectorOptions<GetOperationOptions>> options) {
+//        super(id);
+//        this.defaultType = defaultType;
+////        this.options = options;
+//    }
 
-    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
+    public ContainerableListPanel(String id, Class<C> defaultType, ContainerPanelConfigurationType configurationType) {
         super(id);
         this.defaultType = defaultType;
-        this.options = options;
+//        this.options = options;
         this.config = configurationType;
     }
 
@@ -690,26 +690,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public abstract List<C> getSelectedRealObjects();
 
-//    protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
-//
-//        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
-//                && !getObjectCollectionView().getOptions().isEmpty()) {
-//            return getObjectCollectionView().getOptions();
-//        }
-//
-//        if (options == null) {
-//            if (ResourceType.class.equals(getType())) {
-//                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-//            }
-//        } else {
-//            if (ResourceType.class.equals(getType())) {
-//                GetOperationOptions root = SelectorOptions.findRootOptions(options);
-//                root.setNoFetch(Boolean.TRUE);
-//            }
-//        }
-//        return options;
-//    }
-
     protected List<C> getPreselectedObjectList() {
         return null;
     }
@@ -748,12 +728,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected CsvDownloadButtonPanel createDownloadButton(String buttonId) {
-        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
-                isRawOrNoFetchOption(getOptions());
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
 
-            private static final long serialVersionUID = 1L;
-
+        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId) {
             @Override
             protected DataTable<?, ?> getDataTable() {
                 return getTable().getDataTable();
@@ -773,19 +749,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private boolean isExportDataLinkVisible() {
         return !WebComponentUtil.hasPopupableParent(ContainerableListPanel.this)
                 && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
-    }
-
-    private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (options == null) {
-            return false;
-        }
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (Boolean.TRUE.equals(option.getOptions().getRaw()) ||
-                    Boolean.TRUE.equals(option.getOptions().getNoFetch())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     protected String getStorageKey() {
@@ -939,10 +902,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     protected ISelectableDataProvider getDataProvider() {
         BoxedTablePanel<PO> table = getTable();
         return (ISelectableDataProvider) table.getDataTable().getDataProvider();
-    }
-
-    protected Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-        return options;
     }
 
     public void refreshTable(AjaxRequestTarget target) {

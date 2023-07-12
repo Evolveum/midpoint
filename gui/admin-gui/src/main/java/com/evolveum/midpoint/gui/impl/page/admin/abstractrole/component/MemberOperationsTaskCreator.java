@@ -333,13 +333,13 @@ public abstract class MemberOperationsTaskCreator {
     }
 
     void checkScriptingAuthorization(Task task, OperationResult result) throws CommonException {
-        pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
-                null, AuthorizationParameters.EMPTY, null, task, result);
+        pageBase.getSecurityEnforcer().authorize(
+                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
     }
 
     void checkRecomputationAuthorization(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
-        pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
-                null, AuthorizationParameters.EMPTY, null, task, result);
+        pageBase.getSecurityEnforcer().authorize(
+                ModelAuthorizationAction.RECOMPUTE.getUrl(), task, result);
     }
 
     /** Converts {@link #getOperationKey()} to a resolved name. Used also as a task name. */

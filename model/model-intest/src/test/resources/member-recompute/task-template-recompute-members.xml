@@ -8,8 +8,5 @@
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="9c50ac7e-73c0-45cf-85e7-9a94959242f9">
     <name>Template for recompute members</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:workerThreads>2</mext:workerThreads>
-    </extension>
     <executionState>waiting</executionState>
 </task>

@@ -75,11 +75,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         add(subtasksLabel);
 
-        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, createOperationOptions()) {
+        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL) {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
-                return createSelectableBeanObjectDataProvider(() -> createSubtasksQuery(), null);
+                return createSelectableBeanObjectDataProvider(() -> createSubtasksQuery(), null, createOperationOptions());
             }
 
             @Override
@@ -119,7 +119,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
         add(workerThreadsTableLabel);
 
-        TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, null) {
+        TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE) {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {

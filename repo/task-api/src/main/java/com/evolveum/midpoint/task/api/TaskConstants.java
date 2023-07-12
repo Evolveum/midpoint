@@ -9,8 +9,6 @@ package com.evolveum.midpoint.task.api;
 
 public class TaskConstants {
 
-    public static final String NOOP_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
-
     public static final String JDBC_PING_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3";
 
     public static final String LIMIT_FOR_OTHER_GROUPS = "*";            // the same as Scheduler.LIMIT_FOR_OTHER_GROUPS
@@ -24,7 +22,4 @@ public class TaskConstants {
     public static final String STOP_LOCAL_TASK_REST_PATH_SUFFIX = "/stop";
 
     public static final String GET_TASK_REST_PATH = "/tasks/";
-
-    // TODO decide what to do with this
-    public static final String OP_EXECUTE_HANDLER = "com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor.executeHandler";
 }

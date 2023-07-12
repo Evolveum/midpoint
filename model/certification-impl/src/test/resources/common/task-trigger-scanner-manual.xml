@@ -15,10 +15,15 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
     <binding>tight</binding>
     <schedule>
         <recurrence>recurring</recurrence>
     </schedule>
+
+    <activity>
+        <work>
+            <triggerScan/>
+        </work>
+    </activity>
 
 </task>

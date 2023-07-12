@@ -4,35 +4,11 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
         oid="59cb3937-b923-4903-9afc-ee27e56be262">
     <name>Mark orphaned tasks</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-        <mext:objectType>c:TaskType</mext:objectType>
-        <mext:modelExecuteOptions>
-            <partialProcessing>
-                <inbound>skip</inbound>
-                <focusActivation>skip</focusActivation>
-                <objectTemplateBeforeAssignments>skip</objectTemplateBeforeAssignments>
-                <assignments>skip</assignments>
-                <assignmentsOrg>skip</assignmentsOrg>
-                <assignmentsMembershipAndDelegate>skip</assignmentsMembershipAndDelegate>
-                <assignmentsConflicts>skip</assignmentsConflicts>
-                <focusLifecycle>skip</focusLifecycle>
-                <objectTemplateAfterAssignments>skip</objectTemplateAfterAssignments>
-                <focusCredentials>skip</focusCredentials>
-                <focusPolicyRules>automatic</focusPolicyRules>
-                <projection>skip</projection>
-                <objectTemplateAfterProjections>skip</objectTemplateAfterProjections>
-                <approvals>skip</approvals>
-                <execution>automatic</execution>
-                <notification>automatic</notification>
-            </partialProcessing>
-        </mext:modelExecuteOptions>
-    </extension>
     <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType">
             <!-- Recomputation task -->
@@ -52,6 +28,34 @@
     </ownerRef>
     <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#recompute</channel>
     <executionState>closed</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
     <binding>loose</binding>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>c:TaskType</type>
+                </objects>
+                <executionOptions>
+                    <partialProcessing>
+                        <inbound>skip</inbound>
+                        <focusActivation>skip</focusActivation>
+                        <objectTemplateBeforeAssignments>skip</objectTemplateBeforeAssignments>
+                        <assignments>skip</assignments>
+                        <assignmentsOrg>skip</assignmentsOrg>
+                        <assignmentsMembershipAndDelegate>skip</assignmentsMembershipAndDelegate>
+                        <assignmentsConflicts>skip</assignmentsConflicts>
+                        <focusLifecycle>skip</focusLifecycle>
+                        <objectTemplateAfterAssignments>skip</objectTemplateAfterAssignments>
+                        <focusCredentials>skip</focusCredentials>
+                        <focusPolicyRules>automatic</focusPolicyRules>
+                        <projection>skip</projection>
+                        <objectTemplateAfterProjections>skip</objectTemplateAfterProjections>
+                        <approvals>skip</approvals>
+                        <execution>automatic</execution>
+                        <notification>automatic</notification>
+                    </partialProcessing>
+                </executionOptions>
+            </recomputation>
+        </work>
+    </activity>
 </task>

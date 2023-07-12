@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -48,10 +47,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  */
 class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
+    private static final String PART_ID_PREFIX = "PART";
+
     @NotNull private final String[] operationUrls;
     @NotNull final Class<T> filterType;
     @NotNull final AuthorizationSelectorExtractor selectorExtractor;
-    private final boolean includeSpecial;
     final ObjectFilter origFilter;
     private final String limitAuthorizationAction;
     private final List<OrderConstraintsType> paramOrderConstraints;
@@ -62,22 +62,19 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             @NotNull String[] operationUrls,
             @NotNull Class<T> filterType,
             @NotNull AuthorizationSelectorExtractor selectorExtractor,
-            boolean includeSpecial,
             ObjectFilter origFilter,
             String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints,
             @NotNull FilterGizmo<F> gizmo,
             String desc,
             @Nullable MidPointPrincipal principal,
-            @Nullable OwnerResolver ownerResolver,
             @NotNull SecurityEnforcer.Options options,
             @NotNull Beans beans,
             @NotNull Task task) {
-        super(principal, ownerResolver, options, beans, task);
+        super(principal, options, beans, task);
         this.operationUrls = operationUrls;
         this.filterType = filterType;
         this.selectorExtractor = selectorExtractor;
-        this.includeSpecial = includeSpecial;
         this.origFilter = origFilter;
         this.limitAuthorizationAction = limitAuthorizationAction;
         this.paramOrderConstraints = paramOrderConstraints;
@@ -94,7 +91,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             securityFilter = new PartialOp(nonStrict(phase)).computeFilter(result);
         } else {
             F filterBoth = new PartialOp(both()).computeFilter(result);
-            F filterRequest = new PartialOp(strict(REQUEST)).computeFilter(result);
+            F filterRequest = new PartialOp( strict(REQUEST)).computeFilter(result);
             F filterExecution = new PartialOp(strict(EXECUTION)).computeFilter(result);
             securityFilter =
                     gizmo.or(
@@ -117,6 +114,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     /** Computes security filter for given {@link PhaseSelector}. */
     class PartialOp {
 
+        @NotNull private final String id;
+
         private final @NotNull PhaseSelector phaseSelector;
 
         /** TODO */
@@ -129,7 +128,12 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         private F securityFilterDeny = null;
 
         PartialOp(@NotNull PhaseSelector phaseSelector) {
+            this.id = PART_ID_PREFIX + phaseSelector.getSymbol();
             this.phaseSelector = phaseSelector;
+        }
+
+        @NotNull EnforcerFilterOperation<T, F> getEnforcerFilterOperation() {
+            return EnforcerFilterOperation.this;
         }
 
         /**
@@ -155,7 +159,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         authorization,
                         selectorExtractor.getSelectors(authorization),
                         selectorExtractor.getSelectorLabel(),
-                        includeSpecial,
                         EnforcerFilterOperation.this,
                         result);
 
@@ -234,7 +237,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             if (tracer.isEnabled()) {
                 tracer.trace(
                         new PartialFilterOperationStarted<>(
-                                EnforcerFilterOperation.this,
+                                this,
                                 phaseSelector,
                                 queryItemsSpec.shortDump()));
             }
@@ -244,7 +247,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             if (tracer.isEnabled()) {
                 tracer.trace(
                         new PartialFilterOperationFinished<>(
-                                EnforcerFilterOperation.this,
                                 this,
                                 phaseSelector,
                                 secFilter,
@@ -265,6 +267,10 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         /** For diagnostics purposes. */
         F getSecurityFilterDeny() {
             return securityFilterDeny;
+        }
+
+        public @NotNull String getId() {
+            return id;
         }
     }
 

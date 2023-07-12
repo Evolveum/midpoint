@@ -83,7 +83,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements AccessRequestStep {
+public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements AccessRequestMixin {
 
     private static final long serialVersionUID = 1L;
 
@@ -670,6 +670,16 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return catalog != null ? catalog : new RoleCatalogType();
     }
 
+    private boolean isShowRolesOfTeammate() {
+        RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
+        RolesOfTeammateType rolesOfTeammate = roleCatalog.getRolesOfTeammate();
+        if (rolesOfTeammate == null) {
+            return BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate());
+        }
+
+        return BooleanUtils.isNotFalse(rolesOfTeammate.isEnabled());
+    }
+
     private ListGroupMenu<RoleCatalogQueryItem> loadRoleCatalogMenu() {
         RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
 
@@ -682,14 +692,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         List<RoleCollectionViewType> collections = roleCatalog.getCollection();
         menuItems.addAll(createMenuFromRoleCollections(collections));
 
-        if (BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate())) {
+        if (isShowRolesOfTeammate()) {
             CustomListGroupMenuItem<RoleCatalogQueryItem> rolesOfTeamMate = new CustomListGroupMenuItem<>("RoleCatalogPanel.rolesOfTeammate") {
 
                 @Override
                 public Component createMenuItemPanel(String id, IModel<ListGroupMenuItem<RoleCatalogQueryItem>> model,
                         SerializableBiConsumer<AjaxRequestTarget, ListGroupMenuItem<RoleCatalogQueryItem>> onClickHandler) {
 
-                    return new RoleOfTeammateMenuPanel<>(id, model, teammateModel) {
+                    return new RoleOfTeammateMenuPanel<>(id, model, teammateModel, () -> getRoleCatalogConfiguration()) {
 
                         @Override
                         protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {

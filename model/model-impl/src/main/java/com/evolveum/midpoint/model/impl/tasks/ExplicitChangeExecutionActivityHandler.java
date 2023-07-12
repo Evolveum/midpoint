@@ -14,27 +14,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -54,19 +49,17 @@ public class ExplicitChangeExecutionActivityHandler
         ExplicitChangeExecutionActivityHandler.MyWorkDefinition,
         ExplicitChangeExecutionActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI;
-
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI, MyWorkDefinition.class);
+                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, MyWorkDefinition.class);
     }
 
     @Override
@@ -145,56 +138,32 @@ public class ExplicitChangeExecutionActivityHandler
 
         @NotNull private final List<ChangeExecutionRequest> requests = new ArrayList<>();
 
-        MyWorkDefinition(WorkDefinitionSource source) throws ConfigurationException {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                Collection<ObjectDeltaType> legacyDeltas = getLegacyDeltas(legacy);
-                // We check for no deltas here, because it is quite easy to set up them in the wrong way (when in legacy mode).
-                configCheck(!legacyDeltas.isEmpty(), "No deltas specified");
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) throws ConfigurationException {
+            var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) source.getBean();
+            Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
+            ModelExecuteOptions rootOptions =
+                    ModelExecuteOptions.fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
+            List<ChangeExecutionRequestType> rootRequests = typedDefinition.getRequest();
+
+            boolean singleRequest = !rootDeltas.isEmpty() || rootOptions != null;
+            boolean multipleRequests = !rootRequests.isEmpty();
+
+            configCheck(!singleRequest || !multipleRequests,
+                    "You must specify either 'single-request' and 'multiple-requests' "
+                            + "form of configuration, not both");
+            if (singleRequest) {
                 requests.add(
-                        new ChangeExecutionRequest(
-                                1,
-                                null,
-                                legacyDeltas,
-                                ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension())));
+                        new ChangeExecutionRequest(1, null, rootDeltas, rootOptions));
             } else {
-                ExplicitChangeExecutionWorkDefinitionType typedDefinition = (ExplicitChangeExecutionWorkDefinitionType)
-                        ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
-                ModelExecuteOptions rootOptions =
-                        ModelExecuteOptions.fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
-                List<ChangeExecutionRequestType> rootRequests = typedDefinition.getRequest();
-
-                boolean singleRequest = !rootDeltas.isEmpty() || rootOptions != null;
-                boolean multipleRequests = !rootRequests.isEmpty();
-
-                configCheck(!singleRequest || !multipleRequests,
-                        "You must specify either 'single-request' and 'multiple-requests' "
-                                + "form of configuration, not both");
-                if (singleRequest) {
+                AtomicInteger number = new AtomicInteger(1);
+                for (ChangeExecutionRequestType requestBean : rootRequests) {
                     requests.add(
-                            new ChangeExecutionRequest(1, null, rootDeltas, rootOptions));
-                } else {
-                    AtomicInteger number = new AtomicInteger(1);
-                    for (ChangeExecutionRequestType requestBean : rootRequests) {
-                        requests.add(
-                                new ChangeExecutionRequest(
-                                        number.getAndIncrement(),
-                                        requestBean.getName(),
-                                        requestBean.getDelta(),
-                                        ModelExecuteOptions.fromModelExecutionOptionsType(requestBean.getExecutionOptions())));
-                    }
+                            new ChangeExecutionRequest(
+                                    number.getAndIncrement(),
+                                    requestBean.getName(),
+                                    requestBean.getDelta(),
+                                    ModelExecuteOptions.fromModelExecutionOptionsType(requestBean.getExecutionOptions())));
                 }
-            }
-        }
-
-        private @NotNull Collection<ObjectDeltaType> getLegacyDeltas(LegacyWorkDefinitionSource legacyDef) {
-            Collection<ObjectDeltaType> deltas =
-                    legacyDef.getExtensionItemRealValues(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS, ObjectDeltaType.class);
-            if (!deltas.isEmpty()) {
-                return deltas;
-            } else {
-                return legacyDef.getExtensionItemRealValues(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
             }
         }
 
@@ -205,19 +174,11 @@ public class ExplicitChangeExecutionActivityHandler
     }
 
     /** Semi-parsed and ordered change execution request (deltas + options). */
-    private static class ChangeExecutionRequest implements Serializable {
-        private final int number;
-        private final String name;
-        @NotNull private final Collection<ObjectDeltaType> deltas;
-        private final ModelExecuteOptions executionOptions;
-
-        private ChangeExecutionRequest(
-                int number, String name, @NotNull Collection<ObjectDeltaType> deltas, ModelExecuteOptions executionOptions) {
-            this.number = number;
-            this.name = name;
-            this.deltas = deltas;
-            this.executionOptions = executionOptions;
-        }
+    private record ChangeExecutionRequest(
+            int number,
+            String name,
+            @NotNull Collection<ObjectDeltaType> deltas,
+            ModelExecuteOptions executionOptions) implements Serializable {
 
         private Collection<ObjectDelta<? extends ObjectType>> getParsedDeltas() throws SchemaException {
             List<ObjectDelta<? extends ObjectType>> parsedDeltas = new ArrayList<>();

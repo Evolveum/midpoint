@@ -10,28 +10,24 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -48,7 +44,6 @@ public class IterativeScriptingActivityHandler
             IterativeScriptingActivityHandler.MyWorkDefinition,
             IterativeScriptingActivityHandler> {
 
-    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(IterativeScriptingActivityHandler.class);
 
     @Override
@@ -69,11 +64,6 @@ public class IterativeScriptingActivityHandler
     @Override
     protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler> getExecutionSupplier() {
         return MyRun::new;
-    }
-
-    @Override
-    protected @NotNull String getLegacyHandlerUri() {
-        return LEGACY_HANDLER_URI;
     }
 
     @Override
@@ -133,17 +123,10 @@ public class IterativeScriptingActivityHandler
         private final ObjectSetType objects;
         private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                objects = ObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
-                scriptExecutionRequest = ((LegacyWorkDefinitionSource) source)
-                        .getExtensionItemRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
-            } else {
-                IterativeScriptingWorkDefinitionType typedDefinition = (IterativeScriptingWorkDefinitionType)
-                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-                scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
-            }
+        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+            var typedDefinition = (IterativeScriptingWorkDefinitionType) source.getBean();
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
             argCheck(scriptExecutionRequest.getScriptingExpression() != null, "No scripting expression provided");
             if (scriptExecutionRequest.getInput() != null && !scriptExecutionRequest.getInput().getValue().isEmpty()) {

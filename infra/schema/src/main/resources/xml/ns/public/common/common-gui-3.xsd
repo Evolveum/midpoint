@@ -45,18 +45,6 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:objectForms</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use panel configuration instead.</a:comment>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:userDashboard</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use homePage/widget instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -113,6 +101,27 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the set of default forms that are used for displaying and
+                            editing of objects, such as User, Role, Org, ...
+                        </p>
+
+                        REMOVED:
+                        Use panel configuration instead.
+                        <!-- TODO: This has to be moved to  objectDetails/objectDetailsPage/forms -->
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.4</a:since>
+                        <a:displayName>AdminGuiConfigurationType.objectForms</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.4</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectDetails" type="tns:GuiObjectDetailsSetType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -124,6 +133,26 @@
                     <xsd:appinfo>
                         <a:since>3.7</a:since>
                         <a:displayName>AdminGuiConfigurationType.objectDetails</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userDashboard" type="tns:DashboardLayoutType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the layout of the user dashboard (home screen):
+                            it defines which boxes should be visible, which should be hidden, etc.
+
+                            REMOVED:
+                            Use homePage/widget instead
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:displayName>AdminGuiConfigurationType.userDashboard</a:displayName>
+                        <a:removed>true</a:removed>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -356,13 +385,27 @@
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
+            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of autocomplete search used to search for users.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Search filter template with expression that is used together with collection ref specification.
                         Expression should use variable "input" which will contain value from autocomplete text field used for search.
                         By default, SUBSTRING search on UserType.name is used.
+
+                        DEPRECATED:
+                        Use autocompleteConfiguration.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="userDisplayName" type="tns:ExpressionType" minOccurs="0">
@@ -370,15 +413,29 @@
                     <xsd:documentation>
                         Expression that can be used to return String value which describes user object returned by search.
                         By default, `user.getFullName() + "(" + user.getName() + ")"` is used.
+
+                        DEPRECATED:
+                        Use autocompleteConfiguration.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0">
+            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0" default="2">
                 <xsd:annotation>
                     <xsd:documentation>
                         Minimum number of characters that needs to be typed into autocomplete widget before search will start.
                         Default value: 2
+
+                        DEPRECATED:
+                        Use autocompleteConfiguration.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -524,9 +581,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         If true, menu item will be created. It will allow user to request roles based on other user assigned roles.
+
+                        DEPRECATED: use rolesOfTeammate instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="rolesOfTeammate" type="tns:RolesOfTeammateType" minOccurs="0"/>
             <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -538,6 +602,50 @@
             <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RolesOfTeammateType">
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
+            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AutocompleteSearchConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!-- todo document + annotations -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search filter template with expression that is used together with collection ref specification.
+                        Expression should use variable "input" which will contain value from autocomplete text field used for search.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that can be used to return String value which describes object returned by search.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0" default="2">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimum number of characters that needs to be typed into autocomplete widget before search will start.
+                        Default value: 2
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutCommentType">
@@ -879,6 +987,134 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <!-- ============================================================== -->
+    <!--  FORMS                                                         -->
+    <!-- ============================================================== -->
+
+
+    <xsd:complexType name="ObjectFormsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the set of forms that are used for displaying and
+                editing of objects, such as User, Role, Org, ...
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectForm" type="tns:ObjectFormType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectFormsType.objectForm</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies form that are used for displaying and
+                editing of specific object type
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+                <a:displayName>ObjectFormType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractObjectTypeConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectFormType.formSpecification</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectFormType.includeDefaultForms</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FormSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a form using several different methods, e.g. by
+                specification of Java class, internal form OID, etc.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Form title that is shown at an appropriate place, such as browser title, heading,
+                        tab name, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FormSpecificationType.title</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="formRef" type="tns:ObjectReferenceType"
+                         minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to midPoint form object
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+                        <a:displayName>FormSpecificationType.formRef</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <!-- Later on the referenced form may also contain title, panelClass and panelUri.
+                     Equivalent elements from this data type may be used to override those specified
+                     in FormType object referenced from this formRef.
+                     However, not all combination have to be supported. E.g. if the FormType object
+                     specifies a declarative form and this FormSpecificationType specifies panelClass
+                     then an error should be raised.
+                      -->
+            </xsd:element>
+            <xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the Java class that will be used as the form implementation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FormSpecificationType.panelClass</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="panelUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URI identifier of Java component that will be used as the form implementation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FormSpecificationType.panelUri</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
     <xsd:complexType name="GuiObjectDetailsSetType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1041,18 +1277,6 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
-                <a:schemaMigration>
-                    <a:element>tns:container</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use panel.container instead.</a:comment>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:forms</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use panel configuration instead.</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1072,6 +1296,44 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectDetailsPageType.saveMethod</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="forms" type="tns:ObjectFormType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specification of forms (tabs) to be used on object details page.
+                                </p>
+                                <p>
+                                    NOTE: As of midPoint 4.0 this works for archetypes only.
+                                    It is not supposed to work anywhere else than in archetypePolicy.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                                <a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
+                                <a:removed>true</a:removed>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:removedSince>4.8</a:removedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Used to specify "virtual" containers for displaying details page in GUI.
+                                As an example, the user might need to reorganize attributes to some logic
+                                block such as personal info, basic info, additional info. Each of this
+                                section should have only attributes which belong to it, e.g. given name,
+                                family name, date of the birth are attributes corresponding to the personal info.
+                                Basic info section will contains attributes describing organizationalUnit, emailAddress
+                                or job position and additional info will contain attributes about user's nickname and so on.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:removed>true</a:removed>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1762,12 +2024,6 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:additionalPanels</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1805,6 +2061,27 @@
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                                 <a:displayName>GuiObjectListViewType.action</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Configuration of additional panels that can be present in some view types.
+                                    E.g. configuration of "managers" and "members" panels in orgstruct views.
+                                </p>
+                                <p>
+                                    DEPRECATED. Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                                <a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
+                                <a:experimental>true</a:experimental>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:removed>true</a:removed>
+                                <a:removedSince>4.8</a:removedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1863,18 +2140,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:defaultScope</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use scopeConfiguration.defaultValue instead</a:comment>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:defaultObjectType</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use objectTypeConfiguration.defaultValue instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1967,6 +2232,46 @@
                     <xsd:appinfo>
                         <a:displayName>SearchBoxConfigurationType.tenantConfiguration</a:displayName>
                         <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultScope" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The scope of the search box. Scope may not be applicable to all types of lists/views.
+                        E.g. it does not make sense for flat searches. Therefore some views may not even display
+                        scope selection at all.
+
+                        REMOVED:
+                        Use scopeConfiguration.defaultValue instead
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
+                        <a:since>3.9</a:since>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.8</a:removedSince>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultObjectType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default type of object for search boxes that support object type selection.
+                        E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
+                        Type selection may not be applicable to all types of lists/views.
+                        E.g. it does not make sense for lists that only contain objects of a single type.
+                        Therefore some views may not even display object type selection at all.
+
+                        REMOVED:
+                        Use objectTypeConfiguration.defaultValue instead
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
+                        <a:since>3.9</a:since>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.8</a:removedSince>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2313,12 +2618,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:displayName</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use SearchItemType.display.label instead</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2376,10 +2675,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         User friendly display name of the search item (property)
+
+                        REMOVED:
+                        Use SearchItemType.display.label instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchItemType.displayName</a:displayName>
-                        <a:deprecated>true</a:deprecated>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.8</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3640,17 +3943,29 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.9</a:since>
-                <a:schemaMigration>
-                    <a:element>tns:name</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                    <a:comment>Use identifier instead.</a:comment>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:UserInterfaceFeatureType">
                 <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Action short name (identifier). This element is not displayed to the user. It is used
+                                for identification of the action and referencing (e.g. previous column). The definitions
+                                that have the same name in different layers (global, role, user) will be merged together.
+
+                                REMOVED:
+                                Use identifier instead.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.name</a:displayName>
+                                <a:removed>true</a:removed>
+                                <a:deprecatedSince>4.6</a:deprecatedSince>
+                                <a:removedSince>4.8</a:removedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3737,6 +4052,33 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of additional panels that can be present in some view types.
+                E.g. configuration of "managers" and "members" panels in orgstruct views.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+                <a:experimental>true</a:experimental>
+                <a:removed>true</a:removed>
+                <a:removedSince>4.8</a:removedSince>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- TODO: manager panel -->
+            <xsd:element name="memberPanel" type="tns:GuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiObjectListViewAdditionalPanelsType.memberPanel</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FormType">

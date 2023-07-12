@@ -15,7 +15,6 @@ import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.ninja.opts.DeleteOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
+public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions, Void> {
 
     private static final String DOT_CLASS = DeleteRepositoryAction.class.getName() + ".";
 
@@ -41,16 +40,21 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
     private enum State {
 
-        DELETE, SKIP, STOP;
+        DELETE, SKIP, STOP
     }
 
     @Override
-    public void execute() throws Exception {
+    public String getOperationName() {
+        return "delete objects";
+    }
+
+    @Override
+    public Void execute() throws Exception {
         String oid = options.getOid();
 
         if (oid != null) {
             deleteByOid();
-            return;
+            return null;
         }
 
         ObjectTypes type = options.getType();
@@ -60,6 +64,8 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
         ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context, type.getClassDefinition());
         deleteByFilter(query);
+
+        return null;
     }
 
     private void deleteByOid() throws SchemaException {

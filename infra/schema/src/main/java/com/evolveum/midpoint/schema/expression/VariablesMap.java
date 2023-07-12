@@ -432,6 +432,20 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
         put(null, objectRef, def);
     }
 
+    /** Tries to determine the definition of the variable value. */
+    public void addVariableWithDeterminedDefinition(@NotNull String name, @NotNull ObjectType value) {
+        PrismObjectDefinition<?> def;
+        PrismObject<? extends ObjectType> prismObject = value.asPrismObject();
+        PrismObjectDefinition<?> explicitDef = prismObject.getDefinition();
+        if (explicitDef != null) {
+            def = explicitDef;
+        } else {
+            def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(value.getClass());
+        }
+        // When storing Objectable, the use of the variable in path expressions fails
+        addVariableDefinition(name, prismObject, def);
+    }
+
     // TODO: maybe replace by put?
     public <D extends ItemDefinition> void addVariableDefinition(String name, Object value, D definition) {
         if (containsKey(name)) {

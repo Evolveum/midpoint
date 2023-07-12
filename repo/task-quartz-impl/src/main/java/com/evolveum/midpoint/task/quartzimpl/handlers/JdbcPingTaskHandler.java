@@ -15,7 +15,6 @@ import jakarta.annotation.PostConstruct;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @Component
 public class JdbcPingTaskHandler implements TaskHandler {
@@ -211,8 +209,4 @@ public class JdbcPingTaskHandler implements TaskHandler {
     public void refreshStatus(Task task) {
     }
 
-    @Override
-    public String getArchetypeOid(@Nullable String handlerUri) {
-        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
-    }
 }

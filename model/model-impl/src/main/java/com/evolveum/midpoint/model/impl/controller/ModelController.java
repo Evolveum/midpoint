@@ -384,8 +384,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
         if (partialProcessing != null) {
             PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
-            securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
-                    null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
+                    null, AuthorizationParameters.Builder.buildObject(object), task, result);
         }
     }
 
@@ -1634,7 +1635,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             CommunicationException, ConfigurationException, SecurityViolationException {
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isAttachDiagData(rootOptions)
-                && !securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result)) {
+                && !securityEnforcer.isAuthorizedAll(task, result)) {
             Collection<SelectorOptions<GetOperationOptions>> reducedOptions = CloneUtil.cloneCollectionMembers(options);
             SelectorOptions.findRootOptions(reducedOptions).setAttachDiagData(false);
             return ParsedGetOperationOptions.of(reducedOptions);
@@ -1652,7 +1653,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
         ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(
                 securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType,
-                origFilter, null, null, SecurityEnforcer.Options.create(), task, result);
+                origFilter, null, List.of(), SecurityEnforcer.Options.create(), task, result);
         return updateObjectQuery(origQuery, secFilter);
     }
 
@@ -1925,7 +1926,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
     }
 
@@ -1933,8 +1935,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public void reactivateServiceThreads(Task operationTask, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(),
-                null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), operationTask, parentResult);
         taskManager.reactivateServiceThreads(parentResult);
     }
 
@@ -1972,8 +1974,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public void synchronizeTasks(Task operationTask, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(),
-                null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), operationTask, parentResult);
         taskManager.synchronizeTasks(parentResult);
     }
 
@@ -1981,7 +1983,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public void reconcileWorkers(String oid, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
+        securityEnforcer.authorizeAll(opTask, result); // temporary
         activityManager.reconcileWorkers(oid, result);
     }
 
@@ -1990,8 +1992,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             boolean deleteWorkers, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL,
-                null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+        securityEnforcer.authorizeAll(operationTask, parentResult); // temporary
         activityManager.deleteActivityStateAndWorkers(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
     }
 
@@ -2022,13 +2023,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<PrismObject<TaskType>> existingTasks, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL,
-                null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
+        if (securityEnforcer.isAuthorizedAll(task, parentResult)) {
             return;
         }
         for (PrismObject<TaskType> existingObject : existingTasks) {
-            securityEnforcer.authorize(action.getUrl(), null,
-                    AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
+            securityEnforcer.authorize(
+                    action.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(existingObject), task, parentResult);
         }
     }
 
@@ -2036,7 +2037,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
+        if (securityEnforcer.isAuthorizedAll(task, parentResult)) {
             return;
         }
         for (String identifier : identifiers) {
@@ -2052,7 +2053,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
             }
             existingObject = nodes.get(0);
-            securityEnforcer.authorize(action.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
+            securityEnforcer.authorize(
+                    action.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(existingObject), task, parentResult);
         }
     }
 
@@ -2202,8 +2205,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return executionContext.toExecutionResult();
     }
 
-    private void checkScriptingAuthorization(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+    private void checkScriptingAuthorization(Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, parentResult);
     }
     //endregion
 
@@ -2364,7 +2370,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return MiscUtil.takeThreadDump(null);
     }
 
@@ -2372,7 +2379,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public String getRunningTasksThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return taskManager.getRunningTasksThreadsDump(parentResult);
     }
 
@@ -2380,7 +2388,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public String recordRunningTasksThreadsDump(String cause, @NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
-        securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return taskManager.recordRunningTasksThreadsDump(cause, parentResult);
     }
 
@@ -2388,7 +2397,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public String getTaskThreadsDump(@NotNull String taskOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return taskManager.getTaskThreadsDump(taskOid, parentResult);
     }
 

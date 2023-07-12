@@ -14,7 +14,6 @@ import com.evolveum.midpoint.ninja.action.worker.ImportProducerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ImportRepositoryConsumerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -25,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
+public class ImportRepositoryAction extends RepositoryAction<ImportOptions, Void> {
 
     private static final String DOT_CLASS = ImportProducerWorker.class.getName() + ".";
 
@@ -35,7 +34,12 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
     @Override
-    public void execute() throws Exception {
+    public String getOperationName() {
+        return "import objects";
+    }
+
+    @Override
+    public Void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_IMPORT);
         OperationStatus progress = new OperationStatus(context, result);
 
@@ -69,10 +73,12 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         }
 
         handleResultOnFinish(progress, "Import finished");
+
+        return null;
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getInput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

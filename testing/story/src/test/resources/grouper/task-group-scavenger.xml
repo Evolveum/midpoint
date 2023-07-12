@@ -12,73 +12,73 @@ Looks for groups with the lifecycleState of 'retired' and completes their deleti
  - unassigns all the users (simply by recomputing them)
 
 -->
-
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-      oid="1d7bef40-953e-443e-8e9a-ec6e313668c4">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="1d7bef40-953e-443e-8e9a-ec6e313668c4">
     <name>Group Scavenger</name>
-    <extension>
-        <scext:executeScript>
-            <s:action>
-                <s:type>execute-script</s:type>
-                <s:parameter>
-                    <s:name>script</s:name>
-                    <c:value xsi:type="c:ScriptExpressionEvaluatorType">
-                        <c:code>import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-
-                        result = midpoint.currentResult
-                        log.info('Processing dead group: {}', input)
-                        query = prismContext.queryFor(UserType.class)
-                                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(input.oid)
-                                .build()
-                        members = midpoint.repositoryService.searchObjects(UserType.class, query, null, result)
-                        log.info('Found {} members: {}', members.size(), members)
-
-                        for (member in members) {
-                            log.info('Going to recompute {}', member)
-                            try {
-                                midpoint.recompute(UserType.class, member.oid)
-                            } catch (Throwable t) {
-                                log.error('Couldn\'t recompute {}: {}', member, t.message, t)
-                            }
-                        }
-                        log.info('Members recomputed; checking if the org is still in "retired" state')
-                        orgAfter = midpoint.repositoryService.getObject(OrgType.class, input.oid, null, result)
-                        currentState = orgAfter.asObjectable().lifecycleState
-                        log.info('Current state = {}', currentState)
-                        if (currentState == 'retired') {
-                            log.info('Deleting the org: {}', orgAfter)
-                            midpoint.deleteObject(OrgType.class, orgAfter.oid, null)
-                        } else {
-                            log.info('State has changed, not deleting the org: {}', orgAfter)
-                        }
-                        log.info('Dead group processing done: {}', input)
-                        </c:code>
-                    </c:value>
-                </s:parameter>
-            </s:action>
-        </scext:executeScript>
-        <mext:objectType>OrgType</mext:objectType>
-        <mext:objectQuery>
-            <q:filter>
-                <q:equal>
-                    <q:path>lifecycleState</q:path>
-                    <q:value>retired</q:value>
-                </q:equal>
-            </q:filter>
-        </mext:objectQuery>
-    </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
     <schedule>
-        <recurrence>recurring</recurrence>
-        <!-- no schedule - will not run automatically -->
+        <recurrence>recurring</recurrence> <!-- no schedule - will not run automatically -->
     </schedule>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <objects>
+                    <type>OrgType</type>
+                    <query>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>lifecycleState</q:path>
+                                <q:value>retired</q:value>
+                            </q:equal>
+                        </q:filter>
+                    </query>
+                </objects>
+                <scriptExecutionRequest>
+                    <s:action>
+                        <s:type>execute-script</s:type>
+                        <s:parameter>
+                            <s:name>script</s:name>
+                            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                                <c:code>import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                                result = midpoint.currentResult
+                                log.info('Processing dead group: {}', input)
+                                query = prismContext.queryFor(UserType.class)
+                                        .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(input.oid)
+                                        .build()
+                                members = midpoint.repositoryService.searchObjects(UserType.class, query, null, result)
+                                log.info('Found {} members: {}', members.size(), members)
+
+                                for (member in members) {
+                                    log.info('Going to recompute {}', member)
+                                    try {
+                                        midpoint.recompute(UserType.class, member.oid)
+                                    } catch (Throwable t) {
+                                        log.error('Couldn\'t recompute {}: {}', member, t.message, t)
+                                    }
+                                }
+                                log.info('Members recomputed; checking if the org is still in "retired" state')
+                                orgAfter = midpoint.repositoryService.getObject(OrgType.class, input.oid, null, result)
+                                currentState = orgAfter.asObjectable().lifecycleState
+                                log.info('Current state = {}', currentState)
+                                if (currentState == 'retired') {
+                                    log.info('Deleting the org: {}', orgAfter)
+                                    midpoint.deleteObject(OrgType.class, orgAfter.oid, null)
+                                } else {
+                                    log.info('State has changed, not deleting the org: {}', orgAfter)
+                                }
+                                log.info('Dead group processing done: {}', input)
+                                </c:code>
+                            </c:value>
+                        </s:parameter>
+                    </s:action>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
 </task>

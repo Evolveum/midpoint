@@ -62,11 +62,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:defaultNamespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</a:defaultNamespace>
-                <a:schemaMigration>
-                    <a:element>tns:addRemoveAttributeValues</a:element>
-                    <a:version>4.8</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -84,6 +79,7 @@
             <xsd:element name="script" type="tns:ScriptCapabilityType" minOccurs="0"/>
             <xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType" minOccurs="0"/>
             <xsd:element name="countObjects" type="tns:CountObjectsCapabilityType" minOccurs="0"/>
+            <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType" minOccurs="0"/>
             <xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType" minOccurs="0"/>
             <xsd:element name="runAs" type="tns:RunAsCapabilityType" minOccurs="0"/>
         </xsd:sequence>
@@ -808,6 +804,40 @@
             </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="AddRemoveAttributeValuesCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Indication that ADD and REMOVE of attribute values is reliably supported.
+                If this capability is not present or disabled, READ+REPLACE mode is assumed.
+                (Can be overridden at the level of individual attributes via readReplaceMode property.)
+
+                BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+
+                REMOVED:
+                Use addRemoveAttributeValues element of Update capability instead.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:removed>true</a:removed>
+                <a:removedSince>4.8</a:removedSince>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:removed>true</a:removed>
+                <a:removedSince>4.8</a:removedSince>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="AuxiliaryObjectClassesCapabilityType">
         <xsd:annotation>

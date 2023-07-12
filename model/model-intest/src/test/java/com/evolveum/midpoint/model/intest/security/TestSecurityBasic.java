@@ -269,11 +269,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-
         assertAddDeny();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PolyString.fromOrig("Captain"));
@@ -321,11 +316,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
-
         assertAddDeny();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PolyString.fromOrig("Captain"));
@@ -372,11 +362,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-
-        assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-        assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
 
         assertAddDeny();
 
@@ -431,11 +416,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
             assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
             assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-
-            assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-            assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-            assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-            assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
 
             assertAddDeny();
 
@@ -497,11 +477,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
             assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 0);
             assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-
-            assertCanSearchRoleMemberUsers(ROLE_ORDINARY.oid, false);
-            assertCanSearchRoleMembers(ROLE_ORDINARY.oid, false);
-            assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING.oid, false);
-            assertCanSearchRoleMembers(ROLE_UNINTERESTING.oid, false);
 
             assertAddDeny();
 

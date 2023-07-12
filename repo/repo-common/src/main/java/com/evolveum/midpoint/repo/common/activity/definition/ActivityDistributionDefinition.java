@@ -7,15 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Defines the distribution aspects of an activity: buckets, worker tasks, worker threads, subtasks, and so on.
@@ -32,13 +29,10 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
     }
 
     @NotNull
-    public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean,
-            Supplier<Integer> workerThreadsSupplier) {
-        ActivityDistributionDefinitionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
-                activityDefinitionBean.getDistribution().clone() : new ActivityDistributionDefinitionType(PrismContext.get());
-        if (bean.getWorkerThreads() == null) {
-            bean.setWorkerThreads(workerThreadsSupplier.get());
-        }
+    public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean) {
+        ActivityDistributionDefinitionType bean =
+                activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
+                        activityDefinitionBean.getDistribution().clone() : new ActivityDistributionDefinitionType();
         return new ActivityDistributionDefinition(bean);
     }
 
