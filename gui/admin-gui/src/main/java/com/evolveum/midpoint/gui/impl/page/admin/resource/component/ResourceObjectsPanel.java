@@ -314,10 +314,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         }
     }
 
-    //case GENERIC:
-    //        return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
-    //        case ENTITLEMENT:
-    //        return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
     protected abstract UserProfileStorage.TableId getRepositorySearchTableId();
     protected abstract StringResourceModel getLabelModel();
 
