@@ -166,6 +166,7 @@
             <xsd:element name="hint" type="tns:HintAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="correlation" type="tns:CorrelationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -396,8 +397,9 @@
     <xsd:complexType name="ArchetypeSelectionModuleType">
         <xsd:annotation>
             <xsd:documentation>
-                Module is used for the user authentication using the rules from the set of archetypes. For example, for "lost my
-                username" case the archetypes provide the information about correlation rules to be applied.
+                Module is used for the refining user search based on archetype selection. For example, for "lost my
+                username" case the archetypes provide the information about the user who can recover the username
+                and this archetype is later used for the search.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -419,6 +421,33 @@
                             <xsd:documentation>
                                 Enables the case when no archetype can be selected. If set to true, the user can be
                                 authenticated e.g. by the rules from global security policy.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for the user authentication using the correlation rules. Rules can be configured in object template
+                per archetype or on global level. For example, for "lost my
+                username" case the archetypes provide the information about correlation rules to be applied.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="correlationRuleIdentifier" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                "name" attribute of the correlator as set in object template.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

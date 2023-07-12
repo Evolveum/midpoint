@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.merger.correlator.CorrelatorMergeOperation;
 
 import org.jetbrains.annotations.NotNull;
@@ -193,7 +194,6 @@ public class CorrelatorContextCreator {
         if (composite == null) {
             return CorrelatorConfiguration.none();
         }
-
         Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getChildConfigurations(composite);
 
         if (configurations.isEmpty()) {
