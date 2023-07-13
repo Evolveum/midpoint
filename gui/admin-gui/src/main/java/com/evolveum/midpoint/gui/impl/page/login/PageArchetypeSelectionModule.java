@@ -44,7 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageDescriptor(urls = {
-        @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
+        @Url(mountUrl = "/archetypeSelection1", matchUrlForSecurity = "/archetypeSelection1")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
 public class PageArchetypeSelectionModule extends PageAuthenticationBase {
 

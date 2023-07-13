@@ -142,9 +142,9 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         if (mpAuthentication.getPrincipal() == null || !(mpAuthentication.getPrincipal() instanceof MidPointPrincipal)) {
             return false;
         }
-        if (mpAuthentication.isMerged()) {
-            return false;
-        }
+//        if (mpAuthentication.isMerged()) {
+//            return false;
+//        }
         MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
         SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
         if (securityPolicy == null) {
@@ -174,7 +174,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                 newSecurityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
         modules.removeIf(Objects::isNull);
         mpAuthentication.setAuthModules(modules);
-        mpAuthentication.setMerged(true);
+//        mpAuthentication.setMerged(true);
     }
 
     @Override

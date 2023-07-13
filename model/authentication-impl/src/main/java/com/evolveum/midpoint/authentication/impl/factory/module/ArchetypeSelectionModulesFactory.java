@@ -7,37 +7,23 @@
 
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ArchetypeBasedModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ArchetypeSelectionModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.configuration.ArchetypeBasedModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configurer.ArchetypeBasedModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.module.configurer.FocusIdentificationModuleWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.impl.module.configurer.ArchetypeSelectionModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.ArchetypeSelectionAuthenticationProvider;
-import com.evolveum.midpoint.authentication.impl.provider.ClusterProvider;
-import com.evolveum.midpoint.authentication.impl.provider.FocusIdentificationProvider;
-import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component
-public class ArchetypeBasedModulesFactory  extends AbstractCredentialModuleFactory<LoginFormModuleWebSecurityConfiguration, ArchetypeBasedModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class ArchetypeSelectionModulesFactory extends AbstractCredentialModuleFactory<LoginFormModuleWebSecurityConfiguration, ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ArchetypeBasedModulesFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionModulesFactory.class);
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -46,7 +32,7 @@ public class ArchetypeBasedModulesFactory  extends AbstractCredentialModuleFacto
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
-        ArchetypeBasedModuleAuthentication moduleAuthentication = new ArchetypeBasedModuleAuthentication(sequenceModule);
+        ArchetypeSelectionModuleAuthentication moduleAuthentication = new ArchetypeSelectionModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
@@ -62,8 +48,8 @@ public class ArchetypeBasedModulesFactory  extends AbstractCredentialModuleFacto
     }
 
     @Override
-    protected ArchetypeBasedModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new ArchetypeBasedModuleWebSecurityConfigurer<>(configuration));
+    protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new ArchetypeSelectionModuleWebSecurityConfigurer<>(configuration));
     }
 
     @Override

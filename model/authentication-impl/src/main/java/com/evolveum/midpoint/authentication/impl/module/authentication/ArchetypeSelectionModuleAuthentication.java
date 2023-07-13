@@ -10,15 +10,15 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
-public class ArchetypeBasedModuleAuthentication extends CredentialModuleAuthenticationImpl {
+public class ArchetypeSelectionModuleAuthentication extends CredentialModuleAuthenticationImpl {
 
-    public ArchetypeBasedModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
+    public ArchetypeSelectionModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.ARCHETYPE_SELECTION, sequenceModule);
         setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {
-        ArchetypeBasedModuleAuthentication module = new ArchetypeBasedModuleAuthentication(this.getSequenceModule());
+        ArchetypeSelectionModuleAuthentication module = new ArchetypeSelectionModuleAuthentication(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         super.clone(module);
         return module;

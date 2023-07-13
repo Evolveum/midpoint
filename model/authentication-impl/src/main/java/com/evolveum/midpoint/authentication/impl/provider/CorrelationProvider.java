@@ -68,7 +68,7 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
         ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
 
         try {
-            Authentication token;
+            Authentication token = null;
             if (authentication instanceof CorrelationVerificationToken) {
 
 //                CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
