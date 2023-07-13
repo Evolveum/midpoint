@@ -9,9 +9,12 @@ package com.evolveum.midpoint.schema.validator.processor;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
@@ -26,10 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
 public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor<ResourceType> {
 
     private static final ItemPath PATH_NATIVE = ItemPath.create(
-            ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE);//, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
+            ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES);
 
     private static final ItemPath PATH_CONFIGURED = ItemPath.create(
-            ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED);//, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
+            ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES);
 
     private static final List<ItemPath> PATHS = Arrays.asList(PATH_NATIVE, PATH_CONFIGURED);
 
@@ -50,11 +53,8 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        if (!ResourceType.class.equals(object.getCompileTimeClass())) {
-            return false;
-        }
-
-        return PATHS.stream().anyMatch(p -> p.equivalent(path));
+        return matchesTypeAndHasPathItem(object, path, ResourceType.class, PATH_NATIVE)
+                || matchesTypeAndHasPathItem(object, path, ResourceType.class, PATH_CONFIGURED);
     }
 
     @Override
@@ -62,20 +62,36 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
         ItemPath collectionPath = path.allExceptLast();
         CapabilityCollectionType collection = object.findContainer(collectionPath).getRealValue(CapabilityCollectionType.class);
 
-//        AddRemoveAttributeValuesCapabilityType addRemoveValues = collection.getAddRemoveAttributeValues();
-//        collection.setAddRemoveAttributeValues(null);
-//        if (addRemoveValues.isEnabled() == null) {
-//            return true;
-//        }
-//
-//        UpdateCapabilityType update = collection.getUpdate();
-//        if (update == null) {
-//            update = new UpdateCapabilityType();
-//            collection.setUpdate(update);
-//        }
-//
-//        update.setAddRemoveAttributeValues(addRemoveValues.isEnabled());
+        JAXBElement<AddRemoveAttributeValuesCapabilityType> addRemoveValuesElement =
+                findElement(collection, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES, AddRemoveAttributeValuesCapabilityType.class);
+
+        AddRemoveAttributeValuesCapabilityType addRemoveValues = addRemoveValuesElement.getValue();
+        if (addRemoveValues.isEnabled() == null) {
+            collection.getAny().remove(addRemoveValuesElement);
+            return true;
+        }
+
+        JAXBElement<UpdateCapabilityType> updateElement =
+                findElement(collection, SchemaConstantsGenerated.R_CAP_UPDATE, UpdateCapabilityType.class);
+        if (updateElement == null) {
+            updateElement = new JAXBElement<>(SchemaConstantsGenerated.R_CAP_UPDATE, UpdateCapabilityType.class, new UpdateCapabilityType());
+            collection.getAny().add(updateElement);
+        }
+
+        updateElement.getValue().setAddRemoveAttributeValues(addRemoveValues.isEnabled());
+
+        collection.getAny().remove(addRemoveValuesElement);
 
         return true;
+    }
+
+    private <T> JAXBElement<T> findElement(CapabilityCollectionType collection, QName name, Class<T> type) {
+        return (JAXBElement<T>) collection.getAny().stream()
+                .filter(e -> {
+                    JAXBElement element = (JAXBElement) e;
+                    return name.equals(element.getName());
+                })
+                .findFirst()
+                .orElse(null);
     }
 }

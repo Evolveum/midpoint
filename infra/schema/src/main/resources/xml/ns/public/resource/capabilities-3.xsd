@@ -716,7 +716,13 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
+    <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="AuxiliaryObjectClassesCapabilityType">
         <xsd:annotation>

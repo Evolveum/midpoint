@@ -25,7 +25,6 @@ public class UpgradeObjectsHandler {
                 .stream()
                 .filter(UpgradeObjectProcessor.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
-
                 .collect(Collectors.toUnmodifiableSet());
 
         return processors.stream()
