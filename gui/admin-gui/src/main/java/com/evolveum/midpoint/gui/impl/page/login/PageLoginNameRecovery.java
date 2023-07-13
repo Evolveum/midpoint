@@ -15,14 +15,20 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -46,6 +52,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +65,8 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
     private static final String DOT_CLASS = PageLoginNameRecovery.class.getName() + ".";
     protected static final String OPERATION_LOAD_ARCHETYPE_BASED_MODULE = DOT_CLASS + "loadArchetypeBasedAuthModule";
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
+    protected static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
+    protected static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BACK_BUTTON = "back";
@@ -182,7 +191,7 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
 
             @Override
             protected void populateItem(ListItem<Tile<ArchetypeType>> item) {
-                item.add(createTilePanel(ID_ARCHETYPE_PANEL, item.getModel()));
+                item.add(createTilePanel(item.getModel()));
             }
         };
         archetypeSelectionPanel.add(archetypeListPanel);
@@ -228,13 +237,55 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
         return tile;
     }
 
-    private Component createTilePanel(String id, IModel<Tile<ArchetypeType>> tileModel) {
-        return new TilePanel<>(id, tileModel) {
+    private Component createTilePanel(IModel<Tile<ArchetypeType>> tileModel) {
+        return new TilePanel<>(ID_ARCHETYPE_PANEL, tileModel) {
             @Override
             protected void onClick(AjaxRequestTarget target) {
-                //todo get correlation rule through object template ref from archetype
+                var archetype = tileModel.getObject().getValue();
+                var objectTemplate = loadObjectTemplateForArchetype(archetype);
+                if (objectTemplate == null) {
+                    //todo show warning?
+                    return;
+                }
+                var pathSet = getCorrelatorItems(objectTemplate);
+                if (pathSet == null) {
+                    return;
+                }
+
             }
         };
+    }
+
+    private ObjectTemplateType loadObjectTemplateForArchetype(ArchetypeType archetype) {
+        var archetypePolicy = archetype.getArchetypePolicy();
+        if (archetypePolicy == null) {
+            return null;
+        }
+        var objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+        var loadobjectTemplateTask = createAnonymousTask(OPERATION_LOAD_OBJECT_TEMPLATE);
+        var result = new OperationResult(OPERATION_LOAD_OBJECT_TEMPLATE);
+        PrismObject<ObjectTemplateType> objectTemplate = WebModelServiceUtils.resolveReferenceNoFetch(objectTemplateRef,
+                PageLoginNameRecovery.this, loadobjectTemplateTask, result);
+        return objectTemplate == null ? null : objectTemplate.asObjectable();
+    }
+
+    private PathSet getCorrelatorItems(ObjectTemplateType objectTemplate) {
+        var correlatorConfiguration = determineCorrelatorConfiguration(objectTemplate);
+        if (correlatorConfiguration == null) {
+            return null;
+        }
+        return correlatorConfiguration.getCorrelationItemPaths();
+    }
+
+    private CorrelatorConfiguration determineCorrelatorConfiguration(ObjectTemplateType objectTemplate) {
+        OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIGURATION);
+        try {
+            var systemConfiguration = getModelInteractionService().getSystemConfiguration(result);
+            return getCorrelationService().determineCorrelatorConfiguration(objectTemplate, systemConfiguration);
+        } catch (SchemaException| ObjectNotFoundException e) {
+            LOGGER.error("Couldn't determine correlation configuration.");
+        }
+        return null;
     }
 
 }

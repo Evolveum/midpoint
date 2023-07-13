@@ -419,4 +419,16 @@ public class CorrelationServiceImpl implements CorrelationService {
         return oid != null ?
                 beans.archetypeManager.getExpandedObjectTemplate(oid, task.getExecutionMode(), result) : null;
     }
+
+    @Override
+    public CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
+            SystemConfigurationType systemConfiguration) {
+        try {
+            return CorrelatorContextCreator.createRootContext(new CorrelationDefinitionType(),
+                    objectTemplate, systemConfiguration).getConfiguration();
+        } catch (SchemaException|ConfigurationException ex) {
+            //todo
+        }
+        return null;
+    }
 }

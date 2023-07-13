@@ -9,6 +9,12 @@ package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateCorrelationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +67,12 @@ public interface CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Instantiates a correlator
+     */
+    CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
+            SystemConfigurationType systemConfiguration);
 
     @FunctionalInterface
     interface CaseCloser {

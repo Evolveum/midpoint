@@ -187,7 +187,7 @@ public class WebModelServiceUtils {
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
-            PageBase page) {
+            PageAdminLTE page) {
         Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
         Class<T> type = ObjectTypes.getObjectTypeClassIfKnown(objectReference.getType());
