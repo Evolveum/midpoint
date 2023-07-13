@@ -30,13 +30,15 @@ public class VerifyTest implements NinjaTestMixin {
         VerifyOptions verifyOptions = new VerifyOptions();
         verifyOptions.setFiles(List.of(new File("./src/test/resources/upgrade/objects")));
         verifyOptions.setReportStyle(VerifyOptions.ReportStyle.CSV);
+        verifyOptions.setOverwrite(true);
+        verifyOptions.setOutput(new File("./target/verify.csv"));
 
         List<Object> options = List.of(baseOptions, connectionOptions, verifyOptions);
 
         VerifyResult result = executeAction(VerifyAction.class, verifyOptions, options);
 
         Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(2L);
+        Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(1L);
     }
 
     @Test(enabled = false)

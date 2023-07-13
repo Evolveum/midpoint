@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.io.IOUtils;
 
 /**
- * TODO from design point of view handling of main writer and deltaWriter is just nasty. Fix this, rethink worker interface.
+ * TODO from design point of view handling of main writer and deltaWriter is just nasty. Fix this.
  *
  * @author Radovan Semancik
  */
