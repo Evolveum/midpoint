@@ -47,6 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  */
 class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
+    private static final String PART_ID_PREFIX = "PART";
+
     @NotNull private final String[] operationUrls;
     @NotNull final Class<T> filterType;
     @NotNull final AuthorizationSelectorExtractor selectorExtractor;
@@ -89,7 +91,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             securityFilter = new PartialOp(nonStrict(phase)).computeFilter(result);
         } else {
             F filterBoth = new PartialOp(both()).computeFilter(result);
-            F filterRequest = new PartialOp(strict(REQUEST)).computeFilter(result);
+            F filterRequest = new PartialOp( strict(REQUEST)).computeFilter(result);
             F filterExecution = new PartialOp(strict(EXECUTION)).computeFilter(result);
             securityFilter =
                     gizmo.or(
@@ -112,6 +114,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     /** Computes security filter for given {@link PhaseSelector}. */
     class PartialOp {
 
+        @NotNull private final String id;
+
         private final @NotNull PhaseSelector phaseSelector;
 
         /** TODO */
@@ -124,7 +128,12 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         private F securityFilterDeny = null;
 
         PartialOp(@NotNull PhaseSelector phaseSelector) {
+            this.id = PART_ID_PREFIX + phaseSelector.getSymbol();
             this.phaseSelector = phaseSelector;
+        }
+
+        @NotNull EnforcerFilterOperation<T, F> getEnforcerFilterOperation() {
+            return EnforcerFilterOperation.this;
         }
 
         /**
@@ -228,7 +237,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             if (tracer.isEnabled()) {
                 tracer.trace(
                         new PartialFilterOperationStarted<>(
-                                EnforcerFilterOperation.this,
+                                this,
                                 phaseSelector,
                                 queryItemsSpec.shortDump()));
             }
@@ -238,7 +247,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             if (tracer.isEnabled()) {
                 tracer.trace(
                         new PartialFilterOperationFinished<>(
-                                EnforcerFilterOperation.this,
                                 this,
                                 phaseSelector,
                                 secFilter,
@@ -259,6 +267,10 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         /** For diagnostics purposes. */
         F getSecurityFilterDeny() {
             return securityFilterDeny;
+        }
+
+        public @NotNull String getId() {
+            return id;
         }
     }
 

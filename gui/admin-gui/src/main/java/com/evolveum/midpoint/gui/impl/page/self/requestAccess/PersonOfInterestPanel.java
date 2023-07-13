@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,36 +30,24 @@ import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -69,9 +58,9 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestStep {
+public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String STEP_ID = "poi";
 
@@ -83,6 +72,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private static final int MULTISELECT_PAGE_SIZE = 10;
 
     private static final String DEFAULT_TILE_ICON = "fas fa-user-friends";
+
+    private static final int AUTOCOMPLETE_MIN_CHARS = 2;
 
     private enum TileType {
 
@@ -101,16 +92,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         }
     }
 
-    private static class PersonOfInterest implements Serializable {
+    private record PersonOfInterest(String groupIdentifier, TileType type) implements Serializable {
 
-        private String groupIdentifier;
-
-        private TileType type;
-
-        public PersonOfInterest(String groupIdentifier, TileType type) {
-            this.groupIdentifier = groupIdentifier;
-            this.type = type;
-        }
     }
 
     private enum SelectionState {
@@ -129,13 +112,13 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private static final String ID_MULTISELECT = "multiselect";
     private static final String ID_USER_SELECTION_LABEL = "userSelectionLabel";
 
-    private PageBase page;
+    private final PageBase page;
 
     private LoadableModel<List<Tile<PersonOfInterest>>> tiles;
 
     private IModel<SelectionState> selectionState;
 
-    private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
+    private final IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
 
     public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -246,17 +229,17 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         String label = getString(TileType.GROUP_OTHERS);
         if (display.getLabel() != null) {
-            label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
+            label = LocalizationUtil.translatePolyString(display.getLabel());
         }
 
-        Tile tile = new Tile(icon, label);
+        Tile<PersonOfInterest> tile = new Tile<>(icon, label);
         tile.setValue(new PersonOfInterest(selection.getIdentifier(), TileType.GROUP_OTHERS));
 
         return tile;
     }
 
     private Tile<PersonOfInterest> createDefaultTile(TileType type) {
-        Tile tile = new Tile(type.getIcon(), getString(type));
+        Tile<PersonOfInterest> tile = new Tile<>(type.getIcon(), getString(type));
         tile.setValue(new PersonOfInterest(null, type));
 
         return tile;
@@ -302,12 +285,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                     protected void onClick(AjaxRequestTarget target) {
                         Tile<PersonOfInterest> tile = item.getModelObject();
                         switch (tile.getValue().type) {
-                            case MYSELF:
-                                myselfPerformed(target, tile);
-                                break;
-                            case GROUP_OTHERS:
-                                groupOthersPerformed(target, tile);
-                                break;
+                            case MYSELF -> myselfPerformed(target, tile);
+                            case GROUP_OTHERS -> groupOthersPerformed(target, tile);
                         }
                     }
                 };
@@ -317,6 +296,25 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         listContainer.add(list);
 
         return fragment;
+    }
+
+    private AutocompleteSearchConfigurationType getAutocompleteConfiguration() {
+        GroupSelectionType group = getSelectedGroupSelection();
+        if (group == null) {
+            return new AutocompleteSearchConfigurationType();
+        }
+
+        AutocompleteSearchConfigurationType config = group.getAutocompleteConfiguration();
+        if (config != null) {
+            return config;
+        }
+
+        config = new AutocompleteSearchConfigurationType();
+        config.setAutocompleteMinChars(group.getAutocompleteMinChars());
+        config.setDisplayExpression(group.getUserDisplayName());
+        config.setSearchFilterTemplate(group.getSearchFilterTemplate());
+
+        return config;
     }
 
     private Fragment initSelectionFragment() {
@@ -338,13 +336,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         Select2MultiChoice<ObjectReferenceType> multiselect = new Select2MultiChoice<>(ID_MULTISELECT, multiselectModel,
                 new ObjectReferenceProvider(this));
 
-        GroupSelectionType group = getSelectedGroupSelection();
-        int minLength = 2;
-        if (group != null && group.getAutocompleteMinChars() != null) {
-            minLength = group.getAutocompleteMinChars();
-        }
+        AutocompleteSearchConfigurationType config = getAutocompleteConfiguration();
+        int minLength = config.getAutocompleteMinChars() != null ? config.getAutocompleteMinChars() : AUTOCOMPLETE_MIN_CHARS;
         if (minLength < 0) {
-            minLength = 2;
+            minLength = AUTOCOMPLETE_MIN_CHARS;
         }
         multiselect.getSettings()
                 .setMinimumInputLength(minLength);
@@ -360,7 +355,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         });
         fragment.add(multiselect);
 
-        AjaxLink selectManually = new AjaxLink<>(ID_SELECT_MANUALLY) {
+        AjaxLink<?> selectManually = new AjaxLink<>(ID_SELECT_MANUALLY) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -433,15 +428,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     @Override
     protected void onBeforeRender() {
-        Fragment fragment;
-        switch (selectionState.getObject()) {
-            case USERS:
-                fragment = initSelectionFragment();
-                break;
-            case TILES:
-            default:
-                fragment = initTileFragment();
-        }
+        Fragment fragment = selectionState.getObject() == SelectionState.USERS ? initSelectionFragment() : initTileFragment();
         addOrReplace(fragment);
 
         super.onBeforeRender();
@@ -507,7 +494,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         SearchFilterType search;
         if (collection.getCollectionRef() != null) {
             com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            PrismObject obj = WebModelServiceUtils.loadObject(collectionRef, page);
+            PrismObject<?> obj = WebModelServiceUtils.loadObject(collectionRef, page);
             if (obj == null) {
                 return null;
             }
@@ -544,7 +531,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
                 List.of(UserType.COMPLEX_TYPE), true, page, filter) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
@@ -671,11 +658,21 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return result != null ? result : new TargetSelectionType();
     }
 
-    public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {
+    private ObjectFilter getAutocompleteFilter(String text) {
+        return createAutocompleteFilter(
+                text, getAutocompleteConfiguration().getSearchFilterTemplate(), (t) -> createDefaultFilter(t), page);
+    }
 
-        private static final long serialVersionUID = 1L;
+    private ObjectFilter createDefaultFilter(String text) {
+        return getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+    }
 
-        private PersonOfInterestPanel panel;
+    public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> implements AutocompleteConfigurationMixin {
+
+        @Serial private static final long serialVersionUID = 1L;
+
+        private final PersonOfInterestPanel panel;
 
         public ObjectReferenceProvider(PersonOfInterestPanel panel) {
             this.panel = panel;
@@ -693,15 +690,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         @Override
         public void query(String text, int page, Response<ObjectReferenceType> response) {
-            ObjectFilter filter = null;
+            ObjectFilter filter = null; // todo shouldn't we use this? probably load some collection filter from group or sometthing?
 
-            Tile<PersonOfInterest> selected = panel.getSelectedTile();
-            String identifier = null;
-            if (selected != null) {
-                identifier = selected.getValue().groupIdentifier;
-            }
-
-            ObjectFilter autocompleteFilter = createAutocompleteFilter(text);
+            ObjectFilter autocompleteFilter = panel.getAutocompleteFilter(text);
 
             ObjectFilter full = autocompleteFilter;
             if (filter != null) {
@@ -730,45 +721,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
         }
 
-        private ObjectFilter createAutocompleteFilter(String text) {
-            GroupSelectionType group = panel.getSelectedGroupSelection();
-            if (group == null) {
-                return createDefaultFilter(text);
-            }
-
-            SearchFilterType filterTemplate = group.getSearchFilterTemplate();
-            if (filterTemplate == null) {
-                return createDefaultFilter(text);
-            }
-
-            Task task = panel.page.getPageTask();
-            OperationResult result = task.getResult();
-            try {
-                PrismContext ctx = PrismContext.get();
-                ObjectFilter filter = ctx.getQueryConverter().parseFilter(filterTemplate, UserType.class);
-
-                PrismPropertyDefinition<String> def = ctx.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME,
-                        DOMUtil.XSD_STRING);
-
-                VariablesMap variables = new VariablesMap();
-                variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);
-
-                return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
-                        panel.page.getExpressionFactory(), ctx, "group selection search filter template", task, result);
-            } catch (Exception ex) {
-                result.recordFatalError(ex);
-                LoggingUtils.logUnexpectedException(LOGGER,
-                        "Couldn't evaluate object filter with expression for group selection and search filter template", ex);
-            }
-
-            return createDefaultFilter(text);
-        }
-
-        private ObjectFilter createDefaultFilter(String text) {
-            return panel.getPrismContext().queryFor(UserType.class)
-                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
-        }
-
         private String getDisplayName(PrismObject<UserType> o) {
             if (o == null) {
                 return null;
@@ -781,65 +733,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
 
             if (identifier == null) {
-                return getDefaultUserDisplayName(o);
+                return panel.getDefaultUserDisplayName(o);
             }
 
-            GroupSelectionType group = panel.getSelectedGroupSelection();
-            if (group == null || group.getUserDisplayName() == null) {
-                return getDefaultUserDisplayName(o);
-            }
+            AutocompleteSearchConfigurationType config = panel.getAutocompleteConfiguration();
+            String displayName = getDisplayNameFromExpression(
+                    "User display name for group selection '" + identifier + "' expression",
+                    config.getDisplayExpression(), obj -> panel.getDefaultUserDisplayName(obj), o, panel);
 
-            String displayName = getUserDisplayNameFromExpression(identifier, group.getUserDisplayName(), o);
-
-            return StringUtils.isNotEmpty(displayName) ? displayName : getDefaultUserDisplayName(o);
-        }
-
-        private String getDefaultUserDisplayName(PrismObject<UserType> o) {
-            String name = WebComponentUtil.getOrigStringFromPoly(o.getName());
-            String fullName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getFullName());
-
-            return StringUtils.isNotEmpty(fullName) ? fullName + " (" + name + ")" : name;
-        }
-
-        private String getUserDisplayNameFromExpression(String identifier, ExpressionType expressionType, PrismObject<UserType> object) {
-            String contextDesc = "User display name for group selection '" + identifier + "' expression";
-
-            ModelServiceLocator locator = panel.page;
-
-            Task task = panel.page.getPageTask();
-            OperationResult result = task.getResult();
-
-            try {
-                ExpressionFactory factory = locator.getExpressionFactory();
-                PrismContext ctx = object.getPrismContext();
-                PrismPropertyDefinition<String> outputDefinition = ctx.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-                        DOMUtil.XSD_STRING);
-                Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                        factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
-
-                VariablesMap variables = new VariablesMap();
-                variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
-
-                ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
-                context.setExpressionFactory(factory);
-                PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
-                if (outputTriple == null) {
-                    return null;
-                }
-                Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
-                if (outputValues.isEmpty()) {
-                    return null;
-                }
-                if (outputValues.size() > 1) {
-                    return null;
-                }
-                return outputValues.iterator().next().getRealValue();
-            } catch (Exception ex) {
-                result.recordFatalError(ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate expression for group selection and user display name", ex);
-            }
-
-            return null;
+            return StringUtils.isNotEmpty(displayName) ? displayName : panel.getDefaultUserDisplayName(o);
         }
 
         @Override

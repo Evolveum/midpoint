@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -25,11 +28,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -52,21 +52,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, defaultType, options);
+    public ObjectListPanel(String id, Class<O> defaultType) {
+        super(id, defaultType);
     }
 
-    public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, boolean isRoleMining) {
-        super(id, defaultType, options, isRoleMining);
-    }
-
-    public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
-        super(id, defaultType, options, config);
-    }
-
-    @Override
-    public String getTb(String s) {
-        return super.getTb(s);
+    public ObjectListPanel(String id, Class<O> defaultType, ContainerPanelConfigurationType config) {
+        super(id, defaultType, config);
     }
 
     protected String getSearchByNameParameterValue() {
@@ -82,8 +73,16 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return value.toString();
     }
 
-    protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
+    protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(
+            SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
+        return createSelectableBeanObjectDataProvider(querySuplier, orderingSuplier, null);
+    }
+
+    protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(
+            SerializableSupplier<ObjectQuery> querySuplier,
+            SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
                 getPageBase(), getSearchModel(), null) {
             private static final long serialVersionUID = 1L;
@@ -116,7 +115,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
-        provider.setOptions(getOptions());
+        provider.setOptions(options);
         return provider;
     }
 

@@ -70,7 +70,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         }
 
         var accessesTable = new ContainerableListPanel<ObjectReferenceType, SelectableBean<ObjectReferenceType>>(
-                ID_ACCESSES, ObjectReferenceType.class, null, getPanelConfiguration()) {
+                ID_ACCESSES, ObjectReferenceType.class, getPanelConfiguration()) {
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PANEL_USER_ACCESSES;

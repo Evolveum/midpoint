@@ -103,7 +103,7 @@ class EnforcerDecisionOperation extends EnforcerOperation {
                 overallDecision = AccessDecision.ALLOW;
                 // Do NOT break here. Other authorization statements may still deny the operation
             } else { // "deny" authorization
-                var itemsMatchResult = evaluation.matchesItems(params);
+                var itemsMatchResult = evaluation.matchesOnItems(params);
                 if (itemsMatchResult.value()) {
                     evaluation.traceAuthorizationDenyRelevant(operationUrl, itemsMatchResult);
                     overallDecision = AccessDecision.DENY;

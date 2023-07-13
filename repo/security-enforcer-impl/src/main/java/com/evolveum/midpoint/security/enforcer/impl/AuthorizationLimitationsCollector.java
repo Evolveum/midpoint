@@ -14,8 +14,12 @@ import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
 
 /**
- * @author semancik
+ * Collects authorization limitations from a set of authorizations (see {@link #accept(Authorization)}) and then
+ * applies them (as a filter) to a set of authorizations (see {@link #transform(Authorization)}).
  *
+ * Used for creating a donor principal with limited set of authorizations.
+ *
+ * @author semancik
  */
 public class AuthorizationLimitationsCollector implements Consumer<Authorization>, AuthorizationTransformer {
 
@@ -75,5 +79,4 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
         }
         return true;
     }
-
 }

@@ -59,11 +59,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     public MultivalueContainerListPanel(String id, Class<C> type, ContainerPanelConfigurationType config) {
-        super(id, type, null, config);
+        super(id, type, config);
     }
-        private boolean objectCollectionRefExists (CompiledObjectCollectionView collectionView) {
+    private boolean objectCollectionRefExists (CompiledObjectCollectionView collectionView) {
         return collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null
-                && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE);
+            && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE);
     }
 
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {

@@ -8,9 +8,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="custom-control custom-switch">
-        <input class="custom-control-input" wicket:id="check" type="checkbox"/>
-        <label class="custom-control-label" wicket:id="label"></label>
+    <div class="m-3 d-flex flex-row gap-3">
+        <div class="d-flex flex-column">
+            <label wicket:id="label"></label>
+            <p wicket:id="description"></p>
+        </div>
+        <div class="ml-auto">
+            <input type="checkbox" wicket:id="check" data-bootstrap-switch />
+        </div>
     </div>
 </wicket:panel>
 </html>

@@ -128,24 +128,27 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         this(id, defaultType, null);
     }
 
-    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id);
-        this.defaultType = defaultType;
-        this.options = options;
-    }
+//    public ContainerableListPanel(String id, Class<C> defaultType, @Deprecated Collection<SelectorOptions<GetOperationOptions>> options) {
+//        super(id);
+//        this.defaultType = defaultType;
+////        this.options = options;
+//    }
 
-    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, boolean isRoleMining) {
+    public ContainerableListPanel(String id, Class<C> defaultType, ContainerPanelConfigurationType configurationType) {
         super(id);
         this.defaultType = defaultType;
-        this.options = options;
-        this.isRoleMining = isRoleMining;
-    }
-
-    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
-        super(id);
-        this.defaultType = defaultType;
-        this.options = options;
+//        this.options = options;
         this.config = configurationType;
+
+    }
+
+    public ContainerableListPanel(String id, Class<C> defaultType, ContainerPanelConfigurationType configurationType,boolean isRoleMining) {
+        super(id);
+        this.defaultType = defaultType;
+//        this.options = options;
+        this.config = configurationType;
+        this.isRoleMining = isRoleMining;
+
     }
 
     @Override
@@ -262,7 +265,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         setDefaultSorting(provider);
         setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
-                provider, columns, getTableId(),isRoleMining) {
+                provider, columns, getTableId()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -336,9 +339,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return itemTable;
     }
 
-    public String getTb(String s){
-        return s;
-    }
     private int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();

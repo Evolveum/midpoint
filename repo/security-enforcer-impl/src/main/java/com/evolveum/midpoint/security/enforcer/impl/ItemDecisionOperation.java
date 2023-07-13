@@ -333,7 +333,7 @@ class ItemDecisionOperation {
                 removingContainer, decisionContextDesc);
     }
 
-    /** Temporary implementation. */
+    /** Special simple tracer for this class. The caller may use it to redirect logging to its own sink. Temporary. */
     interface SimpleTracer {
         void trace(String message, Object... params);
     }

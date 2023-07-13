@@ -10,7 +10,7 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.PositiveNegativeItemPaths;
 
 /**
- * Helper class to {@link SecurityEnforcerImpl}, used to evaluate item authorizations.
+ * An extension of {@link PositiveNegativeItemPaths} providing a helper method to collect them from an authorization.
  *
  * @author semancik
  */

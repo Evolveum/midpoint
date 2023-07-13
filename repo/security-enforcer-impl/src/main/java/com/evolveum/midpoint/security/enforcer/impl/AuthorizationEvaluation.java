@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluato
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.AbstractAuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -64,17 +62,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  */
 public class AuthorizationEvaluation {
 
+    /** Prefix for string {@link #id} for this operation (for tracing). */
     private static final String AUTZ_ID_PREFIX = "AUTZ.";
+
+    /** Prefix for selector operation-level IDs invoked from this authorization-level operation (for tracing). */
     private static final String SEL_ID_PREFIX = "SEL.";
 
-    /** TODO describe, decide */
+    /** Identifier for this operation (like `AUTZ.0`, `AUTZ.1`, ...) - for tracing. */
     @NotNull private final String id;
 
+    /** The authorization being evaluated. */
     @NotNull final Authorization authorization;
+
+    /** The human readable description of the authorization ({@link Authorization#getHumanReadableDesc()}). */
     @NotNull private final Lazy<String> lazyDescription;
 
+    /** The whole operation we are part of. */
     @NotNull final EnforcerOperation op;
-    @Nullable private final MidPointPrincipal principal;
+
     @NotNull private final Beans b;
     @NotNull private final Task task;
     @NotNull final OperationResult result;
@@ -95,7 +100,6 @@ public class AuthorizationEvaluation {
         this.id = Objects.requireNonNullElse(id, "");
         this.authorization = authorization;
         this.op = op;
-        this.principal = op.principal;
         this.b = op.b;
         this.task = op.task;
         this.result = result;
@@ -360,56 +364,58 @@ public class AuthorizationEvaluation {
         return applicability.value;
     }
 
-    // TODO name
-    ItemsMatchResult matchesItems(AbstractAuthorizationParameters params) throws SchemaException {
+    /** Returns `true` if the items specified by the authorization match the given parameters (delta or object). */
+    ItemsMatchResult matchesOnItems(@NotNull AbstractAuthorizationParameters params) throws SchemaException {
         if (params instanceof AuthorizationParameters<?, ?> objectParams) {
-            return matchesItems(getValue(objectParams.getOldObject()), objectParams.getDelta());
+            return matchesOnItems(getValue(objectParams.getOldObject()), objectParams.getDelta());
         } else if (params instanceof ValueAuthorizationParameters<?> valueParams) {
-            return matchesItems(valueParams.getValue(), null);
+            return matchesOnItems(valueParams.getValue(), null);
         } else {
             throw new NotHereAssertionError();
         }
     }
 
-    private ItemsMatchResult matchesItems(PrismValue value, ObjectDelta<? extends ObjectType> delta)
+    private ItemsMatchResult matchesOnItems(PrismValue value, ObjectDelta<? extends ObjectType> delta)
             throws SchemaException {
-        var positive = authorization.getItems();
-        if (positive.isEmpty()) {
-            var negative = authorization.getExceptItems();
-            if (negative.isEmpty()) {
+        var positiveItemPaths = authorization.getItems();
+        if (positiveItemPaths.isEmpty()) {
+            var negativeItemPaths = authorization.getExceptItems();
+            if (negativeItemPaths.isEmpty()) {
                 return ItemsMatchResult.positive("no item constraints -> applicable to all items");
             } else {
-                return matchesItems(value, delta, negative, false);
+                return matchesOnItems(value, delta, negativeItemPaths, false);
             }
         } else {
-            return matchesItems(value, delta, positive, true);
+            return matchesOnItems(value, delta, positiveItemPaths, true);
         }
     }
 
-    private static ItemsMatchResult matchesItems(
+    /**
+     * @param positive True if the `itemPaths` denote those _included_ (i.e. others are excluded); false if those paths
+     * are _excluded_ (i.e. others are included).
+     */
+    private static ItemsMatchResult matchesOnItems(
             PrismValue value,
             ObjectDelta<? extends ObjectType> delta,
             PathSet itemPaths,
             boolean positive)
             throws SchemaException {
         for (ItemPath itemPath : itemPaths) {
-            if (delta == null) {
-                if (value != null) {
-                    if (containsItem(value, itemPath)) {
-                        if (positive) {
-                            return ItemsMatchResult.positive("applicable object item '%s'", itemPath);
-                        } else {
-                            return ItemsMatchResult.negative("excluded object item '%s'", itemPath);
-                        }
-                    }
-                }
-            } else {
+            if (delta != null) {
                 ItemDelta<?, ?> itemDelta = delta.findItemDelta(itemPath);
                 if (itemDelta != null && !itemDelta.isEmpty()) {
                     if (positive) {
                         return ItemsMatchResult.positive("applicable delta item '%s'", itemPath);
                     } else {
                         return ItemsMatchResult.negative("excluded delta item '%s'", itemPath);
+                    }
+                }
+            } else if (value != null) {
+                if (containsItem(value, itemPath)) {
+                    if (positive) {
+                        return ItemsMatchResult.positive("applicable object item '%s'", itemPath);
+                    } else {
+                        return ItemsMatchResult.negative("excluded object item '%s'", itemPath);
                     }
                 }
             }
@@ -437,15 +443,9 @@ public class AuthorizationEvaluation {
                 return null;
             }
             VariablesMap variables = new VariablesMap();
-            PrismObject<? extends FocusType> subject = principal != null ? principal.getFocus().asPrismObject() : null;
-            PrismObjectDefinition<? extends FocusType> def;
+            FocusType subject = op.getPrincipalFocus();
             if (subject != null) {
-                def = subject.getDefinition();
-                if (def == null) {
-                    def = b.prismContext.getSchemaRegistry()
-                            .findObjectDefinitionByCompileTimeClass(subject.asObjectable().getClass());
-                }
-                variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject, def);
+                variables.addVariableWithDeterminedDefinition(ExpressionConstants.VAR_SUBJECT, subject);
             } else {
                 // ???
             }
@@ -615,6 +615,14 @@ public class AuthorizationEvaluation {
                             applicability.message,
                             applicability.value ? " (continuing evaluation)" : "",
                             MiscUtil.getDiagInfo(value)));
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    void traceAutzProcessingNote(String message, Object... arguments) {
+        if (op.tracer.isEnabled()) {
+            op.tracer.trace(
+                    new AuthorizationProcessingEvent(this, message, arguments));
         }
     }
 

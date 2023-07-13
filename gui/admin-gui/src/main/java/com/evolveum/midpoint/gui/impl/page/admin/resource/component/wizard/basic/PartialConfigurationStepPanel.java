@@ -107,4 +107,9 @@ public class PartialConfigurationStepPanel extends AbstractFormWizardStepPanel {
 
         return false;
     }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }

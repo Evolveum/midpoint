@@ -20,6 +20,8 @@ import '../../../node_modules/select2/dist/js/select2';
 
 import '../../../node_modules/sparklines';
 
+import '../../../node_modules/admin-lte/plugins/bootstrap-switch/js/bootstrap-switch';
+
 import '../../../node_modules/ace-builds/src-noconflict/ace';
 
 ace.config.setModuleUrl('ace/theme/eclipse',

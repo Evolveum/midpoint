@@ -12,8 +12,13 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.task.component.TaskWizardPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -31,6 +36,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
@@ -49,6 +56,8 @@ import java.util.List;
         })
 public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsModel> {
 
+    private boolean runWizard;
+
     public PageTask() {
         super();
     }
@@ -59,6 +68,17 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
 
     public PageTask(PrismObject<TaskType> task) {
         super(task);
+        this.runWizard = true;
+    }
+
+    @Override
+    protected void initLayout() {
+        if (runWizard) {
+            DetailsFragment detailsFragment = createDetailsFragment();
+            add(detailsFragment);
+            return;
+        }
+        super.initLayout();
     }
 
     @Override
@@ -74,6 +94,34 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     @Override
     protected Panel createSummaryPanel(String id, IModel<TaskType> summaryModel) {
         return new TaskSummaryPanel(id, summaryModel, getObjectDetailsModels().getRootTaskModel(), getSummaryPanelSpecification());
+    }
+
+    @Override
+    protected DetailsFragment createDetailsFragment() {
+        if (!runWizard) {
+            return super.createDetailsFragment();
+        }
+
+        return createTaskWizardFragment();
+    }
+
+    private DetailsFragment createTaskWizardFragment() {
+        return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageTask.this) {
+            @Override
+            protected void initFragmentLayout() {
+                TaskWizardPanel wizardPanel = new TaskWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper());
+                add(wizardPanel);
+//                try {
+//                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+//                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
+//                    add(wizard);
+//                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+//                    LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
+//                            + " with parameters type: String, WizardPanelHelper");
+//                }
+            }
+        };
+
     }
 
     @Override

@@ -81,18 +81,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
-
+    
     public MainObjectListPanel(String id, Class<O> type) {
-        this(id, type, null);
-    }
-
-    public MainObjectListPanel(String id, Class<O> type, boolean isRoleMining) {
-        this(id, type, null,isRoleMining);
-    }
-
-
-    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options,boolean isRoleMining) {
-        super(id, type, options,isRoleMining);
+        super(id, type);
         executeOptionsModel = new LoadableModel<>(false) {
 
             @Override
@@ -102,21 +93,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
 
-
-
-    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, type, options);
-        executeOptionsModel = new LoadableModel<>(false) {
-
-            @Override
-            protected ExecuteChangeOptionsDto load() {
-                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
-            }
-        };
-    }
-
-    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
-        super(id, type, options, config);
+    public MainObjectListPanel(String id, Class<O> type, ContainerPanelConfigurationType config) {
+        super(id, type, config);
         executeOptionsModel = new LoadableModel<>(false) {
 
             @Override

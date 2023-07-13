@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -107,7 +108,7 @@ public class PageConnectorHosts extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ConnectorHostType> table = new MainObjectListPanel<ConnectorHostType>(ID_TABLE, ConnectorHostType.class, getQueryOptions()) {
+        MainObjectListPanel<ConnectorHostType> table = new MainObjectListPanel<ConnectorHostType>(ID_TABLE, ConnectorHostType.class) {
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ConnectorHostType host) {
             }
@@ -135,6 +136,11 @@ public class PageConnectorHosts extends PageAdmin {
             @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ConnectorHostType>> rowModel) {
                 return false;
+            }
+
+            @Override
+            protected ISelectableDataProvider<SelectableBean<ConnectorHostType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(null, null, getQueryOptions());
             }
         };
         table.setOutputMarkupId(true);
