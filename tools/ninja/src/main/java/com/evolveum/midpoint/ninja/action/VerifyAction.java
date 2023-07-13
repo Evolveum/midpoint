@@ -65,10 +65,13 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
     }
 
     private VerifyResult verifyFiles() throws IOException {
-        VerificationReporter reporter = new VerificationReporter(options, context.getPrismContext());
+        VerificationReporter reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset());
+        reporter.setCreateDeltaFile(true);
 
         try (Writer writer = NinjaUtils.createWriter(
                 options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite(), context.out)) {
+
+            reporter.init();
 
             String prolog = reporter.getProlog();
             if (prolog != null) {
@@ -94,6 +97,8 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
             if (epilog != null) {
                 writer.write(epilog);
             }
+        } finally {
+            reporter.destroy();
         }
 
         return reporter.getResult();

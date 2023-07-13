@@ -23,16 +23,18 @@ public class HelpVersionTest implements NinjaTestMixin {
 
     @Test
     public void test100FullHelp() throws Exception {
-        executeTest(null, null, "-h");
-
-        //todo assert help somehow
+        executeTest(list -> Assertions.assertThat(list).isNotEmpty(),
+                EMPTY_STREAM_VALIDATOR,
+                "-h");
     }
 
     @Test
     public void test200HelpForCommands() throws Exception {
-        // todo assert
         for (Command command : Command.values()) {
-            executeTest(null, null, "-h", command.getCommandName());
+            executeTest(
+                    list -> Assertions.assertThat(list).isNotEmpty(),
+                    EMPTY_STREAM_VALIDATOR,
+                    "-h", command.getCommandName());
         }
     }
 

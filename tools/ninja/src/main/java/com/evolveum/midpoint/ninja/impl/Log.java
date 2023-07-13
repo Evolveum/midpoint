@@ -65,7 +65,7 @@ public class Log {
         String msg = message;
         for (int i = 0; i < args.length; i++) {
             String arg = args[i] != null ? args[i].toString() : "null";
-            msg = msg.replaceFirst("\\{\\}", arg);
+            msg = msg.replaceFirst("\\{}", arg);
         }
 
         stream.println(level + ": " + msg);

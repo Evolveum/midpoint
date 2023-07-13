@@ -1,6 +1,8 @@
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 
+    <name>resource</name>
+
     <capabilities>
         <native>
             <cap:addRemoveAttributeValues/>
