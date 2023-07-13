@@ -35,6 +35,9 @@ public interface NinjaTestMixin {
 
     StreamValidator EMPTY_STREAM_VALIDATOR = list -> Assertions.assertThat(list).isEmpty();
 
+    StreamValidator NOOP_STREAM_VALIDATOR = list -> {
+    };
+
     Trace LOGGER = TraceManager.getTrace(NinjaTestMixin.class);
 
     File TARGET_HOME = new File("./target/midpoint-home");
