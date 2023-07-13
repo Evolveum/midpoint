@@ -30,12 +30,23 @@ public interface UpgradeObjectProcessor<T extends Objectable> extends ProcessorM
 
     boolean process(PrismObject<T> object, ItemPath path);
 
-    default <O extends ObjectType> boolean matchesTypeAndHasPathItem(PrismObject<?> object, ItemPath path, Class<O> type, ItemPath expected) {
+    /**
+     * Matches object type and path template (without container ids in case of multivalue containers.
+     *
+     * @param object tested object
+     * @param path validation item path
+     * @param type expected type (ObjectType)
+     * @param expected exptected path template
+     * @return true if matches
+     *
+     * @param <O>
+     */
+    default <O extends ObjectType> boolean matchObjectTypeAndPathTemplate(PrismObject<?> object, ItemPath path, Class<O> type, ItemPath expected) {
         if (!type.isAssignableFrom(object.getCompileTimeClass())) {
             return false;
         }
 
-        if (!path.equivalent(expected)) {
+        if (!path.namedSegmentsOnly().equivalent(expected)) {
             return false;
         }
 

@@ -119,7 +119,7 @@ public class VerificationReporter {
                 .build();
     }
 
-    public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
+    public <T extends Objectable> UpgradeValidationResult verify(Writer writer, PrismObject<T> object) throws IOException {
         UpgradeValidationResult result = validator.validate((PrismObject) object);
 
         for (UpgradeValidationItem item : result.getItems()) {
@@ -140,6 +140,8 @@ public class VerificationReporter {
             default:
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
+
+        return result;
     }
 
     public static String getIdentifierFromRecord(CSVRecord record) {

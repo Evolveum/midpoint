@@ -53,8 +53,8 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(object, path, ResourceType.class, PATH_NATIVE)
-                || matchesTypeAndHasPathItem(object, path, ResourceType.class, PATH_CONFIGURED);
+        return matchObjectTypeAndPathTemplate(object, path, ResourceType.class, PATH_NATIVE)
+                || matchObjectTypeAndPathTemplate(object, path, ResourceType.class, PATH_CONFIGURED);
     }
 
     @Override

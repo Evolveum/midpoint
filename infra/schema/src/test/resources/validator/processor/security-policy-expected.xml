@@ -6,7 +6,7 @@
   -->
 
 <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="28676177-5884-4625-805d-bae552932666">
+oid="28676177-5884-4625-805d-bae552932666">
 
     <name>security policy</name>
 
@@ -14,10 +14,6 @@
         <modules>
             <saml2 id="1">
                 <name>deprecated items</name>
-                <network>
-                    <connectTimeout>1</connectTimeout>
-                    <readTimeout>2</readTimeout>
-                </network>
             </saml2>
         </modules>
     </authentication>

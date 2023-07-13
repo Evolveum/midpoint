@@ -7,25 +7,23 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
-import javax.xml.namespace.QName;
-
-// todo only for 4.4.*
+@SuppressWarnings("unused")
 public class Saml2NetworkProcessor implements UpgradeObjectProcessor<SecurityPolicyType> {
 
     @Override
     public UpgradePhase getPhase() {
-        return UpgradePhase.BEFORE;
+        return UpgradePhase.AFTER;
     }
 
     @Override
@@ -40,15 +38,26 @@ public class Saml2NetworkProcessor implements UpgradeObjectProcessor<SecurityPol
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(
+        return matchObjectTypeAndPathTemplate(
                 object, path , SecurityPolicyType.class, ItemPath.create(
                         SecurityPolicyType.F_AUTHENTICATION,
+                        AuthenticationsPolicyType.F_MODULES,
                         AuthenticationModulesType.F_SAML_2,
-                        new QName(SchemaConstantsGenerated.NS_COMMON, "network")));
+                        Saml2AuthenticationModuleType.F_NETWORK));
     }
 
     @Override
     public boolean process(PrismObject<SecurityPolicyType> object, ItemPath path) {
+        // something like authentication/modules/saml2/1
+        ItemPath allExceptLast = path.allExceptLast();
+
+        PrismContainer item = object.findContainer(allExceptLast.namedSegmentsOnly());
+        PrismContainerValue<Saml2AuthenticationModuleType> value = item.getValue((Long) allExceptLast.last());
+
+        Saml2AuthenticationModuleType module = value.getRealValue();
+
+        module.setNetwork(null);
+
         return true;
     }
 }

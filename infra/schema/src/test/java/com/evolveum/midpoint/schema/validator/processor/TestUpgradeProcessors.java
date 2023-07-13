@@ -165,6 +165,17 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         });
     }
 
+    @Test
+    public void test50SecurityPolicy() throws Exception {
+        testUpgradeValidator("security-policy.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .isNotNull()
+                    .hasSize(1);
+
+            assertUpgrade("security-policy.xml", "security-policy-expected.xml", result);
+        });
+    }
+
     private UpgradeValidationItem assertGetItem(UpgradeValidationResult result, String identifier) {
         Assertions.assertThat(result).isNotNull();
 
