@@ -38,7 +38,7 @@ public class DefaultAssignmentConstraintsProcessor implements UpgradeObjectProce
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class,
+        return matchObjectTypeAndPathTemplate(object, path, SystemConfigurationType.class,
                 ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_DEFAULT_ASSIGNMENT_CONSTRAINTS));
     }
 
