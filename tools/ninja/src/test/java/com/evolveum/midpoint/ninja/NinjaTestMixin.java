@@ -72,7 +72,7 @@ public interface NinjaTestMixin {
     default void clearMidpointTestDatabase(ApplicationContext context) {
         LOGGER.info("Cleaning up the database");
 
-        RepositoryService repository = context.getBean(RepositoryService.class);
+        RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
         if (repository instanceof SqaleRepositoryService) {
             SqaleRepoContext repoCtx = ((SqaleRepositoryService) repository).sqlRepoContext();
             // Just like in model-intest TestSqaleRepositoryBeanConfig.clearDatabase()
@@ -163,19 +163,17 @@ public interface NinjaTestMixin {
         }
     }
 
-    default void executeTest(
+    default Object executeTest(
             @Nullable StreamValidator validateOut, @Nullable StreamValidator validateErr, @NotNull String... args)
             throws Exception {
 
-        executeWithWrappedPrintStreams((out, err) -> {
+        return executeWithWrappedPrintStreams((out, err) -> {
 
             Main main = new Main();
             main.setOut(out);
             main.setErr(err);
 
-            main.run(args);
-
-            return null;
+            return main.run(args);
         }, validateOut, validateErr);
     }
 

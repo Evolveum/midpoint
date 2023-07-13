@@ -8,6 +8,7 @@ import java.util.List;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import com.evolveum.midpoint.ninja.util.NonBlankValidator;
 import com.evolveum.midpoint.ninja.util.RunModeConverterValidator;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "runSql")
@@ -65,16 +66,16 @@ public class RunSqlOptions {
     @Parameter(names = { P_MODE }, descriptionKey = "runSql.mode", validateWith = RunModeConverterValidator.class, converter = RunModeConverterValidator.class)
     private Mode mode;
 
-    @Parameter(names = { P_JDBC_URL_LONG }, descriptionKey = "runSql.jdbcUrl")
+    @Parameter(names = { P_JDBC_URL_LONG }, descriptionKey = "runSql.jdbcUrl", validateWith = NonBlankValidator.class)
     private String jdbcUrl;
 
-    @Parameter(names = { P_JDBC_USERNAME_LONG }, descriptionKey = "runSql.jdbcUsername")
+    @Parameter(names = { P_JDBC_USERNAME_LONG }, descriptionKey = "runSql.jdbcUsername", validateWith = NonBlankValidator.class)
     private String jdbcUsername;
 
-    @Parameter(names = { P_JDBC_PASSWORD_LONG }, descriptionKey = "runSql.jdbcPassword")
+    @Parameter(names = { P_JDBC_PASSWORD_LONG }, descriptionKey = "runSql.jdbcPassword", validateWith = NonBlankValidator.class)
     private String jdbcPassword;
 
-    @Parameter(names = { P_JDBC_ASK_PASSWORD_LONG }, descriptionKey = "runSql.jdbcAskPassword", password = true)
+    @Parameter(names = { P_JDBC_ASK_PASSWORD_LONG }, descriptionKey = "runSql.jdbcAskPassword", password = true, validateWith = NonBlankValidator.class)
     private String jdbcAskPassword;
 
     @Parameter(names = { P_UPGRADE }, descriptionKey = "runSql.upgrade")

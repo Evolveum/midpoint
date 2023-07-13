@@ -5,7 +5,10 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-public class UpgradeValidationResult {
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
+public class UpgradeValidationResult implements DebugDumpable {
 
     private ValidationResult result;
 
@@ -21,5 +24,20 @@ public class UpgradeValidationResult {
 
     public @NotNull List<UpgradeValidationItem> getItems() {
         return items;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(UpgradeValidationResult.class, indent);
+        DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
+        return sb.toString();
+    }
+
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
+    public boolean hasChanges() {
+        return items.stream().anyMatch(i -> i.isChanged());
     }
 }

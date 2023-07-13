@@ -1,5 +1,8 @@
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        oid="5b55729f-8866-442a-b39d-c5a9def5b345">
+
+    <name>Invalid resource</name>
 
     <capabilities>
         <native>
@@ -7,7 +10,7 @@
         </native>
         <configured>
             <cap:addRemoveAttributeValues>
-                <cap:enabled>true</cap:enabled>
+                <cap:enabled>false</cap:enabled>
             </cap:addRemoveAttributeValues>
         </configured>
     </capabilities>

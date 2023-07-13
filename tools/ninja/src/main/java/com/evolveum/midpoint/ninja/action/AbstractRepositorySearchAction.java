@@ -64,7 +64,6 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
 
         List<SearchProducerWorker> producers = createProducers(queue, operation);
 
-        log.info("Starting " + getOperationName());
         operation.start();
 
         // execute as many producers as there are threads for them

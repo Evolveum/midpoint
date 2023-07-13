@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -12,15 +10,16 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismParser;
-import com.evolveum.midpoint.prism.PrismSerializer;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 // todo handle initial objects somehow
@@ -29,6 +28,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
     private Map<UUID, Set<String>> skipUpgradeForOids;
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        UpgradeObjectsOptions opts = NinjaUtils.getOptions(allOptions, UpgradeObjectsOptions.class);
+        if (opts != null && !opts.getFiles().isEmpty()) {
+            return NinjaApplicationContextLevel.NO_REPOSITORY;
+        }
+
+        return super.getApplicationContextLevel(allOptions);
+    }
 
     @Override
     public Void execute() throws Exception {
@@ -66,27 +75,41 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismParser parser = prismContext.parserFor(file).language(PrismContext.LANG_XML).context(parsingContext);
 
-        PrismSerializer<String> serializer = prismContext.xmlSerializer();
-//        serializer.serializeAnyData()
-//        try (Writer writer = new FileWriter(file)) {
-//            List<PrismObject<?>> objects = parser.parseObjects();
-//            for (PrismObject<?> object : objects) {
-//                UpgradeObjectsHandler upgradeHandler = new UpgradeObjectsHandler();
-//                UpgradeObjectResult result = upgradeHandler.handle(prismObject);
-//
-//                if (result.isChanged()) {
-//                    ObjectDelta<?> delta = result.getDelta();
-//                    if (delta != null && !delta.isEmpty()) {
-//                        delta.applyTo(object);
-//                    }
-//                }
-//
-//            }
-//        } catch (Exception ex) {
-//            // todo handle error
-//            ex.printStackTrace();
-//        }
-        // todo implement
+        List<PrismObject<?>> objects = new ArrayList<>();
+        try {
+            objects = parser.parseObjects();
+        } catch (Exception ex) {
+            // todo handle error
+            ex.printStackTrace();
+        }
+
+        boolean changed = false;
+        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context);
+        for (PrismObject object : objects) {
+            boolean changedOne = executor.execute(object);
+            if (changedOne) {
+                changed = true;
+            }
+        }
+
+        if (!changed) {
+            return;
+        }
+
+        try (Writer writer = new FileWriter(file)) {
+            PrismSerializer<String> serializer = prismContext.xmlSerializer();
+            String xml;
+            if (objects.size() > 1) {
+                xml = serializer.serializeObjects(objects);
+            } else {
+                // will get cleaner xml without "objects" element
+                xml = serializer.serialize(objects.get(0));
+            }
+            writer.write(xml);
+        } catch (Exception ex) {
+            // todo handle error
+            ex.printStackTrace();
+        }
     }
 
     @Override

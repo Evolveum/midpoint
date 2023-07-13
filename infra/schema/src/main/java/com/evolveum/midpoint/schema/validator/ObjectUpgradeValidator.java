@@ -11,7 +11,6 @@ public class ObjectUpgradeValidator {
     private final ObjectValidator validator;
 
     public ObjectUpgradeValidator(@NotNull PrismContext prismContext) {
-
         this.validator = new ObjectValidator(prismContext);
     }
 

@@ -13,14 +13,13 @@ import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
@@ -42,31 +41,23 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         super.beforeClass();
     }
 
-    @BeforeMethod
-    public void initMidpointHome() {
-        clearMidpointTestDatabase(applicationContext);
-    }
-
     @Test
     public void test100ImportByOid() throws Exception {
         given();
 
         OperationResult result = new OperationResult("test100ImportByOid");
 
-        int count = repository.countObjects(ObjectType.class, null, null, result);
+        int count = repository.countObjects(OrgType.class, null, null, result);
         Assertions.assertThat(count).isZero();
 
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(6),
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
                 err -> Assertions.assertThat(err.size()).isZero(),
                 "-m", getMidpointHome(), "import", "--oid", "00000000-8888-6666-0000-100000000001", "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
         then();
-
-        count = repository.countObjects(ObjectType.class, null, null, result);
-        Assertions.assertThat(count).isEqualTo(1);
 
         count = repository.countObjects(OrgType.class, null, null, result);
         Assertions.assertThat(count).isEqualTo(1);
@@ -78,21 +69,21 @@ public class ImportRepositoryTest extends NinjaSpringTest {
 
         OperationResult result = new OperationResult("test110ImportByFilterAsOption");
 
-        int count = repository.countObjects(ObjectType.class, null, null, result);
-        Assertions.assertThat(count).isZero();
+        int count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(1);
 
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(6),
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
                 err -> Assertions.assertThat(err.size()).isZero(),
                 "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
                 "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
         then();
 
-        count = repository.countObjects(ObjectType.class, null, null, result);
-        Assertions.assertThat(count).isEqualTo(1);
+        count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(2);
     }
 
     @Test
@@ -101,25 +92,26 @@ public class ImportRepositoryTest extends NinjaSpringTest {
 
         OperationResult result = new OperationResult("test120ImportByFilterAsFile");
 
-        int count = repository.countObjects(ObjectType.class, null, null, result);
-        Assertions.assertThat(count).isZero();
+        int count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(2);
 
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(6),
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
                 err -> Assertions.assertThat(err.size()).isZero(),
                 "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
-                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
+                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z", "-O");
 
         then();
 
-        count = repository.countObjects(ObjectType.class, null, null, result);
-        Assertions.assertThat(count).isEqualTo(1);
+        count = repository.countObjects(OrgType.class, null, null, result);
+        // count has not changed, since one object was imported with override
+        Assertions.assertThat(count).isEqualTo(2);
     }
 
     @Test
-    public void testMid7668Failure() throws Exception {
+    public void test130MID7668Failure() throws Exception {
         given();
 
         when();
@@ -145,7 +137,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
     }
 
     @Test
-    public void testMid7668CustomPolyStringNormalizer() throws Exception {
+    public void test140MID7668CustomPolyStringNormalizer() throws Exception {
         given();
 
         when();
