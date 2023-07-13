@@ -23,10 +23,9 @@ public class ClusterStatistic implements Serializable {
     double meanPoints;
     double density;
     PolyStringType name;
-    String identifier;
     Set<String> pointsOid;
 
-    public ClusterStatistic(PolyStringType name, String identifier, Set<String> elementsOid, int totalElements,
+    public ClusterStatistic(PolyStringType name, Set<String> elementsOid, int totalElements,
             int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
         this.elementsOid = elementsOid;
         this.totalPoints = totalPoints;
@@ -38,11 +37,10 @@ public class ClusterStatistic implements Serializable {
         this.pointsOid = null;
         this.density = density;
         this.name = name;
-        this.identifier = identifier;
         this.totalElements = totalElements;
     }
 
-    public ClusterStatistic(PolyStringType name, String identifier, Set<String> pointsOid, Set<String> elementsOid, int totalElements,
+    public ClusterStatistic(PolyStringType name, Set<String> pointsOid, Set<String> elementsOid, int totalElements,
             int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
         this.elementsOid = elementsOid;
         this.totalPoints = totalPoints;
@@ -54,7 +52,6 @@ public class ClusterStatistic implements Serializable {
         this.pointsOid = pointsOid;
         this.density = density;
         this.name = name;
-        this.identifier = identifier;
         this.totalElements = totalElements;
     }
 
@@ -64,10 +61,6 @@ public class ClusterStatistic implements Serializable {
 
     public Set<String> getPointsOid() {
         return pointsOid;
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     public Set<String> getElementsOid() {

@@ -11,7 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 
 public class ClusteringExecutor {
 
@@ -25,7 +25,7 @@ public class ClusteringExecutor {
         }
     }
 
-    public List<PrismObject<ClusterType>> execute(ClusterOptions clusterOptions) {
+    public List<PrismObject<RoleAnalysisCluster>> execute(ClusterOptions clusterOptions) {
         return clusterable.executeClustering(clusterOptions);
     }
 }

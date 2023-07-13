@@ -76,10 +76,10 @@ public abstract class SchemaConstants {
     public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
     public static final QName C_CONNECTOR_HOST_TYPE = new QName(NS_C, "ConnectorHostType");
     public static final ItemName C_CONNECTOR_HOST = new ItemName(NS_C, "connectorHost");
-    public static final ItemName C_CLUSTER_TYPE = new ItemName(NS_C, "ClusterType");
-    public static final ItemName C_CLUSTER = new ItemName(NS_C, "cluster");
-    public static final ItemName C_PARENT_CLUSTER_TYPE = new ItemName(NS_C, "ParentClusterType");
-    public static final ItemName C_PARENT_CLUSTER = new ItemName(NS_C, "parentCluster");
+    public static final ItemName C_ROLE_ANALYSIS_CLUSTER_TYPE = new ItemName(NS_C, "RoleAnalysisCluster");
+    public static final ItemName C_ROLE_ANALYSIS_CLUSTER = new ItemName(NS_C, "roleAnalysisCluster");
+    public static final ItemName C_ROLE_ANALYSIS_SESSION_TYPE = new ItemName(NS_C, "RoleAnalysisSession");
+    public static final ItemName C_ROLE_ANALYSIS_SESSION = new ItemName(NS_C, "roleAnalysisSession");
     public static final ItemName C_CONNECTOR_FRAMEWORK = new ItemName(NS_C, "framework");
     public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
     public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");

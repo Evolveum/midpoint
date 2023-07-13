@@ -48,8 +48,8 @@ CREATE TYPE ContainerType AS ENUM (
     'SIMULATION_RESULT_PROCESSED_OBJECT',
     'TRIGGER');
 
-ALTER TYPE ObjectType ADD VALUE 'CLUSTER';
-ALTER TYPE ObjectType ADD VALUE 'PARENT_CLUSTER';
+ALTER TYPE ObjectType ADD VALUE 'ROLE_ANALYSIS_CLUSTER';
+ALTER TYPE ObjectType ADD VALUE 'ROLE_ANALYSIS_SESSION';
 -- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
@@ -77,8 +77,8 @@ CREATE TYPE ObjectType AS ENUM (
     'REPORT_DATA',
     'RESOURCE',
     'ROLE',
-    'CLUSTER',
-    'PARENT_CLUSTER',
+    'ROLE_ANALYSIS_CLUSTER',
+    'ROLE_ANALYSIS_SESSION',
     'SECURITY_POLICY',
     'SEQUENCE',
     'SERVICE',
@@ -1158,67 +1158,64 @@ CREATE INDEX m_report_data_createTimestamp_idx ON m_report_data (createTimestamp
 CREATE INDEX m_report_data_modifyTimestamp_idx ON m_report_data (modifyTimestamp);
 
 
-CREATE TABLE m_cluster_table (
+CREATE TABLE m_role_analysis_cluster_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('CLUSTER') STORED
-        CHECK (objectType = 'CLUSTER'),
-        identifier TEXT,
-        parentRef TEXT,
-        riskLevel TEXT,
---        points TEXT[],
-        pointCount INTEGER,
-        defaultDetection TEXT[],
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_CLUSTER') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_CLUSTER'),
         elements TEXT[],
-        elementCount INTEGER,
-        minOccupation INTEGER,
-        maxOccupation INTEGER,
-        mean TEXT,
-        density TEXT
+        elementsCount INTEGER,
+        pointsCount INTEGER,
+        parentRef TEXT,
+        defaultDetection TEXT[],
+        pointsDensity TEXT,
+        pointsMean TEXT,
+        pointsMinOccupation INTEGER,
+        pointsMaxOccupation INTEGER,
+        riskLevel TEXT
 )
     INHERITS (m_assignment_holder);
 
-CREATE TRIGGER m_cluster_table_oid_insert_tr BEFORE INSERT ON m_cluster_table
+CREATE TRIGGER m_role_analysis_cluster_table_oid_insert_tr BEFORE INSERT ON m_role_analysis_cluster_table
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_cluster_table_update_tr BEFORE UPDATE ON m_cluster_table
+CREATE TRIGGER m_role_analysis_cluster_table_update_tr BEFORE UPDATE ON m_role_analysis_cluster_table
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_cluster_table_oid_delete_tr AFTER DELETE ON m_cluster_table
+CREATE TRIGGER m_role_analysis_cluster_table_oid_delete_tr AFTER DELETE ON m_role_analysis_cluster_table
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE INDEX m_cluster_table_roles_idx ON m_cluster_table USING gin (roles);
-CREATE INDEX m_cluster_table_similarGroups_idx ON m_cluster_table USING gin (similarGroups);
-CREATE INDEX m_cluster_table_identifier_idx ON m_cluster_table (identifier);
-CREATE INDEX m_cluster_table_riskLevel_idx ON m_cluster_table (riskLevel);
-CREATE INDEX m_cluster_table_rolesCount_idx ON m_cluster_table (rolesCount);
-CREATE INDEX m_cluster_table_membersCount_idx ON m_cluster_table (membersCount);
-CREATE INDEX m_cluster_table_similarGroupsCount_idx ON m_cluster_table (similarGroupsCount);
+CREATE INDEX m_role_analysis_cluster_table_roles_idx ON m_role_analysis_cluster_table USING gin (roles);
+CREATE INDEX m_role_analysis_cluster_table_similarGroups_idx ON m_role_analysis_cluster_table USING gin (similarGroups);
+CREATE INDEX m_role_analysis_cluster_table_identifier_idx ON m_role_analysis_cluster_table (identifier);
+CREATE INDEX m_role_analysis_cluster_table_riskLevel_idx ON m_role_analysis_cluster_table (riskLevel);
+CREATE INDEX m_role_analysis_cluster_table_rolesCount_idx ON m_role_analysis_cluster_table (rolesCount);
+CREATE INDEX m_role_analysis_cluster_table_membersCount_idx ON m_role_analysis_cluster_table (membersCount);
+CREATE INDEX m_role_analysis_cluster_table_similarGroupsCount_idx ON m_role_analysis_cluster_table (similarGroupsCount);
 
 
-CREATE TABLE m_parent_cluster_table (
+CREATE TABLE m_role_analysis_session_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('PARENT_CLUSTER') STORED
-        CHECK (objectType = 'PARENT_CLUSTER'),
-        identifier TEXT,
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_SESSION'),
         riskLevel TEXT,
-        clustersRef TEXT[],
-        consist INTEGER,
-        density TEXT,
-        mode TEXT,
+        roleAnalysisClusterRef TEXT[],
+        elementConsist INTEGER,
+        meanDensity TEXT,
+        processMode TEXT,
         options TEXT
 )
     INHERITS (m_assignment_holder);
 
-CREATE TRIGGER m_parent_cluster_table_oid_insert_tr BEFORE INSERT ON m_parent_cluster_table
+CREATE TRIGGER m_role_analysis_session_table_oid_insert_tr BEFORE INSERT ON m_role_analysis_session_table
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_parent_cluster_table_update_tr BEFORE UPDATE ON m_parent_cluster_table
+CREATE TRIGGER m_role_analysis_session_table_update_tr BEFORE UPDATE ON m_role_analysis_session_table
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_parent_cluster_table_oid_delete_tr AFTER DELETE ON m_parent_cluster_table
+CREATE TRIGGER m_role_analysis_session_table_oid_delete_tr AFTER DELETE ON m_role_analysis_session_table
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE INDEX m_parent_cluster_table_clustersRef_idx ON m_parent_cluster_table USING gin (clustersRef);
-CREATE INDEX m_parent_cluster_table_identifier_idx ON m_parent_cluster_table (identifier);
-CREATE INDEX m_parent_cluster_table_riskLevel_idx ON m_parent_cluster_table (riskLevel);
-CREATE INDEX m_parent_cluster_table_consist_idx ON m_parent_cluster_table (consist);
-CREATE INDEX m_parent_cluster_table_density_idx ON m_parent_cluster_table (density);
+CREATE INDEX m_role_analysis_session_table_clustersRef_idx ON m_role_analysis_session_table USING gin (clustersRef);
+CREATE INDEX m_role_analysis_session_table_identifier_idx ON m_role_analysis_session_table (identifier);
+CREATE INDEX m_role_analysis_session_table_riskLevel_idx ON m_role_analysis_session_table (riskLevel);
+CREATE INDEX m_role_analysis_session_table_consist_idx ON m_role_analysis_session_table (consist);
+CREATE INDEX m_role_analysis_session_table_density_idx ON m_role_analysis_session_table (density);
 
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/

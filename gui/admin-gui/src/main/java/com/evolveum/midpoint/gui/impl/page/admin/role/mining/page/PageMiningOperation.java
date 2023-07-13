@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.findPossibleBusinessRole;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.businessRoleDetection;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusterAlgorithmUtils.loadDefaultIntersection;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.Mode;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractJaccard;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ExecuteSearchPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ProcessBusinessRolePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 
 @PageDescriptor(
         urls = {
@@ -76,7 +76,7 @@ public class PageMiningOperation extends PageAdmin {
     Integer minIntersection = 10;
     List<IntersectionObject> mergedIntersection = new ArrayList<>();
     AjaxButton processButton;
-    Set<String> intersection = new HashSet<>();
+    IntersectionObject intersection = null;
     boolean compress = true;
 
     String compressMode = "COMPRESS MODE";
@@ -84,6 +84,8 @@ public class PageMiningOperation extends PageAdmin {
     OperationResult result = new OperationResult("GetObject");
 
     MiningOperationChunk miningOperationChunk;
+
+    ClusterObjectUtils.SearchMode searchMode = ClusterObjectUtils.SearchMode.INTERSECTION;
 
     String getPageParameterOid() {
         PageParameters params = getPageParameters();
@@ -111,15 +113,15 @@ public class PageMiningOperation extends PageAdmin {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
+        searchMode = ClusterObjectUtils.SearchMode.INTERSECTION;
         long start = startTimer("load");
-        ClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
         mergedIntersection = loadDefaultIntersection(cluster);
         loadMiningTableData();
         endTimer(start, "end load");
 
         start = startTimer("table");
-        loadMiningTable(miningOperationChunk);
+        loadMiningTable(miningOperationChunk, searchMode);
         endTimer(start, "end mining table");
 
         add(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection).setOutputMarkupId(true));
@@ -171,14 +173,19 @@ public class PageMiningOperation extends PageAdmin {
                         maxFrequency = getMaxFrequency();
                         minIntersection = getMinIntersection();
                         intersection = null;
-                        mergedIntersection = findPossibleBusinessRole(miningOperationChunk, minFrequency, maxFrequency,
-                                minIntersection, minOccupancy, getPageParameterMode());
-
+                        searchMode = getSearchModeSelected();
+                        if (searchMode.equals(ClusterObjectUtils.SearchMode.JACCARD)) {
+                            mergedIntersection = ExtractJaccard.businessRoleDetection(miningOperationChunk, minFrequency, maxFrequency,
+                                    minIntersection, minOccupancy, getPageParameterMode(), getSimilarity());
+                        } else {
+                            mergedIntersection = businessRoleDetection(miningOperationChunk, minFrequency, maxFrequency,
+                                    minIntersection, minOccupancy, getPageParameterMode());
+                        }
                         getIntersectionTable().replaceWith(generateTableIntersection(ID_DATATABLE_INTERSECTIONS,
                                 mergedIntersection));
                         target.add(getIntersectionTable().setOutputMarkupId(true));
 
-                        updateMiningTable(target, true);
+                        updateMiningTable(target, true, searchMode);
                     }
 
                     @Override
@@ -194,18 +201,18 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     private void loadMiningTableData() {
-        ClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
         miningOperationChunk = new MiningOperationChunk(cluster, (PageBase) getPage(),
                 getPageParameterMode(), result, compress, true);
     }
 
-    private void loadMiningTable(MiningOperationChunk miningOperationChunk) {
+    private void loadMiningTable(MiningOperationChunk miningOperationChunk, ClusterObjectUtils.SearchMode searchMode) {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
 
         if (getPageParameterMode().equals(Mode.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, null, maxFrequency);
+                    miningUserTypeChunks, false, minFrequency, null, maxFrequency, searchMode);
             boxedTablePanel.setOutputMarkupId(true);
             add(boxedTablePanel);
         } else if (getPageParameterMode().equals(Mode.USER)) {
@@ -216,7 +223,7 @@ public class PageMiningOperation extends PageAdmin {
         }
     }
 
-    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus) {
+    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, ClusterObjectUtils.SearchMode searchMode) {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
 
@@ -231,7 +238,7 @@ public class PageMiningOperation extends PageAdmin {
 
         if (getPageParameterMode().equals(Mode.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, intersection, maxFrequency);
+                    miningUserTypeChunks, false, minFrequency, intersection, maxFrequency, searchMode);
             boxedTablePanel.setOutputMarkupId(true);
             getMiningRoleBasedTable().replaceWith(boxedTablePanel);
             target.appendJavaScript(getScaleScript());
@@ -250,11 +257,11 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, Set<String> intersection, double maxFrequency) {
-        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency) {
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency) {
+        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false);
+                updateMiningTable(target, false, searchMode);
             }
 
             @Override
@@ -272,18 +279,18 @@ public class PageMiningOperation extends PageAdmin {
                     compressMode = "COMPRESS MODE";
                 }
                 loadMiningTableData();
-                updateMiningTable(ajaxRequestTarget, false);
+                updateMiningTable(ajaxRequestTarget, false, searchMode);
                 ajaxRequestTarget.add(this);
             }
         };
     }
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, Set<String> intersection, double maxFrequency) {
-        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency) {
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false);
+                updateMiningTable(target, false, searchMode);
             }
 
             @Override
@@ -301,7 +308,7 @@ public class PageMiningOperation extends PageAdmin {
                     compressMode = "COMPRESS MODE";
                 }
                 loadMiningTableData();
-                updateMiningTable(ajaxRequestTarget, false);
+                updateMiningTable(ajaxRequestTarget, false, searchMode);
                 ajaxRequestTarget.add(this);
             }
         };
@@ -312,9 +319,9 @@ public class PageMiningOperation extends PageAdmin {
         MiningIntersectionTable components = new MiningIntersectionTable(id, miningSets) {
             @Override
             protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<IntersectionObject> rowModel) {
-                intersection = rowModel.getObject().getPoints();
+                intersection = rowModel.getObject();
 
-                updateMiningTable(ajaxRequestTarget, true);
+                updateMiningTable(ajaxRequestTarget, true, searchMode);
                 processButton.setVisible(true);
                 ajaxRequestTarget.add(processButton);
             }

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
 public class ParentClusterBasicDetailsPanel extends BasePanel<String> implements Popupable {
 
@@ -24,7 +24,7 @@ public class ParentClusterBasicDetailsPanel extends BasePanel<String> implements
     private static final String ID_CANCEL_OK = "cancel";
 
 
-    public ParentClusterBasicDetailsPanel(String id, IModel<String> messageModel, IModel<SelectableBean<ParentClusterType>> rowModel) {
+    public ParentClusterBasicDetailsPanel(String id, IModel<String> messageModel, IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
         super(id, messageModel);
     }
 

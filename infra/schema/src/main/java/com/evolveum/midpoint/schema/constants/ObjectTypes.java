@@ -24,10 +24,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public enum ObjectTypes {
 
-    PARENT_CLUSTER(SchemaConstants.C_PARENT_CLUSTER_TYPE, SchemaConstants.C_PARENT_CLUSTER, ParentClusterType.class, ObjectManager.MODEL, "parentCluster"),
-
-
-    CLUSTER(SchemaConstants.C_CLUSTER_TYPE, SchemaConstants.C_CLUSTER, ClusterType.class, ObjectManager.MODEL, "cluster"),
+    ROLE_ANALYSIS_SESSION(SchemaConstants.C_ROLE_ANALYSIS_SESSION_TYPE, SchemaConstants.C_ROLE_ANALYSIS_SESSION,
+            RoleAnalysisSession.class, ObjectManager.MODEL, "roleAnalysisSession"),
+    ROLE_ANALYSIS_CLUSTER(SchemaConstants.C_ROLE_ANALYSIS_CLUSTER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_CLUSTER,
+            RoleAnalysisCluster.class, ObjectManager.MODEL, "roleAnalysisCluster"),
 
     CONNECTOR(SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
             ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),

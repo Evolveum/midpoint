@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.findPossibleBusinessRole;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractIntersections.businessRoleDetection;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.startTimer;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
@@ -30,24 +30,24 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperati
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ClusterAlgorithmUtils {
 
     @NotNull
-    public List<PrismObject<ClusterType>> processClusters(PageBase pageBase, List<DataPoint> dataPoints,
+    public List<PrismObject<RoleAnalysisCluster>> processClusters(PageBase pageBase, List<DataPoint> dataPoints,
             List<Cluster<DataPoint>> clusters, ClusterOptions clusterOptions) {
         long start;
         start = startTimer("generate clusters mp objects");
-        List<PrismObject<ClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, clusters.size())
+        List<PrismObject<RoleAnalysisCluster>> clusterTypeObjectWithStatistic = IntStream.range(0, clusters.size())
                 .mapToObj(i -> prepareClusters(pageBase, clusters.get(i).getPoints(), String.valueOf(i),
                         dataPoints, clusterOptions))
                 .collect(Collectors.toList());
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
-        PrismObject<ClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
+        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
@@ -63,13 +63,21 @@ public class ClusterAlgorithmUtils {
                 String point = points.get(i);
                 vectorPoints[i] = UUIDToDoubleConverter.convertUUid(point);
             }
-            dataPoints.add(new DataPoint(vectorPoints, elements, points));
+
+            // TODO if wanna execute cluster on non grouped data
+//            for(int i =0; i < elements.size();i++){
+//
+//                dataPoints.add(new DataPoint(vectorPoints, Collections.singletonList(elements.get(0)), points));
+//
+//            }
+            dataPoints.add(new DataPoint(vectorPoints, Collections.singletonList(elements.get(0)), points));
+
         }
         return dataPoints;
     }
 
     public ClusterStatistic statisticLoad(List<DataPoint> clusterDataPoints, List<DataPoint> allDataPoints,
-            String clusterIndex, String identifier) {
+            String clusterIndex) {
 
         int totalPoints = 0;
         int minVectorPoint = Integer.MAX_VALUE;
@@ -101,17 +109,17 @@ public class ClusterAlgorithmUtils {
 
         PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
 
-        return new ClusterStatistic(name, identifier, elementsOids, elementsOids.size(), pointsCount, minVectorPoint,
+        return new ClusterStatistic(name, elementsOids, elementsOids.size(), pointsCount, minVectorPoint,
                 maxVectorPoint, clusterGroupSize, meanPoints, density);
     }
 
     @NotNull
-    public List<PrismObject<ClusterType>> processIdenticalGroup(PageBase pageBase, List<DataPoint> dataPoints,
+    public List<PrismObject<RoleAnalysisCluster>> processIdenticalGroup(PageBase pageBase, List<DataPoint> dataPoints,
             ClusterOptions clusterOptions) {
         long start;
         start = startTimer("generate clusters mp objects");
         List<DataPoint> dataPointsOutliers = new ArrayList<>();
-        List<PrismObject<ClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, dataPoints.size())
+        List<PrismObject<RoleAnalysisCluster>> clusterTypeObjectWithStatistic = IntStream.range(0, dataPoints.size())
                 .mapToObj(i -> prepareIdenticalGroup(pageBase, dataPoints.get(i), String.valueOf(i), clusterOptions, dataPointsOutliers))
                 .filter(Objects::nonNull) // Filter out null elements
                 .collect(Collectors.toList());
@@ -119,14 +127,14 @@ public class ClusterAlgorithmUtils {
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
-        PrismObject<ClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
+        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
     }
 
     public ClusterStatistic statisticIdenticalLoad(DataPoint clusterDataPoints,
-            String clusterIndex, String identifier, int minGroupSize, List<DataPoint> dataPointsOutliers) {
+            String clusterIndex, int minGroupSize, List<DataPoint> dataPointsOutliers) {
 
         int totalPoints = 0;
         int minVectorPoint;
@@ -151,29 +159,29 @@ public class ClusterAlgorithmUtils {
 
         PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
 
-        return new ClusterStatistic(name, identifier, occupiedPoints, elementsOids, elementsCount, pointsCount, minVectorPoint,
+        return new ClusterStatistic(name, occupiedPoints, elementsOids, elementsCount, pointsCount, minVectorPoint,
                 maxVectorPoint, clusterGroupSize, pointsCount, density);
     }
 
-    public PrismObject<ClusterType> prepareIdenticalGroup(PageBase pageBase, DataPoint dataPointCluster, String clusterIndex, ClusterOptions clusterOptions, List<DataPoint> dataPointsOutliers) {
+    public PrismObject<RoleAnalysisCluster> prepareIdenticalGroup(PageBase pageBase, DataPoint dataPointCluster, String clusterIndex, ClusterOptions clusterOptions, List<DataPoint> dataPointsOutliers) {
 
         int minGroupSize = clusterOptions.getMinGroupSize();
-        ClusterStatistic clusterStatistic = statisticIdenticalLoad(dataPointCluster, clusterIndex, clusterOptions.getIdentifier(), minGroupSize, dataPointsOutliers);
+        ClusterStatistic clusterStatistic = statisticIdenticalLoad(dataPointCluster, clusterIndex, minGroupSize, dataPointsOutliers);
 
         if (clusterStatistic != null) {
             return generateClusterObject(pageBase, clusterStatistic, clusterOptions);
         } else {return null;}
     }
 
-    public PrismObject<ClusterType> prepareClusters(PageBase pageBase, List<DataPoint> dataPointCluster, String clusterIndex,
+    public PrismObject<RoleAnalysisCluster> prepareClusters(PageBase pageBase, List<DataPoint> dataPointCluster, String clusterIndex,
             List<DataPoint> dataPoints, ClusterOptions clusterOptions) {
 
-        ClusterStatistic clusterStatistic = statisticLoad(dataPointCluster, dataPoints, clusterIndex, clusterOptions.getIdentifier());
+        ClusterStatistic clusterStatistic = statisticLoad(dataPointCluster, dataPoints, clusterIndex);
 
         return generateClusterObject(pageBase, clusterStatistic, clusterOptions);
     }
 
-    public PrismObject<ClusterType> prepareOutlierClusters(PageBase pageBase, List<DataPoint> dataPoints,
+    public PrismObject<RoleAnalysisCluster> prepareOutlierClusters(PageBase pageBase, List<DataPoint> dataPoints,
             String identifier) {
 
         int minVectorPoint = Integer.MAX_VALUE;
@@ -202,19 +210,19 @@ public class ClusterAlgorithmUtils {
 
         PolyStringType name = PolyStringType.fromOrig("outliers");
 
-        ClusterStatistic clusterStatistic = new ClusterStatistic(name, identifier, elementsOid, elementsOid.size(),
+        ClusterStatistic clusterStatistic = new ClusterStatistic(name, elementsOid, elementsOid.size(),
                 sumPoints, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density);
 
         return generateClusterObject(pageBase, clusterStatistic, null);
     }
 
-    private @NotNull PrismObject<ClusterType> generateClusterObject(PageBase pageBase, ClusterStatistic clusterStatistic,
+    private @NotNull PrismObject<RoleAnalysisCluster> generateClusterObject(PageBase pageBase, ClusterStatistic clusterStatistic,
             ClusterOptions clusterOptions) {
 
-        PrismObject<ClusterType> clusterTypePrismObject = null;
+        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = null;
         try {
             clusterTypePrismObject = pageBase.getPrismContext()
-                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ClusterType.class).instantiate();
+                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleAnalysisCluster.class).instantiate();
         } catch (SchemaException e) {
             LOGGER.error("Error while finding object definition by compile time class ClusterType object: {}", e.getMessage(), e);
         }
@@ -222,17 +230,16 @@ public class ClusterAlgorithmUtils {
 
         Set<String> occupiedUsers = clusterStatistic.getElementsOid();
 
-        ClusterType clusterType = clusterTypePrismObject.asObjectable();
+        RoleAnalysisCluster clusterType = clusterTypePrismObject.asObjectable();
         clusterType.setOid(String.valueOf(UUID.randomUUID()));
-        clusterType.setElementCount(clusterStatistic.getTotalElements());
+        clusterType.setElementsCount(clusterStatistic.getTotalElements());
         clusterType.getElements().addAll(occupiedUsers);
-        clusterType.setPointCount(clusterStatistic.getTotalPoints());
-        clusterType.setMean(String.format("%.3f", clusterStatistic.getMeanPoints()));
-        clusterType.setDensity(String.format("%.3f", clusterStatistic.getDensity()));
-        clusterType.setMinOccupation(clusterStatistic.getMinVectorPoint());
-        clusterType.setMaxOccupation(clusterStatistic.getMaxVectorPoint());
+        clusterType.setPointsCount(clusterStatistic.getTotalPoints());
+        clusterType.setPointsMean(String.format("%.3f", clusterStatistic.getMeanPoints()));
+        clusterType.setPointsDensity(String.format("%.3f", clusterStatistic.getDensity()));
+        clusterType.setPointsMinOccupation(clusterStatistic.getMinVectorPoint());
+        clusterType.setPointsMaxOccupation(clusterStatistic.getMaxVectorPoint());
         clusterType.setName(clusterStatistic.getName());
-        clusterType.setIdentifier(clusterStatistic.getIdentifier());
 
         List<String> jsonObjectList = new ArrayList<>();
         if (clusterOptions != null && clusterOptions.getSimilarity() == 1) {
@@ -256,7 +263,7 @@ public class ClusterAlgorithmUtils {
         return clusterTypePrismObject;
     }
 
-    private static void resolveDefaultIntersection(PageBase pageBase, ClusterType clusterType,
+    private static void resolveDefaultIntersection(PageBase pageBase, RoleAnalysisCluster clusterType,
             List<String> jsonObjectList, List<IntersectionObject> possibleBusinessRole,
             OperationResult operationResult, ClusterOptions clusterOptions) {
 
@@ -270,13 +277,13 @@ public class ClusterAlgorithmUtils {
             if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
                         ClusterObjectUtils.Mode.ROLE, operationResult, true, false);
-                possibleBusinessRole = findPossibleBusinessRole(miningOperationChunk, defaultMinFrequency,
+                possibleBusinessRole = businessRoleDetection(miningOperationChunk, defaultMinFrequency,
                         defaultMaxFrequency,
                         group, intersection, mode);
             } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
                         ClusterObjectUtils.Mode.USER, operationResult, true, false);
-                possibleBusinessRole = findPossibleBusinessRole(miningOperationChunk, defaultMinFrequency,
+                possibleBusinessRole = businessRoleDetection(miningOperationChunk, defaultMinFrequency,
                         defaultMaxFrequency,
                         intersection, group, mode);
             }
@@ -300,7 +307,7 @@ public class ClusterAlgorithmUtils {
         }
     }
 
-    public static List<IntersectionObject> loadDefaultIntersection(ClusterType clusterType) {
+    public static List<IntersectionObject> loadDefaultIntersection(RoleAnalysisCluster clusterType) {
         List<String> defaultDetection = clusterType.getDefaultDetection();
         List<IntersectionObject> mergedIntersection = new ArrayList<>();
         for (String jsonString : defaultDetection) {
@@ -322,7 +329,8 @@ public class ClusterAlgorithmUtils {
             for (int i = 0; i < elementsArray.length(); i++) {
                 elements.add(elementsArray.getString(i));
             }
-            mergedIntersection.add(new IntersectionObject(points, metric, type, currentElements, totalElements, elements));
+            mergedIntersection.add(new IntersectionObject(points, metric, type, currentElements, totalElements,
+                    elements, ClusterObjectUtils.SearchMode.INTERSECTION));
         }
 
         return mergedIntersection;

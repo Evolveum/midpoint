@@ -507,10 +507,6 @@ public class PageRoleMiningSimple extends PageAdmin {
                 return helper.createRowActions(RoleType.class);
             }
 
-            @Override
-            public String getTb(String s) {
-                return super.getTb(s);
-            }
 
             @Override
             protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {

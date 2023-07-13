@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+
 import java.io.Serializable;
 import java.util.Set;
 
@@ -22,15 +24,17 @@ public class IntersectionObject implements Serializable {
     Integer totalElements;
     double metric;
     Set<String> elements;
+    ClusterObjectUtils.SearchMode searchMode;
 
     public IntersectionObject(Set<String> points, double metric, String type, int currentElements,
-            Integer totalElements, Set<String> elements) {
+            Integer totalElements, Set<String> elements, ClusterObjectUtils.SearchMode searchMode) {
+        this.elements = elements;
         this.points = points;
         this.metric = metric;
         this.type = type;
         this.currentElements = currentElements;
         this.totalElements = totalElements;
-        this.elements = elements;
+        this.searchMode = searchMode;
     }
 
     public Set<String> getElements() {
@@ -57,4 +61,7 @@ public class IntersectionObject implements Serializable {
         return totalElements;
     }
 
+    public ClusterObjectUtils.SearchMode getSearchMode() {
+        return searchMode;
+    }
 }

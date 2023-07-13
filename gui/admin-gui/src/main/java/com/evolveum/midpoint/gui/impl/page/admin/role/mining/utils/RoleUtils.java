@@ -35,6 +35,17 @@ public class RoleUtils {
         return (double) intersection.size() / union.size();
     }
 
+
+    public static double jacquardSimilarity(Set<String> set1, Set<String> set2) {
+        Set<String> union = new HashSet<>(set1);
+        union.addAll(set2);
+
+        Set<String> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+
+        return (double) intersection.size() / union.size();
+    }
+
     public static double jacquardSimilarity(Set<String> set1, Set<String> set2, Set<String> intersection) {
         Set<String> union = new HashSet<>(set1);
         union.addAll(set2);

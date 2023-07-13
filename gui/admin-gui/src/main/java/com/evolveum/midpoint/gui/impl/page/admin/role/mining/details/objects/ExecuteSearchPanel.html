@@ -13,6 +13,10 @@
     <div>
 
 
+        <div class="col-12 row">
+            <div class="btn btn-default" wicket:id="search_mode_button"></div>
+        </div>
+
         <form
                 wicket:id="thresholds_form">
 
@@ -29,6 +33,9 @@
 
                 <div
                         wicket:id="threshold_occupancy"></div>
+
+                <div
+                        wicket:id="threshold_similarity"></div>
 
                 <input class="btn btn-default" type="submit" value="Execute search"
                         wicket:id="ajax_submit_link"/>

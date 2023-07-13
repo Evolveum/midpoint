@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -16,8 +18,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.TextFieldLabelPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
 
@@ -27,10 +32,19 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     private static final String ID_FREQUENCY_SUBMIT = "ajax_submit_link";
     private static final String ID_FREQUENCY_THRESHOLD_ITR = "threshold_intersection";
     private static final String ID_OCCUPANCY_THRESHOLD = "threshold_occupancy";
+    private static final String ID_SIMILARITY_THRESHOLD = "threshold_similarity";
     double minFrequency = 0.3;
     double maxFrequency = 1.0;
+    double similarity = 0.8;
     Integer minIntersection = 10;
     Integer minOccupancy = 5;
+    ClusterObjectUtils.SearchMode searchModeSelected = ClusterObjectUtils.SearchMode.INTERSECTION;
+
+    public boolean isJaccardSearchMode() {
+        return searchMode;
+    }
+
+    boolean searchMode = false;
 
     public ExecuteSearchPanel(String id, IModel<String> messageModel) {
         super(id, messageModel);
@@ -40,7 +54,32 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     protected void onInitialize() {
         super.onInitialize();
 
-        add(frequencyForm());
+        Form<?> components = frequencyForm();
+        components.setOutputMarkupId(true);
+        add(components);
+
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel("search_mode_button", new LoadableModel<>() {
+            @Override
+            protected Object load() {
+                return Model.of(getSearchModeSelected().getDisplayString());
+            }
+        }) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (searchMode) {
+                    searchMode = false;
+                    searchModeSelected = ClusterObjectUtils.SearchMode.INTERSECTION;
+                } else {
+                    searchMode = true;
+                    searchModeSelected = ClusterObjectUtils.SearchMode.JACCARD;
+                }
+                target.add(components);
+                target.add(this);
+            }
+        };
+        ajaxLinkPanel.setOutputMarkupId(true);
+        ajaxLinkPanel.setOutputMarkupPlaceholderTag(true);
+        add(ajaxLinkPanel);
     }
 
     public Form<?> frequencyForm() {
@@ -63,6 +102,11 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
                 Model.of(minOccupancy), getString("RoleMining.frequency.occupancy.title"));
         form.add(minOccupancyField);
 
+        TextFieldLabelPanel jaccardField = generateFieldPanel(ID_SIMILARITY_THRESHOLD,
+                Model.of(similarity), getString("RoleMining.frequency.max.title"));
+        jaccardField.add(new VisibleEnableBehaviour(this::isJaccardSearchMode));
+        form.add(jaccardField);
+
         AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink(ID_FREQUENCY_SUBMIT, form) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -70,7 +114,9 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
                 maxFrequency = (double) maxFreqField.getBaseFormComponent().getModelObject();
                 minIntersection = (Integer) minIntersectionField.getBaseFormComponent().getModelObject();
                 minOccupancy = (Integer) minOccupancyField.getBaseFormComponent().getModelObject();
-
+                if (isJaccardSearchMode()) {
+                    similarity = (Double) jaccardField.getBaseFormComponent().getModelObject();
+                }
                 performAction(target);
 
                 target.add(minOccupancyField);
@@ -150,4 +196,13 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     public Integer getMinOccupancy() {
         return minOccupancy;
     }
+
+    public double getSimilarity() {
+        return similarity;
+    }
+
+    public ClusterObjectUtils.SearchMode getSearchModeSelected() {
+        return searchModeSelected;
+    }
+
 }

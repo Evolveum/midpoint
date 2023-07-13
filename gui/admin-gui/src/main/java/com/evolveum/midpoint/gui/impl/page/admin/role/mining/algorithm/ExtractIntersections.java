@@ -19,15 +19,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTyp
 
 public class ExtractIntersections {
 
-    public static List<IntersectionObject> findPossibleBusinessRole(MiningOperationChunk miningOperationChunk, double minFrequency,
+    public static List<IntersectionObject> businessRoleDetection(MiningOperationChunk miningOperationChunk, double minFrequency,
             double maxFrequency, int minIntersection, Integer minOccupancy, ClusterObjectUtils.Mode mode) {
 
         List<IntersectionObject> intersections = new ArrayList<>();
 
         if (mode.equals(ClusterObjectUtils.Mode.USER)) {
-
             loadUsersIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
-
         } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
             loadRolesIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
         }
@@ -44,17 +42,19 @@ public class ExtractIntersections {
             if (frequency < minFrequency || frequency > maxFrequency) {
                 continue;
             }
+            List<String> users = miningRoleTypeChunk.getUsers();
+            if (users.size() < minIntersection) {
+                continue;
+            }
             preparedObjects.add(miningRoleTypeChunk);
 
-            List<String> users = miningRoleTypeChunk.getUsers();
-            if (users.size() >= minIntersection) {
-                int size = miningRoleTypeChunk.getRoles().size();
-                if (size >= minOccupancy) {
-                    intersections.add(new IntersectionObject(new HashSet<>(users), size * users.size(),
-                            "outer", size,
-                            null, new HashSet<>()));
-                }
+            int size = miningRoleTypeChunk.getRoles().size();
+            if (size >= minOccupancy) {
+                intersections.add(new IntersectionObject(new HashSet<>(users), size * users.size(),
+                        "outer", size,
+                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
             }
+
         }
 
         Set<List<String>> outerIntersections = new HashSet<>();
@@ -104,7 +104,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(users), counter * users.size(),
                         "outer", counter,
-                        null, new HashSet<>()));
+                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
             }
         }
 
@@ -124,7 +124,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(users), counter * users.size(),
                         "inner", counter,
-                        null, new HashSet<>()));
+                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
             }
 
         }
@@ -139,18 +139,21 @@ public class ExtractIntersections {
             if (frequency < minFrequency || frequency > maxFrequency) {
                 continue;
             }
-            preparedObjects.add(miningUserTypeChunk);
 
             List<String> roles = miningUserTypeChunk.getRoles();
-            if (roles.size() >= minIntersection) {
-
-                int size = miningUserTypeChunk.getUsers().size();
-                if (size >= minOccupancy) {
-                    intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * size,
-                            "outer", size,
-                            null, new HashSet<>()));
-                }
+            if (roles.size() < minIntersection) {
+                continue;
             }
+
+            preparedObjects.add(miningUserTypeChunk);
+
+            int size = miningUserTypeChunk.getUsers().size();
+            if (size >= minOccupancy) {
+                intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * size,
+                        "outer", size,
+                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+            }
+
         }
 
         Set<List<String>> outerIntersections = new HashSet<>();
@@ -200,7 +203,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(roles), counter * roles.size(),
                         "outer", counter,
-                        null, new HashSet<>()));
+                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
             }
         }
 
@@ -221,7 +224,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(roles), counter * roles.size(),
                         "inner", counter,
-                        null, new HashSet<>()));
+                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
             }
 
         }

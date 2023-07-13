@@ -14,8 +14,7 @@ import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 public class JaccardDistancesMeasure implements DistanceMeasure {
-    int minIntersection;
-
+    private final int minIntersection;
     public JaccardDistancesMeasure(int minIntersection) {
         this.minIntersection = minIntersection;
     }

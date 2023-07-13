@@ -242,6 +242,7 @@ public class MiningIntersectionTable extends Panel {
                     }
                 };
                 ajaxButton.setOutputMarkupId(true);
+                ajaxButton.setEnabled(false);
                 ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
                         + "justify-content-center align-items-center"));
                 ajaxButton.add(new AttributeAppender("style", " width:100px; height:20px"));

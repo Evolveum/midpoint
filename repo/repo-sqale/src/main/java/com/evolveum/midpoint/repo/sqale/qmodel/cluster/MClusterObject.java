@@ -11,17 +11,15 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
 public class MClusterObject extends MObject {
 
-    public String identifier;
-    public String riskLevel;
-    public String mean;
-    public String density;
-    public Integer minOccupation;
-    public Integer maxOccupation;
-    public String parentRef;
-    public String[] points;
-    public Integer pointCount;
-    public Integer elementCount;
     public String[] elements;
+    public Integer elementsCount;
+    public Integer pointsCount;
+    public String parentRef;
     public String[] defaultDetection;
+    public String pointsDensity;
+    public String pointsMean;
+    public Integer pointsMinOccupation;
+    public Integer pointsMaxOccupation;
+    public String riskLevel;
 
 }

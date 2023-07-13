@@ -291,11 +291,6 @@ public class BasicTableSelector extends Panel {
             }
 
             @Override
-            public String getTb(String s) {
-                return super.getTb(s);
-            }
-
-            @Override
             protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
 
                 List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();

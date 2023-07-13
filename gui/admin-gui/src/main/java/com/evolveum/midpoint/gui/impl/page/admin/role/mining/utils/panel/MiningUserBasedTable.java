@@ -9,13 +9,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.panel;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.panel.TableCellFillOperation.*;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -60,7 +61,7 @@ public class MiningUserBasedTable extends Panel {
     OperationResult result = new OperationResult("GetObject");
 
     public MiningUserBasedTable(String id, List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, Set<String> intersection, double maxFrequency) {
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
         super(id);
         RoleMiningProvider<MiningRoleTypeChunk> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(roles) {
@@ -78,7 +79,7 @@ public class MiningUserBasedTable extends Panel {
         }
 
         BoxedTablePanel<MiningRoleTypeChunk> table = new BoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumns(users, frequency, intersection, maxFrequency),
+                ID_DATATABLE, provider, initColumns(users, frequency, intersection, maxFrequency, searchMode),
                 null, true, true);
         table.setItemsPerPage(100);
         table.setOutputMarkupId(true);
@@ -86,11 +87,9 @@ public class MiningUserBasedTable extends Panel {
     }
 
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users, double minFrequency,
-            Set<String> intersection, double maxFrequency) {
+            IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
-
-
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
@@ -132,6 +131,8 @@ public class MiningUserBasedTable extends Panel {
                 item.add(new AttributeAppender("style", " width:150px"));
 
                 List<String> elements = rowModel.getObject().getRoles();
+
+                updateFrequencyUserBased(rowModel,minFrequency,maxFrequency);
 
                 String title = rowModel.getObject().getChunkName();
                 AjaxLinkPanel analyzedMembersDetailsPanel = new AjaxLinkPanel(componentId,
@@ -250,55 +251,11 @@ public class MiningUserBasedTable extends Panel {
                         String componentId, IModel<MiningRoleTypeChunk> model) {
                     tableStyle(cellItem);
                     List<String> rowUsers = model.getObject().getUsers();
-
-                    if (new HashSet<>(rowUsers).containsAll(colUsers)) {
-                        double rowFrequency = model.getObject().getFrequency();
-                        if (model.getObject().getStatus().equals(ClusterObjectUtils.Status.REMOVE)
-                                || userChunk.getStatus().equals(ClusterObjectUtils.Status.REMOVE)) {
-                            filledCell(cellItem, componentId, "bg-danger");
-                        } else if (minFrequency > rowFrequency && rowFrequency < maxFrequency) {
-                            model.getObject().setStatus(ClusterObjectUtils.Status.DISABLE);
-                            filledCell(cellItem, componentId, "bg-danger");
-                        } else if (maxFrequency < rowFrequency) {
-                            model.getObject().setStatus(ClusterObjectUtils.Status.DISABLE);
-                            filledCell(cellItem, componentId, "bg-info");
-                        } else {
-                            boolean found = intersection != null
-                                    && new HashSet<>(intersection).containsAll(colUsers)
-                                    && new HashSet<>(rowUsers).containsAll(intersection);
-
-                            if (found) {
-                                model.getObject().setStatus(ClusterObjectUtils.Status.ADD);
-                                userChunk.setStatus(ClusterObjectUtils.Status.ADD);
-                                filledCell(cellItem, componentId, "bg-success");
-                            } else {
-                                if (intersection != null && intersection.containsAll(colUsers)
-                                        && model.getObject().getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                                    filledCell(cellItem, componentId, "bg-success");
-                                } else {
-
-                                    if (model.getObject().getStatus().equals(ClusterObjectUtils.Status.ADD)
-                                            && userChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                                        filledCell(cellItem, componentId, "bg-success");
-                                    } else {
-                                        filledCell(cellItem, componentId, "table-dark");
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (intersection != null && intersection.containsAll(colUsers)
-                                && model.getObject().getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                            filledCell(cellItem, componentId, "bg-warning");
-                        } else if (model.getObject().getStatus().equals(ClusterObjectUtils.Status.ADD)
-                                && userChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                            filledCell(cellItem, componentId, "bg-warning");
-                        } else {
-                            emptyCell(cellItem, componentId);
-
-                        }
-                    }
+                    ClusterObjectUtils.Status colStatus = userChunk.getStatus();
+                    updateUserBasedTableData(cellItem,componentId,model,rowUsers,searchMode,colUsers,intersection,colStatus,userChunk);
                 }
+
+
 
                 @Override
                 public Component getHeader(String componentId) {

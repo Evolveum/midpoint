@@ -6,19 +6,21 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cluster;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ParentClusterType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession.*;
 
 public class QParentClusterObjectMapping
-        extends QAssignmentHolderMapping<ParentClusterType, QParentClusterData, MParentClusterObject> {
+        extends QAssignmentHolderMapping<RoleAnalysisSession, QParentClusterData, MParentClusterObject> {
 
-    public static final String DEFAULT_ALIAS_NAME = "parentCluster";
+    public static final String DEFAULT_ALIAS_NAME = "roleAnalysisSession";
 
     public static QParentClusterObjectMapping init(@NotNull SqaleRepoContext repositoryContext) {
         return new QParentClusterObjectMapping(repositoryContext);
@@ -26,15 +28,14 @@ public class QParentClusterObjectMapping
 
     private QParentClusterObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QParentClusterData.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ParentClusterType.class, QParentClusterData.class, repositoryContext);
+                RoleAnalysisSession.class, QParentClusterData.class, repositoryContext);
 
-        addItemMapping(F_IDENTIFIER, stringMapper(q -> q.identifier));
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
-        addItemMapping(F_DENSITY, stringMapper(q -> q.density));
-        addItemMapping(F_CLUSTERS_REF, multiStringMapper(q -> q.clustersRef));
+        addItemMapping(F_ELEMENT_CONSIST, stringMapper(q -> q.meanDensity));
+        addItemMapping(F_ROLE_ANALYSIS_CLUSTER_REF, multiStringMapper(q -> q.roleAnalysisClusterRef));
         addItemMapping(F_OPTIONS, stringMapper(q -> q.options));
-        addItemMapping(F_CONSIST, integerMapper(q -> q.consist));
-        addItemMapping(F_MODE, stringMapper(q -> q.mode));
+        addItemMapping(F_ELEMENT_CONSIST, integerMapper(q -> q.elementConsist));
+        addItemMapping(F_PROCESS_MODE, stringMapper(q -> q.processMode));
 
     }
 
@@ -50,16 +51,15 @@ public class QParentClusterObjectMapping
 
     @Override
     public @NotNull MParentClusterObject toRowObjectWithoutFullObject(
-            ParentClusterType clusterObject, JdbcSession jdbcSession) {
+            RoleAnalysisSession clusterObject, JdbcSession jdbcSession) {
         MParentClusterObject row = super.toRowObjectWithoutFullObject(clusterObject, jdbcSession);
 
-        row.identifier = clusterObject.getIdentifier();
         row.riskLevel = clusterObject.getRiskLevel();
-        row.density = clusterObject.getDensity();
-        row.clustersRef = stringsToArray(clusterObject.getClustersRef());
+        row.meanDensity = clusterObject.getMeanDensity();
+        row.roleAnalysisClusterRef = stringsToArray(clusterObject.getRoleAnalysisClusterRef());
         row.options = clusterObject.getOptions();
-        row.consist = clusterObject.getConsist();
-        row.mode = clusterObject.getMode();
+        row.elementConsist = clusterObject.getElementConsist();
+        row.processMode = clusterObject.getProcessMode();
 
         return row;
     }

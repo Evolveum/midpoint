@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +24,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.JaccardSorter;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -30,7 +31,7 @@ public class MiningOperationChunk implements Serializable {
     List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
     List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
 
-    public MiningOperationChunk(@NotNull ClusterType clusterType,
+    public MiningOperationChunk(@NotNull RoleAnalysisCluster clusterType,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult, boolean chunk, boolean full) {
 
         if (full) {
@@ -48,7 +49,7 @@ public class MiningOperationChunk implements Serializable {
         }
     }
 
-    private void getMiningClusterStructureFull(@NotNull ClusterType cluster,
+    private void getMiningClusterStructureFull(@NotNull RoleAnalysisCluster cluster,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult) {
 
         ListMultimap<String, String> roleChunk = ArrayListMultimap.create();
@@ -133,7 +134,7 @@ public class MiningOperationChunk implements Serializable {
 
     }
 
-    private void getChunkedMiningClusterStructureFull(@NotNull ClusterType cluster,
+    private void getChunkedMiningClusterStructureFull(@NotNull RoleAnalysisCluster cluster,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult) {
 
         //this set of roles List<String> has users String...
@@ -256,7 +257,7 @@ public class MiningOperationChunk implements Serializable {
 
     }
 
-    private void getMiningClusterStructure(@NotNull ClusterType cluster,
+    private void getMiningClusterStructure(@NotNull RoleAnalysisCluster cluster,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult) {
 
         ListMultimap<String, String> roleChunk = ArrayListMultimap.create();
@@ -341,7 +342,7 @@ public class MiningOperationChunk implements Serializable {
 
     }
 
-    private void getChunkedMiningClusterStructure(@NotNull ClusterType cluster,
+    private void getChunkedMiningClusterStructure(@NotNull RoleAnalysisCluster cluster,
             PageBase pageBase, ClusterObjectUtils.Mode mode, OperationResult operationResult) {
 
         //this set of roles List<String> has users String...

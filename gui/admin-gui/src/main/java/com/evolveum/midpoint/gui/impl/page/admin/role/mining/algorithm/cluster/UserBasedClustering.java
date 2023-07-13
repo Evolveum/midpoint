@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -34,13 +34,12 @@ import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 public class UserBasedClustering implements Clusterable {
 
-    @Override
-    public List<PrismObject<ClusterType>> executeClustering(ClusterOptions clusterOptions) {
+    OperationResult operationResult = new OperationResult("Map UserType object for clustering");
 
-        OperationResult operationResult = new OperationResult("Map UserType object for clustering");
+    @Override
+    public List<PrismObject<RoleAnalysisCluster>> executeClustering(ClusterOptions clusterOptions) {
 
         long start = startTimer(" prepare clustering object");
-
         int minIntersections = clusterOptions.getMinIntersections();
         int assignThreshold = clusterOptions.getAssignThreshold();
         int threshold = Math.max(assignThreshold, minIntersections);

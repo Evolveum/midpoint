@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+
 import com.github.openjson.JSONObject;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,7 +55,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class ExecuteClusteringPanel extends BasePanel<String> implements Popupable {
@@ -66,7 +68,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     private static final String ID_MIN_ASSIGN = "assign_min_occupy";
     private static final String ID_GROUP_THRESHOLD_FIELD = "group_min_cluster";
     private static final String ID_SUBMIT_BUTTON = "ajax_submit_link_cluster";
-    private static final String ID_IDENTIFIER_FIELD = "identifier_field";
 
     OperationResult result;
     ClusterOptions clusterOptions;
@@ -99,35 +100,10 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             protected void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
 
                 ClusteringExecutor clusteringExecutor = new ClusteringExecutor(clusterOptions.getMode());
-                List<PrismObject<ClusterType>> clusters = clusteringExecutor.execute(clusterOptions);
-
-                OperationResult resultD = new OperationResult("Delete Cluster object");
-
-                try {
-                    cleanBeforeClustering(resultD, ((PageBase) getPage()), clusterOptions.getIdentifier());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-                OperationResult result = new OperationResult("Generate Cluster object");
-                double density = 0;
-                int counsist = 0;
-                List<String> childRef = new ArrayList<>();
-                try {
-                    for (PrismObject<ClusterType> clusterTypePrismObject : clusters) {
-                        importClusterTypeObject(result, ((PageBase) getPage()), clusterTypePrismObject);
-                        density += Double.parseDouble(clusterTypePrismObject.asObjectable().getDensity());
-                        counsist += clusterTypePrismObject.asObjectable().getElementCount();
-                        childRef.add(clusterTypePrismObject.getOid());
-                    }
-                    density = density / clusters.size();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                List<PrismObject<RoleAnalysisCluster>> clusters = clusteringExecutor.execute(clusterOptions);
 
                 JSONObject options = new JSONObject();
                 options.put("name", clusterOptions.getName());
-                options.put("identifier", clusterOptions.getIdentifier());
                 options.put("filter", clusterOptions.getQuery());
                 options.put("assignThreshold", clusterOptions.getAssignThreshold());
                 options.put("mode", clusterOptions.getMode());
@@ -139,9 +115,38 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 options.put("detectMinFrequency", clusterOptions.getDefaultMinFrequency());
                 options.put("detectOccupancy", clusterOptions.getDefaultOccupancySearch());
 
-                importParentClusterTypeObject(result, ((PageBase) getPage()), density, counsist, childRef, options);
+                importRoleAnalysisClusteringResult(clusters, options);
+
             }
+
+            private void importRoleAnalysisClusteringResult(List<PrismObject<RoleAnalysisCluster>> clusters, JSONObject options) {
+                double meanDensity = 0;
+                int elementsConsist = 0;
+                List<String> childRef = new ArrayList<>();
+                for (PrismObject<RoleAnalysisCluster> clusterTypePrismObject : clusters) {
+                    meanDensity += Double.parseDouble(clusterTypePrismObject.asObjectable().getPointsDensity());
+                    elementsConsist += clusterTypePrismObject.asObjectable().getElementsCount();
+                    childRef.add(String.valueOf(clusterTypePrismObject.getOid()));
+                }
+                meanDensity = meanDensity / clusters.size();
+
+                String parentRef = importRoleAnalysisSessionObject(result, (PageBase) getPage(), meanDensity,
+                        elementsConsist, childRef, options);
+
+                OperationResult result = new OperationResult("ImportClusterTypeObject");
+                Task task = ((PageBase) getPage()).createSimpleTask("ImportClusterTypeObject");
+
+                try {
+                    for (PrismObject<RoleAnalysisCluster> clusterTypePrismObject : clusters) {
+                        importRoleAnalysisClusterObject(result, task, ((PageBase) getPage()), clusterTypePrismObject, parentRef);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("Import RoleAnalysisCluster object failed" + e);
+                }
+            }
+
         };
+
         executeClustering.setOutputMarkupId(true);
         executeClustering.setOutputMarkupPlaceholderTag(true);
         executeClustering.setVisible(true);
@@ -437,25 +442,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         groupLabel.setOutputMarkupId(true);
         form.add(groupLabel);
 
-        clusterOptions.setIdentifier("p_cid_" + (countParentClusterTypeObjects((PageBase) getPage()) + 1));
-        TextField<String> identifierField = new TextField<>(ID_IDENTIFIER_FIELD,
-                Model.of(clusterOptions.getIdentifier()));
-        identifierField.setOutputMarkupId(true);
-        identifierField.setOutputMarkupPlaceholderTag(true);
-        identifierField.setVisible(true);
-        identifierField.add(new EnableBehaviour(this::isEditClusterOption));
-        form.add(identifierField);
-
-        LabelWithHelpPanel identifierLabel = new LabelWithHelpPanel(ID_IDENTIFIER_FIELD + "_label",
-                Model.of("Identifier")) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.identifier");
-            }
-        };
-        identifierLabel.setOutputMarkupId(true);
-        form.add(identifierLabel);
-
         objectFiltersPanel(form);
         AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink("ajax_submit_cluster_parameter", form) {
             @Override
@@ -467,7 +453,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                     clusterOptions.setSimilarity(thresholdField.getModelObject());
                     clusterOptions.setMinIntersections(minIntersectionField.getModelObject());
                     clusterOptions.setMinGroupSize(minGroupField.getModelObject());
-                    clusterOptions.setIdentifier(identifierField.getModelObject());
                     clusterOptions.setAssignThreshold(minAssign.getModelObject());
                     this.add(AttributeAppender.replace("value",
                             createStringResource("RoleMining.edit.options.cluster")));
@@ -482,7 +467,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 target.add(filterSubmitButton);
                 target.add(executeClustering);
                 target.add(nameField);
-                target.add(identifierField);
                 target.add(minAssign);
                 target.add(thresholdField);
                 target.add(minIntersectionField);

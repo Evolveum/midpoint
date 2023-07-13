@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.ml.clustering.Cluster;
@@ -30,17 +32,15 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class RoleBasedClustering implements Clusterable {
 
+    OperationResult operationResult = new OperationResult("Map UserType object for clustering");
+
     @Override
-    public List<PrismObject<ClusterType>> executeClustering(ClusterOptions clusterOptions) {
+    public List<PrismObject<RoleAnalysisCluster>> executeClustering(ClusterOptions clusterOptions) {
         long start = startTimer(" prepare clustering object");
-
-        OperationResult operationResult = new OperationResult("Map UserType object for clustering");
-
         int assignThreshold = clusterOptions.getAssignThreshold();
         int minIntersections = clusterOptions.getMinIntersections();
         int threshold = Math.max(assignThreshold, minIntersections);
@@ -107,6 +107,7 @@ public class RoleBasedClustering implements Clusterable {
                 flippedMap.put(values, key);
             }
         }
+
         return flippedMap;
     }
 

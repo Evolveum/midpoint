@@ -12,11 +12,15 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -58,6 +62,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
         PageBase pageBase = (PageBase) getPage();
         OperationResult operationResult = new OperationResult("prepareObjects");
 
