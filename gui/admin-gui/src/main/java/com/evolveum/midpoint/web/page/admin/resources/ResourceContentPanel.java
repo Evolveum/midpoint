@@ -70,6 +70,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author katkav
  * @author semancik
  */
+//Do not use, use ResourceObjectsPanel or ResourceUncategorizedPanel instead
+@Deprecated(forRemoval = true)
 public abstract class ResourceContentPanel extends BasePanel<PrismObject<ResourceType>> {
     private static final long serialVersionUID = 1L;
 

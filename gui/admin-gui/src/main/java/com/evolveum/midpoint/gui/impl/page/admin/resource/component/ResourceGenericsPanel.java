@@ -11,10 +11,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.apache.wicket.model.StringResourceModel;
 
 @PanelType(name = "resourceGenerics")
 @PanelInstance(
@@ -26,9 +29,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
                 label = "PageResource.tab.content.generic",
                 icon = GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC,
                 order = 70))
-public class ResourceGenericsPanel extends ResourceContentPanel {
+public class ResourceGenericsPanel extends ResourceObjectsPanel {
 
     public ResourceGenericsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
-        super(id, ShadowKindType.GENERIC, model, config);
+        super(id, model, config);
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getRepositorySearchTableId() {
+        return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+    }
+
+    @Override
+    protected StringResourceModel getLabelModel() {
+        return createStringResource("PageResource.tab.content.generic");
+    }
+
+    @Override
+    protected ShadowKindType getKind() {
+        return ShadowKindType.GENERIC;
     }
 }

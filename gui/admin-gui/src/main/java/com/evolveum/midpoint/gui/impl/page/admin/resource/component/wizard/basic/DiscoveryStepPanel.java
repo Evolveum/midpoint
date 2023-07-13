@@ -150,4 +150,9 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
         }
         return model;
     }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }
