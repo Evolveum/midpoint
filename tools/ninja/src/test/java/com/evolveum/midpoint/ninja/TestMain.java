@@ -10,6 +10,7 @@ import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 
 /**
+ * TODO remove
  * Created by Viliam Repan (lazyman).
  */
 @Deprecated

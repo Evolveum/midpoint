@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -125,22 +129,29 @@ public class ObjectValidator {
             return;
         }
 
+        List<String> messages = new ArrayList<>();
         if (warnDeprecated && definition.isDeprecated()) {
-            warn(result, item, "deprecated");
+            messages.add("deprecated");
         }
 
         if (warnPlannedRemoval) {
             String plannedRemoval = definition.getPlannedRemoval();
             if (plannedRemoval != null) {
                 if (warnPlannedRemovalVersion == null || plannedRemoval.equals(warnPlannedRemovalVersion)) {
-                    warn(result, item, "planned for removal in version " + plannedRemoval);
+                    messages.add("planned for removal in version " + plannedRemoval);
                 }
             }
         }
 
         if (warnRemoved && definition.isRemoved()) {
-            warn(result, item, "removed");
+            messages.add("removed");
         }
+
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        warn(result, item, StringUtils.join(messages, ", "));
     }
 
     private void checkOid(ValidationResult result, PrismValue item, String oid) {

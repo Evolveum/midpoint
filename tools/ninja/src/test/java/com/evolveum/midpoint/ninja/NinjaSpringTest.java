@@ -12,6 +12,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 
+/**
+ *  Base class for Ninja tests that need Spring context, e.g. for repository state initialization.
+ */
 public abstract class NinjaSpringTest extends AbstractSpringTest implements InfraTestMixin, NinjaTestMixin {
 
     @Qualifier("repositoryService")
