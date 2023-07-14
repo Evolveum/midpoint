@@ -6,7 +6,7 @@
   -->
 
 <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-oid="28676177-5884-4625-805d-bae552932666">
+        oid="28676177-5884-4625-805d-bae552932666">
 
     <name>security policy</name>
 

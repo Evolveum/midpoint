@@ -9,6 +9,8 @@
 
     <name>system-configuration</name>
 
+    <roleManagement/>
+
     <notificationConfiguration>
         <!--<sms>
             <gateway>
@@ -49,21 +51,22 @@
         </sms>-->
     </notificationConfiguration>
 
-    <roleManagement>
-        <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
-        <roleCatalogCollections>
-            <collection>
-                <collectionUri>allRoles</collectionUri>
-            </collection>
-            <collection>
-                <collectionUri>myCustomCollection</collectionUri>
-            </collection>
-        </roleCatalogCollections>
-    </roleManagement>
-
     <adminGuiConfiguration>
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
+        <accessRequest>
+            <roleCatalog>
+                <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
+                <collection>
+                    <identifier>allRoles</identifier>
+                    <collectionUri>allRoles</collectionUri>
+                </collection>
+                <collection>
+                    <identifier>myCustomCollection</identifier>
+                    <collectionUri>myCustomCollection</collectionUri>
+                </collection>
+            </roleCatalog>
+        </accessRequest>
     </adminGuiConfiguration>
 </systemConfiguration>
