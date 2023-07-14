@@ -35,13 +35,14 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     private static final Trace LOGGER = TraceManager.getTrace(TestUpgradeProcessors.class);
 
     private static final File RESOURCES = new File("./src/test/resources/validator/processor");
+    private static final File EXPECTED = new File("./src/test/resources/validator/expected");
 
     private PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
 
     private <O extends ObjectType> void testUpgradeValidator(String fileName, Consumer<UpgradeValidationResult> resultConsumer) throws Exception {
-        PrismObject<O> object = parseObject(fileName);
+        PrismObject<O> object = parseObject(new File(RESOURCES, fileName));
 
         ObjectUpgradeValidator validator = new ObjectUpgradeValidator(getPrismContext());
         validator.showAllWarnings();
@@ -54,23 +55,22 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         resultConsumer.accept(result);
     }
 
-    private <O extends ObjectType> PrismObject<O> parseObject(String fileName) throws SchemaException, IOException {
-        File file = new File(RESOURCES, fileName);
+    private <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
         Assertions.assertThat(file)
                 .exists()
                 .isFile()
                 .isNotEmpty();
 
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
+        PrismObject<O> object = getPrismContext().parserFor(file).compat().parse();
         Assertions.assertThat(object).isNotNull();
 
         return object;
     }
 
-    private void assertUpgrade(String originalFile, String expectedFile, UpgradeValidationResult result) {
+    private void assertUpgrade(String file, UpgradeValidationResult result) {
         try {
-            PrismObject<ResourceType> original = parseObject(originalFile);
-            PrismObject<ResourceType> expected = parseObject(expectedFile);
+            PrismObject<ResourceType> original = parseObject(new File(RESOURCES, file));
+            PrismObject<ResourceType> expected = parseObject(new File(EXPECTED, file));
 
             result.getItems().forEach(i -> {
                 try {
@@ -142,7 +142,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-//            Assertions.assertThat(result.getItems()).hasSize(2);
+//            Assertions.assertThat(result.getItems()).hasSize(3);
 
             // todo assert deltas
         });
@@ -172,7 +172,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                     .isNotNull()
                     .hasSize(1);
 
-            assertUpgrade("security-policy.xml", "security-policy-expected.xml", result);
+            assertUpgrade("security-policy.xml", result);
         });
     }
 
