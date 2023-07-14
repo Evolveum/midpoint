@@ -37,7 +37,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.panels.UserCostDetailsPopup;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
@@ -57,7 +57,7 @@ public class ResultTable extends Panel {
         add(generateTableRBAM(resultDatumTypes, modePermission, modeRole).setOutputMarkupId(true));
     }
 
-    public BoxedTablePanel<ResultData> generateTableRBAM(
+    public RoleMiningBoxedTablePanel<ResultData> generateTableRBAM(
             List<ResultData> resultDatumTypes, boolean modePermission, boolean modeRole) {
 
         RoleMiningProvider<ResultData> provider = new RoleMiningProvider<>(
@@ -74,7 +74,7 @@ public class ResultTable extends Panel {
 
         provider.setSort(ResultData.F_ROLE_COST, SortOrder.DESCENDING);
 
-        BoxedTablePanel<ResultData> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<ResultData> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_RBAM_UA, provider, initColumnsRBAM(modePermission, modeRole),
                 null, false, false);
         table.setOutputMarkupId(true);

@@ -9,14 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.panel;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.panel.TableCellFillOperation.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.panel.TableCellFillOperation.updateFrequencyUserBased;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.panel.TableCellFillOperation.updateUserBasedTableData;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.web.component.data.SpecialBoxedTablePanel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,7 +27,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -39,12 +39,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.MembersDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanelAction;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -60,9 +60,25 @@ public class MiningUserBasedTable extends Panel {
     private static final String ID_DATATABLE = "datatable_extra";
     OperationResult result = new OperationResult("GetObject");
 
+    int fromCol;
+    int toCol;
+    int specialColumnCount;
+
     public MiningUserBasedTable(String id, List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection,
+            double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
         super(id);
+
+        fromCol = 1;
+        toCol = 100;
+        specialColumnCount = users.size();
+
+        if (specialColumnCount < toCol) {
+            toCol = specialColumnCount;
+        }
+
+        long start = startTimer("table provider");
+
         RoleMiningProvider<MiningRoleTypeChunk> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(roles) {
 
@@ -78,12 +94,68 @@ public class MiningUserBasedTable extends Panel {
             provider.setSort(UserType.F_NAME.toString(), SortOrder.ASCENDING);
         }
 
-        BoxedTablePanel<MiningRoleTypeChunk> table = new BoxedTablePanel<>(
+        endTimer(start, "end mining table provider");
+
+        start = startTimer("table");
+        SpecialBoxedTablePanel<MiningRoleTypeChunk> table = generateTable(provider, users, frequency,
+                intersection, maxFrequency, searchMode);
+        endTimer(start, "end mining table ");
+
+        add(table);
+    }
+
+    String valueTitle = null;
+    int columnPageCount = 100;
+
+    public SpecialBoxedTablePanel<MiningRoleTypeChunk> generateTable(RoleMiningProvider<MiningRoleTypeChunk> provider,
+            List<MiningUserTypeChunk> users, double frequency, IntersectionObject intersection,
+            double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+
+        SpecialBoxedTablePanel<MiningRoleTypeChunk> table = new SpecialBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns(users, frequency, intersection, maxFrequency, searchMode),
-                null, true, true);
+                null, true, true, specialColumnCount) {
+            @Override
+            public void onChange(String value, AjaxRequestTarget target) {
+                String[] rangeParts = value.split(" - ");
+                valueTitle = value;
+                fromCol = Integer.parseInt(rangeParts[0]);
+                toCol = Integer.parseInt(rangeParts[1]);
+                getTable().replaceWith(generateTable(provider, users, frequency, intersection, maxFrequency, searchMode));
+                target.add(getTable().setOutputMarkupId(true));
+                target.appendJavaScript(getScaleScript());
+            }
+
+            @Override
+            public int onChangeSize(int value, AjaxRequestTarget target) {
+                columnPageCount = value;
+                fromCol = 1;
+                toCol = Math.min(value, specialColumnCount);
+                valueTitle = "0 - " + toCol;
+
+                getTable().replaceWith(generateTable(provider, users, frequency, intersection, maxFrequency, searchMode));
+                target.add(getTable().setOutputMarkupId(true));
+                target.appendJavaScript(getScaleScript());
+                return value;
+            }
+
+            @Override
+            public int getColumnPageCount() {
+                return columnPageCount;
+            }
+
+            @Override
+            public String getColumnPagingTitle() {
+                if (valueTitle == null) {
+                    return super.getColumnPagingTitle();
+                } else {
+                    return valueTitle;
+                }
+            }
+        };
         table.setItemsPerPage(100);
         table.setOutputMarkupId(true);
-        add(table);
+
+        return table;
     }
 
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users, double minFrequency,
@@ -106,16 +178,11 @@ public class MiningUserBasedTable extends Panel {
             }
         });
 
-        columns.add(new AbstractExportableColumn<>(createStringResource("")) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
             public String getSortProperty() {
                 return UserType.F_NAME.getLocalPart();
-            }
-
-            @Override
-            public IModel<?> getDataModel(IModel<MiningRoleTypeChunk> iModel) {
-                return null;
             }
 
             @Override
@@ -132,7 +199,7 @@ public class MiningUserBasedTable extends Panel {
 
                 List<String> elements = rowModel.getObject().getRoles();
 
-                updateFrequencyUserBased(rowModel,minFrequency,maxFrequency);
+                updateFrequencyUserBased(rowModel, minFrequency, maxFrequency);
 
                 String title = rowModel.getObject().getChunkName();
                 AjaxLinkPanel analyzedMembersDetailsPanel = new AjaxLinkPanel(componentId,
@@ -241,7 +308,8 @@ public class MiningUserBasedTable extends Panel {
         });
 
         IColumn<MiningRoleTypeChunk, String> column;
-        for (MiningUserTypeChunk userChunk : users) {
+        for (int i = fromCol - 1; i < toCol; i++) {
+            MiningUserTypeChunk userChunk = users.get(i);
             List<String> colUsers = userChunk.getUsers();
 
             column = new AbstractColumn<>(createStringResource("")) {
@@ -252,10 +320,8 @@ public class MiningUserBasedTable extends Panel {
                     tableStyle(cellItem);
                     List<String> rowUsers = model.getObject().getUsers();
                     ClusterObjectUtils.Status colStatus = userChunk.getStatus();
-                    updateUserBasedTableData(cellItem,componentId,model,rowUsers,searchMode,colUsers,intersection,colStatus,userChunk);
+                    updateUserBasedTableData(cellItem, componentId, model, rowUsers, searchMode, colUsers, intersection, colStatus, userChunk);
                 }
-
-
 
                 @Override
                 public Component getHeader(String componentId) {
@@ -322,11 +388,11 @@ public class MiningUserBasedTable extends Panel {
     }
 
     public DataTable<?, ?> getDataTable() {
-        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
+        return ((SpecialBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
     }
 
-    protected BoxedTablePanel<?> getTable() {
-        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
+    protected SpecialBoxedTablePanel<?> getTable() {
+        return ((SpecialBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
     protected void resetTable(AjaxRequestTarget target) {
@@ -339,4 +405,5 @@ public class MiningUserBasedTable extends Panel {
 
     protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
     }
+
 }

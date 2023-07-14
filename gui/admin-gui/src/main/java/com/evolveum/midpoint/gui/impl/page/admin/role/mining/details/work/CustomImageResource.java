@@ -48,13 +48,14 @@ public class CustomImageResource extends DynamicImageResource {
 
         ClusterObjectUtils.Mode mode1 = ClusterObjectUtils.Mode.valueOf(mode);
 
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
-        List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
+
 
         BufferedImage image;
         Graphics2D graphics;
 
         if (mode1.equals(ClusterObjectUtils.Mode.ROLE)) {
+            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
+            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.JACCARD);
             width = miningRoleTypeChunks.size();
             height = miningUserTypeChunks.size();
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -73,6 +74,8 @@ public class CustomImageResource extends DynamicImageResource {
                 }
             }
         } else {
+            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.JACCARD);
+            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.NONE);
             width = miningUserTypeChunks.size();
             height = miningRoleTypeChunks.size();
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);

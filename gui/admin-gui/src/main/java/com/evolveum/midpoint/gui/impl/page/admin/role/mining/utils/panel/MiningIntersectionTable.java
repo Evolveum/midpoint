@@ -18,6 +18,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -60,7 +61,7 @@ public class MiningIntersectionTable extends Panel {
 
         provider.setSort(IntersectionObject.F_METRIC, SortOrder.DESCENDING);
 
-        BoxedTablePanel<IntersectionObject> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<IntersectionObject> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns(),
                 null, true, false);
         table.setOutputMarkupId(true);
@@ -86,16 +87,11 @@ public class MiningIntersectionTable extends Panel {
             }
         });
 
-        columns.add(new AbstractExportableColumn<>(getHeaderTitle("metric")) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("metric")) {
 
             @Override
             public String getSortProperty() {
                 return IntersectionObject.F_METRIC;
-            }
-
-            @Override
-            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
-                return null;
             }
 
             @Override
@@ -117,16 +113,11 @@ public class MiningIntersectionTable extends Panel {
 
         });
 
-        columns.add(new AbstractExportableColumn<>(getHeaderTitle("type")) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("type")) {
 
             @Override
             public String getSortProperty() {
                 return IntersectionObject.F_TYPE;
-            }
-
-            @Override
-            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
-                return null;
             }
 
             @Override
@@ -148,16 +139,11 @@ public class MiningIntersectionTable extends Panel {
 
         });
 
-        columns.add(new AbstractExportableColumn<>(getHeaderTitle("intersection.count")) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("intersection.count")) {
 
             @Override
             public String getSortProperty() {
                 return IntersectionObject.F_METRIC;
-            }
-
-            @Override
-            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
-                return null;
             }
 
             @Override
@@ -178,16 +164,11 @@ public class MiningIntersectionTable extends Panel {
             }
 
         });
-        columns.add(new AbstractExportableColumn<>(getHeaderTitle("occupancy.current")) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("occupancy.current")) {
 
             @Override
             public String getSortProperty() {
                 return IntersectionObject.F_METRIC;
-            }
-
-            @Override
-            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
-                return null;
             }
 
             @Override
@@ -236,7 +217,7 @@ public class MiningIntersectionTable extends Panel {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-                        this.setDefaultModel(Model.of(String.valueOf("0")));
+                        this.setDefaultModel(Model.of("0"));
                         item.setOutputMarkupId(true);
                         ajaxRequestTarget.add(item);
                     }
@@ -308,11 +289,11 @@ public class MiningIntersectionTable extends Panel {
     }
 
     protected DataTable<?, ?> getDataTable() {
-        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
+        return ((RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
     }
 
-    protected BoxedTablePanel<?> getTable() {
-        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
+    protected RoleMiningBoxedTablePanel<?> getTable() {
+        return ((RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
     protected StringResourceModel getHeaderTitle(String identifier) {

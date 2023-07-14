@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,7 +66,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -627,7 +628,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return basicTable;
     }
 
-    public BoxedTablePanel<RoleMiningStructureList> generateTableUA(
+    public RoleMiningBoxedTablePanel<RoleMiningStructureList> generateTableUA(
             List<RoleMiningStructureList> roleMiningStructureLists, List<PrismObject<RoleType>> roles, String DATATABLE_ID) {
 
         RoleMiningProvider<RoleMiningStructureList> provider = new RoleMiningProvider<>(
@@ -644,7 +645,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(RoleMiningStructureList.F_SUM_RESULT, SortOrder.DESCENDING);
 
-        BoxedTablePanel<RoleMiningStructureList> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<RoleMiningStructureList> table = new RoleMiningBoxedTablePanel<>(
                 DATATABLE_ID, provider, initColumnsUA(roles),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -654,7 +655,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    public BoxedTablePanel<RoleMiningStructureList> generateTableJC(
+    public RoleMiningBoxedTablePanel<RoleMiningStructureList> generateTableJC(
             List<RoleMiningStructureList> roleMiningStructureLists) {
 
         RoleMiningProvider<RoleMiningStructureList> provider = new RoleMiningProvider<>(
@@ -671,7 +672,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(RoleMiningStructureList.F_SUM_RESULT, SortOrder.DESCENDING);
 
-        BoxedTablePanel<RoleMiningStructureList> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<RoleMiningStructureList> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsJC(),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -679,7 +680,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    public BoxedTablePanel<PAStructure> generateTableRM(
+    public RoleMiningBoxedTablePanel<PAStructure> generateTableRM(
             List<PAStructure> permissionStructureList, List<RoleMiningStructureList> roleMiningStructureLists) {
 
         RoleMiningProvider<PAStructure> provider = new RoleMiningProvider<>(
@@ -696,7 +697,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(PAStructure.F_TOTAL_RESULT, SortOrder.DESCENDING);
 
-        BoxedTablePanel<PAStructure> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<PAStructure> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsRM(roleMiningStructureLists),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -706,7 +707,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    public BoxedTablePanel<PAStructure> generateTableRH(
+    public RoleMiningBoxedTablePanel<PAStructure> generateTableRH(
             List<PAStructure> permissionStructureList) {
 
         RoleMiningProvider<PAStructure> provider = new RoleMiningProvider<>(
@@ -723,7 +724,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(PAStructure.F_NAME, SortOrder.ASCENDING);
 
-        BoxedTablePanel<PAStructure> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<PAStructure> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsRH(),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -733,7 +734,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    public BoxedTablePanel<PAStructure> generateTableRHM(
+    public RoleMiningBoxedTablePanel<PAStructure> generateTableRHM(
             List<PAStructure> permissionStructureList) {
 
         RoleMiningProvider<PAStructure> provider = new RoleMiningProvider<>(
@@ -750,7 +751,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(PAStructure.F_NAME, SortOrder.ASCENDING);
 
-        BoxedTablePanel<PAStructure> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<PAStructure> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsRHM(),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -760,7 +761,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    public BoxedTablePanel<PAStructure> generateTablePA(
+    public RoleMiningBoxedTablePanel<PAStructure> generateTablePA(
             List<PAStructure> permissionStructureList) {
 
         RoleMiningProvider<PAStructure> provider = new RoleMiningProvider<>(
@@ -777,7 +778,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(PAStructure.F_NAME, SortOrder.ASCENDING);
 
-        BoxedTablePanel<PAStructure> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<PAStructure> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsPA(),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -789,7 +790,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
 
 
-    public BoxedTablePanel<UPStructure> generateTableUP(
+    public RoleMiningBoxedTablePanel<UPStructure> generateTableUP(
             List<UPStructure> upStructuresList) {
 
         RoleMiningProvider<UPStructure> provider = new RoleMiningProvider<>(
@@ -806,7 +807,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(UPStructure.F_NAME, SortOrder.ASCENDING);
 
-        BoxedTablePanel<UPStructure> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<UPStructure> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsUP(),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -816,7 +817,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    public BoxedTablePanel<UPStructure> generateTableURM(
+    public RoleMiningBoxedTablePanel<UPStructure> generateTableURM(
             List<UPStructure> upStructuresList) {
 
         RoleMiningProvider<UPStructure> provider = new RoleMiningProvider<>(
@@ -833,7 +834,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
         provider.setSort(UPStructure.F_NAME, SortOrder.ASCENDING);
 
-        BoxedTablePanel<UPStructure> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<UPStructure> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE_EXTRA, provider, initColumnsURM(),
                 null, true, true);
         table.setOutputMarkupId(true);
@@ -843,12 +844,12 @@ public class PageRoleMiningSimple extends PageAdmin {
         return table;
     }
 
-    protected BoxedTablePanel<?> getBoxedTableExtra() {
-        return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_SECONDARY_FORM, ID_DATATABLE_EXTRA));
+    protected RoleMiningBoxedTablePanel<?> getBoxedTableExtra() {
+        return (RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_SECONDARY_FORM, ID_DATATABLE_EXTRA));
     }
 
-    protected BoxedTablePanel<?> getBoxedTableUA() {
-        return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_DATATABLE_MINING_MAIN));
+    protected RoleMiningBoxedTablePanel<?> getBoxedTableUA() {
+        return (RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_DATATABLE_MINING_MAIN));
     }
 
 

@@ -17,25 +17,25 @@ import java.util.*;
 
 public class ExtractJaccard {
 
-    public static List<IntersectionObject> businessRoleDetection(MiningOperationChunk miningOperationChunk, double minFrequency,
+    public static List<IntersectionObject> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency,
             double maxFrequency, int minIntersection, Integer minOccupancy, ClusterObjectUtils.Mode mode, double similarity) {
 
         List<IntersectionObject> intersections = new ArrayList<>();
 
         if (mode.equals(ClusterObjectUtils.Mode.USER)) {
-            loadUsersIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections,
+            loadUsersIntersections(miningRoleTypeChunks, minFrequency, maxFrequency, minIntersection, intersections,
                     minOccupancy, similarity);
         } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
-            loadRolesIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections,
+            loadRolesIntersections(miningUserTypeChunks, minFrequency, maxFrequency, minIntersection, intersections,
                     minOccupancy, similarity);
         }
 
         return intersections;
     }
 
-    private static void loadUsersIntersections(MiningOperationChunk miningOperationChunk, double minFrequency, double maxFrequency,
+    private static void loadUsersIntersections(List<MiningRoleTypeChunk> miningRoleTypeChunks, double minFrequency, double maxFrequency,
             int minIntersection, List<IntersectionObject> intersections, int minOccupancy, double similarity) {
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
             double frequency = miningRoleTypeChunk.getFrequency();
@@ -89,9 +89,8 @@ public class ExtractJaccard {
 
     }
 
-    private static void loadRolesIntersections(MiningOperationChunk miningOperationChunk, double minFrequency, double maxFrequency,
+    private static void loadRolesIntersections(List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency, double maxFrequency,
             int minIntersection, List<IntersectionObject> intersections, int minOccupancy, double similarity) {
-        List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
         List<MiningUserTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
             double frequency = miningUserTypeChunk.getFrequency();

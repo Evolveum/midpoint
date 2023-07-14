@@ -40,7 +40,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -82,7 +82,7 @@ public class TableSimpleCostPopup extends Panel {
         return ((PageBase) getPage());
     }
 
-    public BoxedTablePanel<CostResultSingle> generateTableCR(List<CostResultSingle> costResultList) {
+    public RoleMiningBoxedTablePanel<CostResultSingle> generateTableCR(List<CostResultSingle> costResultList) {
 
         RoleMiningProvider<CostResultSingle> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(costResultList) {
@@ -98,7 +98,7 @@ public class TableSimpleCostPopup extends Panel {
 
         provider.setSort(CostResultSingle.F_ROLE_COST, SortOrder.ASCENDING);
 
-        BoxedTablePanel<CostResultSingle> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<CostResultSingle> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumnsRC(costResultList),
                 null, true, false);
         table.setOutputMarkupId(true);

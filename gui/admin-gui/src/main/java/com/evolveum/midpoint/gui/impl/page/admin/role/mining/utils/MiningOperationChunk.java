@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -465,11 +466,25 @@ public class MiningOperationChunk implements Serializable {
 
     }
 
-    public List<MiningUserTypeChunk> getMiningUserTypeChunks() {
-        return JaccardSorter.sortU(miningUserTypeChunks);
+    public List<MiningUserTypeChunk> getMiningUserTypeChunks(SORT sort) {
+        if (sort.equals(SORT.JACCARD)) {
+            return JaccardSorter.sortU(miningUserTypeChunks);
+        } else if (sort.equals(SORT.FREQUENCY)) {
+            return JaccardSorter.sortByFrequencyUserType(miningUserTypeChunks);
+        } else {
+            return miningUserTypeChunks;
+        }
     }
 
-    public List<MiningRoleTypeChunk> getMiningRoleTypeChunks() {
-        return JaccardSorter.sortR(miningRoleTypeChunks);
+    public List<MiningRoleTypeChunk> getMiningRoleTypeChunks(SORT sort) {
+
+        if (sort.equals(SORT.JACCARD)) {
+            return JaccardSorter.sortR(miningRoleTypeChunks);
+        } else if (sort.equals(SORT.FREQUENCY)) {
+            return JaccardSorter.sortByFrequencyRoleType(miningRoleTypeChunks);
+        } else {
+            return miningRoleTypeChunks;
+        }
+
     }
 }

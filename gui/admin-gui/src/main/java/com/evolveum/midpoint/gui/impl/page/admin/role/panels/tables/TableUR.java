@@ -36,7 +36,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -61,7 +61,7 @@ public class TableUR extends Panel {
         return ((PageBase) getPage());
     }
 
-    public BoxedTablePanel<UrType> generateTableRM(List<UrType> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
+    public RoleMiningBoxedTablePanel<UrType> generateTableRM(List<UrType> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
 
         RoleMiningProvider<UrType> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(userRoleList) {
@@ -78,7 +78,7 @@ public class TableUR extends Panel {
         if(sortable) {
             provider.setSort(UrType.F_NAME_USER_TYPE, SortOrder.ASCENDING);
         }
-        BoxedTablePanel<UrType> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<UrType> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumnsRM(rolePrismObjectList),
                 null, true, true);
         table.setOutputMarkupId(true);

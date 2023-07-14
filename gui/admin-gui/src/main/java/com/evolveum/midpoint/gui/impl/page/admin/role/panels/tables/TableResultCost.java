@@ -37,7 +37,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.panels.CandidateRoleDetailsPopup;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -62,7 +62,7 @@ public class TableResultCost extends Panel {
 
     }
 
-    public BoxedTablePanel<CostResult> generateTableCR(List<CostResult> costResultList, boolean modePermission,
+    public RoleMiningBoxedTablePanel<CostResult> generateTableCR(List<CostResult> costResultList, boolean modePermission,
             boolean modeRole) {
 
         RoleMiningProvider<CostResult> provider = new RoleMiningProvider<>(
@@ -79,7 +79,7 @@ public class TableResultCost extends Panel {
 
         provider.setSort(CostResult.F_ROLE_COST, SortOrder.DESCENDING);
 
-        BoxedTablePanel<CostResult> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<CostResult> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumnsRC(modePermission, modeRole),
                 null, true, false);
         table.setOutputMarkupId(true);

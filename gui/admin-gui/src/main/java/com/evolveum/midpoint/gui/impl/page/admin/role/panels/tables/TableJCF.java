@@ -10,13 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
-import java.util.*;
-
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper.MiningSet;
-import com.evolveum.midpoint.gui.impl.page.admin.role.panels.details.DetailsPanel;
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,18 +32,22 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper.MiningSet;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.panels.details.DetailsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -82,7 +82,7 @@ public class TableJCF extends Panel {
 
         ajaxButton.setOutputMarkupId(true);
         add(ajaxButton);
-        BoxedTablePanel<MiningSet> components = generateTableRM(ID_DATATABLE, miningSets, rolePrismObjectList, enablePopup, sortable);
+        RoleMiningBoxedTablePanel<MiningSet> components = generateTableRM(ID_DATATABLE, miningSets, rolePrismObjectList, enablePopup, sortable);
         components.setOutputMarkupId(true);
         add(components);
     }
@@ -92,16 +92,16 @@ public class TableJCF extends Panel {
     }
 
     protected DataTable<?, ?> getDataTable() {
-        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
+        return ((RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
     }
 
-    protected BoxedTablePanel<?> getTable() {
-        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
+    protected RoleMiningBoxedTablePanel<?> getTable() {
+        return ((RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
     RoleMiningProvider<MiningSet> provider;
 
-    public BoxedTablePanel<MiningSet> generateTableRM(String id, List<MiningSet> miningSets,
+    public RoleMiningBoxedTablePanel<MiningSet> generateTableRM(String id, List<MiningSet> miningSets,
             List<PrismObject<RoleType>> rolePrismObjectList, boolean enablePopup, boolean sortable) {
 
         provider = new RoleMiningProvider<>(
@@ -122,7 +122,7 @@ public class TableJCF extends Panel {
 
         provider.getModel().getObject().get(0).setSelected(true);
         miningSets.get(0).setSelected(true);
-        BoxedTablePanel<MiningSet> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<MiningSet> table = new RoleMiningBoxedTablePanel<>(
                 id, provider, initColumnsRM(rolePrismObjectList, miningSets, enablePopup),
                 null, true, true);
         table.setOutputMarkupId(true);

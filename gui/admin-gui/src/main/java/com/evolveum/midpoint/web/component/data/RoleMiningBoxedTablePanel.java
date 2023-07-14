@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,9 +7,16 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import java.util.List;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -25,22 +32,12 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import java.io.Serial;
+import java.util.List;
 
-/**
- * @author Viliam Repan (lazyman)
- */
-public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
+public class RoleMiningBoxedTablePanel<T> extends BasePanel<T> implements Table {
 
-    private static final long serialVersionUID = 1L;
-
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_HEADER = "header";
     private static final String ID_FOOTER = "footer";
     private static final String ID_TABLE = "table";
@@ -60,25 +57,37 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
+    static boolean isRoleMining = false;
     private List<IColumn<T, String>> columns;
 
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
 
-    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
+    public RoleMiningBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, null);
     }
 
-    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+    public RoleMiningBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId) {
-        this(id, provider, columns, tableId, false);
+        this(id, provider, columns, tableId, false, false);
     }
 
-    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRefreshEnabled) {
+
+
+
+    public RoleMiningBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId, boolean isRoleMining) {
+        this(id, provider, columns, tableId, false, isRoleMining);
+    }
+
+
+    public RoleMiningBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId, boolean isRefreshEnabled, boolean isRoleMining) {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
+        RoleMiningBoxedTablePanel.isRoleMining = isRoleMining;
+
         initLayout(columns, provider);
     }
 
@@ -125,17 +134,32 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         tableContainer.add(table);
         add(tableContainer);
 
-        TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider) {
+        if (!isRoleMining) {
+            TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider) {
 
-            @Override
-            protected void refreshTable(AjaxRequestTarget target) {
-                super.refreshTable(target);
-                target.add(getFooter());
-            }
-        };
-        headersTop.setOutputMarkupId(true);
-        table.addTopToolbar(headersTop);
+                @Override
+                protected void refreshTable(AjaxRequestTarget target) {
+                    super.refreshTable(target);
+                    target.add(getFooter());
+                }
+            };
 
+            headersTop.setOutputMarkupId(true);
+            table.addTopToolbar(headersTop);
+        } else {
+            RoleMiningTableHeadersToolbar headersTop = new RoleMiningTableHeadersToolbar(table, provider) {
+
+                @Override
+                protected void refreshTable(AjaxRequestTarget target) {
+                    super.refreshTable(target);
+                    target.add(getFooter());
+                }
+            };
+
+            headersTop.setOutputMarkupId(true);
+            table.addTopToolbar(headersTop);
+
+        }
         add(createHeader(ID_HEADER));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
@@ -158,7 +182,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return false;
     }
 
-    public String   getAdditionalBoxCssClasses() {
+    public String getAdditionalBoxCssClasses() {
         return additionalBoxCssClasses;
     }
 
@@ -222,6 +246,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             setItemsPerPage(Integer.MAX_VALUE);
         } else {
             setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
+            if (isRoleMining) {
+                setItemsPerPage(100);
+            }
         }
     }
 
@@ -244,12 +271,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
             @Override
             protected String getPaginationCssClass() {
-                return BoxedTablePanel.this.getPaginationCssClass();
+                return RoleMiningBoxedTablePanel.this.getPaginationCssClass();
             }
 
             @Override
             protected boolean isPagingVisible() {
-                return BoxedTablePanel.this.isPagingVisible();
+                return RoleMiningBoxedTablePanel.this.isPagingVisible();
             }
         };
     }
@@ -294,14 +321,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     private static class PagingFooter extends Fragment {
 
-        public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
+        public PagingFooter(String id, String markupId, RoleMiningBoxedTablePanel markupProvider, Table table) {
             super(id, markupId, markupProvider);
             setOutputMarkupId(true);
 
             initLayout(markupProvider, table);
         }
 
-        private void initLayout(final BoxedTablePanel boxedTablePanel, final Table table) {
+        private void initLayout(final RoleMiningBoxedTablePanel boxedTablePanel, final Table table) {
             WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
             add(buttonToolbar);
 
@@ -331,7 +358,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected String getPaginationCssClass() {
-                    return PagingFooter.this.getPaginationCssClass();
+                    return RoleMiningBoxedTablePanel.PagingFooter.this.getPaginationCssClass();
                 }
             };
             footerContainer.add(nb2);
@@ -339,6 +366,15 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             Form form = new MidpointForm(ID_FORM);
             footerContainer.add(form);
             PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
+
+                @Override
+                protected List<Integer> getPagingSizes() {
+
+                    if (isRoleMining) {
+                        return List.of(new Integer[] { 100, 200, 400 });
+                    }
+                    return super.getPagingSizes();
+                }
 
                 @Override
                 protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
@@ -350,7 +386,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
                         table.setItemsPerPage(pageSize);
                     }
-                    target.add(findParent(PagingFooter.class));
+                    target.add(findParent(RoleMiningBoxedTablePanel.PagingFooter.class));
                     target.add((Component) table);
                 }
             };
@@ -358,6 +394,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             menu.setSmall(getPaginationCssClass() != null);
             form.add(menu);
             add(footerContainer);
+
         }
 
         public Component getFooterButtonToolbar() {
@@ -384,4 +421,5 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             return true;
         }
     }
+
 }

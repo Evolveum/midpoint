@@ -185,4 +185,17 @@ public class JaccardSorter {
 
         return sorted;
     }
+
+
+    public static List<MiningUserTypeChunk> sortByFrequencyUserType(List<MiningUserTypeChunk> dataPoints) {
+        List<MiningUserTypeChunk> sorted = new ArrayList<>(dataPoints);
+        sorted.sort(Comparator.comparingDouble(MiningUserTypeChunk::getFrequency).reversed());
+        return sorted;
+    }
+
+    public static List<MiningRoleTypeChunk> sortByFrequencyRoleType(List<MiningRoleTypeChunk> dataPoints) {
+        List<MiningRoleTypeChunk> sorted = new ArrayList<>(dataPoints);
+        sorted.sort(Comparator.comparingDouble(MiningRoleTypeChunk::getFrequency).reversed());
+        return sorted;
+    }
 }

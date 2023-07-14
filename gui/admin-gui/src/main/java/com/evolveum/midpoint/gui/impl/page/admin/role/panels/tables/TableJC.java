@@ -7,23 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.panels.tables;
 
-import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.UrTypeGroup;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,11 +29,23 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+import com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.UrTypeGroup;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TableJC extends Panel {
 
@@ -61,7 +61,7 @@ public class TableJC extends Panel {
         return ((PageBase) getPage());
     }
 
-    public BoxedTablePanel<UrTypeGroup> generateTableRM(List<UrTypeGroup> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
+    public RoleMiningBoxedTablePanel<UrTypeGroup> generateTableRM(List<UrTypeGroup> userRoleList, List<PrismObject<RoleType>> rolePrismObjectList, boolean sortable) {
 
         RoleMiningProvider<UrTypeGroup> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(userRoleList) {
@@ -78,7 +78,7 @@ public class TableJC extends Panel {
         if (sortable) {
             provider.setSort(UrTypeGroup.F_NAME_USER_TYPE, SortOrder.ASCENDING);
         }
-        BoxedTablePanel<UrTypeGroup> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<UrTypeGroup> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumnsRM(rolePrismObjectList),
                 null, true, true);
         table.setOutputMarkupId(true);

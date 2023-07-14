@@ -12,15 +12,11 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -30,7 +26,6 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
@@ -49,14 +44,16 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
 
     private static final String ID_BUTTON_OK = "ok";
     private static final String ID_CANCEL_OK = "cancel";
-    MiningOperationChunk minedObjects;
+    List<MiningRoleTypeChunk> miningRoleTypeChunks;
+    List<MiningUserTypeChunk> miningUserTypeChunks;
     ClusterObjectUtils.Mode mode;
 
-    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, MiningOperationChunk minedObjects,
+    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
             ClusterObjectUtils.Mode mode) {
         super(id, messageModel);
         this.mode = mode;
-        this.minedObjects = minedObjects;
+        this.miningRoleTypeChunks = miningRoleTypeChunks;
+        this.miningUserTypeChunks = miningUserTypeChunks;
     }
 
     @Override
@@ -65,9 +62,6 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
 
         PageBase pageBase = (PageBase) getPage();
         OperationResult operationResult = new OperationResult("prepareObjects");
-
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = minedObjects.getMiningRoleTypeChunks();
-        List<MiningUserTypeChunk> miningUserTypeChunks = minedObjects.getMiningUserTypeChunks();
 
         List<PrismObject<FocusType>> elements = new ArrayList<>();
         List<PrismObject<FocusType>> points = new ArrayList<>();

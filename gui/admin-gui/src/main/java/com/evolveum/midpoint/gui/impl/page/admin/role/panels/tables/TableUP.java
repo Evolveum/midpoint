@@ -34,7 +34,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -59,7 +59,7 @@ public class TableUP extends Panel {
         return ((PageBase) getPage());
     }
 
-    public BoxedTablePanel<UpType> generateTableRM(List<UpType> upTypeList, List<AuthorizationType> permissions) {
+    public RoleMiningBoxedTablePanel<UpType> generateTableRM(List<UpType> upTypeList, List<AuthorizationType> permissions) {
 
         RoleMiningProvider<UpType> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(upTypeList) {
@@ -75,7 +75,7 @@ public class TableUP extends Panel {
 
         provider.setSort(UpType.F_NAME_USER_TYPE, SortOrder.ASCENDING);
 
-        BoxedTablePanel<UpType> table = new BoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<UpType> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumnsRM(permissions),
                 null, true, true);
         table.setOutputMarkupId(true);

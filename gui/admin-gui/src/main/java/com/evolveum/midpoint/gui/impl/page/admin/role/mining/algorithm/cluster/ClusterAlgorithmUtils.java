@@ -16,6 +16,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ListMultimap;
@@ -47,7 +51,7 @@ public class ClusterAlgorithmUtils {
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
-        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
+        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints);
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
@@ -127,7 +131,7 @@ public class ClusterAlgorithmUtils {
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
-        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints, clusterOptions.getIdentifier());
+        PrismObject<RoleAnalysisCluster> clusterTypePrismObject = prepareOutlierClusters(pageBase, dataPoints);
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
@@ -181,8 +185,7 @@ public class ClusterAlgorithmUtils {
         return generateClusterObject(pageBase, clusterStatistic, clusterOptions);
     }
 
-    public PrismObject<RoleAnalysisCluster> prepareOutlierClusters(PageBase pageBase, List<DataPoint> dataPoints,
-            String identifier) {
+    public PrismObject<RoleAnalysisCluster> prepareOutlierClusters(PageBase pageBase, List<DataPoint> dataPoints) {
 
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
@@ -277,13 +280,17 @@ public class ClusterAlgorithmUtils {
             if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
                         ClusterObjectUtils.Mode.ROLE, operationResult, true, false);
-                possibleBusinessRole = businessRoleDetection(miningOperationChunk, defaultMinFrequency,
+                List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
+                List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.NONE);
+                possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
                         defaultMaxFrequency,
                         group, intersection, mode);
             } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
                         ClusterObjectUtils.Mode.USER, operationResult, true, false);
-                possibleBusinessRole = businessRoleDetection(miningOperationChunk, defaultMinFrequency,
+                List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
+                List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.NONE);
+                possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
                         defaultMaxFrequency,
                         intersection, group, mode);
             }

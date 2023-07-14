@@ -33,6 +33,23 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ClusterObjectUtils {
 
+
+    public enum SORT {
+        JACCARD("JACCARD"),
+        FREQUENCY("FREQUENCY"),
+        NONE("NONE");
+
+        private final String displayString;
+
+        SORT(String displayString) {
+            this.displayString = displayString;
+        }
+
+        public String getDisplayString() {
+            return displayString;
+        }
+
+    }
     public enum Status {
         NEUTRAL("fa fa-plus"),
         ADD("fa fa-minus"),

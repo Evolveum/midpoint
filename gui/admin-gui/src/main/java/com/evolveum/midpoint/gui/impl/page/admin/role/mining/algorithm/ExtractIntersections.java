@@ -9,33 +9,30 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
-
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 
 public class ExtractIntersections {
 
-    public static List<IntersectionObject> businessRoleDetection(MiningOperationChunk miningOperationChunk, double minFrequency,
+    public static List<IntersectionObject> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency,
             double maxFrequency, int minIntersection, Integer minOccupancy, ClusterObjectUtils.Mode mode) {
 
         List<IntersectionObject> intersections = new ArrayList<>();
 
         if (mode.equals(ClusterObjectUtils.Mode.USER)) {
-            loadUsersIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
+            loadUsersIntersections(miningRoleTypeChunks, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
         } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
-            loadRolesIntersections(miningOperationChunk, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
+            loadRolesIntersections(miningUserTypeChunks, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
         }
 
         return intersections;
     }
 
-    private static void loadUsersIntersections(MiningOperationChunk miningOperationChunk, double minFrequency, double maxFrequency,
+    private static void loadUsersIntersections(List<MiningRoleTypeChunk> miningRoleTypeChunks, double minFrequency, double maxFrequency,
             int minIntersection, List<IntersectionObject> intersections, int minOccupancy) {
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks();
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
             double frequency = miningRoleTypeChunk.getFrequency();
@@ -130,9 +127,8 @@ public class ExtractIntersections {
         }
     }
 
-    private static void loadRolesIntersections(MiningOperationChunk miningOperationChunk, double minFrequency, double maxFrequency,
+    private static void loadRolesIntersections(List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency, double maxFrequency,
             int minIntersection, List<IntersectionObject> intersections, int minOccupancy) {
-        List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks();
         List<MiningUserTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
             double frequency = miningUserTypeChunk.getFrequency();
