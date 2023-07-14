@@ -12,6 +12,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -38,7 +41,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return DOMUtil.XSD_BASE64BINARY.equals(wrapper.getTypeName());
     }
 

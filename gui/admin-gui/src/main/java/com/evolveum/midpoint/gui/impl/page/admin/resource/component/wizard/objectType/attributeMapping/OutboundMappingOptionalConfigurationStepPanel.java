@@ -8,8 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -17,28 +19,42 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import java.util.List;
+
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-attribute-inbound",
+@PanelInstance(identifier = "rw-mapping-inbound-optional",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.mapping.inbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
-public class AttributeInboundStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<MappingType, ResourceDetailsModel> {
+public class OutboundMappingOptionalConfigurationStepPanel<ODM extends ObjectDetailsModels>
+        extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
 
-    public static final String PANEL_TYPE = "rw-attribute-inbound";
+    public static final String PANEL_TYPE = "rw-mapping-inbound-optional";
 
-    public AttributeInboundStepPanel(ResourceDetailsModel model,
-                                            IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
+    private static List<ItemName> VISIBLE_ITEMS = List.of(
+            MappingType.F_DESCRIPTION,
+            MappingType.F_EXCLUSIVE,
+            MappingType.F_AUTHORITATIVE,
+            MappingType.F_CHANNEL,
+            MappingType.F_EXCEPT_CHANNEL
+    );
+
+    public OutboundMappingOptionalConfigurationStepPanel(ODM model,
+                                                         IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
+    }
+
+    @Override
+    protected String getIcon() {
+        return "fa fa-screwdriver-wrench";
     }
 
     protected String getPanelType() {
@@ -47,17 +63,17 @@ public class AttributeInboundStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.attributes.mainConfiguration");
+        return createStringResource("PageResource.wizard.step.mapping.inbound.optional");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.text");
+        return createStringResource("PageResource.wizard.step.mapping.inbound.optional.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.subText");
+        return createStringResource("PageResource.wizard.step.mapping.inbound.optional.subText");
     }
 
     @Override
@@ -68,11 +84,6 @@ public class AttributeInboundStepPanel
     @Override
     protected boolean isExitButtonVisible() {
         return false;
-    }
-
-    @Override
-    public VisibleEnableBehaviour getBackBehaviour() {
-        return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
 
     @Override
@@ -94,10 +105,10 @@ public class AttributeInboundStepPanel
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(MappingType.F_LIFECYCLE_STATE)) {
-                return ItemVisibility.HIDDEN;
+            if (VISIBLE_ITEMS.stream().anyMatch(item -> item.equivalent(wrapper.getItemName()))) {
+                return ItemVisibility.AUTO;
             }
-            return ItemVisibility.AUTO;
+            return ItemVisibility.HIDDEN;
         };
     }
 }

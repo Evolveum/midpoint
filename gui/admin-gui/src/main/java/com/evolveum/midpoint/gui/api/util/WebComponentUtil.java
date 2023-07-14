@@ -5842,7 +5842,7 @@ public final class WebComponentUtil {
             return "fa fa-arrow-right-to-bracket";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_LOCKOUT_STATUS)) {
             return "fa fa-user-lock";
-        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_DELETE)) {
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_OF_DELETE)) {
             return "fa fa-user-slash";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DELAYED_DELETE)) {
             return "fa fa-clock";
@@ -5850,5 +5850,18 @@ public final class WebComponentUtil {
             return "fa fa-user-plus";
         }
         return "fa fa-circle";
+    }
+
+    public static LookupTableType loadLookupTable(String lookupTableOid, PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("Load lookup table");
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                .createLookupTableRetrieveOptions(pageBase.getSchemaService());
+        PrismObject<LookupTableType> prismLookupTable =
+                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
+        if (prismLookupTable != null) {
+            return  prismLookupTable.asObjectable();
+        }
+        return null;
     }
 }

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -143,7 +145,7 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
         if (strengthBean == null) {
             strengthBean = MappingStrengthType.NORMAL;
         }
-        return PageBase.createStringResourceStatic(null, strengthBean).getString();
+        return PageBase.createStringResourceStatic(null, strengthBean).getString().toLowerCase();
     }
 
     private String createDescription(MappingType mapping) {
@@ -162,7 +164,6 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
         if (expressionBean != null) {
             String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
             evaluatorType = ExpressionUtil.getExpressionType(expression);
-
 
         } else {
             evaluatorType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
@@ -234,6 +235,27 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
                     IModel<T> valueModel,
                     MappingTile.MappingDefinitionType mappingDefinitionType,
                     AjaxRequestTarget target) {
+
+                if (valueModel.getObject().getItems().size() == 1) {
+                    @NotNull ItemName itemName = valueModel.getObject().getItems().iterator().next().getItemName();
+                    if (itemName.equivalent(MappingType.F_LIFECYCLE_STATE)) {
+                        refresh(target);
+                        return;
+                    }
+                }
+
+                boolean dontOpenConfiguration = true;
+                for (ItemWrapper<?, ?> item : valueModel.getObject().getItems()) {
+                    if (item.isMandatory()) {
+                        dontOpenConfiguration = false;
+                    }
+                }
+
+                if (dontOpenConfiguration) {
+                    refresh(target);
+                    return;
+                }
+
                 if (MappingTile.MappingDefinitionType.PREDEFINED.equals(mappingDefinitionType)) {
                     editPredefinedMapping(
                             (IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>>) valueModel,

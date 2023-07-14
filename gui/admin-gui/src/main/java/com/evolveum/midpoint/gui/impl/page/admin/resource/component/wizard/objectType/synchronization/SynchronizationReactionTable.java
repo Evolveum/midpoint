@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.SimulationModeColumn;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -91,7 +91,7 @@ public abstract class SynchronizationReactionTable extends AbstractResourceWizar
             }
         });
 
-        columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
+        columns.add(new SimulationModeColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }

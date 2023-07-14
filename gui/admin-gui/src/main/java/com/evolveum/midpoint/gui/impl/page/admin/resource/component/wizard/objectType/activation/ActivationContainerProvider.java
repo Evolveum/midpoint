@@ -56,7 +56,7 @@ public class ActivationContainerProvider extends BaseSortableDataProvider<PrismC
     private boolean skipContainerDefinition(PrismContainerDefinition<? extends Containerable> definition){
         if (MappingDirection.INBOUND.equals(mappingDirection)) {
             if (ResourceActivationDefinitionType.F_EXISTENCE.equivalent(definition.getItemName())
-                    || ResourceActivationDefinitionType.F_DISABLE_INSTEAD_DELETE.equivalent(definition.getItemName())
+                    || ResourceActivationDefinitionType.F_DISABLE_INSTEAD_OF_DELETE.equivalent(definition.getItemName())
                     || ResourceActivationDefinitionType.F_DELAYED_DELETE.equivalent(definition.getItemName())
                     || ResourceActivationDefinitionType.F_PRE_PROVISION.equivalent(definition.getItemName())) {
                 return true;

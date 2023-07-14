@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.util.List;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -36,7 +39,7 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return AssignmentType.F_FOCUS_TYPE.equals(wrapper.getItemName()) || DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
     }
 

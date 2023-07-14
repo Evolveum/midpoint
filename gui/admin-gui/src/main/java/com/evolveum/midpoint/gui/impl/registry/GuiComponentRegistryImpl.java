@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.registry;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -83,19 +81,20 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     }
 
     @Override
-    public <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(ItemWrapper<?, ?> itemWrapper) {
+    public <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(
+            ItemWrapper<?, ?> parentItemWrapper, PrismValueWrapper<?> valueWrapper) {
         Optional<GuiComponentFactory<?>> opt = guiComponentFactories.stream()
-                .filter(f -> f.match(itemWrapper))
+                .filter(f -> f.match(parentItemWrapper, valueWrapper))
                 .findFirst();
         if (!opt.isPresent()) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("No factory found for {}", itemWrapper.debugDump());
+                LOGGER.trace("No factory found for {}", parentItemWrapper.debugDump());
             }
             return null;
         }
         GuiComponentFactory<?> factory = opt.get();
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Found component factory {} for \n{}", factory, itemWrapper.debugDump());
+            LOGGER.trace("Found component factory {} for \n{}", factory, parentItemWrapper.debugDump());
         }
         //noinspection unchecked
         return (GuiComponentFactory<T>) factory;

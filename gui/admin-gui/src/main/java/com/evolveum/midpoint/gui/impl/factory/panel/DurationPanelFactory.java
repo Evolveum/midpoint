@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DurationPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -29,7 +30,7 @@ public class DurationPanelFactory extends TextPanelFactory<Duration> {
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         QName type = wrapper.getTypeName();
         return DOMUtil.XSD_DURATION.equals(type);
     }
