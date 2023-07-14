@@ -5851,4 +5851,17 @@ public final class WebComponentUtil {
         }
         return "fa fa-circle";
     }
+
+    public static LookupTableType loadLookupTable(String lookupTableOid, PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("Load lookup table");
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                .createLookupTableRetrieveOptions(pageBase.getSchemaService());
+        PrismObject<LookupTableType> prismLookupTable =
+                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
+        if (prismLookupTable != null) {
+            return  prismLookupTable.asObjectable();
+        }
+        return null;
+    }
 }

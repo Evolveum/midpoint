@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.behavior.AttributeAppender;
@@ -47,19 +49,13 @@ public class LinkedReferencePanelFactory
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         boolean match = QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName()) &&
                 QNameUtil.match(CaseType.F_PARENT_REF, wrapper.getPath().asSingleName());
 
         //TODO match method must not change the state of the wrapper
         if (match) {
-            try {
-                PrismReferenceValueWrapperImpl<?> valueWrapper =
-                        (PrismReferenceValueWrapperImpl<?>) wrapper.getValue();
-                valueWrapper.setLink(true);
-            } catch (SchemaException e) {
-                LOGGER.warn("Unable to set isLink status for PrismReferenceValueWrapper: {}", e.getLocalizedMessage());
-            }
+            ((PrismReferenceValueWrapperImpl<?>)valueWrapper).setLink(true);
         }
         return wrapper instanceof PrismReferenceWrapper && (match || wrapper.isReadOnly() || wrapper.isMetadata());
     }

@@ -554,4 +554,15 @@ export default class MidPointTheme {
             chart.draw(data)
         });
     }
+
+    /**
+    * used in SimulationModePanel.java
+    *
+    * @param compId
+    */
+    initDropdownResize(panelId) {
+        var panel = $('#' + panelId);
+        panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
+        panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
+    }
 }

@@ -2215,7 +2215,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPredefinedActivationMappingType">
                 <xsd:sequence>
-                    <xsd:element name="deleteAfter" type="xsd:duration" minOccurs="0" default="P1M">
+                    <xsd:element name="deleteAfter" type="xsd:duration" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The time after which the account will be deleted.
@@ -2240,7 +2240,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPredefinedActivationMappingType">
                 <xsd:sequence>
-                    <xsd:element name="createBefore" type="xsd:duration" minOccurs="0" default="-P5D">
+                    <xsd:element name="createBefore" type="xsd:duration" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Time determines how long before date, from activation/validFrom attribute,

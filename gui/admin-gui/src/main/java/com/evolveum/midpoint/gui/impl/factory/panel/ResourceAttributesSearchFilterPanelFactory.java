@@ -31,8 +31,8 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributesSearchFilterPanelFactory.class);
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return super.match(wrapper)
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+        return super.match(wrapper, valueWrapper)
                 && ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,

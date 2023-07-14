@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -40,7 +40,7 @@ public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<String
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return PasswordType.F_HINT.matches(wrapper.getItemName());
     }
 

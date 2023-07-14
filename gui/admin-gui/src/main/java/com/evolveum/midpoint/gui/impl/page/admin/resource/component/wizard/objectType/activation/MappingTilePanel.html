@@ -7,10 +7,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <a class="ml-auto btn p-0" wicket:id="removeButton">
-        <i class="fa fa-trash text-body"/>
-    </a>
-    <div class="logo d-flex justify-content-center mt-n3">
+    <div wicket:id="lifecycleState" class="ml-auto p-0"/>
+    <div class="logo d-flex justify-content-center mt-3">
         <i class="text-lightblue align-self-center fa-2x" wicket:id="icon"/>
     </div>
     <div class="d-flex justify-content-center">
@@ -20,8 +18,8 @@
     <span class="mb-2 text-secondary text-center tile-description" wicket:id="description"/>
     <span class="invisible" wicket:id="tag"/>
     <div class="mt-auto d-flex flex-column w-100">
-        <div wicket:id="lifecycleState" class="mb-3"/>
-        <button class="btn btn-default" wicket:id="configureButton"/>
+        <button class="btn btn-default mb-3" wicket:id="configureButton"/>
+        <button class="btn btn-block btn-outline-secondary" style="border:none;" wicket:id="removeButton"/>
     </div>
 </wicket:panel>
 </html>

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.SimulationModeColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -245,7 +245,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
             }
         });
 
-        columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
+        columns.add(new SimulationModeColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }
