@@ -186,7 +186,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
         //TODO QName defines a relation value which will be used for new member creation
         MainObjectListPanel<AH> childrenListPanel = new MainObjectListPanel<>(
-                ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getSearchOptions(), getPanelConfiguration()) {
+                ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getPanelConfiguration()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -238,7 +238,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
-                SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
+                SelectableBeanObjectDataProvider<AH> provider =
+                        createSelectableBeanObjectDataProvider(
+                                () -> getCustomizedQuery(getSearchModel().getObject()),
+                                null,
+                                getSearchOptions());
                 provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject()));
                 return provider;
             }

@@ -147,7 +147,7 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         filterEditor.setHeight(400);
         filterEditor.setResizeToMaxHeight(false);
         mainForm.add(filterEditor);
-
+        
         mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
 
         mainForm.add(new CheckBox(ID_SELECTOR_TRACING, selectorTracingModel));

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.NotLoggedInException;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -50,6 +52,8 @@ public class ResourceTaskCreator {
 
     private ActivitySubmissionOptions submissionOptions;
 
+    private FocusType owner;
+
     private ResourceTaskCreator(@NotNull ResourceType resource, @NotNull PageBase pageBase) {
         this.resource = resource;
         this.pageBase = pageBase;
@@ -71,6 +75,11 @@ public class ResourceTaskCreator {
     public ResourceTaskCreator ofFlavor(SynchronizationTaskFlavor flavor) {
         stateCheck(specifiedArchetypeOid == null, "Cannot specify both flavor and archetype");
         specifiedFlavor = flavor;
+        return this;
+    }
+
+    public ResourceTaskCreator ownedByCurrentUser() throws NotLoggedInException {
+        this.owner = AuthUtil.getPrincipalObjectRequired();
         return this;
     }
 
@@ -159,7 +168,8 @@ public class ResourceTaskCreator {
                         submissionOptions,
                         () -> ActivitySubmissionOptions.create())
                 .withTaskTemplate(new TaskType()
-                        .objectRef(ObjectTypeUtil.createObjectRef(resource)));
+                        .objectRef(ObjectTypeUtil.createObjectRef(resource)))
+                .withOwner(owner);
     }
 
     public @NotNull String submit(@NotNull Task task, @NotNull OperationResult result) throws CommonException {

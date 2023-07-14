@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.api;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,10 +27,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @Experimental
 public record ActivitySubmissionOptions(
         @Nullable TaskType taskTemplate,
-        @NotNull String[] archetypes) {
+        @NotNull String[] archetypes,
+        @Nullable FocusType owner) {
 
     public static ActivitySubmissionOptions create() {
-        return new ActivitySubmissionOptions(null, new String[0]);
+        return new ActivitySubmissionOptions(null, new String[0], null);
     }
 
     /**
@@ -38,7 +41,7 @@ public record ActivitySubmissionOptions(
      * implementation for the details.
      */
     public ActivitySubmissionOptions withTaskTemplate(@Nullable TaskType task) {
-        return new ActivitySubmissionOptions(task, archetypes);
+        return new ActivitySubmissionOptions(task, archetypes, owner);
     }
 
     /**
@@ -47,6 +50,10 @@ public record ActivitySubmissionOptions(
     public ActivitySubmissionOptions withArchetypes(@NotNull String... oids) {
         Arrays.stream(oids)
                 .forEach(Objects::requireNonNull);
-        return new ActivitySubmissionOptions(taskTemplate, oids);
+        return new ActivitySubmissionOptions(taskTemplate, oids, owner);
+    }
+
+    public ActivitySubmissionOptions withOwner(@Nullable FocusType owner) {
+        return new ActivitySubmissionOptions(taskTemplate, archetypes, owner);
     }
 }

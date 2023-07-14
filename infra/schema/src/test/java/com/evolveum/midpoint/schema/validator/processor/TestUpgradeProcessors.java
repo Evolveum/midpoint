@@ -8,26 +8,27 @@
 package com.evolveum.midpoint.schema.validator.processor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.assertj.core.api.Assertions;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.validator.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TestUpgradeProcessors extends AbstractSchemaTest {
 
@@ -40,15 +41,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     }
 
     private <O extends ObjectType> void testUpgradeValidator(String fileName, Consumer<UpgradeValidationResult> resultConsumer) throws Exception {
-        File file = new File(RESOURCES, fileName);
-        Assertions.assertThat(file)
-                .exists()
-                .isFile()
-                .isNotEmpty();
-
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
-
-        Assertions.assertThat(object).isNotNull();
+        PrismObject<O> object = parseObject(fileName);
 
         ObjectUpgradeValidator validator = new ObjectUpgradeValidator(getPrismContext());
         validator.showAllWarnings();
@@ -59,6 +52,43 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         LOGGER.info("Validation result:\n{}", result.debugDump());
 
         resultConsumer.accept(result);
+    }
+
+    private <O extends ObjectType> PrismObject<O> parseObject(String fileName) throws SchemaException, IOException {
+        File file = new File(RESOURCES, fileName);
+        Assertions.assertThat(file)
+                .exists()
+                .isFile()
+                .isNotEmpty();
+
+        PrismObject<O> object = getPrismContext().parserFor(file).compat().parse();
+        Assertions.assertThat(object).isNotNull();
+
+        return object;
+    }
+
+    private void assertUpgrade(String originalFile, String expectedFile, UpgradeValidationResult result) {
+        try {
+            PrismObject<ResourceType> original = parseObject(originalFile);
+            PrismObject<ResourceType> expected = parseObject(expectedFile);
+
+            result.getItems().forEach(i -> {
+                try {
+                    ObjectDelta delta = i.getDelta();
+                    if (delta == null || delta.isEmpty()) {
+                        return;
+                    }
+                    delta.applyTo(original);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            });
+
+            AssertJUnit.assertTrue(expected.equivalent(original));
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't assert upgrade result", ex);
+            AssertJUnit.fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -140,6 +170,18 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             Assertions.assertThat(item.getDelta().getModifiedItems()).isEmpty();
 
             // todo assert deltas
+        });
+    }
+
+    @Test
+    public void test50SecurityPolicy() throws Exception {
+        testUpgradeValidator("security-policy.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(0);
+
+            Assertions.assertThat(result.hasChanges()).isFalse();
+
+            assertUpgrade("security-policy.xml", "security-policy-expected.xml", result);
         });
     }
 

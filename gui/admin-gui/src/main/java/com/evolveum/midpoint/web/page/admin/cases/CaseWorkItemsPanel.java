@@ -71,17 +71,17 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         super(id, CaseWorkItemType.class);
     }
 
-    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, CaseWorkItemType.class, options);
-    }
+//    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
+//        super(id, CaseWorkItemType.class, options);
+//    }
 
-    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
-        super(id, CaseWorkItemType.class, options, configurationType);
+    public CaseWorkItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
+        super(id, CaseWorkItemType.class, configurationType);
     }
 
     //TODO wucik hack. cleanup needed. also, what about my cases? all cases? how to differentiate
     public CaseWorkItemsPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
-        super(id, CaseWorkItemType.class, null, configurationType);
+        super(id, CaseWorkItemType.class, configurationType);
     }
 
     @Override

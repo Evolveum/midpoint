@@ -64,7 +64,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
     public SimulationResultsPanel(String id, ContainerPanelConfigurationType config) {
-        super(id, SimulationResultType.class, null, config);
+        super(id, SimulationResultType.class, config);
     }
 
     @Override

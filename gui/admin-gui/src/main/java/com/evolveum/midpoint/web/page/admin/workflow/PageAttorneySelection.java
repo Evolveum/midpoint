@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
@@ -94,7 +93,7 @@ public class PageAttorneySelection extends PageBase {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        ObjectListPanel<UserType> table = new ObjectListPanel<>(ID_TABLE, UserType.class, Collections.emptyList()) {
+        ObjectListPanel<UserType> table = new ObjectListPanel<>(ID_TABLE, UserType.class) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {

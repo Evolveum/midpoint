@@ -35,19 +35,11 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     private static final long serialVersionUID = 1L;
 
     public CasesTablePanel(String id) {
-        this(id, null, null);
-    }
-
-    public CasesTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, CaseType.class, options);
-    }
-
-    public CasesTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
-        super(id, CaseType.class, options, config);
+        this(id, null);
     }
 
     public CasesTablePanel(String id, ContainerPanelConfigurationType config) {
-        super(id, CaseType.class, null, config);
+        super(id, CaseType.class, config);
     }
 
     @Override
@@ -57,11 +49,17 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     @Override
     protected ISelectableDataProvider<SelectableBean<CaseType>> createProvider() {
-        SelectableBeanObjectDataProvider<CaseType> provider = createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(),
-                (sortParam) -> WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext()));
+        SelectableBeanObjectDataProvider<CaseType> provider =
+                createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(),
+                (sortParam) -> WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext()),
+                        createOperationOptions());
         provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
 
         return provider;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
+        return null;
     }
 
     @Override

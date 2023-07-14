@@ -102,8 +102,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
      */
     private boolean rootTasksOnly;
 
-    public TaskTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, TaskType.class, options);
+    public TaskTablePanel(String id) {
+        super(id, TaskType.class);
     }
 
     void setRootTasksOnly(boolean rootTasksOnly) {

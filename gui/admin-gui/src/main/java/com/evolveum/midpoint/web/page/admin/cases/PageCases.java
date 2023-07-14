@@ -92,7 +92,7 @@ public class PageCases extends PageAdmin {
     }
 
     private void initLayout() {
-        CasesTablePanel tablePanel = new CasesTablePanel(ID_TABLE, createOperationOptions()) {
+        CasesTablePanel tablePanel = new CasesTablePanel(ID_TABLE) {
 
             private static final long serialVersionUID = 1L;
 
@@ -113,15 +113,16 @@ public class PageCases extends PageAdmin {
             protected List<InlineMenuItem> createInlineMenu() {
                 return createActions();
             }
+
+            @Override
+            protected Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
+                return getPageBase().getOperationOptionsBuilder()
+                        .item(CaseType.F_OBJECT_REF).resolve()
+                        .item(CaseType.F_TARGET_REF).resolve()
+                        .build();
+            }
         };
         add(tablePanel);
-    }
-
-    private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
-        return getOperationOptionsBuilder()
-                .item(CaseType.F_OBJECT_REF).resolve()
-                .item(CaseType.F_TARGET_REF).resolve()
-                .build();
     }
 
     private boolean isCaseInRowClosed(IModel<SelectableBeanImpl<CaseType>> rowModel) {

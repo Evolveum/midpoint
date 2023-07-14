@@ -1,23 +1,23 @@
 package com.evolveum.midpoint.ninja.action.verify;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.evolveum.midpoint.ninja.action.VerifyResult;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
+import com.evolveum.midpoint.ninja.action.VerifyResult;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class VerificationReporter {
+
+    public static final String DELTA_FILE_NAME_SUFFIX = ".delta.xml";
 
     public static final List<String> REPORT_HEADER = List.of(
             "Oid",
@@ -50,18 +52,46 @@ public class VerificationReporter {
 
     private final PrismContext prismContext;
 
+    private final Charset charset;
+
     private ObjectUpgradeValidator validator;
 
-    private VerifyResult result = new VerifyResult();
+    private final VerifyResult result = new VerifyResult();
 
-    public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext) {
+    private boolean createDeltaFile;
+
+    private Writer deltaWriter;
+
+    public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext, Charset charset) {
         this.options = options;
         this.prismContext = prismContext;
-
-        init();
+        this.charset = charset;
     }
 
-    private void init() {
+    public boolean isCreateDeltaFile() {
+        return createDeltaFile;
+    }
+
+    public void setCreateDeltaFile(boolean createDeltaFile) {
+        this.createDeltaFile = createDeltaFile;
+    }
+
+    public void destroy() {
+        if (createDeltaFile) {
+            try {
+                deltaWriter.write("</deltas>\n");
+            } catch (IOException ex) {
+                throw new NinjaException("Couldn't finish file for XML deltas", ex);
+            }
+            IOUtils.closeQuietly(deltaWriter);
+        }
+    }
+
+    public void init() {
+        if (createDeltaFile) {
+            initDeltaXmlFile();
+        }
+
         validator = new ObjectUpgradeValidator(prismContext);
 
         validator.setWarnPlannedRemovalVersion(options.getPlannedRemovalVersion());
@@ -88,6 +118,35 @@ public class VerificationReporter {
                         throw new IllegalArgumentException("Unknown category " + category);
                 }
             }
+        }
+    }
+
+    private void initDeltaXmlFile() {
+        if (options.getOutput() == null || !VerifyOptions.ReportStyle.CSV.equals(options.getReportStyle())) {
+            return;
+        }
+
+        final File deltaFile = new File(options.getOutput() + DELTA_FILE_NAME_SUFFIX);
+
+        try {
+            if (deltaFile.exists()) {
+                if (options.isOverwrite()) {
+                    deltaFile.delete();
+                } else {
+                    throw new NinjaException("Export file for XML delta '" + deltaFile.getPath() + "' already exists");
+                }
+            }
+
+            deltaFile.createNewFile();
+
+            deltaWriter = new FileWriter(deltaFile, charset);
+            deltaWriter.write(
+                    "<deltas "
+                            + "xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/api-types-3\" "
+                            + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                            + "xsi:type=\"ObjectDeltaListType\">\n");
+        } catch (IOException ex) {
+            throw new NinjaException("Couldn't create file for XML deltas " + deltaFile.getPath(), ex);
         }
     }
 
@@ -122,7 +181,7 @@ public class VerificationReporter {
                 .build();
     }
 
-    public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
+    public <T extends Objectable> UpgradeValidationResult verify(Writer writer, PrismObject<T> object) throws IOException {
         UpgradeValidationResult result = validator.validate((PrismObject) object);
 
         for (UpgradeValidationItem item : result.getItems()) {
@@ -143,6 +202,8 @@ public class VerificationReporter {
             default:
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
+
+        return result;
     }
 
     public static String getIdentifierFromRecord(CSVRecord record) {

@@ -15,25 +15,32 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceType> {
 
     private static final String DOT_CLASS = ResourceDetailsModel.class.getName() + ".";
     private static final String OPERATION_FETCH_SCHEMA = DOT_CLASS + "fetchSchema";
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsModel.class);
 
     private final LoadableModel<List<ObjectClassWrapper>> objectClassesModel;
 
@@ -106,5 +113,71 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         WrapperContext ctx = super.createWrapperContext(task, result);
         ctx.setConfigureMappingType(true);
         return ctx;
+    }
+
+    private ResourceSchema getResourceSchemaOrNothing() {
+        try {
+            return getRefinedSchema();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot load resource schema", e);
+            return null;
+        }
+
+    }
+
+    public ResourceObjectTypeDefinitionType getDefaultObjectType(ShadowKindType kind) {
+        ResourceSchema resourceSchema = getResourceSchemaOrNothing();
+        if (resourceSchema == null) {
+            return null;
+        }
+        ResourceObjectDefinition defaultObjectType = resourceSchema.findDefaultDefinitionForKind(kind);
+        if (defaultObjectType != null) {
+            return defaultObjectType.getDefinitionBean();
+        }
+        List<ResourceObjectTypeDefinitionType> objectTypes = getResourceObjectTypesDefinitions(kind);
+        if (objectTypes.isEmpty()) {
+            return null;
+        }
+        return objectTypes.iterator().next();
+    }
+
+    public List<ResourceObjectTypeDefinitionType> getResourceObjectTypesDefinitions(ShadowKindType kind) {
+        ResourceSchema resourceSchema = getResourceSchemaOrNothing();
+
+        if (resourceSchema == null) {
+            return null;
+        }
+        return resourceSchema.getObjectTypeDefinitions(kind)
+                .stream()
+                .map(ResourceObjectDefinition::getDefinitionBean)
+                .collect(Collectors.toList());
+    }
+
+    public QName getDefaultObjectClass() {
+        List<QName> objectClassDefinitions = getResourceObjectClassesDefinitions();
+        if (objectClassDefinitions == null) {
+            return null;
+        }
+        return objectClassDefinitions.iterator().next();
+    }
+
+    public List<QName> getResourceObjectClassesDefinitions() {
+        ResourceSchema resourceSchema = getResourceSchemaOrNothing();
+
+        if (resourceSchema == null) {
+            return null;
+        }
+        return resourceSchema.getObjectClassDefinitions()
+                .stream()
+                .map(ResourceObjectDefinition::getObjectClassName)
+                .collect(Collectors.toList());
+    }
+
+    public ResourceObjectDefinition findResourceObjectClassDefinition(QName objectClass) {
+        ResourceSchema schema = getResourceSchemaOrNothing();
+        if (schema == null) {
+            return null;
+        }
+        return schema.findObjectClassDefinition(objectClass);
     }
 }

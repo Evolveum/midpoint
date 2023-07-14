@@ -83,7 +83,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     }
 
     protected void initLayout() {
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, null, getPanelConfiguration()) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, getPanelConfiguration()) {
             private static final long serialVersionUID = 1L;
 
             @Override
