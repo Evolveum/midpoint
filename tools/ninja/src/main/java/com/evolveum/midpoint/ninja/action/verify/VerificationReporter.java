@@ -39,7 +39,7 @@ public class VerificationReporter {
             "Phase",
             "Priority",
             "Type",
-            "Skip upgrade [yes/no]"
+            "Skip upgrade [yes/no] Default: no"
     );
 
     public static final CSVFormat CSV_FORMAT;

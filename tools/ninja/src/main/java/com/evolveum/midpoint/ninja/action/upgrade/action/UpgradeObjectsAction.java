@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
+import com.evolveum.midpoint.ninja.impl.LogTarget;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -28,6 +30,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
     private Map<UUID, Set<String>> skipUpgradeForOids;
+
+    @Override
+    public LogTarget getLogTarget() {
+        return LogTarget.SYSTEM_OUT;
+    }
 
     @Override
     public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {

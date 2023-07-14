@@ -17,12 +17,12 @@ public class EnumConverterValidator<T extends Enum> implements IStringConverter<
 
     @Override
     public void validate(String name, String value) throws ParameterException {
-        T mode = convert(value);
-        if (mode == null) {
+        T converted = convert(value);
+        if (converted == null) {
             throw new ParameterException("Unknown value '" + value + "', supported values: " +
                     Arrays.toString(
                             Arrays.stream(enumClass.getEnumConstants())
-                                    .map(m -> m.name().toLowerCase())
+                                    .map(c -> c.name().toLowerCase())
                                     .toArray()));
         }
     }
