@@ -18,7 +18,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleCatalogType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-// todo tests
+/**
+ * support-4.4 - not usable
+ * support-4.7 - BEFORE phase
+ */
 @SuppressWarnings("unused")
 public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemConfigurationType>, ProcessorMixin {
 
@@ -57,6 +60,9 @@ public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemCon
         roleCatalog.setRoleCatalogRef(roleCatalogRef);
 
         roleManagement.setRoleCatalogRef(null);
+        if (roleManagement.asPrismContainerValue().isEmpty()) {
+            system.setRoleManagement(null);
+        }
 
         return true;
     }

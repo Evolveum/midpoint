@@ -61,7 +61,7 @@ public class VerifyOptions extends ExportOptions {
 
     public static final String P_CONTINUE_VERIFICATION_ON_ERROR = "--continue-verification-on-error";
 
-    public static final String P_FILES = "--files";
+    public static final String P_FILE = "--file";
     public static final String P_PLANNED_REMOVAL_VERSION = "--planned-removal-version";
 
     @Parameter(names = { P_VERIFICATION_CATEGORY_LONG }, descriptionKey = "verify.verificationCategory",
@@ -76,7 +76,7 @@ public class VerifyOptions extends ExportOptions {
     @Parameter(names = { P_CONTINUE_VERIFICATION_ON_ERROR }, descriptionKey = "verify.continueVerificationOnError")
     private boolean continueVerificationOnError = true;
 
-    @Parameter(names = { P_FILES }, descriptionKey = "verify.files", variableArity = true)
+    @Parameter(names = { P_FILE }, descriptionKey = "verify.files", variableArity = true)
     private List<File> files = new ArrayList<>();
 
     @Parameter(names = { P_PLANNED_REMOVAL_VERSION }, descriptionKey = "verify.plannedRemovalVersion")
