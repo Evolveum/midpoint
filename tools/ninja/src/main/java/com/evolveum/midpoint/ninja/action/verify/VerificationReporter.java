@@ -206,6 +206,19 @@ public class VerificationReporter {
         return result;
     }
 
+    public static String getItemPathFromRecord(CSVRecord record) {
+        if (record == null || record.size() != REPORT_HEADER.size()) {
+            return "";
+        }
+
+        String path = record.get(4);
+        if (StringUtils.isBlank(path)) {
+            return "";
+        }
+
+        return path.trim();
+    }
+
     public static String getIdentifierFromRecord(CSVRecord record) {
         if (record == null || record.size() != REPORT_HEADER.size()) {
             return null;

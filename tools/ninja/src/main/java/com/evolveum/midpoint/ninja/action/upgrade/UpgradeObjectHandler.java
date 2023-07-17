@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.ninja.action.upgrade.action.UpgradeObjectsOptions;
@@ -24,22 +24,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class UpgradeObjectHandler {
 
-    private UpgradeObjectsOptions options;
+    private final UpgradeObjectsOptions options;
 
-    private NinjaContext context;
+    private final NinjaContext context;
 
-    public UpgradeObjectHandler(UpgradeObjectsOptions options, NinjaContext context) {
+    private final Map<UUID, Set<SkipUpgradeItem>> skipUpgradeItems;
+
+    public UpgradeObjectHandler(
+            UpgradeObjectsOptions options, NinjaContext context, Map<UUID, Set<SkipUpgradeItem>> skipUpgradeItems) {
+
         this.options = options;
         this.context = context;
+        this.skipUpgradeItems = skipUpgradeItems;
     }
 
     /**
      * Filters out items that are not applicable for upgrade, applies delta to object.
      *
-     * @param object
-     * @param <O>
+     * @param object to upgrade
+     * @param <O> type of object
      * @return true if object was changed
-     * @throws Exception
      */
     public <O extends ObjectType> boolean execute(PrismObject<O> object) {
         final PrismContext prismContext = context.getPrismContext();
@@ -51,7 +55,7 @@ public class UpgradeObjectHandler {
             return false;
         }
 
-        List<UpgradeValidationItem> applicableItems = filterApplicableItems(result.getItems());
+        List<UpgradeValidationItem> applicableItems = filterApplicableItems(object.getOid(), result.getItems());
         if (applicableItems.isEmpty()) {
             return false;
         }
@@ -78,7 +82,7 @@ public class UpgradeObjectHandler {
         return true;
     }
 
-    private List<UpgradeValidationItem> filterApplicableItems(List<UpgradeValidationItem> items) {
+    private List<UpgradeValidationItem> filterApplicableItems(String oid, List<UpgradeValidationItem> items) {
         return items.stream().filter(item -> {
             if (!item.isChanged()) {
                 return false;
@@ -96,7 +100,23 @@ public class UpgradeObjectHandler {
                 return false;
             }
 
-            return matchesOption(options.getPriorities(), item.getPriority());
+            if (!matchesOption(options.getPriorities(), item.getPriority())) {
+                return false;
+            }
+
+            ItemPath path = item.getItem().getItemPath();
+            if (path == null) {
+                return true;
+            }
+
+            Set<SkipUpgradeItem> skipItems = skipUpgradeItems.getOrDefault(UUID.fromString(oid), new HashSet<>());
+            for (SkipUpgradeItem skipItem : skipItems) {
+                if (Objects.equals(skipItem.getPath(), path.toString())) {
+                    return false;
+                }
+            }
+
+            return true;
         }).collect(Collectors.toList());
     }
 
