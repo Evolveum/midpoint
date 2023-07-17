@@ -19,8 +19,6 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * Validator that can process objects, validate them, check for errors and warning
  * and possibly even transform object during upgrades.
