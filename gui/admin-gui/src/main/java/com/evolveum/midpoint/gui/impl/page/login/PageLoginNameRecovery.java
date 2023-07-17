@@ -11,34 +11,37 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -46,6 +49,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.springframework.security.core.Authentication;
@@ -61,20 +65,29 @@ import java.util.stream.Collectors;
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
 public class PageLoginNameRecovery extends PageAuthenticationBase {
 
+    private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageLoginNameRecovery.class);
     private static final String DOT_CLASS = PageLoginNameRecovery.class.getName() + ".";
-    protected static final String OPERATION_LOAD_ARCHETYPE_BASED_MODULE = DOT_CLASS + "loadArchetypeBasedAuthModule";
+    protected static final String OPERATION_LOAD_USER_OBJECT_WRAPPER = DOT_CLASS + "loadUserObjectWrapper";
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
     protected static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
     protected static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
+    protected static final String OPERATION_CREATE_ITEM_WRAPPER = DOT_CLASS + "createItemWrapper";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_ARCHETYPE_SELECTION_PANEL = "archetypeSelectionPanel";
     private static final String ID_ARCHETYPES_PANEL = "archetypes";
     private static final String ID_ARCHETYPE_PANEL = "archetype";
+    private static final String ID_ITEMS_PANEL = "itemsPanel";
+    private static final String ID_ITEM_PANEL = "itemPanel";
 
-    private LoadableDetachableModel<ArchetypeSelectionModuleType> archetypeBasedAuthModuleModel;
+    private LoadableDetachableModel<ArchetypeSelectionModuleType> archetypeSelectionModuleModel;
+    private LoadableDetachableModel<List<ItemsCorrelatorType>> correlatorsModel;
+    private LoadableDetachableModel<List<ItemPath>> itemPathListModel;
+
+    private PrismObjectWrapper<UserType> objectWrapper;
+    private boolean archetypeSelected = false;
 
     public PageLoginNameRecovery() {
         super();
@@ -94,14 +107,38 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
 
     @Override
     protected void initModels() {
-        archetypeBasedAuthModuleModel = new LoadableDetachableModel<>() {
+        archetypeSelectionModuleModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected ArchetypeSelectionModuleType load() {
-                return loadArchetypeBasedModule();
+                return loadArchetypeSelectionModule();
             }
         };
+
+        itemPathListModel = new LoadableDetachableModel<>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected List<ItemPath> load() {
+                return getCurrentCorrelationItemPathList();
+            }
+        };
+
+        initUserObjectWrapper();
+    }
+
+    private void initUserObjectWrapper() {
+        var task = createAnonymousTask(OPERATION_LOAD_USER_OBJECT_WRAPPER);
+        var result = new OperationResult(OPERATION_LOAD_USER_OBJECT_WRAPPER);
+        var user = new UserType().asPrismObject();
+        PrismObjectWrapperFactory<UserType> factory = findObjectWrapperFactory(user.getDefinition());
+
+        WrapperContext context = new WrapperContext(task, result);
+        try {
+            objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't create object wrapper", e);
+        }
     }
 
     private ArchetypeSelectionModuleType getModuleByIdentifier(String moduleIdentifier) {
@@ -121,7 +158,7 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
                 .orElse(null);
     }
 
-    private ArchetypeSelectionModuleType loadArchetypeBasedModule() {
+    private ArchetypeSelectionModuleType loadArchetypeSelectionModule() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof MidpointAuthentication)) {
             getSession().error(getString("No midPoint authentication is found"));
@@ -169,6 +206,7 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
         add(form);
 
         initArchetypeSelectionPanel(form);
+        initItemsPanel(form);
 
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -185,9 +223,12 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
     private void initArchetypeSelectionPanel(MidpointForm<?> form) {
         WebMarkupContainer archetypeSelectionPanel = new WebMarkupContainer(ID_ARCHETYPE_SELECTION_PANEL);
         archetypeSelectionPanel.setOutputMarkupId(true);
+        archetypeSelectionPanel.add(new VisibleBehaviour(() -> !archetypeSelected));
         form.add(archetypeSelectionPanel);
 
         ListView<Tile<ArchetypeType>> archetypeListPanel = new ListView<>(ID_ARCHETYPES_PANEL, loadTilesModel()) {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<Tile<ArchetypeType>> item) {
@@ -200,10 +241,12 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
     private LoadableModel<List<Tile<ArchetypeType>>> loadTilesModel() {
         return new LoadableModel<>(false) {
 
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected List<Tile<ArchetypeType>> load() {
                 List<Tile<ArchetypeType>> tiles = new ArrayList<>();
-                var archetypeSelectionType = archetypeBasedAuthModuleModel.getObject().getArchetypeSelection();
+                var archetypeSelectionType = archetypeSelectionModuleModel.getObject().getArchetypeSelection();
                 if (archetypeSelectionType == null) {
                     return tiles;
                 }
@@ -239,42 +282,60 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
 
     private Component createTilePanel(IModel<Tile<ArchetypeType>> tileModel) {
         return new TilePanel<>(ID_ARCHETYPE_PANEL, tileModel) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onClick(AjaxRequestTarget target) {
-                var archetype = tileModel.getObject().getValue();
-                var objectTemplate = loadObjectTemplateForArchetype(archetype);
-                if (objectTemplate == null) {
-                    //todo show warning?
-                    return;
-                }
-                var pathSet = getCorrelatorItems(objectTemplate);
-                if (pathSet == null) {
-                    return;
-                }
-
+                archetypeSelected = true;
+                initCorrelationItemsModel(tileModel.getObject());
+                target.add(PageLoginNameRecovery.this);
             }
         };
     }
 
     private ObjectTemplateType loadObjectTemplateForArchetype(ArchetypeType archetype) {
-        var archetypePolicy = archetype.getArchetypePolicy();
-        if (archetypePolicy == null) {
-            return null;
-        }
-        var objectTemplateRef = archetypePolicy.getObjectTemplateRef();
-        var loadobjectTemplateTask = createAnonymousTask(OPERATION_LOAD_OBJECT_TEMPLATE);
-        var result = new OperationResult(OPERATION_LOAD_OBJECT_TEMPLATE);
-        PrismObject<ObjectTemplateType> objectTemplate = WebModelServiceUtils.resolveReferenceNoFetch(objectTemplateRef,
-                PageLoginNameRecovery.this, loadobjectTemplateTask, result);
-        return objectTemplate == null ? null : objectTemplate.asObjectable();
+        return runPrivileged((Producer<ObjectTemplateType>) () -> {
+            var archetypePolicy = archetype.getArchetypePolicy();
+            if (archetypePolicy == null) {
+                return null;
+            }
+            var objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+            var loadObjectTemplateTask = createAnonymousTask(OPERATION_LOAD_OBJECT_TEMPLATE);
+            var result = new OperationResult(OPERATION_LOAD_OBJECT_TEMPLATE);
+            PrismObject<ObjectTemplateType> objectTemplate = WebModelServiceUtils.resolveReferenceNoFetch(objectTemplateRef,
+                    PageLoginNameRecovery.this, loadObjectTemplateTask, result);
+            return objectTemplate == null ? null : objectTemplate.asObjectable();
+        });
     }
 
-    private PathSet getCorrelatorItems(ObjectTemplateType objectTemplate) {
+    private void initCorrelationItemsModel(Tile<ArchetypeType> tile) {
+        correlatorsModel = new LoadableDetachableModel<>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ItemsCorrelatorType> load() {
+                var archetype = tile.getValue();
+                var objectTemplate = loadObjectTemplateForArchetype(archetype);
+                if (objectTemplate == null) {
+                    //todo show warning?
+                    return Collections.emptyList();
+                }
+                return getCorrelators(objectTemplate);
+            }
+        };
+    }
+
+    private List<ItemsCorrelatorType> getCorrelators(ObjectTemplateType objectTemplate) {
         var correlatorConfiguration = determineCorrelatorConfiguration(objectTemplate);
         if (correlatorConfiguration == null) {
-            return null;
+            return Collections.emptyList();
         }
-        return correlatorConfiguration.getCorrelationItemPaths();
+
+        return ((CompositeCorrelatorType) correlatorConfiguration.getConfigurationBean())
+                .getItems()
+                .stream()
+                .filter(c -> c instanceof ItemsCorrelatorType)
+                .collect(Collectors.toList());
     }
 
     private CorrelatorConfiguration determineCorrelatorConfiguration(ObjectTemplateType objectTemplate) {
@@ -283,9 +344,59 @@ public class PageLoginNameRecovery extends PageAuthenticationBase {
             var systemConfiguration = getModelInteractionService().getSystemConfiguration(result);
             return getCorrelationService().determineCorrelatorConfiguration(objectTemplate, systemConfiguration);
         } catch (SchemaException| ObjectNotFoundException e) {
-            LOGGER.error("Couldn't determine correlation configuration.");
+            LoggingUtils.logException(LOGGER, "Couldn't determine correlation configuration.", e);
         }
         return null;
+    }
+
+    private List<ItemPath> getCurrentCorrelationItemPathList() {
+        var index = 0; //todo this should be the index of the currently processing correlator
+        List<ItemPath> pathList = new ArrayList<>();
+        if (correlatorsModel == null || correlatorsModel.getObject() == null) {
+            return pathList;
+        }
+        if (CollectionUtils.isNotEmpty(correlatorsModel.getObject())) {
+            var correlator = correlatorsModel.getObject().get(index);
+            correlator.getItem().forEach(item -> {
+                ItemPathType pathBean = item.getRef();
+                if (pathBean != null) {
+                    pathList.add(pathBean.getItemPath());
+                }
+            });
+        }
+        return pathList;
+    }
+
+    private void initItemsPanel(MidpointForm<?> form) {
+        ListView<ItemPath> itemsPanel = new ListView<ItemPath>(ID_ITEMS_PANEL, itemPathListModel) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<ItemPath> listItem) {
+                IModel<ItemWrapper<?, ?>> model = () -> createItemWrapper(listItem.getModelObject());
+                Panel panel = WebPrismUtil.createVerticalPropertyPanel(ID_ITEM_PANEL, model, null);
+                if (panel instanceof VerticalFormPrismPropertyPanel<?>) {
+                    ((VerticalFormPrismPropertyPanel<?>) panel).setRequiredTagVisibleInHeaderPanel(true);
+                }
+                listItem.add(panel);
+            }
+        };
+        itemsPanel.add(new VisibleBehaviour(() -> archetypeSelected));
+        form.add(itemsPanel);
+    }
+
+    private ItemWrapper<?, ?> createItemWrapper(ItemPath itemPath) {
+        return runPrivileged((Producer<? extends ItemWrapper<?,?>>) () -> {
+            try {
+                var task = createAnonymousTask(OPERATION_CREATE_ITEM_WRAPPER);
+                var result = new OperationResult(OPERATION_CREATE_ITEM_WRAPPER);
+                var def = objectWrapper.findItemDefinition(itemPath);
+                return createItemWrapper(def.instantiate(), ItemStatus.ADDED, new WrapperContext(task, result));
+            } catch (SchemaException ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't create item wrapper for item " + itemPath, ex);
+            }
+            return null;
+        });
     }
 
 }
