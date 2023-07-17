@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getColorClass;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getParentClusterByOid;
 
@@ -14,10 +15,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
-
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -46,6 +44,8 @@ import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
 public class PageClusters extends Panel {
 
@@ -122,11 +122,6 @@ public class PageClusters extends Panel {
 
                         List<PrismObject<FocusType>> points = new ArrayList<>();
 
-//                        List<String> points1 = rowModel.getObject().getValue().getPoints();
-//                        for (String s : points1) {
-//                            points.add(getFocusTypeObject(pageBase, s, operationResult));
-//                        }
-
                         ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                 Model.of("TO DO: details"), elements, points, mode) {
                             @Override
@@ -141,20 +136,23 @@ public class PageClusters extends Panel {
 
                 columns.add(column);
 
-
                 column = new AbstractColumn<>(
                         createStringResource("RoleMining.cluster.table.column.header.density")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getPointsDensity() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getPointsDensity()));
 
-                        } else {
-                            cellItem.add(new Label(componentId,
-                                    (Integer) null));
-                        }
+                        String pointsDensity = model.getObject().getValue().getPointsDensity();
+                        String colorClass = getColorClass(pointsDensity);
+
+                        Label label = new Label(componentId, pointsDensity);
+                        label.setOutputMarkupId(true);
+                        label.add(new AttributeModifier("class", colorClass));
+                        label.add(AttributeModifier.append("style", "width: 100px;"));
+
+                        cellItem.add(label);
+
                     }
 
                     @Override
@@ -180,6 +178,7 @@ public class PageClusters extends Panel {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
+
                         cellItem.add(new Label(componentId,
                                 model.getObject().getValue() != null && model.getObject().getValue().getElementsCount() != null ?
                                         model.getObject().getValue().getElementsCount() : null));
@@ -342,14 +341,22 @@ public class PageClusters extends Panel {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     String parentRef = model.getObject().getValue().getParentRef();
-                                    if(parentRef != null) {
+                                    if (parentRef != null) {
                                         PrismObject<RoleAnalysisSession> getParent = getParentClusterByOid(getPageBase(),
                                                 parentRef, new OperationResult("getParent"));
                                         PageParameters params = new PageParameters();
-                                        params.set(PageMiningOperation.PARAMETER_OID, model.getObject().getValue().asPrismObject().getOid());
-                                        assert getParent != null;
-                                        params.set(PageMiningOperation.PARAMETER_MODE, getParent.asObjectable().getProcessMode());
+                                        String oid = model.getObject().getValue().asPrismObject().getOid();
+                                        String processMode = getParent.asObjectable().getProcessMode();
+                                        Integer elementsCount = model.getObject().getValue().getElementsCount();
+                                        Integer pointsCount = model.getObject().getValue().getPointsCount();
+                                        int max = Math.max(elementsCount, pointsCount);
+
+                                        params.set(PageMiningOperation.PARAMETER_OID, oid);
+                                        params.set(PageMiningOperation.PARAMETER_MODE, processMode);
+                                        params.set(PageMiningOperation.PARAMETER_SORT, max);
+
                                         ((PageBase) getPage()).navigateToNext(PageMiningOperation.class, params);
+
                                     }
                                 }
                             };

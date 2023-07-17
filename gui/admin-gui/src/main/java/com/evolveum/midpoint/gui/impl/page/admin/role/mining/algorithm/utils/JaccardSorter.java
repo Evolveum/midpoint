@@ -79,121 +79,13 @@ public class JaccardSorter {
     }
 
 
-
-    public static List<MiningRoleTypeChunk> sortR(List<MiningRoleTypeChunk> dataPoints) {
-
-        List<MiningRoleTypeChunk> sorted = new ArrayList<>();
-        List<MiningRoleTypeChunk> remaining = new ArrayList<>(dataPoints);
-
-        remaining.sort(Comparator.comparingInt(set -> -set.getUsers().size()));
-
-        while (!remaining.isEmpty()) {
-            MiningRoleTypeChunk current = remaining.remove(0);
-            double maxSimilarity = 0;
-            int insertIndex = -1;
-
-            if (sorted.size() < 2) {
-                if (sorted.isEmpty()) {
-                    sorted.add(current);
-                } else {
-                    sorted.add(0, current);
-                }
-            } else {
-                for (int i = 1; i < sorted.size(); i++) {
-                    MiningRoleTypeChunk previous = sorted.get(i - 1);
-                    MiningRoleTypeChunk next = sorted.get(i);
-                    double similarity = jacquardSimilarity(current.getUsers(),
-                            previous.getUsers());
-                    double nextSimilarity = jacquardSimilarity(current.getUsers(),
-                            next.getUsers());
-
-                    if (Math.max(similarity, nextSimilarity) > maxSimilarity
-                            && Math.min(similarity, nextSimilarity) >= jacquardSimilarity(
-                            previous.getUsers(), next.getUsers())) {
-                        maxSimilarity = Math.max(similarity, nextSimilarity);
-                        insertIndex = i;
-                    }
-                }
-
-                if (insertIndex == -1) {
-                    if (jacquardSimilarity(current.getUsers(),
-                            sorted.get(0).getUsers())
-                            > jacquardSimilarity(sorted.get(0).getUsers(),
-                            sorted.get(1).getUsers())) {
-                        sorted.add(0, current);
-                    } else {
-                        sorted.add(current);
-                    }
-                } else {
-                    sorted.add(insertIndex, current);
-                }
-            }
-        }
-
-        return sorted;
-    }
-    public static List<MiningUserTypeChunk> sortU(List<MiningUserTypeChunk> dataPoints) {
-
-        List<MiningUserTypeChunk> sorted = new ArrayList<>();
-        List<MiningUserTypeChunk> remaining = new ArrayList<>(dataPoints);
-
-        remaining.sort(Comparator.comparingInt(set -> -set.getRoles().size()));
-
-        while (!remaining.isEmpty()) {
-            MiningUserTypeChunk current = remaining.remove(0);
-            double maxSimilarity = 0;
-            int insertIndex = -1;
-
-            if (sorted.size() < 2) {
-                if (sorted.isEmpty()) {
-                    sorted.add(current);
-                } else {
-                    sorted.add(0, current);
-                }
-            } else {
-                for (int i = 1; i < sorted.size(); i++) {
-                    MiningUserTypeChunk previous = sorted.get(i - 1);
-                    MiningUserTypeChunk next = sorted.get(i);
-                    List<String> currentRoles = current.getRoles();
-                    double similarity = jacquardSimilarity(currentRoles,
-                            previous.getRoles());
-                    double nextSimilarity = jacquardSimilarity(currentRoles,
-                            next.getRoles());
-
-                    if (Math.max(similarity, nextSimilarity) > maxSimilarity
-                            && Math.min(similarity, nextSimilarity) >= jacquardSimilarity(
-                            previous.getRoles(), next.getRoles())) {
-                        maxSimilarity = Math.max(similarity, nextSimilarity);
-                        insertIndex = i;
-                    }
-                }
-
-                if (insertIndex == -1) {
-                    if (jacquardSimilarity(current.getRoles(),
-                            sorted.get(0).getRoles())
-                            > jacquardSimilarity(sorted.get(0).getRoles(),
-                            sorted.get(1).getRoles())) {
-                        sorted.add(0, current);
-                    } else {
-                        sorted.add(current);
-                    }
-                } else {
-                    sorted.add(insertIndex, current);
-                }
-            }
-        }
-
-        return sorted;
-    }
-
-
     public static List<MiningUserTypeChunk> sortByFrequencyUserType(List<MiningUserTypeChunk> dataPoints) {
         List<MiningUserTypeChunk> sorted = new ArrayList<>(dataPoints);
         sorted.sort(Comparator.comparingDouble(MiningUserTypeChunk::getFrequency).reversed());
         return sorted;
     }
 
-    public static List<MiningRoleTypeChunk> sortByFrequencyRoleType(List<MiningRoleTypeChunk> dataPoints) {
+    public static List<MiningRoleTypeChunk> sortByFrequencyRoleType(List<MiningRoleTypeChunk> dataPoints, String state) {
         List<MiningRoleTypeChunk> sorted = new ArrayList<>(dataPoints);
         sorted.sort(Comparator.comparingDouble(MiningRoleTypeChunk::getFrequency).reversed());
         return sorted;

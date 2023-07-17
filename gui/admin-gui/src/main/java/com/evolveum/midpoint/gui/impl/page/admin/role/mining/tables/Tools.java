@@ -16,6 +16,26 @@ import org.jetbrains.annotations.NotNull;
 
 public class Tools {
 
+    public static String getColorClass(String density) {
+        double densityValue = Double.parseDouble(density);
+
+        if (densityValue >= 80) {
+            return "btn btn-danger btn-sm";
+        } else if (densityValue > 40) {
+            return "btn btn-warning btn-sm";
+        } else {
+            return "btn btn-info btn-sm";
+        }
+
+//        if (densityValue >= 80) {
+//            return "btn btn-outline-danger btn-sm";
+//        } else if (densityValue > 40) {
+//            return "btn btn-outline-warning btn-sm";
+//        } else {
+//            return "btn btn-outline-info btn-sm";
+//        }
+    }
+
     public static long startTimer(String info) {
         System.out.println("Operation start: " + info);
         return System.currentTimeMillis();
@@ -111,6 +131,7 @@ public class Tools {
     public static AttributeAppender scaleModifier() {
         return AttributeModifier.append("style", "transform: scale(0.5); transform-origin: 0 0;");
     }
+
     public static void tableStyle(@NotNull Item<?> cellItem) {
         MarkupContainer parentContainer = cellItem.getParent().getParent();
         parentContainer.add(AttributeAppender.replace("class", "d-flex"));

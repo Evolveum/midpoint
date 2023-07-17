@@ -71,7 +71,7 @@ public class ClusterAlgorithmUtils {
             // TODO if wanna execute cluster on non grouped data
 //            for(int i =0; i < elements.size();i++){
 //
-//                dataPoints.add(new DataPoint(vectorPoints, Collections.singletonList(elements.get(0)), points));
+//                dataPoints.add(new DataPoint(vectorPoints, Collections.singletonList(elements.get(i)), points));
 //
 //            }
             dataPoints.add(new DataPoint(vectorPoints, Collections.singletonList(elements.get(0)), points));
@@ -124,7 +124,8 @@ public class ClusterAlgorithmUtils {
         start = startTimer("generate clusters mp objects");
         List<DataPoint> dataPointsOutliers = new ArrayList<>();
         List<PrismObject<RoleAnalysisCluster>> clusterTypeObjectWithStatistic = IntStream.range(0, dataPoints.size())
-                .mapToObj(i -> prepareIdenticalGroup(pageBase, dataPoints.get(i), String.valueOf(i), clusterOptions, dataPointsOutliers))
+                .mapToObj(i -> prepareIdenticalGroup(pageBase, dataPoints.get(i), String.valueOf(i),
+                        clusterOptions, dataPointsOutliers))
                 .filter(Objects::nonNull) // Filter out null elements
                 .collect(Collectors.toList());
 
@@ -167,7 +168,8 @@ public class ClusterAlgorithmUtils {
                 maxVectorPoint, clusterGroupSize, pointsCount, density);
     }
 
-    public PrismObject<RoleAnalysisCluster> prepareIdenticalGroup(PageBase pageBase, DataPoint dataPointCluster, String clusterIndex, ClusterOptions clusterOptions, List<DataPoint> dataPointsOutliers) {
+    public PrismObject<RoleAnalysisCluster> prepareIdenticalGroup(PageBase pageBase, DataPoint dataPointCluster,
+            String clusterIndex, ClusterOptions clusterOptions, List<DataPoint> dataPointsOutliers) {
 
         int minGroupSize = clusterOptions.getMinGroupSize();
         ClusterStatistic clusterStatistic = statisticIdenticalLoad(dataPointCluster, clusterIndex, minGroupSize, dataPointsOutliers);
@@ -198,8 +200,7 @@ public class ClusterAlgorithmUtils {
         for (DataPoint dataPoint : dataPoints) {
             List<String> points = dataPoint.getPoints();
             pointsSet.addAll(points);
-            List<String> elements = dataPoint.getElements();
-            elementsOid.addAll(elements);
+            elementsOid.addAll(dataPoint.getElements());
 
             int pointsSize = points.size();
             sumPoints += pointsSize;
@@ -209,12 +210,13 @@ public class ClusterAlgorithmUtils {
 
         double meanPoints = (double) sumPoints / totalDataPoints;
 
-        double density = (sumPoints / (double) (dataPoints.size() * pointsSet.size())) * 100;
+        int pointsSize = pointsSet.size();
+        double density = (sumPoints / (double) (dataPoints.size() * pointsSize)) * 100;
 
         PolyStringType name = PolyStringType.fromOrig("outliers");
 
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, elementsOid, elementsOid.size(),
-                sumPoints, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density);
+                pointsSize, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density);
 
         return generateClusterObject(pageBase, clusterStatistic, null);
     }
@@ -280,16 +282,20 @@ public class ClusterAlgorithmUtils {
             if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
                         ClusterObjectUtils.Mode.ROLE, operationResult, true, false);
-                List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
-                List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.NONE);
+                List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
+                        ClusterObjectUtils.SORT.NONE);
+                List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
+                        ClusterObjectUtils.SORT.NONE);
                 possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
                         defaultMaxFrequency,
                         group, intersection, mode);
             } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
                         ClusterObjectUtils.Mode.USER, operationResult, true, false);
-                List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
-                List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.NONE);
+                List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
+                        ClusterObjectUtils.SORT.NONE);
+                List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
+                        ClusterObjectUtils.SORT.NONE);
                 possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
                         defaultMaxFrequency,
                         intersection, group, mode);

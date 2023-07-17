@@ -15,8 +15,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -46,6 +44,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 
 @PageDescriptor(
         urls = {
@@ -69,6 +68,8 @@ public class PageMiningOperation extends PageAdmin {
 
     public static final String PARAMETER_OID = "oid";
     public static final String PARAMETER_MODE = "mode";
+    public static final String PARAMETER_SORT = "sort";
+
     double minFrequency = 0.3;
 
     Integer minOccupancy = 5;
@@ -85,6 +86,10 @@ public class PageMiningOperation extends PageAdmin {
 
     MiningOperationChunk miningOperationChunk;
 
+    List<MiningRoleTypeChunk> miningRoleTypeChunks;
+    List<MiningUserTypeChunk> miningUserTypeChunks;
+    ClusterObjectUtils.SORT sortMode;
+
     ClusterObjectUtils.SearchMode searchMode = ClusterObjectUtils.SearchMode.INTERSECTION;
 
     String getPageParameterOid() {
@@ -100,6 +105,11 @@ public class PageMiningOperation extends PageAdmin {
         return Mode.ROLE;
     }
 
+    int getPageParameterSort() {
+        PageParameters params = getPageParameters();
+        return params.get(PARAMETER_SORT).toInteger();
+    }
+
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
@@ -110,43 +120,36 @@ public class PageMiningOperation extends PageAdmin {
         super();
     }
 
-    List<MiningRoleTypeChunk> miningRoleTypeChunks;
-    List<MiningUserTypeChunk> miningUserTypeChunks;
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        miningOperationChunk = new MiningOperationChunk();
+        if (getPageParameterSort() <= 500) {
+            sortMode = ClusterObjectUtils.SORT.JACCARD;
+        } else {
+            sortMode = ClusterObjectUtils.SORT.NONE;
+        }
+
         searchMode = ClusterObjectUtils.SearchMode.INTERSECTION;
-        long start = startTimer("load");
+
+        long start = startTimer("LOAD DATA");
         RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
         mergedIntersection = loadDefaultIntersection(cluster);
         loadMiningTableData();
+        endTimer(start, "LOAD DATA");
 
-        //TODO should only be used on a gui request?
-        // In the case of large datasets, Jaccard sorting is
-        // time-consuming. Or progress (loading) bar?
-        if (getPageParameterMode().equals(Mode.ROLE)) {
-            miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.JACCARD);
-            miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.JACCARD);
-//            miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.FREQUENCY);
-
-        } else {
-//            miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.FREQUENCY);
-            miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.JACCARD);
-            miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.JACCARD);
-        }
-
-        endTimer(start, "end load");
-
-        start = startTimer("table page");
-
+        start = startTimer("LOAD TABLE");
         loadMiningTable(miningRoleTypeChunks, miningUserTypeChunks, searchMode);
-        endTimer(start, "end mining table page");
+        endTimer(start, "LOAD TABLE");
 
         add(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection).setOutputMarkupId(true));
 
         AjaxButton ajaxButton = executeBusinessSearchPanel();
         add(ajaxButton);
+
+        AjaxButton sortButton = executeJaccardSorting();
+        add(sortButton);
 
         initProcessButton();
 
@@ -194,10 +197,12 @@ public class PageMiningOperation extends PageAdmin {
                         intersection = null;
                         searchMode = getSearchModeSelected();
                         if (searchMode.equals(ClusterObjectUtils.SearchMode.JACCARD)) {
-                            mergedIntersection = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, minFrequency, maxFrequency,
+                            mergedIntersection = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks,
+                                    minFrequency, maxFrequency,
                                     minIntersection, minOccupancy, getPageParameterMode(), getSimilarity());
                         } else {
-                            mergedIntersection = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, minFrequency, maxFrequency,
+                            mergedIntersection = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, minFrequency,
+                                    maxFrequency,
                                     minIntersection, minOccupancy, getPageParameterMode());
                         }
                         getIntersectionTable().replaceWith(generateTableIntersection(ID_DATATABLE_INTERSECTIONS,
@@ -219,14 +224,42 @@ public class PageMiningOperation extends PageAdmin {
         return ajaxButton;
     }
 
-    private void loadMiningTableData() {
-        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
-        miningOperationChunk = new MiningOperationChunk(cluster, (PageBase) getPage(),
-                getPageParameterMode(), result, compress, true);
+    private AjaxButton executeJaccardSorting() {
+
+        AjaxButton ajaxButton = new AjaxButton("jaccard_sort") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                sortMode = ClusterObjectUtils.SORT.JACCARD;
+
+                miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
+                miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(sortMode);
+
+                updateMiningTable(target, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                target.add(this.setVisible(false));
+            }
+        };
+
+        ajaxButton.setOutputMarkupId(true);
+        ajaxButton.setVisible(sortMode.equals(ClusterObjectUtils.SORT.NONE));
+        return ajaxButton;
     }
 
-    private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks, ClusterObjectUtils.SearchMode searchMode) {
-        long start = startTimer("loadData table");
+    private void loadMiningTableData() {
+        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+
+        //TODO should only be used on a gui request?
+        // In the case of large datasets, Jaccard sorting is
+        // time-consuming. Or progress (loading) bar?
+
+        miningOperationChunk.run(cluster, (PageBase) getPage(), getPageParameterMode(), result, compress, true);
+        miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
+        miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(sortMode);
+
+    }
+
+    private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
+            ClusterObjectUtils.SearchMode searchMode) {
         if (getPageParameterMode().equals(Mode.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
                     miningUserTypeChunks, false, minFrequency, null, maxFrequency, searchMode);
@@ -238,7 +271,7 @@ public class PageMiningOperation extends PageAdmin {
             boxedTablePanel.setOutputMarkupId(true);
             add(boxedTablePanel);
         }
-        endTimer(start, "end loadData table");
+
     }
 
     private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, ClusterObjectUtils.SearchMode searchMode,
@@ -295,7 +328,7 @@ public class PageMiningOperation extends PageAdmin {
                     compress = true;
                     compressMode = "COMPRESS MODE";
                 }
-//                loadMiningTableData();
+                loadMiningTableData();
                 updateMiningTable(ajaxRequestTarget, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
                 ajaxRequestTarget.add(this);
             }
@@ -303,7 +336,8 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection,
+            double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
         return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
@@ -324,7 +358,8 @@ public class PageMiningOperation extends PageAdmin {
                     compress = true;
                     compressMode = "COMPRESS MODE";
                 }
-//                loadMiningTableData();
+                loadMiningTableData();
+
                 updateMiningTable(ajaxRequestTarget, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
                 ajaxRequestTarget.add(this);
             }

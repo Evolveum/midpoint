@@ -10,8 +10,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.Mode;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
@@ -50,11 +49,10 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private void initLayout() {
 
-
         RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
-        MiningOperationChunk miningOperationChunk = new MiningOperationChunk(cluster, (PageBase) getPage(),
-                Mode.valueOf(mode), result, false,true);
-
+        MiningOperationChunk miningOperationChunk = new MiningOperationChunk();
+        miningOperationChunk.run(cluster, (PageBase) getPage(),
+                Mode.valueOf(mode), result, false, true);
         CustomImageResource imageResource;
 
         imageResource = new CustomImageResource(miningOperationChunk, mode);

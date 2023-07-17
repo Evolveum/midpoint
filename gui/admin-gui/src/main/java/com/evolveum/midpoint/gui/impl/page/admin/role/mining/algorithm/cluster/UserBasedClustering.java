@@ -10,9 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.startTimer;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import org.apache.commons.math3.ml.clustering.Cluster;
+import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
+import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
@@ -20,18 +25,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import org.apache.commons.math3.ml.clustering.Cluster;
-import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
-import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 public class UserBasedClustering implements Clusterable {
 
@@ -93,14 +92,6 @@ public class UserBasedClustering implements Clusterable {
 
         RepositoryService repositoryService = pageBase.getRepositoryService();
         ObjectQuery objectQuery = pageBase.getPrismContext().queryFactory().createQuery(userQuery);
-
-
-//        Collection<SelectorOptions<GetOperationOptions>> options =
-//                SchemaService.get().getOperationOptionsBuilder()
-//                        .item(UserType.COMPLEX_TYPE).retrieve(RetrieveOption.EXCLUDE)
-//                        .item(UserType.F_ASSIGNMENT).retrieve(RetrieveOption.INCLUDE)
-//                        .build();
-
         try {
             repositoryService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, optionsBuilder.build(),
                     true, result);

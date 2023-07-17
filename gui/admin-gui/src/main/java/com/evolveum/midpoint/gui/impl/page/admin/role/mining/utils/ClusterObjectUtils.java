@@ -33,7 +33,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ClusterObjectUtils {
 
-
     public enum SORT {
         JACCARD("JACCARD"),
         FREQUENCY("FREQUENCY"),
@@ -50,6 +49,7 @@ public class ClusterObjectUtils {
         }
 
     }
+
     public enum Status {
         NEUTRAL("fa fa-plus"),
         ADD("fa fa-minus"),
@@ -106,11 +106,11 @@ public class ClusterObjectUtils {
     }
 
     public static void deleteAllRoleAnalysisObjects(OperationResult result, @NotNull PageBase pageBase) {
-        deleteAllRoleAnalysisCluster(result,pageBase);
-        deleteAllRoleAnalysisSession(result,pageBase);
+        deleteAllRoleAnalysisCluster(result, pageBase);
+        deleteAllRoleAnalysisSession(result, pageBase);
     }
 
-    public static void deleteAllRoleAnalysisCluster(OperationResult result, @NotNull PageBase pageBase){
+    public static void deleteAllRoleAnalysisCluster(OperationResult result, @NotNull PageBase pageBase) {
         ResultHandler<AssignmentHolderType> handler = (object, parentResult) -> {
 
             try {
@@ -135,8 +135,7 @@ public class ClusterObjectUtils {
         }
     }
 
-
-    public static void deleteAllRoleAnalysisSession(OperationResult result, @NotNull PageBase pageBase){
+    public static void deleteAllRoleAnalysisSession(OperationResult result, @NotNull PageBase pageBase) {
         ResultHandler<AssignmentHolderType> handler = (object, parentResult) -> {
 
             try {
@@ -160,6 +159,7 @@ public class ClusterObjectUtils {
             throw new RuntimeException(e);
         }
     }
+
     public static String importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
             double meanDensity, int elementsConsist, List<String> childRef, JSONObject options) {
         Task task = pageBase.createSimpleTask("Import ParentClusterType object");
@@ -224,15 +224,29 @@ public class ClusterObjectUtils {
         pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, oid, result);
     }
 
-    public static List<PrismObject<UserType>> extractRoleMembers(PageBase pageBase, String objectId) {
-        String getMembers = DOT_CLASS + "getRolesMembers";
-        OperationResult result = new OperationResult(getMembers);
+    public static List<PrismObject<UserType>> extractRoleMembers(OperationResult result, PageBase pageBase, String objectId) {
 
         ObjectQuery query = pageBase.getPrismContext().queryFor(UserType.class)
                 .exists(AssignmentHolderType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(objectId)
+                .endBlock().build();
+        try {
+            return pageBase.getMidpointApplication().getRepositoryService()
+                    .searchObjects(UserType.class, query, null, result);
+        } catch (CommonException e) {
+            throw new RuntimeException("Failed to search role member objects: " + e);
+        }
+    }
+
+    public static List<PrismObject<UserType>> extractRoleMembers2(OperationResult result, PageBase pageBase, String[] stringArray) {
+
+        ObjectQuery query = pageBase.getPrismContext().queryFor(UserType.class)
+                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(stringArray)
                 .endBlock().build();
         try {
             return pageBase.getMidpointApplication().getRepositoryService()

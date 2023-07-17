@@ -49,7 +49,6 @@ public class PageCluster extends PageAdmin {
         return params.get(PARAMETER_MODE).toString();
     }
 
-
     public PageCluster() {
         super();
     }
@@ -57,7 +56,6 @@ public class PageCluster extends PageAdmin {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        System.out.println(getPageParameterParentOid());
         add(new PageClusters(ID_DATATABLE_CLUSTER_DS, getPageParameterParentOid(), getPageParameterMode()).setOutputMarkupId(true));
     }
 

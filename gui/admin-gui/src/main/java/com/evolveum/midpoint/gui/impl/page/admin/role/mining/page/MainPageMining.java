@@ -14,6 +14,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 
 import com.github.openjson.JSONObject;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getColorClass;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 
 @PageDescriptor(
@@ -279,7 +281,15 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
 
-                        cellItem.add(new Label(componentId, Model.of(model.getObject().getValue().getMeanDensity())));
+                        String meanDensity = model.getObject().getValue().getMeanDensity();
+                        String colorClass = getColorClass(meanDensity);
+
+                        Label label = new Label(componentId, meanDensity);
+                        label.setOutputMarkupId(true);
+                        label.add(new AttributeModifier("class", colorClass));
+                        label.add(AttributeModifier.append("style", "width: 100px;"));
+
+                        cellItem.add(label);
 
                     }
 

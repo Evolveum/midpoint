@@ -77,8 +77,6 @@ public class MiningUserBasedTable extends Panel {
             toCol = specialColumnCount;
         }
 
-        long start = startTimer("table provider");
-
         RoleMiningProvider<MiningRoleTypeChunk> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(roles) {
 
@@ -94,12 +92,8 @@ public class MiningUserBasedTable extends Panel {
             provider.setSort(UserType.F_NAME.toString(), SortOrder.ASCENDING);
         }
 
-        endTimer(start, "end mining table provider");
-
-        start = startTimer("table");
         SpecialBoxedTablePanel<MiningRoleTypeChunk> table = generateTable(provider, users, frequency,
                 intersection, maxFrequency, searchMode);
-        endTimer(start, "end mining table ");
 
         add(table);
     }
