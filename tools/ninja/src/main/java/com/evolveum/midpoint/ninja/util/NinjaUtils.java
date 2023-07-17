@@ -273,15 +273,18 @@ public class NinjaUtils {
         return Arrays.stream(names).anyMatch(s -> s.matches(filenameRegex));
     }
 
-    public static void readInput(Function<String, Boolean> responseHandler) throws IOException {
+    public static String readInput(Function<String, Boolean> inputValidation) throws IOException {
+        String line = null;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
             boolean accepted = false;
             while (!accepted) {
-                String line = br.readLine();
+                line = br.readLine();
 
-                accepted = responseHandler.apply(line);
+                accepted = inputValidation.apply(line);
             }
         }
+
+        return line;
     }
 
     public static void logException(Log log, String msg, Exception ex) {

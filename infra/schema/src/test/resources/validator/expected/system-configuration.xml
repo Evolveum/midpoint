@@ -9,8 +9,6 @@
 
     <name>system-configuration</name>
 
-    <roleManagement/>
-
     <notificationConfiguration>
         <!--<sms>
             <gateway>
@@ -60,11 +58,11 @@
                 <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
                 <collection>
                     <identifier>allRoles</identifier>
-                    <collectionUri>allRoles</collectionUri>
+                    <collectionIdentifier>allRoles</collectionIdentifier>
                 </collection>
                 <collection>
                     <identifier>myCustomCollection</identifier>
-                    <collectionUri>myCustomCollection</collectionUri>
+                    <collectionIdentifier>myCustomCollection</collectionIdentifier>
                 </collection>
             </roleCatalog>
         </accessRequest>

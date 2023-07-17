@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.FileUtils;
@@ -153,8 +155,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
         System.out.println(config);
     }
 
-    // todo not working yet
-    @Test(enabled = false)
+    @Test
     public void test200UpgradeFiles() throws Exception {
         given();
 
@@ -182,13 +183,16 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
                 PrismObject object = objects.get(i);
                 PrismObject expectedObject = expectedObjects.get(i);
 
+                ObjectDelta delta = object.diff(expectedObject);
+
                 Assertions.assertThat(object).is(new Condition<>(
                         o -> o.equivalent(expectedObject),
-                        "Object %s (%s) doesn't look like expected one.\nExpected:\n%s\nActual:\n%s",
+                        "Object %s (%s) doesn't look like expected one.\nExpected:\n%s\nActual:\n%s\nDifference:\n%s",
                         object,
                         file.getName(),
                         PrismTestUtil.serializeToXml(expectedObject.asObjectable()),
-                        PrismTestUtil.serializeToXml(object.asObjectable())));
+                        PrismTestUtil.serializeToXml(object.asObjectable()),
+                        DeltaConvertor.serializeDelta(delta, DeltaConversionOptions.createSerializeReferenceNames(), "xml")));
             }
         }
     }
