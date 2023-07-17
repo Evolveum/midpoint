@@ -7,21 +7,19 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.evolveum.midpoint.ninja.action.upgrade.action.UpgradeObjectsOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator;
-import com.evolveum.midpoint.schema.validator.UpgradeValidationItem;
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
+ * // todo doesn't take into account "skipped" items from verification phase
  * Handles upgrade of single object, filters out items that are not applicable for upgrade based on options selected by user.
  */
 public class UpgradeObjectHandler {
@@ -58,16 +56,23 @@ public class UpgradeObjectHandler {
             return false;
         }
 
+        // applicable items can't be applied by using delta from each item on object - deltas might
+        // collide and replace changes from other items - we use upgrade processor to apply change
+        // directly on to object for each item iteratively
         applicableItems.forEach(item -> {
-            try {
-                ObjectDelta delta = item.getDelta();
-                if (!delta.isEmpty()) {
-                    delta.applyTo(object);
-                }
-            } catch (SchemaException ex) {
-                // todo error handling
-                ex.printStackTrace();
+            String identifier = item.getIdentifier();
+            if (identifier == null) {
+                return;
             }
+
+            ItemPath path = item.getItem().getItemPath();
+
+            UpgradeObjectProcessor<O> processor = UpgradeProcessor.getProcessor(identifier);
+            if (processor == null) {
+                return;
+            }
+
+            processor.process(object, path);
         });
 
         return true;

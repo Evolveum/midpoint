@@ -94,7 +94,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test00CheckIdentifierUniqueness() {
         Map<String, Class<?>> identifiers = new HashMap<>();
-        UpgradeObjectsHandler.PROCESSORS.forEach(p -> {
+        UpgradeProcessor.PROCESSORS.forEach(p -> {
             String identifier = p.getIdentifier();
             Class<?> existing = identifiers.get(identifier);
             if (existing != null) {

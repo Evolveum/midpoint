@@ -3,6 +3,7 @@ package com.evolveum.midpoint.schema.validator;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,12 +13,19 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class UpgradeObjectsHandler {
+public class UpgradeProcessor {
 
     public static final List<UpgradeObjectProcessor<?>> PROCESSORS;
 
     static {
         PROCESSORS = initProcessors();
+    }
+
+    public static <T extends ObjectType> UpgradeObjectProcessor<T> getProcessor(String identifier) {
+        return (UpgradeObjectProcessor<T>) PROCESSORS.stream()
+                .filter(p -> Objects.equals(identifier, p.getIdentifier()))
+                .findFirst()
+                .orElse(null);
     }
 
     private static List<UpgradeObjectProcessor<?>> initProcessors() {
@@ -39,7 +47,7 @@ public class UpgradeObjectsHandler {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public <T extends ObjectType> UpgradeValidationItem verify(PrismObject<T> object, ValidationItem item) {
+    private <T extends ObjectType> UpgradeValidationItem process(PrismObject<T> object, ValidationItem item) {
         ItemPath path = item.getItemPath();
 
         PrismObject<T> cloned = object.clone();
@@ -71,11 +79,11 @@ public class UpgradeObjectsHandler {
         return result;
     }
 
-    public <T extends ObjectType> UpgradeValidationResult verify(PrismObject<T> object, ValidationResult result) {
+    public <T extends ObjectType> UpgradeValidationResult process(PrismObject<T> object, ValidationResult result) {
         UpgradeValidationResult verificationResult = new UpgradeValidationResult(result);
 
         for (ValidationItem item : result.getItems()) {
-            UpgradeValidationItem upgrade = verify(object, item);
+            UpgradeValidationItem upgrade = process(object, item);
             if (upgrade != null) {
                 verificationResult.getItems().add(upgrade);
             }
