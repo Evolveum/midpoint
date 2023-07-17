@@ -377,9 +377,9 @@ Found business role suggestions is written to the database as List<String> jsonO
                     <xsd:element name="elements" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The main object that was analyzed. In the case of ROLE MODE, the list of role object (elements = role)
+                                The main object that was analyzed. In the case of ROLE MODE, the list of role object (elements = roles)
                                 IDs that make up the given group is included in the object. In the case of USER MODE,
-                                the list of users object (elements = roles) IDs that make up the given group is included in the object.
+                                the list of users object (elements = users) IDs that make up the given group is included in the object.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
