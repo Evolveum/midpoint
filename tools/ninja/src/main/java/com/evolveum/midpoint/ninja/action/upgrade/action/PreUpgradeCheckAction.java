@@ -37,11 +37,15 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
             return false;
         }
 
-        if (!checkNodesVersion(repository)) {
+        if (!options.isSkipNodesVersionCheck() && !checkNodesVersion(repository)) {
             return false;
         }
 
-        return checkDatabaseSchemaVersion(repository);
+        if (!options.isSkipDatabaseVersionCheck() && !checkDatabaseSchemaVersion(repository)) {
+            return false;
+        }
+
+        return true;
     }
 
     private boolean checkDatabaseSchemaVersion(RepositoryService repository) {

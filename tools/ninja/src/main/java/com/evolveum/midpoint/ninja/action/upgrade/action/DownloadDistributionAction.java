@@ -33,7 +33,10 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
 
         File distributionZipFile = options.getDistributionArchive();
         if (distributionZipFile == null || !distributionZipFile.exists()) {
-            String version = UpgradeConstants.SUPPORTED_VERSION_TARGET;
+            String version = options.getDistributionVersion();
+            if (version == null) {
+                throw new IllegalStateException("No version to upgrade to.");
+            }
             log.info("Downloading version: {}", version);
 
             DistributionManager manager = new DistributionManager(tempDirectory);
