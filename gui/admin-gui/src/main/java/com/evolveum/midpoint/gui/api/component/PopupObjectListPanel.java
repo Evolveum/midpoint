@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
@@ -178,5 +179,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     @Override
     protected boolean isCollectionViewPanelForCompiledView() {
         return false;
+    }
+
+    @Override
+    protected String getCollectionNameFromPageParameters() {
+        return null;
     }
 }
