@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        oid="979ec101-d36c-49ea-a6c1-5d0c087d9689">
+
+    <name>livesync</name>
+    <extension>
+        <mext:liveSyncErrorHandlingStrategy>
+            <entry id="1">
+                <order>1</order>
+                <situation>
+                    <status>fatal_error</status>
+                </situation>
+            </entry>
+        </mext:liveSyncErrorHandlingStrategy>
+    </extension>
+</task>

@@ -84,7 +84,10 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                 }
             });
 
-            AssertJUnit.assertTrue(expected.equivalent(original));
+            AssertJUnit.assertTrue(
+                    "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
+                            "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original),
+                    expected.equivalent(original));
         } catch (Exception ex) {
             LOGGER.error("Couldn't assert upgrade result", ex);
             AssertJUnit.fail(ex.getMessage());
@@ -182,6 +185,18 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             Assertions.assertThat(result.hasChanges()).isFalse();
 
             assertUpgrade("security-policy.xml", result);
+        });
+    }
+
+    @Test
+    public void test60TaskLivesync() throws Exception {
+        testUpgradeValidator("task-livesync.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+
+            assertUpgrade("task-livesync.xml", result);
         });
     }
 
