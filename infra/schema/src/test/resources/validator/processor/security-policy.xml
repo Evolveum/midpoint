@@ -13,11 +13,30 @@
     <authentication>
         <modules>
             <saml2 id="1">
-                <name>deprecated items</name>
+                <name>sa</name>
                 <network>
-                    <connectTimeout>1</connectTimeout>
-                    <readTimeout>2</readTimeout>
+                    <readTimeout>1</readTimeout>
+                    <connectTimeout>2</connectTimeout>
                 </network>
+                <serviceProvider id="2">
+                    <entityId>e</entityId>
+                    <provider id="3">
+                        <entityId>e</entityId>
+                        <alias>asdf</alias>
+                        <metadataTrustCheck>false</metadataTrustCheck>
+                        <skipSslValidation>false</skipSslValidation>
+                    </provider>
+                    <identityProvider>
+                        <entityId>e</entityId>
+                        <alias>a</alias>
+                        <authenticationRequestBinding>asdf</authenticationRequestBinding>
+                        <nameOfUsernameAttribute>jkl</nameOfUsernameAttribute>
+                    </identityProvider>
+                    <wantAssertionsSigned>true</wantAssertionsSigned>
+                    <nameId>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</nameId>
+                    <singleLogoutEnabled>false</singleLogoutEnabled>
+                    <defaultDigest>http://www.w3.org/2001/04/xmlenc#sha256</defaultDigest>
+                </serviceProvider>
             </saml2>
         </modules>
     </authentication>

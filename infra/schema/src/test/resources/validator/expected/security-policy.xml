@@ -13,7 +13,19 @@
     <authentication>
         <modules>
             <saml2 id="1">
-                <name>deprecated items</name>
+                <name>sa</name>
+                <serviceProvider id="2">
+                    <entityId>e</entityId>
+                    <provider id="3">
+                        <entityId>e</entityId>
+                    </provider>
+                    <identityProvider>
+                        <entityId>e</entityId>
+                        <alias>a</alias>
+                        <authenticationRequestBinding>asdf</authenticationRequestBinding>
+                        <nameOfUsernameAttribute>jkl</nameOfUsernameAttribute>
+                    </identityProvider>
+                </serviceProvider>
             </saml2>
         </modules>
     </authentication>

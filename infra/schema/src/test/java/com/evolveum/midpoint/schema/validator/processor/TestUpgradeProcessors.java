@@ -170,7 +170,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("security-policy.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
-                    .hasSize(1);
+                    .hasSize(8);
 
             assertUpgrade("security-policy.xml", result);
         });
