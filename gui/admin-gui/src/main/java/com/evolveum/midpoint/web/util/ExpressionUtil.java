@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.util;
 
 import java.util.*;
+
 import jakarta.xml.bind.JAXBElement;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -352,7 +354,7 @@ public class ExpressionUtil {
 
         XNodeFactory factory = prismContext.xnodeFactory();
         Map<QName, XNode> valuesMap = new HashMap<>();
-        valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY,"path"), factory.primitive());
+        valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), factory.primitive());
         valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), factory.primitive());
         MapXNode values = factory.map(valuesMap);
         MapXNode filterClauseNode = factory.map(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), values);
@@ -530,7 +532,7 @@ public class ExpressionUtil {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_SCRIPT);
         for (JAXBElement<?> element : elements) {
             if (element.getValue() instanceof ScriptExpressionEvaluatorType) {
-                values.add((ScriptExpressionEvaluatorType)element.getValue());
+                values.add((ScriptExpressionEvaluatorType) element.getValue());
             }
         }
         return values;
@@ -574,6 +576,17 @@ public class ExpressionUtil {
 
             expression.expressionEvaluator(element);
         }
+    }
+
+    public static void addAsIsExpressionValue(ExpressionType expression){
+        if (expression == null) {
+            return;
+        }
+
+        AsIsExpressionEvaluatorType evaluator = new AsIsExpressionEvaluatorType();
+        JAXBElement<AsIsExpressionEvaluatorType> element =
+                new JAXBElement<>(SchemaConstantsGenerated.C_AS_IS, AsIsExpressionEvaluatorType.class, evaluator);
+        expression.expressionEvaluator(element);
     }
 
     public static MapXNode getAssociationTargetSearchFilterValuesMap(ExpressionType expression) {
