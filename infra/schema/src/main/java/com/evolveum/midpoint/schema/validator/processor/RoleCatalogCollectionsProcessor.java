@@ -66,6 +66,9 @@ public class RoleCatalogCollectionsProcessor implements UpgradeObjectProcessor<S
         roleCatalog.getCollection().addAll(views);
 
         roleManagement.setRoleCatalogCollections(null);
+        if (roleManagement.asPrismContainerValue().isEmpty()) {
+            system.setRoleManagement(null);
+        }
 
         return true;
     }

@@ -41,7 +41,7 @@ public class ObjectUpgradeValidator {
     public <O extends ObjectType> UpgradeValidationResult validate(PrismObject<O> object) {
         ValidationResult result = validator.validate(object);
 
-        UpgradeObjectsHandler handler = new UpgradeObjectsHandler();
-        return handler.verify(object, result);
+        UpgradeProcessor processor = new UpgradeProcessor();
+        return processor.process(object, result);
     }
 }
