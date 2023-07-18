@@ -11,6 +11,9 @@
     <name>security policy</name>
 
     <authentication>
+        <smsAuthentication id="10">
+            <name>first</name>
+        </smsAuthentication>
         <modules>
             <saml2 id="1">
                 <name>sa</name>
