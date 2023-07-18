@@ -106,9 +106,9 @@
                         </expression>
                     </outbound>
                 </administrativeStatus>
-                <disableInsteadDelete>
+                <disableInsteadOfDelete>
                     <lifecycleState>active</lifecycleState>
-                </disableInsteadDelete>
+                </disableInsteadOfDelete>
                 <delayedDelete>
                     <deleteAfter>P1M</deleteAfter>
                 </delayedDelete>
