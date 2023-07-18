@@ -8,12 +8,16 @@
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
@@ -32,13 +36,23 @@ public class RepositoryShadowBeanObjectDataProvider extends SelectableBeanObject
         this(component, null, selected);
     }
 
+    @Override
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        Collection<SelectorOptions<GetOperationOptions>> options = super.getOptions();
 
+        if (options == null) {
+            options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+        } else {
+            GetOperationOptions root = SelectorOptions.findRootOptions(options);
+            root.setNoFetch(Boolean.TRUE);
+        }
+        return options;
+    }
 
     @Override
     protected GetOperationOptionsBuilder postProcessOptions(GetOperationOptionsBuilder optionsBuilder) {
         optionsBuilder = optionsBuilder
-                .item(ShadowType.F_ASSOCIATION).dontRetrieve()
-                .noFetch();
+                .item(ShadowType.F_ASSOCIATION).dontRetrieve();
 
         if (isEmptyListOnNullQuery()) {
             return optionsBuilder
