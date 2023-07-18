@@ -55,67 +55,53 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/attributeVerification", matchUrlForSecurity = "/attributeVerification")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION)
-public class PageAttributeVerification extends PageAuthenticationBase {
+public class PageAttributeVerification extends PageAbstractAttributeVerification {
     private static final long serialVersionUID = 1L;
-
-
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
-    private static final String ID_ATTRIBUTES = "attributes";
-    private static final String ID_ATTRIBUTE_NAME = "attributeName";
-    private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
-    private static final String ID_BACK_BUTTON = "back";
-    private static final String ID_CSRF_FIELD = "csrfField";
-
-    private LoadableModel<List<VerificationAttributeDto>> attributesPathModel;
     private LoadableDetachableModel<UserType> userModel;
-    IModel<String> attrValuesModel;
 
     public PageAttributeVerification() {
     }
 
     @Override
     protected void initModels() {
-        attrValuesModel = Model.of();
+        super.initModels();
         userModel = new LoadableDetachableModel<>() {
+            private static final long serialVersionUID = 1L;
             @Override
             protected UserType load() {
                 MidPointPrincipal principal = AuthUtil.getPrincipalUser();
                 return principal != null ? (UserType) principal.getFocus() : null;
             }
         };
-        attributesPathModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+    }
 
-            @Override
-            protected List<VerificationAttributeDto> load() {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (!(authentication instanceof MidpointAuthentication)) {
-                    getSession().error(getString("No midPoint authentication is found"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-                if (moduleAuthentication == null
-                        && !AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION.equals(moduleAuthentication.getModuleTypeName())) {
-                    getSession().error(getString("No authentication module is found"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
-                    getSession().error(getString("No module identifier is defined"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                AttributeVerificationAuthenticationModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
-                if (module == null) {
-                    getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                List<ItemPathType> moduleAttributes = module.getPath();
-                return moduleAttributes.stream()
-                        .map(attr -> new VerificationAttributeDto(attr))
-                        .collect(Collectors.toList());
-            }
-        };
+    @Override
+    protected List<VerificationAttributeDto> loadAttrbuteVerificationDtoList() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            getSession().error(getString("No midPoint authentication is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+        if (moduleAuthentication == null
+                && !AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION.equals(moduleAuthentication.getModuleTypeName())) {
+            getSession().error(getString("No authentication module is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
+            getSession().error(getString("No module identifier is defined"));
+            throw new RestartResponseException(PageError.class);
+        }
+        AttributeVerificationAuthenticationModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
+        if (module == null) {
+            getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        List<ItemPathType> moduleAttributes = module.getPath();
+        return moduleAttributes.stream()
+                .map(attr -> new VerificationAttributeDto(attr))
+                .collect(Collectors.toList());
     }
 
     private AttributeVerificationAuthenticationModuleType getModuleByIdentifier(String moduleIdentifier) {
@@ -140,70 +126,6 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     }
 
     @Override
-    protected void initCustomLayout() {
-        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
-        add(form);
-
-        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        form.add(csrfField);
-
-        HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
-        verified.setOutputMarkupId(true);
-        form.add(verified);
-
-        initAttributesLayout(form);
-
-        initButtons(form);
-    }
-
-    private void initAttributesLayout(MidpointForm<?> form) {
-        ListView<VerificationAttributeDto> attributesPanel = new ListView<>(ID_ATTRIBUTES, attributesPathModel) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<VerificationAttributeDto> item) {
-                Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
-                item.add(attributeNameLabel);
-
-                RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, new PropertyModel<>(item.getModel(), VerificationAttributeDto.F_VALUE));
-                attributeValue.setOutputMarkupId(true);
-                attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        attrValuesModel.setObject(generateAttributeValuesString());
-                        target.add(getVerifiedField());
-                    }
-                });
-                item.add(attributeValue);
-            }
-        };
-        attributesPanel.setOutputMarkupId(true);
-        form.add(attributesPanel);
-    }
-
-    private String resolveAttributeLabel(VerificationAttributeDto attribute) {
-        if (attribute == null) {
-            return "";
-        }
-        ItemPathType path = attribute.getItemPath();
-        if (path == null) {
-            return "";
-        }
-        ItemDefinition<?> def = userModel.getObject().asPrismObject().getDefinition().findItemDefinition(path.getItemPath());
-        return WebComponentUtil.getItemDefinitionDisplayName(def);
-    }
-
-    private void initButtons(MidpointForm form) {
-        form.add(createBackButton(ID_BACK_BUTTON));
-    }
-
-    private Component getVerifiedField() {
-        return  get(ID_MAIN_FORM).get(ID_ATTRIBUTE_VALUES);
-    }
-
-    @Override
     protected ObjectQuery createStaticFormQuery() {
         String username = "";
         return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
@@ -215,7 +137,8 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         return null;
     }
 
-    private String getUrlProcessingLogin() {
+    @Override
+    protected String getUrlProcessingLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
@@ -230,20 +153,6 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         String key = "web.security.flexAuth.unsupported.auth.type";
         error(getString(key));
         return "/midpoint/spring_security_login";
-    }
-
-    private String generateAttributeValuesString() {
-        JSONArray attrValues = new JSONArray();
-        attributesPathModel.getObject().forEach(entry -> {
-            JSONObject json  = new JSONObject();
-            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
-            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, entry.getValue());
-            attrValues.put(json);
-        });
-        if (attrValues.length() == 0) {
-            return null;
-        }
-        return attrValues.toString();
     }
 
     @Override

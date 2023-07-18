@@ -56,6 +56,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAuthenticationBase.class);
 
+    protected static final String ARCHETYPE_OID_PARAMETER = "archetype";
     protected static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
     protected static final String ID_DYNAMIC_FORM = "dynamicForm";
 
