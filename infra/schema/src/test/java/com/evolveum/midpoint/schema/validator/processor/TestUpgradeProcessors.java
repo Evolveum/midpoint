@@ -117,7 +117,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                     .isNotNull()
                     .hasSize(2);
 
-            assertUpgrade("resource.xml", "resource-expected.xml", result);
+            assertUpgrade("resource.xml", result);
         });
     }
 
