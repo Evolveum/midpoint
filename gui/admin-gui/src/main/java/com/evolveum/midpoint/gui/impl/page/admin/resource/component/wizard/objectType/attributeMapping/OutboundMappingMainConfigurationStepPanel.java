@@ -39,7 +39,7 @@ public class OutboundMappingMainConfigurationStepPanel<ODM extends ObjectDetails
 
     public static final String PANEL_TYPE = "rw-mapping-inbound-main";
 
-    private static List<ItemName> VISIBLE_ITEMS = List.of(
+    private static final List<ItemName> VISIBLE_ITEMS = List.of(
             MappingType.F_NAME,
             ResourceAttributeDefinitionType.F_REF,
             MappingType.F_SOURCE,

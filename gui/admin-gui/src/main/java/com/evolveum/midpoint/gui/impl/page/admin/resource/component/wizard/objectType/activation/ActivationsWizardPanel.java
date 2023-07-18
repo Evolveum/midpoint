@@ -116,13 +116,13 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
 
     private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new InboundMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
+        steps.add(new InboundActivationMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showActivationTablePanel(target, MappingDirection.INBOUND);
             }
         });
-        steps.add(new InboundMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
+        steps.add(new InboundActivationMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showActivationTablePanel(target, MappingDirection.INBOUND);
@@ -141,13 +141,13 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new OutboundMappingMainConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
+        steps.add(new OutboundActivationMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showActivationTablePanel(target, MappingDirection.OUTBOUND);
             }
         });
-        steps.add(new OutboundMappingOptionalConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
+        steps.add(new OutboundActivationMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showActivationTablePanel(target, MappingDirection.OUTBOUND);

@@ -38,7 +38,7 @@ public class InboundMappingOptionalConfigurationStepPanel
 
     public static final String PANEL_TYPE = "rw-mapping-inbound-optional";
 
-    private static List<ItemName> VISIBLE_ITEMS = List.of(
+    private static final List<ItemName> VISIBLE_ITEMS = List.of(
             MappingType.F_DESCRIPTION,
             MappingType.F_EXCLUSIVE,
             MappingType.F_AUTHORITATIVE,
