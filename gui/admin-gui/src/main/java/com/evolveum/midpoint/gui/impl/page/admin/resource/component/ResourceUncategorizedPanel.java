@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -75,19 +76,12 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         super(id, model, config);
     }
 
-//    public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config, boolean repoSearch) {
-//        super(id, null, model, config, repoSearch);
-//    }
-
     @Override
     protected void initLayout() {
         createPanelTitle();
         createObjectTypeChoice();
 //        createConfigureButton();
 //        createTaskCreateButton();
-//
-//        createShowStatistics();
-//        createStatisticsPanel();
 //
         createShadowTable();
     }
@@ -100,7 +94,7 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
 
     private void createObjectTypeChoice() {
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                () -> getObjectDetailsModels().getDefaultObjectClass(),
+                Model.of(getObjectDetailsModels().getDefaultObjectClass()),
                 () -> getObjectDetailsModels().getResourceObjectClassesDefinitions(),
                 new ResourceObjectClassChoiceRenderer(), false);
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
