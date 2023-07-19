@@ -5,8 +5,6 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
@@ -91,12 +90,12 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismParser parser = prismContext.parserFor(file).language(PrismContext.LANG_XML).context(parsingContext);
 
-        List<PrismObject<?>> objects = new ArrayList<>();
+        List<PrismObject<?>> objects;
         try {
             objects = parser.parseObjects();
         } catch (Exception ex) {
-            // todo handle error
-            ex.printStackTrace();
+            log.error("Couldn't parse file '{}'", file.getPath(), ex);
+            return;
         }
 
         boolean changed = false;
@@ -123,8 +122,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             }
             writer.write(xml);
         } catch (Exception ex) {
-            // todo handle error
-            ex.printStackTrace();
+            log.error("Couldn't serialize objects to file '{}'", file.getPath(), ex);
         }
     }
 
@@ -186,7 +184,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         return () -> {
-            new UpgradeObjectsConsumerWorker(skipUpgradeItems, context, options, queue, operation).run();
+            new UpgradeObjectsConsumerWorker<>(skipUpgradeItems, context, options, queue, operation).run();
             return null;
         };
     }
