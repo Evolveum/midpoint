@@ -1,5 +1,5 @@
-MidPoint 4.8 Development Branch
--------------------------------
+MidPoint 4.8 Milestone 2
+------------------------
 
 General information:
 
