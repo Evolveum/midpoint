@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +24,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
  * Contains correlation-related methods that should be accessible from the outside of `model` module.
  */
 public interface CorrelationService {
+
+    /**
+     * Correlates the provided (partial) focus object to a set of candidate matches.
+     *
+     * TODO finish the method signature
+     */
+    @NotNull CompleteCorrelationResult correlate(
+            @NotNull FocusType preFocus,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /**
      * Describes the provided correlation case by providing {@link CorrelationCaseDescription} object.
