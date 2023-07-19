@@ -33,7 +33,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public interface NinjaTestMixin {
 
-    StreamValidator EMPTY_STREAM_VALIDATOR = list -> Assertions.assertThat(list).isEmpty();
+    StreamValidator EMPTY_STREAM_VALIDATOR = list -> Assertions.assertThat(list)
+            .withFailMessage(() -> StringUtils.join(list, "\n"))
+            .isEmpty();
 
     StreamValidator NOOP_STREAM_VALIDATOR = list -> {
     };
@@ -158,8 +160,10 @@ public interface NinjaTestMixin {
                 PrintStream out = new PrintStream(bosOut);
                 PrintStream err = new PrintStream(bosErr)
         ) {
-
             return function.apply(out, err);
+        } catch (Exception ex) {
+            LOGGER.error("Exception during test execution", ex);
+            throw ex;
         } finally {
             List<String> outLines = processTestOutputStream(bosOut, "OUT");
             List<String> errLines = processTestOutputStream(bosErr, "ERR");
