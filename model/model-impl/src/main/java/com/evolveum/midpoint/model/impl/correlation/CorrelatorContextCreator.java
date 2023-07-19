@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -66,14 +65,6 @@ public class CorrelatorContextCreator {
         this.correlationDefinitionBean = correlationDefinitionBean;
         this.templateCorrelationConfiguration = templateCorrelationConfiguration;
         this.systemConfiguration = systemConfiguration;
-    }
-
-    static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext)
-            throws ConfigurationException, SchemaException {
-        return createRootContext(
-                fullContext.getCorrelationDefinitionBean(),
-                fullContext.objectTemplate,
-                fullContext.systemConfiguration);
     }
 
     public static CorrelatorContext<?> createRootContext(

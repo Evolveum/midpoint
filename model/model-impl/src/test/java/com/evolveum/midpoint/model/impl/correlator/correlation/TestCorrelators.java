@@ -496,8 +496,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 preFocus,
                 resource,
                 resourceObjectTypeDefinition,
-                correlator.getUserTemplate(),
-                systemConfiguration, task);
+                systemConfiguration,
+                task);
     }
 
     private @NotNull SynchronizationPolicy getSynchronizationPolicy() throws SchemaException, ConfigurationException {
