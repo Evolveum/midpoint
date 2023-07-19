@@ -7,12 +7,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConversionOptions;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -23,12 +17,17 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
 import com.evolveum.midpoint.ninja.action.VerifyResult;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class VerificationReporter {
 
@@ -60,6 +59,8 @@ public class VerificationReporter {
 
     private final Charset charset;
 
+    private final Log log;
+
     private ObjectUpgradeValidator validator;
 
     private final VerifyResult result = new VerifyResult();
@@ -68,10 +69,11 @@ public class VerificationReporter {
 
     private Writer deltaWriter;
 
-    public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext, Charset charset) {
+    public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext, @NotNull Charset charset, @NotNull Log log) {
         this.options = options;
         this.prismContext = prismContext;
         this.charset = charset;
+        this.log = log;
     }
 
     public boolean isCreateDeltaFile() {
@@ -214,15 +216,18 @@ public class VerificationReporter {
     }
 
     private void writeDeltaXml(UpgradeValidationResult result) {
-        result.getItems().stream().filter(item -> item.getDelta() != null).forEach(item -> {
+        for (UpgradeValidationItem item : result.getItems()) {
+            if (item.getDelta() == null) {
+                continue;
+            }
+
             try {
                 deltaWriter.write(DeltaConvertor.serializeDelta(
                         (ObjectDelta) item.getDelta(), DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
             } catch (SchemaException | IOException ex) {
-                // todo error handling
-                ex.printStackTrace();
+                log.error("Couldn't write object delta to XML file", ex);
             }
-        });
+        }
     }
 
     public static String getItemPathFromRecord(CSVRecord record) {

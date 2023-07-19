@@ -43,7 +43,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
 
     @Override
     protected void init() {
-        reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset());
+        reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset(), log);
         reporter.setCreateDeltaFile(true);
         reporter.init();
     }

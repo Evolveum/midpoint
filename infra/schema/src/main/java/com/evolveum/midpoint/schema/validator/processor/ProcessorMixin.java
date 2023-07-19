@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -19,8 +21,6 @@ public interface ProcessorMixin {
     }
 
     /**
-     * todo are we really matching only templates?
-     *
      * Matches object type and path template (without container ids in case of multivalue containers).
      *
      * @param object tested object
@@ -30,12 +30,14 @@ public interface ProcessorMixin {
      * @param <O>
      * @return true if matches
      */
-    default <O extends ObjectType> boolean matchObjectTypeAndPathTemplate(PrismObject<?> object, ItemPath path, Class<O> type, ItemPath expected) {
+    default <O extends ObjectType> boolean matchObjectTypeAndPathTemplate(
+            @NotNull PrismObject<?> object, @NotNull ItemPath path, @NotNull Class<O> type, @NotNull ItemPath expected) {
+
         if (!type.isAssignableFrom(object.getCompileTimeClass())) {
             return false;
         }
 
-        if (!path.equivalent(expected)) {
+        if (!path.namedSegmentsOnly().equivalent(expected)) {
             return false;
         }
 

@@ -65,7 +65,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
     }
 
     private VerifyResult verifyFiles() throws IOException {
-        VerificationReporter reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset());
+        VerificationReporter reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset(), log);
         reporter.setCreateDeltaFile(true);
 
         try (Writer writer = NinjaUtils.createWriter(
@@ -115,7 +115,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
                 reporter.verify(writer, object);
             }
         } catch (Exception ex) {
-            NinjaUtils.logException(log, "Couldn't verify file '" + file.getPath() + "'", ex);
+            log.error("Couldn't verify file '{}'", ex, file.getPath());
         }
     }
 }
