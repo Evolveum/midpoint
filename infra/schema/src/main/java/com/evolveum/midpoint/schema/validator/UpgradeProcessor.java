@@ -35,7 +35,6 @@ public class UpgradeProcessor {
                 .stream()
                 .filter(UpgradeObjectProcessor.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
-
                 .collect(Collectors.toUnmodifiableSet());
 
         return processors.stream()
@@ -46,7 +45,7 @@ public class UpgradeProcessor {
                         throw new IllegalStateException("Processor " + c.getName() + " doesn't have constructor without arguments");
                     }
                 })
-                .sorted(Comparator.comparing(p -> p.getClass().getName()))
+                .sorted(Comparator.comparing(p -> p.getClass().getName()))  // sorting only to ensure deterministic behaviour during object processing
                 .collect(Collectors.toUnmodifiableList());
     }
 

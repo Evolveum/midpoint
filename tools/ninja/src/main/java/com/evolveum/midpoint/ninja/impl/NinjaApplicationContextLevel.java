@@ -9,17 +9,29 @@ package com.evolveum.midpoint.ninja.impl;
  */
 public enum NinjaApplicationContextLevel {
 
+    /**
+     * No initialization required.
+     */
     NONE(new String[0]),
 
+    /**
+     * Only midpoint configuration related beans are initialized.
+     */
     STARTUP_CONFIGURATION(new String[] {
             "classpath:ctx-configuration-10-system-init.xml"
     }),
 
+    /**
+     * Midpoint configuration and prism related beans are initialized.
+     */
     NO_REPOSITORY(new String[] {
             "classpath:ctx-common.xml",
             "classpath:ctx-configuration-no-repo.xml"
     }),
 
+    /**
+     * Full repository and audit layer initialization.
+     */
     FULL_REPOSITORY(new String[] {
             "classpath:ctx-common.xml",
             "classpath:ctx-configuration.xml",
