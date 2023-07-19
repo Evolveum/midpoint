@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -23,9 +25,6 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-// todo handle initial objects somehow
-// compare vanilla previous with vanilla new ones and also vanilla previous with current in MP repository,
-// apply only non conflicting delta items, report it to user
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
     private Map<UUID, Set<String>> skipUpgradeForOids;
@@ -52,14 +51,15 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         log.info("Upgrade will skip {} objects", skipUpgradeForOids.size());
 
         if (!options.getFiles().isEmpty()) {
-            // todo this is another check whether we want to upgrade objects in files
-//            log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
-//            String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
-//
-//            if (result.trim().equalsIgnoreCase("n")) {
-//                log.info("Upgrade aborted");
-//                return null;
-//            }
+            if (!options.isSkipUpgradeWarning()) {
+                log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
+                String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
+
+                if (result.trim().equalsIgnoreCase("n")) {
+                    log.info("Upgrade aborted");
+                    return null;
+                }
+            }
 
             return upgradeObjectsInFiles();
         }

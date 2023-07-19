@@ -89,6 +89,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
                 "upgrade-objects",
                 "--file", TARGET_FILES.getPath(),
                 "--verification-file", OUTPUT.getPath(),
+                "--skip-upgrade-warning",
                 "--upgrade-phase", "before");
 
         then();
