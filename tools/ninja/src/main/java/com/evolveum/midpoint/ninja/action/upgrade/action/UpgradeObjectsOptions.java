@@ -25,6 +25,7 @@ public class UpgradeObjectsOptions extends ExportOptions {
     public static final String P_PHASE = "--upgrade-phase";
     public static final String P_TYPE = "--upgrade-type";
     public static final String P_PRIORITY = "--upgrade-priority";
+    public static final String P_SKIP_UPGRADE_WARNING = "--skip-upgrade-warning";
 
 //    @ParametersDelegate
 //    private OutputOptions outputOptions = new OutputOptions();
@@ -49,6 +50,9 @@ public class UpgradeObjectsOptions extends ExportOptions {
 
     @Parameter(names = { P_PRIORITY }, descriptionKey = "upgradeObjects.priorities", variableArity = true)
     private List<UpgradePriority> priorities = new ArrayList<>();
+
+    @Parameter(names = { P_SKIP_UPGRADE_WARNING }, descriptionKey = "upgradeObjects.skipUpgradeWarning")
+    private boolean skipUpgradeWarning;
 
     public File getVerification() {
         return verification;
@@ -100,5 +104,13 @@ public class UpgradeObjectsOptions extends ExportOptions {
 
     public void setPriorities(List<UpgradePriority> priorities) {
         this.priorities = priorities;
+    }
+
+    public boolean isSkipUpgradeWarning() {
+        return skipUpgradeWarning;
+    }
+
+    public void setSkipUpgradeWarning(boolean skipUpgradeWarning) {
+        this.skipUpgradeWarning = skipUpgradeWarning;
     }
 }

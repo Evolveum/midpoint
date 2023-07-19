@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -203,7 +209,23 @@ public class VerificationReporter {
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
 
+        if (createDeltaFile) {
+            writeDeltaXml(result);
+        }
+
         return result;
+    }
+
+    private void writeDeltaXml(UpgradeValidationResult result) {
+        result.getItems().stream().filter(item -> item.getDelta() != null).forEach(item -> {
+            try {
+                deltaWriter.write(DeltaConvertor.serializeDelta(
+                        (ObjectDelta) item.getDelta(), DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
+            } catch (SchemaException | IOException ex) {
+                // todo error handling
+                ex.printStackTrace();
+            }
+        });
     }
 
     public static String getItemPathFromRecord(CSVRecord record) {

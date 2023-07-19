@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * // todo doesn't take into account "skipped" items from verification phase
  * Handles upgrade of single object, filters out items that are not applicable for upgrade based on options selected by user.
  */
 public class UpgradeObjectHandler {
