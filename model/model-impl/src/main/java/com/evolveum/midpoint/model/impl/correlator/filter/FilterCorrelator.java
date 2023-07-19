@@ -53,6 +53,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * A correlator based on a filter that matches focal object(s) to given resource object.
  * (This is the most usual approach to correlation; and the only one - besides so-called synchronization sorter -
  * before midPoint 4.5.)
+ *
+ * Currently supports only shadow-based correlations.
  */
 class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
@@ -68,7 +70,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return new Correlation<>(correlationContext)
+        return new Correlation<>(correlationContext.asShadowCtx())
                 .correlate(result);
     }
 
@@ -79,7 +81,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        return new Correlation<>(correlationContext)
+        return new Correlation<>(correlationContext.asShadowCtx())
                 .checkCandidateOwner(candidateOwner, result);
     }
 
@@ -92,14 +94,14 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
         /** TODO: determine from the resource */
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        Correlation(@NotNull CorrelationContext correlationContext) {
+        Correlation(@NotNull CorrelationContext.Shadow correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
-        public CorrelationResult correlate(OperationResult result)
+        CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);

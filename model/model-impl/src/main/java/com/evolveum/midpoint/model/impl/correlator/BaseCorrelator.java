@@ -197,10 +197,17 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             SecurityViolationException, ObjectNotFoundException;
 
     protected @NotNull String getDefaultContextDescription(@NotNull CorrelationContext correlationContext) {
-        return (typeName + " correlator" +
-                (configurationBean.getName() != null ? " '" + configurationBean.getName() + "'" : ""))
-                + " for " + correlationContext.getResourceObjectDefinition().getHumanReadableName()
-                + " in " + correlationContext.getResource();
+        String prefix =
+                typeName + " correlator" +
+                        (configurationBean.getName() != null ? " '" + configurationBean.getName() + "'" : "");
+        if (correlationContext instanceof CorrelationContext.Shadow shadowCtx) {
+            return prefix
+                    + " for " + shadowCtx.getResourceObjectDefinition().getHumanReadableName()
+                    + " in " + shadowCtx.getResource();
+        } else {
+            // TODO something for the focus-only correlation
+            return prefix;
+        }
     }
 
     protected @NotNull Correlator instantiateChild(

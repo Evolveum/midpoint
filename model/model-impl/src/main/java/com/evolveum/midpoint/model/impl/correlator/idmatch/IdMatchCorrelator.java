@@ -41,7 +41,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * A correlator based on an external service providing ID Match API.
  * (https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API)
  *
- * Limitation: This correlator is not to be used as a child of the composite correlator.
+ * Limitations:
+ *
+ * . This correlator is not to be used as a child of the composite correlator.
+ * . Currently supports only shadow-based correlations.
  */
 class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
@@ -79,7 +82,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException, CommunicationException,
             SecurityViolationException {
-        return new CorrelationLikeOperation(correlationContext)
+        return new CorrelationLikeOperation(correlationContext.asShadowCtx())
                 .correlate(result);
     }
 
@@ -89,7 +92,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, CommunicationException, SecurityViolationException {
-        return new CorrelationLikeOperation(correlationContext)
+        return new CorrelationLikeOperation(correlationContext.asShadowCtx())
                 .checkCandidateOwner(candidateOwner, result);
     }
 
@@ -97,10 +100,10 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
     private class Operation {
 
         @NotNull final ShadowType resourceObject;
-        @NotNull final CorrelationContext correlationContext;
+        @NotNull final CorrelationContext.Shadow correlationContext;
         @NotNull final Task task;
 
-        Operation(@NotNull CorrelationContext correlationContext) {
+        Operation(@NotNull CorrelationContext.Shadow correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
@@ -122,7 +125,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
     private class CorrelationLikeOperation extends Operation {
 
-        CorrelationLikeOperation(@NotNull CorrelationContext correlationContext) {
+        CorrelationLikeOperation(@NotNull CorrelationContext.Shadow correlationContext) {
             super(correlationContext);
         }
 
@@ -272,13 +275,13 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
 
         LOGGER.trace("Updating:\n{}", correlationContext.debugDumpLazily(1));
-        new UpdateOperation(correlationContext)
+        new UpdateOperation(correlationContext.asShadowCtx())
                 .execute(result);
     }
 
     private class UpdateOperation extends Operation {
 
-        UpdateOperation(@NotNull CorrelationContext correlationContext) {
+        UpdateOperation(@NotNull CorrelationContext.Shadow correlationContext) {
             super(correlationContext);
         }
 

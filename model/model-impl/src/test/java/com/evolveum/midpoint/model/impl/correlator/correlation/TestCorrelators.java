@@ -491,13 +491,13 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         task,
                         result);
 
-        return new CorrelationContext(
+        return new CorrelationContext.Shadow(
                 account.getShadow(),
-                preFocus,
                 resource,
                 resourceObjectTypeDefinition,
-                correlator.getUserTemplate(),
-                systemConfiguration, task);
+                preFocus,
+                systemConfiguration,
+                task);
     }
 
     private @NotNull SynchronizationPolicy getSynchronizationPolicy() throws SchemaException, ConfigurationException {
