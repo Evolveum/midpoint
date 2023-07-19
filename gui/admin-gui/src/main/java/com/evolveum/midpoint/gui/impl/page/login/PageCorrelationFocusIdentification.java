@@ -27,6 +27,8 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -50,9 +52,11 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     private static final String OPERATION_LOAD_ARCHETYPE = DOT_CLASS + "loadArchetype";
     private static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
     private static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
+    private static final String OPERATION_CORRELATE = DOT_CLASS + "correlate";
 
     private static final String ID_CORRELATE = "correlate";
 
+    private LoadableDetachableModel<ObjectTemplateType> objectTemplateModel;
     private LoadableDetachableModel<List<ItemsSubCorrelatorType>> correlatorsModel;
     private String archetypeOid;
 
@@ -101,13 +105,20 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     @Override
     protected void initModels() {
         super.initModels();
+        objectTemplateModel = new LoadableDetachableModel<>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected ObjectTemplateType load() {
+                var archetype = loadArchetype();
+                return loadObjectTemplateForArchetype(archetype);
+            }
+        };
         correlatorsModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ItemsSubCorrelatorType> load() {
-                var archetype = loadArchetype();
-                var objectTemplate = loadObjectTemplateForArchetype(archetype);
+                var objectTemplate = objectTemplateModel.getObject();
                 if (objectTemplate == null) {
                     //todo show warning?
                     return Collections.emptyList();
@@ -125,7 +136,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
             private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
-                correlate();
+                correlate(target);
             }
         };
         getForm().add(correlateButton);
@@ -192,7 +203,28 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     }
 
 
-    private void correlate() {
+    private void correlate(AjaxRequestTarget target) {
+        var task = createAnonymousTask(OPERATION_CORRELATE);
+        var result = new OperationResult(OPERATION_CORRELATE);
+        var user = createUser();
+        var objectTemplate = objectTemplateModel.getObject();
+        try {
+            getCorrelationService().correlate(user, objectTemplate, task, result);
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't determine correlation configuration.", e);
+            result.recordFatalError(e);
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
+
+
+    }
+
+    private UserType createUser() {
+        UserType user = new UserType();
+        user.setFamilyName(new PolyStringType("family"));
+        user.setFamilyName(new PolyStringType("family"));
+        return user;
     }
 
 }

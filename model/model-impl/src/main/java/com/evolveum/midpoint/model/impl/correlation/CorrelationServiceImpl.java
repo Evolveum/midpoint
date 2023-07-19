@@ -95,11 +95,12 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Override
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
+            @NotNull ObjectTemplateType objectTemplate,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        CompleteContext ctx = getCompleteContext(preFocus, task, result);
+        CompleteContext ctx = getCompleteContext(preFocus, objectTemplate, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
 
@@ -358,6 +359,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     private @NotNull CompleteContext getCompleteContext(
             @NotNull FocusType preFocus,
+            @NotNull ObjectTemplateType objectTemplate,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
@@ -368,7 +370,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         return CompleteContext.forFocus(
                 correlationDefinitionBean,
                 preFocus,
-                determineObjectTemplate(null, preFocus, task, result),
+                objectTemplate,
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task);
     }
