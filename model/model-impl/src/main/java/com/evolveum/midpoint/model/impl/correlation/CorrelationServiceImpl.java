@@ -181,7 +181,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             CommunicationException, ConfigurationException, ObjectNotFoundException {
         FocusType preFocus = computePreFocus(
                 shadowedResourceObject, resource, synchronizationPolicy, candidateOwner.getClass(), task, result);
-        CompleteContext ctx = new CompleteContext(
+        CompleteContext ctx = CompleteContext.forShadow(
                 shadowedResourceObject,
                 resource,
                 synchronizationPolicy.getObjectTypeDefinition(),
@@ -333,7 +333,8 @@ public class CorrelationServiceImpl implements CorrelationService {
                                         kind, intent, resource, shadow)));
 
         FocusType preFocus = computePreFocus(shadow, resource, policy, policy.getFocusClass(), task, result);
-        return new CompleteContext(
+
+        return CompleteContext.forShadow(
                 shadow,
                 resource,
                 policy.getObjectTypeDefinition(),
@@ -408,12 +409,11 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     /** Contains both {@link CorrelatorContext} and {@link CorrelationContext}. Usually we create both of them together. */
-    private static class CompleteContext {
+    private record CompleteContext(
+            @NotNull CorrelatorContext<?> correlatorContext,
+            @NotNull CorrelationContext correlationContext) {
 
-        @NotNull final CorrelatorContext<?> correlatorContext;
-        @NotNull final CorrelationContext correlationContext;
-
-        CompleteContext(
+        static CompleteContext forShadow(
                 @NotNull ShadowType shadow,
                 @NotNull ResourceType resource,
                 @NotNull ResourceObjectDefinition resourceObjectDefinition,
@@ -423,19 +423,20 @@ public class CorrelationServiceImpl implements CorrelationService {
                 @Nullable SystemConfigurationType systemConfiguration,
                 @NotNull Task task)
                 throws SchemaException, ConfigurationException {
-            this.correlatorContext =
+            var correlatorContext =
                     CorrelatorContextCreator.createRootContext(
                             synchronizationPolicy.getCorrelationDefinition(),
                             objectTemplate,
                             systemConfiguration);
-            this.correlationContext =
-                    new CorrelationContext(
+            var correlationContext =
+                    new CorrelationContext.Shadow(
                             shadow,
-                            preFocus,
                             resource,
                             resourceObjectDefinition,
+                            preFocus,
                             systemConfiguration,
                             task);
+            return new CompleteContext(correlatorContext, correlationContext);
         }
     }
 }

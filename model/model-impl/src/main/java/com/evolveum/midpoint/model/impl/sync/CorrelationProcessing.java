@@ -77,11 +77,11 @@ class CorrelationProcessing<F extends FocusType> {
         this.syncCtx = syncCtx;
         this.task = syncCtx.getTask();
         this.beans = beans;
-        this.correlationContext = new CorrelationContext(
+        this.correlationContext = new CorrelationContext.Shadow(
                 syncCtx.getShadowedResourceObject(),
-                syncCtx.getPreFocus(),
                 syncCtx.getResource(),
                 syncCtx.getObjectDefinitionRequired(),
+                syncCtx.getPreFocus(),
                 syncCtx.getSystemConfiguration(),
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);

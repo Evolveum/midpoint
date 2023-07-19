@@ -491,11 +491,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         task,
                         result);
 
-        return new CorrelationContext(
+        return new CorrelationContext.Shadow(
                 account.getShadow(),
-                preFocus,
                 resource,
                 resourceObjectTypeDefinition,
+                preFocus,
                 systemConfiguration,
                 task);
     }

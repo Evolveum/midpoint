@@ -44,6 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * A correlator based on expressions that directly provide focal object(s) (or their references) for given resource object.
  * Similar to synchronization sorter, but simpler - it treats only correlation, not the classification part.
+ *
+ * Currently supports only shadow-based correlations.
  */
 class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
 
@@ -60,7 +62,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        return new Correlation<>(correlationContext)
+        return new Correlation<>(correlationContext.asShadowCtx())
                 .execute(result);
     }
 
@@ -82,14 +84,14 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
         /** TODO: determine from the resource */
         @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        Correlation(@NotNull CorrelationContext correlationContext) {
+        Correlation(@NotNull CorrelationContext.Shadow correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
-        public CorrelationResult execute(OperationResult result)
+        CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
@@ -158,8 +160,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                 //noinspection unchecked
                 candidateOwner = ((PrismObjectValue<F>) candidateValue).asObjectable();
                 checkOidPresent(candidateOwner.getOid(), candidateValue);
-            } else if (candidateValue instanceof PrismReferenceValue) {
-                PrismReferenceValue candidateOwnerRef = (PrismReferenceValue) candidateValue;
+            } else if (candidateValue instanceof PrismReferenceValue candidateOwnerRef) {
                 String oid = candidateOwnerRef.getOid();
                 checkOidPresent(oid, candidateValue);
                 if (allCandidates.containsOid(oid)) {

@@ -36,7 +36,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * A "user-friendly" correlator based on a list of items that need to be matched between the source
@@ -84,14 +83,12 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
     private abstract class CorrelationLikeOperation implements ConfidenceValueProvider {
 
-        @NotNull final ShadowType resourceObject;
         @NotNull final CorrelationContext correlationContext;
         @NotNull final Task task;
         @NotNull final String contextDescription;
         @NotNull final CorrelationItems correlationItems;
 
         CorrelationLikeOperation(@NotNull CorrelationContext correlationContext) throws ConfigurationException {
-            this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
@@ -152,7 +149,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             super(correlationContext);
         }
 
-        public CorrelationResult execute(OperationResult result)
+        CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             List<F> candidates = findCandidates(result);
@@ -167,7 +164,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             List<F> allCandidates = query != null ? executeQuery(query, result) : List.of();
 
             LOGGER.debug("Found {} owner candidates for {} using {} correlation item(s) in {}: {}",
-                    allCandidates.size(), resourceObject, correlationItems.size(), contextDescription,
+                    allCandidates.size(), correlationContext.getPrimaryCorrelatedObject(),
+                    correlationItems.size(), contextDescription,
                     lazy(() -> PrettyPrinter.prettyPrint(allCandidates, 3)));
 
             return allCandidates;
@@ -218,7 +216,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             boolean matches = checkCandidateOwner(candidateOwner, result);
 
             LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
-                    candidateOwner, resourceObject, correlationItems.size(), contextDescription, matches);
+                    candidateOwner, correlationContext.getPrimaryCorrelatedObject(),
+                    correlationItems.size(), contextDescription, matches);
 
             if (matches) {
                 return determineConfidence(candidateOwner, this, task, result);
