@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
+
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
@@ -45,7 +46,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         if (!options.isSkipVerification()) {
             VerifyOptions verifyOptions = new VerifyOptions();
             verifyOptions.setMultiThread(options.getVerificationThreads());
-            verifyOptions.setContinueVerificationOnError(options.isContinueVerificationOnError());
+            verifyOptions.setStopOnCriticalError(options.isStopOnCriticalError());
 
             VerifyAction verifyAction = new VerifyAction();
             verifyAction.init(context, verifyOptions);
