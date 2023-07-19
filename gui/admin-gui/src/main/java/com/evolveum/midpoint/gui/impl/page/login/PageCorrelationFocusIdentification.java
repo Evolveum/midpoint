@@ -22,21 +22,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @PageDescriptor(urls = {
-@Url(mountUrl = "/correlationFocusIdentification", matchUrlForSecurity = "/correlationFocusIdentification")})
+@Url(mountUrl = "/correlationFocusIdentification", matchUrlForSecurity = "/correlationFocusIdentification")},
+        permitAll = true)   //todo remove permit all later
 public class PageCorrelationFocusIdentification extends PageAbstractAttributeVerification {
 
     private static final long serialVersionUID = 1L;
@@ -45,8 +49,11 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     private static final Trace LOGGER = TraceManager.getTrace(PageCorrelationFocusIdentification.class);
     private static final String OPERATION_LOAD_ARCHETYPE = DOT_CLASS + "loadArchetype";
     private static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
-    protected static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
-    private LoadableDetachableModel<List<ItemsCorrelatorType>> correlatorsModel;
+    private static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
+
+    private static final String ID_CORRELATE = "correlate";
+
+    private LoadableDetachableModel<List<ItemsSubCorrelatorType>> correlatorsModel;
     private String archetypeOid;
 
     public PageCorrelationFocusIdentification(PageParameters parameters) {
@@ -98,7 +105,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<ItemsCorrelatorType> load() {
+            protected List<ItemsSubCorrelatorType> load() {
                 var archetype = loadArchetype();
                 var objectTemplate = loadObjectTemplateForArchetype(archetype);
                 if (objectTemplate == null) {
@@ -108,6 +115,20 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
                 return getCorrelators(objectTemplate);
             }
         };
+    }
+
+    @Override
+    protected void initCustomLayout() {
+        super.initCustomLayout();
+
+        var correlateButton = new AjaxButton(ID_CORRELATE) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                correlate();
+            }
+        };
+        getForm().add(correlateButton);
     }
 
     private ArchetypeType loadArchetype() {
@@ -138,7 +159,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         });
     }
 
-    private List<ItemsCorrelatorType> getCorrelators(ObjectTemplateType objectTemplate) {
+    private List<ItemsSubCorrelatorType> getCorrelators(ObjectTemplateType objectTemplate) {
         var correlatorConfiguration = determineCorrelatorConfiguration(objectTemplate);
         if (correlatorConfiguration == null) {
             return Collections.emptyList();
@@ -147,7 +168,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         return ((CompositeCorrelatorType) correlatorConfiguration.getConfigurationBean())
                 .getItems()
                 .stream()
-                .filter(c -> c instanceof ItemsCorrelatorType)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -168,6 +189,10 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         String username = "";
         return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
                 .eqPoly(username).matchingNorm().build();
+    }
+
+
+    private void correlate() {
     }
 
 }

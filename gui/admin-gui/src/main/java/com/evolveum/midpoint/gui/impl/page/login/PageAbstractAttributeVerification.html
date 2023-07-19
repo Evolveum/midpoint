@@ -12,13 +12,13 @@
 <wicket:extend>
     <form method="post" class="form-horizontal" wicket:id="mainForm">
         <div wicket:id="csrfField"/>
-        <wicket:child/>
         <input type="hidden" wicket:id="attributeValues"/>
         <div wicket:id="attributes" class="d-flex flex-column my-2 justify-content-between login-panel-control">
             <label wicket:id="attributeName"></label>
             <input type="text" class="form-control form-control-sm" wicket:id="attributeValue"/>
         </div>
         <div>
+            <wicket:child/>
             <input type="submit" class="btn btn-primary login-panel-control" wicket:message="value:PageBase.button.send" />
             <a class="text-center login-panel-control mt-2" style="display: inline-block;"  wicket:id="back">
                 <i class="fas fa-arrow-left mr-2"></i>

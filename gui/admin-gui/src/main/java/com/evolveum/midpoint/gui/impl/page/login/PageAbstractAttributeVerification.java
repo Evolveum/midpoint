@@ -134,6 +134,10 @@ public abstract class PageAbstractAttributeVerification extends PageAuthenticati
         return  get(ID_MAIN_FORM).get(ID_ATTRIBUTE_VALUES);
     }
 
+    protected MidpointForm<?> getForm() {
+        return (MidpointForm<?>) get(ID_MAIN_FORM);
+    }
+
     private String generateAttributeValuesString() {
         JSONArray attrValues = new JSONArray();
         attributePathModel.getObject().forEach(entry -> {
