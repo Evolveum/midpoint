@@ -1,7 +1,0 @@
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <adminGuiConfiguration>
-        <userDashboardLink>
-            <targetUrl>https://google.com</targetUrl>
-        </userDashboardLink>
-    </adminGuiConfiguration>
-</systemConfiguration>

@@ -39,7 +39,7 @@ public class RoleCatalogCollectionsProcessor implements UpgradeObjectProcessor<S
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class,
+        return matchObjectTypeAndPathTemplate(object, path, SystemConfigurationType.class,
                 ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ROLE_CATALOG_COLLECTIONS));
     }
 
@@ -66,6 +66,9 @@ public class RoleCatalogCollectionsProcessor implements UpgradeObjectProcessor<S
         roleCatalog.getCollection().addAll(views);
 
         roleManagement.setRoleCatalogCollections(null);
+        if (roleManagement.asPrismContainerValue().isEmpty()) {
+            system.setRoleManagement(null);
+        }
 
         return true;
     }

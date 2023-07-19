@@ -8,47 +8,41 @@
 package com.evolveum.midpoint.schema.validator.processor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.assertj.core.api.Assertions;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.validator.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TestUpgradeProcessors extends AbstractSchemaTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestUpgradeProcessors.class);
 
     private static final File RESOURCES = new File("./src/test/resources/validator/processor");
+    private static final File EXPECTED = new File("./src/test/resources/validator/expected");
 
     private PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
 
     private <O extends ObjectType> void testUpgradeValidator(String fileName, Consumer<UpgradeValidationResult> resultConsumer) throws Exception {
-        File file = new File(RESOURCES, fileName);
-        Assertions.assertThat(file)
-                .exists()
-                .isFile()
-                .isNotEmpty();
-
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
-
-        Assertions.assertThat(object).isNotNull();
+        PrismObject<O> object = parseObject(new File(RESOURCES, fileName));
 
         ObjectUpgradeValidator validator = new ObjectUpgradeValidator(getPrismContext());
         validator.showAllWarnings();
@@ -61,10 +55,49 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         resultConsumer.accept(result);
     }
 
+    private <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
+        Assertions.assertThat(file)
+                .exists()
+                .isFile()
+                .isNotEmpty();
+
+        PrismObject<O> object = getPrismContext().parserFor(file).compat().parse();
+        Assertions.assertThat(object).isNotNull();
+
+        return object;
+    }
+
+    private void assertUpgrade(String file, UpgradeValidationResult result) {
+        try {
+            PrismObject<ResourceType> original = parseObject(new File(RESOURCES, file));
+            PrismObject<ResourceType> expected = parseObject(new File(EXPECTED, file));
+
+            result.getItems().forEach(i -> {
+                try {
+                    ObjectDelta delta = i.getDelta();
+                    if (delta == null || delta.isEmpty()) {
+                        return;
+                    }
+                    delta.applyTo(original);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            });
+
+            AssertJUnit.assertTrue(
+                    "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
+                            "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original),
+                    expected.equivalent(original));
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't assert upgrade result", ex);
+            AssertJUnit.fail(ex.getMessage());
+        }
+    }
+
     @Test
     public void test00CheckIdentifierUniqueness() {
         Map<String, Class<?>> identifiers = new HashMap<>();
-        UpgradeObjectsHandler.PROCESSORS.forEach(p -> {
+        UpgradeProcessor.PROCESSORS.forEach(p -> {
             String identifier = p.getIdentifier();
             Class<?> existing = identifiers.get(identifier);
             if (existing != null) {
@@ -112,7 +145,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(2);
+            Assertions.assertThat(result.getItems()).hasSize(3);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
@@ -140,6 +173,30 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             Assertions.assertThat(item.getDelta().getModifiedItems()).isEmpty();
 
             // todo assert deltas
+        });
+    }
+
+    @Test
+    public void test50SecurityPolicy() throws Exception {
+        testUpgradeValidator("security-policy.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(0);
+
+            Assertions.assertThat(result.hasChanges()).isFalse();
+
+            assertUpgrade("security-policy.xml", result);
+        });
+    }
+
+    @Test
+    public void test60TaskLivesync() throws Exception {
+        testUpgradeValidator("task-livesync.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+
+            assertUpgrade("task-livesync.xml", result);
         });
     }
 

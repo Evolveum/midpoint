@@ -6,6 +6,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Enhanced validator that also produces more information about how validation item should be updated.
+ */
 public class ObjectUpgradeValidator {
 
     private final ObjectValidator validator;
@@ -41,7 +44,7 @@ public class ObjectUpgradeValidator {
     public <O extends ObjectType> UpgradeValidationResult validate(PrismObject<O> object) {
         ValidationResult result = validator.validate(object);
 
-        UpgradeObjectsHandler handler = new UpgradeObjectsHandler();
-        return handler.verify(object, result);
+        UpgradeProcessor processor = new UpgradeProcessor();
+        return processor.process(object, result);
     }
 }

@@ -26,9 +26,19 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+/**
+ * Mixin that contains helper methods for Ninja tests.
+ * Gives user flexibility to execute test using action class or through full execution via cmd parameters.
+ * This mixin can be used for tests where spring context is not needed.
+ */
 public interface NinjaTestMixin {
 
-    StreamValidator EMPTY_STREAM_VALIDATOR = list -> Assertions.assertThat(list).isEmpty();
+    StreamValidator EMPTY_STREAM_VALIDATOR = list -> Assertions.assertThat(list)
+            .withFailMessage(() -> StringUtils.join(list, "\n"))
+            .isEmpty();
+
+    StreamValidator NOOP_STREAM_VALIDATOR = list -> {
+    };
 
     Trace LOGGER = TraceManager.getTrace(NinjaTestMixin.class);
 
@@ -120,6 +130,9 @@ public interface NinjaTestMixin {
         return executeAction(actionClass, actionOptions, allOptions, null, null);
     }
 
+    /**
+     * Allows to test specific action using via java configuration, skips cmd parsing.
+     */
     default <O, R, A extends Action<O, R>> R executeAction(
             @NotNull Class<A> actionClass, @NotNull O actionOptions, @NotNull List<Object> allOptions,
             @Nullable StreamValidator validateOut, @Nullable StreamValidator validateErr)
@@ -147,8 +160,10 @@ public interface NinjaTestMixin {
                 PrintStream out = new PrintStream(bosOut);
                 PrintStream err = new PrintStream(bosErr)
         ) {
-
             return function.apply(out, err);
+        } catch (Exception ex) {
+            LOGGER.error("Exception during test execution", ex);
+            throw ex;
         } finally {
             List<String> outLines = processTestOutputStream(bosOut, "OUT");
             List<String> errLines = processTestOutputStream(bosErr, "ERR");

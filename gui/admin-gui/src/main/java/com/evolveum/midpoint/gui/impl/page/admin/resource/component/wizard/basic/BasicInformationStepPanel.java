@@ -87,4 +87,9 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Resou
             return ItemVisibility.AUTO;
         };
     }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }

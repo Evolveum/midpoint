@@ -249,7 +249,12 @@ public class GuiDisplayNameUtil {
                 ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_ACTIVATION))) {
+                        ResourceObjectTypeDefinitionType.F_ACTIVATION))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().isSuperPath(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_OBJECT_TYPE,
+                        ResourceObjectTypeDefinitionType.F_CREDENTIALS)) ) {
             if (StringUtils.isNotEmpty(mapping.getName())) {
                 return mapping.getName();
             }

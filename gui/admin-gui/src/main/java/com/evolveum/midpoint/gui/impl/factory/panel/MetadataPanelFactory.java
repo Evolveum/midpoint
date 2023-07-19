@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,7 @@ public class MetadataPanelFactory<C extends Containerable> implements GuiCompone
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         if (!(wrapper instanceof PrismContainerWrapper)) {
             return false;
         }

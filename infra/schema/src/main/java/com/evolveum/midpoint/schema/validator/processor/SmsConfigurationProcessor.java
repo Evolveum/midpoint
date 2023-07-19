@@ -41,7 +41,7 @@ public class SmsConfigurationProcessor implements UpgradeObjectProcessor<SystemC
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class, ItemPath.create(
+        return matchObjectTypeAndPathTemplate(object, path, SystemConfigurationType.class, ItemPath.create(
                 SystemConfigurationType.F_NOTIFICATION_CONFIGURATION, NotificationConfigurationType.F_SMS
         ));
     }

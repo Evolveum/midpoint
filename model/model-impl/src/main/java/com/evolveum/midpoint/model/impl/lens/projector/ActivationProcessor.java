@@ -15,7 +15,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSe
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DelayedDeleteEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DisableInsteadDeleteEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DisableInsteadOfDeleteEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PreProvisionEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PredefinedActivationMappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -87,7 +87,7 @@ public class ActivationProcessor implements ProjectorProcessor {
      * depends on the order
      */
     private static final Collection<Class<? extends PredefinedActivationMappingEvaluator>> PREDEFINED_EVALUATORS =
-            List.of(PreProvisionEvaluator.class, DelayedDeleteEvaluator.class, DisableInsteadDeleteEvaluator.class);
+            List.of(PreProvisionEvaluator.class, DelayedDeleteEvaluator.class, DisableInsteadOfDeleteEvaluator.class);
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;

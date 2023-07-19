@@ -90,4 +90,14 @@ public class PredefinedMappingStepPanel
     public VisibleEnableBehaviour getNextBehaviour() {
         return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
+
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> {
+            if (wrapper.getItemName().equals(MappingType.F_LIFECYCLE_STATE)) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
+    }
 }

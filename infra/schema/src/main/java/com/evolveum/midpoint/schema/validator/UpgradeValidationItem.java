@@ -88,4 +88,9 @@ public class UpgradeValidationItem implements DebugDumpable {
         DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
         return sb.toString();
     }
+
+    @Override
+    public String toString() {
+        return debugDump();
+    }
 }

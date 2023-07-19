@@ -6,19 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -35,8 +28,6 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author katka
@@ -47,8 +38,8 @@ public class AssociationRefPanelFactory extends ItemPathPanelFactory {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return super.match(wrapper)
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+        return super.match(wrapper, valueWrapper)
                 && wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                     ResourceType.F_SCHEMA_HANDLING,
                     SchemaHandlingType.F_OBJECT_TYPE,

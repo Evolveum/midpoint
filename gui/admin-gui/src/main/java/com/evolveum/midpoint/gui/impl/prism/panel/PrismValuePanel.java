@@ -124,7 +124,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
             try {
-                factory = getRegistry().findValuePanelFactory(getModelObject().getParent());
+                factory = getRegistry().findValuePanelFactory(getModelObject().getParent(), getModelObject());
             } catch (Throwable e) {
                 LoggingUtils.logUnexpectedException(LOGGER,
                         "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());

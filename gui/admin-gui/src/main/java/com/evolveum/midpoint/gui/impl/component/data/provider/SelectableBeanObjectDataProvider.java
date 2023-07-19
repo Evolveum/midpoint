@@ -55,13 +55,13 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-        SelectableObjectModel<O> model = new SelectableObjectModel<O>(obj, getOptions()) {
+        SelectableObjectModel<O> model = new SelectableObjectModel<O>(obj, getSearchOptions()) {
             @Override
             protected O load() {
                 PageBase pageBase = getPageBase();
                 Task task = pageBase.createSimpleTask("load object");
                 OperationResult result = task.getResult();
-                PrismObject<O> object = WebModelServiceUtils.loadObject(getType(), getOid(), getOptions(), pageBase, task, result);
+                PrismObject<O> object = WebModelServiceUtils.loadObject(getType(), getOid(), getSearchOptions(), pageBase, task, result);
                 result.computeStatusIfUnknown();
                 return object.asObjectable();
             }

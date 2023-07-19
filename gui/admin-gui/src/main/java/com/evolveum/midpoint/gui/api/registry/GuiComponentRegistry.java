@@ -23,7 +23,7 @@ public interface GuiComponentRegistry extends Serializable {
 
     void addToRegistry(GuiComponentFactory<?> factory);
 
-    <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(ItemWrapper<?, ?> itemWrapper);
+    <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(ItemWrapper<?, ?> parentItemWrapper, PrismValueWrapper<?> valueWrapper);
 
     void registerWrapperPanel(QName typeName, Class<?> panelClass);
 

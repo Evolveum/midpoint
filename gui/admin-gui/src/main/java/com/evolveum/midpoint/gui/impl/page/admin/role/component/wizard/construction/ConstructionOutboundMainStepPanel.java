@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construc
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.OutboundMappingMainConfigurationStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -16,17 +17,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.model.IModel;
 
-@PanelType(name = "arw-construction-mapping")
-@PanelInstance(identifier = "arw-construction-mapping",
+@PanelType(name = "arw-construction-mapping-main")
+@PanelInstance(identifier = "arw-construction-mapping-main",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.mapping.outbound.main", icon = "fa fa-circle"),
         containerPath = "empty")
-public class ConstructionOutboundBasicStepPanel<AHD extends AssignmentHolderDetailsModel> extends AttributeOutboundStepPanel<AHD> {
+public class ConstructionOutboundMainStepPanel<AHD extends AssignmentHolderDetailsModel> extends OutboundMappingMainConfigurationStepPanel<AHD> {
 
-    private static final String PANEL_TYPE = "arw-construction-mapping";
+    private static final String PANEL_TYPE = "arw-construction-mapping-main";
 
-    public ConstructionOutboundBasicStepPanel(AHD model, IModel newValueModel) {
+    public ConstructionOutboundMainStepPanel(AHD model, IModel newValueModel) {
         super(model, newValueModel);
     }
 

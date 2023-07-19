@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.LoggingPackageAutocompletePanel;
@@ -32,7 +34,7 @@ public class LoggingPackagePanelFactory extends AbstractInputGuiComponentFactory
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return wrapper instanceof PrismPropertyWrapper
                 && QNameUtil.match(wrapper.getItemName(), ClassLoggerConfigurationType.F_PACKAGE);
     }

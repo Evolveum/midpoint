@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import jakarta.annotation.PostConstruct;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.LookupAutocompletePanel;
+import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableLabelPanel;
 
@@ -33,7 +33,7 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return (wrapper.isReadOnly() || wrapper.isMetadata()) && wrapper instanceof PrismPropertyWrapper;
     }
 
