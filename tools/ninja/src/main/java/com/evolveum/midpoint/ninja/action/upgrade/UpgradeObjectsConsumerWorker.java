@@ -86,11 +86,13 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
             repository.modifyObject(object.getClass(), object.getOid(), delta.getModifications(), opts, opResult);
         } catch (Exception ex) {
-            log.error("Couldn't modify object");
+            log.error("Couldn't modify object {} ({})", ex, object.getName(), object.getOid());
         } finally {
             opResult.computeStatusIfUnknown();
 
-            // todo if not success, print?
+            log.error(
+                    "Modification of '{} ({})' didn't finished with success\n{}",
+                    object.getName(), object.getOid(), opResult.shortDump());
         }
     }
 }
