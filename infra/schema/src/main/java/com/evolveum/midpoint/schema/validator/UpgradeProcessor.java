@@ -17,6 +17,8 @@ public class UpgradeProcessor {
 
     public static final List<UpgradeObjectProcessor<?>> PROCESSORS;
 
+    private static final String PACKAGE_TO_SCAN = "com.evolveum.midpoint";
+
     static {
         PROCESSORS = initProcessors();
     }
@@ -29,7 +31,7 @@ public class UpgradeProcessor {
     }
 
     private static List<UpgradeObjectProcessor<?>> initProcessors() {
-        Set<Class<?>> processors = ClassPathUtil.listClasses("com.evolveum.midpoint")
+        Set<Class<?>> processors = ClassPathUtil.listClasses(PACKAGE_TO_SCAN)
                 .stream()
                 .filter(UpgradeObjectProcessor.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
