@@ -17,5 +17,8 @@ public enum UpgradePriority {
      */
     NECESSARY,
 
+    /**
+     * Midpoint will start and all operations should work, however object contains deprecated configuration.
+     */
     OPTIONAL
 }
