@@ -24,18 +24,21 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.model.Model;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -44,20 +47,23 @@ import java.util.List;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
-}, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
+}, permitAll = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
 public class PageArchetypeSelection extends PageAuthenticationBase {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageArchetypeSelection.class);
     private static final String DOT_CLASS = PageArchetypeSelection.class.getName() + ".";
-    protected static final String OPERATION_LOAD_USER_OBJECT_WRAPPER = DOT_CLASS + "loadUserObjectWrapper";
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_ARCHETYPE_SELECTION_PANEL = "archetypeSelectionPanel";
+    private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_ARCHETYPES_PANEL = "archetypes";
     private static final String ID_ARCHETYPE_PANEL = "archetype";
+    private static final String ID_ARCHETYPE_OID = "archetypeOid";
+
+    private IModel<String> archetypeOidModel = Model.of();
 
     private LoadableDetachableModel<ArchetypeSelectionModuleType> archetypeSelectionModuleModel;
 
@@ -75,6 +81,11 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     @Override
     protected DynamicFormPanel<UserType> getDynamicForm() {
         return null;
+    }
+
+    @Override
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.ARCHETYPE_SELECTION;
     }
 
     @Override
@@ -134,8 +145,16 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     @Override
     protected void initCustomLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
+        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         form.setOutputMarkupId(true);
         add(form);
+
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        form.add(csrfField);
+
+        HiddenField<String> archetypeOidField = new HiddenField<>(ID_ARCHETYPE_OID, archetypeOidModel);
+        archetypeOidField.setOutputMarkupId(true);
+        form.add(archetypeOidField);
 
         initArchetypeSelectionPanel(form);
 
@@ -216,21 +235,26 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
 
             @Override
             protected void onClick(AjaxRequestTarget target) {
-                var archetypeOid = getArchetypeOid(tileModel);
-                redirectToCorrelationPage(archetypeOid);
+                updateArchetypeOidField(tileModel, target);
             }
         };
+    }
+
+    private void updateArchetypeOidField(IModel<Tile<ArchetypeType>> tileModel, AjaxRequestTarget target) {
+        archetypeOidModel.setObject(getArchetypeOid(tileModel));
+        target.add(getArchetypeOidField());
     }
 
     private String getArchetypeOid(IModel<Tile<ArchetypeType>> tileModel) {
         return tileModel.getObject().getValue().getOid();
     }
 
-    private void redirectToCorrelationPage(String archetypeOid) {
-        PageParameters params = new PageParameters();
-        params.set(ARCHETYPE_OID_PARAMETER, archetypeOid);
+    private MidpointForm<?> getForm() {
+        return (MidpointForm<?>) get(ID_MAIN_FORM);
+    }
 
-        setResponsePage(new PageCorrelationFocusIdentification(params));
+    private Component getArchetypeOidField() {
+        return getForm().get(ID_ARCHETYPE_OID);
     }
 
 }

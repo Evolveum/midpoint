@@ -352,21 +352,9 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         return (RequiredTextField) getMainForm().get(ID_USERNAME);
     }
 
-    private String getUrlProcessingLogin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null
-                    && AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM.equals(moduleAuthentication.getModuleTypeName())){
-                String prefix = moduleAuthentication.getPrefix();
-                return AuthUtil.stripSlashes(prefix) + "/spring_security_login";
-            }
-        }
-
-        String key = "web.security.flexAuth.unsupported.auth.type";
-        error(getString(key));
-        return "/midpoint/spring_security_login";
+    @Override
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM;
     }
 
     @Override

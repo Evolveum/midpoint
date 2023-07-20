@@ -29,7 +29,7 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
-        return moduleType instanceof FocusIdentificationAuthenticationModuleType;
+        return moduleType instanceof CorrelationAuthenticationModuleType;
     }
 
     @Override

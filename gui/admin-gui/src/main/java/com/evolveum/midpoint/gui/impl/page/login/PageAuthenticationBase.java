@@ -8,7 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -237,4 +239,23 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
     }
 
     protected abstract DynamicFormPanel<UserType> getDynamicForm();
+
+    protected String getUrlProcessingLogin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            if (moduleAuthentication != null
+                    && getModuleTypeName().equals(moduleAuthentication.getModuleTypeName())){
+                String prefix = moduleAuthentication.getPrefix();
+                return AuthUtil.stripSlashes(prefix) + "/spring_security_login";
+            }
+        }
+
+        String key = "web.security.flexAuth.unsupported.auth.type";
+        error(getString(key));
+        return "/midpoint/spring_security_login";
+    }
+
+    protected  abstract String getModuleTypeName();
 }

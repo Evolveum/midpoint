@@ -214,22 +214,9 @@ public class PageFocusIdentification extends PageAuthenticationBase {
         return null;
     }
 
-    private String getUrlProcessingLogin() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null
-                    && AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION.equals(moduleAuthentication.getModuleTypeName())){
-                String prefix = moduleAuthentication.getPrefix();
-                return AuthUtil.stripSlashes(prefix) + "/spring_security_login";
-            }
-        }
-
-        String key = "web.security.flexAuth.unsupported.auth.type";
-        error(getString(key));
-        return "/midpoint/spring_security_login";
+    @Override
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION;
     }
 
     private String generateAttributeValuesString() {

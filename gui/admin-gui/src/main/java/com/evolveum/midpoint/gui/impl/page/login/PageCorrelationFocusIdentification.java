@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
@@ -27,8 +28,6 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -41,8 +40,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @PageDescriptor(urls = {
-@Url(mountUrl = "/correlationFocusIdentification", matchUrlForSecurity = "/correlationFocusIdentification")},
-        permitAll = true)   //todo remove permit all later
+@Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
+        permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.CORRELATION)
 public class PageCorrelationFocusIdentification extends PageAbstractAttributeVerification {
 
     private static final long serialVersionUID = 1L;
@@ -66,9 +65,8 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     }
 
     @Override
-    protected String getUrlProcessingLogin() {
-        //todo
-        return "";
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.CORRELATION;
     }
 
     @Override

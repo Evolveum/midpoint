@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.channel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -45,7 +46,7 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
         authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
         Authorization selfServiceCredentialsAuthz = new Authorization(authorizationBean);
         newAuthorities.add(selfServiceCredentialsAuthz);
-        authorities.addAll(newAuthorities);
-        return authorities;
+        newAuthorities.addAll(authorities);
+        return Collections.unmodifiableList(newAuthorities);
     }
 }
