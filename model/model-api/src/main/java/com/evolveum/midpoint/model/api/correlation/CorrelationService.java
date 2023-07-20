@@ -38,7 +38,7 @@ public interface CorrelationService {
      */
     @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
-            @NotNull ObjectTemplateType objectTemplate,
+            @NotNull ObjectTemplateType objectTemplate, //todo should be removed, archetype is to be here instead
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,

@@ -183,6 +183,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
                 .collect(Collectors.toList());
     }
 
+    //todo this method will be replaced so that correlation service will return the list of correlation items
     private CorrelatorConfiguration determineCorrelatorConfiguration(ObjectTemplateType objectTemplate) {
         OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIGURATION);
         try {
@@ -202,7 +203,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
                 .eqPoly(username).matchingNorm().build();
     }
 
-
+    //todo correlation will be called from auth module, this is just an attempt to play with correlation
     private void correlate(AjaxRequestTarget target) {
         var task = createAnonymousTask(OPERATION_CORRELATE);
         var result = new OperationResult(OPERATION_CORRELATE);
@@ -222,8 +223,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
 
     private UserType createUser() {
         UserType user = new UserType();
-        user.setFamilyName(new PolyStringType("family"));
-        user.setFamilyName(new PolyStringType("family"));
         return user;
     }
 
