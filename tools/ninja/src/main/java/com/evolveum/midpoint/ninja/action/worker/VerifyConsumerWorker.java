@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -43,7 +44,7 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
 
     @Override
     protected void init() {
-        reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset());
+        reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset(), log);
         reporter.setCreateDeltaFile(true);
         reporter.init();
     }
@@ -70,7 +71,10 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
         try {
             PrismObject<?> cloned = prismObject.clone();
 
-            reporter.verify(writer, cloned);
+            UpgradeValidationResult result = reporter.verify(writer, cloned);
+            if (options.isStopOnCriticalError() && result.hasCritical()) {
+                shouldConsumerStop();
+            }
             ObjectDelta delta = prismObject.diff(cloned);
 
             if (delta.isEmpty()) {

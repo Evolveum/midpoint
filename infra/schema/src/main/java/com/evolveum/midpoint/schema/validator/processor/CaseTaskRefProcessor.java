@@ -35,7 +35,7 @@ public class CaseTaskRefProcessor implements UpgradeObjectProcessor<CaseType> {
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchObjectTypeAndPathTemplate(object, path, CaseType.class, ItemPath.create(CaseType.F_TASK_REF));
+        return matchObjectTypeAndPathTemplate(object, path, CaseType.class, CaseType.F_TASK_REF);
     }
 
     @Override

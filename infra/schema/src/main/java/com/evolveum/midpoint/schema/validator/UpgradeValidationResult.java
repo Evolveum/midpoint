@@ -40,4 +40,8 @@ public class UpgradeValidationResult implements DebugDumpable {
     public boolean hasChanges() {
         return items.stream().anyMatch(i -> i.isChanged());
     }
+
+    public boolean hasCritical() {
+        return items.stream().anyMatch(i -> i.getPriority() != null && i.getPriority() == UpgradePriority.CRITICAL);
+    }
 }

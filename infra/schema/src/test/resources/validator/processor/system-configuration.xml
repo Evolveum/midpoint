@@ -51,6 +51,9 @@
 
     <roleManagement>
         <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
+        <defaultCollection>
+            <collectionUri>allRoles</collectionUri>
+        </defaultCollection>
         <roleCatalogCollections>
             <collection>
                 <collectionUri>allRoles</collectionUri>

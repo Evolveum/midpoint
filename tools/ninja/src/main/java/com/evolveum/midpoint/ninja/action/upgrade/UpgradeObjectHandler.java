@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.ninja.action.upgrade.action.UpgradeObjectsOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -18,8 +15,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
- * // todo doesn't take into account "skipped" items from verification phase
  * Handles upgrade of single object, filters out items that are not applicable for upgrade based on options selected by user.
  */
 public class UpgradeObjectHandler {
@@ -83,41 +82,44 @@ public class UpgradeObjectHandler {
     }
 
     private List<UpgradeValidationItem> filterApplicableItems(String oid, List<UpgradeValidationItem> items) {
-        return items.stream().filter(item -> {
-            if (!item.isChanged()) {
-                return false;
-            }
+        return items.stream()
+                .filter(item -> {
+                    if (!item.isChanged()) {
+                        return false;
+                    }
 
-            if (!matchesOption(options.getIdentifiers(), item.getIdentifier())) {
-                return false;
-            }
+                    if (!matchesOption(options.getIdentifiers(), item.getIdentifier())) {
+                        return false;
+                    }
 
-            if (!matchesOption(options.getTypes(), item.getType())) {
-                return false;
-            }
+                    if (!matchesOption(options.getTypes(), item.getType())) {
+                        return false;
+                    }
 
-            if (!matchesOption(options.getPhases(), item.getPhase())) {
-                return false;
-            }
+                    if (!matchesOption(options.getPhases(), item.getPhase())) {
+                        return false;
+                    }
 
-            if (!matchesOption(options.getPriorities(), item.getPriority())) {
-                return false;
-            }
+                    if (!matchesOption(options.getPriorities(), item.getPriority())) {
+                        return false;
+                    }
 
-            ItemPath path = item.getItem().getItemPath();
-            if (path == null) {
-                return true;
-            }
+                    ItemPath path = item.getItem().getItemPath();
+                    if (path == null) {
+                        return true;
+                    }
 
-            Set<SkipUpgradeItem> skipItems = skipUpgradeItems.getOrDefault(UUID.fromString(oid), new HashSet<>());
-            for (SkipUpgradeItem skipItem : skipItems) {
-                if (Objects.equals(skipItem.getPath(), path.toString())) {
-                    return false;
-                }
-            }
+                    Set<SkipUpgradeItem> skipItems = skipUpgradeItems.getOrDefault(UUID.fromString(oid), new HashSet<>());
+                    for (SkipUpgradeItem skipItem : skipItems) {
+                        if (Objects.equals(skipItem.getPath(), path.toString())) {
+                            return false;
+                        }
+                    }
 
-            return true;
-        }).collect(Collectors.toList());
+                    return true;
+                })
+                .sorted(Comparator.comparing(UpgradeValidationItem::getIdentifier))
+                .collect(Collectors.toList());
     }
 
     private <T> boolean matchesOption(List<T> options, T option) {

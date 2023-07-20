@@ -8,16 +8,37 @@
 package com.evolveum.midpoint.ninja.impl;
 
 import java.io.PrintStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class Log {
 
+    private static final Pattern PATTERN = Pattern.compile("\\{}");
+
     private enum Level {
-        ERROR, INFO, DEBUG
+        ERROR, INFO, DEBUG;
+
+        public ConsoleFormat.Level toConsoleFormatLevel() {
+            switch (this) {
+                case ERROR:
+                    return ConsoleFormat.Level.ERROR;
+                case INFO:
+                    return ConsoleFormat.Level.INFO;
+                case DEBUG:
+                    return ConsoleFormat.Level.DEFAULT;
+                default:
+                    throw new IllegalStateException("Unknown log level: " + this);
+            }
+        }
     }
 
     private final LogVerbosity level;
@@ -34,10 +55,14 @@ public class Log {
     }
 
     public void error(String message, Exception ex, Object... args) {
+        if (ex != null) {
+            message = message + ". Reason: " + ex.getMessage();
+        }
+
         log(Level.ERROR, message, args);
 
         if (ex != null && level == LogVerbosity.VERBOSE) {
-            log(Level.DEBUG, "Exception details", ex);
+            log(Level.DEBUG, "Exception details:\n{}", ex);
         }
     }
 
@@ -61,13 +86,23 @@ public class Log {
                 // all log levels should be printed
         }
 
-        // todo simple replacement, should be improved later probably
-        String msg = message;
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i] != null ? args[i].toString() : "null";
-            msg = msg.replaceFirst("\\{}", arg);
-        }
+        Matcher matcher = PATTERN.matcher(message);
 
-        stream.println(level + ": " + msg);
+        StringBuilder sb = new StringBuilder();
+
+        int i = 0;
+        while (matcher.find()) {
+            Object arg = args[i++];
+            if (arg instanceof Exception && level == Level.DEBUG) {
+                arg = NinjaUtils.printStackToString((Exception) arg);
+            }
+
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(arg.toString()));
+        }
+        matcher.appendTail(sb);
+
+        ConsoleFormat.formatMessageWithParameter(level + ": ", sb.toString(), level.toConsoleFormatLevel());
+
+        stream.println(level + ": " + sb);
     }
 }
