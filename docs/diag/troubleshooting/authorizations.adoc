@@ -105,6 +105,7 @@ In such a case the operation must be allowed.
 But the retrieved object needs to be post-processed to remove the fields that are not accessible to the user.
 This is done in two steps.
 
+// TODO this was changed in 4.8 - describe
 Firstly the set of _object security constraints_ is compiled from the authorizations.
 The _object security constraints_ is a data structure that describes which properties of an object are accessible to the user.
 There is a map (`itemConstraintMap`) with an entry for every item (property) which is explicitly mentioned in the authorizations.

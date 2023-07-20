@@ -171,6 +171,10 @@ See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-aud
 | 13
 | Running a task immediately (now)
 
+| `DISCOVER_OBJECT`
+| 14
+| Created shadow after discovering object on resource.
+
 |===
 
 Other event types may be added in the future (including custom event types).
@@ -200,11 +204,17 @@ The record shows operation details (e.g. deltas) in the form as originally inten
 | The operation after execution.
 The record shows operation details (e.g. deltas) in the form as it was executed.
 
+| `RESOURCE`
+| 2
+| Stage which contains events that were recorded on provisioning level.
+Both before and after something happened in provisioning, e.g. when auditing operations executed through provisioning
+on managed resource as well as getting changes through live synchronization process.
+
 |===
 
 Other stages may be added in the future (e.g. stage for approvals or workflow steps).
 
-There is usually one request and one execution record for each operation.
+There is usually one request, one execution and multiple provisioning records for each operation.
 E.g. the request record contains the delta that assigns role to a user.
 The execution record will also contain that delta, but it may contain additional deltas, e.g. deltas for adding new accounts implied by the role.
 In some cases there may be several execution records for a single request record.
