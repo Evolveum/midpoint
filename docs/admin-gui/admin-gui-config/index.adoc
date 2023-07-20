@@ -983,16 +983,31 @@ Panels applicable for resource wizard:
 
 | Configuration of inbound mapping
 | `rw-attribute-inbound`
-| Definition of the resource attribute from which the data wil be provisioned, and midPoint attribute which they will be provisioned to
+| Definition of the resource attribute from which the data wil be provisioned, and midPoint attribute which they will be provisioned to. Panel was removed from 4.8.
+
+| Main configuration of inbound mapping
+| `rw-attribute-inbound-main`
+| Available from 4.8. Definition of the resource attribute from which the data wil be provisioned, and midPoint attribute which they will be provisioned to. Contains attributes name, source, target, ref (resource attribute), strength, expression and condition
+
+| Optional configuration of inbound mapping
+| `rw-attribute-inbound-optional`
+| Available from 4.8. Definition of the resource attributes description, exclusive, authoritative, channel and except channel
 
 | Outbound mappings
 | `rw-attribute-outbounds`
 | Table of outbound mappings of selected object type
 
-
 | Configuration of outbound mapping
 | `rw-attribute-outbound`
-| Definition of from which attribute(s) in midPoint the data will be provisioned to which attribute on resource
+| Definition of from which attribute(s) in midPoint the data will be provisioned to which attribute on resource. Panel was removed from 4.8.
+
+| Main configuration of outbound mapping
+| `rw-attribute-outbound-main`
+| Available from 4.8. Definition of from which attribute(s) in midPoint the data will be provisioned to which attribute on resource. Contains attributes name, source, ref (resource attribute), strength, expression and condition
+
+| Optional configuration of outbound mapping
+| `rw-attribute-outbound-optional`
+| Available from 4.8. Definition of the resource attributes description, exclusive, authoritative, channel and except channel
 
 | Limitations of the override
 | `rw-attribute-limitations`
@@ -1029,6 +1044,42 @@ Panels applicable for resource wizard:
 | Correlators
 | `rw-correlators`
 | Table of correlators of selected correlation rule
+
+| Main configuration of activation inbound mapping
+| `rw-activation-inbound-main`
+| Available from 4.8. Definition is same as for `rw-attribute-inbound-main`
+
+| Optional configuration of activation inbound mapping
+| `rw-activation-inbound-optional`
+| Available from 4.8. Definition is same as for `rw-attribute-inbound-optional`
+
+| Main configuration of activation outbound mapping
+| `rw-activation-outbound-main`
+| Available from 4.8. Definition is same as for `rw-attribute-outbound-main`
+
+| Optional configuration of activation outbound mapping
+| `rw-activation-outbound-optional`
+| Available from 4.8. Definition is same as for `rw-attribute-outbound-optional`
+
+| Configuration of redefined mapping
+| `rw-activation-predefined`
+| Available from 4.8. Configuration one from predefined mapping processing, as _disable instead of delete_, _delayed delete_ and _pre-provisioning_
+
+| Main configuration of credentials inbound mapping
+| `rw-credentials-inbound-main`
+| Available from 4.8. Definition is same as for `rw-attribute-inbound-main`
+
+| Optional configuration of credentials inbound mapping
+| `rw-credentials-inbound-optional`
+| Available from 4.8. Definition is same as for `rw-attribute-inbound-optional`
+
+| Main configuration of credentials outbound mapping
+| `rw-credentials-outbound-main`
+| Available from 4.8. Definition is same as for `rw-attribute-outbound-main`
+
+| Optional configuration of credentials outbound mapping
+| `rw-credentials-outbound-optional`
+| Available from 4.8. Definition is same as for `rw-attribute-outbound-optional`
 |===
 
 Panels applicable for role wizard:
