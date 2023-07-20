@@ -7,20 +7,8 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import org.assertj.core.api.Assertions;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
@@ -28,7 +16,22 @@ import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+import org.assertj.core.api.Assertions;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class TestUpgradeProcessors extends AbstractSchemaTest {
 
@@ -69,20 +72,26 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
 
     private void assertUpgrade(String file, UpgradeValidationResult result) {
         try {
-            PrismObject<ResourceType> original = parseObject(new File(RESOURCES, file));
-            PrismObject<ResourceType> expected = parseObject(new File(EXPECTED, file));
+            PrismObject original = parseObject(new File(RESOURCES, file));
+            PrismObject<?> expected = parseObject(new File(EXPECTED, file));
 
-            result.getItems().forEach(i -> {
-                try {
-                    ObjectDelta delta = i.getDelta();
-                    if (delta == null || delta.isEmpty()) {
-                        return;
-                    }
-                    delta.applyTo(original);
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e.getMessage(), e);
-                }
-            });
+            result.getItems().stream()
+                    .filter(item -> item.getIdentifier() != null)
+                    .sorted(Comparator.comparing(UpgradeValidationItem::getIdentifier))
+                    .forEach(item -> {
+                        String identifier = item.getIdentifier();
+                        if (identifier == null) {
+                            return;
+                        }
+
+                        UpgradeObjectProcessor<?> processor = UpgradeProcessor.getProcessor(identifier);
+                        if (processor == null) {
+                            return;
+                        }
+
+                        ItemPath path = item.getItem().getItemPath();
+                        processor.process(original, path);
+                    });
 
             AssertJUnit.assertTrue(
                     "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
@@ -145,7 +154,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(3);
+            Assertions.assertThat(result.getItems()).hasSize(4);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
@@ -172,7 +181,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                     RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_PERSONA_CONSTRUCTION, PersonaConstructionType.F_TARGET_SUBTYPE));
             Assertions.assertThat(item.getDelta().getModifiedItems()).isEmpty();
 
-            // todo assert deltas
+            assertUpgrade("role.xml", result);
         });
     }
 
