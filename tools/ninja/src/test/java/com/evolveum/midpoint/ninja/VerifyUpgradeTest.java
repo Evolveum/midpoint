@@ -3,13 +3,6 @@ package com.evolveum.midpoint.ninja;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.DeltaConversionOptions;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
@@ -24,8 +17,11 @@ import com.evolveum.midpoint.ninja.action.VerifyResult;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 
@@ -81,80 +77,6 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
         // todo more asserts
     }
 
-    // todo remove this mess, just testing ideas out
-    @Test(enabled = false)
-    public void test150Sample() throws Exception {
-        SystemConfigurationType config = new SystemConfigurationType();
-        config.setOid(UUID.randomUUID().toString());
-
-        ObjectDelta delta1 = PrismTestUtil.getPrismContext().deltaFor(SystemConfigurationType.class)
-                .item(ItemPath.create(
-                        SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION,
-                        AdminGuiConfigurationType.F_ACCESS_REQUEST,
-                        AccessRequestType.F_ROLE_CATALOG,
-                        RoleCatalogType.F_COLLECTION))
-                .add(new RoleCatalogType()
-                        .beginCollection()
-                        .identifier("sample")
-                        .collectionIdentifier("sample")
-                        .<RoleCollectionViewType>end())
-                .asObjectDelta(config.getOid());
-
-        ObjectDelta delta2 = PrismTestUtil.getPrismContext().deltaFor(SystemConfigurationType.class)
-                .item(ItemPath.create(
-                        SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION,
-                        AdminGuiConfigurationType.F_ACCESS_REQUEST,
-                        AccessRequestType.F_ROLE_CATALOG,
-                        RoleCatalogType.F_ROLE_CATALOG_REF))
-                .add(new ObjectReferenceType()
-                        .oid(UUID.randomUUID().toString())
-                        .type(OrgType.COMPLEX_TYPE))
-                .asObjectDelta(config.getOid());
-
-        delta1.applyTo(config.asPrismObject());
-        delta2.applyTo(config.asPrismObject());
-
-        System.out.println(config);
-
-        config = new SystemConfigurationType();
-        config.setOid(UUID.randomUUID().toString());
-
-        AdminGuiConfigurationType guiConfig = new AdminGuiConfigurationType();
-        AccessRequestType request = new AccessRequestType();
-        guiConfig.setAccessRequest(request);
-        RoleCatalogType catalog = new RoleCatalogType();
-        request.setRoleCatalog(catalog);
-        catalog.getCollection().add(new RoleCollectionViewType()
-                .identifier("sample")
-                .collectionIdentifier("sample"));
-
-        delta1 = PrismTestUtil.getPrismContext().deltaFor(SystemConfigurationType.class)
-                .item(ItemPath.create(
-                        SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION))
-                .add(guiConfig)
-                .asObjectDelta(config.getOid());
-
-        guiConfig = new AdminGuiConfigurationType();
-        request = new AccessRequestType();
-        guiConfig.setAccessRequest(request);
-        catalog = new RoleCatalogType();
-        request.setRoleCatalog(catalog);
-        catalog.setRoleCatalogRef(new ObjectReferenceType()
-                .oid(UUID.randomUUID().toString())
-                .type(OrgType.COMPLEX_TYPE));
-
-        delta2 = PrismTestUtil.getPrismContext().deltaFor(SystemConfigurationType.class)
-                .item(ItemPath.create(
-                        SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION))
-                .add(guiConfig)
-                .asObjectDelta(config.getOid());
-
-        delta1.applyTo(config.asPrismObject());
-        delta2.applyTo(config.asPrismObject());
-
-        System.out.println(config);
-    }
-
     @Test
     public void test200UpgradeFiles() throws Exception {
         given();
@@ -167,6 +89,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
                 "upgrade-objects",
                 "--file", TARGET_FILES.getPath(),
                 "--verification-file", OUTPUT.getPath(),
+                "--skip-upgrade-warning",
                 "--upgrade-phase", "before");
 
         then();

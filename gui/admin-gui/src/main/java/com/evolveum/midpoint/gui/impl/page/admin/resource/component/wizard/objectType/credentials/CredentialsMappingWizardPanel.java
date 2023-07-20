@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -25,37 +25,40 @@ import org.jetbrains.annotations.NotNull;
  * @author lskublik
  */
 
-@PanelType(name = "rw-activation")
-@PanelInstance(identifier = "rw-activation",
+@PanelType(name = "rw-credentials")
+@PanelInstance(identifier = "rw-credentials",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation", icon = "fa fa-toggle-off"))
-public abstract class ActivationMappingWizardPanel extends AbstractSpecificMappingWizardPanel<ResourceActivationDefinitionType> {
+        display = @PanelDisplay(label = "PageResource.wizard.step.credentials", icon = "fa fa-toggle-off"))
+public abstract class CredentialsMappingWizardPanel extends AbstractSpecificMappingWizardPanel<ResourceCredentialsDefinitionType> {
 
-    public static final String PANEL_TYPE = "rw-activation";
+    public static final String PANEL_TYPE = "rw-credentials";
 
-    public ActivationMappingWizardPanel(
+    public CredentialsMappingWizardPanel(
             String id,
             ResourceDetailsModel model,
-            IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel,
+            IModel<PrismContainerWrapper<ResourceCredentialsDefinitionType>> containerModel,
             MappingDirection initialTab) {
         super(id, model, containerModel, initialTab);
     }
 
     @Override
-    protected AbstractSpecificMappingTileTable<ResourceActivationDefinitionType> createTablePanel(String panelId, IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel, MappingDirection mappingDirection) {
-        return new ActivationMappingTileTable(panelId, containerModel, mappingDirection, getAssignmentHolderDetailsModel()) {
+    protected AbstractSpecificMappingTileTable<ResourceCredentialsDefinitionType> createTablePanel(
+            String panelId,
+            IModel<PrismContainerWrapper<ResourceCredentialsDefinitionType>> containerModel,
+            MappingDirection mappingDirection) {
+        return new CredentialsMappingTileTable(panelId, containerModel, mappingDirection, getAssignmentHolderDetailsModel()) {
             @Override
             protected void editPredefinedMapping(
                     IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
                     AjaxRequestTarget target) {
-                ActivationMappingWizardPanel.this.editPredefinedMapping(valueModel, mappingDirection, target);
+                CredentialsMappingWizardPanel.this.editPredefinedMapping(valueModel, mappingDirection, target);
             }
 
             @Override
             protected void editConfiguredMapping(
                     IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target) {
-                ActivationMappingWizardPanel.this.editConfiguredMapping(valueModel, mappingDirection, target);
+                CredentialsMappingWizardPanel.this.editConfiguredMapping(valueModel, mappingDirection, target);
             }
 
             @Override
@@ -66,18 +69,29 @@ public abstract class ActivationMappingWizardPanel extends AbstractSpecificMappi
         };
     }
 
+    protected abstract void editOutboundMapping(IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target);
+
+    protected abstract void editInboundMapping(IModel<PrismContainerValueWrapper<MappingType>> valueModel, AjaxRequestTarget target);
+
+    @Override
+    protected void editPredefinedMapping(
+            IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
+            MappingDirection direction,
+            AjaxRequestTarget target) {
+    }
+
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
-        return getPageBase().createStringResource("PageResource.wizard.step.activation");
+        return getPageBase().createStringResource("PageResource.wizard.step.credentials");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("PageResource.wizard.step.activation.text");
+        return getPageBase().createStringResource("PageResource.wizard.step.credentials.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("PageResource.wizard.step.activation.subText");
+        return getPageBase().createStringResource("PageResource.wizard.step.credentials.subText");
     }
 }

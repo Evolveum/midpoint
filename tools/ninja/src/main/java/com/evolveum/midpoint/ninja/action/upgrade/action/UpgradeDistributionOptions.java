@@ -17,12 +17,9 @@ public class UpgradeDistributionOptions {
     public static final String P_INSTALLATION_DIRECTORY = "--installation-directory";
 
     public static final String P_SKIP_VERIFICATION = "--skip-verification";
-
     public static final String P_VERIFICATION_THREADS = "--verification-threads";
-
     public static final String P_SKIP_PRE_CHECK = "--skip-pre-check";
-
-    public static final String P_CONTINUE_VERIFICATION_ON_ERROR = "--continue-verification-on-error";
+    public static final String P_STOP_ON_CRITICAL_ERROR = "--stop-on-critical-error";
 
     @Parameter(names = { P_TEMP_DIR_LONG }, descriptionKey = "upgradeDistribution.tempDir")
     private File tempDirectory;
@@ -42,8 +39,8 @@ public class UpgradeDistributionOptions {
     @Parameter(names = { P_VERIFICATION_THREADS }, descriptionKey = "upgradeDistribution.verificationThreads")
     private int verificationThreads = 1;
 
-    @Parameter(names = { P_CONTINUE_VERIFICATION_ON_ERROR }, descriptionKey = "upgradeDistribution.continueVerificationOnError")
-    private boolean continueVerificationOnError = true;
+    @Parameter(names = { P_STOP_ON_CRITICAL_ERROR }, descriptionKey = "upgradeDistribution.stopOnCriticalError")
+    private boolean stopOnCriticalError = true;
 
     @Parameter(names = { P_SKIP_PRE_CHECK }, descriptionKey = "upgradeDistribution.skipPreCheck")
     private boolean skipPreCheck;
@@ -96,12 +93,12 @@ public class UpgradeDistributionOptions {
         this.verificationThreads = verificationThreads;
     }
 
-    public boolean isContinueVerificationOnError() {
-        return continueVerificationOnError;
+    public boolean isStopOnCriticalError() {
+        return stopOnCriticalError;
     }
 
-    public void setContinueVerificationOnError(boolean continueVerificationOnError) {
-        this.continueVerificationOnError = continueVerificationOnError;
+    public void setStopOnCriticalError(boolean stopOnCriticalError) {
+        this.stopOnCriticalError = stopOnCriticalError;
     }
 
     public boolean isSkipPreCheck() {

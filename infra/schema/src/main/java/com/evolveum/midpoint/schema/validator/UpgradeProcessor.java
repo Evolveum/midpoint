@@ -17,6 +17,8 @@ public class UpgradeProcessor {
 
     public static final List<UpgradeObjectProcessor<?>> PROCESSORS;
 
+    private static final String PACKAGE_TO_SCAN = "com.evolveum.midpoint";
+
     static {
         PROCESSORS = initProcessors();
     }
@@ -29,11 +31,10 @@ public class UpgradeProcessor {
     }
 
     private static List<UpgradeObjectProcessor<?>> initProcessors() {
-        Set<Class<?>> processors = ClassPathUtil.listClasses("com.evolveum.midpoint")
+        Set<Class<?>> processors = ClassPathUtil.listClasses(PACKAGE_TO_SCAN)
                 .stream()
                 .filter(UpgradeObjectProcessor.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
-
                 .collect(Collectors.toUnmodifiableSet());
 
         return processors.stream()
@@ -44,7 +45,7 @@ public class UpgradeProcessor {
                         throw new IllegalStateException("Processor " + c.getName() + " doesn't have constructor without arguments");
                     }
                 })
-                .sorted(Comparator.comparing(p -> p.getClass().getName()))
+                .sorted(Comparator.comparing(p -> p.getClass().getName()))  // sorting only to ensure deterministic behaviour during object processing
                 .collect(Collectors.toUnmodifiableList());
     }
 

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -69,7 +71,8 @@ public class SpecificMappingProvider<C extends Containerable> extends ContainerL
         if (parent != null) {
             WebPrismUtil.sortContainers(parent.getContainers());
             for (PrismContainerWrapper<? extends Containerable> child : parent.getContainers()) {
-                if (QNameUtil.match(child.getTypeName(), ResourceBidirectionalMappingType.COMPLEX_TYPE)) {
+                if (QNameUtil.match(child.getTypeName(), ResourceBidirectionalMappingType.COMPLEX_TYPE)
+                        || QNameUtil.match(child.getTypeName(), ResourcePasswordDefinitionType.COMPLEX_TYPE)) {
                     try {
                         PrismContainerWrapper<Containerable> container = child.findContainer(mappingDirection.getContainerName());
                         container.getValues().forEach(value -> {

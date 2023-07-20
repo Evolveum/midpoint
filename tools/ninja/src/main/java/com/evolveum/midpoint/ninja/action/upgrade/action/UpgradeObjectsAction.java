@@ -19,14 +19,12 @@ import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-// todo handle initial objects somehow
-// compare vanilla previous with vanilla new ones and also vanilla previous with current in MP repository,
-// apply only non conflicting delta items, report it to user
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
     private Map<UUID, Set<SkipUpgradeItem>> skipUpgradeItems;
@@ -53,14 +51,15 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         log.info("Upgrade will skip {} objects", skipUpgradeItems.size());
 
         if (!options.getFiles().isEmpty()) {
-            // todo this is another check whether we want to upgrade objects in files
-//            log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
-//            String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
-//
-//            if (result.trim().equalsIgnoreCase("n")) {
-//                log.info("Upgrade aborted");
-//                return null;
-//            }
+            if (!options.isSkipUpgradeWarning()) {
+                log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
+                String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
+
+                if (result.trim().equalsIgnoreCase("n")) {
+                    log.info("Upgrade aborted");
+                    return null;
+                }
+            }
 
             return upgradeObjectsInFiles();
         }
@@ -91,12 +90,12 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismParser parser = prismContext.parserFor(file).language(PrismContext.LANG_XML).context(parsingContext);
 
-        List<PrismObject<?>> objects = new ArrayList<>();
+        List<PrismObject<?>> objects;
         try {
             objects = parser.parseObjects();
         } catch (Exception ex) {
-            // todo handle error
-            ex.printStackTrace();
+            log.error("Couldn't parse file '{}'", file.getPath(), ex);
+            return;
         }
 
         boolean changed = false;
@@ -123,8 +122,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             }
             writer.write(xml);
         } catch (Exception ex) {
-            // todo handle error
-            ex.printStackTrace();
+            log.error("Couldn't serialize objects to file '{}'", file.getPath(), ex);
         }
     }
 
@@ -186,7 +184,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         return () -> {
-            new UpgradeObjectsConsumerWorker(skipUpgradeItems, context, options, queue, operation).run();
+            new UpgradeObjectsConsumerWorker<>(skipUpgradeItems, context, options, queue, operation).run();
             return null;
         };
     }

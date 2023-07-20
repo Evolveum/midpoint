@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 
 public class MappingTile<T extends PrismContainerValueWrapper<? extends Containerable>> extends TemplateTile<T> {
 

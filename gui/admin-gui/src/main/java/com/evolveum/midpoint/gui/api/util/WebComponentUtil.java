@@ -5809,15 +5809,20 @@ public final class WebComponentUtil {
             return "fa fa-circle";
         }
 
-        if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null) {
+        if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null
+                || object.getParentContainerValue(ResourcePasswordDefinitionType.class) != null) {
             if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)){
-                PrismContainerValueWrapper<ResourceBidirectionalMappingType> parent =
+
+                PrismContainerValueWrapper parent =
                         object.getParentContainerValue(ResourceBidirectionalMappingType.class);
+                if (parent == null) {
+                    parent = object.getParentContainerValue(ResourcePasswordDefinitionType.class);
+                }
                 if (parent == null) {
                     return "fa fa-circle";
                 }
 
-                PrismContainerDefinition<ResourceBidirectionalMappingType> parentDef = parent.getDefinition();
+                PrismContainerDefinition parentDef = parent.getDefinition();
                 return createMappingIcon(parentDef);
 
             } else {
@@ -5848,6 +5853,8 @@ public final class WebComponentUtil {
             return "fa fa-clock";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_PRE_PROVISION)) {
             return "fa fa-user-plus";
+        } else if (QNameUtil.match(def.getItemName(), ResourceCredentialsDefinitionType.F_PASSWORD)) {
+            return "fa fa-key";
         }
         return "fa fa-circle";
     }

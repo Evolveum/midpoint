@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPredefinedActivationMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
@@ -62,8 +61,7 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
             @Override
             protected void editPredefinedMapping(
                     IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel,
-                    AjaxRequestTarget target,
-                    MappingDirection direction) {
+                    MappingDirection direction, AjaxRequestTarget target) {
                 showPredefinedMappingFragment(target, valueModel, direction);
             }
 

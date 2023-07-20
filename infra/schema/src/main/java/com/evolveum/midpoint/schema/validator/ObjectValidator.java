@@ -163,7 +163,6 @@ public class ObjectValidator {
         } catch (IllegalArgumentException e) {
             warn(result, (Item<?, ?>) item.getParent(), "OID '" + oid + "' is not valid UUID");
         }
-
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> void warn(ValidationResult result, Item<V, D> item, String message) {

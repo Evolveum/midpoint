@@ -5,10 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -16,11 +15,13 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.MappingTile;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.MappingTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.SpecificMappingProvider;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,20 +45,20 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class SpecificMappingTileTable extends TileTablePanel
+public abstract class AbstractSpecificMappingTileTable<C extends Containerable> extends TileTablePanel
         <MappingTile<PrismContainerValueWrapper<? extends Containerable>>, PrismContainerValueWrapper> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SpecificMappingTileTable.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSpecificMappingTileTable.class);
     private static final String ID_ADD_RULE_CONTAINER = "addRuleContainer";
     private static final String ID_ADD_BUTTON = "addButton";
 
-    private final IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel;
+    private final IModel<PrismContainerWrapper<C>> containerModel;
     private final MappingDirection mappingDirection;
     private final ResourceDetailsModel detailsModel;
 
-    public SpecificMappingTileTable(
+    public AbstractSpecificMappingTileTable(
             String id,
-            IModel<PrismContainerWrapper<ResourceActivationDefinitionType>> containerModel,
+            IModel<PrismContainerWrapper<C>> containerModel,
             @NotNull MappingDirection mappingDirection,
             ResourceDetailsModel detailsModel) {
         super(id);
@@ -66,10 +67,22 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
         this.detailsModel = detailsModel;
     }
 
+    public ResourceDetailsModel getDetailsModel() {
+        return detailsModel;
+    }
+
+    public MappingDirection getMappingDirection() {
+        return mappingDirection;
+    }
+
+    public IModel<PrismContainerWrapper<C>> getContainerModel() {
+        return containerModel;
+    }
+
     @Override
     protected ISortableDataProvider createProvider() {
-        return new SpecificMappingProvider(
-                SpecificMappingTileTable.this,
+        return new SpecificMappingProvider<C>(
+                AbstractSpecificMappingTileTable.this,
                 new ContainerValueWrapperFromObjectWrapperModel<>(containerModel, ItemPath.EMPTY_PATH),
                 mappingDirection
         );
@@ -100,7 +113,7 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
 
     private String createStrengthHelp(MappingType mapping) {
         String strength = translateStrength(mapping);
-        return getPageBase().createStringResource("ActivationMappingWizardPanel.tile.help", strength).getString();
+        return getPageBase().createStringResource("AbstractSpecificMappingTileTable.tile.help", strength).getString();
     }
 
     @Override
@@ -156,8 +169,8 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
 
         ExpressionType expressionBean = mapping.getExpression();
         String description = PageBase.createStringResourceStatic(
-                "ActivationMappingWizardPanel.tile.description.prefix",
-                "ActivationMappingWizardPanel.tile.description.prefix",
+                "AbstractSpecificMappingTileTable.tile.description.prefix",
+                "AbstractSpecificMappingTileTable.tile.description.prefix",
                 strength).getString();
 
         ExpressionUtil.ExpressionEvaluatorType evaluatorType;
@@ -171,8 +184,8 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
         String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
 
         description += " " + PageBase.createStringResourceStatic(
-                "ActivationMappingWizardPanel.tile.description.suffix",
-                "ActivationMappingWizardPanel.tile.description.suffix",
+                "AbstractSpecificMappingTileTable.tile.description.suffix",
+                "AbstractSpecificMappingTileTable.tile.description.suffix",
                 evaluator).getString();
         return description;
     }
@@ -182,7 +195,7 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
             String idTilesContainer,
             ISortableDataProvider<PrismContainerValueWrapper, String> provider,
             UserProfileStorage.TableId tableId) {
-        Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, SpecificMappingTileTable.this);
+        Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, AbstractSpecificMappingTileTable.this);
 
         PageableListView tiles = createTilesPanel(ID_TILES, provider);
         tilesFragment.add(tiles);
@@ -207,15 +220,13 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
                 buttonId,
                 Model.of("fa fa-circle-plus text-light"),
                 (IModel<String>) () -> createStringResource(
-                        "SpecificMappingTileTable.button.add." + mappingDirection.name().toLowerCase()).getString()) {
+                        "AbstractSpecificMappingTileTable.button.add." + mappingDirection.name().toLowerCase()).getString()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                getPageBase().showMainPopup(
-                        createActivationPopup(),
-                        target);
+                AbstractSpecificMappingTileTable.this.onClickCreateMapping(target);
             }
         };
         addButton.showTitleAsLabel(true);
@@ -223,51 +234,7 @@ public abstract class SpecificMappingTileTable extends TileTablePanel
         return addButton;
     }
 
-    private CreateActivationMappingPopup createActivationPopup() {
-        return new CreateActivationMappingPopup(
-                getPageBase().getMainPopupBodyId(),
-                mappingDirection,
-                new ContainerValueWrapperFromObjectWrapperModel<>(containerModel, ItemPath.EMPTY_PATH),
-                detailsModel) {
-
-            @Override
-            protected <T extends PrismContainerValueWrapper<? extends Containerable>> void selectMapping(
-                    IModel<T> valueModel,
-                    MappingTile.MappingDefinitionType mappingDefinitionType,
-                    AjaxRequestTarget target) {
-
-                if (valueModel.getObject().getItems().size() == 1) {
-                    @NotNull ItemName itemName = valueModel.getObject().getItems().iterator().next().getItemName();
-                    if (itemName.equivalent(MappingType.F_LIFECYCLE_STATE)) {
-                        refresh(target);
-                        return;
-                    }
-                }
-
-                boolean dontOpenConfiguration = true;
-                for (ItemWrapper<?, ?> item : valueModel.getObject().getItems()) {
-                    if (item.isMandatory()) {
-                        dontOpenConfiguration = false;
-                    }
-                }
-
-                if (dontOpenConfiguration) {
-                    refresh(target);
-                    return;
-                }
-
-                if (MappingTile.MappingDefinitionType.PREDEFINED.equals(mappingDefinitionType)) {
-                    editPredefinedMapping(
-                            (IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>>) valueModel,
-                            target);
-                } else {
-                    editConfiguredMapping(
-                            (IModel<PrismContainerValueWrapper<MappingType>>) valueModel,
-                            target);
-                }
-            }
-        };
-    }
+    protected abstract void onClickCreateMapping(AjaxRequestTarget target);
 
     protected abstract void editPredefinedMapping(
             IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> valueModel, AjaxRequestTarget target);
