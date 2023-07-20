@@ -7,11 +7,10 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-    <div wicket:id="valueContainer">
-        <wicket:child/>
-        <span wicket:id="feedback"/>
+<wicket:extend>
+    <div class="prism-property-label p-0">
+        <span wicket:id="valueContainerLabel"/>
     </div>
-</wicket:panel>
+    <div class="prism-property-value" wicket:id="valueInput"/>
+</wicket:extend>
 </html>
-

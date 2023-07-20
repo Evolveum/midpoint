@@ -173,14 +173,17 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
                 "AbstractSpecificMappingTileTable.tile.description.prefix",
                 strength).getString();
 
-        ExpressionUtil.ExpressionEvaluatorType evaluatorType;
+        ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
         if (expressionBean != null) {
             String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
             evaluatorType = ExpressionUtil.getExpressionType(expression);
 
-        } else {
+        }
+
+        if (evaluatorType == null) {
             evaluatorType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
         }
+
         String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
 
         description += " " + PageBase.createStringResourceStatic(
