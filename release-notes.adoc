@@ -50,6 +50,18 @@ xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja docume
 ** Repository object (GUI): For detailed information, see the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
 
+** Shadow metadata - `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
+This changes behaviour for resources which have non-zero deadShadowRetentionPeriod in consistency defined.
+Previously shadows without such timestamps were removed right away if there were no pending operations, since midPoint couldn't compute _last activity timestmap_.
+Last shadow activity taken into account:
+*** `pendingOperation/requestTimestamp`
+*** `pendingOperation/lastAttemptTimestamp`
+*** `pendingOperation/completionTimestamp`
+*** `metadata/createTimestamp`
+*** `metadata/modifyTimestamp`
+** Shadow changes are now being audited, new auditing stage `RESOURCE`.
+For more info see: xref:/midpoint/reference/security/audit/index.adoc[Auditing]
+
 * Creating new wizard flow for configuration of resource activation and configuration of resource credentials.
 ** Wizard step panels, that displaying inbound and outbound mapping attributes, was divided to two panels with main and optional configuration. Showed attributes are hardcoded, so we can use configuration only for hide showed items.
 ** Also we split wizard step panel of construction outbound mapping for role assignment.

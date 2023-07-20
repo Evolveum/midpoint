@@ -3,6 +3,7 @@
 :page-upkeep-status: red
 
 Role mining is a planned feature for midPoint 4.8.
+This features is currently in development.
 
 // TODO
 

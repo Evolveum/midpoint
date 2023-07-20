@@ -26,6 +26,39 @@ There are two type of tiles:
 * Myself - to select user currently logged in
 * Group - defined by collection or query filter. Group allow to select one or more users via autocomplete text field or by clicking *Select manually* button.
 
+Autocomplete search withing group is done using `user/name` property with `norm` poly-string matcher by default.
+
+Concrete search behaviour can be customized using `group/searchFilterTemplate` where filter with expression can be used.
+Search result labels can be also configured using expression defined in `group/userDisplayName`.
+Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
+
+In following example filter template will create substring search `givenName like '%King *<VALUE>*%'`.
+Results will be displayed in format `<USER_NAME> (<USER_OID>)`
+
+[source, xml]
+----
+<group>
+    <searchFilterTemplate>
+        <q:substring>
+            <q:path>givenName</q:path>
+            <expression>
+                <script>
+                    <code>
+                        return "King " + input
+                    </code>
+                </script>
+            </expression>
+        </q:substring>
+    </searchFilterTemplate>
+    <userDisplayName>
+        <script>
+            <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
+        </script>
+    </userDisplayName>
+    <autocompleteMinChars>2</autocompleteMinChars>
+</group>
+----
+
 .Selection from group of users
 image::step-1-poi-group.png[Selection from group of users,100%]
 
@@ -98,6 +131,8 @@ Collection of objects can be used to create custom menu item representing specif
 
 This is custom menu item that uses search for another user and list his assignments.
 Roles of teammate option can be disabled via configuration.
+
+Search for teammate will create filter using `user/name` property with `norm` poly-string matcher by default.
 
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
