@@ -1,0 +1,8 @@
+<reportData xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="0aa33685-8472-4b79-926b-aa23f9812711">
+    <filePath>/opt/sample.csv</filePath>
+    <fileFormat>csv</fileFormat>
+    <reportRef oid="56005636-352d-478e-a3e0-7a7669b93d09"/>
+    <nodeRef oid="e0195d3f-8a16-4a9e-b4ad-c77393c51cdc"/>
+    <data>asdf</data>
+</reportData>

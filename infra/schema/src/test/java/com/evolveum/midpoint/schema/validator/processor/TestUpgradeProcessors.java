@@ -200,6 +200,13 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         });
     }
 
+    @Test
+    public void test70ReportData() throws Exception {
+        testUpgradeValidator("report-data.xml", result -> {
+            // todo assertts
+        });
+    }
+
     private UpgradeValidationItem assertGetItem(UpgradeValidationResult result, String identifier) {
         Assertions.assertThat(result).isNotNull();
 
