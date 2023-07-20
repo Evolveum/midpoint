@@ -56,6 +56,8 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         LOGGER.info("Validation result:\n{}", result.debugDump());
 
         resultConsumer.accept(result);
+
+        assertUpgrade(fileName, result);
     }
 
     private <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
@@ -163,8 +165,6 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             item = assertGetItem(result, getProcessorIdentifier(RoleCatalogRefProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
             Assertions.assertThat(item.isChanged()).isTrue();
-
-            // todo assert deltas
         });
     }
 
@@ -180,8 +180,6 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             asserter.assertPath(ItemPath.create(
                     RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_PERSONA_CONSTRUCTION, PersonaConstructionType.F_TARGET_SUBTYPE));
             Assertions.assertThat(item.getDelta().getModifiedItems()).isEmpty();
-
-            assertUpgrade("role.xml", result);
         });
     }
 
@@ -192,8 +190,6 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                     .hasSize(0);
 
             Assertions.assertThat(result.hasChanges()).isFalse();
-
-            assertUpgrade("security-policy.xml", result);
         });
     }
 
@@ -204,8 +200,6 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                     .hasSize(1);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
-
-            assertUpgrade("task-livesync.xml", result);
         });
     }
 
