@@ -248,12 +248,8 @@ public class SystemObjectCache implements Cache {
         return cacheRepositoryService.searchObjects(ArchetypeType.class, null, createReadOnlyCollection(), result);
     }
 
-    @Contract("null, _ -> null; !null, _ -> !null")
-    public ExpressionProfile getExpressionProfile(String identifier, OperationResult result)
+    public @NotNull ExpressionProfile getExpressionProfile(@NotNull String identifier, OperationResult result)
             throws SchemaException, ConfigurationException {
-        if (identifier == null) {
-            return null;
-        }
         if (expressionProfiles == null) {
             expressionProfiles = compileExpressionProfiles(result);
         }

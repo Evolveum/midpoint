@@ -10,6 +10,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import groovy.lang.Binding;
 import groovy.lang.GString;
 import groovy.lang.GroovyClassLoader;
@@ -51,14 +53,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     static final String SANDBOX_ERROR_PREFIX = "[SANDBOX] ";
 
     /**
-     * The name is not really used for anything serious. Maybe just for diagnostics.
-     * But setting it to non-null to avoid confusing with the "null" profile.
-     */
-    private static final String BUILTIN_EXPRESSION_PROFILE_ID = "_groovyBuiltIn";
-
-    /**
-     * Expression profile for built-in groovy functions that always needs to be allowed
-     * or denied.
+     * Expression profile for built-in groovy functions that always needs to be allowed or denied.
      */
     @NotNull private static final ScriptExpressionProfile BUILTIN_SCRIPT_EXPRESSION_PROFILE;
 
@@ -92,12 +87,20 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         } catch (MultipleCompilationErrorsException e) {
             String sandboxErrorMessage = getSandboxError(e);
             if (sandboxErrorMessage == null) {
-                throw new ExpressionEvaluationException("Compilation error in " + context.getContextDescription() + ": " + e.getMessage(), serializationSafeThrowable(e));
+                throw new ExpressionEvaluationException(
+                        "Compilation error in %s: %s".formatted(context.getContextDescription(), e.getMessage()),
+                        serializationSafeThrowable(e));
             } else {
-                throw new SecurityViolationException("Denied access to functionality of script " + context.getContextDescription() + ": " + sandboxErrorMessage, serializationSafeThrowable(e));
+                throw new SecurityViolationException(
+                        "Denied access to functionality of script in %s: %s".formatted(
+                                context.getContextDescription(), sandboxErrorMessage),
+                        serializationSafeThrowable(e));
             }
         } catch (Throwable e) {
-            throw new ExpressionEvaluationException("Unexpected error during compilation of script in " + context.getContextDescription() + ": " + e.getMessage(), serializationSafeThrowable(e));
+            throw new ExpressionEvaluationException(
+                    "Unexpected error during compilation of script in %s: %s".formatted(
+                            context.getContextDescription(), e.getMessage()),
+                    serializationSafeThrowable(e));
         }
     }
 
@@ -222,7 +225,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     static {
         ExpressionPermissionProfile permissionProfile =
                 ExpressionPermissionProfile.open(
-                        BUILTIN_EXPRESSION_PROFILE_ID,
+                        SchemaConstants.BUILTIN_GROOVY_EXPRESSION_PROFILE_ID,
                         AccessDecision.DEFAULT);
 
         // Allow script initialization
@@ -236,7 +239,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
         permissionProfile.freeze();
 
         BUILTIN_SCRIPT_EXPRESSION_PROFILE = new ScriptExpressionProfile(
-                BUILTIN_EXPRESSION_PROFILE_ID,
+                SchemaConstants.BUILTIN_GROOVY_EXPRESSION_PROFILE_ID,
                 AccessDecision.DEFAULT,
                 false, // actually, this information is not used
                 permissionProfile);

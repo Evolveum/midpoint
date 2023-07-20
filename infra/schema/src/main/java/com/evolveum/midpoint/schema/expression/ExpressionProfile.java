@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
@@ -27,6 +28,12 @@ import org.jetbrains.annotations.Nullable;
  * @author Radovan Semancik
  */
 public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
+
+    /** "Allow all" expression profile. Used to avoid `null` values that mean "not determined". */
+    private static final ExpressionProfile FULL = new ExpressionProfile(
+            SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
+            AccessDecision.ALLOW,
+            List.of());
 
     /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
@@ -48,6 +55,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
         this.identifier = identifier;
         this.defaultDecision = defaultDecision;
         this.evaluatorProfiles = List.copyOf(evaluatorProfiles);
+    }
+
+    public static @NotNull ExpressionProfile full() {
+        return FULL;
     }
 
     public @NotNull String getIdentifier() {

@@ -88,7 +88,7 @@ public class ScriptingExpressionEvaluator {
 
         // @formatter:off
         task.setRootActivityDefinition(
-                new ActivityDefinitionType(PrismContext.get())
+                new ActivityDefinitionType()
                         .beginWork()
                             .beginNonIterativeScripting()
                                 .scriptExecutionRequest(executeScriptCommand)

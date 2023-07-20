@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <expressions>
+        <!-- TODO re-enable this when the time comes; currently the whole processing fails because of uncompilable profiles -->
+        <!--<expressionProfile>-->
+        <!--    <identifier>faulty</identifier>-->
+        <!--    <description>-->
+        <!--        Intentionally "faulty" profile that references non-existing permission profile.-->
+        <!--    </description>-->
+        <!--    <decision>deny</decision>-->
+        <!--    <evaluator>-->
+        <!--        <type>asIs</type>-->
+        <!--        <decision>allow</decision>-->
+        <!--    </evaluator>-->
+        <!--    <evaluator>-->
+        <!--        <type>path</type>-->
+        <!--        <decision>allow</decision>-->
+        <!--    </evaluator>-->
+        <!--    <evaluator>-->
+        <!--        <type>value</type>-->
+        <!--        <decision>allow</decision>-->
+        <!--    </evaluator>-->
+        <!--    <evaluator>-->
+        <!--        <type>const</type>-->
+        <!--        <decision>allow</decision>-->
+        <!--    </evaluator>-->
+        <!--    <evaluator>-->
+        <!--        <type>script</type>-->
+        <!--        <decision>deny</decision>-->
+        <!--        <script>-->
+        <!--            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>-->
+        <!--            <decision>allow</decision>-->
+        <!--            <typeChecking>true</typeChecking>-->
+        <!--            <permissionProfile>NON-EXISTING</permissionProfile>-->
+        <!--        </script>-->
+        <!--    </evaluator>-->
+        <!--</expressionProfile>-->
+        <expressionProfile>
+            <identifier>restricted</identifier>
+            <description>
+                THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
+                DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
+            </description>
+            <decision>deny</decision>
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>script</type>
+                <decision>deny</decision>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <decision>allow</decision>
+                    <typeChecking>true</typeChecking>
+                    <permissionProfile>script-restricted</permissionProfile>
+                </script>
+            </evaluator>
+        </expressionProfile>
+        <permissionProfile>
+            <identifier>script-restricted</identifier>
+            <decision>deny</decision>
+            <package>
+                <name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>
+                <description>MidPoint common schema - generated bean classes</description>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>com.evolveum.prism.xml.ns._public.types_3</name>
+                <description>Prism schema - bean classes</description>
+                <decision>allow</decision>
+            </package>
+            <class>
+                <name>java.lang.Integer</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.Object</name>
+                <description>Basic Java operations.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>equals</name>
+                    <decision>allow</decision>
+                </method>
+                <method>
+                    <name>hashCode</name>
+                    <decision>allow</decision>
+                </method>
+            </class>
+            <class>
+                <name>java.lang.String</name>
+                <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
+            </class>
+            <class>
+                <name>java.lang.CharSequence</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.Enum</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.util.List</name>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
+            </class>
+            <class>
+                <name>java.util.ArrayList</name>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
+            </class>
+            <class>
+                <name>java.util.Map</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.util.HashMap</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.util.Date</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>javax.xml.namespace.QName</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>javax.xml.datatype.XMLGregorianCalendar</name>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.System</name>
+                <description>Just a few methods of System are safe enough.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>currentTimeMillis</name>
+                    <decision>allow</decision>
+                </method>
+            </class>
+            <class>
+                <name>java.lang.IllegalStateException</name>
+                <description>Basic Java exception.</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>java.lang.IllegalArgumentException</name>
+                <description>Basic Java exception.</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions</name>
+                <description>MidPoint basic functions library</description>
+                <decision>allow</decision>
+            </class>
+            <class>
+                <name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>
+                <description>MidPoint logging functions library</description>
+                <decision>allow</decision>
+            </class>
+        </permissionProfile>
+    </expressions>
+</systemConfiguration>

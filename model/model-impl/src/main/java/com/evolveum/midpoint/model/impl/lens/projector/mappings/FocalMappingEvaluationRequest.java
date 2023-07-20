@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingPreExpression;
@@ -36,13 +38,19 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         implements ShortDumpable, Serializable {
 
     @NotNull protected final MT mapping;
+    @NotNull protected final ConfigurationItemOrigin mappingOrigin;
     @NotNull protected final MappingKindType mappingKind;
     @NotNull protected final OO originObject;
 
     private String mappingInfo; // lazily computed
 
-    FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull MappingKindType mappingKind, @NotNull OO originObject) {
+    FocalMappingEvaluationRequest(
+            @NotNull MT mapping,
+            @NotNull ConfigurationItemOrigin mappingOrigin,
+            @NotNull MappingKindType mappingKind,
+            @NotNull OO originObject) {
         this.mapping = mapping;
+        this.mappingOrigin = mappingOrigin;
         this.mappingKind = mappingKind;
         this.originObject = originObject;
     }
@@ -50,6 +58,10 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
     @NotNull
     public MT getMapping() {
         return mapping;
+    }
+
+    public @NotNull ConfigurationItemOrigin getMappingOrigin() {
+        return mappingOrigin;
     }
 
     public @NotNull List<VariableBindingDefinitionType> getSources() {
@@ -62,8 +74,8 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 
     public <V extends PrismValue,
             D extends ItemDefinition<?>,
-            AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(
-            ObjectDeltaObject<AH> focusOdo) throws SchemaException {
+            AH extends AssignmentHolderType> Source<V,D>
+    constructDefaultSource(ObjectDeltaObject<AH> focusOdo) throws SchemaException {
         return null;
     }
 

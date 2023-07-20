@@ -6,12 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.detached;
+
+import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
 
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_ACTIVATION;
 
@@ -19,45 +22,33 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.prism.delta.*;
 
-import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
@@ -71,16 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
     @Autowired private ReferenceResolver referenceResolver;
-    @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
-    @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private RelationRegistry relationRegistry;
     @Autowired private Clock clock;
-    @Autowired private ActivationComputer activationComputer;
-    @Autowired private MappingFactory mappingFactory;
-    @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private Projector projector;
-    @Autowired private ContextLoader contextLoader;
-    @Autowired private ModelBeans modelBeans;
 
     public abstract File[] getRoleCorpFiles();
 
@@ -101,7 +84,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_DIRECT_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_DIRECT_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
@@ -109,8 +92,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, "testDirect", AssignmentOrigin.inObject(detached()),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -137,7 +123,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
         userOdo.recompute();
@@ -147,8 +133,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, "testDirect", AssignmentOrigin.inObject(detached()),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -175,7 +164,8 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
         AssignmentType assignmentType = unmarshalValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
-        user.asObjectable().getAssignment().add(assignmentType.clone());
+        AssignmentType assignmentInUser = assignmentType.clone();
+        user.asObjectable().getAssignment().add(assignmentInUser);
 
         ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -185,16 +175,18 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
         display("Assignment old", assignmentType);
-        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
-        assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
-        assignmentIdi.setSubItemDeltas(userDelta.getModifications());
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
+                createAssignmentIdi(assignmentType, UserType.F_ASSIGNMENT, userDelta.getModifications());
         assignmentIdi.recompute();
         displayDumpable("Assignment IDI", assignmentIdi);
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, "testDirect", AssignmentOrigin.inObject(embedded(assignmentInUser)),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -212,8 +204,10 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         assertEquals(1, evaluatedConstructionTriple.size());
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
         assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
-        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
-                (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) evaluatedConstruction.getAttributeMappings().iterator().next();
+        //noinspection unchecked
+        var attributeMapping =
+                (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>)
+                        evaluatedConstruction.getAttributeMappings().iterator().next();
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
         displayDumpable("output triple", outputTriple);
         PrismAsserts.assertTripleNoZero(outputTriple);
@@ -240,7 +234,8 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
         AssignmentType assignmentType = unmarshalValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
         assignmentType.setDescription(null);
-        user.asObjectable().getAssignment().add(assignmentType.clone());
+        AssignmentType assignmentInUser = assignmentType.clone();
+        user.asObjectable().getAssignment().add(assignmentInUser);
 
         ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -250,15 +245,17 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
-        assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
-        assignmentIdi.setSubItemDeltas(userDelta.getModifications());
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
+                createAssignmentIdi(assignmentType, UserType.F_ASSIGNMENT, userDelta.getModifications());
         assignmentIdi.recompute();
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, "testDirect", AssignmentOrigin.inObject(embedded(assignmentInUser)),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -276,7 +273,8 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         assertEquals(1, evaluatedConstructionTriple.size());
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
         assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
-        PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
+        //noinspection unchecked
+        var attributeMapping =
                 (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>)
                         evaluatedConstruction.getAttributeMappings().iterator().next();
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
@@ -324,7 +322,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_VISITOR_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_VISITOR_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
@@ -333,9 +331,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
-                getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(detached()),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -369,7 +369,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_VISITOR_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_VISITOR_FILE);
         assignmentType.setActivation(ActivationUtil.createDisabled());
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
@@ -379,9 +379,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
-                getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(detached()),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -416,7 +418,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
@@ -425,8 +427,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, "testRoleEngineer", AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(detached()),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -460,9 +465,9 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+        AssignmentType assignmentBean = getAssignmentBean(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
-        AssignmentType assignmentForUser = assignmentType.clone();
+        AssignmentType assignmentForUser = assignmentBean.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
         //noinspection unchecked
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -472,13 +477,13 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        var assignmentIdi = createAssignmentIdi(assignmentBean);
 
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
                 assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
-                getTestNameShort(), AssignmentOrigin.createNotVirtual(), task, result);
+                getTestNameShort(), AssignmentOrigin.other(), task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -531,7 +536,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_MANAGER_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_MANAGER_FILE);
 
         AssignmentType assignmentForUser = assignmentType.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
@@ -549,8 +554,9 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
-                getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
+                assignmentIdi, PlusMinusZero.ZERO, false,
+                userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(embedded(assignmentForUser)),
+                task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -594,7 +600,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
         user.asObjectable().setCostCenter("management");
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_MANAGER_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_MANAGER_FILE);
 
         AssignmentType assignmentForUser = assignmentType.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
@@ -611,8 +617,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(embedded(assignmentForUser)),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -651,16 +660,18 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         // disable Engineer->Employee inducement
-        ObjectDelta disableInducementDelta = prismContext.deltaFor(RoleType.class)
-                .item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
+        ObjectDelta<RoleType> disableInducementDelta = prismContext.deltaFor(RoleType.class)
+                .item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS)
+                .replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(ROLE_CORP_ENGINEER_OID);
-        modelService.executeChanges(Collections.singletonList(disableInducementDelta),
+        modelService.executeChanges(
+                List.of(disableInducementDelta),
                 null, task, result);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
@@ -669,8 +680,11 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
-                false, userTypeJack, "testRoleEngineer", AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(detached()),
+                        task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -691,10 +705,12 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         // disable Engineer->Employee inducement
-        ObjectDelta enableInducementDelta = prismContext.deltaFor(RoleType.class)
-                .item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
+        ObjectDelta<RoleType> enableInducementDelta = prismContext.deltaFor(RoleType.class)
+                .item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS)
+                .replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(ROLE_CORP_ENGINEER_OID);
-        modelService.executeChanges(Collections.singletonList(enableInducementDelta),
+        modelService.executeChanges(
+                List.of(enableInducementDelta),
                 null, task, result);
     }
 
@@ -709,16 +725,18 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         // disable role Employee
-        ObjectDelta disableEmployeeDelta = prismContext.deltaFor(RoleType.class)
-                .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
+        ObjectDelta<RoleType> disableEmployeeDelta = prismContext.deltaFor(RoleType.class)
+                .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH)
+                .replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(ROLE_CORP_EMPLOYEE_OID);
-        modelService.executeChanges(Collections.singletonList(disableEmployeeDelta),
+        modelService.executeChanges(
+                List.of(disableEmployeeDelta),
                 null, task, result);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
@@ -728,8 +746,9 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer",
-                AssignmentOrigin.createInObject(), task, result);
+                assignmentIdi, PlusMinusZero.ZERO, false,
+                userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(detached()),
+                task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -764,16 +783,18 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         // disable role Engineer
-        ObjectDelta disableEngineerDelta = prismContext.deltaFor(RoleType.class)
-                .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
+        ObjectDelta<RoleType> disableEngineerDelta = prismContext.deltaFor(RoleType.class)
+                .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH)
+                .replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(ROLE_CORP_ENGINEER_OID);
-        modelService.executeChanges(Collections.singletonList(disableEngineerDelta),
+        modelService.executeChanges(
+                List.of(disableEngineerDelta),
                 null, task, result);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+        AssignmentType assignmentType = getAssignmentBean(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
@@ -783,8 +804,9 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer",
-                AssignmentOrigin.createInObject(), task, result);
+                assignmentIdi, PlusMinusZero.ZERO, false,
+                userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(detached()),
+                task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
         // THEN
@@ -797,8 +819,8 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        for (ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
-            assertEquals("Wrong validity for " + construction, false, construction.isValid());
+        for (var construction : evaluatedAssignment.getConstructionSet(ZERO)) {
+            assertFalse("Wrong validity for " + construction, construction.isValid());
         }
 
         assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Engineer");
@@ -858,7 +880,8 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         assertSerializable(lensContext);
     }
 
-    protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+    private void assertNoConstruction(
+            EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
             PlusMinusZero constructionSet, String attributeName) {
         Collection<AssignedResourceObjectConstruction<UserType>> constructions =
                 evaluatedAssignment.getConstructionSet(constructionSet);
@@ -871,7 +894,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         }
     }
 
-    protected void assertConstruction(
+    private void assertConstruction(
             EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet,
             String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
         Collection<AssignedResourceObjectConstruction<UserType>> constructions =
@@ -884,7 +907,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
                 if (mapping != null && mapping.getOutputTriple() != null) {
                     Collection<? extends PrismPropertyValue<?>> valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
                     if (valsInMapping != null) {
-                        for (PrismPropertyValue value : valsInMapping) {
+                        for (PrismPropertyValue<?> value : valsInMapping) {
                             if (value.getValue() instanceof String) {
                                 realValues.add((String) value.getValue());
                             }
@@ -896,13 +919,13 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         AssertJUnit.assertEquals("Wrong values", new HashSet<>(Arrays.asList(expectedValues)), realValues);
     }
 
-    protected AssignmentEvaluator<UserType> createAssignmentEvaluator() throws SchemaException {
+    private AssignmentEvaluator<UserType> createAssignmentEvaluator() throws SchemaException {
         PrismObject<UserType> userJack = userTypeJack.asPrismObject();
         ObjectDeltaObject<UserType> focusOdo = createUserOdo(userJack);
         return createAssignmentEvaluator(focusOdo);
     }
 
-    protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) {
+    private AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) {
         LensContext<UserType> lensContext = createLensContext(UserType.class);
         LensFocusContext<UserType> focusContext = lensContext.getOrCreateFocusContext();
         focusContext.setInitialObject(focusOdo.getOldObject());
@@ -932,6 +955,15 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         return new ItemDeltaItem<>(
                 LensUtil.createAssignmentSingleValueContainer(assignmentType),
                 getAssignmentDefinition());
+    }
+
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdi(
+            AssignmentType assignmentType, @NotNull ItemPath resolvePath, Collection<? extends ItemDelta<?, ?>> subItemDeltas) throws SchemaException {
+        return new ItemDeltaItem<>(
+                LensUtil.createAssignmentSingleValueContainer(assignmentType),
+                getAssignmentDefinition(),
+                resolvePath,
+                subItemDeltas);
     }
 
     private <AH extends AssignmentHolderType> void evaluateConstructions(EvaluatedAssignmentImpl<AH> evaluatedAssignment,

@@ -625,6 +625,7 @@ public class PolicyRuleTypeUtil {
         }
     }
 
+    /** FIXME what about the origin of the constraints? */
     public static void resolveConstraintReferences(
             List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
         LazyMapConstraintsResolver resolver =

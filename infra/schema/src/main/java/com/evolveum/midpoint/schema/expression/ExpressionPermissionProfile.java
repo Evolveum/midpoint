@@ -8,7 +8,6 @@ package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Objects;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.DeeplyFreezableList;
@@ -194,5 +193,4 @@ public class ExpressionPermissionProfile extends AbstractFreezable implements Se
                 "packageProfiles: " + packageProfiles.size() + ", " +
                 "classProfiles: " + classProfiles.size() + ']';
     }
-
 }

@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
@@ -77,7 +78,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             LOGGER.trace("Preparing construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
             AssignedConstructionBuilder<AH> builder = new AssignedConstructionBuilder<>();
-            populateConstructionBuilder(builder, constructionBean);
+            populateConstructionBuilder(builder, constructionBean, segment.assignmentOrigin);
             AssignedResourceObjectConstruction<AH> construction = builder.build();
 
             // Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
@@ -91,7 +92,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             LOGGER.trace("Preparing persona construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
             PersonaConstructionBuilder<AH> builder = new PersonaConstructionBuilder<>();
-            populateConstructionBuilder(builder, constructionBean);
+            populateConstructionBuilder(builder, constructionBean, segment.assignmentOrigin);
             PersonaConstruction<AH> construction = builder.build();
 
             ctx.evalAssignment.addPersonaConstruction(construction, segment.getAbsoluteAssignmentRelativityMode()); // TODO
@@ -100,8 +101,9 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     private <ACT extends AbstractConstructionType> void populateConstructionBuilder(
             AbstractConstructionBuilder<AH, ACT, ? extends EvaluatedAbstractConstruction<AH>, ?> builder,
-            ACT constructionBean) {
-        builder.constructionBean(constructionBean)
+            ACT constructionBean,
+            @NotNull ConfigurationItemOrigin constructionOrigin) {
+        builder.constructionBean(constructionBean, constructionOrigin)
                 .assignmentPath(ctx.assignmentPath.clone()) // We have to clone here as the path is constantly changing during evaluation
                 .source(segment.source)
                 .lensContext(ctx.ae.lensContext)
@@ -115,7 +117,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         if (mappingsBean != null) {
             LOGGER.trace("Request evaluation of focus mappings '{}' in {} ({} mappings)",
                     mappingsBean.getDescription(), segment.source, mappingsBean.getMapping().size());
-            @NotNull AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
+            @NotNull AssignmentPathVariables assignmentPathVariables = ctx.assignmentPath.computePathVariablesRequired();
 
             for (MappingType mappingBean : mappingsBean.getMapping()) {
                 PlusMinusZero relativityMode = segment.getRelativeAssignmentRelativityMode(); /* TODO */
@@ -123,6 +125,8 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                     AssignedFocusMappingEvaluationRequest request =
                             new AssignedFocusMappingEvaluationRequest(
                                     mappingBean,
+                                    segment.assignmentOrigin.child(
+                                            AssignmentType.F_FOCUS_MAPPINGS.append(mappingBean.getId())),
                                     segment.source,
                                     ctx.evalAssignment,
                                     relativityMode,

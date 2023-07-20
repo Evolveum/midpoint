@@ -205,7 +205,7 @@ public class OperationsHelper {
         result.computeStatusIfUnknown();
         // TODO make this configurable
         result.getSubresults().forEach(OperationResult::setMinor);
-        result.cleanupResult();
+        result.cleanup();
         if (itemResultParent != null) {
             itemResultParent.addSubresult(result.clone());
         }

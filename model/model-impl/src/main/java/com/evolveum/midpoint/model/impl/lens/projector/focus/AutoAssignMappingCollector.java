@@ -80,10 +80,10 @@ public class AutoAssignMappingCollector {
             }
 
             for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
-                AutoassignMappingType mapping =
+                AutoassignMappingType mappingWithTarget =
                         LensUtil.setMappingTarget(autoMapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
-                mappings.add(new AutoassignRoleMappingEvaluationRequest(mapping, role.asObjectable()));
-                LOGGER.trace("Collected autoassign mapping {} from {}", mapping.getName(), role);
+                mappings.add(new AutoassignRoleMappingEvaluationRequest(mappingWithTarget, role.asObjectable()));
+                LOGGER.trace("Collected autoassign mapping {} from {}", mappingWithTarget.getName(), role);
             }
             return true;
         };

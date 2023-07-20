@@ -213,9 +213,12 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     }
 
     protected <V> Collection<V> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        return (Collection<V>) ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
-                MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                task, result);
+        //noinspection unchecked
+        return (Collection<V>) ExpressionUtil.evaluateStringExpression(
+                variablesMap, expression,
+                MiscSchemaUtil.getExpressionProfile(),
+                getPageBase().getExpressionFactory(),
+                "evaluate column expression", task, result);
     }
 
     // todo figure out how to improve this, looks horrible

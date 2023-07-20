@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +21,6 @@ import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -44,10 +46,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     //region Description of the situation: source, assignment, target
     /**
      * Source object for this assignment path.
-     * This is the object holding the assignment or inducement.
+     * This is the object physically or logically holding the assignment or inducement.
      *
      * If the source is the focus, we use NEW state of the object.
-     * TODO consider if that's correct.
+     *
+     * TODO consider if that's correct. But it is important e.g. when deriving the expression profile from the archetype.
      */
     final AssignmentHolderType source;
 
@@ -55,6 +58,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * Human readable text describing the source (for error messages)
      */
     final String sourceDescription;
+
+    /** The "physical" origin of the assignment. */
+    @NotNull final ConfigurationItemOrigin assignmentOrigin;
 
     /**
      * Item-delta-item form of the assignment.
@@ -144,26 +150,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      */
     private ConditionState overallConditionState;
 
-    /*
-     * TODO clean up this description
-     *
-     * Relativity mode of the assignment. It is determined from the relativity mode of source
-     * and the condition of the assignment.
-     *
-     * In short, relativity mode determines where to put constructions and target roles/orgs/services
-     * (PLUS/MINUS/ZERO/null; null means "nowhere").
-     *
-     * Note also this mode is RELATIVE to the relativity mode of the primary (evaluated) assignment.
-     * It will be interpreted in the light of its status, i.e. if the assignment is unchanged, being
-     * added or being removed.
-     *
-     * The concept of relativity mode is currently complementary to the concept of validity.
-     * However, we will probably change the validity from "static" (true/false) point of view
-     * to "dynamic" (plus, minus, zero) point of view. Then we will probably unify validity
-     * and relativity mode concepts into one.
-     */
-//    private PlusMinusZero assignmentRelativityMode;
-
     /**
      * Evaluation order of this segment regarding the focus. If there were no inducements,
      * it would be a collection of relations of assignments on the path. For inducements
@@ -216,9 +202,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         source = builder.source;
         sourceDescription = builder.sourceDescription;
         assignmentIdi = builder.assignmentIdi;
-        if (assignmentIdi.getDefinition() == null) { // TODO resolve @NotNull annotation issue on getDefinition
-            throw new IllegalArgumentException("Attempt to set segment assignment IDI without a definition");
-        }
+        assignmentOrigin = Objects.requireNonNull(builder.assignmentOrigin, "no assignmentOrigin");
         evaluateOld = builder.evaluateOld;
         assignment = Util.getAssignment(assignmentIdi, evaluateOld);
         relation = getRelation(assignment, getRelationRegistry());
@@ -247,6 +231,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.source = origin.source;
         this.sourceDescription = origin.sourceDescription;
         this.assignmentIdi = origin.assignmentIdi;
+        this.assignmentOrigin = origin.assignmentOrigin;
         this.evaluateOld = origin.evaluateOld;
         this.assignment = origin.assignment;
         this.relation = origin.relation;
@@ -271,7 +256,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return isAssignment;
     }
 
-    public boolean isArchetypeHierarchy() {
+    boolean isArchetypeHierarchy() {
         return archetypeHierarchy;
     }
 
@@ -299,10 +284,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     @Override
     public AssignmentType getAssignmentNew() {
-        if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
+        var itemNew = assignmentIdi.getItemNew();
+        if (itemNew == null || itemNew.isEmpty()) {
             return null;
+        } else {
+            return ((PrismContainer<AssignmentType>) itemNew).getRealValue();
         }
-        return ((PrismContainer<AssignmentType>) assignmentIdi.getItemNew()).getRealValue();
     }
 
     @Override
@@ -608,6 +595,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private AssignmentHolderType source;
         private String sourceDescription;
         private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
+        private ConfigurationItemOrigin assignmentOrigin;
         private boolean evaluateOld;
         private boolean isAssignment;
         private boolean archetypeHierarchy;
@@ -643,12 +631,18 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
             try {
                 //noinspection unchecked,rawtypes
                 assignmentIdi = new ItemDeltaItem<>(
-                        LensUtil.createAssignmentSingleValueContainer(assignment), assignment.asPrismContainerValue().getDefinition());
+                        LensUtil.createAssignmentSingleValueContainer(assignment),
+                        assignment.asPrismContainerValue().getDefinition());
             } catch (SchemaException e) {
                 // should not really occur!
                 throw new SystemException("Couldn't create assignment IDI: " + e.getMessage(), e);
             }
 
+            return this;
+        }
+
+        public Builder assignmentOrigin(ConfigurationItemOrigin val) {
+            assignmentOrigin = val;
             return this;
         }
 

@@ -698,4 +698,14 @@ public abstract class SchemaConstants {
             ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT);
     public static final @NotNull ItemPath CORRELATION_CORRELATOR_STATE_PATH =
             ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATOR_STATE);
+
+    /** ID of "allow all" expression profile. */
+    public static final String FULL_EXPRESSION_PROFILE_ID = "_full";
+
+    /**
+     * The ID for built-in Groovy permission and script expression profiles.
+     *
+     * The ID is not really used for anything serious, except that each profile should have one.
+     */
+    public static final String BUILTIN_GROOVY_EXPRESSION_PROFILE_ID = "_groovyBuiltIn";
 }

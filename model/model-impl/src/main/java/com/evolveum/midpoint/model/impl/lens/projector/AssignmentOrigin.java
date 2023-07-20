@@ -7,17 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
+
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 /**
- * Describes assignment origin e.g. if it's in object old, current, or in delta; if it's virtual or not.
+ * Describes assignment origin, namely:
+ *
+ * - if it's in object old, current, or in delta;
+ * - if it's virtual or not;
+ * - where it originated - {@link ConfigurationItemOrigin}. TODO is this a good idea?
+ *
+ * Freezable, not immutable!
  */
 public class AssignmentOrigin extends AbstractFreezable implements Serializable {
 
@@ -55,22 +65,26 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
      */
     private boolean isInDeltaDelete;
 
-    AssignmentOrigin(boolean virtual) {
+    @NotNull private final ConfigurationItemOrigin configurationItemOrigin;
+
+    AssignmentOrigin(boolean virtual, @NotNull ConfigurationItemOrigin configurationItemOrigin) {
         this.virtual = virtual;
+        this.configurationItemOrigin = configurationItemOrigin;
     }
 
-    public static AssignmentOrigin createInObject() {
-        AssignmentOrigin rv = new AssignmentOrigin(false);
+    public static AssignmentOrigin inObject(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
+        AssignmentOrigin rv = new AssignmentOrigin(false, configurationItemOrigin);
         rv.isCurrent = true;
         return rv;
     }
 
-    public static AssignmentOrigin createNotVirtual() {
-        return new AssignmentOrigin(false);
+    @VisibleForTesting // NEVER use in production code!
+    public static AssignmentOrigin other() {
+        return new AssignmentOrigin(false, ConfigurationItemOrigin.detached());
     }
 
-    public static AssignmentOrigin createVirtual() {
-        return new AssignmentOrigin(true);
+    public static AssignmentOrigin virtual(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
+        return new AssignmentOrigin(true, configurationItemOrigin);
     }
 
     public boolean isVirtual() {
@@ -102,6 +116,10 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
         return isInDeltaDelete;
     }
 
+    public @NotNull ConfigurationItemOrigin getConfigurationItemOrigin() {
+        return configurationItemOrigin;
+    }
+
     @Override
     public String toString() {
         List<String> labels = new ArrayList<>();
@@ -110,6 +128,7 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
         addLabel(labels, isNew,"new");
         addLabel(labels, isInDeltaAdd, "inDeltaAdd");
         addLabel(labels, isInDeltaDelete, "inDeltaDelete");
+        labels.add("origin=" + configurationItemOrigin);
         return String.join(", ", labels.toArray(new String[0]));
     }
 
@@ -122,35 +141,20 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
     void update(SmartAssignmentCollection.Mode mode, AddDeleteReplace deltaSet) {
         checkMutable();
         switch (mode) {
-            case CURRENT:
-                isCurrent = true;
-                break;
-            case OLD:
-                isOld = true;
-                break;
-            case NEW:
-                isNew = true;
-                break;
-            case IN_ADD_OR_DELETE_DELTA:
-                updateDeltaSetFlags(deltaSet);
-                break;
-            default:
-                throw new AssertionError();
+            case CURRENT -> isCurrent = true;
+            case OLD -> isOld = true;
+            case NEW -> isNew = true;
+            case IN_ADD_OR_DELETE_DELTA -> updateDeltaSetFlags(deltaSet);
+            default -> throw new AssertionError();
         }
     }
 
     private void updateDeltaSetFlags(AddDeleteReplace deltaSet) {
         switch (deltaSet) {
-            case ADD:
-                isInDeltaAdd = true;
-                break;
-            case DELETE:
-                isInDeltaDelete = true;
-                break;
-            case REPLACE:
-                throw new AssertionError("REPLACE values are treated in a special way");
-            default:
-                throw new AssertionError();
+            case ADD -> isInDeltaAdd = true;
+            case DELETE -> isInDeltaDelete = true;
+            case REPLACE -> throw new AssertionError("REPLACE values are treated in a special way");
+            default -> throw new AssertionError();
         }
     }
 

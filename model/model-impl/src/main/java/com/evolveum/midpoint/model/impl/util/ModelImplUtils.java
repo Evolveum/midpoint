@@ -595,7 +595,7 @@ public class ModelImplUtils {
         }
     }
 
-    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, VariablesMap VariablesMap, PrismContext prismContext) {
+    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, VariablesMap VariablesMap) {
         if (assignmentPathVariables != null) {
             PrismContainerDefinition<AssignmentType> assignmentDef = assignmentPathVariables.getAssignmentDefinition();
             VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
@@ -603,7 +603,8 @@ public class ModelImplUtils {
             VariablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
             VariablesMap.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
             VariablesMap.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
-            PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
+            PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition =
+                    PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
             VariablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
         } else {
             // to avoid "no such variable" exceptions in boundary cases

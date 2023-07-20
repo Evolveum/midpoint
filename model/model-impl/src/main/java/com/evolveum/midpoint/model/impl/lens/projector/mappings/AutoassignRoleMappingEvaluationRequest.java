@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- *
- */
 public class AutoassignRoleMappingEvaluationRequest
         extends FocalMappingEvaluationRequest<AutoassignMappingType, AbstractRoleType> {
 
@@ -33,8 +31,13 @@ public class AutoassignRoleMappingEvaluationRequest
     private PrismContainerDefinition<AssignmentType> assignmentDef;
     private AssignmentType assignment;
 
-    public AutoassignRoleMappingEvaluationRequest(@NotNull AutoassignMappingType mapping, @NotNull AbstractRoleType role) {
-        super(mapping, MappingKindType.AUTO_ASSIGN, role);
+    /**
+     * IMPORTANT: The mapping is physically part of the role.
+     */
+    public AutoassignRoleMappingEvaluationRequest(
+            @NotNull AutoassignMappingType mapping,
+            @NotNull AbstractRoleType role) {
+        super(mapping, ConfigurationItemOrigin.embedded(mapping), MappingKindType.AUTO_ASSIGN, role);
     }
 
     @Override

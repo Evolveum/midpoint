@@ -260,6 +260,10 @@ public class ObjectTypeUtil {
         return createAssignmentTo(object, prismContext.getDefaultRelation());
     }
 
+    public static @NotNull <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object) {
+        return createAssignmentTo(object, PrismContext.get().getDefaultRelation());
+    }
+
     @NotNull
     public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
         AssignmentType assignment = new AssignmentType(object.getPrismContext());

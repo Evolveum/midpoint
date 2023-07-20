@@ -76,7 +76,8 @@ class Util {
          *
          * TODO: does this work for invalid (effectiveStatus = disabled) assignments?
          */
-        return !segment.isArchetypeHierarchy() && (segment.direct || segment.isMatchingOrder || segment.source instanceof UserType);
+        return !segment.isArchetypeHierarchy()
+                && (segment.direct || segment.isMatchingOrder || segment.source instanceof UserType);
     }
 
     static AssignmentType getAssignment(

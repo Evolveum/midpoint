@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -40,22 +41,32 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
     @NotNull private final ConditionState targetOverallConditionState;
     @NotNull private final TargetEvaluation.TargetActivity targetActivity;
     private final OperationResult result;
-    private final AssignmentType inducement;
+    @NotNull private final AssignmentType inducement;
+    @NotNull private final ConfigurationItemOrigin inducementOrigin;
     private final boolean archetypeHierarchy;
 
-    TargetInducementEvaluation(AssignmentPathSegmentImpl segment,
-            @NotNull ConditionState targetOverallConditionState, @NotNull TargetEvaluation.TargetActivity targetActivity,
-            EvaluationContext<AH> ctx, OperationResult result, AssignmentType inducement, boolean archetypeHierarchy) {
+    TargetInducementEvaluation(
+            @NotNull AssignmentPathSegmentImpl segment,
+            @NotNull ConditionState targetOverallConditionState,
+            @NotNull TargetEvaluation.TargetActivity targetActivity,
+            EvaluationContext<AH> ctx,
+            OperationResult result,
+            @NotNull AssignmentType inducement,
+            @NotNull ConfigurationItemOrigin inducementOrigin,
+            boolean archetypeHierarchy) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
         this.targetActivity = targetActivity;
         this.result = result;
         this.inducement = inducement;
+        this.inducementOrigin = inducementOrigin;
         this.archetypeHierarchy = archetypeHierarchy;
     }
 
-    void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+    void evaluate()
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
             SecurityViolationException, ConfigurationException, CommunicationException {
+
         assert ctx.assignmentPath.last() == segment;
         assert segment.isAssignmentActive() || segment.direct;
         assert targetOverallConditionState.isNotAllFalse();
@@ -80,11 +91,12 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
 
         OrderAdjustment adjustment = computeOrderAdjustment();
 
-        String nextSourceDescription = segment.target+" in "+segment.sourceDescription;
+        String nextSourceDescription = segment.target + " in " + segment.sourceDescription;
         AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl.Builder()
                 .source((AssignmentHolderType) segment.target)
                 .sourceDescription(nextSourceDescription)
                 .assignment(inducement)
+                .assignmentOrigin(inducementOrigin)
                 .isInducement()
                 .isHierarchy(archetypeHierarchy)
                 .pathToSourceValid(targetActivity.pathAndTargetActive)

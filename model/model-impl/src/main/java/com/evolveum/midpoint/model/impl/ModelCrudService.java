@@ -173,7 +173,7 @@ public class ModelCrudService {
 
             oid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, object);
             result.computeStatus();
-            result.cleanupResult();
+            result.cleanup();
 
         } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
             ModelImplUtils.recordFatalError(result, ex);
@@ -286,8 +286,10 @@ public class ModelCrudService {
      *             unknown error from underlying layers or other unexpected
      *             state
      */
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta> modifications, ModelExecuteOptions options, Task task, OperationResult parentResult)
+    public <T extends ObjectType> void modifyObject(
+            Class<T> type, String oid,
+            Collection<? extends ItemDelta<?, ?>> modifications, ModelExecuteOptions options,
+            Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {

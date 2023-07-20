@@ -121,5 +121,4 @@ public class ExpressionProfileCompiler {
         }
         throw new ConfigurationException("Permission profile '"+profileIdentifier+"' not found");
     }
-
 }

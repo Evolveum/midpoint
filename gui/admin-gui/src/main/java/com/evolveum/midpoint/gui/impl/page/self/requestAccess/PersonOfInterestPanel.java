@@ -753,8 +753,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 VariablesMap variables = new VariablesMap();
                 variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);
 
-                return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
-                        panel.page.getExpressionFactory(), ctx, "group selection search filter template", task, result);
+                return ExpressionUtil.evaluateFilterExpressions(
+                        filter, variables,
+                        MiscSchemaUtil.getExpressionProfile(),
+                        panel.page.getExpressionFactory(),
+                        "group selection search filter template", task, result);
             } catch (Exception ex) {
                 result.recordFatalError(ex);
                 LoggingUtils.logUnexpectedException(LOGGER,

@@ -12,8 +12,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -68,13 +73,22 @@ public class MappingFactory {
                 .profiling(profiling);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(MappingType mappingBean, String shortDesc) {
-        return this.<V,D>createMappingBuilder().mappingBean(mappingBean)
+    public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(
+            @NotNull ConfigurationItem<MappingType> mappingCI, String shortDesc) {
+        return createMappingBuilder(mappingCI.value(), mappingCI.origin(), shortDesc);
+    }
+
+    public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(
+            @Nullable MappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
+        return this.<V,D>createMappingBuilder()
+                .mappingBean(mappingBean, context)
                 .contextDescription(shortDesc);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition<?>> MetadataMappingBuilder<V, D> createMappingBuilder(MetadataMappingType mappingBean, String shortDesc) {
-        return this.<V,D>createMetadataMappingBuilder().mappingBean(mappingBean)
+    public <V extends PrismValue, D extends ItemDefinition<?>> MetadataMappingBuilder<V, D> createMappingBuilder(
+            @Nullable MetadataMappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
+        return this.<V,D>createMetadataMappingBuilder()
+                .mappingBean(mappingBean, context)
                 .contextDescription(shortDesc);
     }
 }

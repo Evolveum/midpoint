@@ -258,7 +258,7 @@ public class ProvisioningContext {
                     getResourceManager().getSystemConfiguration(), SystemConfigurationType.class);
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
                     filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
-                    PrismContext.get(), "protected filter", getTask(), result);
+                     "protected filter", getTask(), result);
             protectedObjectPatterns.add(
                     new ResourceObjectPattern(
                             rawPattern.getResourceObjectDefinition(),

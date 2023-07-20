@@ -50,7 +50,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -101,7 +100,7 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
             ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(task, result);
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
             return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile,
-                    expressionFactory, prismContext, "evaluate query expressions",
+                    expressionFactory, "evaluate query expressions",
                     task, result);
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();

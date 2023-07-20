@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
-import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
+import com.evolveum.midpoint.model.impl.lens.LoginAssignmentCollector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -71,7 +71,7 @@ public class GuiProfileCompiler {
     @Autowired PrismContext prismContext;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 
-    @Autowired private AssignmentCollector assignmentCollector;
+    @Autowired private LoginAssignmentCollector assignmentCollector;
 
     @Autowired private SchemaService schemaService;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -118,11 +118,11 @@ public class GuiProfileCompiler {
             GuiProfiledPrincipal principal,
             AuthorizationTransformer authorizationTransformer,
             Task task,
-            OperationResult result) throws SchemaException {
+            OperationResult result) throws SchemaException, ConfigurationException {
         FocusType focusType = principal.getFocus();
 
         Collection<? extends EvaluatedAssignment> evaluatedAssignments =
-                assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
+                assignmentCollector.collect(focusType.asPrismObject(), task, result);
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 // TODO: Should we add also invalid assignments?

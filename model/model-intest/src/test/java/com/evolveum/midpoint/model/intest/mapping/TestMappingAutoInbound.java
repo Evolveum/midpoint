@@ -38,9 +38,9 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMappingAutoInbound extends AbstractMappingTest {
 
-    protected static final File RESOURCE_DUMMY_AUTOGREEN_FILE = new File(TEST_DIR, "resource-dummy-autogreen.xml");
-    protected static final String RESOURCE_DUMMY_AUTOGREEN_OID = "10000000-0000-0000-0000-00000000a404";
-    protected static final String RESOURCE_DUMMY_AUTOGREEN_NAME = "autogreen";
+    private static final File RESOURCE_DUMMY_AUTOGREEN_FILE = new File(TEST_DIR, "resource-dummy-autogreen.xml");
+    private static final String RESOURCE_DUMMY_AUTOGREEN_OID = "10000000-0000-0000-0000-00000000a404";
+    private static final String RESOURCE_DUMMY_AUTOGREEN_NAME = "autogreen";
 
     private static final String GROUP_DUMMY_CRATIC_NAME = "cratic";
 

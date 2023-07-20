@@ -172,7 +172,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         // repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
     }
 
-    AssignmentType getAssignmentType(File assignmentFile)
+    AssignmentType getAssignmentBean(File assignmentFile)
             throws java.io.IOException, SchemaException {
         AssignmentType assignmentType = unmarshalValueFromFile(assignmentFile);
 

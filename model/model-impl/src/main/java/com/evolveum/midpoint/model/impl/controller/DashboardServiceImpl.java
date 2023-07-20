@@ -278,7 +278,7 @@ public class DashboardServiceImpl implements DashboardService {
             query = prismContext.queryFactory().createQuery();
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
                     objectFilter, new VariablesMap(), MiscSchemaUtil.getExpressionProfile(),
-                    expressionFactory, prismContext, "collection filter", task, result);
+                    expressionFactory, "collection filter", task, result);
             query.setFilter(evaluatedFilter);
         }
         @NotNull Collection<SelectorOptions<GetOperationOptions>> option = combineAuditOption(collectionRef, collection, task, result);
@@ -504,11 +504,7 @@ public class DashboardServiceImpl implements DashboardService {
             LOGGER.error("ObjectRef of data is not found in widget " + widget.getIdentifier());
             return null;
         }
-        ObjectType object = objectResolver.resolve(ref, ObjectType.class, null, "resolving data object reference in " + widget, task, result);
-        if (object == null) {
-            LOGGER.error("Object from ObjectRef " + ref + " is null in widget " + widget.getIdentifier());
-        }
-        return object;
+        return objectResolver.resolve(ref, ObjectType.class, null, "resolving data object reference in " + widget, task, result);
     }
 
     private String getStringExpressionMessage(VariablesMap variables,
@@ -516,8 +512,8 @@ public class DashboardServiceImpl implements DashboardService {
         if (expression != null) {
             Collection<String> contentTypeList = null;
             try {
-                contentTypeList = ExpressionUtil.evaluateStringExpression(variables, prismContext,
-                        expression, null, expressionFactory, shortDes, task, result);
+                contentTypeList = ExpressionUtil.evaluateStringExpression(
+                        variables, expression, null, expressionFactory, shortDes, task, result);
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                     | ConfigurationException | SecurityViolationException e) {
                 LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);

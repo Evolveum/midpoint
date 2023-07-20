@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common.archetypes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -342,7 +344,7 @@ public class ArchetypeManager implements Cache {
                 systemConfiguration);
     }
 
-    public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
             Class<O> objectClass,
             List<String> objectSubtypes,
             SystemConfigurationType systemConfiguration) throws ConfigurationException {
@@ -392,13 +394,27 @@ public class ArchetypeManager implements Cache {
     /**
      * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
      */
-    public <O extends ObjectType> ExpressionProfile determineExpressionProfile(
+    public <O extends ObjectType> @NotNull ExpressionProfile determineExpressionProfile(
             @NotNull PrismObject<O> object, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
         ArchetypePolicyType archetypePolicy = determineArchetypePolicy(object, result);
         String expressionProfileId = archetypePolicy != null ? archetypePolicy.getExpressionProfile() : null;
-        return systemObjectCache.getExpressionProfile(expressionProfileId, result);
+        if (expressionProfileId != null) {
+            return systemObjectCache.getExpressionProfile(expressionProfileId, result);
+        } else {
+            return ExpressionProfile.full();
+        }
+    }
+
+    public ExpressionProfile determineExpressionProfile(
+            @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
+            return determineExpressionProfile(inObject.getOriginatingPrismObject(), result);
+        } else {
+            return ExpressionProfile.full(); // TODO we should perhaps return a restricted profile here (from the configuration?)
+        }
     }
 
     @Override
@@ -550,12 +566,12 @@ public class ArchetypeManager implements Cache {
         /** Indexed by OID. Contains immutable objects. */
         private final Map<String, ObjectTemplateType> objects = new ConcurrentHashMap<>();
 
-        public void clear() {
+        void clear() {
             objects.clear();
         }
 
         /** Returns immutable object. */
-        public ObjectTemplateType get(@NotNull String oid, @NotNull TaskExecutionMode executionMode) {
+        ObjectTemplateType get(@NotNull String oid, @NotNull TaskExecutionMode executionMode) {
             if (executionMode.isProductionConfiguration()) {
                 return objects.get(oid);
             } else {
@@ -564,7 +580,7 @@ public class ArchetypeManager implements Cache {
         }
 
         /** Does not modify the object being added - creates a clone, if needed. */
-        public void put(@NotNull ObjectTemplateType template, @NotNull TaskExecutionMode executionMode) {
+        void put(@NotNull ObjectTemplateType template, @NotNull TaskExecutionMode executionMode) {
             if (executionMode.isProductionConfiguration()) {
                 objects.put(
                         Objects.requireNonNull(template.getOid()),

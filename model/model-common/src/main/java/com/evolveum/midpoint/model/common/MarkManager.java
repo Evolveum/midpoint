@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -147,7 +148,7 @@ public class MarkManager {
                                 ObjectTypeUtil.createObjectRef(mark));
                     }
                     rules.add(
-                            GlobalRuleWithId.of(rule, mark.getOid()));
+                            GlobalRuleWithId.of(rule));
                 }
             }
         }

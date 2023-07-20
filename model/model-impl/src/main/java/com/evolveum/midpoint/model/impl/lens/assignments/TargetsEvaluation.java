@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -75,6 +74,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
 
+        assert !ctx.assignmentPath.isEmpty();
         assert ctx.assignmentPath.last() == segment;
         assert segment.getOverallConditionState().isNotAllFalse();
         assert segment.isAssignmentActive() || segment.direct;
@@ -156,7 +156,9 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     private boolean hasCycle(@NotNull PrismObject<? extends ObjectType> target) throws PolicyViolationException {
         // TODO reconsider this
-        if (target.getOid() != null && segment.source.getOid() != null && Objects.equals(target.getOid(), segment.source.getOid())) {
+        if (target.getOid() != null
+                && segment.source.getOid() != null
+                && Objects.equals(target.getOid(), segment.source.getOid())) {
             throw new PolicyViolationException("The "+segment.source+" refers to itself in assignment/inducement");
         }
         int count = ctx.assignmentPath.countTargetOccurrences(target.asObjectable());
@@ -242,7 +244,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                     VariablesMap variables = createVariables(segment, ctx, result1);
                     return ExpressionUtil.evaluateFilterExpressions(
                             rawFilter, variables, expressionProfile,
-                            ctx.ae.mappingFactory.getExpressionFactory(), ctx.ae.prismContext,
+                            ctx.ae.mappingFactory.getExpressionFactory(),
                             " evaluating resource filter expression ", ctx.task, result1);
                 } finally {
                     ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
@@ -250,18 +252,17 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             };
     }
 
-    @NotNull
-    private VariablesMap createVariables(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
+    private @NotNull VariablesMap createVariables(
+            AssignmentPathSegmentImpl segment,
+            EvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration =
                 ModelBeans.get().systemObjectCache.getSystemConfiguration(result);
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 segment.source, null, null, asObjectable(systemConfiguration));
         variables.put(ExpressionConstants.VAR_SOURCE, segment.source, ObjectType.class);
-        AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
-        if (assignmentPathVariables != null) {
-            ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, ctx.ae.prismContext);
-        }
+        AssignmentPathVariables assignmentPathVariables = ctx.assignmentPath.computePathVariablesRequired();
+        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
         variables.addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables());
         return variables;
     }

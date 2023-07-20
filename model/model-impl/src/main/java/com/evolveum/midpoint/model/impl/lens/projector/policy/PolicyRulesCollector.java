@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
+import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -101,16 +102,16 @@ class PolicyRulesCollector<O extends ObjectType> {
         List<GlobalRuleWithId> ruleMatchingFocus = getGlobalRulesMatchingFocus(focus);
         int globalRulesFound = 0;
         for (GlobalRuleWithId ruleWithId : ruleMatchingFocus) {
-            GlobalPolicyRuleType ruleBean = ruleWithId.ruleBean();
-            if (isRuleConditionTrue(ruleBean, focus, null, result)) {
-                LOGGER.trace("Collecting global policy rule '{}' ({})", ruleBean.getName(), ruleWithId.ruleId());
+            GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
+            if (isRuleConditionTrue(ruleWithId, focus, null, result)) {
+                LOGGER.trace("Collecting global policy rule '{}' ({})", ruleCI.getName(), ruleWithId.ruleId());
                 rules.add(
                         new EvaluatedPolicyRuleImpl(
-                                ruleBean.clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
+                                ruleCI.value().clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
                 LOGGER.trace("Skipping global policy rule {} ({}) because the condition evaluated to false: {}",
-                        ruleBean.getName(), ruleWithId.ruleId(), ruleBean);
+                        ruleCI.getName(), ruleWithId.ruleId(), ruleCI);
             }
         }
         LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
@@ -126,9 +127,9 @@ class PolicyRulesCollector<O extends ObjectType> {
         List<GlobalRuleWithId> focusMatching = getGlobalRulesMatchingFocus(focus);
         int globalRulesInstantiated = 0;
         for (GlobalRuleWithId ruleWithId : focusMatching) {
-            GlobalPolicyRuleType ruleBean = ruleWithId.ruleBean();
-            var targetSelector = ruleBean.getTargetSelector();
-            String ruleName = ruleBean.getName();
+            GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
+            var targetSelector = ruleCI.value().getTargetSelector();
+            String ruleName = ruleCI.getName();
             if (targetSelector == null) {
                 LOGGER.trace("Skipping rule '{}' because it has no target selector", ruleName);
                 continue;
@@ -154,16 +155,16 @@ class PolicyRulesCollector<O extends ObjectType> {
                                 ruleName, ruleWithId);
                         continue;
                     }
-                    if (!isRuleConditionTrue(ruleBean, focus, evaluatedAssignment, result)) {
+                    if (!isRuleConditionTrue(ruleWithId, focus, evaluatedAssignment, result)) {
                         LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}",
                                 ruleName, ruleWithId);
                         continue;
                     }
                     LOGGER.trace("Collecting global policy rule '{}' in {}, considering target {} (applies directly: {})",
-                            ruleBean.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
+                            ruleCI.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
                     evaluatedAssignment.addTargetPolicyRule(
                             new EvaluatedPolicyRuleImpl(
-                                    ruleBean.clone(),
+                                    ruleCI.value().clone(),
                                     ruleWithId.ruleId(),
                                     target.getAssignmentPath().clone(),
                                     evaluatedAssignment,
@@ -183,12 +184,12 @@ class PolicyRulesCollector<O extends ObjectType> {
         List<GlobalRuleWithId> matching = new ArrayList<>();
         LOGGER.trace("Checking {} global policy rules for use with the object or assignments", rulesWithIds.size());
         for (GlobalRuleWithId ruleWithId: rulesWithIds) {
-            GlobalPolicyRuleType ruleBean = ruleWithId.ruleBean();
-            ObjectSelectorType focusSelector = ruleBean.getFocusSelector();
+            GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
+            ObjectSelectorType focusSelector = ruleCI.value().getFocusSelector();
             if (focusSelector == null ||
                     focus != null &&
                             SelectorMatcher.forSelector(focusSelector)
-                                    .withLogging(LOGGER, "Global policy rule " + ruleBean.getName() + ": ")
+                                    .withLogging(LOGGER, "Global policy rule " + ruleCI.getName() + ": ")
                                     .matches(focus)) {
                 matching.add(ruleWithId);
             }
@@ -226,7 +227,7 @@ class PolicyRulesCollector<O extends ObjectType> {
         if (systemConfiguration != null) {
             for (GlobalPolicyRuleType ruleBean : systemConfiguration.getGlobalPolicyRule()) {
                 allRules.add(
-                        GlobalRuleWithId.of(ruleBean, systemConfiguration.getOid()));
+                        GlobalRuleWithId.of(ruleBean));
             }
         }
         allRules.addAll(
@@ -241,19 +242,21 @@ class PolicyRulesCollector<O extends ObjectType> {
                 .collect(Collectors.toList());
         checkInitialized();
         Collection<GlobalPolicyRuleType> allGlobalRules = rulesWithIds.stream()
-                .map(GlobalRuleWithId::ruleBean)
+                .map(GlobalRuleWithId::ruleCI)
+                .map(GlobalPolicyRuleConfigItem::value)
                 .collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveConstraintReferences(rules, allGlobalRules);
     }
 
     private boolean isRuleConditionTrue(
-            @NotNull GlobalPolicyRuleType globalPolicyRule,
+            @NotNull GlobalRuleWithId ruleWithId,
             @Nullable PrismObject<O> focus,
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        MappingType condition = globalPolicyRule.getCondition();
+        GlobalPolicyRuleType globalPolicyRule = ruleWithId.ruleCI().value();
+        MappingType condition = globalPolicyRule.getCondition(); // TODO use CI here
         if (condition == null) {
             return true;
         }
@@ -268,11 +271,11 @@ class PolicyRulesCollector<O extends ObjectType> {
                 new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition()) : null;
         PrismObject<?> target = evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null;
 
-        builder = builder.mappingBean(condition)
+        builder = builder.mappingBean(condition, ruleWithId.ruleCI().origin().child(GlobalPolicyRuleType.F_CONDITION))
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
                 .sourceContext(focusOdo)
-                .defaultTargetDefinition(LensUtil.createConditionDefinition(PrismContext.get()))
+                .defaultTargetDefinition(LensUtil.createConditionDefinition())
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
@@ -283,7 +286,8 @@ class PolicyRulesCollector<O extends ObjectType> {
                         ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
                 .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT,
                         evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
-                .rootNode(focusOdo);
+                .rootNode(focusOdo)
+                .computeExpressionProfile(result);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 

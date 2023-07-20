@@ -242,7 +242,7 @@ public class ReportServiceImpl implements ReportService {
         if (collectionRefSpecification != null) {
             @NotNull CompiledObjectCollectionView compiledCollectionRefSpec =
                     getModelInteractionService().compileObjectCollectionView(
-                            collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+                            collectionRefSpecification, compiledCollection.getTargetClass(), task, result);
             getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
             compiledCollection = compiledCollectionRefSpec;
         }
@@ -287,7 +287,7 @@ public class ReportServiceImpl implements ReportService {
         if (collectionRefSpecification != null) {
             @NotNull CompiledObjectCollectionView compiledCollectionRefSpec =
                     getModelInteractionService().compileObjectCollectionView(
-                            collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+                            collectionRefSpecification, compiledCollection.getTargetClass(), task, result);
 
             if (Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
                 compiledCollectionRefSpec.getColumns().clear();

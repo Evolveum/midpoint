@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
@@ -74,66 +75,77 @@ public class CollectionProcessor {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private SchemaService schemaService;
 
-    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection,
-            CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass,
-            Task task, OperationResult result)
+    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+            PrismObject<ObjectCollectionType> collection,
+            CompiledObjectCollectionView preCompiledCollectionView,
+            Class<? extends ObjectType> targetTypeClass,
+            Task task,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        if (collectionView == null) {
+        ObjectCollectionType collectionBean = collection.asObjectable();
+        CompiledObjectCollectionView collectionView;
+        if (preCompiledCollectionView != null) {
+            collectionView = preCompiledCollectionView;
+        } else {
             collectionView = new CompiledObjectCollectionView();
-            compileObjectCollectionView(collectionView, null, collection.asObjectable(), targetTypeClass, task, result);
+            compileObjectCollectionView(
+                    collectionView, null, collectionBean, targetTypeClass, task, result);
         }
+
         Collection<EvaluatedPolicyRule> evaluatedPolicyRules = new ArrayList<>();
-        for (AssignmentType assignmentType : collection.asObjectable().getAssignment()) {
-
-            PolicyRuleType policyRuleType = assignmentType.getPolicyRule();
-
-            if (policyRuleType == null) {
-                continue;
+        for (AssignmentType assignmentBean : collectionBean.getAssignment()) {
+            PolicyRuleType policyRuleBean = assignmentBean.getPolicyRule();
+            if (policyRuleBean != null) {
+                evaluatedPolicyRules.add(
+                        evaluatePolicyRule(collection, collectionView, assignmentBean, policyRuleBean, task, result));
             }
-
-            evaluatedPolicyRules.add(evaluatePolicyRule(collection, collectionView, assignmentType, policyRuleType, task, result));
         }
         return evaluatedPolicyRules;
     }
 
-    /** Very simple implementation, needs to be extended later. */
+    /**
+     * Very simple implementation, needs to be extended later.
+     * !!! Assumes that assignment is physically the part of the collection prism object!!!
+     */
     @NotNull
     private EvaluatedPolicyRule evaluatePolicyRule(
-            PrismObject<ObjectCollectionType> collection,
-            CompiledObjectCollectionView collectionView,
-            @NotNull AssignmentType assignmentType,
-            @NotNull PolicyRuleType policyRuleType,
-            Task task,
-            OperationResult result)
+            @NotNull PrismObject<ObjectCollectionType> collection,
+            @NotNull CompiledObjectCollectionView collectionView,
+            @NotNull AssignmentType assignmentBean,
+            @NotNull PolicyRuleType policyRuleBean,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException, ExpressionEvaluationException {
         AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
         AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
                 .source(collection.asObjectable())
                 .sourceDescription("object collection " + collection)
-                .assignment(assignmentType)
+                .assignment(assignmentBean)
+                .assignmentOrigin(ConfigurationItemOrigin.embedded(assignmentBean))
                 .isAssignment()
                 .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
-                .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
+                // direct=true is to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
+                .direct(true)
                 .pathToSourceValid(true)
                 .pathToSourceConditionState(ConditionState.allTrue())
                 .build();
         assignmentPath.add(assignmentPathSegment);
 
         // Generated proforma - actually not much needed for now.
-        String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentType.getId());
+        String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentBean.getId());
 
         EvaluatedPolicyRuleImpl evaluatedPolicyRule =
-                new EvaluatedPolicyRuleImpl(policyRuleType.clone(), ruleId, assignmentPath, TargetType.OBJECT);
+                new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ruleId, assignmentPath, TargetType.OBJECT);
 
-        PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
+        PolicyConstraintsType policyConstraints = policyRuleBean.getPolicyConstraints();
         if (policyConstraints == null) {
             return evaluatedPolicyRule;
         }
 
-        PolicyThresholdType policyThreshold = policyRuleType.getPolicyThreshold();
+        PolicyThresholdType policyThreshold = policyRuleBean.getPolicyThreshold();
 
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);
@@ -213,7 +225,7 @@ public class CollectionProcessor {
 
     <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
-        Class<O> targetClass = collectionView.getTargetClass(prismContext);
+        Class<O> targetClass = collectionView.getTargetClass();
         stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
         stats.setDomainCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getDomainFilter(), result, task), collectionView.getDomainOptions(), task, result));
         return stats;
@@ -226,7 +238,7 @@ public class CollectionProcessor {
         return modelService.countObjects(targetTypeClass, prismContext.queryFactory().createQuery(filter), options, task, result);
     }
 
-    public CompiledObjectCollectionView compileObjectCollectionView(CollectionRefSpecificationType collectionRef,
+    CompiledObjectCollectionView compileObjectCollectionView(CollectionRefSpecificationType collectionRef,
             Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -284,7 +296,7 @@ public class CollectionProcessor {
                 ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
                 existingView.setFilter(objectFilter);
             } else {
-                compileBaseCollectionSpec(filter, existingView, null, baseCollectionSpec, targetTypeClass, task, result);
+                compileBaseCollectionSpec(filter, existingView, baseCollectionSpec, targetTypeClass, task, result);
             }
         } else {
             // E.g. the case of empty domain specification. Nothing to do. Just return what we have.
@@ -413,28 +425,42 @@ public class CollectionProcessor {
 
     }
 
-    private void compileBaseCollectionSpec(ObjectFilter objectFilter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options,
-            CollectionRefSpecificationType baseCollectionRef, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private void compileBaseCollectionSpec(
+            ObjectFilter objectFilter,
+            CompiledObjectCollectionView existingView,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            CollectionRefSpecificationType baseCollectionRef,
+            Class<? extends Containerable> targetTypeClass,
+            Task task,
+            OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
         mergeCollectionFilterAndOptions(objectFilter, existingView, options);
     }
 
-    private void compileBaseCollectionSpec(SearchFilterType filter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options,
-            CollectionRefSpecificationType baseCollectionRef, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        if (targetTypeClass != null) {
+    private void compileBaseCollectionSpec(
+            SearchFilterType filter,
+            CompiledObjectCollectionView existingView,
+            CollectionRefSpecificationType baseCollectionRef,
+            Class<? extends Containerable> explicitTargetTypeClass,
+            Task task,
+            OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        if (explicitTargetTypeClass != null) {
+            ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, explicitTargetTypeClass);
+            compileBaseCollectionSpec(
+                    objectFilter, existingView, null, baseCollectionRef, explicitTargetTypeClass, task, result);
+        } else {
+            compileObjectCollectionView(existingView, baseCollectionRef, null, task, result);
+            var targetTypeClass = existingView.getTargetClass();
+            if (targetTypeClass == null) {
+                throw new IllegalArgumentException("UndefinedTypeForCollection type: " + baseCollectionRef);
+            }
             ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
-            compileBaseCollectionSpec(objectFilter, existingView, options, baseCollectionRef, targetTypeClass, task, result);
-            return;
+            mergeCollectionFilterAndOptions(objectFilter, existingView, null);
         }
-        compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
-        targetTypeClass = existingView.getTargetClass(prismContext);
-        if (targetTypeClass == null) {
-            throw new IllegalArgumentException("UndefinedTypeForCollection type: " + baseCollectionRef);
-        }
-        ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
-        mergeCollectionFilterAndOptions(objectFilter, existingView, options);
     }
 
     private void mergeCollectionFilterAndOptions(ObjectFilter objectFilter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -446,7 +472,7 @@ public class CollectionProcessor {
         existingView.setOptions(optionsBuilder.build());
     }
 
-    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         compileView(existingView, objectListViewType, true);
     }
 
@@ -514,7 +540,7 @@ public class CollectionProcessor {
         VariablesMap variables = new VariablesMap(); // do we want to put any variables here?
         return ExpressionUtil.evaluateFilterExpressions(
                 filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory, prismContext, "collection filter", task, result);
+                expressionFactory, "collection filter", task, result);
     }
 
     private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -684,7 +710,8 @@ public class CollectionProcessor {
     public String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
         return determineViewIdentifier(objectListViewType, ""); //todo how to get default view identifier by type? or return null
     }
-    public String determineViewIdentifier(GuiObjectListViewType objectListViewType, String defaultViewIdentifier) {
+
+    private String determineViewIdentifier(GuiObjectListViewType objectListViewType, String defaultViewIdentifier) {
         String viewIdentifier = objectListViewType.getIdentifier();
         if (viewIdentifier != null) {
             return viewIdentifier;

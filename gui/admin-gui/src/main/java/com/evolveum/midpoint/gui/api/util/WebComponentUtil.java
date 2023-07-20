@@ -2376,9 +2376,11 @@ public final class WebComponentUtil {
 
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {
         try {
-            return ExpressionUtil.evaluateFilterExpressions(objectFilter, variables, MiscSchemaUtil.getExpressionProfile(),
-                    pageBase.getExpressionFactory(), pageBase.getPrismContext(), "collection filter",
-                    pageBase.createSimpleTask(result.getOperation()), result);
+            return ExpressionUtil.evaluateFilterExpressions(
+                    objectFilter, variables,
+                    MiscSchemaUtil.getExpressionProfile(),
+                    pageBase.getExpressionFactory(),
+                    "collection filter", pageBase.createSimpleTask(result.getOperation()), result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException ex) {
             result.recordPartialError("Unable to evaluate filter exception, ", ex);

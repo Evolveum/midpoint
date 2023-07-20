@@ -109,7 +109,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
                 try {
                     objectQuery = ExpressionUtil.evaluateQueryExpressions(
-                            unresolvedObjectQuery, variables, expressionProfile, expressionFactory, prismContext,
+                            unresolvedObjectQuery, variables, expressionProfile, expressionFactory,
                             "bulk action query", context.getTask(), globalResult);
                 } catch (CommonException e) {
                     // TODO continue on any error?

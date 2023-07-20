@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
@@ -26,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -75,7 +78,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -1565,17 +1567,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .lensContext(new LensContextPlaceholder<>(potentialDeputy, task.getExecutionMode()));
         AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
-        for (AssignmentType assignmentType : potentialDeputy.asObjectable().getAssignment()) {
-            if (!DeputyUtils.isDelegationAssignment(assignmentType, relationRegistry)) {
+        UserType potentialDeputyBean = potentialDeputy.asObjectable();
+        for (AssignmentType assignmentBean : potentialDeputyBean.getAssignment()) {
+            if (!DeputyUtils.isDelegationAssignment(assignmentBean, relationRegistry)) {
                 continue;
             }
             try {
                 ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
-                        new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType));
+                        new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentBean));
                 // TODO some special mode for verification of the validity - we don't need complete calculation here!
                 EvaluatedAssignment assignment = assignmentEvaluator
-                        .evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
-                                potentialDeputy.toString(), AssignmentOrigin.createInObject(), task, result);
+                        .evaluate(
+                                assignmentIdi, PlusMinusZero.ZERO, false,
+                                potentialDeputyBean, potentialDeputy.toString(),
+                                AssignmentOrigin.inObject(embedded(assignmentBean)),
+                                task, result);
                 if (!assignment.isValid()) {
                     continue;
                 }
@@ -1591,7 +1597,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             } catch (CommonException e) {
                 LoggingUtils.logUnexpectedException(
                         LOGGER, "Couldn't verify 'deputy' relation between {} and {} for work item {}; assignment: {}",
-                        e, potentialDeputy, assignees, workItem, assignmentType);
+                        e, potentialDeputy, assignees, workItem, assignmentBean);
             }
         }
         return false;
@@ -1986,12 +1992,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection,
-            @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass,
-            @NotNull Task task, @NotNull OperationResult result)
+    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+            @NotNull PrismObject<ObjectCollectionType> collection,
+            @Nullable CompiledObjectCollectionView preCompiledView,
+            @Nullable Class<? extends ObjectType> targetTypeClass,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        return collectionProcessor.evaluateCollectionPolicyRules(collection, collectionView, targetTypeClass, task, result);
+        return collectionProcessor.evaluateCollectionPolicyRules(collection, preCompiledView, targetTypeClass, task, result);
     }
 
     @Override
@@ -2211,14 +2220,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private <T> Class<T> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
-        if (compiledCollection.getTargetClass(prismContext) == null) {
-            if (typeForFilter == null) {
-                throw new ConfigurationException("Type of objects is null");
-            }
-            return prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        Class<T> targetClass = compiledCollection.getTargetClass();
+        if (targetClass != null) {
+            return targetClass;
         }
-        return compiledCollection.getTargetClass(prismContext);
-
+        if (typeForFilter == null) {
+            throw new ConfigurationException("Type of objects is null");
+        }
+        return prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
     }
 
     private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables,
@@ -2226,7 +2235,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(
                 compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory, prismContext, "collection filter", task, result);
+                expressionFactory, "collection filter", task, result);
         if (filter == null) {
             LOGGER.warn("Couldn't find filter");
         }

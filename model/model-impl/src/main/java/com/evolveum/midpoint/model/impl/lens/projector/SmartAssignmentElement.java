@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -22,9 +23,12 @@ public class SmartAssignmentElement implements DebugDumpable {
     @NotNull private final PrismContainerValue<AssignmentType> assignmentCVal;
     @NotNull private final AssignmentOrigin origin;
 
-    SmartAssignmentElement(@NotNull PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
+    SmartAssignmentElement(
+            @NotNull PrismContainerValue<AssignmentType> assignmentCVal,
+            boolean virtual,
+            @NotNull ConfigurationItemOrigin origin) {
         this.assignmentCVal = assignmentCVal;
-        this.origin = new AssignmentOrigin(virtual);
+        this.origin = new AssignmentOrigin(virtual, origin);
     }
 
     @NotNull

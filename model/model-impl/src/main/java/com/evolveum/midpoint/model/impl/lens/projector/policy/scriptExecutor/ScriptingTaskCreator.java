@@ -105,7 +105,7 @@ abstract class ScriptingTaskCreator {
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                 return ExpressionUtil.evaluateFilterExpressions(
                         rawFilter, variables, expressionProfile,
-                        beans.expressionFactory, beans.prismContext,
+                        beans.expressionFactory,
                         "evaluating task template filter expression ", actx.task, result1);
             } finally {
                 ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();

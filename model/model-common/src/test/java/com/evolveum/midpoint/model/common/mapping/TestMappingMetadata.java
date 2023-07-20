@@ -993,7 +993,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     }
 
     public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename,
-            ObjectDelta<UserType> delta, Consumer<MappingBuilder> mappingBuilderCustomizer) throws Exception {
+            ObjectDelta<UserType> delta, Consumer<MappingBuilder<?, ?>> mappingBuilderCustomizer) throws Exception {
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, getTestNameShort(), "fullName", delta,
@@ -1020,7 +1020,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         return mapping;
     }
 
-    private Consumer<MappingBuilder> addMappingSpec(Consumer<MappingBuilder> customizer) {
+    private Consumer<MappingBuilder<?, ?>> addMappingSpec(Consumer<MappingBuilder<?, ?>> customizer) {
         return mappingBuilder -> {
             mappingBuilder.mappingSpecification(createMappingSpec());
             if (customizer != null) {
@@ -1076,10 +1076,10 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         };
     }
 
-    private Consumer<MappingBuilder> existingValuesCustomizer(PrismValue... values) {
+    private Consumer<MappingBuilder<?, ?>> existingValuesCustomizer(PrismValue... values) {
         return mappingBuilder -> {
-            //noinspection unchecked
-            mappingBuilder.originalTargetValues(Arrays.asList(values));
+            //noinspection unchecked,rawtypes
+            mappingBuilder.originalTargetValues((List) (Arrays.asList(values)));
         };
     }
 

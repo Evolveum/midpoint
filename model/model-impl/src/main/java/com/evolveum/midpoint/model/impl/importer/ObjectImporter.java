@@ -112,7 +112,7 @@ public class ObjectImporter {
                     objectResult.addContext("objectNumber", index.incrementAndGet());
                     importParsedObject(object, objectResult, options, task);
                     objectResult.computeStatusIfUnknown();
-                    objectResult.cleanupResult();
+                    objectResult.cleanup();
                     parentResult.summarize();
 
                     if (objectResult.isAcceptable()) {

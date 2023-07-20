@@ -12,13 +12,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -501,12 +503,12 @@ public class VariablesMap implements Map<String, TypedValue<?>>, DebugDumpable {
                 continue;
             }
             Object value = entry.getValue().getValue();
-            if (value instanceof ObjectDeltaObject<?>) {
-                if (((ObjectDeltaObject<?>) value).getObjectDelta() != null && !((ObjectDeltaObject<?>) value).getObjectDelta().isEmpty()) {
+            if (value instanceof ObjectDeltaObject<?> odo) {
+                if (!ObjectDelta.isEmpty(odo.getObjectDelta())) {
                     return true;
                 }
-            } else if (value instanceof ItemDeltaItem<?, ?>) {
-                if (((ItemDeltaItem<?, ?>) value).getDelta() != null && !((ItemDeltaItem<?, ?>) value).getDelta().isEmpty()) {
+            } else if (value instanceof ItemDeltaItem<?, ?> idi) {
+                if (!ItemDelta.isEmpty(idi.getDelta())) {
                     return true;
                 }
             }

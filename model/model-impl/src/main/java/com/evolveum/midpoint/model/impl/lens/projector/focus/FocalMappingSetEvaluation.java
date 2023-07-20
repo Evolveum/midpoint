@@ -60,7 +60,7 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
  *
  * Special responsibilities:
  *
- * 1. Creation of {@link Mapping} objects from beans ({@link AbstractMappingType}.
+ * 1. Creation of {@link Mapping} objects from beans ({@link AbstractMappingType}).
  * 2. Chaining of mapping evaluation.
  *
  * Exclusions:
@@ -77,7 +77,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     private static final Trace LOGGER = TraceManager.getTrace(FocalMappingSetEvaluation.class);
 
-    private static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
+    private static final List<String> FOCUS_VARIABLE_NAMES = List.of(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
     private final ModelBeans beans;
 
@@ -246,25 +246,30 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
                     return beans.credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
                 }
-                if (mappingBean.getExpression() != null) {
-                    List<JAXBElement<?>> evaluators = mappingBean.getExpression().getExpressionEvaluator();
-                    if (evaluators != null) {
-                        for (JAXBElement<?> jaxbEvaluator : evaluators) {
-                            Object object = jaxbEvaluator.getValue();
-                            if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
-                                ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
-                                try {
-                                    ValuePolicyType valuePolicyType = beans.mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
-                                            null, "resolving value policy for generate attribute " + outputDefinition.getItemName() + " value", task, result);
-                                    if (valuePolicyType != null) {
-                                        return valuePolicyType;
-                                    }
-                                } catch (CommonException ex) {
-                                    throw new SystemException(ex.getMessage(), ex);
-                                }
-                            }
+                ExpressionType expressionBean = mappingBean.getExpression();
+                if (expressionBean == null) {
+                    return null;
+                }
+                List<JAXBElement<?>> evaluators = expressionBean.getExpressionEvaluator();
+                if (evaluators != null) {
+                    for (JAXBElement<?> jaxbEvaluator : evaluators) {
+                        Object object = jaxbEvaluator.getValue();
+                        if (!(object instanceof GenerateExpressionEvaluatorType genEvaluatorBean)) {
+                            continue;
                         }
-
+                        ObjectReferenceType ref = genEvaluatorBean.getValuePolicyRef();
+                        if (ref == null) {
+                            continue;
+                        }
+                        try {
+                            return beans.mappingFactory.getObjectResolver().resolve(
+                                    ref, ValuePolicyType.class,
+                                    null,
+                                    "resolving value policy for generate attribute " + outputDefinition.getItemName() + " value",
+                                    task, result);
+                        } catch (CommonException ex) {
+                            throw new SystemException(ex.getMessage(), ex);
+                        }
                     }
                 }
                 return null;
@@ -299,21 +304,23 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
                 .assignmentId(createAssignmentId(assignmentPathVariables));
 
-        MappingBuilder<V, D> mappingBuilder = beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, contextDesc)
-                .sourceContext(focusOdo)
-                .defaultSource(defaultSource)
-                .targetContext(targetContext.getDefinition())
-                .variablesFrom(variables)
-                .variablesFrom(LensUtil.getAssignmentPathVariablesMap(assignmentPathVariables, prismContext))
-                .originalTargetValues(targetValues)
-                .mappingKind(mappingKind)
-                .originType(OriginType.USER_POLICY)
-                .originObject(originObject)
-                .valuePolicySupplier(valuePolicySupplier)
-                .rootNode(focusOdo)
-                .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
-                .mappingSpecification(specification)
-                .now(now);
+        MappingBuilder<V, D> mappingBuilder =
+                beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, request.getMappingOrigin(), contextDesc)
+                        .sourceContext(focusOdo)
+                        .defaultSource(defaultSource)
+                        .targetContext(targetContext.getDefinition())
+                        .variablesFrom(variables)
+                        .variablesFrom(LensUtil.getAssignmentPathVariablesMap(assignmentPathVariables))
+                        .originalTargetValues(targetValues)
+                        .mappingKind(mappingKind)
+                        .originType(OriginType.USER_POLICY)
+                        .originObject(originObject)
+                        .valuePolicySupplier(valuePolicySupplier)
+                        .rootNode(focusOdo)
+                        .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
+                        .mappingSpecification(specification)
+                        .now(now)
+                        .computeExpressionProfile(result);
 
         MappingImpl<V, D> mapping = mappingBuilder.build();
 
@@ -324,7 +331,8 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         }
 
         Item<V, D> existingTargetItem = targetContext.findItem(itemPath);
-        if (existingTargetItem != null && !existingTargetItem.isEmpty()
+        if (existingTargetItem != null
+                && !existingTargetItem.isEmpty()
                 && mapping.getStrength() == MappingStrengthType.WEAK) {
             LOGGER.trace("Mapping {} is weak and target already has a value {}, skipping.", mapping, existingTargetItem);
             return null;
@@ -478,7 +486,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
     }
 
     // must be Uniform because of the later use in outputTripleMap
-    static ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
+    static @NotNull ItemPath stripFocusVariableSegment(@NotNull ItemPath sourcePath) {
         if (sourcePath.startsWithVariable()) {
             QName variableQName = sourcePath.firstToVariableNameOrNull();
             if (variableQName != null && FOCUS_VARIABLE_NAMES.contains(variableQName.getLocalPart())) {

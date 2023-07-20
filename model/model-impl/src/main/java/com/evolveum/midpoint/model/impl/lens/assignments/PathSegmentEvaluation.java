@@ -14,15 +14,13 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSegmentEvaluationTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Carries out and holds assignment evaluation:
@@ -250,15 +248,20 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
         return targetsEvaluation != null ? targetsEvaluation.targets : emptyList();
     }
 
-    private ConditionState determineAssignmentConditionState()
+    private @NotNull ConditionState determineAssignmentConditionState()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        return ctx.conditionEvaluator.computeConditionState(
-                segment.assignment.getCondition(),
-                segment.source,
-                "condition in assignment in " + segment.sourceDescription,
-                FocusTypeUtil.dumpAssignmentLazily(segment.assignment),
-                result);
+        MappingType conditionBean = segment.assignment.getCondition();
+        if (conditionBean == null) {
+            return ConditionState.allTrue();
+        } else {
+            return ctx.conditionEvaluator.computeConditionState(
+                    conditionBean,
+                    segment.assignmentOrigin,
+                    segment.source,
+                    "condition in assignment in " + segment.sourceDescription,
+                    result);
+        }
     }
 }
 

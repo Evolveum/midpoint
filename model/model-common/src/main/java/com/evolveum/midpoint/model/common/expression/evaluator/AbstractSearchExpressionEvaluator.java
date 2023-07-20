@@ -302,7 +302,6 @@ public abstract class AbstractSearchExpressionEvaluator<
                     variables,
                     context.getExpressionProfile(),
                     context.getExpressionFactory(),
-                    prismContext,
                     context.getContextDescription(),
                     task,
                     result);

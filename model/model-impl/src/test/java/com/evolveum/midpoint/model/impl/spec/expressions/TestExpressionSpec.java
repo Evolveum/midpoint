@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
