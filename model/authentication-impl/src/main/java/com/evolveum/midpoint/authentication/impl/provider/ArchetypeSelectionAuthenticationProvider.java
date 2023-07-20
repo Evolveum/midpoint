@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ArchetypeSelectionModuleAuthentication;
@@ -33,6 +34,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
 import java.util.List;
@@ -68,6 +70,7 @@ public class ArchetypeSelectionAuthenticationProvider extends MidPointAbstractAu
                 }
                 ArchetypeSelectionAuthenticationToken archetypeToken = new ArchetypeSelectionAuthenticationToken(archetypeOid);
                 archetypeToken.setAuthenticated(true);
+                saveArchetypeToMidpointAuthentication(archetypeOid);
                 return archetypeToken;
 
             } else {
@@ -77,6 +80,13 @@ public class ArchetypeSelectionAuthenticationProvider extends MidPointAbstractAu
         } catch (AuthenticationException e) {
             LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
             throw e;
+        }
+    }
+
+    private void saveArchetypeToMidpointAuthentication(String archetypeOid) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            ((MidpointAuthentication) authentication).setArchetypeOid(archetypeOid);
         }
     }
 

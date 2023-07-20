@@ -81,6 +81,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private boolean alreadyAudited;
 
+    /**
+     * Usable for some types of authentication modules (e.g. for archetypeSelection module).
+     * Archetype object provides a reference to object template which can be used
+     * for getting the correlators (please, see more information about "lost my username"
+     * functionality).
+     */
+    private String archetypeOid;
+
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
 //        this.modules = SecurityPolicyUtil.getSortedModules(sequence);
@@ -642,5 +650,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public void setAlreadyAudited(boolean alreadyAudited) {
         this.alreadyAudited = alreadyAudited;
+    }
+
+    public void setArchetypeOid(String archetypeOid) {
+        this.archetypeOid = archetypeOid;
     }
 }

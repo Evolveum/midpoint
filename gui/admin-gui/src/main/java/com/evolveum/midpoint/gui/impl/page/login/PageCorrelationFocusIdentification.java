@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 @PageDescriptor(urls = {
 @Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
-        permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.CORRELATION)
+        permitAll = true, authModule = AuthenticationModuleNameConstants.CORRELATION)
 public class PageCorrelationFocusIdentification extends PageAbstractAttributeVerification {
 
     private static final long serialVersionUID = 1L;
