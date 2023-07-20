@@ -22,15 +22,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-credentials-mapping-outbound-optional",
+@PanelInstance(identifier = "rw-credentials-outbound-optional",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.mapping.outbound.optional", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.outbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class OutboundCredentialsMappingOptionalConfigurationStepPanel
         extends OutboundMappingOptionalConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-credentials-mapping-outbound-optional";
+    public static final String PANEL_TYPE = "rw-credentials-outbound-optional";
 
     public OutboundCredentialsMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,
                                                                    IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -43,18 +43,18 @@ public class OutboundCredentialsMappingOptionalConfigurationStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.credentials.mapping.outbound.optional");
+        return createStringResource("PageResource.wizard.step.credentials.outbound.optional");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.credentials.mapping.outbound.optional.text");
+        return createStringResource("PageResource.wizard.step.credentials.outbound.optional.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.credentials.mapping.outbound.optional.subText",
+                "PageResource.wizard.step.credentials.outbound.optional.subText",
                 GuiDisplayNameUtil.getDisplayName(((PrismContainerValueWrapper)getValueModel().getObject()).getNewValue()));
     }
 

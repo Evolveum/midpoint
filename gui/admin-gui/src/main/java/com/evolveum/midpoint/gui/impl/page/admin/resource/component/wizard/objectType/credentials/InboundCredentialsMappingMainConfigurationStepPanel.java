@@ -22,15 +22,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-credentials-mapping-inbound-main",
+@PanelInstance(identifier = "rw-credentials-inbound-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.mapping.inbound.main", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.inbound.main", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class InboundCredentialsMappingMainConfigurationStepPanel
         extends InboundMappingMainConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-credentials-mapping-inbound-main";
+    public static final String PANEL_TYPE = "rw-credentials-inbound-main";
 
     public InboundCredentialsMappingMainConfigurationStepPanel(ResourceDetailsModel model,
                                                     IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -44,18 +44,18 @@ public class InboundCredentialsMappingMainConfigurationStepPanel
     @Override
     public IModel<String> getTitle() {
         return
-                createStringResource("PageResource.wizard.step.credentials.mapping.inbound.main");
+                createStringResource("PageResource.wizard.step.credentials.inbound.main");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.credentials.mapping.inbound.main.text");
+        return createStringResource("PageResource.wizard.step.credentials.inbound.main.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.credentials.mapping.inbound.main.subText",
+                "PageResource.wizard.step.credentials.inbound.main.subText",
                 GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getNewValue()));
     }
 

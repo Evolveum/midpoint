@@ -25,15 +25,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-activation-mapping-inbound-main",
+@PanelInstance(identifier = "rw-activation-inbound-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.mapping.inbound.main", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.inbound.main", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class InboundActivationMappingMainConfigurationStepPanel
         extends InboundMappingMainConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-activation-mapping-inbound-main";
+    public static final String PANEL_TYPE = "rw-activation-inbound-main";
 
     public InboundActivationMappingMainConfigurationStepPanel(ResourceDetailsModel model,
                                                     IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -47,18 +47,18 @@ public class InboundActivationMappingMainConfigurationStepPanel
     @Override
     public IModel<String> getTitle() {
         return
-                createStringResource("PageResource.wizard.step.activation.mapping.inbound.main");
+                createStringResource("PageResource.wizard.step.activation.inbound.main");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.inbound.main.text");
+        return createStringResource("PageResource.wizard.step.activation.inbound.main.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.activation.mapping.inbound.main.subText",
+                "PageResource.wizard.step.activation.inbound.main.subText",
                 GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getNewValue()));
     }
 
