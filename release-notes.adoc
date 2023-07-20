@@ -50,6 +50,12 @@ xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja docume
 ** Repository object (GUI): For detailed information, see the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
 
+* Creating new wizard flow for configuration of resource activation and configuration of resource credentials.
+** Wizard step panels, that displaying inbound and outbound mapping attributes, was divided to two panels with main and optional configuration. Showed attributes are hardcoded, so we can use configuration only for hide showed items.
+** Also we split wizard step panel of construction outbound mapping for role assignment.
+*** Main configuration contains attributes name, source, target, ref (resource attribute), strength, expression and condition.
+*** Optional configuration contains attributes description, exclusive, authoritative, channel and except channel.
+** Identifiers _arw-construction-mapping_,_rw-attribute-inbound_ and _rw-attribute-outbound_ of old wizard panels is ignored, so we can remove it from configuration.
 
 === Miscellaneous Improvements
 
@@ -77,7 +83,7 @@ Please see _Upgrade_ section below for details.
 
 == Changes With Respect To Version 4.4 LTS
 
-* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xref:/midpoint/reference/repository/native-postgresql/[PostgreSQL native repository]. 
+* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xref:/midpoint/reference/repository/native-postgresql/[PostgreSQL native repository].
 
 
 ++++
