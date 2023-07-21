@@ -5,6 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--suppress UnnecessaryQualifiedReference -->
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         oid="eceab160-de05-4b1b-9d09-27cc789252c3">
@@ -29,7 +30,7 @@
                 <condition>
                     <script>
                         <code>
-                            System.setProperty('hack', 'true') // non-compliant
+                            com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
                             true
                         </code>
                     </script>

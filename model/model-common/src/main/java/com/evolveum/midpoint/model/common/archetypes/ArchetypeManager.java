@@ -412,8 +412,16 @@ public class ArchetypeManager implements Cache {
             throws SchemaException, ConfigurationException {
         if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
             return determineExpressionProfile(inObject.getOriginatingPrismObject(), result);
-        } else {
+        } else if (origin instanceof ConfigurationItemOrigin.InDelta inDelta) {
+            return determineExpressionProfile(inDelta.getTargetPrismObject(), result);
+        } else if (origin instanceof ConfigurationItemOrigin.Generated) {
+            return ExpressionProfile.full(); // Most probably OK
+        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
+            return ExpressionProfile.full(); // Later, we may throw an exception here
+        } else if (origin instanceof ConfigurationItemOrigin.Detached) {
             return ExpressionProfile.full(); // TODO we should perhaps return a restricted profile here (from the configuration?)
+        } else {
+            throw new AssertionError(origin);
         }
     }
 

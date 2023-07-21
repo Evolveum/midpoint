@@ -1195,6 +1195,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         } else {
             sb.append(expression.shortDebugDump());
         }
+
+        sb.append("\nExpression profile: ").append(expressionProfile);
+        sb.append("\nOrigin: ").append(mappingConfigItem.origin().fullDescription());
+
         if (stateProperties != null) {
             sb.append("\nState:\n");
             DebugUtil.debugDumpMapMultiLine(sb, stateProperties, 1);

@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="baa44eab-8057-4e19-88f9-dd83085df38a">
+    <name>restricted-bad-role-condition</name>
+    <documentation>
+        A role that contains a non-compliant role condition.
+    </documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <condition>
+        <expression>
+            <script>
+                <code>
+                    com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
+                    true
+                </code>
+            </script>
+        </expression>
+    </condition>
+</role>

@@ -259,7 +259,10 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
                     conditionBean,
                     segment.assignmentOrigin,
                     segment.source,
-                    "condition in assignment in " + segment.sourceDescription,
+                    // The information provided by assignmentConfigItem is currently of little use here,
+                    // as it even does not know if it's assignment or inducement! So we stay with the origin description for now.
+                    "condition in assignment in " + segment.sourceDescription
+                            + " (" + segment.assignmentOrigin.fullDescription() + ")",
                     result);
         }
     }

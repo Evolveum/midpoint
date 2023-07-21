@@ -5,6 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--suppress UnnecessaryQualifiedReference -->
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="c8cae775-2c3b-49bb-98e3-482a095316ef">
@@ -23,7 +24,7 @@
                     <expression>
                         <script>
                             <code>
-                                System.setProperty('hacking', 'true')
+                                com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
                                 'Should not be here'
                             </code>
                         </script>

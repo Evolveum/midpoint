@@ -11,7 +11,10 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,6 +81,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * Pure form of the assignment (new or old): taking {@link #evaluateOld} into account.
      */
     @NotNull final AssignmentType assignment;
+
+    /** TODO describe, use */
+    @Experimental
+    @NotNull final AssignmentConfigItem assignmentConfigItem;
 
     /**
      * Relation of the assignment; normalized.
@@ -205,6 +212,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         assignmentOrigin = Objects.requireNonNull(builder.assignmentOrigin, "no assignmentOrigin");
         evaluateOld = builder.evaluateOld;
         assignment = Util.getAssignment(assignmentIdi, evaluateOld);
+        assignmentConfigItem = AssignmentConfigItem.of(assignment, assignmentOrigin);
         relation = getRelation(assignment, getRelationRegistry());
         isAssignment = builder.isAssignment;
         target = builder.target;
@@ -234,6 +242,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.assignmentOrigin = origin.assignmentOrigin;
         this.evaluateOld = origin.evaluateOld;
         this.assignment = origin.assignment;
+        this.assignmentConfigItem = origin.assignmentConfigItem;
         this.relation = origin.relation;
         this.isAssignment = origin.isAssignment;
         this.archetypeHierarchy = origin.archetypeHierarchy;

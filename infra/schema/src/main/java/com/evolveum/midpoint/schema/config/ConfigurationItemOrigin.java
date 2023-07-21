@@ -229,6 +229,10 @@ public abstract class ConfigurationItemOrigin implements Serializable {
             return targetObject;
         }
 
+        public @NotNull PrismObject<? extends ObjectType> getTargetPrismObject() {
+            return targetObject.asPrismObject();
+        }
+
         public @NotNull ItemPath getPath() {
             return path;
         }
