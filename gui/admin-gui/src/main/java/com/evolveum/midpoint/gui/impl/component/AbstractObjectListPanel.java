@@ -20,7 +20,7 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
     private final ObjectDetailsModels<O> objectDetailsModel;
 
     public AbstractObjectListPanel(String id, ObjectDetailsModels<O> model, ContainerPanelConfigurationType config) {
-        super(id, (Class<O>) ObjectType.class, null, config);
+        super(id, (Class<O>) ObjectType.class, config);
         objectDetailsModel = model;
     }
 

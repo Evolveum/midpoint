@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+@SuppressWarnings("unused")
 public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
 
     @Override

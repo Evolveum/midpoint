@@ -85,7 +85,9 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
             if (outboundValue != null) {
                 PrismContainerWrapperImpl attributeContainer = (PrismContainerWrapperImpl) outboundValue.getParent();
                 if (attributeContainer != null &&
-                        ResourceAttributeDefinitionType.class.equals(attributeContainer.getCompileTimeClass())) {
+                        (ResourceAttributeDefinitionType.class.equals(attributeContainer.getCompileTimeClass())
+                                || ResourceBidirectionalMappingType.class.equals(attributeContainer.getCompileTimeClass())
+                        || ResourcePasswordDefinitionType.class.equals(attributeContainer.getCompileTimeClass()))) {
                     return true;
                 }
             }

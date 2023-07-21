@@ -6,11 +6,21 @@
  */
 package com.evolveum.midpoint.gui.api.component.data.provider;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import java.util.Collection;
+
 public interface ISelectableDataProvider<S> extends ISortableDataProvider<S, String> {
 
     void setQuery(ObjectQuery query);
+
+    default boolean canCountBeforeExport() {
+        return true;
+    }
+
 }

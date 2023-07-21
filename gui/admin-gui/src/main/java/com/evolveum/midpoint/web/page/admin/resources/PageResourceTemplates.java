@@ -111,7 +111,7 @@ public class PageResourceTemplates extends PageAdmin {
                     () -> getString("PageAdmin.menu.top.resources.templates.list.nonNativeRepositoryWarning")));
             return;
         }
-        MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class, getQueryOptions()) {
+        MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
@@ -122,7 +122,9 @@ public class PageResourceTemplates extends PageAdmin {
             @Override
             protected ISelectableDataProvider<SelectableBean<ResourceType>> createProvider() {
                 SelectableBeanObjectDataProvider<ResourceType> provider = createSelectableBeanObjectDataProvider(() ->
-                        getCustomizeContentQuery(), null);
+                        getCustomizeContentQuery(),
+                        null,
+                        getQueryOptions());
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);

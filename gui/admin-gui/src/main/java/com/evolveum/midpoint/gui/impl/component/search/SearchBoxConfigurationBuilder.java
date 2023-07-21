@@ -153,6 +153,9 @@ public class SearchBoxConfigurationBuilder {
             if (isFixedItem(type, path) || isDeadItemForProjections(path) ) {
                 searchItem.setVisibleByDefault(true);
             }
+            if (synchronizationSituationForRepoSadow(path)) {
+                searchItem.setVisibleByDefault(true);
+            }
             searchItems.add(searchItem);
         }
 
@@ -171,6 +174,13 @@ public class SearchBoxConfigurationBuilder {
             return false;
         }
         return ItemPath.create(ShadowType.F_DEAD).equivalent(path);
+    }
+
+    private boolean synchronizationSituationForRepoSadow(ItemPath path) {
+        if (CollectionPanelType.REPO_SHADOW != collectionPanelType) {
+            return false;
+        }
+        return ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION).equivalent(path);
     }
 
     private List<SearchItemType> createReportSearchItems(ObjectCollectionReportEngineConfigurationType reportCollection) {

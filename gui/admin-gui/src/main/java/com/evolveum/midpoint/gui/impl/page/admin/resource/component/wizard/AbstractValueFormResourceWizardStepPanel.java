@@ -105,7 +105,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
             @Override
             protected LoadableDetachableModel<String> getLabelModel() {
-                return (LoadableDetachableModel<String>) getTitle();
+                return AbstractValueFormResourceWizardStepPanel.this.createLabelModel();
             }
 
             @Override
@@ -114,6 +114,10 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
             }
         };
         add(panel);
+    }
+
+    protected LoadableDetachableModel<String> createLabelModel() {
+        return (LoadableDetachableModel<String>) getTitle();
     }
 
     protected ItemMandatoryHandler getMandatoryHandler() {

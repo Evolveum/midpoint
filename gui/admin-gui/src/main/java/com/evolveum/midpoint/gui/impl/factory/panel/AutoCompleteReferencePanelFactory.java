@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -44,7 +45,7 @@ public class AutoCompleteReferencePanelFactory
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName())
                 && SchemaConstants.NS_REPORT_EXTENSION.equals(wrapper.getItemName().getNamespaceURI())
                 && wrapper.getParent() == null;

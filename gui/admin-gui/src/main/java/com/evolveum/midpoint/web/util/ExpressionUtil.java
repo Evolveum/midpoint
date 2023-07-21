@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.util;
 
 import java.util.*;
+
 import jakarta.xml.bind.JAXBElement;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -215,7 +217,7 @@ public class ExpressionUtil {
     }
 
     public static boolean isScriptExpressionValueNotEmpty(ExpressionType expression) throws SchemaException {
-        return getScriptExpressionValues(expression).size() > 0;
+        return getScriptExpressionValue(expression) != null;
     }
 
     public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
@@ -352,7 +354,7 @@ public class ExpressionUtil {
 
         XNodeFactory factory = prismContext.xnodeFactory();
         Map<QName, XNode> valuesMap = new HashMap<>();
-        valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY,"path"), factory.primitive());
+        valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), factory.primitive());
         valuesMap.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), factory.primitive());
         MapXNode values = factory.map(valuesMap);
         MapXNode filterClauseNode = factory.map(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), values);
@@ -525,15 +527,24 @@ public class ExpressionUtil {
         return values;
     }
 
-    public static @NotNull List<ScriptExpressionEvaluatorType> getScriptExpressionValues(ExpressionType expression) throws SchemaException {
-        List<ScriptExpressionEvaluatorType> values = new ArrayList<>();
+    public static ScriptExpressionEvaluatorType getScriptExpressionValue(ExpressionType expression) throws SchemaException {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_SCRIPT);
         for (JAXBElement<?> element : elements) {
             if (element.getValue() instanceof ScriptExpressionEvaluatorType) {
-                values.add((ScriptExpressionEvaluatorType)element.getValue());
+                return (ScriptExpressionEvaluatorType) element.getValue();
             }
         }
-        return values;
+        return null;
+    }
+
+    public static GenerateExpressionEvaluatorType getGenerateExpressionValue(ExpressionType expression) throws SchemaException {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_GENERATE);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof GenerateExpressionEvaluatorType) {
+                return (GenerateExpressionEvaluatorType) element.getValue();
+            }
+        }
+        return null;
     }
 
     public static void updateLiteralExpressionValue(ExpressionType expression, List<String> values, PrismContext prismContext) {
@@ -549,31 +560,58 @@ public class ExpressionUtil {
         }
     }
 
-    public static void updateScriptExpressionValue(ExpressionType expression, List<String> values) throws SchemaException {
+    public static void updateScriptExpressionValue(ExpressionType expression, String value) throws SchemaException {
         if (expression == null) {
             expression = new ExpressionType();      // TODO ??? this is thrown away
         }
 
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_SCRIPT);
 
-        for (String value : values) {
-
-            if (value == null) {
-                continue;
-            }
-
-            JAXBElement<ScriptExpressionEvaluatorType> element;
-            if (value.contains(ELEMENT_SCRIPT)) {
-                LOGGER.trace("Script evaluator to serialize: {}", value);
-                element = PrismContext.get().parserFor(value).xml().parseRealValueToJaxbElement();
-            } else {
-                ScriptExpressionEvaluatorType evaluator = new ScriptExpressionEvaluatorType();
-                evaluator.code(value);
-                element = new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT, ScriptExpressionEvaluatorType.class, evaluator);
-            }
-
-            expression.expressionEvaluator(element);
+        if (value == null) {
+            return;
         }
+
+        JAXBElement<ScriptExpressionEvaluatorType> element;
+        if (value.contains(ELEMENT_SCRIPT)) {
+            LOGGER.trace("Script evaluator to serialize: {}", value);
+            element = PrismContext.get().parserFor(value).xml().parseRealValueToJaxbElement();
+        } else {
+            ScriptExpressionEvaluatorType evaluator = new ScriptExpressionEvaluatorType();
+            evaluator.code(value);
+            element = new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT, ScriptExpressionEvaluatorType.class, evaluator);
+        }
+
+        expression.expressionEvaluator(element);
+    }
+
+    public static void updateGenerateExpressionValue(
+            ExpressionType expression, GenerateExpressionEvaluatorType evaluator) throws SchemaException {
+        if (expression == null) {
+            expression = new ExpressionType();      // TODO ??? this is thrown away
+        }
+
+        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_GENERATE);
+
+        if (evaluator == null) {
+            return;
+        }
+
+        JAXBElement<GenerateExpressionEvaluatorType> element =
+                new JAXBElement<>(SchemaConstantsGenerated.C_GENERATE, GenerateExpressionEvaluatorType.class, evaluator);
+        expression.expressionEvaluator(element);
+    }
+
+    public static void addAsIsExpressionValue(ExpressionType expression){
+        if (expression == null) {
+            return;
+        }
+
+        expression.getExpressionEvaluator().clear();
+
+        AsIsExpressionEvaluatorType evaluator = new AsIsExpressionEvaluatorType();
+        JAXBElement<AsIsExpressionEvaluatorType> element =
+                new JAXBElement<>(SchemaConstantsGenerated.C_AS_IS, AsIsExpressionEvaluatorType.class, evaluator);
+        expression.expressionEvaluator(element);
     }
 
     public static MapXNode getAssociationTargetSearchFilterValuesMap(ExpressionType expression) {

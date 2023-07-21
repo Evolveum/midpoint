@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -30,7 +32,7 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return SearchFilterType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 

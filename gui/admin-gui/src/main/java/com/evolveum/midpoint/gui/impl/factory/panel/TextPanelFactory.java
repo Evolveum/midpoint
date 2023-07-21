@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -42,7 +45,7 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         QName type = wrapper.getTypeName();
         return DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_LONG.equals(type)
                 || DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type) || DOMUtil.XSD_INTEGER.equals(type)

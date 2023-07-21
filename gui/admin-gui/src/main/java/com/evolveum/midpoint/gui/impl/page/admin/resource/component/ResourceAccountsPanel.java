@@ -11,7 +11,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.StringResourceModel;
 
 @PanelType(name = "resourceAccounts")
 @PanelInstance(
@@ -25,10 +28,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 order = 50
         )
 )
-public class ResourceAccountsPanel extends ResourceContentPanel {
+public class ResourceAccountsPanel extends ResourceObjectsPanel {
 
 
     public ResourceAccountsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
-        super(id, ShadowKindType.ACCOUNT, model, config);
+        super(id, model, config);
+    }
+
+    @Override
+    protected ShadowKindType getKind() {
+        return ShadowKindType.ACCOUNT;
+    }
+
+    @Override
+    protected StringResourceModel getLabelModel() {
+        return getPageBase().createStringResource("PageResource.tab.content.account");
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getRepositorySearchTableId() {
+        return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
     }
 }

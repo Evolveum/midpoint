@@ -59,8 +59,10 @@ public class ActivityExecutor {
         return b.securityContextManager.runPrivilegedChecked(
                 () -> {
                     var newTask = createExecutionTask()
-                            .ownerRef(AuthUtil.getPrincipalRefRequired())
                             .executionState(RUNNABLE);
+                    if (newTask.getOwnerRef() == null) {
+                        newTask.setOwnerRef(AuthUtil.getPrincipalRefRequired());
+                    }
                     var executedDeltas = b.modelService.executeChanges(
                             List.of(newTask.asPrismObject().createAddDelta()),
                             null, task, result);
@@ -89,6 +91,9 @@ public class ActivityExecutor {
         }
 
         newTask.setActivity(activityDefinitionBean.clone());
+        if (options.owner() != null) {
+            newTask.setOwnerRef(ObjectTypeUtil.createObjectRef(options.owner()));
+        }
 
         getArchetypeRefsToAdd().forEach(
                 ref -> newTask.assignment(ObjectTypeUtil.createAssignmentTo(ref)));

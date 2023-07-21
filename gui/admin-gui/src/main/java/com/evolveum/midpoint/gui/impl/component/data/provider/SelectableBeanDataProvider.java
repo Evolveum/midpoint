@@ -105,7 +105,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
                 LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
             }
 
-            Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
+            Collection<SelectorOptions<GetOperationOptions>> options = getSearchOptions();
 
             if (ResourceType.class.equals(getType()) && (options == null || options.isEmpty())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -195,13 +195,12 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         }
     }
 
-    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+    protected final Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         if (getCompiledObjectCollectionView() != null && getCompiledObjectCollectionView().getOptions() != null
                 && !getCompiledObjectCollectionView().getOptions().isEmpty()) {
             return getCompiledObjectCollectionView().getOptions();
         }
-
-        Collection<SelectorOptions<GetOperationOptions>> options = this.options;
+        Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
 
         if (options == null) {
             if (ResourceType.class.equals(getType())) {
@@ -214,7 +213,10 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             }
         }
         return options;
+    }
 
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return options;
     }
 
 
@@ -228,7 +230,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
         OperationResult result = task.getResult();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge( getOptions(), null);
+            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge( getSearchOptions(), null);
             Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {

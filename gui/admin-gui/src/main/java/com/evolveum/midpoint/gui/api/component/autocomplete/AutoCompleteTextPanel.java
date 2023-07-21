@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -68,7 +69,6 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
         this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
         this.strict = strict;
     }
-
 
     public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
         super(id);
@@ -137,18 +137,10 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
     protected LookupTableType getLookupTable() {
         if (lookupTableOid != null) {
-                Task task = getPageBase().createSimpleTask("Load lookup table");
-                OperationResult result = task.getResult();
-                Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                               .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
-                PrismObject<LookupTableType> prismLookupTable = WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, getPageBase(), task, result);
-                if (prismLookupTable != null) {
-                        return  prismLookupTable.asObjectable();
-                    }
-            }
+            return WebComponentUtil.loadLookupTable(lookupTableOid, getPageBase());
+        }
         return null;
     }
-
 
     @Override
     public FormComponent<T> getBaseFormComponent() {

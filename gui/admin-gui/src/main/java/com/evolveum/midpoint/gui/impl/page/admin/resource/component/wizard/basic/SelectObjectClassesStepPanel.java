@@ -59,6 +59,8 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectObjectClassesStepPanel.class);
 
+    private static final String PANEL_TYPE = "rw-select-object-classes";
+
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH_FIELD = "searchFiled";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -344,5 +346,10 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
     @Override
     protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("SelectObjectClassesStepPanel.submitLabel");
+    }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
     }
 }

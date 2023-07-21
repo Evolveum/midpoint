@@ -8,10 +8,12 @@ package com.evolveum.midpoint.ninja;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.beust.jcommander.IUsageFormatter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.IOUtils;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
@@ -68,6 +71,8 @@ public class Main {
 
         BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
+        ConsoleFormat.setBatchMode(base.isBatchMode());
+
         if (base.isVerbose() && base.isSilent()) {
             err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");
@@ -111,6 +116,8 @@ public class Main {
             } finally {
                 action.destroy();
             }
+        } catch (InputParameterException ex) {
+            err.println("ERROR: " + ex.getMessage());
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {
@@ -151,7 +158,7 @@ public class Main {
 
     private void printVersion(boolean verbose) {
         try (InputStream is = Main.class.getResource("/version").openStream()) {
-            String version = IOUtils.toString(is).trim();
+            String version = IOUtils.toString(is, StandardCharsets.UTF_8).trim();
             out.println(version);
         } catch (Exception ex) {
             err.println("Couldn't obtains version");
@@ -163,10 +170,15 @@ public class Main {
     }
 
     private void printHelp(JCommander jc, String parsedCommand) {
+        StringBuilder sb = new StringBuilder();
+
+        IUsageFormatter formatter = jc.getUsageFormatter();
         if (parsedCommand != null) {
-            jc.getUsageFormatter().usage(parsedCommand);
-            return;
+            formatter.usage(parsedCommand, sb);
+        } else {
+            formatter.usage(sb);
         }
-        jc.usage();
+
+        out.println(sb);
     }
 }

@@ -1,41 +1,66 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
+import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
+import com.evolveum.midpoint.ninja.action.upgrade.SkipUpgradeItem;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
+import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
-import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismParser;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
-// todo handle initial objects somehow
-// compare vanilla previous with vanilla new ones and also vanilla previous with current in MP repository,
-// apply only non conflicting delta items, report it to user
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
-    private Map<UUID, Set<String>> skipUpgradeForOids;
+    private Map<UUID, Set<SkipUpgradeItem>> skipUpgradeItems;
+
+    @Override
+    public LogTarget getLogTarget() {
+        return LogTarget.SYSTEM_OUT;
+    }
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        UpgradeObjectsOptions opts = NinjaUtils.getOptions(allOptions, UpgradeObjectsOptions.class);
+        if (opts != null && !opts.getFiles().isEmpty()) {
+            return NinjaApplicationContextLevel.NO_REPOSITORY;
+        }
+
+        return super.getApplicationContextLevel(allOptions);
+    }
 
     @Override
     public Void execute() throws Exception {
-        skipUpgradeForOids = loadVerificationFile();
+        skipUpgradeItems = loadVerificationFile();
 
-        log.info("Upgrade will skip {} objects", skipUpgradeForOids.size());
+        log.info("Upgrade will skip {} objects", skipUpgradeItems.size());
+
         if (!options.getFiles().isEmpty()) {
+            if (!options.isSkipUpgradeWarning()) {
+                log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
+                String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
+
+                if (result.trim().equalsIgnoreCase("n")) {
+                    log.info("Upgrade aborted");
+                    return null;
+                }
+            }
+
             return upgradeObjectsInFiles();
         }
 
@@ -57,7 +82,6 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
                 }
             }
         }
-        // todo implement
         return null;
     }
 
@@ -66,27 +90,44 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismParser parser = prismContext.parserFor(file).language(PrismContext.LANG_XML).context(parsingContext);
 
-        PrismSerializer<String> serializer = prismContext.xmlSerializer();
-//        serializer.serializeAnyData()
-//        try (Writer writer = new FileWriter(file)) {
-//            List<PrismObject<?>> objects = parser.parseObjects();
-//            for (PrismObject<?> object : objects) {
-//                UpgradeObjectsHandler upgradeHandler = new UpgradeObjectsHandler();
-//                UpgradeObjectResult result = upgradeHandler.handle(prismObject);
-//
-//                if (result.isChanged()) {
-//                    ObjectDelta<?> delta = result.getDelta();
-//                    if (delta != null && !delta.isEmpty()) {
-//                        delta.applyTo(object);
-//                    }
-//                }
-//
-//            }
-//        } catch (Exception ex) {
-//            // todo handle error
-//            ex.printStackTrace();
-//        }
-        // todo implement
+        List<PrismObject<?>> objects;
+        try {
+            objects = parser.parseObjects();
+        } catch (Exception ex) {
+            log.error("Couldn't parse file '{}'", ex, file.getPath());
+            return;
+        }
+
+        boolean changed = false;
+        try {
+            UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeItems);
+            for (PrismObject object : objects) {
+                boolean changedOne = executor.execute(object);
+                if (changedOne) {
+                    changed = true;
+                }
+            }
+        } catch (Exception ex) {
+            log.error("Couldn't update file '{}'", ex, file.getPath());
+        }
+
+        if (!changed) {
+            return;
+        }
+
+        try (Writer writer = new FileWriter(file)) {
+            PrismSerializer<String> serializer = prismContext.xmlSerializer();
+            String xml;
+            if (objects.size() > 1) {
+                xml = serializer.serializeObjects(objects);
+            } else {
+                // will get cleaner xml without "objects" element
+                xml = serializer.serialize(objects.get(0));
+            }
+            writer.write(xml);
+        } catch (Exception ex) {
+            log.error("Couldn't serialize objects to file '{}'", ex, file.getPath());
+        }
     }
 
     @Override
@@ -94,7 +135,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         return "upgrade objects";
     }
 
-    private Map<UUID, Set<String>> loadVerificationFile() throws IOException {
+    private Map<UUID, Set<SkipUpgradeItem>> loadVerificationFile() throws IOException {
         File verification = options.getVerification();
         if (verification == null || !verification.exists() || !verification.isFile()) {
             return Collections.emptyMap();
@@ -102,7 +143,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
 
         log.info("Loading verification file");
 
-        Map<UUID, Set<String>> map = new HashMap<>();
+        Map<UUID, Set<SkipUpgradeItem>> map = new HashMap<>();
 
         CSVFormat format = VerificationReporter.CSV_FORMAT;
         try (CSVParser parser = format.parse(new FileReader(verification, context.getCharset()))) {
@@ -116,14 +157,15 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
 
                 if (VerificationReporter.skipUpgradeForRecord(record)) {
                     UUID uuid = VerificationReporter.getUuidFromRecord(record);
+                    String path = VerificationReporter.getItemPathFromRecord(record);
                     String identifier = VerificationReporter.getIdentifierFromRecord(record);
                     if (uuid != null) {
-                        Set<String> identifiers = map.get(uuid);
+                        Set<SkipUpgradeItem> identifiers = map.get(uuid);
                         if (identifiers == null) {
                             identifiers = new HashSet<>();
                             map.put(uuid, identifiers);
                         }
-                        identifiers.add(identifier);
+                        identifiers.add(new SkipUpgradeItem(path, identifier));
                     }
                 }
             }
@@ -146,7 +188,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         return () -> {
-            new UpgradeObjectsConsumerWorker(skipUpgradeForOids, context, options, queue, operation).run();
+            new UpgradeObjectsConsumerWorker<>(skipUpgradeItems, context, options, queue, operation).run();
             return null;
         };
     }

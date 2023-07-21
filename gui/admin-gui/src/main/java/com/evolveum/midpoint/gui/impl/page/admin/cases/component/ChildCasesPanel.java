@@ -55,7 +55,7 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
         setOutputMarkupId(true);
 
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
-                CaseType.class, Collections.emptyList()) {
+                CaseType.class) {
 
             @Override
             protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
@@ -107,7 +107,7 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
 
             @Override
             protected ISelectableDataProvider<SelectableBean<CaseType>> createProvider() {
-                return createSelectableBeanObjectDataProvider(() -> getChildCasesQuery(), null);
+                return createSelectableBeanObjectDataProvider(() -> getChildCasesQuery(), null, Collections.emptyList());
             }
 
             @Override

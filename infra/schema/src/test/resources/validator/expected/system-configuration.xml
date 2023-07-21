@@ -1,0 +1,86 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="3947d3b1-b6e8-46ec-b382-1bde67da6f07">
+
+    <name>system-configuration</name>
+
+    <notificationConfiguration>
+        <!--<sms>
+            <gateway>
+                <urlExpression>
+                    <script>
+                        <code>
+                            return 'one.example'
+                        </code>
+                    </script>
+                </urlExpression>
+            </gateway>
+        </sms>
+        <sms>
+            <redirectToFile>redirected.log</redirectToFile>
+            <blackList>blacklisted@example.com</blackList>
+            <debug>true</debug>
+            <logToFile>log.log</logToFile>
+            <recipientFilterExpression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </recipientFilterExpression>
+            <whiteList>whitelisted@example.com</whiteList>
+            <gateway>
+                <method>get</method>
+                <urlExpression>
+                    <script>
+                        <code>
+                            return 'example.com'
+                        </code>
+                    </script>
+                </urlExpression>
+                <username>user</username>
+                <password>pass</password>
+            </gateway>
+        </sms>-->
+    </notificationConfiguration>
+
+    <adminGuiConfiguration>
+        <userDashboardLink>
+            <targetUrl>https://google.com</targetUrl>
+        </userDashboardLink>
+        <accessRequest>
+            <roleCatalog>
+                <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
+                <collection>
+                    <identifier>allRoles</identifier>
+                    <default>true</default>
+                    <collectionIdentifier>allRoles</collectionIdentifier>
+                </collection>
+                <collection>
+                    <identifier>myCustomCollection</identifier>
+                    <collectionIdentifier>myCustomCollection</collectionIdentifier>
+                </collection>
+            </roleCatalog>
+        </accessRequest>
+    </adminGuiConfiguration>
+
+    <defaultObjectPolicyConfiguration id="2">
+        <itemConstraint>
+            <path>name</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </defaultObjectPolicyConfiguration>
+</systemConfiguration>

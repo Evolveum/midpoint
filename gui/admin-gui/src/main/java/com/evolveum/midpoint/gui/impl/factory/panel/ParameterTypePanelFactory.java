@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
-import java.util.List;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -21,12 +23,8 @@ import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
 /**
  * @author katkav
@@ -35,7 +33,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 public class ParameterTypePanelFactory extends DropDownChoicePanelFactory implements Serializable {
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return DOMUtil.XSD_QNAME.equals(wrapper.getTypeName())
                 && SearchFilterParameterType.F_TYPE.equals(wrapper.getItemName())
                 && wrapper.getParent().getDefinition() != null

@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
+import org.assertj.core.api.Assertions;
+
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.schema.validator.UpgradeValidationItem;
-
-import org.assertj.core.api.Assertions;
 
 public class UpgradeValidationItemAsserter {
 
@@ -34,4 +35,27 @@ public class UpgradeValidationItemAsserter {
         }
         return this;
     }
+
+    public UpgradeValidationItemAsserter assertPhase(UpgradePhase expected) {
+        if (expected != item.getPhase()) {
+            Assertions.fail("Expected phase " + expected + " but was " + item.getPhase());
+        }
+        return this;
+    }
+
+    public UpgradeValidationItemAsserter assertChanged() {
+        if (!item.isChanged()) {
+            Assertions.fail("Expected changed but was not");
+        }
+        return this;
+    }
+
+    public UpgradeValidationItemAsserter assertUnchanged() {
+        if (item.isChanged()) {
+            Assertions.fail("Expected changed but was not");
+        }
+        return this;
+    }
+
+    // todo assert deltas using class repo-test-util - ObjectDeltaAsserter. move it somewhere lower
 }

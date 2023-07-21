@@ -2124,7 +2124,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="disableInsteadDelete" type="tns:AbstractPredefinedActivationMappingType" minOccurs="0">
+            <xsd:element name="disableInsteadOfDelete" type="tns:AbstractPredefinedActivationMappingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         If an account is unassigned and there is no other existing assignment for an account midPoint
@@ -2215,7 +2215,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPredefinedActivationMappingType">
                 <xsd:sequence>
-                    <xsd:element name="deleteAfter" type="xsd:duration" minOccurs="0" default="P1M">
+                    <xsd:element name="deleteAfter" type="xsd:duration" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The time after which the account will be deleted.
@@ -2240,7 +2240,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPredefinedActivationMappingType">
                 <xsd:sequence>
-                    <xsd:element name="createBefore" type="xsd:duration" minOccurs="0" default="-P5D">
+                    <xsd:element name="createBefore" type="xsd:duration" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Time determines how long before date, from activation/validFrom attribute,

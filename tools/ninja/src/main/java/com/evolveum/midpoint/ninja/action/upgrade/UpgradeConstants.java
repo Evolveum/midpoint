@@ -6,9 +6,10 @@ public class UpgradeConstants {
 
     public static final String SUPPORTED_VERSION_FEATURE = "4.7.1";
 
-    public static final String SUPPORTED_VERSION_TARGET = "latest";   // todo change to 4.8
+    // todo, master doesn't have a version to upgrade to..., support branches do have  this one
+    public static final String SUPPORTED_VERSION_TARGET = null;
 
-    public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE, "4.8-SNAPSHOT" }; // todo remove viliam
+    public static final String[] SUPPORTED_VERSIONS = { SUPPORTED_VERSION_LTS, SUPPORTED_VERSION_FEATURE };
 
     public static final String UPGRADE_TEMP_DIRECTORY = ".upgrade";
 

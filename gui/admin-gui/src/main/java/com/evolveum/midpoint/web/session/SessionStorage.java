@@ -188,8 +188,15 @@ public class SessionStorage implements Serializable, DebugDumpable {
         setPageStorage(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
     }
 
+    @Deprecated
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
         String key = getContentStorageKey(kind, searchMode);
+        return getPageStorage(key, new ResourceContentStorage(kind));
+
+    }
+
+    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
+        String key = getContentStorageKey(kind, KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         return getPageStorage(key, new ResourceContentStorage(kind));
 
     }
