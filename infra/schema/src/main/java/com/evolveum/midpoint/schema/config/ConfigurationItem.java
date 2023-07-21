@@ -12,27 +12,37 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Helper class that provides complex information about a configuration item (e.g., a mapping).
  * Currently, the most prominent information is the origin of the item value.
  */
 @Experimental
-public class ConfigurationItem<T extends Serializable> implements Serializable {
+public class ConfigurationItem<T extends Serializable> implements ConfigurationItemable<T>, Serializable {
 
     @Serial private static final long serialVersionUID = 0L;
 
+    /** Used as a convenience marker for {@link #fullDescription()} in error messages. */
+    public static final Object DESC = new Object();
+
+    /** The value of the item. Usually, it is a {@link Containerable}. */
     private final @NotNull T value;
+
+    /**
+     * The origin of the item value. If the value comes from various sources, this is the _default_ origin: individual
+     * parts may have their own origins: declared either in this field, or in the value metadata.
+     *
+     * Note that the support for value metadata for origin determination is not implemented yet.
+     */
     private final @NotNull ConfigurationItemOrigin origin;
 
     /** For internal use. */
@@ -50,8 +60,12 @@ public class ConfigurationItem<T extends Serializable> implements Serializable {
     }
 
     public static @NotNull <T extends Serializable> ConfigurationItem<T> of(
-            @NotNull T item, @NotNull ConfigurationItemOrigin origin) {
-        return new ConfigurationItem<>(item, origin);
+            @NotNull T value, @NotNull ConfigurationItemOrigin origin) {
+        return new ConfigurationItem<>(value, origin);
+    }
+
+    public static @NotNull <T extends Serializable> ConfigurationItem<T> embedded(@NotNull T value) {
+        return new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value));
     }
 
     public static @NotNull <T extends Serializable> List<ConfigurationItem<T>> ofListEmbedded(@NotNull List<T> items) {
@@ -65,6 +79,7 @@ public class ConfigurationItem<T extends Serializable> implements Serializable {
                 .toList();
     }
 
+    @Override
     public @NotNull T value() {
         return value;
     }
@@ -81,13 +96,31 @@ public class ConfigurationItem<T extends Serializable> implements Serializable {
         return item -> originFor(path);
     }
 
+    @Override
     public <X extends ConfigurationItem<T>> @NotNull X as(@NotNull Class<X> clazz) {
+        if (clazz.isAssignableFrom(this.getClass())) {
+            // We are already there
+            return clazz.cast(this);
+        }
         try {
             var constructor = clazz.getDeclaredConstructor(ConfigurationItem.class);
             return constructor.newInstance(this);
         } catch (Throwable t) {
             throw SystemException.unexpected(t, "when converting " + this + " to " + clazz);
         }
+    }
+
+    protected <X extends Serializable> @NotNull ConfigurationItem<X> child(@NotNull X value, Object... pathSegments) {
+        return of(
+                value,
+                origin().child(pathSegments));
+    }
+
+    protected <X extends Containerable> @NotNull ConfigurationItem<X> childWithId(@NotNull X value, Object... pathSegments) {
+        return of(
+                value,
+                origin().child(
+                        ItemPath.create(pathSegments).append(value.asPrismContainerValue().getId())));
     }
 
     @Override
@@ -120,22 +153,29 @@ public class ConfigurationItem<T extends Serializable> implements Serializable {
         return value.getClass().getSimpleName();
     }
 
+    @SuppressWarnings("WeakerAccess") // for the future
     public @NotNull String fullDescription() {
         return localDescription() + " in " + origin.fullDescription();
     }
 
-    /** The last "%s" is filled with full description */
+    /**
+     * Checks the value, and if it's `false`, emits a {@link ConfigurationException}.
+     *
+     * Note that {@link #DESC} can be used as a placeholder for {@link #fullDescription()} in the `arguments`.
+     * */
     public void configCheck(boolean value, String template, Object... arguments) throws ConfigurationException {
         if (!value) {
-            Object[] augmentedArguments = new Object[arguments.length + 1];
-            System.arraycopy(arguments, 0, augmentedArguments, 0, arguments.length);
-            augmentedArguments[arguments.length] = fullDescription();
-
+            for (int i = 0; i < arguments.length; i++) {
+                if (arguments[i] == DESC) {
+                    arguments[i] = fullDescription();
+                }
+            }
             throw new ConfigurationException(
-                    Strings.lenientFormat(template, augmentedArguments));
+                    Strings.lenientFormat(template, arguments));
         }
     }
 
+    /** As {@link #configCheck(boolean, String, Object...)}, but checks that the value is not null. */
     @Contract("null, _, _ -> fail")
     public <V> @NotNull V configNonNull(V value, String template, Object... arguments) throws ConfigurationException {
         configCheck(value != null, template, arguments);

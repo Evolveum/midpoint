@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.AutoAssignMappingConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -31,13 +31,10 @@ public class AutoassignRoleMappingEvaluationRequest
     private PrismContainerDefinition<AssignmentType> assignmentDef;
     private AssignmentType assignment;
 
-    /**
-     * IMPORTANT: The mapping is physically part of the role.
-     */
     public AutoassignRoleMappingEvaluationRequest(
-            @NotNull AutoassignMappingType mapping,
+            @NotNull AutoAssignMappingConfigItem mapping,
             @NotNull AbstractRoleType role) {
-        super(mapping, ConfigurationItemOrigin.embedded(mapping), MappingKindType.AUTO_ASSIGN, role);
+        super(mapping.value(), mapping.origin(), MappingKindType.AUTO_ASSIGN, role);
     }
 
     @Override
@@ -95,6 +92,6 @@ public class AutoassignRoleMappingEvaluationRequest
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("autoassign mapping ");
-        sb.append("'").append(getMappingInfo()).append("' in ").append(originObject);
+        sb.append("'").append(getMappingInfo()).append("' ").append(mappingOrigin.fullDescription());
     }
 }

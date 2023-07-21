@@ -32,7 +32,7 @@ public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<Res
     public @NotNull QName getAttributeName() throws ConfigurationException {
         return configNonNull(
                 ItemPathTypeUtil.asSingleNameOrFailNullSafe(value().getRef()),
-                "No attribute name (ref) in %s");
+                "No attribute name (ref) in %s", DESC);
     }
 
     public boolean hasInbounds() {
@@ -47,7 +47,8 @@ public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<Res
     public @Nullable MappingConfigItem getOutbound() {
         MappingType val = value().getOutbound();
         if (val != null) {
-            return MappingConfigItem.of(val, origin().child(ResourceAttributeDefinitionType.F_OUTBOUND));
+            return new MappingConfigItem(
+                    child(val, ResourceAttributeDefinitionType.F_OUTBOUND));
         } else {
             return null;
         }

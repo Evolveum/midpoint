@@ -20,6 +20,12 @@
  * These custom config classes are on a halfway between raw "beans" like `ExpressionType`, `MappingType`,
  * and fully processed (parsed, compiled) objects like `Expression`, `Mapping`, and so on.
  *
+ * Design notes:
+ *
+ * . The names of the classes should correspond to the names of respective beans, even if they may not seem the optimal ones
+ * (from the point of view of the current knowledge). The idea is to make them easily discernible and, in the future, maybe
+ * also (semi)automatically generated.
+ *
  * HIGHLY EXPERIMENTAL. MAYBE NOT USABLE FOR THE FUTURE. MAYBE YES, WITH SOME CODE GENERATION SUPPORT.
  */
 package com.evolveum.midpoint.schema.config;

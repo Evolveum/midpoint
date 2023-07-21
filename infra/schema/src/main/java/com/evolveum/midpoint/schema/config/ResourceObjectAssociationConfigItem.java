@@ -33,7 +33,7 @@ public class ResourceObjectAssociationConfigItem extends ConfigurationItem<Resou
     public @NotNull QName getAssociationName() throws ConfigurationException {
         return configNonNull(
                 ItemPathTypeUtil.asSingleNameOrFailNullSafe(value().getRef()),
-                "No association name (ref) in %s");
+                "No association name (ref) in %s", DESC);
     }
 
     public boolean hasInbounds() {
@@ -48,7 +48,8 @@ public class ResourceObjectAssociationConfigItem extends ConfigurationItem<Resou
     public @Nullable MappingConfigItem getOutbound() {
         MappingType val = value().getOutbound();
         if (val != null) {
-            return MappingConfigItem.of(val, origin().child(ResourceObjectAssociationType.F_OUTBOUND));
+            return new MappingConfigItem(
+                    child(val, ResourceObjectAssociationType.F_OUTBOUND));
         } else {
             return null;
         }

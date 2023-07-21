@@ -101,8 +101,13 @@ public abstract class ConfigurationItemOrigin implements Serializable {
         return new InDelta(targetObject, path);
     }
 
+    public ConfigurationItemOrigin child(Object... pathSegments) {
+        return child(ItemPath.create(pathSegments));
+    }
+
     public abstract ConfigurationItemOrigin child(@NotNull ItemPath path);
 
+    /** Returns the description of the origin, e.g. "in role:xxx(xxx) @assignment[102]/condition". */
     public abstract @NotNull String fullDescription();
 
     /** Represents an origin we are not currently able to determine exactly. */

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.DESC;
+
 /**
  * Evaluated resource object construction that is assigned to the focus.
  */
@@ -57,17 +59,17 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             QName attrName = attributeConstrDefinitionCI.getAttributeName();
 
             attributeConstrDefinitionCI.configCheck(
-                    !attributeConstrDefinitionCI.hasInbounds(), "Cannot process inbound section in %s");
+                    !attributeConstrDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
 
             MappingConfigItem outboundMappingCI =
                     attributeConstrDefinitionCI.configNonNull(
-                            attributeConstrDefinitionCI.getOutbound(), "No outbound section in %s");
+                            attributeConstrDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
 
             ResourceAttributeDefinition<?> attributeDef =
                     attributeConstrDefinitionCI.configNonNull(
                             construction.findAttributeDefinition(attrName),
                             "Attribute '%s' not found in schema for resource object type %s on %s; as defined in %s",
-                            attrName, getTypeIdentification(), construction.getResolvedResource().resource);
+                            attrName, getTypeIdentification(), construction.getResolvedResource().resource, DESC);
 
             if (!attributeDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
                 LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is not visible in current "
@@ -96,17 +98,17 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             QName assocName = associationDefinitionCI.getAssociationName();
 
             associationDefinitionCI.configCheck(
-                    !associationDefinitionCI.hasInbounds(), "Cannot process inbound section in %s");
+                    !associationDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
 
             var outboundMappingCI =
                     associationDefinitionCI.configNonNull(
-                            associationDefinitionCI.getOutbound(), "No outbound section in %s");
+                            associationDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
 
             ResourceAssociationDefinition associationDef =
                     associationDefinitionCI.configNonNull(
                             construction.findAssociationDefinition(assocName),
                             "Association '%s' not found in schema for resource object type %s on %s; as defined in %s",
-                            assocName, getTypeIdentification(), construction.getResolvedResource().resource);
+                            assocName, getTypeIdentification(), construction.getResolvedResource().resource, DESC);
 
             if (!associationDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
                 LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "

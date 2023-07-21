@@ -7,9 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AutoassignRoleMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FocalMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -18,23 +27,16 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.query.SelectorMatcher;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.config.AutoassignSpecificationConfigItem;
+import com.evolveum.midpoint.schema.config.ObjectSelectorConfigItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Collects auto-assignment mappings from auto-assignable roles.
@@ -63,26 +65,25 @@ public class AutoAssignMappingCollector {
                 .build();
 
         ResultHandler<AbstractRoleType> handler = (role, objectResult) -> {
-            AutoassignSpecificationType autoassign = role.asObjectable().getAutoassign();
-            if (autoassign == null) {
+            AutoassignSpecificationType bean = role.asObjectable().getAutoassign();
+            if (bean == null) {
                 return true;
             }
-            if (!isTrue(autoassign.isEnabled())) {
+            var autoassignSpec = AutoassignSpecificationConfigItem.embedded(bean);
+            if (!autoassignSpec.isEnabled()) {
                 return true;
             }
-            FocalAutoassignSpecificationType focalAutoassignSpec = autoassign.getFocus();
+            var focalAutoassignSpec = autoassignSpec.getFocus();
             if (focalAutoassignSpec == null) {
                 return true;
             }
-
             if (!isApplicableFor(focalAutoassignSpec.getSelector(), context.getFocusContext(), objectResult)) {
                 return true;
             }
-
-            for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
-                AutoassignMappingType mappingWithTarget =
-                        LensUtil.setMappingTarget(autoMapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
-                mappings.add(new AutoassignRoleMappingEvaluationRequest(mappingWithTarget, role.asObjectable()));
+            for (var autoMapping: focalAutoassignSpec.getMappings()) {
+                var mappingWithTarget = autoMapping.setTargetIfMissing(SchemaConstants.PATH_ASSIGNMENT);
+                mappings.add(
+                        new AutoassignRoleMappingEvaluationRequest(mappingWithTarget, role.asObjectable()));
                 LOGGER.trace("Collected autoassign mapping {} from {}", mappingWithTarget.getName(), role);
             }
             return true;
@@ -92,12 +93,12 @@ public class AutoAssignMappingCollector {
     }
 
     private <AH extends AssignmentHolderType> boolean isApplicableFor(
-            ObjectSelectorType selector, LensFocusContext<AH> focusContext, OperationResult result) {
+            ObjectSelectorConfigItem selector, LensFocusContext<AH> focusContext, OperationResult result) {
         if (selector == null) {
             return true;
         }
         try {
-            return SelectorMatcher.forSelector(selector)
+            return SelectorMatcher.forSelector(selector.value()) // FIXME expression profiles
                     .withLogging(LOGGER)
                     .matches(focusContext.getObjectAnyRequired());
         } catch (CommonException e) {

@@ -41,6 +41,6 @@ public class TemplateMappingEvaluationRequest
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("template mapping ");
-        sb.append("'").append(getMappingInfo()).append("' in ").append(originObject);
+        sb.append("'").append(getMappingInfo()).append("' ").append(mappingOrigin.fullDescription());
     }
 }

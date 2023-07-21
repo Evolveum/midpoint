@@ -11,7 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
-public class MappingConfigItem extends ConfigurationItem<MappingType> {
+public class MappingConfigItem
+        extends ConfigurationItem<MappingType>
+        implements AbstractMappingConfigItem<MappingType> {
 
     @SuppressWarnings("unused") // called dynamically
     public MappingConfigItem(@NotNull ConfigurationItem<MappingType> original) {

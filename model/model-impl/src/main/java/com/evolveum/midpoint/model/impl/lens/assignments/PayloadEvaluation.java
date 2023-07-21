@@ -126,7 +126,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                             new AssignedFocusMappingEvaluationRequest(
                                     mappingBean,
                                     segment.assignmentOrigin.child(
-                                            AssignmentType.F_FOCUS_MAPPINGS.append(mappingBean.getId())),
+                                            AssignmentType.F_FOCUS_MAPPINGS, mappingBean.getId()),
                                     segment.source,
                                     ctx.evalAssignment,
                                     relativityMode,

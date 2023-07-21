@@ -11,7 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
-public class MetadataMappingConfigItem extends ConfigurationItem<MetadataMappingType> {
+public class MetadataMappingConfigItem
+        extends ConfigurationItem<MetadataMappingType>
+        implements AbstractMappingConfigItem<MetadataMappingType> {
 
     public MetadataMappingConfigItem(@NotNull MetadataMappingType value, @NotNull ConfigurationItemOrigin origin) {
         super(value, origin);
