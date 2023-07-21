@@ -96,7 +96,7 @@ abstract class ScriptingTaskCreator {
         return newTask;
     }
 
-    private ReferenceResolver.FilterEvaluator createTaskFilterEvaluator() {
+    private ReferenceResolver.FilterExpressionEvaluator createTaskFilterEvaluator() {
         return (rawFilter, result1) -> {
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ModelExpressionEnvironment<>(actx.context, null, actx.task, result1));

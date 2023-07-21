@@ -281,6 +281,7 @@ public class ArchetypeManager implements Cache {
         if (cachedPolicy != null) {
             return cachedPolicy;
         }
+        // FIXME cache also empty (null) policies, but obviously not as "null" values
         ArchetypePolicyType mergedPolicy = computePolicyForArchetype(archetype, result);
         if (mergedPolicy != null) {
             archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
@@ -290,6 +291,8 @@ public class ArchetypeManager implements Cache {
 
     /**
      * Computes policy merged from this archetype and its super-archetypes.
+     *
+     * TODO we should return an empty policy even if it does not exist, in order to cache it
      */
     private ArchetypePolicyType computePolicyForArchetype(ArchetypeType archetype, OperationResult result)
             throws SchemaException, ConfigurationException {
@@ -356,7 +359,8 @@ public class ArchetypeManager implements Cache {
             }
             ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
             if (objectType == null) {
-                throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
+                throw new ConfigurationException(
+                        "Unknown type " + typeQName + " in default object policy definition in system configuration");
             }
             if (objectType.getClassDefinition() == objectClass) {
                 String aSubType = aPolicyConfiguration.getSubtype();
@@ -398,13 +402,40 @@ public class ArchetypeManager implements Cache {
             @NotNull PrismObject<O> object, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
-        ArchetypePolicyType archetypePolicy = determineArchetypePolicy(object, result);
-        String expressionProfileId = archetypePolicy != null ? archetypePolicy.getExpressionProfile() : null;
-        if (expressionProfileId != null) {
-            return systemObjectCache.getExpressionProfile(expressionProfileId, result);
+        var profileId = determineExpressionProfileId(object, result);
+        if (profileId != null) {
+            return systemObjectCache.getExpressionProfile(profileId, result);
         } else {
             return ExpressionProfile.full();
         }
+    }
+
+    /**
+     * We intentionally do not use {@link #determineArchetypePolicy(ObjectType, OperationResult)} method, as it tries
+     * to merge the policy from all archetypes; and it's 1. slow, 2. unreliable, because of ignoring potential conflicts.
+     * Let's do it in more explicit way.
+     */
+    private <O extends ObjectType> @Nullable String determineExpressionProfileId(
+            @NotNull PrismObject<O> object, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+
+        O objectable = object.asObjectable();
+
+        var structuralArchetype = // hopefully obtained from the cache
+                objectable instanceof AssignmentHolderType assignmentHolder ?
+                        determineStructuralArchetype(assignmentHolder, result) : null;
+
+        // The policy is (generally) cached, so this should be fast
+        var structuralArchetypePolicy = getPolicyForArchetype(structuralArchetype, result);
+        if (structuralArchetypePolicy != null) {
+            var profileId = structuralArchetypePolicy.getExpressionProfile();
+            if (profileId != null) {
+                return profileId;
+            }
+        }
+
+        var objectPolicy = determineObjectPolicyConfiguration(objectable, result);
+        return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
     }
 
     public ExpressionProfile determineExpressionProfile(

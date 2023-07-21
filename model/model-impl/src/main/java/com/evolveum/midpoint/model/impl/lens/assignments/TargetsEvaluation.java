@@ -16,31 +16,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-
-import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.util.MiscUtil;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver.FilterExpressionEvaluator;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -94,9 +90,10 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             return;
         }
 
-        if (!ctx.ae.loginMode && !isChanged(ctx.primaryAssignmentMode) &&
-                !ctx.ae.relationRegistry.isProcessedOnRecompute(segment.relation) &&
-                !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
+        if (!ctx.ae.loginMode
+                && !isChanged(ctx.primaryAssignmentMode)
+                && !ctx.ae.relationRegistry.isProcessedOnRecompute(segment.relation)
+                && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
             LOGGER.debug("Skipping processing of assignment target for {} because relation {} is configured for "
                     + "recompute skip (primary assignment mode={})", segment, segment.relation, ctx.primaryAssignmentMode);
             // Skip - to optimize recompute, we skip all assignments with non-membership/non-delegation relations
@@ -190,10 +187,11 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     }
 
     @NotNull
-    private List<? extends PrismObject<? extends ObjectType>> getTargets() throws SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+    private List<? extends PrismObject<? extends ObjectType>> getTargets()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
         try {
-            return resolveTargets(segment, ctx, result);
+            return resolveTargets();
         } catch (ObjectNotFoundException ex) {
             // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
             // an exception would prohibit any operations with the users that have the role, including removal of the reference.
@@ -222,30 +220,31 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     }
 
     @NotNull
-    private List<PrismObject<? extends ObjectType>> resolveTargets(
-            AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx, OperationResult result)
+    private List<PrismObject<? extends ObjectType>> resolveTargets()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectReferenceType targetRef = segment.assignment.getTargetRef();
-        ReferenceResolver.FilterEvaluator filterEvaluator = createFilterEvaluator(segment, ctx);
+        var filterExpressionEvaluator =
+                createFilterExpressionEvaluator(segment.assignmentOrigin.child(AssignmentType.F_TARGET_REF));
         return ctx.ae.referenceResolver.resolve(
                 targetRef, createReadOnlyCollection(), REPOSITORY,
-                filterEvaluator, ctx.task, result);
+                filterExpressionEvaluator, ctx.task, result);
     }
 
-    private @NotNull ReferenceResolver.FilterEvaluator createFilterEvaluator(
-            AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx) {
-        return (rawFilter, result1) -> {
+    private @NotNull FilterExpressionEvaluator createFilterExpressionEvaluator(
+            @NotNull ConfigurationItemOrigin filterOrigin) {
+        return (rawFilter, lResult) -> {
                 ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                        new ModelExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, result1));
+                        new ModelExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, lResult));
                 try {
-                    // TODO: expression profile should be determined from the holding object archetype
-                    ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-                    VariablesMap variables = createVariables(segment, ctx, result1);
+                    var expressionProfile =
+                            ModelBeans.get().archetypeManager.determineExpressionProfile(filterOrigin, lResult);
+                    VariablesMap variables = createVariables(segment, ctx, lResult);
                     return ExpressionUtil.evaluateFilterExpressions(
                             rawFilter, variables, expressionProfile,
                             ctx.ae.mappingFactory.getExpressionFactory(),
-                            " evaluating resource filter expression ", ctx.task, result1);
+                            "evaluating resource filter expression in " + filterOrigin.fullDescription(),
+                            ctx.task, lResult);
                 } finally {
                     ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
                 }

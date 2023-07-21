@@ -37,7 +37,7 @@ import com.evolveum.midpoint.test.TestObject;
  * Tests the use of expression profiles in various contexts.
  *
  * . `test1xx`: auto-assigned roles
- * . `test2xx`: various expressions in regular roles
+ * . `test2xx`: various expressions in explicitly-assigned roles
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -59,6 +59,17 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_RESTRICTED_ROLE = TestObject.file(
             TEST_DIR, "archetype-restricted-role.xml", "a2242707-43cd-4f18-b986-573cb468693d");
+
+    // auto-assigned roles are initialized only in specific tests (and then deleted)
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_GOOD = TestObject.file(
+            TEST_DIR, "role-restricted-auto-good.xml", "a6ace69f-ecfb-457b-97ea-0b5a8b4a6ad3");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION = TestObject.file(
+            TEST_DIR, "role-restricted-auto-filter-expression.xml", "885bc0b4-2493-4658-a523-8a3f7eeb770b");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION = TestObject.file(
+            TEST_DIR, "role-restricted-auto-bad-mapping-expression.xml", "26f61dc6-efff-4614-aac6-25753b81512f");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_CONDITION = TestObject.file(
+            TEST_DIR, "role-restricted-auto-bad-mapping-condition.xml", "eceab160-de05-4b1b-9d09-27cc789252c3");
+
     private static final TestObject<RoleType> ROLE_RESTRICTED_GOOD = TestObject.file(
             TEST_DIR, "role-restricted-good.xml", "ca8c4ffd-98ed-4ca7-9097-44db924155c9");
     private static final TestObject<RoleType> ROLE_RESTRICTED_BAD_FOCUS_MAPPING = TestObject.file(
@@ -71,16 +82,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "role-restricted-bad-inducement-condition.xml", "6f859e0b-e42e-4546-b446-645d48542b4f");
     private static final TestObject<RoleType> ROLE_RESTRICTED_BAD_ROLE_CONDITION = TestObject.file(
             TEST_DIR, "role-restricted-bad-role-condition.xml", "baa44eab-8057-4e19-88f9-dd83085df38a");
-
-    // initialized only in specific tests
-    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_GOOD = TestObject.file(
-            TEST_DIR, "role-restricted-auto-good.xml", "a6ace69f-ecfb-457b-97ea-0b5a8b4a6ad3");
-    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION = TestObject.file(
-            TEST_DIR, "role-restricted-auto-filter-expression.xml", "885bc0b4-2493-4658-a523-8a3f7eeb770b");
-    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION = TestObject.file(
-            TEST_DIR, "role-restricted-auto-bad-mapping-expression.xml", "26f61dc6-efff-4614-aac6-25753b81512f");
-    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_CONDITION = TestObject.file(
-            TEST_DIR, "role-restricted-auto-bad-mapping-condition.xml", "eceab160-de05-4b1b-9d09-27cc789252c3");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_BAD_ASSIGNMENT_TARGET_FILTER = TestObject.file(
+            TEST_DIR, "role-restricted-bad-assignment-target-filter.xml", "eb318451-4774-405a-b2a1-bb05da7842c9");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_BAD_INDUCEMENT_TARGET_FILTER = TestObject.file(
+            TEST_DIR, "role-restricted-bad-inducement-target-filter.xml", "bae5a90d-87c0-44f8-a585-0ea11e42ee9a");
 
     private static final String DETAIL_REASON_MESSAGE =
             "Access to Groovy method com.evolveum.midpoint.model.intest.TestExpressionProfiles#boom denied"
@@ -102,7 +107,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ROLE_RESTRICTED_BAD_FOCUS_MAPPING,
                 ROLE_RESTRICTED_BAD_CONSTRUCTION_MAPPING,
                 ROLE_RESTRICTED_BAD_INDUCEMENT_CONDITION, // seemingly does not evaluate inducement here
-                ROLE_RESTRICTED_BAD_ROLE_CONDITION); // the same here
+                ROLE_RESTRICTED_BAD_ROLE_CONDITION, // the same here
+                ROLE_RESTRICTED_BAD_INDUCEMENT_TARGET_FILTER); // same here
     }
 
     @Override
@@ -312,6 +318,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     /** Bad condition in metarole assignment. This time it is impossible even to create the role. */
     @Test
     public void test230RestrictedRoleBadAssignmentCondition() throws Exception {
+        runNegativeRoleCreationTest(ROLE_RESTRICTED_BAD_ASSIGNMENT_CONDITION);
+    }
+
+    private void runNegativeRoleCreationTest(TestObject<RoleType> role) throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -319,24 +329,24 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         then("non-compliant role is NOT created");
         try {
-            addObject(ROLE_RESTRICTED_BAD_ASSIGNMENT_CONDITION.get(), task, result);
+            addObject(role.get(), task, result);
             fail("unexpected success");
         } catch (SecurityViolationException e) {
             assertExpectedException(e)
                     .hasMessageContaining("Denied access to functionality of script")
-                    .hasMessageContaining("in assignment in delta for role:") // we are adding the whole object
+                    .hasMessageContaining("in delta for role:") // we are adding the whole object
                     .hasMessageContaining(DETAIL_REASON_MESSAGE);
-            // Note that the assignment path is not fully correct here. It is "assignment[111]" as per the "object new".
+            // Note that the assignment path is not fully correct here. It is "assignment[xxx]" as per the "object new".
             // However, due to complex processing of assignments, the value gets into a "assignment delta" and thus the
             // information about the ID is distorted.
-            assertLocation(e, ROLE_RESTRICTED_BAD_ASSIGNMENT_CONDITION, RoleType.F_ASSIGNMENT);
+            assertLocation(e, role, RoleType.F_ASSIGNMENT);
             assertFailure(result);
         }
 
         assertNotBoomed();
 
         and("the object is really not in repo");
-        assertObjectDoesntExist(RoleType.class, ROLE_RESTRICTED_BAD_ASSIGNMENT_CONDITION.oid);
+        assertObjectDoesntExist(RoleType.class, role.oid);
     }
 
     /**
@@ -367,6 +377,35 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeRoleAssignmentTest(
                 ROLE_RESTRICTED_BAD_ROLE_CONDITION, null); // FIXME path
     }
+
+    /** Bad expression in assignment `targetRef` filter. Role cannot be created. */
+    @Test
+    public void test250RestrictedRoleBadAssignmentTargetFilter() throws Exception {
+        runNegativeRoleCreationTest(
+                ROLE_RESTRICTED_BAD_ASSIGNMENT_TARGET_FILTER); // FIXME path
+    }
+
+    /** Bad expression in assignment `targetRef` filter. Role was put into repo in raw mode. */
+    @Test
+    public void test255RestrictedRoleBadAssignmentTargetFilterAlreadyInRepo() throws Exception {
+        given("role is put into the repo in raw mode (not evaluating expressions)");
+        ROLE_RESTRICTED_BAD_ASSIGNMENT_TARGET_FILTER.initRaw(this, getTestOperationResult());
+
+        then("the expressions should not be evaluable");
+        runNegativeRoleAssignmentTest(
+                ROLE_RESTRICTED_BAD_ASSIGNMENT_TARGET_FILTER, null); // FIXME path
+    }
+
+    /** Bad expression in inducement `targetRef` filter. */
+    @Test
+    public void test260RestrictedRoleBadInducementTargetFilter() throws Exception {
+        runNegativeRoleAssignmentTest(
+                ROLE_RESTRICTED_BAD_INDUCEMENT_TARGET_FILTER,
+                RoleType.F_INDUCEMENT.append(333L));
+    }
+
+    // TODO what about import-time resolution? Is that even supported? Probably not but we should write a test for it.
+    //  And what about deltas?
 
     public static void boom() {
         // We intentionally do not throw an exception here

@@ -51,7 +51,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 
     public List<PrismObject<? extends ObjectType>> resolve(@NotNull ObjectReferenceType reference,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
-            FilterEvaluator filterEvaluator, Task task, OperationResult result) throws SchemaException,
+            FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         String oid = reference.getOid();
@@ -63,7 +63,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
                 return singletonList(reference.getObject());
             }
 
-            return resolveFromFilter(targetClass, reference, options, source, filterEvaluator, task, result);
+            return resolveFromFilter(targetClass, reference, options, source, filterExpressionEvaluator, task, result);
         } else {
             return singletonList(resolveFromOid(targetClass, oid, options, source, task, result));
         }
@@ -95,7 +95,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
     @NotNull
     private List<PrismObject<? extends ObjectType>> resolveFromFilter(Class<? extends ObjectType> targetClass,
             ObjectReferenceType reference, Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
-            FilterEvaluator filterEvaluator, Task task, OperationResult result) throws SchemaException,
+            FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LOGGER.trace("Resolving filter on {} from {}", targetClass.getSimpleName(), source);
@@ -104,7 +104,8 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             throw new IllegalArgumentException("The OID and filter are both null in a reference: " + reference);
         }
         ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterBean, targetClass);
-        ObjectFilter evaluatedFilter = filterEvaluator != null ? filterEvaluator.evaluate(filter, result) : filter;
+        ObjectFilter evaluatedFilter =
+                filterExpressionEvaluator != null ? filterExpressionEvaluator.evaluate(filter, result) : filter;
 
         if (evaluatedFilter == null) {
             throw new SchemaException("The OID is null and filter could not be evaluated in " + reference);
