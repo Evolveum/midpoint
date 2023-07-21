@@ -49,18 +49,6 @@
         </sms>-->
     </notificationConfiguration>
 
-    <roleManagement>
-        <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
-        <roleCatalogCollections>
-            <collection>
-                <collectionUri>allRoles</collectionUri>
-            </collection>
-            <collection>
-                <collectionUri>myCustomCollection</collectionUri>
-            </collection>
-        </roleCatalogCollections>
-    </roleManagement>
-
     <adminGuiConfiguration>
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>

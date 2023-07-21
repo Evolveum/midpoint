@@ -53,19 +53,6 @@
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
-        <accessRequest>
-            <roleCatalog>
-                <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
-                <collection>
-                    <identifier>allRoles</identifier>
-                    <collectionIdentifier>allRoles</collectionIdentifier>
-                </collection>
-                <collection>
-                    <identifier>myCustomCollection</identifier>
-                    <collectionIdentifier>myCustomCollection</collectionIdentifier>
-                </collection>
-            </roleCatalog>
-        </accessRequest>
     </adminGuiConfiguration>
 
     <defaultObjectPolicyConfiguration id="2">
