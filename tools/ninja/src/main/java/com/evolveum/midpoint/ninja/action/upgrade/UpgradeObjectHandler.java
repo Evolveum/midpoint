@@ -44,7 +44,7 @@ public class UpgradeObjectHandler {
      * @param <O> type of object
      * @return true if object was changed
      */
-    public <O extends ObjectType> boolean execute(PrismObject<O> object) {
+    public <O extends ObjectType> boolean execute(PrismObject<O> object) throws Exception {
         final PrismContext prismContext = context.getPrismContext();
 
         ObjectUpgradeValidator validator = new ObjectUpgradeValidator(prismContext);
@@ -62,21 +62,21 @@ public class UpgradeObjectHandler {
         // applicable items can't be applied by using delta from each item on object - deltas might
         // collide and replace changes from other items - we use upgrade processor to apply change
         // directly on to object for each item iteratively
-        applicableItems.forEach(item -> {
+        for (UpgradeValidationItem item : applicableItems) {
             String identifier = item.getIdentifier();
             if (identifier == null) {
-                return;
+                continue;
             }
 
             ItemPath path = item.getItem().getItemPath();
 
             UpgradeObjectProcessor<O> processor = UpgradeProcessor.getProcessor(identifier);
             if (processor == null) {
-                return;
+                continue;
             }
 
             processor.process(object, path);
-        });
+        }
 
         return true;
     }

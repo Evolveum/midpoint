@@ -38,6 +38,6 @@ public interface UpgradeObjectProcessor<T extends Objectable> extends ProcessorM
     /**
      * Executes upgrade of item defined by path argument by modifying the object to correct state.
      */
-    boolean process(PrismObject<T> object, ItemPath path);
+    boolean process(PrismObject<T> object, ItemPath path) throws Exception;
 
 }
