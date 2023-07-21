@@ -57,12 +57,17 @@ public class TaskScheduleWizardPanel extends AbstractFormWizardStepPanel<TaskDet
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("TaskWizardPanel.wizard.step.schedule");
+        return createStringResource("PageTask.wizard.step.schedule");
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("PageTask.wizard.step.schedule.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("TaskWizardPanel.wizard.step.schedule.help");
+        return createStringResource("PageTask.wizard.step.schedule.subText");
     }
 
     @Override

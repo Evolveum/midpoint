@@ -50,12 +50,17 @@ public class TaskBasicWizardPanel extends AbstractFormWizardStepPanel<TaskDetail
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("TaskWizardPanel.wizard.step.basic");
+        return createStringResource("PageTask.wizard.step.basic");
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("PageTask.wizard.step.basic.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("TaskWizardPanel.wizard.step.basic.help");
+        return createStringResource("PageTask.wizard.step.basic.subText");
     }
 
     @Override

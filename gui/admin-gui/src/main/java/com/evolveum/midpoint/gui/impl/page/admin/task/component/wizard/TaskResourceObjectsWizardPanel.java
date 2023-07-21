@@ -63,12 +63,17 @@ public class TaskResourceObjectsWizardPanel extends AbstractFormWizardStepPanel<
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("TaskWizardPanel.wizard.step.work.resourceObjects");
+        return createStringResource("PageTask.wizard.step.work.resourceObjects");
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("PageTask.wizard.step.work.resourceObjects.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("TaskWizardPanel.wizard.step.work.resourceObjects.help");
+        return createStringResource("PageTask.wizard.step.work.resourceObjects.subText");
     }
 
     @Override
