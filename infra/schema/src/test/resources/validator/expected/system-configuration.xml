@@ -67,4 +67,19 @@
             </roleCatalog>
         </accessRequest>
     </adminGuiConfiguration>
+
+    <defaultObjectPolicyConfiguration id="2">
+        <itemConstraint>
+            <path>name</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </defaultObjectPolicyConfiguration>
 </systemConfiguration>

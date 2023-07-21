@@ -37,7 +37,7 @@ public class ObjectUpgradeValidator {
         this.validator.setAllWarnings();
     }
 
-    public <O extends ObjectType> UpgradeValidationResult validate(PrismObject<O> object) {
+    public <O extends ObjectType> UpgradeValidationResult validate(PrismObject<O> object) throws Exception {
         ValidationResult result = validator.validate(object);
 
         UpgradeProcessor processor = new UpgradeProcessor();

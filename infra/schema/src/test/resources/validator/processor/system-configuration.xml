@@ -66,4 +66,19 @@
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
     </adminGuiConfiguration>
+
+    <defaultObjectPolicyConfiguration id="2">
+        <propertyConstraint>
+            <path>name</path>
+            <visibility>visible</visibility>
+        </propertyConstraint>
+        <propertyConstraint>
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+        </propertyConstraint>
+        <itemConstraint>
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </defaultObjectPolicyConfiguration>
 </systemConfiguration>

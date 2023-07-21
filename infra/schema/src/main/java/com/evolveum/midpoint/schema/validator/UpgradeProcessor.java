@@ -1,17 +1,17 @@
 package com.evolveum.midpoint.schema.validator;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeProcessor {
 
@@ -49,7 +49,7 @@ public class UpgradeProcessor {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    private <T extends ObjectType> UpgradeValidationItem process(PrismObject<T> object, ValidationItem item) {
+    private <T extends ObjectType> UpgradeValidationItem process(PrismObject<T> object, ValidationItem item) throws Exception {
         ItemPath path = item.getItemPath();
 
         PrismObject<T> cloned = object.clone();
@@ -81,7 +81,9 @@ public class UpgradeProcessor {
         return result;
     }
 
-    public <T extends ObjectType> UpgradeValidationResult process(PrismObject<T> object, ValidationResult result) {
+    public <T extends ObjectType> UpgradeValidationResult process(PrismObject<T> object, ValidationResult result)
+            throws Exception {
+
         UpgradeValidationResult verificationResult = new UpgradeValidationResult(result);
 
         for (ValidationItem item : result.getItems()) {

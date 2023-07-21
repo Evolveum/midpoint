@@ -92,7 +92,12 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                         }
 
                         ItemPath path = item.getItem().getItemPath();
-                        processor.process(original, path);
+                        try {
+                            processor.process(original, path);
+                        } catch (Exception ex) {
+                            LOGGER.error("Couldn't process item", ex);
+                            AssertJUnit.fail(ex.getMessage());
+                        }
                     });
 
             AssertJUnit.assertTrue(
@@ -156,7 +161,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-//            Assertions.assertThat(result.getItems()).hasSize(4);
+//            Assertions.assertThat(result.getItems()).hasSize(5);
 
             // todo assert deltas
         });
@@ -190,6 +195,16 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test60TaskLivesync() throws Exception {
         testUpgradeValidator("task-livesync.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
+    @Test
+    public void test70Archetype() throws Exception {
+        testUpgradeValidator("archetype.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .hasSize(1);
 
