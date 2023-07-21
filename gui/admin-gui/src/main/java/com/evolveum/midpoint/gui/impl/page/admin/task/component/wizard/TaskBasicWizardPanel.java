@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 public class TaskBasicWizardPanel extends AbstractFormWizardStepPanel<TaskDetailsModel> {
@@ -66,5 +67,11 @@ public class TaskBasicWizardPanel extends AbstractFormWizardStepPanel<TaskDetail
     @Override
     public String getStepId() {
         return BASIC_PANEL_TYPE;
+    }
+
+    @Override
+    public boolean onBackPerformed(AjaxRequestTarget target) {
+        getPageBase().redirectBack();
+        return super.onBackPerformed(target);
     }
 }
