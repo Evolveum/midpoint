@@ -1,17 +1,5 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
 import com.evolveum.midpoint.ninja.action.upgrade.SkipUpgradeItem;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
@@ -24,6 +12,18 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
@@ -94,17 +94,21 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         try {
             objects = parser.parseObjects();
         } catch (Exception ex) {
-            log.error("Couldn't parse file '{}'", file.getPath(), ex);
+            log.error("Couldn't parse file '{}'", ex, file.getPath());
             return;
         }
 
         boolean changed = false;
-        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeItems);
-        for (PrismObject object : objects) {
-            boolean changedOne = executor.execute(object);
-            if (changedOne) {
-                changed = true;
+        try {
+            UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeItems);
+            for (PrismObject object : objects) {
+                boolean changedOne = executor.execute(object);
+                if (changedOne) {
+                    changed = true;
+                }
             }
+        } catch (Exception ex) {
+            log.error("Couldn't update file '{}'", ex, file.getPath());
         }
 
         if (!changed) {
@@ -122,7 +126,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             }
             writer.write(xml);
         } catch (Exception ex) {
-            log.error("Couldn't serialize objects to file '{}'", file.getPath(), ex);
+            log.error("Couldn't serialize objects to file '{}'", ex, file.getPath());
         }
     }
 
