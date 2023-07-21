@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="eceab160-de05-4b1b-9d09-27cc789252c3">
+    <name>restricted-auto-bad-mapping-condition</name>
+    <documentation>
+        Auto-assigned role that contains a non-compliant mapping condition.
+    </documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping id="456">
+                <expression>
+                    <script>
+                        <code>
+                            assignment // compliant
+                        </code>
+                    </script>
+                </expression>
+                <condition>
+                    <script>
+                        <code>
+                            System.setProperty('hack', 'true') // non-compliant
+                            true
+                        </code>
+                    </script>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+                <filter>
+                    <q:equal>
+                        <q:path>costCenter</q:path>
+                        <q:value>auto</q:value>
+                    </q:equal>
+                </filter>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

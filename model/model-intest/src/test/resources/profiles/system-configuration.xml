@@ -9,6 +9,9 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
+    <roleManagement>
+        <autoassignEnabled>true</autoassignEnabled>
+    </roleManagement>
     <expressions>
         <!-- TODO re-enable this when the time comes; currently the whole processing fails because of uncompilable profiles -->
         <!--<expressionProfile>-->

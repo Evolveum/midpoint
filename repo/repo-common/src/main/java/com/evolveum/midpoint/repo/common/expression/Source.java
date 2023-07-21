@@ -51,7 +51,7 @@ public class Source<V extends PrismValue, D extends ItemDefinition<?>>
             @Nullable ItemDelta<V, D> delta,
             @Nullable Item<V, D> itemNew,
             @Nullable D definition,
-            @Nullable ItemPath resolvePath,
+            @NotNull ItemPath resolvePath,
             @Nullable ItemPath residualPath,
             @Nullable Collection<? extends ItemDelta<?, ?>> subItemDeltas,
             @NotNull QName name) {

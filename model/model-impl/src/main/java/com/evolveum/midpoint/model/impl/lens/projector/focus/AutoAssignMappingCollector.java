@@ -98,11 +98,12 @@ public class AutoAssignMappingCollector {
             return true;
         }
         try {
-            return SelectorMatcher.forSelector(selector.value()) // FIXME expression profiles
+            // Note we do NOT provide filter expression evaluator here. Hence, there's no need to manage expression profiles yet.
+            return SelectorMatcher.forSelector(selector.value())
                     .withLogging(LOGGER)
                     .matches(focusContext.getObjectAnyRequired());
         } catch (CommonException e) {
-            String message = "Failed to evaluate selector constrains, selector: %s, focusContext: %s, reason: %s".formatted(
+            String message = "Failed to evaluate selector constraints, selector: %s, focusContext: %s, reason: %s".formatted(
                     selector, focusContext, e.getMessage());
             result.recordException(message, e);
             throw new SystemException(message, e);

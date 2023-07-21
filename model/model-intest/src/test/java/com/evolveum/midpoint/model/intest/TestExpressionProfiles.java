@@ -52,6 +52,16 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_RESTRICTED_BAD_CONSTRUCTION_MAPPING = TestObject.file(
             TEST_DIR, "role-restricted-bad-construction-mapping.xml", "c8cae775-2c3b-49bb-98e3-482a095316ef");
 
+    // initialized only in specific tests
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_GOOD = TestObject.file(
+            TEST_DIR, "role-restricted-auto-good.xml", "a6ace69f-ecfb-457b-97ea-0b5a8b4a6ad3");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION = TestObject.file(
+            TEST_DIR, "role-restricted-auto-filter-expression.xml", "885bc0b4-2493-4658-a523-8a3f7eeb770b");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION = TestObject.file(
+            TEST_DIR, "role-restricted-auto-bad-mapping-expression.xml", "26f61dc6-efff-4614-aac6-25753b81512f");
+    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_CONDITION = TestObject.file(
+            TEST_DIR, "role-restricted-auto-bad-mapping-condition.xml", "eceab160-de05-4b1b-9d09-27cc789252c3");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -130,6 +140,117 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                     .hasMessageContaining("Denied access to functionality of script")
                     .hasMessageContaining("Access to Groovy method java.lang.System#setProperty denied (applied expression profile 'restricted')");
             assertFailure(result);
+        }
+    }
+
+    /** "Correct" restricted auto-assigned role is used. */
+    @Test
+    public void test150RestrictedRoleAutoGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("auto-assigned role is imported");
+        ROLE_RESTRICTED_AUTO_GOOD.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name("test150")
+                    .costCenter("auto");
+            var userOid = addObject(user.asPrismObject(), task, result);
+
+            then("user is created");
+            assertSuccess(result);
+            assertUserAfter(userOid)
+                    .assignments()
+                    .single()
+                    .assertRole(ROLE_RESTRICTED_AUTO_GOOD.oid);
+        } finally {
+            deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_GOOD.oid);
+        }
+    }
+
+    /** This checks that filter expressions are not supported - hence, safe. :) */
+    @Test
+    public void test160RestrictedRoleAutoFilterExpression() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("auto-assigned role is imported");
+        ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name("test160");
+            var userOid = addObject(user.asPrismObject(), task, result);
+
+            then("user is created but without assignments");
+            assertSuccess(result);
+            assertUserAfter(userOid)
+                    .assertAssignments(0);
+        } finally {
+            deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION.oid);
+        }
+    }
+
+    /** Non-compliant script in mapping expression. */
+    @Test
+    public void test170RestrictedRoleAutoBadMappingExpression() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("auto-assigned role is imported");
+        ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name("test170")
+                    .costCenter("auto");
+            try {
+                addObject(user.asPrismObject(), task, result);
+                fail("unexpected success");
+            } catch (SecurityViolationException e) {
+                assertExpectedException(e)
+                        .hasMessageContaining("Denied access to functionality of script in expression in mapping in autoassign mapping")
+                        .hasMessageContaining("restricted-auto-bad-mapping-expression") // object name
+                        .hasMessageContaining("@autoassign/focus/mapping/123") // item path of the offending mapping TODO fix after MID-8943 is fixed
+                        .hasMessageContaining("Access to Groovy method java.lang.System#setProperty denied (applied expression profile 'restricted')");
+                assertFailure(result);
+            }
+        } finally {
+            deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION.oid);
+        }
+    }
+
+    /** Non-compliant script in mapping condition. */
+    @Test
+    public void test180RestrictedRoleAutoBadMappingCondition() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("auto-assigned role is imported");
+        ROLE_RESTRICTED_AUTO_BAD_MAPPING_CONDITION.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name("test180")
+                    .costCenter("auto");
+            try {
+                addObject(user.asPrismObject(), task, result);
+                fail("unexpected success");
+            } catch (SecurityViolationException e) {
+                assertExpectedException(e)
+                        .hasMessageContaining("Denied access to functionality of script in condition in mapping in autoassign mapping")
+                        .hasMessageContaining("restricted-auto-bad-mapping-condition") // object name
+                        .hasMessageContaining("@autoassign/focus/mapping/456") // item path of the offending mapping TODO fix after MID-8943 is fixed
+                        .hasMessageContaining("Access to Groovy method java.lang.System#setProperty denied (applied expression profile 'restricted')");
+                assertFailure(result);
+            }
+        } finally {
+            deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_BAD_MAPPING_CONDITION.oid);
         }
     }
 }

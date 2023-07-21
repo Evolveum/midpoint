@@ -7479,7 +7479,8 @@
                  <xsd:annotation>
                      <xsd:documentation>
                          <p>
-                            Restrics autoassignment to concrete focus type.
+                             Restrics autoassignment to concrete focus type (or other criteria).
+                             Expressions are NOT supported here for now.
                          </p>
                      </xsd:documentation>
                  </xsd:annotation>

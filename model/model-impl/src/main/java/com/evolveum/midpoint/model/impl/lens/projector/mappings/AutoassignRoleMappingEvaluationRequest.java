@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.config.AutoAssignMappingConfigItem;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,10 +57,9 @@ public class AutoassignRoleMappingEvaluationRequest
         }
         assignment.targetRef(originObject.getOid(), originObject.asPrismObject().getDefinition().getTypeName(), relation);
 
-        Source<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> source =
-                new Source<>(assignmentContainer, null, assignmentContainer, FocusType.F_ASSIGNMENT, assignmentDef);
         //noinspection unchecked
-        return (Source<V, D>) source;
+        return (Source<V, D>) new Source<>(
+                assignmentContainer, null, assignmentContainer, ExpressionConstants.VAR_ASSIGNMENT_QNAME, assignmentDef);
     }
 
     @Override
