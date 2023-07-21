@@ -186,7 +186,7 @@ public class VerificationReporter {
                 .build();
     }
 
-    public <T extends Objectable> UpgradeValidationResult verify(Writer writer, PrismObject<T> object) throws IOException {
+    public <T extends Objectable> UpgradeValidationResult verify(Writer writer, PrismObject<T> object) throws Exception {
         UpgradeValidationResult result = validator.validate((PrismObject) object);
 
         for (UpgradeValidationItem item : result.getItems()) {
