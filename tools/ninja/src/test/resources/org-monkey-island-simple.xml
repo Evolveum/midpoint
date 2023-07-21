@@ -6,77 +6,79 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <!-- Functional organizational structure -->
 
-    <org oid="00000000-8888-6666-0000-100000000001">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-100000000001">
         <name>F0001</name>
         <description>The office of the most respectful Governor.</description>
+        <subtype>functional</subtype>
         <displayName>Governor Office</displayName>
         <identifier>0001</identifier>
-        <subtype>functional</subtype>
         <costCenter>CC0</costCenter>
         <locality>The Governor's Mansion</locality>
-    </org>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-100000000002">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-100000000002">
         <name>F0002</name>
         <description>Defending the scum since the ancient times.</description>
+        <subtype>functional</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
         <assignment id="1">
               <targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
            </assignment>
         <displayName>Ministry of Defense</displayName>
         <identifier>0002</identifier>
-        <subtype>functional</subtype>
         <locality>The towers, bastions and bars</locality>
 
-    </org>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-100000000003">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-100000000003">
         <name>F0003</name>
         <description>Offending. Anyone. Anywhere.</description>
+        <subtype>functional</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
         <assignment id="1">
               <targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
         </assignment>
         <displayName>Ministry of Offense</displayName>
         <identifier>0003</identifier>
-        <subtype>functional</subtype>
         <costCenter>CC666</costCenter>
-    </org>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-100000000004">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-100000000004">
         <name>F0004</name>
         <description>Why is the rum always gone?</description>
+        <subtype>functional</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
         <assignment id="1">
              <targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
            </assignment>
         <displayName>Ministry of Rum</displayName>
         <identifier>0004</identifier>
-        <subtype>functional</subtype>
         <costCenter>CCRUM</costCenter>
-    </org>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-100000000005">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-100000000005">
         <name>F0005</name>
         <description>Swashing, buckling and insulting. Hard.</description>
+        <subtype>functional</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
         <assignment id="1">
               <targetRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
            </assignment>
         <displayName>Swashbuckler Section</displayName>
         <identifier>0005</identifier>
-        <subtype>functional</subtype>
-    </org>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-100000000006">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-100000000006">
         <name>F0006</name>
         <description>Hosting the worst scumm of the Caribbean.</description>
+        <subtype>functional</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
         <assignment id="1">
@@ -87,44 +89,43 @@
            </assignment>
         <displayName>Scumm Bar</displayName>
         <identifier>0006</identifier>
-        <subtype>functional</subtype>
         <locality>Mêlée Island</locality>
-    </org>
+    </object>
 
     <!-- Project organizational structure -->
 
-    <org oid="00000000-8888-6666-0000-200000000000">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-200000000000">
         <name>PRoot</name>
         <description>Project organizational structure root</description>
-        <displayName>Projects</displayName>
         <subtype>project</subtype>
-    </org>
+        <displayName>Projects</displayName>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-200000000001">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-200000000001">
         <name>P0001</name>
+        <subtype>project</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
         <assignment id="1">
               <targetRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
            </assignment>
         <displayName>Save Elaine</displayName>
         <identifier>0001</identifier>
-        <subtype>project</subtype>
-    </org>
+    </object>
 
-    <org oid="00000000-8888-6666-0000-200000000002">
+    <object xsi:type="OrgType" oid="00000000-8888-6666-0000-200000000002">
         <name>P0002</name>
+        <subtype>project</subtype>
         <parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
         <assignment id="1">
               <targetRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
            </assignment>
         <displayName>Kidnap and marry Elaine</displayName>
         <identifier>0002</identifier>
-        <subtype>project</subtype>
-    </org>
+    </object>
 
     <!-- Users -->
 
-    <user>
+    <object xsi:type="UserType">
         <name>elaine</name>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
         <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
@@ -138,9 +139,9 @@
         <givenName>Elaine</givenName>
         <familyName>Marley</familyName>
         <title>Governor</title>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>cheese</name>
         <description>The owner of Scumm Bar</description>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
@@ -154,9 +155,9 @@
         <fullName>Ignatius Cheese</fullName>
         <givenName>Ignatius</givenName>
         <familyName>Cheese</familyName>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>chef</name>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
         <assignment>
@@ -165,9 +166,9 @@
         <fullName>Scumm Bar Chef</fullName>
         <givenName>Chef</givenName>
         <familyName>Scumm</familyName>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>barkeeper</name>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
         <assignment>
@@ -176,9 +177,9 @@
         <fullName>Horridly Scarred Barkeep</fullName>
         <givenName>Barkeeper</givenName>
         <familyName>Scumm</familyName>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>guybrush</name>
         <!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
         <parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
@@ -192,9 +193,9 @@
         <fullName>Guybrush Threepwood</fullName>
         <givenName>Guybrush</givenName>
         <familyName>Threepwood</familyName>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>carla</name>
         <parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
         <parentOrgRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
@@ -210,9 +211,9 @@
         </assignment>
         <fullName>Carla the Swordmaster</fullName>
         <givenName>Carla</givenName>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>lechuck</name>
         <!-- LeChuck just manages, does not belong to anywhere -->
         <parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType" relation="org:manager"/>
@@ -221,9 +222,9 @@
         </assignment>
         <fullName>Captain LeChuck</fullName>
         <familyName>LeChuck</familyName>
-    </user>
+    </object>
 
-    <user>
+    <object xsi:type="UserType">
         <name>bob</name>
         <parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
         <assignment>
@@ -231,6 +232,6 @@
         </assignment>
         <fullName>Ghost Pirate Bob</fullName>
         <givenName>Bob</givenName>
-    </user>
+    </object>
 
 </objects>

@@ -6,174 +6,159 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
+import org.assertj.core.api.Assertions;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Ignore;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportRepositoryTest extends BaseTest {
+@ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
+@DirtiesContext
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
+public class ImportRepositoryTest extends NinjaSpringTest {
 
-    @BeforeMethod
-    public void initMidpointHome() throws Exception {
-        setupMidpointHome();
+    private static final String PATH_MONKEY_ISLAND_SIMPLE_ZIP = "./target/org-monkey-island-simple.zip";
+
+    @BeforeClass
+    @Override
+    public void beforeClass() throws Exception {
+        TestUtils.zipFile(new File("./src/test/resources/org-monkey-island-simple.xml"), new File(PATH_MONKEY_ISLAND_SIMPLE_ZIP));
+
+        super.beforeClass();
     }
 
     @Test
-    public void test100ImportByOid() {
-        // Try this line to be sure what the config is (assuming init method runs fine):
-//        new Main().run(new String[] { "-m", getMidpointHome(), "info" });
+    public void test100ImportByOid() throws Exception {
+        given();
 
-        String[] input = new String[] { "-m", getMidpointHome(), "import", "-o", "00000000-8888-6666-0000-100000000001",
-                "-i", RESOURCES_FOLDER + "/org-monkey-island-simple.xml.zip", "-z" };
+        OperationResult result = new OperationResult("test100ImportByOid");
 
-        executeTest(null,
-                context -> {
-                    clearDb(context);
+        int count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isZero();
 
-                    OperationResult result = new OperationResult("count objects");
-                    RepositoryService repo = context.getRepository();
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        when();
 
-                    AssertJUnit.assertEquals(0, count);
-                },
-                context -> {
-                    RepositoryService repo = context.getRepository();
+        executeTest(
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                err -> Assertions.assertThat(err.size()).isZero(),
+                "-m", getMidpointHome(), "import", "--oid", "00000000-8888-6666-0000-100000000001", "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
-                    OperationResult result = new OperationResult("count");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        then();
 
-                    AssertJUnit.assertEquals(1, count);
-
-                    count = repo.countObjects(OrgType.class, null, null, result);
-
-                    AssertJUnit.assertEquals(1, count);
-                },
-                true, true, input);
-
-        List<String> out = getSystemOut();
-        AssertJUnit.assertEquals(out.toString(), 5, out.size());
-        AssertJUnit.assertTrue(getSystemErr().isEmpty());
+        count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(1);
     }
 
     @Test
-    public void test110ImportByFilterAsOption() {
-        String[] input = new String[] { "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
-                "-i", RESOURCES_FOLDER + "/org-monkey-island-simple.xml.zip", "-z" };
+    public void test110ImportByFilterAsOption() throws Exception {
+        given();
 
-        executeTest(null,
-                context -> {
-                    clearDb(context);
+        OperationResult result = new OperationResult("test110ImportByFilterAsOption");
 
-                    OperationResult result = new OperationResult("count objects");
-                    RepositoryService repo = context.getRepository();
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        int count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(1);
 
-                    AssertJUnit.assertEquals(0, count);
-                },
-                context -> {
-                    RepositoryService repo = context.getRepository();
+        when();
 
-                    OperationResult result = new OperationResult("count objects");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        executeTest(
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                err -> Assertions.assertThat(err.size()).isZero(),
+                "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
+                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
-                    AssertJUnit.assertEquals(1, count);
-                },
-                true, true, input);
+        then();
 
-        List<String> out = getSystemOut();
-        AssertJUnit.assertEquals(out.toString(), 5, out.size());
-        AssertJUnit.assertTrue(getSystemErr().isEmpty());
+        count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(2);
     }
 
     @Test
-    public void test120ImportByFilterAsFile() {
-        String[] input = new String[] { "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
-                "-i", RESOURCES_FOLDER + "/org-monkey-island-simple.xml.zip", "-z" };
+    public void test120ImportByFilterAsFile() throws Exception {
+        given();
 
-        executeTest(null,
-                context -> {
-                    clearDb(context);
+        OperationResult result = new OperationResult("test120ImportByFilterAsFile");
 
-                    OperationResult result = new OperationResult("count objects");
-                    RepositoryService repo = context.getRepository();
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        int count = repository.countObjects(OrgType.class, null, null, result);
+        Assertions.assertThat(count).isEqualTo(2);
 
-                    AssertJUnit.assertEquals(0, count);
-                },
-                context -> {
-                    RepositoryService repo = context.getRepository();
+        when();
 
-                    OperationResult result = new OperationResult("count users");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        executeTest(
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                err -> Assertions.assertThat(err.size()).isZero(),
+                "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
+                "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z", "-O");
 
-                    AssertJUnit.assertEquals(1, count);
-                },
-                true, true, input);
+        then();
 
-        List<String> out = getSystemOut();
-        AssertJUnit.assertEquals(out.toString(), 5, out.size());
-        AssertJUnit.assertTrue(getSystemErr().isEmpty());
+        count = repository.countObjects(OrgType.class, null, null, result);
+        // count has not changed, since one object was imported with override
+        Assertions.assertThat(count).isEqualTo(2);
     }
 
     @Test
-    public void testMid7668Failure() {
-        String[] input = new String[] { "-m", getMidpointHome(), "import",
-                "-i", RESOURCES_FOLDER + "/mid-7668-roles.xml" };
+    public void test130MID7668Failure() throws Exception {
+        given();
+
+        when();
 
         final String ROLE_1_OID = "daf12492-5387-470f-bbd8-cf21f609367c";
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
-        executeTest(null,
-                context -> clearDb(context),
-                context -> {
-                    RepositoryService repo = context.getRepository();
+        executeTest(null, null, "-m", getMidpointHome(), "import", "-i", RESOURCES_DIRECTORY.getPath() + "/mid-7668-roles.xml");
 
-                    OperationResult result = new OperationResult("count objects");
-                    PrismObject<RoleType> role = repo.getObject(RoleType.class, ROLE_1_OID, null, result);
-                    AssertJUnit.assertNotNull(role);
+        then();
 
-                    try {
-                        repo.getObject(RoleType.class, ROLE_2_OID, null, result);
-                        AssertJUnit.fail("This role should not get to repository because of default polystring normalizer (name collision failure)");
-                    } catch (ObjectNotFoundException ex) {
-                        // ignored
-                    }
-                },
-                true, true, input);
+        OperationResult result = new OperationResult("testMid7668Failure");
+
+        PrismObject<RoleType> role = repository.getObject(RoleType.class, ROLE_1_OID, null, result);
+        Assertions.assertThat(role).isNotNull();
+
+        try {
+            repository.getObject(RoleType.class, ROLE_2_OID, null, result);
+            Assertions.fail("This role should not get to repository because of default polystring normalizer (name collision failure)");
+        } catch (ObjectNotFoundException ex) {
+            // ignored
+        }
     }
 
     @Test
-    public void testMid7668CustomPolyStringNormalizer() {
-        String[] input = new String[] { "-m", getMidpointHome(), "--psn-class-name", "Ascii7PolyStringNormalizer", "import",
-                "-i", RESOURCES_FOLDER + "/mid-7668-roles.xml" };
+    public void test140MID7668CustomPolyStringNormalizer() throws Exception {
+        given();
+
+        when();
 
         final String ROLE_1_OID = "daf12492-5387-470f-bbd8-cf21f609367c";
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
-        executeTest(null,
-                context -> clearDb(context),
-                context -> {
-                    RepositoryService repo = context.getRepository();
+        executeTest(
+                null,
+                null,
+                "-m", getMidpointHome(), "--psn-class-name", "Ascii7PolyStringNormalizer", "import",
+                "-i", RESOURCES_DIRECTORY.getPath() + "/mid-7668-roles.xml");
 
-                    OperationResult result = new OperationResult("count objects");
-                    PrismObject<RoleType> role = repo.getObject(RoleType.class, ROLE_1_OID, null, result);
-                    AssertJUnit.assertNotNull(role);
+        then();
 
-                    role = repo.getObject(RoleType.class, ROLE_2_OID, null, result);
-                    AssertJUnit.assertNotNull(role);
-                },
-                true, true, input);
+        OperationResult result = new OperationResult("testMid7668CustomPolyStringNormalizer");
+
+        PrismObject<RoleType> role = repository.getObject(RoleType.class, ROLE_1_OID, null, result);
+        Assertions.assertThat(role).isNotNull();
+
+        role = repository.getObject(RoleType.class, ROLE_2_OID, null, result);
+        Assertions.assertThat(role).isNotNull();
     }
 }

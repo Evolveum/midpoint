@@ -10,28 +10,26 @@ import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.beust.jcommander.JCommander;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -81,9 +79,8 @@ public class NinjaUtils {
         return jc;
     }
 
-    public static <T> T getOptions(JCommander jc, Class<T> type) {
-        List<Object> objects = jc.getObjects();
-        for (Object object : objects) {
+    public static <T> T getOptions(List<Object> options, Class<T> type) {
+        for (Object object : options) {
             if (type.equals(object.getClass())) {
                 //noinspection unchecked
                 return (T) object;
@@ -137,17 +134,7 @@ public class NinjaUtils {
         return writer.toString();
     }
 
-    public static OperationResult parseResult(String result) {
-        if (result == null) {
-            return null;
-        }
-
-        //todo implement
-
-        return null;
-    }
-
-    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
+    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite, PrintStream defaultOutput) throws IOException {
         OutputStream os;
         if (output != null) {
             if (!overwrite && output.exists()) {
@@ -157,13 +144,13 @@ public class NinjaUtils {
 
             os = new FileOutputStream(output);
         } else {
-            os = System.out;
+            os = defaultOutput;
         }
 
         if (zip) {
             ZipOutputStream zos = new ZipOutputStream(os);
 
-            String entryName = output.getName().replaceAll("\\.", "-") + ".xml";
+            String entryName = createZipEntryName(output);
             ZipEntry entry = new ZipEntry(entryName);
             zos.putNextEntry(entry);
 
@@ -171,6 +158,18 @@ public class NinjaUtils {
         }
 
         return new OutputStreamWriter(os, charset);
+    }
+
+    private static String createZipEntryName(File file) {
+        if (file == null) {
+            return "output";
+        }
+
+        String fullName = file.getName();
+        String extension = FilenameUtils.getExtension(fullName);
+        String name = FilenameUtils.removeExtension(fullName).replaceAll("\\.", "-");
+
+        return name + "." + extension;
     }
 
     public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,
@@ -213,5 +212,77 @@ public class NinjaUtils {
         Collections.sort(types);
 
         return types;
+    }
+
+    public static File computeInstallationDirectory(File installationDirectory, NinjaContext context) throws NinjaException {
+        final ConnectionOptions connectionOptions = context.getOptions(ConnectionOptions.class);
+        String mpHome = connectionOptions.getMidpointHome();
+        File midpointHomeDirectory = mpHome != null ? new File(connectionOptions.getMidpointHome()) : null;
+
+        return computeInstallationDirectory(installationDirectory, midpointHomeDirectory);
+    }
+
+    public static File computeInstallationDirectory(File installationDirectory, File midpointHomeDirectory) throws NinjaException {
+        File installation;
+        if (installationDirectory != null) {
+            installation = installationDirectory;
+        } else {
+            if (midpointHomeDirectory != null) {
+                installation = midpointHomeDirectory.getParentFile();
+            } else {
+                throw new NinjaException("Neither installation directory nor midpoint.home is specified");
+            }
+        }
+
+        File bin = new File(installation, "bin");
+        if (!validateDirectory(bin, "midpoint\\.(sh|bat)", "start\\.(sh|bat)", "stop\\.(sh|bat)")) {
+            throw new NinjaException("Installation directory " + installation.getPath() + " doesn't contain bin/ with midpoint, "
+                    + "start, and stop scripts. Probably wrong installation path, or customized installation.");
+        }
+
+        File lib = new File(installation, "lib");
+        if (!validateDirectory(lib, "midpoint\\.(war|jar)")) {
+            throw new NinjaException("Installation directory " + installation.getPath() + " doesn't contain lib/ with midpoint "
+                    + "(jar/war). Probably wrong installation path, or customized installation.");
+        }
+
+        return installation;
+    }
+
+    private static boolean validateDirectory(File dir, String... expectedFileNames) {
+        if (!dir.exists() || !dir.isDirectory()) {
+            return false;
+        }
+
+        String[] fileNames = dir.list();
+        for (String fileName : expectedFileNames) {
+            if (!containsFileNames(fileNames, fileName)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean containsFileNames(String[] names, String filenameRegex) {
+        if (names == null) {
+            return false;
+        }
+
+        return Arrays.stream(names).anyMatch(s -> s.matches(filenameRegex));
+    }
+
+    public static String readInput(Function<String, Boolean> inputValidation) throws IOException {
+        String line = null;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+            boolean accepted = false;
+            while (!accepted) {
+                line = br.readLine();
+
+                accepted = inputValidation.apply(line);
+            }
+        }
+
+        return line;
     }
 }

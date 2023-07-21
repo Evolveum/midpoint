@@ -10,96 +10,84 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 
+import com.evolveum.midpoint.ninja.action.VerifyOptions;
+import com.evolveum.midpoint.ninja.action.VerifyResult;
+import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.VerifyOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.validator.ObjectValidator;
-import com.evolveum.midpoint.schema.validator.ValidationItem;
-import com.evolveum.midpoint.schema.validator.ValidationResult;
-import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
+ * TODO from design point of view handling of main writer and deltaWriter is just nasty.
+ * Fix this. Currently it was moved to VerifyReporter, still not very nice.
+ *
  * @author Radovan Semancik
  */
 public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOptions, ObjectType> {
 
-    private ObjectValidator validator;
+    private final Log log;
+
+    private VerificationReporter reporter;
 
     public VerifyConsumerWorker(NinjaContext context, VerifyOptions options,
             BlockingQueue<ObjectType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
+
+        this.log = context.getLog();
     }
 
     @Override
     protected void init() {
-        validator = new ObjectValidator(context.getPrismContext());
-        String warnOption = options.getWarn();
-        if (warnOption == null) {
-            validator.setAllWarnings();
-        } else {
-            String[] warnCategories = warnOption.split(",");
-            for (String warnCategory : warnCategories) {
-                switch (warnCategory) {
-                    case "deprecated":
-                        validator.setWarnDeprecated(true);
-                        break;
-                    case "plannedRemoval":
-                        validator.setWarnPlannedRemoval(true);
-                        break;
-                    case "uuid":
-                        validator.setWarnIncorrectOids(true);
-                        break;
-                    default:
-                        System.err.println("Unknown warn option '" + warnCategory + "'");
-                        break;
-                }
-            }
-        }
+        reporter = new VerificationReporter(options, context.getPrismContext(), context.getCharset(), log);
+        reporter.setCreateDeltaFile(true);
+        reporter.init();
+    }
+
+    @Override
+    public void destroy() {
+        reporter.destroy();
     }
 
     @Override
     protected String getProlog() {
-        return null;
-    }
-
-    @Override
-    protected void write(Writer writer, ObjectType object) throws IOException {
-        PrismObject<?> prismObject = object.asPrismObject();
-        ValidationResult validationResult = validator.validate(prismObject);
-        for (ValidationItem validationItem : validationResult.getItems()) {
-            writeValidationItem(writer, prismObject, validationItem);
-        }
-    }
-
-    private void writeValidationItem(Writer writer, PrismObject<?> object, ValidationItem validationItem) throws IOException {
-        if (validationItem.getStatus() != null) {
-            writer.append(validationItem.getStatus().toString());
-            writer.append(" ");
-        } else {
-            writer.append("INFO ");
-        }
-        writer.append(object.toString());
-        writer.append(" ");
-        if (validationItem.getItemPath() != null) {
-            writer.append(validationItem.getItemPath().toString());
-            writer.append(" ");
-        }
-        writeMessage(writer, validationItem.getMessage());
-        writer.append("\n");
-    }
-
-    private void writeMessage(Writer writer, LocalizableMessage message) throws IOException {
-        if (message == null) {
-            return;
-        }
-        // TODO: localization?
-        writer.append(message.getFallbackMessage());
+        return reporter.getProlog();
     }
 
     @Override
     protected String getEpilog() {
-        return null;
+        return reporter.getEpilog();
+    }
+
+    @Override
+    protected void write(Writer writer, ObjectType object) throws IOException {
+        PrismObject prismObject = object.asPrismObject();
+
+        try {
+            PrismObject<?> cloned = prismObject.clone();
+
+            UpgradeValidationResult result = reporter.verify(writer, cloned);
+            if (options.isStopOnCriticalError() && result.hasCritical()) {
+                shouldConsumerStop();
+            }
+            ObjectDelta delta = prismObject.diff(cloned);
+
+            if (delta.isEmpty()) {
+                return;
+            }
+
+            writer.write(DeltaConvertor.serializeDelta(delta, DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
+        } catch (Exception ex) {
+            log.error("Couldn't verify object {} ({})", ex, object.getName(), object.getOid());
+        }
+    }
+
+    public VerifyResult getResult() {
+        return reporter.getResult();
     }
 }

@@ -11,15 +11,15 @@ import java.io.File;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-import com.evolveum.midpoint.ninja.opts.BasicExportOptions;
+import com.evolveum.midpoint.ninja.action.BasicExportOptions;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "exportAudit")
 public class ExportAuditOptions extends BaseAuditImportExportOptions implements BasicExportOptions {
 
-    public static final String P_OUTPUT = "-O";
+    public static final String P_OUTPUT = "-o";
     public static final String P_OUTPUT_LONG = "--output";
 
-    public static final String P_OVERWRITE = "-ow";
+    public static final String P_OVERWRITE = "-O";
     public static final String P_OVERWRITE_LONG = "--overwrite";
 
     @Parameter(names = { P_OUTPUT, P_OUTPUT_LONG }, descriptionKey = "export.output")

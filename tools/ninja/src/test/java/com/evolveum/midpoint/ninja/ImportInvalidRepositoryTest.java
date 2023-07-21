@@ -6,57 +6,66 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
+import org.assertj.core.api.Assertions;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-@UnusedTestElement("failing")
-public class ImportInvalidRepositoryTest extends BaseTest {
+@ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
+@DirtiesContext
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
+public class ImportInvalidRepositoryTest extends NinjaSpringTest {
 
-    @BeforeMethod
-    public void initMidpointHome() throws Exception {
-        setupMidpointHome();
+    private static final String PATH_UNKNOWN_NODES_ZIP = "./target/unknown-nodes.zip";
+
+    @BeforeClass
+    @Override
+    public void beforeClass() throws Exception {
+        TestUtils.zipFile(new File("./src/test/resources/unknown-nodes"), new File(PATH_UNKNOWN_NODES_ZIP));
+
+        super.beforeClass();
     }
 
-    @Test
-    public void test100Import() {
-        String[] input = new String[] { "-m", getMidpointHome(), "import", "-i", RESOURCES_FOLDER + "/unknown-nodes.zip", "-z" };
-        executeTest(null,
-                context -> {
-                    RepositoryService repo = context.getRepository();
+    @Test(enabled = false)
+    public void test100Import() throws Exception {
+        given();
 
-                    OperationResult result = new OperationResult("count objects");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        OperationResult result = new OperationResult("test100Import");
+        int count = repository.countObjects(ObjectType.class, null, null, result);
 
-                    AssertJUnit.assertEquals(0, count);
-                },
-                context -> {
-                    RepositoryService repo = context.getRepository();
+        Assertions.assertThat(count).isZero();
 
-                    OperationResult result = new OperationResult("count");
-                    int count = repo.countObjects(ObjectType.class, null, null, result);
+        when();
 
-                    AssertJUnit.assertEquals(16, count);
+        executeTest(
+                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                err -> Assertions.assertThat(err.size()).isZero(),
+                "-m", getMidpointHome(), "import", "-i", PATH_UNKNOWN_NODES_ZIP, "-z");
 
-                    count = repo.countObjects(OrgType.class, null, null, result);
+        then();
 
-                    AssertJUnit.assertEquals(1, count);
-                },
-                true, true, input);
+        try {
+            count = repository.countObjects(ObjectType.class, null, null, result);
 
-        List<String> out = getSystemOut();
-        AssertJUnit.assertEquals(out.toString(), 5, out.size());
-        AssertJUnit.assertTrue(getSystemErr().isEmpty());
+            Assertions.assertThat(count).isEqualTo(16);
+
+            count = repository.countObjects(OrgType.class, null, null, result);
+
+            Assertions.assertThat(count).isEqualTo(1);
+        } catch (Exception ex) {
+            Assertions.fail("Failed", ex);
+        }
     }
 }

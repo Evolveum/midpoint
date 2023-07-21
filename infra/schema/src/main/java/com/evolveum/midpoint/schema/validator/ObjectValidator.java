@@ -6,17 +6,13 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitable;
+import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -39,7 +35,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * from task, invoked from ninja and so on.
  *
  * @author Radovan Semancik
- *
  */
 public class ObjectValidator {
 
@@ -49,7 +44,6 @@ public class ObjectValidator {
     private boolean warnDeprecated = false;
     private boolean warnPlannedRemoval = false;
     private String warnPlannedRemovalVersion = null;
-
     private boolean warnIncorrectOid = false;
 
     public ObjectValidator(PrismContext prismContext) {
@@ -83,13 +77,12 @@ public class ObjectValidator {
 
     public void setWarnIncorrectOids(boolean value) {
         this.warnIncorrectOid = value;
-
     }
 
     public void setAllWarnings() {
         this.warnDeprecated = true;
         this.warnPlannedRemoval = true;
-        this.warnIncorrectOid  = true;
+        this.warnIncorrectOid = true;
     }
 
     public <O extends Objectable> ValidationResult validate(PrismObject<O> object) {
@@ -99,8 +92,8 @@ public class ObjectValidator {
     }
 
     private void visit(Visitable visitable, ValidationResult result) {
-        if (visitable instanceof Item<?,?>) {
-            visitItem((Item<?,?>)visitable, result);
+        if (visitable instanceof Item<?, ?>) {
+            visitItem((Item<?, ?>) visitable, result);
         } else if (visitable instanceof PrismValue) {
             visitValue((PrismValue) visitable, result);
         }
@@ -116,26 +109,35 @@ public class ObjectValidator {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>> void visitItem(Item<V,D> item, ValidationResult result) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void visitItem(Item<V, D> item, ValidationResult result) {
         if (item.isRaw()) {
             return;
         }
+
         D definition = item.getDefinition();
         if (definition == null) {
             return;
         }
 
+        List<String> messages = new ArrayList<>();
         if (warnDeprecated && definition.isDeprecated()) {
-            warn(result, item, "deprecated");
+            messages.add("deprecated");
         }
+
         if (warnPlannedRemoval) {
             String plannedRemoval = definition.getPlannedRemoval();
             if (plannedRemoval != null) {
                 if (warnPlannedRemovalVersion == null || plannedRemoval.equals(warnPlannedRemovalVersion)) {
-                    warn(result, item, "planned for removal in version " + plannedRemoval);
+                    messages.add("planned for removal in version " + plannedRemoval);
                 }
             }
         }
+
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        warn(result, item, StringUtils.join(messages, ", "));
     }
 
     private void checkOid(ValidationResult result, PrismValue item, String oid) {
@@ -145,9 +147,8 @@ public class ObjectValidator {
         try {
             UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
-            warn(result, (Item<?,?>) item.getParent(), "OID '" + oid + "' is not valid UUID");
+            warn(result, (Item<?, ?>) item.getParent(), "OID '" + oid + "' is not valid UUID");
         }
-
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> void warn(ValidationResult result, Item<V, D> item, String message) {

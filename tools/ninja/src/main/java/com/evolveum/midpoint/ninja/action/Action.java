@@ -6,12 +6,14 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
-import java.util.Objects;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,7 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  *
  * @param <O> options class
  */
-public abstract class Action<O> {
+public abstract class Action<O, R> {
 
     protected Log log;
 
@@ -33,17 +35,18 @@ public abstract class Action<O> {
         this.context = context;
         this.options = options;
 
-        LogTarget target = getInfoLogTarget();
-        log = new Log(target, this.context);
-
-        this.context.setLog(log);
-
-        ConnectionOptions connection = Objects.requireNonNull(
-                NinjaUtils.getOptions(this.context.getJc(), ConnectionOptions.class));
-        this.context.init(connection);
+        this.log = context.initializeLogging(getLogTarget());
     }
 
-    public LogTarget getInfoLogTarget() {
+    public void destroy() {
+
+    }
+
+    /**
+     * @return target where the log should be printed. In case action result is printed to the standard output, log messages
+     * should go to the standard error no to mix the output. Otherwise, log messages should go to the standard output.
+     */
+    public LogTarget getLogTarget() {
         return LogTarget.SYSTEM_OUT;
     }
 
@@ -64,5 +67,16 @@ public abstract class Action<O> {
         }
     }
 
-    public abstract void execute() throws Exception;
+    /**
+     * @param allOptions
+     * @return Level of application context initialization required for this action.
+     */
+    @NotNull
+    public NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        return NinjaApplicationContextLevel.FULL_REPOSITORY;
+    }
+
+    public abstract String getOperationName();
+
+    public abstract R execute() throws Exception;
 }

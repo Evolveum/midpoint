@@ -17,7 +17,6 @@ import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.action.worker.SearchProducerWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @param <O> options class
  */
-public abstract class AbstractRepositorySearchAction<O extends ExportOptions> extends RepositoryAction<O> {
+public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R> extends RepositoryAction<O, R> {
 
     private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
 
@@ -51,17 +50,11 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
-    protected abstract String getOperationShortName();
-
-    protected abstract Runnable createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
-
-    protected String getOperationName() {
-        return getClass().getName() + "." + getOperationShortName();
-    }
+    protected abstract Callable<R> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
 
     @Override
-    public void execute() throws Exception {
-        OperationResult result = new OperationResult(getOperationName());
+    public R execute() throws Exception {
+        OperationResult result = new OperationResult(getClass().getName());
         OperationStatus operation = new OperationStatus(context, result);
 
         // "+ 2" will be used for consumer and progress reporter
@@ -71,7 +64,6 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
 
         List<SearchProducerWorker> producers = createProducers(queue, operation);
 
-        log.info("Starting " + getOperationShortName());
         operation.start();
 
         // execute as many producers as there are threads for them
@@ -83,8 +75,8 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
 
         executor.execute(new ProgressReporterWorker<>(context, options, queue, operation));
 
-        Runnable consumer = createConsumer(queue, operation);
-        executor.execute(consumer);
+        Callable<R> consumer = createConsumer(queue, operation);
+        Future<R> consumerResult = executor.submit(consumer);
 
         // execute rest of the producers
         for (int i = options.getMultiThread(); i < producers.size(); i++) {
@@ -97,11 +89,13 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions> ex
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(operation, "Finished " + getOperationShortName());
+        handleResultOnFinish(operation, "Finished " + getOperationName());
+
+        return consumerResult.get();
     }
 
     @Override
-    public LogTarget getInfoLogTarget() {
+    public LogTarget getLogTarget() {
         if (options.getOutput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

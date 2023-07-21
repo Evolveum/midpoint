@@ -1,0 +1,6 @@
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="10a2c2b4-4d02-4f52-a4ac-092d8e321006">
+
+    <name>case</name>
+    <taskRef oid="c5baeaf3-e917-4d1a-9aed-8a4bc147f5f9"/>
+</case>

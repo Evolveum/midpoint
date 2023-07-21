@@ -6,21 +6,27 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.net.URL;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
+import com.beust.jcommander.IUsageFormatter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.fusesource.jansi.AnsiConsole;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class Main {
@@ -29,107 +35,110 @@ public class Main {
         new Main().run(args);
     }
 
-    protected <T> void run(String[] args) {
+    private PrintStream out = System.out;
+
+    private PrintStream err = System.err;
+
+    public PrintStream getOut() {
+        return out;
+    }
+
+    public void setOut(@NotNull PrintStream out) {
+        this.out = out;
+    }
+
+    public PrintStream getErr() {
+        return err;
+    }
+
+    public void setErr(@NotNull PrintStream err) {
+        this.err = err;
+    }
+
+    protected <T> Object run(String[] args) {
+        AnsiConsole.systemInstall();
+
         JCommander jc = NinjaUtils.setupCommandLineParser();
 
         try {
             jc.parse(args);
         } catch (ParameterException ex) {
-            System.err.println(ex.getMessage());
-            return;
+            err.println(ex.getMessage());
+            return null;
         }
 
         String parsedCommand = jc.getParsedCommand();
 
-        BaseOptions base = Objects.requireNonNull(
-                NinjaUtils.getOptions(jc, BaseOptions.class));
+        BaseOptions base = Objects.requireNonNull(NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class));
 
-        if (base.isVersion()) {
-            try {
-                URL versionResource = Objects.requireNonNull(
-                        Main.class.getResource("/version"));
-                Path path = Paths.get(versionResource.toURI());
-                String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
-                System.out.println(version);
-            } catch (Exception ex) {
-                // ignored
-            }
-            return;
+        ConsoleFormat.setBatchMode(base.isBatchMode());
+
+        if (base.isVerbose() && base.isSilent()) {
+            err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
+                    + " together (verbose and silent)");
+            printHelp(jc, parsedCommand);
+            return null;
+        }
+
+        if (BooleanUtils.isTrue(base.isVersion())) {
+            printVersion(base.isVerbose());
+            return null;
         }
 
         if (base.isHelp() || parsedCommand == null) {
             printHelp(jc, parsedCommand);
-            return;
-        }
-
-        if (base.isVerbose() && base.isSilent()) {
-            System.err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
-                    + " together (verbose and silent)");
-            printHelp(jc, parsedCommand);
-            return;
+            return null;
         }
 
         NinjaContext context = null;
         try {
-            ConnectionOptions connection = Objects.requireNonNull(
-                    NinjaUtils.getOptions(jc, ConnectionOptions.class));
-            Action<T> action;
-            if (connection.isUseWebservice()) {
-                action = Command.createRestAction(parsedCommand);
-            } else {
-                action = Command.createRepositoryAction(parsedCommand);
-            }
+            Action<T, ?> action = Command.createAction(parsedCommand);
 
             if (action == null) {
-                String strConnection = connection.isUseWebservice() ? "webservice" : "repository";
-                System.err.println("Action for command '" + parsedCommand + "' not found (connection: '"
-                        + strConnection + "')");
-                return;
+                err.println("Action for command '" + parsedCommand + "' not found");
+                return null;
             }
 
             //noinspection unchecked
             T options = (T) jc.getCommands().get(parsedCommand).getObjects().get(0);
 
-            context = new NinjaContext(jc);
+            List<Object> allOptions = new ArrayList<>(jc.getObjects());
+            allOptions.add(options);
 
-            preInit(context);
+            context = new NinjaContext(out, err, allOptions, action.getApplicationContextLevel(allOptions));
 
-            action.init(context, options);
+            try {
+                action.init(context, options);
 
-            preExecute(context);
+                context.getLog().info(ConsoleFormat.formatActionStartMessage(action));
 
-            action.execute();
-
-            postExecute(context);
+                return action.execute();
+            } finally {
+                action.destroy();
+            }
+        } catch (InputParameterException ex) {
+            err.println("ERROR: " + ex.getMessage());
         } catch (Exception ex) {
             handleException(base, ex);
         } finally {
             cleanupResources(base, context);
+
+            AnsiConsole.systemUninstall();
         }
-    }
 
-    protected void preInit(NinjaContext context) {
-        // intentionally left out empty
-    }
-
-    protected void preExecute(NinjaContext context) {
-        // intentionally left out empty
-    }
-
-    protected void postExecute(NinjaContext context) {
-        // intentionally left out empty
+        return null;
     }
 
     private void cleanupResources(BaseOptions opts, NinjaContext context) {
         try {
             if (context != null) {
-                context.destroy();
+                context.close();
             }
         } catch (Exception ex) {
             if (opts.isVerbose()) {
                 String stack = NinjaUtils.printStackToString(ex);
 
-                System.err.print("Unexpected exception occurred (" + ex.getClass()
+                err.println("Unexpected exception occurred (" + ex.getClass()
                         + ") during destroying context. Exception stack trace:\n" + stack);
             }
         }
@@ -137,20 +146,39 @@ public class Main {
 
     private void handleException(BaseOptions opts, Exception ex) {
         if (!opts.isSilent()) {
-            System.err.println("Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage());
+            err.println("Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage());
         }
 
         if (opts.isVerbose()) {
             String stack = NinjaUtils.printStackToString(ex);
 
-            System.err.print("Exception stack trace:\n" + stack);
+            err.println("Exception stack trace:\n" + stack);
+        }
+    }
+
+    private void printVersion(boolean verbose) {
+        try (InputStream is = Main.class.getResource("/version").openStream()) {
+            String version = IOUtils.toString(is, StandardCharsets.UTF_8).trim();
+            out.println(version);
+        } catch (Exception ex) {
+            err.println("Couldn't obtains version");
+            if (verbose) {
+                String stack = NinjaUtils.printStackToString(ex);
+                err.println("Exception stack trace:\n" + stack);
+            }
         }
     }
 
     private void printHelp(JCommander jc, String parsedCommand) {
+        StringBuilder sb = new StringBuilder();
+
+        IUsageFormatter formatter = jc.getUsageFormatter();
         if (parsedCommand != null) {
-            jc.getUsageFormatter().usage(parsedCommand);
+            formatter.usage(parsedCommand, sb);
+        } else {
+            formatter.usage(sb);
         }
-        jc.usage();
+
+        out.println(sb);
     }
 }

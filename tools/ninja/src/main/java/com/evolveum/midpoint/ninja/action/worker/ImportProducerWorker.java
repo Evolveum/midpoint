@@ -21,10 +21,10 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
+import com.evolveum.midpoint.ninja.action.BasicImportOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.BasicImportOptions;
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -62,7 +62,6 @@ public class ImportProducerWorker<T extends Containerable>
     public void run() {
         Log log = context.getLog();
 
-        log.info("Starting import");
         operation.start();
 
         try (InputStream input = openInputStream()) {
