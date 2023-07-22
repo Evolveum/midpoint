@@ -227,7 +227,9 @@ class PolicyRulesCollector<O extends ObjectType> {
         if (systemConfiguration != null) {
             for (GlobalPolicyRuleType ruleBean : systemConfiguration.getGlobalPolicyRule()) {
                 allRules.add(
-                        GlobalRuleWithId.of(ruleBean));
+                        GlobalRuleWithId.of(
+                                GlobalPolicyRuleConfigItem.embedded(ruleBean),
+                                systemConfiguration.getOid()));
             }
         }
         allRules.addAll(

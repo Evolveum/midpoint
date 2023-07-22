@@ -18,6 +18,10 @@ public class GlobalPolicyRuleConfigItem extends ConfigurationItem<GlobalPolicyRu
         super(value, origin);
     }
 
+    public static GlobalPolicyRuleConfigItem of(@NotNull GlobalPolicyRuleType bean, @NotNull ConfigurationItemOrigin origin) {
+        return new GlobalPolicyRuleConfigItem(bean, origin);
+    }
+
     public static GlobalPolicyRuleConfigItem embedded(@NotNull GlobalPolicyRuleType bean) {
         return new GlobalPolicyRuleConfigItem(bean, ConfigurationItemOrigin.embedded(bean));
     }

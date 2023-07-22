@@ -7,27 +7,28 @@
 
 package com.evolveum.midpoint.model.common;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
+import java.io.Serializable;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 
 /** TEMPORARY */
 public record GlobalRuleWithId(
         @NotNull GlobalPolicyRuleConfigItem ruleCI,
         @NotNull String ruleId) implements Serializable {
 
-    public static GlobalRuleWithId of(@NotNull GlobalPolicyRuleType embeddedRuleBean) {
-        GlobalPolicyRuleConfigItem item = GlobalPolicyRuleConfigItem.embedded(embeddedRuleBean);
+    // Very temporary/fragile constructor
+    public static GlobalRuleWithId of(
+            @NotNull GlobalPolicyRuleConfigItem ruleCI,
+            @NotNull String originatingObjectOid) {
+        var ruleBean = ruleCI.value();
         var ruleId = PolicyRuleTypeUtil.createId(
-                ((ConfigurationItemOrigin.InObject) item.origin()).getOriginatingObjectOid(),
-                MiscUtil.stateNonNull(embeddedRuleBean.getId(), () -> "Policy rule ID is null: " + embeddedRuleBean));
-        return new GlobalRuleWithId(item, ruleId);
+                originatingObjectOid,
+                MiscUtil.stateNonNull(ruleBean.getId(), () -> "Policy rule ID is null: " + ruleBean));
+        return new GlobalRuleWithId(ruleCI, ruleId);
     }
 
     @Override
