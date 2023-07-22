@@ -63,6 +63,7 @@ public class ArchetypeSelectionAuthenticationProvider extends MidPointAbstractAu
 
         try {
             if (authentication instanceof ArchetypeSelectionAuthenticationToken) {
+                //todo process the case when no archetype oid is defined
                 String archetypeOid = (String) authentication.getDetails();
                 if (StringUtils.isEmpty(archetypeOid)) {
                     LOGGER.debug("No details provided: {}", authentication);

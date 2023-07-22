@@ -47,7 +47,7 @@ import java.util.List;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
-}, permitAll = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
+}, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
 public class PageArchetypeSelection extends PageAuthenticationBase {
 
     private static final long serialVersionUID = 1L;
@@ -146,7 +146,6 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     protected void initCustomLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
-        form.setOutputMarkupId(true);
         add(form);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
