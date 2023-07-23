@@ -64,15 +64,15 @@ public class ArchetypeSelectionAuthenticationProvider extends MidPointAbstractAu
         try {
             if (authentication instanceof ArchetypeSelectionAuthenticationToken) {
                 //todo process the case when no archetype oid is defined
-                String archetypeOid = (String) authentication.getDetails();
-                if (StringUtils.isEmpty(archetypeOid)) {
+                var archetypeOid = ((ArchetypeSelectionAuthenticationToken) authentication).getArchetypeOid();
+                var allowUndefinedArchetype = ((ArchetypeSelectionAuthenticationToken) authentication).isAllowUndefinedArchetype();
+                if (StringUtils.isEmpty(archetypeOid) && !allowUndefinedArchetype) {
                     LOGGER.debug("No details provided: {}", authentication);
                     throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
                 }
-                ArchetypeSelectionAuthenticationToken archetypeToken = new ArchetypeSelectionAuthenticationToken(archetypeOid);
-                archetypeToken.setAuthenticated(true);
+                authentication.setAuthenticated(true);
                 saveArchetypeToMidpointAuthentication(archetypeOid);
-                return archetypeToken;
+                return authentication;
 
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);

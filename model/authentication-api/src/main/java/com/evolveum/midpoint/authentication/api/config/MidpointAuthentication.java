@@ -655,4 +655,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public void setArchetypeOid(String archetypeOid) {
         this.archetypeOid = archetypeOid;
     }
+
+    public String getArchetypeOid() {
+        return archetypeOid;
+    }
 }

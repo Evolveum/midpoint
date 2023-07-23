@@ -16,10 +16,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 public class ArchetypeSelectionAuthenticationToken extends AbstractAuthenticationToken {
 
     private String archetypeOid;
+    private boolean allowUndefinedArchetype;
 
-    public ArchetypeSelectionAuthenticationToken(String archetypeOid) {
+    public ArchetypeSelectionAuthenticationToken(String archetypeOid, boolean allowUndefinedArchetype) {
         super(null);
         this.archetypeOid = archetypeOid;
+        this.allowUndefinedArchetype = allowUndefinedArchetype;
     }
 
     @Override
@@ -35,5 +37,13 @@ public class ArchetypeSelectionAuthenticationToken extends AbstractAuthenticatio
     @Override
     public String getDetails() {
         return archetypeOid;
+    }
+
+    public String getArchetypeOid() {
+        return archetypeOid;
+    }
+
+    public boolean isAllowUndefinedArchetype() {
+        return allowUndefinedArchetype;
     }
 }
