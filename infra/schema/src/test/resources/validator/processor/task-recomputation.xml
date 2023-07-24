@@ -31,5 +31,10 @@
                 </stringSegmentation>
             </buckets>
         </distribution>
+        <reporting>
+            <tracing id="1">
+                <interval>10</interval>
+            </tracing>
+        </reporting>
     </activity>
 </task>

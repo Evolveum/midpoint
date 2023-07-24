@@ -218,7 +218,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test80TaskRecomputation() throws Exception {
         testUpgradeValidator("task-recomputation.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(2);
+                    .hasSize(3);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
