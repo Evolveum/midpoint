@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+import org.assertj.core.api.Assertions;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -20,18 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.assertj.core.api.Assertions;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 public class TestUpgradeProcessors extends AbstractSchemaTest {
 
@@ -75,6 +75,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     private void assertUpgrade(String file, UpgradeValidationResult result) {
         try {
             PrismObject original = parseObject(new File(RESOURCES, file));
+            PrismObject updated = original.clone();
             PrismObject<?> expected = parseObject(new File(EXPECTED, file));
 
             result.getItems().stream()
@@ -93,17 +94,20 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
 
                         ItemPath path = item.getItem().getItemPath();
                         try {
-                            processor.process(original, path);
+                            processor.process(updated, path);
                         } catch (Exception ex) {
                             LOGGER.error("Couldn't process item", ex);
                             AssertJUnit.fail(ex.getMessage());
                         }
                     });
 
-            AssertJUnit.assertTrue(
-                    "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
-                            "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original),
-                    expected.equivalent(original));
+            String msg = "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
+                    "\nUPDATED:\n" + PrismTestUtil.serializeObjectToString(updated) +
+                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original);
+
+            LOGGER.info(msg);
+
+            AssertJUnit.assertTrue(msg, expected.equivalent(updated));
         } catch (Exception ex) {
             LOGGER.error("Couldn't assert upgrade result", ex);
             AssertJUnit.fail(ex.getMessage());
@@ -134,7 +138,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("resource.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
-                    .hasSize(3);
+                    .hasSize(5);
 
             // todo assert items
         });
