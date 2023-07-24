@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 public interface ProcessorMixin {
@@ -74,7 +75,11 @@ public interface ProcessorMixin {
         return true;
     }
 
-    default <O extends Containerable> boolean matchParentType(PrismObject<?> object, ItemPath path, Class<O> type) {
+    default <O extends Containerable> boolean matchParentTypeAndItemName(PrismObject<?> object, ItemPath path, Class<O> type, ItemName itemName) {
+        ItemName name = path.lastName();
+        if (name == null || !itemName.equivalent(name)) {
+
+        }
         Item item = object.findItem(path);
         if (item == null) {
             return false;

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 
+@SuppressWarnings("unused")
 public class UseLegacyApproversProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
 
     @Override
@@ -35,7 +36,8 @@ public class UseLegacyApproversProcessor implements UpgradeObjectProcessor<Syste
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentType(object, path, WfConfigurationType.class);
+        return matchParentTypeAndItemName(object, path, WfConfigurationType.class,
+                WfConfigurationType.F_USE_LEGACY_APPROVERS_SPECIFICATION);
     }
 
     @Override
