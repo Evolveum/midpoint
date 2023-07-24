@@ -37,6 +37,11 @@ public class FollowOnProcessor implements UpgradeObjectProcessor<ObjectType> {
     }
 
     @Override
+    public String upgradeDescription(PrismObject<ObjectType> object, ItemPath path) {
+        return "Instead of followOn item, the referenceIdProperty should be used."; // todo link to documentation
+    }
+
+    @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
         Item item = object.findItem(path);
         if (item == null) {
