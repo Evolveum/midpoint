@@ -69,4 +69,10 @@
             <visibility>visible</visibility>
         </itemConstraint>
     </defaultObjectPolicyConfiguration>
+    <cleanupPolicy>
+        <objectResults>
+            <maxAge>P1D</maxAge>
+            <maxRecords>10</maxRecords>
+        </objectResults>
+    </cleanupPolicy>
 </systemConfiguration>

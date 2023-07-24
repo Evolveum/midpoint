@@ -161,9 +161,15 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-//            Assertions.assertThat(result.getItems()).hasSize(5);
+//            Assertions.assertThat(result.getItems()).hasSize(1);
 
-            // todo assert deltas
+            UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
+            Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
+            Assertions.assertThat(item.isChanged()).isTrue();
+
+            item = assertGetItem(result, getProcessorIdentifier(RoleCatalogRefProcessor.class));
+            Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
+            Assertions.assertThat(item.isChanged()).isTrue();
         });
     }
 
@@ -196,7 +202,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test60TaskLivesync() throws Exception {
         testUpgradeValidator("task-livesync.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(1);
+                    .hasSize(2);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
