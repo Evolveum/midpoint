@@ -15,6 +15,16 @@
 
     <schemaHandling>
         <objectType id="1">
+            <correlation>
+                <correlators>
+                    <idMatch id="5">
+                        <name>asdf</name>
+                    </idMatch>
+                    <idMatch id="6">
+                        <name>jklo</name>
+                    </idMatch>
+                </correlators>
+            </correlation>
             <synchronization>
                 <defaultSettings>
                 </defaultSettings>
