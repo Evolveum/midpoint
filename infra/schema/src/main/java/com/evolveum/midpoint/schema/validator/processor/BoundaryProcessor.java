@@ -39,7 +39,8 @@ public class BoundaryProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentType(object, path, StringWorkSegmentationType.class);
+        return matchParentTypeAndItemName(
+                object, path, StringWorkSegmentationType.class, StringWorkSegmentationType.F_BOUNDARY_CHARACTERS);
     }
 
     @Override
