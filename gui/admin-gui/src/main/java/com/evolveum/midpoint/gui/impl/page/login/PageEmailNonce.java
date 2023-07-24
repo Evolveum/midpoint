@@ -126,6 +126,11 @@ public class PageEmailNonce extends PageAuthenticationBase {
     }
 
     @Override
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.MAIL_NONCE;
+    }
+
+    @Override
     protected AjaxButton createBackButton(String id){
         AjaxButton backButton = new AjaxButton(id) {
             private static final long serialVersionUID = 1L;

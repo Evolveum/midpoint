@@ -8,8 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.*;
@@ -23,24 +21,27 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
@@ -50,14 +51,20 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageArchetypeSelection.class);
     private static final String DOT_CLASS = PageArchetypeSelection.class.getName() + ".";
-    protected static final String OPERATION_LOAD_USER_OBJECT_WRAPPER = DOT_CLASS + "loadUserObjectWrapper";
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
+    public static final String UNDEFINED_OID = DOT_CLASS + "undefined";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_ARCHETYPE_SELECTION_PANEL = "archetypeSelectionPanel";
+    private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_ARCHETYPES_PANEL = "archetypes";
     private static final String ID_ARCHETYPE_PANEL = "archetype";
+    private static final String ID_ARCHETYPE_OID = "archetypeOid";
+    private static final String ID_ALLOW_UNDEFINED_ARCHETYPE = "allowUndefinedArchetype";
+
+    private IModel<String> archetypeOidModel = Model.of();
+    private boolean allowUndefinedArchetype;
 
     private LoadableDetachableModel<ArchetypeSelectionModuleType> archetypeSelectionModuleModel;
 
@@ -78,64 +85,50 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     }
 
     @Override
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.ARCHETYPE_SELECTION;
+    }
+
+    @Override
     protected void initModels() {
         archetypeSelectionModuleModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected ArchetypeSelectionModuleType load() {
-                return loadArchetypeSelectionModule();
+                var securityPolicy = resolveSecurityPolicy(null);
+
+                return ConfigurationLoadUtil.loadArchetypeSelectionModuleForLoginRecovery(PageArchetypeSelection.this, securityPolicy);
             }
         };
+        allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();
     }
 
-    private ArchetypeSelectionModuleType getModuleByIdentifier(String moduleIdentifier) {
-        if (StringUtils.isEmpty(moduleIdentifier)) {
-            return null;
-        }
-        //TODO user model?
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
-        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
-            getSession().error(getString("Security policy not found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        return securityPolicy.getAuthentication().getModules().getArchetypeSelection()
-                .stream()
-                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private ArchetypeSelectionModuleType loadArchetypeSelectionModule() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication)) {
-            getSession().error(getString("No midPoint authentication is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-        if (moduleAuthentication == null
-                && !AuthenticationModuleNameConstants.ARCHETYPE_SELECTION.equals(moduleAuthentication.getModuleTypeName())) {
-            getSession().error(getString("No authentication module is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
-            getSession().error(getString("No module identifier is defined"));
-            throw new RestartResponseException(PageError.class);
-        }
-        ArchetypeSelectionModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
-        if (module == null) {
-            getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        return module;
+    private boolean loadAllowUndefinedArchetypeConfig() {
+        var securityPolicy = resolveSecurityPolicy(null);
+        var archetypeSelectionModule = ConfigurationLoadUtil.loadArchetypeSelectionModuleForLoginRecovery(
+                PageArchetypeSelection.this, securityPolicy);
+        var allowUndefinedArchetype = Boolean.TRUE.equals(archetypeSelectionModule.isAllowUndefinedArchetype());
+        return allowUndefinedArchetype;
     }
 
     @Override
     protected void initCustomLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        form.setOutputMarkupId(true);
+        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         add(form);
+
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        form.add(csrfField);
+
+        HiddenField<String> archetypeOidField = new HiddenField<>(ID_ARCHETYPE_OID, archetypeOidModel);
+        archetypeOidField.setOutputMarkupId(true);
+        form.add(archetypeOidField);
+
+        HiddenField<Boolean> allowUndefinedArchetypeField =
+                new HiddenField<>(ID_ALLOW_UNDEFINED_ARCHETYPE, Model.of(allowUndefinedArchetype));
+        allowUndefinedArchetypeField.setOutputMarkupId(true);
+        form.add(allowUndefinedArchetypeField);
 
         initArchetypeSelectionPanel(form);
 
@@ -185,6 +178,10 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
                 archetypes.forEach(archetype -> {
                     tiles.add(createTile(archetype));
                 });
+                if (allowUndefinedArchetype) {
+                    var undefinedArchetypeTile = createUndefinedArchetypeTile();
+                    tiles.add(undefinedArchetypeTile);
+                }
                 return tiles;
             }
         };
@@ -198,11 +195,34 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
         });
     }
 
+    private Tile<ArchetypeType> createUndefinedArchetypeTile() {
+        var archetype = new ArchetypeType();
+        archetype.setOid(UNDEFINED_OID);
+
+        var archetypePolicy = new ArchetypePolicyType();
+
+        var undefinedArchetypeLabel = new PolyStringType("Undefined");
+        undefinedArchetypeLabel.setTranslation(new PolyStringTranslationType().key("PageArchetypeSelection.undefinedArchetype"));
+
+        var undefinedArchetypeHelp = new PolyStringType("Undefined");
+        undefinedArchetypeHelp.setTranslation(new PolyStringTranslationType().key("PageArchetypeSelection.undefinedArchetypeHelp"));
+
+        var archetypeDisplay = new DisplayType()
+                .label(undefinedArchetypeLabel)
+                .icon(new IconType().cssClass(CLASS_TEST_CONNECTION_MENU_ITEM))
+                .help(undefinedArchetypeHelp);
+        archetypePolicy.setDisplay(archetypeDisplay);
+        archetype.setArchetypePolicy(archetypePolicy);
+
+        return createTile(archetype);
+    }
+
+
     private Tile<ArchetypeType> createTile(ArchetypeType archetype) {
         var archetypeDisplayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(archetype,
                 PageArchetypeSelection.this);
         var iconCssClass = GuiDisplayTypeUtil.getIconCssClass(archetypeDisplayType);
-        var label = LocalizationUtil.translatePolyString(GuiDisplayTypeUtil.getLabel(archetypeDisplayType));
+        var label = GuiDisplayTypeUtil.getTranslatedLabel(archetypeDisplayType);
         var help = GuiDisplayTypeUtil.getHelp(archetypeDisplayType);
         Tile<ArchetypeType> tile = new Tile<>(iconCssClass, label);
         tile.setDescription(help);
@@ -216,21 +236,26 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
 
             @Override
             protected void onClick(AjaxRequestTarget target) {
-                var archetypeOid = getArchetypeOid(tileModel);
-                redirectToCorrelationPage(archetypeOid);
+                updateArchetypeOidField(tileModel, target);
             }
         };
+    }
+
+    private void updateArchetypeOidField(IModel<Tile<ArchetypeType>> tileModel, AjaxRequestTarget target) {
+        archetypeOidModel.setObject(getArchetypeOid(tileModel));
+        target.add(getArchetypeOidField());
     }
 
     private String getArchetypeOid(IModel<Tile<ArchetypeType>> tileModel) {
         return tileModel.getObject().getValue().getOid();
     }
 
-    private void redirectToCorrelationPage(String archetypeOid) {
-        PageParameters params = new PageParameters();
-        params.set(ARCHETYPE_OID_PARAMETER, archetypeOid);
+    private MidpointForm<?> getForm() {
+        return (MidpointForm<?>) get(ID_MAIN_FORM);
+    }
 
-        setResponsePage(new PageCorrelationFocusIdentification(params));
+    private Component getArchetypeOidField() {
+        return getForm().get(ID_ARCHETYPE_OID);
     }
 
 }

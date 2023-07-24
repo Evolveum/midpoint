@@ -11,11 +11,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="form-horizontal">
+    <form method="post"  wicket:id="mainForm" class="form-horizontal">
+        <div wicket:id="csrfField"/>
+        <input type="hidden" wicket:id="archetypeOid"/>
+        <input type="hidden" wicket:id="allowUndefinedArchetype"/>
         <div wicket:id="archetypeSelectionPanel" class="row p-0 col-12">
             <div wicket:id="archetypes" class="card">
                 <div type="submit" wicket:id="archetype"/>
             </div>
+        </div>
+        <div>
+            <input type="submit" class="btn btn-primary login-panel-control" wicket:message="value:PageBase.button.send" />
         </div>
     </form>
     <a class="text-center login-panel-control mt-2" style="display: inline-block;" wicket:id="back">

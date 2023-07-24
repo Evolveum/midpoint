@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -14,16 +26,14 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -34,23 +44,6 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @PageDescriptor(urls = {
 @Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
@@ -73,15 +66,14 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
 //    private LoadableDetachableModel<List<ItemsSubCorrelatorType>> correlatorsModel;
     private String archetypeOid;
 
-    public PageCorrelationFocusIdentification(PageParameters parameters) {
-        var archetypeOidParamValue = parameters.get(ARCHETYPE_OID_PARAMETER);
-        archetypeOid = archetypeOidParamValue != null ? archetypeOidParamValue.toString() : null;
+    private boolean allowUndefinedArchetype;
+
+    public PageCorrelationFocusIdentification() {
     }
 
     @Override
-    protected String getUrlProcessingLogin() {
-        //todo
-        return "";
+    protected String getModuleTypeName() {
+        return AuthenticationModuleNameConstants.CORRELATION;
     }
 
     @Override
@@ -178,10 +170,10 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
             private static final long serialVersionUID = 1L;
             @Override
             protected ObjectTemplateType load() {
-                var archetype = loadArchetype();
-                return loadObjectTemplateForArchetype(archetype);
+                return loadObjectTemplate();
             }
         };
+
 //        correlatorsModel = new LoadableDetachableModel<>() {
 //            private static final long serialVersionUID = 1L;
 //
@@ -195,6 +187,30 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
 //                return getCorrelators(objectTemplate);
 //            }
 //        };
+        allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();
+    }
+
+    private ObjectTemplateType loadObjectTemplate() {
+        var archetype = loadArchetype();
+
+        if (archetype == null && allowUndefinedArchetype) {
+            return loadDefaultObjectTemplate();
+        }
+
+        if (archetype == null) {
+            getSession().error(getString("Unable to load object template"));
+            throw new RestartResponseException(PageError.class);
+        }
+
+        return loadObjectTemplateForArchetype(archetype);
+    }
+
+    private boolean loadAllowUndefinedArchetypeConfig() {
+        var securityPolicy = resolveSecurityPolicy(null);
+        var archetypeSelectionModule = ConfigurationLoadUtil.loadArchetypeSelectionModuleForLoginRecovery(
+                PageCorrelationFocusIdentification.this, securityPolicy);
+        return Boolean.TRUE.equals(archetypeSelectionModule.isAllowUndefinedArchetype());
+
     }
 
     @Override
@@ -212,6 +228,7 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     }
 
     private ArchetypeType loadArchetype() {
+        var archetypeOid = loadArchetypeOidFromAuthentication();
         return runPrivileged((Producer<ArchetypeType>) () -> {
             if (archetypeOid == null) {
                 return null;
@@ -224,13 +241,51 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         });
     }
 
-    private ObjectTemplateType loadObjectTemplateForArchetype(ArchetypeType archetype) {
-        return runPrivileged((Producer<ObjectTemplateType>) () -> {
-            var archetypePolicy = archetype.getArchetypePolicy();
-            if (archetypePolicy == null) {
-                return null;
+    private String loadArchetypeOidFromAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            return "./spring_security_login";
+        }
+        return ((MidpointAuthentication) authentication).getArchetypeOid();
+    }
+
+    private ObjectTemplateType loadDefaultObjectTemplate() {
+        var objPolicyConfig = findUserTypeObjectPolicyConfiguration();
+        if (objPolicyConfig == null || objPolicyConfig.getObjectTemplateRef() == null) {
+            return null;
+        }
+        var objectTemplateRef = objPolicyConfig.getObjectTemplateRef();
+        return loadObjectTemplate(objectTemplateRef);
+    }
+
+    private ObjectPolicyConfigurationType findUserTypeObjectPolicyConfiguration() {
+        return runPrivileged((Producer<ObjectPolicyConfigurationType>) () -> {
+            try {
+                var result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIGURATION);
+                var systemConfiguration = getModelInteractionService().getSystemConfiguration(result);
+                return systemConfiguration.getDefaultObjectPolicyConfiguration()
+                        .stream()
+                        .filter(c -> QNameUtil.match(UserType.COMPLEX_TYPE, c.getType()))
+                        .findFirst()
+                        .orElse(null);
+            } catch (SchemaException | ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't determine object template.", e);
             }
-            var objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+            return null;
+        });
+    }
+
+    private ObjectTemplateType loadObjectTemplateForArchetype(@NotNull ArchetypeType archetype) {
+        var archetypePolicy = archetype.getArchetypePolicy();
+        if (archetypePolicy == null) {
+            return null;
+        }
+        var objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+        return loadObjectTemplate(objectTemplateRef);
+    }
+
+    protected ObjectTemplateType loadObjectTemplate(ObjectReferenceType objectTemplateRef) {
+        return runPrivileged((Producer<ObjectTemplateType>) () -> {
             var loadObjectTemplateTask = createAnonymousTask(OPERATION_LOAD_OBJECT_TEMPLATE);
             var result = new OperationResult(OPERATION_LOAD_OBJECT_TEMPLATE);
             PrismObject<ObjectTemplateType> objectTemplate = WebModelServiceUtils.resolveReferenceNoFetch(objectTemplateRef,

@@ -21,9 +21,9 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArchetypeSelectionModulesFactory extends AbstractCredentialModuleFactory<LoginFormModuleWebSecurityConfiguration, ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFactory<LoginFormModuleWebSecurityConfiguration, ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionModulesFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionModuleFactory.class);
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -41,7 +41,8 @@ public class ArchetypeSelectionModulesFactory extends AbstractCredentialModuleFa
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType,
+            String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;

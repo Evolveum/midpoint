@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -85,8 +84,6 @@ public abstract class PageAbstractAttributeVerification extends PageAuthenticati
 
         initButtons(form);
     }
-
-    protected abstract String getUrlProcessingLogin();
 
     private void initAttributesLayout(MidpointForm<?> form) {
         ListView<VerificationAttributeDto> attributesPanel = new ListView<>(ID_ATTRIBUTES, attributePathModel) {
