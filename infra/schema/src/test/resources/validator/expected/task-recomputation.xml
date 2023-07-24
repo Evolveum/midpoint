@@ -41,6 +41,9 @@
             <tracing id="1">
                 <interval>10</interval>
             </tracing>
+            <profiling>
+                <interval>11</interval>
+            </profiling>
         </reporting>
     </activity>
 </task>
