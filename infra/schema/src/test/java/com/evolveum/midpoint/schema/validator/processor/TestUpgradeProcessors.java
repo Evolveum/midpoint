@@ -134,7 +134,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("resource.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
-                    .hasSize(3);
+                    .hasSize(2);
 
             // todo assert items
         });

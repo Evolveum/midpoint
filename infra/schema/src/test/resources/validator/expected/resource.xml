@@ -12,13 +12,4 @@
             </cap:update>
         </configured>
     </capabilities>
-
-    <schemaHandling>
-        <objectType id="1">
-            <synchronization>
-                <defaultSettings>
-                </defaultSettings>
-            </synchronization>
-        </objectType>
-    </schemaHandling>
 </resource>

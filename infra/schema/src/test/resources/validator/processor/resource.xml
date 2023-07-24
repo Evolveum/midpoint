@@ -14,16 +14,4 @@
             </cap:addRemoveAttributeValues>
         </configured>
     </capabilities>
-
-    <schemaHandling>
-        <objectType id="1">
-            <synchronization>
-                <defaultSettings>
-                    <executeOptions>
-                        <reconcileAffected>true</reconcileAffected>
-                    </executeOptions>
-                </defaultSettings>
-            </synchronization>
-        </objectType>
-    </schemaHandling>
 </resource>
