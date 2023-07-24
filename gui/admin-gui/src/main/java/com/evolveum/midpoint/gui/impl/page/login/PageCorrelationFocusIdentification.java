@@ -152,20 +152,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         return Boolean.TRUE.equals(archetypeSelectionModule.isAllowUndefinedArchetype());
     }
 
-    @Override
-    protected void initCustomLayout() {
-        super.initCustomLayout();
-
-        var correlateButton = new AjaxButton(ID_CORRELATE) {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                correlate(target);
-            }
-        };
-        getForm().add(correlateButton);
-    }
-
     private ArchetypeType loadArchetype() {
         var archetypeOid = loadArchetypeOidFromAuthentication();
         return runPrivileged((Producer<ArchetypeType>) () -> {

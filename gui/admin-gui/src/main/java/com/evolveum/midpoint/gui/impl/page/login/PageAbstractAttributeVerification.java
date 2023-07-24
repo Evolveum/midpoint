@@ -120,7 +120,7 @@ public abstract class PageAbstractAttributeVerification extends PageAuthenticati
             return "";
         }
         ItemDefinition<?> def = new UserType().asPrismObject().getDefinition().findItemDefinition(path.getItemPath());
-        return WebComponentUtil.getItemDefinitionDisplayName(def);
+        return WebComponentUtil.getItemDefinitionDisplayNameOrName(def);
     }
 
     private void initButtons(MidpointForm form) {
