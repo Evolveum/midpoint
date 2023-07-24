@@ -66,6 +66,8 @@ public class UpgradeProcessor {
             return null;
         }
 
+        String description = processor.upgradeDescription((PrismObject) cloned, path);
+
         boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
 
         UpgradeValidationItem result = new UpgradeValidationItem(item);
@@ -74,6 +76,7 @@ public class UpgradeProcessor {
         result.setPhase(processor.getPhase());
         result.setType(processor.getType());
         result.setPriority(processor.getPriority());
+        result.setDescription(description);
 
         ObjectDelta<?> delta = object.diff(cloned);
         result.setDelta(delta);
