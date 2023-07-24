@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+@SuppressWarnings("unused")
 public class CleanupPolicyProcessor implements UpgradeObjectProcessor<ObjectType> {
 
     @Override

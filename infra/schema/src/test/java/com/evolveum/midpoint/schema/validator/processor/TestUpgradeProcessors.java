@@ -134,7 +134,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("resource.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
-                    .hasSize(2);
+                    .hasSize(3);
 
             // todo assert items
         });
@@ -211,6 +211,16 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test70Archetype() throws Exception {
         testUpgradeValidator("archetype.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
+    @Test
+    public void test80TaskRecomputation() throws Exception {
+        testUpgradeValidator("task-recomputation.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .hasSize(1);
 
