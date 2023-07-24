@@ -19,5 +19,23 @@
                 </objects>
             </recomputation>
         </work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <boundary>
+                        <position>1</position>
+                        <characters>a</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>\0-\1\a-\c</characters>
+                    </boundary>
+                    <boundary>
+                        <position>3</position>
+                        <characters>01abc</characters>
+                    </boundary>
+                </stringSegmentation>
+            </buckets>
+        </distribution>
     </activity>
 </task>

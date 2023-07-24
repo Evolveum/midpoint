@@ -22,5 +22,14 @@
                 </executionOptions>
             </recomputation>
         </work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <boundaryCharacters>a</boundaryCharacters>
+                    <boundaryCharacters>\0-\1\a-\c</boundaryCharacters>
+                    <boundaryCharacters>01abc</boundaryCharacters>
+                </stringSegmentation>
+            </buckets>
+        </distribution>
     </activity>
 </task>
