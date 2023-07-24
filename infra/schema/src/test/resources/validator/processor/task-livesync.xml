@@ -20,4 +20,16 @@
             </entry>
         </mext:liveSyncErrorHandlingStrategy>
     </extension>
+    <activity>
+        <work>
+            <cleanup>
+                <policies>
+                    <objectResults>
+                        <maxAge>P1D</maxAge>
+                        <maxRecords>10</maxRecords>
+                    </objectResults>
+                </policies>
+            </cleanup>
+        </work>
+    </activity>
 </task>
