@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,12 +25,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 public class ObjectTemplateTypeUtil {
 
-    public static @Nullable CompositeCorrelatorType getCorrelators(@Nullable ObjectTemplateType template) {
+    public static @Nullable CompositeCorrelatorType getCorrelators(
+            @Nullable ObjectTemplateType template,
+            @NotNull CorrelatorDiscriminator discriminator) {
         if (template == null) {
             return null;
         }
         ObjectTemplateCorrelationType correlation = template.getCorrelation();
-        return correlation != null ? correlation.getCorrelators() : null;
+        List<CompositeCorrelatorType> correlators = correlation != null ? correlation.getCorrelators() : null;
+        if (correlators == null) {
+            return null;
+        }
+        return correlators.stream().filter(discriminator::match).findFirst().orElse(null);
     }
 
     public static @Nullable ObjectTemplateItemDefinitionType findItemDefinition(

@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
+import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
@@ -86,8 +90,11 @@ public interface CorrelationService {
     /**
      * Instantiates a correlator
      */
-    CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
-            SystemConfigurationType systemConfiguration);
+//    CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
+//            SystemConfigurationType systemConfiguration);
+
+    PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+
 
     @FunctionalInterface
     interface CaseCloser {

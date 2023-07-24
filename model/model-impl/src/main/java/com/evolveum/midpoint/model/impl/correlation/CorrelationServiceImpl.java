@@ -11,13 +11,20 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -493,16 +500,57 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
 
+//    //TODO should be removed
+//    @Override
+//    public CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
+//            SystemConfigurationType systemConfiguration) {
+//        try {
+//            return CorrelatorContextCreator.createRootContext(new CorrelationDefinitionType(),
+//                    objectTemplate, systemConfiguration).getConfiguration();
+//        } catch (SchemaException|ConfigurationException ex) {
+//            //todo
+//        }
+//        return null;
+//    }
+
+
+    //TODO to many parameters, refactor to some context object.
     @Override
-    public CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
-            SystemConfigurationType systemConfiguration) {
-        try {
-            return CorrelatorContextCreator.createRootContext(new CorrelationDefinitionType(),
-                    objectTemplate, systemConfiguration).getConfiguration();
-        } catch (SchemaException|ConfigurationException ex) {
-            //todo
+    public PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        ObjectTemplateType template = determineObjectTemplate(archetypeOid, new UserType(), task, result);
+        CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(null, discriminator,
+                template, systemObjectCache.getSystemConfiguration(result).asObjectable());
+
+        return ctx.getConfiguration().getCorrelationItemPaths();
+
+//        String definedCorrelatorName = compositeCorrelator.getName();
+//        if (!correlatorName.equals(definedCorrelatorName)) {
+//            return List.of();
+//        }
+//        //TODO for now hardcoded only for items correlator.
+//        List<ItemsSubCorrelatorType> itemsCorrelator = compositeCorrelator.getItems();
+//
+//        List<CorrelationItemType> items = itemsCorrelator.stream()
+//                        .filter(item -> filterForTier(item, tier))
+//                .map(ItemsCorrelatorType::getItem)
+//                .collect(Collectors.flatMapping(Collection::stream, Collectors.toCollection(ArrayList::new)));
+//
+//        return items.stream()
+//                        .map(item -> item.getRef() != null ? item.getRef().getItemPath() : null)
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+    }
+
+    private boolean filterForTier(ItemsSubCorrelatorType item, int tier) {
+        CorrelatorCompositionDefinitionType compositionDefinition = item.getComposition();
+        if (compositionDefinition == null) {
+            return true;
         }
-        return null;
+        Integer itemTier = compositionDefinition.getTier();
+        if (itemTier == null) {
+            return true;
+        }
+        return itemTier == tier;
     }
 
 }

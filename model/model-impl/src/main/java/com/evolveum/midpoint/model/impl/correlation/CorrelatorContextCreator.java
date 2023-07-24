@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.merger.correlator.CorrelatorMergeOperation;
 
 import org.jetbrains.annotations.NotNull;
@@ -68,17 +68,21 @@ public class CorrelatorContextCreator {
         this.systemConfiguration = systemConfiguration;
     }
 
+
+
     public static CorrelatorContext<?> createRootContext(
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
+            CorrelatorDiscriminator correlatorDiscriminator,
             @Nullable ObjectTemplateType objectTemplate,
-            @Nullable SystemConfigurationType systemConfiguration)
+            @Nullable SystemConfigurationType systemConfiguration
+    )
             throws ConfigurationException, SchemaException {
         CompositeCorrelatorType correlators;
         CompositeCorrelatorType specificCorrelators = correlationDefinitionBean.getCorrelators();
         if (specificCorrelators != null) {
             correlators = specificCorrelators;
         } else {
-            correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate);
+            correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate, correlatorDiscriminator);
         }
         return new CorrelatorContextCreator(
                 getConfiguration(correlators),
