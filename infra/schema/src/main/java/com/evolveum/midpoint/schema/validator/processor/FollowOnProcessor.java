@@ -33,7 +33,7 @@ public class FollowOnProcessor implements UpgradeObjectProcessor<ObjectType> {
 
     @Override
     public UpgradeType getType() {
-        return UpgradeType.SEAMLESS;
+        return UpgradeType.MANUAL;
     }
 
     @Override
@@ -53,12 +53,6 @@ public class FollowOnProcessor implements UpgradeObjectProcessor<ObjectType> {
 
     @Override
     public boolean process(PrismObject<ObjectType> object, ItemPath path) throws Exception {
-        Item<?, ?> followOn = object.findItem(path);
-
-        PrismContainerValue<?> correlator = followOn.getParent();
-        IdMatchCorrelatorType idMatchCorrelator = (IdMatchCorrelatorType) correlator.asContainerable();
-        idMatchCorrelator.followOn(null);
-
-        return true;
+        return false;
     }
 }
