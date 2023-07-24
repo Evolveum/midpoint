@@ -11,7 +11,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -70,5 +72,29 @@ public interface ProcessorMixin {
         }
 
         return true;
+    }
+
+    default <O extends Containerable> boolean matchParentType(PrismObject<?> object, ItemPath path, Class<O> type) {
+        Item item = object.findItem(path);
+        if (item == null) {
+            return false;
+        }
+
+        PrismContainerValue value = item.getParent();
+        return type.isAssignableFrom(value.getRealValue().getClass());
+    }
+
+    default <C extends Containerable> C getItemParent(PrismObject<?> object, ItemPath path) {
+        Item item = object.findItem(path);
+        if (item == null) {
+            return null;
+        }
+
+        PrismContainerValue<C> value = item.getParent();
+        if (value == null) {
+            return null;
+        }
+
+        return value.asContainerable();
     }
 }
