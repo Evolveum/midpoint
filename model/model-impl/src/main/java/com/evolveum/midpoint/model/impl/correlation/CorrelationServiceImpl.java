@@ -102,12 +102,12 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Override
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
-            @NotNull ObjectTemplateType objectTemplate,
+            @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        CompleteContext ctx = getCompleteContext(preFocus, objectTemplate, task, result);
+        CompleteContext ctx = getCompleteContext(preFocus, discriminator, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
 
@@ -208,6 +208,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 preFocus,
                 determineObjectTemplate(synchronizationPolicy.getArchetypeOid(), preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
+                new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
                 task);
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(ctx.correlatorContext, task, result)
@@ -361,12 +362,13 @@ public class CorrelationServiceImpl implements CorrelationService {
                 preFocus,
                 determineObjectTemplate(policy.getArchetypeOid(), preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
+                new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
                 task);
     }
 
     private @NotNull CompleteContext getCompleteContext(
             @NotNull FocusType preFocus,
-            @NotNull ObjectTemplateType objectTemplate,
+            @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
@@ -377,8 +379,9 @@ public class CorrelationServiceImpl implements CorrelationService {
         return CompleteContext.forFocus(
                 correlationDefinitionBean,
                 preFocus,
-                objectTemplate,
+                determineObjectTemplate(null, preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
+                discriminator,
                 task);
     }
 
@@ -388,9 +391,11 @@ public class CorrelationServiceImpl implements CorrelationService {
     public @NotNull CorrelatorContext<?> createRootCorrelatorContext(
             @NotNull SynchronizationPolicy synchronizationPolicy,
             @Nullable ObjectTemplateType objectTemplate,
+            @NotNull CorrelatorDiscriminator discriminator,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException {
         return CorrelatorContextCreator.createRootContext(
                 synchronizationPolicy.getCorrelationDefinition(),
+                discriminator,
                 objectTemplate,
                 systemConfiguration);
     }
@@ -460,11 +465,13 @@ public class CorrelationServiceImpl implements CorrelationService {
                 @NotNull FocusType preFocus,
                 @Nullable ObjectTemplateType objectTemplate,
                 @Nullable SystemConfigurationType systemConfiguration,
+                @NotNull CorrelatorDiscriminator discriminator,
                 @NotNull Task task)
                 throws SchemaException, ConfigurationException {
             var correlatorContext =
                     CorrelatorContextCreator.createRootContext(
                             synchronizationPolicy.getCorrelationDefinition(),
+                            discriminator,
                             objectTemplate,
                             systemConfiguration);
             var correlationContext =
@@ -483,11 +490,13 @@ public class CorrelationServiceImpl implements CorrelationService {
                 @NotNull FocusType preFocus,
                 @Nullable ObjectTemplateType objectTemplate,
                 @Nullable SystemConfigurationType systemConfiguration,
+                @NotNull CorrelatorDiscriminator discriminator,
                 @NotNull Task task)
                 throws SchemaException, ConfigurationException {
             var correlatorContext =
                     CorrelatorContextCreator.createRootContext(
                             correlationDefinitionBean,
+                            discriminator,
                             objectTemplate,
                             systemConfiguration);
             var correlationContext =
@@ -518,7 +527,8 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Override
     public PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
         ObjectTemplateType template = determineObjectTemplate(archetypeOid, new UserType(), task, result);
-        CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(null, discriminator,
+        //@NotNull correlation definition bean. probably shoudl be changed
+        CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(new CorrelationDefinitionType(), discriminator,
                 template, systemObjectCache.getSystemConfiguration(result).asObjectable());
 
         return ctx.getConfiguration().getCorrelationItemPaths();
@@ -541,16 +551,16 @@ public class CorrelationServiceImpl implements CorrelationService {
 //                .collect(Collectors.toList());
     }
 
-    private boolean filterForTier(ItemsSubCorrelatorType item, int tier) {
-        CorrelatorCompositionDefinitionType compositionDefinition = item.getComposition();
-        if (compositionDefinition == null) {
-            return true;
-        }
-        Integer itemTier = compositionDefinition.getTier();
-        if (itemTier == null) {
-            return true;
-        }
-        return itemTier == tier;
-    }
+//    private boolean filterForTier(ItemsSubCorrelatorType item, int tier) {
+//        CorrelatorCompositionDefinitionType compositionDefinition = item.getComposition();
+//        if (compositionDefinition == null) {
+//            return true;
+//        }
+//        Integer itemTier = compositionDefinition.getTier();
+//        if (itemTier == null) {
+//            return true;
+//        }
+//        return itemTier == tier;
+//    }
 
 }

@@ -8,12 +8,17 @@ package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 import java.util.Map;
 
 public class CorrelationVerificationToken extends AbstractAuthenticationToken {
 
+    private String correlatorName;
     private Map<ItemPath, String> attributes;
 
     public CorrelationVerificationToken(Map<ItemPath, String> attributes) {
@@ -35,5 +40,13 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
     @Override
     public Map<ItemPath, String> getDetails() {
         return attributes;
+    }
+
+    public String getCorrelatorName() {
+        return correlatorName;
+    }
+
+    public FocusType getPreFocus() {
+        return new UserType();
     }
 }

@@ -7,15 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -24,25 +20,20 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationUseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @PageDescriptor(urls = {
@@ -54,16 +45,10 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
 
     private static final String DOT_CLASS = PageCorrelationFocusIdentification.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(PageCorrelationFocusIdentification.class);
-    private static final String OPERATION_LOAD_ARCHETYPE = DOT_CLASS + "loadArchetype";
-    private static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
-    private static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
-    private static final String OPERATION_CORRELATE = DOT_CLASS + "correlate";
     private static final String OPERATION_DETERMINE_CORRELATOR_SETTINGS = DOT_CLASS + "determineCorrelatorSettings";
 
     private static final String ID_CORRELATE = "correlate";
 
-    private LoadableDetachableModel<ObjectTemplateType> objectTemplateModel;
-//    private LoadableDetachableModel<List<ItemsSubCorrelatorType>> correlatorsModel;
     private String archetypeOid;
 
     private boolean allowUndefinedArchetype;
@@ -114,9 +99,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
             throw new RestartResponseException(PageError.class);
         }
         String correlatorName = module.getCorrelationRuleIdentifier();
-//        return moduleAttributes.stream()
-//                .map(attr -> new VerificationAttributeDto(attr))
-//                .collect(Collectors.toList());
 
         var index = 1; //todo this should be the index of the currently processing correlator
 
@@ -129,19 +111,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
             pathList = new PathSet();
         }
 
-//        new ArrayList<>();
-//        if (correlatorsModel == null || correlatorsModel.getObject() == null) {
-//            return pathList;
-//        }
-//        if (CollectionUtils.isNotEmpty(correlatorsModel.getObject())) {
-//            var correlator = correlatorsModel.getObject().get(index);
-//            correlator.getItem().forEach(item -> {
-//                ItemPathType pathBean = item.getRef();
-//                if (pathBean != null) {
-//                    pathList.add(pathBean.getItemPath());
-//                }
-//            });
-//        }
         return pathList;
     }
 
@@ -166,43 +135,8 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     @Override
     protected void initModels() {
         super.initModels();
-        objectTemplateModel = new LoadableDetachableModel<>() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            protected ObjectTemplateType load() {
-                return loadObjectTemplate();
-            }
-        };
-
-//        correlatorsModel = new LoadableDetachableModel<>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected List<ItemsSubCorrelatorType> load() {
-//                var objectTemplate = objectTemplateModel.getObject();
-//                if (objectTemplate == null) {
-//                    //todo show warning?
-//                    return Collections.emptyList();
-//                }
-//                return getCorrelators(objectTemplate);
-//            }
-//        };
         allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();
-    }
-
-    private ObjectTemplateType loadObjectTemplate() {
-        var archetype = loadArchetype();
-
-        if (archetype == null && allowUndefinedArchetype) {
-            return loadDefaultObjectTemplate();
-        }
-
-        if (archetype == null) {
-            getSession().error(getString("Unable to load object template"));
-            throw new RestartResponseException(PageError.class);
-        }
-
-        return loadObjectTemplateForArchetype(archetype);
+        archetypeOid = loadArchetypeOidFromAuthentication();
     }
 
     private boolean loadAllowUndefinedArchetypeConfig() {
@@ -213,20 +147,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
 
     }
 
-    private ArchetypeType loadArchetype() {
-        var archetypeOid = loadArchetypeOidFromAuthentication();
-        return runPrivileged((Producer<ArchetypeType>) () -> {
-            if (archetypeOid == null) {
-                return null;
-            }
-            var task = createAnonymousTask(OPERATION_LOAD_ARCHETYPE);
-            var result = new OperationResult(OPERATION_LOAD_ARCHETYPE);
-            PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(ArchetypeType.class,
-                    archetypeOid, PageCorrelationFocusIdentification.this, task, result);
-            return archetype == null ? null : archetype.asObjectable();
-        });
-    }
-
     private String loadArchetypeOidFromAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof MidpointAuthentication)) {
@@ -234,76 +154,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         }
         return ((MidpointAuthentication) authentication).getArchetypeOid();
     }
-
-    private ObjectTemplateType loadDefaultObjectTemplate() {
-        var objPolicyConfig = findUserTypeObjectPolicyConfiguration();
-        if (objPolicyConfig == null || objPolicyConfig.getObjectTemplateRef() == null) {
-            return null;
-        }
-        var objectTemplateRef = objPolicyConfig.getObjectTemplateRef();
-        return loadObjectTemplate(objectTemplateRef);
-    }
-
-    private ObjectPolicyConfigurationType findUserTypeObjectPolicyConfiguration() {
-        return runPrivileged((Producer<ObjectPolicyConfigurationType>) () -> {
-            try {
-                var result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIGURATION);
-                var systemConfiguration = getModelInteractionService().getSystemConfiguration(result);
-                return systemConfiguration.getDefaultObjectPolicyConfiguration()
-                        .stream()
-                        .filter(c -> QNameUtil.match(UserType.COMPLEX_TYPE, c.getType()))
-                        .findFirst()
-                        .orElse(null);
-            } catch (SchemaException | ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't determine object template.", e);
-            }
-            return null;
-        });
-    }
-
-    private ObjectTemplateType loadObjectTemplateForArchetype(@NotNull ArchetypeType archetype) {
-        var archetypePolicy = archetype.getArchetypePolicy();
-        if (archetypePolicy == null) {
-            return null;
-        }
-        var objectTemplateRef = archetypePolicy.getObjectTemplateRef();
-        return loadObjectTemplate(objectTemplateRef);
-    }
-
-    protected ObjectTemplateType loadObjectTemplate(ObjectReferenceType objectTemplateRef) {
-        return runPrivileged((Producer<ObjectTemplateType>) () -> {
-            var loadObjectTemplateTask = createAnonymousTask(OPERATION_LOAD_OBJECT_TEMPLATE);
-            var result = new OperationResult(OPERATION_LOAD_OBJECT_TEMPLATE);
-            PrismObject<ObjectTemplateType> objectTemplate = WebModelServiceUtils.resolveReferenceNoFetch(objectTemplateRef,
-                    PageCorrelationFocusIdentification.this, loadObjectTemplateTask, result);
-            return objectTemplate == null ? null : objectTemplate.asObjectable();
-        });
-    }
-
-//    private List<ItemsSubCorrelatorType> getCorrelators(ObjectTemplateType objectTemplate) {
-//        var correlatorConfiguration = determineCorrelatorConfiguration(objectTemplate);
-//        if (correlatorConfiguration == null) {
-//            return Collections.emptyList();
-//        }
-//
-//        return ((CompositeCorrelatorType) correlatorConfiguration.getConfigurationBean())
-//                .getItems()
-//                .stream()
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toList());
-//    }
-
-//    //todo this method will be replaced so that correlation service will return the list of correlation items
-//    private CorrelatorConfiguration determineCorrelatorConfiguration(ObjectTemplateType objectTemplate) {
-//        OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIGURATION);
-//        try {
-//            var systemConfiguration = getModelInteractionService().getSystemConfiguration(result);
-//            return getCorrelationService().determineCorrelatorConfiguration(objectTemplate, systemConfiguration);
-//        } catch (SchemaException | ObjectNotFoundException e) {
-//            LoggingUtils.logException(LOGGER, "Couldn't determine correlation configuration.", e);
-//        }
-//        return null;
-//    }
 
     //actually, we don't need to search for user via query
     @Override
@@ -314,22 +164,6 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     }
 
     //todo correlation will be called from auth module, this is just an attempt to play with correlation
-    private void correlate(AjaxRequestTarget target) {
-        var task = createAnonymousTask(OPERATION_CORRELATE);
-        var result = new OperationResult(OPERATION_CORRELATE);
-        var user = createUser();
-        var objectTemplate = objectTemplateModel.getObject();
-        try {
-            getCorrelationService().correlate(user, objectTemplate, task, result);
-        } catch (Exception e) {
-            LoggingUtils.logException(LOGGER, "Couldn't determine correlation configuration.", e);
-            result.recordFatalError(e);
-            showResult(result);
-            target.add(getFeedbackPanel());
-        }
-
-
-    }
 
     private UserType createUser() {
         UserType user = new UserType();

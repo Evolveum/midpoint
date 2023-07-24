@@ -16,15 +16,23 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.token.Foc
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.FocusIdentificationAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -53,6 +61,10 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
     //TODO move to the evaluator?
     protected CorrelatorFactoryRegistry correlatorFactoryRegistry;
 
+    @Autowired protected CorrelationService correlationService;
+    @Autowired private TaskManager taskManager;
+    @Autowired private SecurityContextManager securityContextManager;
+
     @Override
     public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
         return super.authenticate(originalAuthentication);
@@ -70,6 +82,47 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
         try {
             Authentication token = null;
             if (authentication instanceof CorrelationVerificationToken) {
+
+                CompleteCorrelationResult correlationResult =  securityContextManager.runPrivileged( () -> {
+                        Task task = taskManager.createTaskInstance("correlate");
+                        task.setChannel(SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI);
+                        CorrelationVerificationToken correlationToken = (CorrelationVerificationToken) authentication;
+                        try {
+                            CompleteCorrelationResult result = correlationService.correlate(correlationToken.getPreFocus(),
+                                    new CorrelatorDiscriminator(correlationToken.getCorrelatorName(), CorrelationUseType.USERNAME_RECOVERY),
+                                    task, task.getResult());
+                            return result;//.getOwner();
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExpressionEvaluationException e) {
+                            throw new RuntimeException(e);
+                        } catch (CommunicationException e) {
+                            throw new RuntimeException(e);
+                        } catch (SecurityViolationException e) {
+                            throw new RuntimeException(e);
+                        } catch (ConfigurationException e) {
+                            throw new RuntimeException(e);
+                        } catch (ObjectNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+
+                correlationResult.getOwner();
+//
+//
+//                        Task task = createAnonymousTask("get security policy", manager);
+//                        OperationResult result = new OperationResult("get security policy");
+//
+//                        try {
+//                            return modelInteractionService.getSecurityPolicy(user, task, result);
+//                        } catch (CommonException e) {
+//                            LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+//                            return null;
+//                        }
+//                    }
+//                });
+
 
 //                CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
 //
