@@ -74,11 +74,14 @@ public interface ProcessorMixin {
         return true;
     }
 
-    default <O extends Containerable> boolean matchParentTypeAndItemName(PrismObject<?> object, ItemPath path, Class<O> type, ItemName itemName) {
+    default <O extends Containerable> boolean matchParentTypeAndItemName(
+            PrismObject<?> object, ItemPath path, Class<O> type, ItemName itemName) {
+
         ItemName name = path.lastName();
         if (name == null || !itemName.equivalent(name)) {
-
+            return false;
         }
+
         Item item = object.findItem(path);
         if (item == null) {
             return false;
