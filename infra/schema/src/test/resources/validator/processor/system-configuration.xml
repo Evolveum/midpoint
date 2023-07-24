@@ -90,4 +90,7 @@
             <maxRecords>10</maxRecords>
         </objectResults>
     </cleanupPolicy>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>always</useLegacyApproversSpecification>
+    </workflowConfiguration>
 </systemConfiguration>
