@@ -10,10 +10,12 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.config.ConstructionConfigItem;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,7 +45,8 @@ import org.jetbrains.annotations.Nullable;
  * to {@link AttributeEvaluation} and {@link AssociationEvaluation}. However, these classes shouldn't be
  * publicly visible.
  */
-public abstract class EvaluatedResourceObjectConstructionImpl<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>>
+public abstract class EvaluatedResourceObjectConstructionImpl<
+        AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>>
         implements EvaluatedAbstractConstruction<AH>, EvaluatedResourceObjectConstruction {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedResourceObjectConstructionImpl.class);
@@ -189,6 +192,11 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
                 ", projectionContext='" + projectionContext +
                 "')";
     }
+
+    @NotNull ConstructionConfigItem getTypedConfigItemRequired() {
+        return Objects.requireNonNull(construction.constructionConfigItem)
+                .as(ConstructionConfigItem.class);
+    }
     //endregion
 
     //region Mappings management
@@ -273,13 +281,13 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
      * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
      */
     protected abstract List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
-            throws SchemaException;
+            throws SchemaException, ConfigurationException;
 
     /**
      * Collects associations that are to be evaluated.
      */
     protected abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(
-            ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+            ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException, ConfigurationException;
     //endregion
 
     //region Resource object loading

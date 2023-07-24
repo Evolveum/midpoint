@@ -11,6 +11,20 @@
 
     <name>livesync</name>
     <activity>
+        <work>
+            <cleanup>
+                <policies>
+                    <simpleOperationExecutions>
+                        <maxAge>P1D</maxAge>
+                        <maxRecords>10</maxRecords>
+                    </simpleOperationExecutions>
+                    <complexOperationExecutions>
+                        <maxAge>P1D</maxAge>
+                        <maxRecords>10</maxRecords>
+                    </complexOperationExecutions>
+                </policies>
+            </cleanup>
+        </work>
         <controlFlow>
             <errorHandling>
                 <entry id="1">

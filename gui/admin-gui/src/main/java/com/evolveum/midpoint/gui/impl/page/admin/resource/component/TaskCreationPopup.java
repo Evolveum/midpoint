@@ -78,12 +78,18 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
 
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView view, AjaxRequestTarget target) {
+                view.getArchetypeOid();
                 flavorModel.setObject(determineTaskFlavour(view.getArchetypeOid()));
             }
 
             @Override
             protected QName getType() {
                 return TaskType.COMPLEX_TYPE;
+            }
+
+            @Override
+            protected boolean isSelectable() {
+                return true;
             }
         };
         add(templateChoicePanel);

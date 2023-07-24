@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.controller;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 
@@ -56,13 +57,14 @@ public class MappingDiagEvaluator {
         MappingType mappingBean = request.getMapping();
         if (task.canSee(mappingBean)) {
             builder
-                    .mappingBean(mappingBean)
+                    .mappingBean(mappingBean, ConfigurationItemOrigin.detached())
                     .mappingKind(MappingKindType.OTHER)
                     .contextDescription("mapping diagnostic execution")
                     .sourceContext(sourceContext)
                     .targetContext(createTargetContext(request, sourceContext))
                     .profiling(true)
-                    .now(clock.currentTimeXMLGregorianCalendar());
+                    .now(clock.currentTimeXMLGregorianCalendar())
+                    .computeExpressionProfile(result);
 
             MappingImpl<?, ?> mapping = builder.build();
 

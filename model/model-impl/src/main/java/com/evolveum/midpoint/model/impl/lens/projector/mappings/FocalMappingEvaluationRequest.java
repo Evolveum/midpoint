@@ -10,6 +10,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingPreExpression;
@@ -36,13 +42,25 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         implements ShortDumpable, Serializable {
 
     @NotNull protected final MT mapping;
+    @NotNull final ConfigurationItemOrigin mappingOrigin;
     @NotNull protected final MappingKindType mappingKind;
+
+    /**
+     * This field is used e.g. to fill {@link ExpressionConstants#VAR_SOURCE} variable, and for other uses.
+     * It should no longer be used to provide diagnostic info about mapping definition location.
+     * The {@link #mappingOrigin} should be used instead.
+     */
     @NotNull protected final OO originObject;
 
     private String mappingInfo; // lazily computed
 
-    FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull MappingKindType mappingKind, @NotNull OO originObject) {
+    FocalMappingEvaluationRequest(
+            @NotNull MT mapping,
+            @NotNull ConfigurationItemOrigin mappingOrigin,
+            @NotNull MappingKindType mappingKind,
+            @NotNull OO originObject) {
         this.mapping = mapping;
+        this.mappingOrigin = mappingOrigin;
         this.mappingKind = mappingKind;
         this.originObject = originObject;
     }
@@ -50,6 +68,10 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
     @NotNull
     public MT getMapping() {
         return mapping;
+    }
+
+    public @NotNull ConfigurationItemOrigin getMappingOrigin() {
+        return mappingOrigin;
     }
 
     public @NotNull List<VariableBindingDefinitionType> getSources() {
@@ -62,8 +84,8 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 
     public <V extends PrismValue,
             D extends ItemDefinition<?>,
-            AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(
-            ObjectDeltaObject<AH> focusOdo) throws SchemaException {
+            AH extends AssignmentHolderType> Source<V,D>
+    constructDefaultSource(ObjectDeltaObject<AH> focusOdo) throws SchemaException {
         return null;
     }
 
@@ -94,8 +116,9 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
     String getMappingInfo() {
         if (mappingInfo == null) {
             StringBuilder sb = new StringBuilder();
-            if (mapping.getName() != null) {
-                sb.append(mapping.getName()).append(" (");
+            String name = mapping.getName();
+            if (name != null) {
+                sb.append(name).append(" (");
             }
             String sources = mapping.getSource().stream()
                     .filter(source -> source != null && source.getPath() != null)
@@ -105,10 +128,12 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
                 sb.append(sources).append(" ");
             }
             sb.append("->");
-            if (mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
-                sb.append(" ").append(mapping.getTarget().getPath().toString());
+            var target = mapping.getTarget();
+            ItemPathType targetPath = target != null ? target.getPath() : null;
+            if (targetPath != null) {
+                sb.append(" ").append(targetPath);
             }
-            if (mapping.getName() != null) {
+            if (name != null) {
                 sb.append(")");
             }
             mappingInfo = sb.toString();

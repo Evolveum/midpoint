@@ -28,12 +28,6 @@ import jakarta.annotation.PreDestroy;
 
 /**
  * Activity handler for report import.
- *
- * Note that we cannot support legacy URI here. The reason is that from the URI itself we cannot distinguish report export
- * from report import. This is possible only after retrieving the report definition - and this is just too late for
- * the activity framework.
- *
- * So we simply do not support legacy URI for importing reports. (Or we could devise a separate URI for this, if needed.)
  */
 @Component
 public class ClassicReportImportActivityHandler

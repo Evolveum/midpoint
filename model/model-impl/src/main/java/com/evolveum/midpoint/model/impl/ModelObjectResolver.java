@@ -55,7 +55,7 @@ public class ModelObjectResolver implements ObjectResolver {
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
     @Override
-    public <O extends ObjectType> O resolve(
+    public <O extends ObjectType> @NotNull O resolve(
             Referencable ref,
             Class<O> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options,
@@ -131,18 +131,15 @@ public class ModelObjectResolver implements ObjectResolver {
         try {
             PrismObject<T> object;
             switch (getObjectManager(clazz, options)) {
-                case PROVISIONING:
+                case PROVISIONING -> {
                     object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
                         throw new SystemException("Got null result from provisioning.getObject while looking for " + clazz.getSimpleName()
                                 + " with OID " + oid + "; using provisioning implementation " + provisioning.getClass().getName());
                     }
-                    break;
-                case TASK_MANAGER:
-                    object = taskManager.getObject(clazz, oid, options, result);
-                    break;
-                default:
-                    object = cacheRepositoryService.getObject(clazz, oid, options, result);
+                }
+                case TASK_MANAGER -> object = taskManager.getObject(clazz, oid, options, result);
+                default -> object = cacheRepositoryService.getObject(clazz, oid, options, result);
             }
             objectType = object.asObjectable();
             if (!clazz.isInstance(objectType)) {

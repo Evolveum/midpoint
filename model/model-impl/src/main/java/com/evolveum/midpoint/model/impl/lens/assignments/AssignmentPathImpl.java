@@ -8,10 +8,13 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +29,10 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Path from focus object to a given assignment.
@@ -136,7 +143,7 @@ public class AssignmentPathImpl implements AssignmentPath {
         return protoRole;
     }
 
-    public boolean hasOnlyOrgs() {
+    boolean hasOnlyOrgs() {
         for (AssignmentPathSegmentImpl segment : segments) {
             if (segment.getTarget() == null) {
                 return false;
@@ -148,6 +155,7 @@ public class AssignmentPathImpl implements AssignmentPath {
         return true;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public AssignmentPathImpl clone() {
         return cloneFirst(size());
@@ -314,5 +322,14 @@ public class AssignmentPathImpl implements AssignmentPath {
         } else {
             return constructionSource.getSource(); // first role (for order=2) a.k.a. index -2 (generally)
         }
+    }
+
+    public @Nullable AssignmentPathVariables computePathVariables() throws SchemaException {
+        return LensUtil.computeAssignmentPathVariables(this);
+    }
+
+    @NotNull AssignmentPathVariables computePathVariablesRequired() throws SchemaException {
+        stateCheck(!isEmpty(), "Empty assignment path");
+        return Objects.requireNonNull(computePathVariables());
     }
 }

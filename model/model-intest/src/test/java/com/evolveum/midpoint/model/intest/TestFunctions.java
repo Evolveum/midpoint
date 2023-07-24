@@ -19,6 +19,7 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -52,7 +54,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -72,8 +73,8 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "functions");
 
-    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY_TESTLIB =
-            new TestResource<>(TEST_DIR, "function-library-testlib.xml", "19a38b96-8357-473c-b0a2-87e2885503bb");
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_TESTLIB =
+            TestObject.file(TEST_DIR, "function-library-testlib.xml", "19a38b96-8357-473c-b0a2-87e2885503bb");
 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private CacheDispatcher cacheDispatcher;
@@ -283,7 +284,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
             }
             callCustomLibrary(task, result);
             result.computeStatus();
-            result.cleanupResult();
+            result.cleanup();
 
             Exception exception = exceptionHolder.getValue();
             if (exception != null) {
@@ -317,12 +318,15 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
                         expressionBean, outputDefinition, getExpressionProfile(), "", task, result);
-        ExpressionEvaluationContext ctx = new ExpressionEvaluationContext(List.of(), new VariablesMap(), "", task);
-        Collection<PrismPropertyValue<String>> nonNegativeValues = expression.evaluate(ctx, result).getNonNegativeValues();
-        PrismPropertyValue<String> value = MiscUtil.extractSingletonRequired(
-                nonNegativeValues,
-                () -> new AssertionError("Unexpected multiple values returned: " + nonNegativeValues),
-                () -> new AssertionError("No values returned"));
+        var ctx = new ExpressionEvaluationContext(List.of(), new VariablesMap(), "", task);
+        Collection<PrismPropertyValue<String>> nonNegativeValues =
+                Objects.requireNonNull(expression.evaluate(ctx, result))
+                        .getNonNegativeValues();
+        PrismPropertyValue<String> value =
+                MiscUtil.extractSingletonRequired(
+                        nonNegativeValues,
+                        () -> new AssertionError("Unexpected multiple values returned: " + nonNegativeValues),
+                        () -> new AssertionError("No values returned"));
         String realValue = value.getRealValue();
         assertThat(realValue).as("expression result").isEqualTo("test-result");
     }

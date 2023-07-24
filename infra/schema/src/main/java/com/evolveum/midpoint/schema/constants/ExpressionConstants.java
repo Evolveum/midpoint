@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema.constants;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import javax.xml.namespace.QName;
+
 /**
  * Constants for all names of the variables in the system.
  *
@@ -31,6 +33,7 @@ public class ExpressionConstants {
     public static final String VAR_PROJECTION = "projection";
     public static final String VAR_SOURCE = "source";
     public static final String VAR_ASSIGNMENT = "assignment";
+    public static final QName VAR_ASSIGNMENT_QNAME = new QName(SchemaConstants.NS_C, VAR_ASSIGNMENT);
     public static final String VAR_ASSIGNMENT_EVALUATOR = "assignmentEvaluator";
     public static final String VAR_EVALUATED_ASSIGNMENT = "evaluatedAssignment";
     public static final String VAR_ASSIGNMENT_PATH = "assignmentPath";

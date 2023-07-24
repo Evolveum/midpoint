@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  *
@@ -68,7 +70,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
         }
     }
 
-    private AccessDecision decideClass(String className, String methodName) {
+    private @NotNull AccessDecision decideClass(String className, String methodName) {
         AccessDecision decision = GroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
         LOGGER.trace("decideClass: builtin [{},{}] : {}", className, methodName, decision);
         if (decision != AccessDecision.DEFAULT) {
@@ -80,7 +82,8 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
             return AccessDecision.ALLOW;
         }
         decision = scriptExpressionProfile.decideClassAccess(className, methodName);
-        LOGGER.trace("decideClass: profile({}) [{},{}] : {}", getContext().getExpressionProfile().getIdentifier(), className, methodName, decision);
+        LOGGER.trace("decideClass: profile({}) [{},{}] : {}",
+                getContext().getExpressionProfile().getIdentifier(), className, methodName, decision);
         return decision;
     }
 

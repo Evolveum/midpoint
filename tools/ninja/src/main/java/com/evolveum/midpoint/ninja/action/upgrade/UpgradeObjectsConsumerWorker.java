@@ -68,7 +68,7 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
         }
     }
 
-    private void processObject(RepositoryService repository, T object) {
+    private void processObject(RepositoryService repository, T object) throws Exception {
         PrismObject prismObject = object.asPrismObject();
 
         PrismObject cloned = prismObject.clone();

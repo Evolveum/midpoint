@@ -83,7 +83,7 @@ public class ExpressionEvaluationContext {
     /**
      * Task under which the evaluation is being carried out.
      */
-    private final Task task;
+    @NotNull private final Task task;
 
     /**
      * Converts expression output to expected form. E.g. if object reference is required but
@@ -121,8 +121,7 @@ public class ExpressionEvaluationContext {
     private TransformationValueMetadataComputer valueMetadataComputer;
 
     public ExpressionEvaluationContext(
-            Collection<Source<?,?>> sources, VariablesMap variables, String contextDescription, Task task) {
-        super();
+            Collection<Source<?,?>> sources, VariablesMap variables, String contextDescription, @NotNull Task task) {
         this.sources = emptyIfNull(sources);
         this.variables = variables;
         this.contextDescription = contextDescription;

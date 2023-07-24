@@ -58,11 +58,11 @@ public class TestScriptCaching extends AbstractUnitTest
         implements InfraTestMixin {
 
     private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
-    protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
+    private static final File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
 
-    protected ScriptExpressionFactory scriptExpressionfactory;
+    private ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
 
     @BeforeSuite
@@ -130,7 +130,8 @@ public class TestScriptCaching extends AbstractUnitTest
         // GIVEN
         OperationResult result = createOperationResult(desc);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
-        ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
+        ItemDefinition<?> outputDefinition =
+                getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
         ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
 
@@ -164,8 +165,10 @@ public class TestScriptCaching extends AbstractUnitTest
     }
 
     private ScriptExpression createScriptExpression(
-            ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition) {
-        ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
+            ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
+        ScriptExpression expression = new ScriptExpression(
+                scriptExpressionfactory.getEvaluatorSimple(expressionType.getLanguage()),
+                expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
         expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));

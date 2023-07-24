@@ -340,7 +340,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
 
-        ResourceType resource = projContext.getResource();
+        ResourceType resource = projContext.getResourceRequired();
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (schema == null) {
             LOGGER.trace("No resource schema for {} -> opportunistic sync not available", resource);
@@ -530,7 +530,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         return ModelImplUtils.getDefaultVariablesMap(
                 context.getFocusContext().getObjectNew(),
                 projectionContext.getObjectNew(),
-                projectionContext.getResource().asPrismObject(),
+                projectionContext.getResourceRequired().asPrismObject(),
                 context.getSystemConfiguration(),
                 projectionContext);
     }

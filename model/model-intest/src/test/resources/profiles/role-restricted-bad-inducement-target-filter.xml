@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="bae5a90d-87c0-44f8-a585-0ea11e42ee9a">
+    <name>restricted-bad-inducement-target-filter</name>
+    <documentation>
+        A role that contains a non-compliant inducement target filter.
+    </documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <inducement id="333">
+        <targetRef type="RoleType">
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+                                com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
+                                'unrestricted'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+        </targetRef>
+    </inducement>
+</role>

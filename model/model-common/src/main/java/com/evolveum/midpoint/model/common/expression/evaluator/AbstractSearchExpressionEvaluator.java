@@ -51,7 +51,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -99,9 +98,13 @@ public abstract class AbstractSearchExpressionEvaluator<
             D outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, securityContextManager, localizationService);
+        super(
+                elementName,
+                expressionEvaluatorType,
+                outputDefinition,
+                protector,
+                localizationService);
         this.objectResolver = objectResolver;
     }
 
@@ -299,7 +302,6 @@ public abstract class AbstractSearchExpressionEvaluator<
                     variables,
                     context.getExpressionProfile(),
                     context.getExpressionFactory(),
-                    prismContext,
                     context.getContextDescription(),
                     task,
                     result);
@@ -550,7 +552,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         protected boolean isCreateOnDemandSafe() {
             ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
-            
+
             return ModelExecuteOptions.isCreateOnDemandSafe(options);
         }
     }

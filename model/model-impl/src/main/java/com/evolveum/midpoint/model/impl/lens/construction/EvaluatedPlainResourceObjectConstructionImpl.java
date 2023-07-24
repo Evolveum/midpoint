@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -77,9 +79,14 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
+
+            // FIXME Undetermined because of resource/object type inheritance
+            var origin = ConfigurationItemOrigin.undetermined();
+
             attributesToEvaluate.add(
                     new AttributeEvaluation<>(
-                            constructionEvaluation, attributeDef, outboundMappingBean,
+                            constructionEvaluation, attributeDef,
+                            ConfigurationItem.of(outboundMappingBean, origin),
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
 
@@ -102,9 +109,13 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
+            // FIXME Undetermined because of resource/object type inheritance
+            var origin = ConfigurationItemOrigin.undetermined();
+
             associationsToEvaluate.add(
                     new AssociationEvaluation<>(
-                            constructionEvaluation, associationDefinition, outboundMappingBean,
+                            constructionEvaluation, associationDefinition,
+                            ConfigurationItem.of(outboundMappingBean, origin),
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
         return associationsToEvaluate;

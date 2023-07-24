@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -51,7 +52,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Radovan Semancik
  */
-public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH, ?>>
+public abstract class ResourceObjectConstruction<
+        AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH, ?>>
         extends AbstractConstruction<AH, ConstructionType, EC> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConstruction.class);
@@ -113,9 +115,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
             if (hasResource()) {
                 initializeDefinitions();
                 createEvaluatedConstructions(task, result);
-                NextRecompute nextRecompute = evaluateConstructions(task, result);
-                result.recordSuccess();
-                return nextRecompute;
+                return evaluateConstructions(task, result);
             } else {
                 // If we are here (and not encountered an exception) it means that the resourceRef integrity was relaxed or lax.
                 if (resolvedResource.warning) {
@@ -126,8 +126,10 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
                 return null;
             }
         } catch (Throwable e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
+        } finally {
+            result.close();
         }
     }
 
@@ -145,8 +147,8 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     }
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         ResourceObjectMultiplicityType multiplicity = resourceObjectDefinition.getObjectMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return null;
@@ -162,14 +164,20 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
             return null;
         }
 
+        // FIXME Undetermined because of resource/object type inheritance
+        ConfigurationItemOrigin origin = ConfigurationItemOrigin.undetermined();
+
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
-                getMappingFactory().createMappingBuilder(tagMappingBean, "for outbound tag mapping in " + getSource());
+                getMappingFactory().createMappingBuilder(
+                        tagMappingBean, origin,
+                        "for outbound tag mapping in " + getSource());
 
         builder = initializeMappingBuilder(
                 builder, ShadowType.F_TAG, ShadowType.F_TAG, createTagDefinition(), null, task);
         if (builder == null) {
             return null;
         }
+        builder.computeExpressionProfile(result);
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
         getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
@@ -287,7 +295,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
                     assocTargetObjectClassDefinition, ResourceObjectTypeDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
-        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), PrismContext.get());
+        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables());
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
         // TODO: other variables ?
 
@@ -318,11 +326,10 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (!(o instanceof ResourceObjectConstruction))
+        if (!(o instanceof ResourceObjectConstruction<?, ?> that))
             return false;
         if (!super.equals(o))
             return false;
-        ResourceObjectConstruction<?, ?> that = (ResourceObjectConstruction<?, ?>) o;
         return Objects.equals(resolvedResource, that.resolvedResource);
     }
 
@@ -361,17 +368,10 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
                 sb.append(auxiliaryObjectClassDefinition.getTypeName());
             }
         }
-        if (constructionBean != null && constructionBean.getDescription() != null) {
-            sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "description", indent + 1);
-            sb.append(" ").append(constructionBean.getDescription());
-        }
-
-        if (assignmentPath != null) {
-            sb.append("\n");
-            sb.append(assignmentPath.debugDump(indent + 1));
-        }
+        debugDumpConstructionDescription(sb, indent);
+        debugDumpAssignmentPath(sb, indent);
         sb.append("\n");
+
         DebugUtil.debugDumpLabel(sb, "evaluated constructions", indent + 1);
         if (evaluatedConstructionTriple == null) {
             sb.append(" (null)");
@@ -412,7 +412,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return ModelBeans.get().mappingFactory;
     }
 
-    public MappingEvaluator getMappingEvaluator() {
+    MappingEvaluator getMappingEvaluator() {
         return ModelBeans.get().mappingEvaluator;
     }
 

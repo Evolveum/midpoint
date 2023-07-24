@@ -7479,7 +7479,8 @@
                  <xsd:annotation>
                      <xsd:documentation>
                          <p>
-                            Restrics autoassignment to concrete focus type.
+                             Restrics autoassignment to concrete focus type (or other criteria).
+                             Expressions are NOT supported here for now.
                          </p>
                      </xsd:documentation>
                  </xsd:annotation>
@@ -9308,13 +9309,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="dataTransfer">
+            <xsd:enumeration value="synchronization">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The mapping is used for the data transfer, i.e. moves data from the resource objects to focus objects.
+                        The mapping is used for the synchronization, i.e. moves data from the resource objects to focus objects.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DATA_TRANSFER"/>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -92,11 +92,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.containerType = containerType;
     }
 
-    public <T> Class<T> getTargetClass(PrismContext prismContext) {
+    public <T> Class<T> getTargetClass() {
         if (containerType == null) {
             return null;
         }
-        return prismContext.getSchemaRegistry().determineClassForType(containerType);
+        return PrismContext.get().getSchemaRegistry().determineClassForType(containerType);
     }
 
     public String getViewIdentifier() {

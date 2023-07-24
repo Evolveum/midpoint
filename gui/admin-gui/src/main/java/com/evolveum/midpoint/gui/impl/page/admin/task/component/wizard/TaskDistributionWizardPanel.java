@@ -48,12 +48,17 @@ public class TaskDistributionWizardPanel extends AbstractFormWizardStepPanel<Tas
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("TaskWizardPanel.wizard.step.distribution");
+        return createStringResource("PageTask.wizard.step.distribution");
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("PageTask.wizard.step.distribution.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("TaskWizardPanel.wizard.step.distribution.help");
+        return createStringResource("PageTask.wizard.step.distribution.subText");
     }
 
     @Override

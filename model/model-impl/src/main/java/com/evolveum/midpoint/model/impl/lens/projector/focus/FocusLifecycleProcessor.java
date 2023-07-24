@@ -70,10 +70,9 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         }
 
         PrismObject<F> objectNew = focusContext.getObjectNew();
-        String startLifecycleState = objectNew.asObjectable().getLifecycleState();
-        if (startLifecycleState == null) {
-            startLifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
-        }
+        String startLifecycleState = Objects.requireNonNullElse(
+                objectNew.asObjectable().getLifecycleState(),
+                SchemaConstants.LIFECYCLE_ACTIVE);
 
         LifecycleStateType startStateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, startLifecycleState);
         if (startStateType == null) {
@@ -133,7 +132,8 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         focusContext.swallowToSecondaryDelta(lifecycleDelta);
     }
 
-    private <F extends AssignmentHolderType> void executeEntryActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
+    private <F extends AssignmentHolderType> void executeEntryActions(
+            LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
             String targetLifecycleState, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
         LifecycleStateType stateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
         if (stateType == null) {
@@ -142,7 +142,8 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         executeStateActions(context, targetLifecycleState, stateType.getEntryAction(), "entry", now, task, result);
     }
 
-    private <F extends AssignmentHolderType> void executeExitActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
+    private <F extends AssignmentHolderType> void executeExitActions(
+            LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
             String targetLifecycleState, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
         LifecycleStateType stateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
         if (stateType == null) {

@@ -26,15 +26,15 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-activation-mapping-predefined",
+@PanelInstance(identifier = "rw-activation-predefined",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.mapping.predefined", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.predefined", icon = "fa fa-circle"),
         expanded = true)
 public class PredefinedMappingStepPanel
         extends AbstractValueFormResourceWizardStepPanel<AbstractPredefinedActivationMappingType, ResourceDetailsModel> {
 
-    public static final String PANEL_TYPE = "rw-activation-mapping-predefined";
+    public static final String PANEL_TYPE = "rw-activation-predefined";
 
     public PredefinedMappingStepPanel(ResourceDetailsModel model,
                                       IModel<PrismContainerValueWrapper<AbstractPredefinedActivationMappingType>> newValueModel) {
@@ -47,22 +47,22 @@ public class PredefinedMappingStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.predefined");
+        return createStringResource("PageResource.wizard.step.activation.predefined");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.predefined.text");
+        return createStringResource("PageResource.wizard.step.activation.predefined.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.predefined.subText");
+        return createStringResource("PageResource.wizard.step.activation.predefined.subText");
     }
 
     @Override
     protected boolean isSubmitVisible() {
-        return true;
+        return false;
     }
 
     @Override
@@ -72,13 +72,7 @@ public class PredefinedMappingStepPanel
 
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
-        return VisibleBehaviour.ALWAYS_INVISIBLE;
-    }
-
-    @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        super.onSubmitPerformed(target);
-        onExitPerformed(target);
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     @Override
@@ -89,6 +83,12 @@ public class PredefinedMappingStepPanel
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return VisibleBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    public boolean onBackPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
+        return false;
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -23,6 +24,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaItemType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Expression evaluation source.
@@ -42,8 +46,28 @@ public class Source<V extends PrismValue, D extends ItemDefinition<?>>
         this.name = name;
     }
 
+    public Source(
+            @Nullable Item<V, D> itemOld,
+            @Nullable ItemDelta<V, D> delta,
+            @Nullable Item<V, D> itemNew,
+            @Nullable D definition,
+            @NotNull ItemPath resolvePath,
+            @Nullable ItemPath residualPath,
+            @Nullable Collection<? extends ItemDelta<?, ?>> subItemDeltas,
+            @NotNull QName name) {
+        super(
+                itemOld,
+                delta,
+                itemNew,
+                determineDefinition(itemOld, delta, itemNew, definition),
+                resolvePath,
+                residualPath,
+                subItemDeltas);
+        this.name = name;
+    }
+
     public Source(ItemDeltaItem<V,D> idi, @NotNull QName name) {
-        super(idi);
+        super(idi.getItemOld(), idi.getDelta(), idi.getItemNew(), idi.getDefinition());
         this.name = name;
     }
 
@@ -59,7 +83,10 @@ public class Source<V extends PrismValue, D extends ItemDefinition<?>>
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append(PrettyPrinter.prettyPrint(name)).append(": old=").append(getItemOld()).append(", delta=").append(getDelta()).append(", new=").append(getItemNew());
+        sb.append(PrettyPrinter.prettyPrint(name))
+                .append(": old=").append(getItemOld())
+                .append(", delta=").append(getDelta())
+                .append(", new=").append(getItemNew());
     }
 
     public void mediumDump(StringBuilder sb) {

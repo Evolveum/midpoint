@@ -21,7 +21,7 @@ import org.apache.wicket.model.IModel;
 @PanelInstance(identifier = "arw-construction-mapping-main",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.mapping.outbound.main", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound.main", icon = "fa fa-circle"),
         containerPath = "empty")
 public class ConstructionOutboundMainStepPanel<AHD extends AssignmentHolderDetailsModel> extends OutboundMappingMainConfigurationStepPanel<AHD> {
 

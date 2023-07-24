@@ -11,6 +11,8 @@ import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,16 +55,17 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException {
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException {
 
         AsIsExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBean(evaluatorElements, AsIsExpressionEvaluatorType.class, contextDescription);
+
         return new AsIsExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector);
     }
 }

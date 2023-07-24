@@ -21,7 +21,7 @@ import org.apache.wicket.model.IModel;
 @PanelInstance(identifier = "arw-construction-mapping-optional",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.mapping.outbound.optional", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound.optional", icon = "fa fa-circle"),
         containerPath = "empty")
 public class ConstructionOutboundOptionalStepPanel<AHD extends AssignmentHolderDetailsModel> extends OutboundMappingOptionalConfigurationStepPanel<AHD> {
 

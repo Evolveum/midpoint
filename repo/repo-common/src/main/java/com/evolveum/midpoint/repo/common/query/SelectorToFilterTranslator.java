@@ -72,7 +72,7 @@ public class SelectorToFilterTranslator {
                     VariablesMap variables = new VariablesMap(); // TODO
                     return ExpressionUtil.evaluateFilterExpressions(
                             filter, variables, MiscSchemaUtil.getExpressionProfile(),
-                            beans.expressionFactory, PrismContext.get(),
+                            beans.expressionFactory,
                             "expression in " + contextDescription, task, result);
                 };
         FilteringContext ctx = new FilteringContext(

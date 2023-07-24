@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,12 +45,18 @@ public class ProportionalExpressionEvaluatorFactory extends AbstractAutowiredExp
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements, D outputDefinition, ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory, String contextDescription, Task task, OperationResult result)
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException {
 
         ProportionalExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
                 ProportionalExpressionEvaluatorType.class, contextDescription);
+
         return new ProportionalExpressionEvaluator<>(getElementName(), evaluatorBean, outputDefinition, protector);
     }
 }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -50,17 +51,29 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
+ * Creates {@link ScriptExpression} instances. They evaluate Groovy/JS/Python/Velocity/... scripts.
+ *
+ * Responsibilities:
+ *
+ * . creates {@link ScriptExpression} instances from {@link ScriptExpressionEvaluatorType} beans;
+ * . manages {@link ScriptEvaluator} instances for individual languages (Groovy, JavaScript, ...);
+ * . caches custom function libraries (it is a {@link Cache} because for this purpose).
+ *
  * @author Radovan Semancik
  */
 public class ScriptExpressionFactory implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
-    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ScriptExpressionFactory.class.getName() + ".content");
+    private static final Trace LOGGER_CACHE_CONTENT =
+            TraceManager.getTrace(ScriptExpressionFactory.class.getName() + ".content");
 
     private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
-    @NotNull private final Map<String, ScriptEvaluator> evaluatorMap = new HashMap<>();
+    /** Indexed by full language URL, always non-null. Values are non-null as well. Concurrency is just for sure. */
+    @NotNull private final Map<String, ScriptEvaluator> evaluatorMap = new ConcurrentHashMap<>();
+
     @NotNull private final ObjectResolver objectResolver;
+
     @NotNull private final PrismContext prismContext;
 
     /** Null only in low-level tests. */
@@ -89,6 +102,7 @@ public class ScriptExpressionFactory implements Cache {
         }
     }
 
+    // Invoked by Spring
     public ScriptExpressionFactory(
             @NotNull PrismContext prismContext,
             @NotNull RepositoryService repositoryService,
@@ -122,11 +136,11 @@ public class ScriptExpressionFactory implements Cache {
     }
 
     @VisibleForTesting
-    public void registerEvaluator(ScriptEvaluator evaluator) {
+    public void registerEvaluator(@NotNull ScriptEvaluator evaluator) {
         registerEvaluator(evaluator.getLanguageUrl(), evaluator);
     }
 
-    private void registerEvaluator(String language, ScriptEvaluator evaluator) {
+    private void registerEvaluator(@NotNull String language, @NotNull ScriptEvaluator evaluator) {
         if (evaluatorMap.containsKey(language)) {
             throw new IllegalArgumentException("Evaluator for language " + language + " already registered");
         }
@@ -143,13 +157,8 @@ public class ScriptExpressionFactory implements Cache {
         return standardFunctionLibraries;
     }
 
-    @VisibleForTesting
-    public @NotNull Map<String, ScriptEvaluator> getEvaluators() {
-        return evaluatorMap;
-    }
-
     public ScriptExpression createScriptExpression(
-            ScriptExpressionEvaluatorType expressionType,
+            @NotNull ScriptExpressionEvaluatorType scriptExpressionBean,
             ItemDefinition<?> outputDefinition,
             ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
@@ -157,9 +166,9 @@ public class ScriptExpressionFactory implements Cache {
             OperationResult result)
             throws ExpressionSyntaxException, SecurityViolationException {
 
-        String language = getLanguage(expressionType);
+        String language = getLanguage(scriptExpressionBean);
         ScriptEvaluator evaluator = getEvaluator(language, shortDesc);
-        ScriptExpression expression = new ScriptExpression(evaluator, expressionType);
+        ScriptExpression expression = new ScriptExpression(evaluator, scriptExpressionBean);
         expression.setPrismContext(prismContext);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(objectResolver);
@@ -177,36 +186,39 @@ public class ScriptExpressionFactory implements Cache {
         expression.setScriptExpressionProfile(
                 processScriptExpressionProfile(
                         expressionProfile,
-                        evaluator.getLanguageUrl(), // We need "normalized" language URI here
+                        evaluator.getLanguageUrl(), // We need "normalized" language URI here hence not taking from script bean
                         shortDesc));
 
         return expression;
     }
 
     private ScriptExpressionProfile processScriptExpressionProfile(
-            ExpressionProfile expressionProfile, String language, String shortDesc) throws SecurityViolationException {
+            ExpressionProfile expressionProfile, @NotNull String language, String shortDesc) throws SecurityViolationException {
         if (expressionProfile == null) {
             return null;
         }
-        ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+        ExpressionEvaluatorProfile evaluatorProfile =
+                expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
         if (evaluatorProfile == null) {
-            if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
+            if (expressionProfile.getDefaultDecision() == AccessDecision.ALLOW) {
                 return null;
             } else {
-                throw new SecurityViolationException("Access to script expression evaluator " +
-                        " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
+                throw new SecurityViolationException(
+                        "Access to script expression evaluator not allowed (expression profile: %s) in %s"
+                                .formatted(expressionProfile.getIdentifier(), shortDesc));
             }
         }
         ScriptExpressionProfile scriptProfile = evaluatorProfile.getScriptExpressionProfile(language);
-        if (scriptProfile == null) {
-            if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
-                return null;
-            } else {
-                throw new SecurityViolationException("Access to script language " + language +
-                        " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
-            }
+        if (scriptProfile != null) {
+            return scriptProfile;
         }
-        return scriptProfile;
+
+        if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
+            return null;
+        } else {
+            throw new SecurityViolationException("Access to script language " + language +
+                    " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
+        }
     }
 
     private @NotNull Collection<FunctionLibrary> getCustomFunctionLibraries(
@@ -270,7 +282,7 @@ public class ScriptExpressionFactory implements Cache {
     }
 
     private @NotNull ScriptEvaluator getEvaluator(String languageUri, String shortDesc) throws ExpressionSyntaxException {
-        ScriptEvaluator evaluator = evaluatorMap.get(languageUri);
+        ScriptEvaluator evaluator = getEvaluatorSimple(languageUri);
         if (evaluator != null) {
             return evaluator;
         }
@@ -289,11 +301,13 @@ public class ScriptExpressionFactory implements Cache {
         throw new ExpressionSyntaxException("Unsupported language " + languageUri + " used in script in " + shortDesc);
     }
 
-    private String getLanguage(ScriptExpressionEvaluatorType expressionType) {
-        if (expressionType.getLanguage() != null) {
-            return expressionType.getLanguage();
-        }
-        return DEFAULT_LANGUAGE;
+    @VisibleForTesting
+    public @Nullable ScriptEvaluator getEvaluatorSimple(String languageUri) {
+        return evaluatorMap.get(languageUri);
+    }
+
+    private String getLanguage(ScriptExpressionEvaluatorType expressionBean) {
+        return Objects.requireNonNullElse(expressionBean.getLanguage(), DEFAULT_LANGUAGE);
     }
 
     @Override
@@ -315,12 +329,12 @@ public class ScriptExpressionFactory implements Cache {
 
     @Override
     public void dumpContent() {
-        if (LOGGER_CONTENT.isInfoEnabled()) {
+        if (LOGGER_CACHE_CONTENT.isInfoEnabled()) {
             Collection<FunctionLibrary> cached = cachedCustomFunctionLibraries;
             if (cached != null) {
-                cached.forEach(v -> LOGGER_CONTENT.info("Cached function library: {}", v));
+                cached.forEach(v -> LOGGER_CACHE_CONTENT.info("Cached function library: {}", v));
             } else {
-                LOGGER_CONTENT.info("Custom function library cache is not yet initialized");
+                LOGGER_CACHE_CONTENT.info("Custom function library cache is not yet initialized");
             }
         }
     }

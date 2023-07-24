@@ -256,7 +256,6 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                         getVariablesMap(correlationContext.getPreFocus()),
                         expressionProfile,
                         beans.expressionFactory,
-                        PrismContext.get(),
                         contextDescription,
                         task,
                         result);

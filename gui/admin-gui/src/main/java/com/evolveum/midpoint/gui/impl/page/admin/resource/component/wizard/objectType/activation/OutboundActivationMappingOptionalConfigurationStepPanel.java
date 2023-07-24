@@ -22,15 +22,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-activation-mapping-outbound-optional",
+@PanelInstance(identifier = "rw-activation-outbound-optional",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.mapping.outbound.optional", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.outbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class OutboundActivationMappingOptionalConfigurationStepPanel
         extends OutboundMappingOptionalConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-activation-mapping-outbound-optional";
+    public static final String PANEL_TYPE = "rw-activation-outbound-optional";
 
     public OutboundActivationMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,
                                                                    IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -43,18 +43,18 @@ public class OutboundActivationMappingOptionalConfigurationStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.outbound.optional");
+        return createStringResource("PageResource.wizard.step.activation.outbound.optional");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.outbound.optional.text");
+        return createStringResource("PageResource.wizard.step.activation.outbound.optional.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.activation.mapping.outbound.optional.subText",
+                "PageResource.wizard.step.activation.outbound.optional.subText",
                 GuiDisplayNameUtil.getDisplayName(((PrismContainerValueWrapper)getValueModel().getObject()).getNewValue()));
     }
 

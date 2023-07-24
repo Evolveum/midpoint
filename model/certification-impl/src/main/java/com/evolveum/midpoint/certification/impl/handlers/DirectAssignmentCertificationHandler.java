@@ -134,14 +134,12 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object,
             AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        AccessCertificationObjectBasedScopeType scope = null;
-        if (campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType) {
-            scope = (AccessCertificationObjectBasedScopeType) (campaign.getScopeDefinition());
+        AccessCertificationObjectBasedScopeType objectBasedScope =
+                campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType scope ? scope : null;
+        ExpressionType selectionExpression = objectBasedScope != null ? objectBasedScope.getItemSelectionExpression() : null;
+        if (selectionExpression == null) {
+            return true; // no expression, no rejections
         }
-        if (scope == null || scope.getItemSelectionExpression() == null) {
-            return true;        // no expression, no rejections
-        }
-        ExpressionType selectionExpression = scope.getItemSelectionExpression();
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, AssignmentType.class);
         if (object instanceof FocusType) {
@@ -150,7 +148,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         if (object instanceof UserType) {
             variables.putObject(ExpressionConstants.VAR_USER, (UserType)object, UserType.class);
         }
-        return expressionHelper.evaluateBooleanExpression(selectionExpression, variables,
+        return expressionHelper.evaluateBooleanExpression(
+                selectionExpression, variables,
                 "item selection for assignment " + ObjectTypeUtil.toShortString(assignment), task, result);
     }
 

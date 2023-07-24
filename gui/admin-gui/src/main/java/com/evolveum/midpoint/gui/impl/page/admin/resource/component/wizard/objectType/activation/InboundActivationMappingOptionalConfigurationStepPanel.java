@@ -22,15 +22,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-activation-mapping-inbound-optional",
+@PanelInstance(identifier = "rw-activation-inbound-optional",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.mapping.inbound.optional", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.inbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class InboundActivationMappingOptionalConfigurationStepPanel
         extends InboundMappingOptionalConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-activation-mapping-inbound-optional";
+    public static final String PANEL_TYPE = "rw-activation-inbound-optional";
 
     public InboundActivationMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,
                                                         IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -43,18 +43,18 @@ public class InboundActivationMappingOptionalConfigurationStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.inbound.optional");
+        return createStringResource("PageResource.wizard.step.activation.inbound.optional");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.inbound.optional.text");
+        return createStringResource("PageResource.wizard.step.activation.inbound.optional.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.activation.mapping.inbound.optional.subText",
+                "PageResource.wizard.step.activation.inbound.optional.subText",
                 GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getNewValue()));
     }
 

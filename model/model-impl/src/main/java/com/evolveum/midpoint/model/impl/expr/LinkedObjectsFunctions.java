@@ -279,10 +279,7 @@ public class LinkedObjectsFunctions {
             throw new IllegalStateException("Couldn't create new linked source object without explicit type in the selector");
         }
         SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-        Class<?> objectClass = schemaRegistry.getCompileTimeClassForObjectType(selector.getType());
-        if (objectClass == null) {
-            throw new IllegalStateException("No object class for type " + selector.getType());
-        }
+        Class<?> objectClass = schemaRegistry.getCompileTimeClassForObjectTypeRequired(selector.getType());
         if (Modifier.isAbstract(objectClass.getModifiers())) {
             throw new IllegalStateException("Class " + objectClass + " cannot be instantiated because it is abstract");
         }

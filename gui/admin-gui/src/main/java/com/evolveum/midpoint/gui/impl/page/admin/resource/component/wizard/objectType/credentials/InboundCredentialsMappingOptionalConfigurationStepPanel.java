@@ -22,15 +22,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-credentials-mapping-inbound-optional",
+@PanelInstance(identifier = "rw-credentials-inbound-optional",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.mapping.inbound.optional", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.inbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class InboundCredentialsMappingOptionalConfigurationStepPanel
         extends InboundMappingOptionalConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-credentials-mapping-inbound-optional";
+    public static final String PANEL_TYPE = "rw-credentials-inbound-optional";
 
     public InboundCredentialsMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,
                                                         IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -43,18 +43,18 @@ public class InboundCredentialsMappingOptionalConfigurationStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.credentials.mapping.inbound.optional");
+        return createStringResource("PageResource.wizard.step.credentials.inbound.optional");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.credentials.mapping.inbound.optional.text");
+        return createStringResource("PageResource.wizard.step.credentials.inbound.optional.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.credentials.mapping.inbound.optional.subText",
+                "PageResource.wizard.step.credentials.inbound.optional.subText",
                 GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getNewValue()));
     }
 

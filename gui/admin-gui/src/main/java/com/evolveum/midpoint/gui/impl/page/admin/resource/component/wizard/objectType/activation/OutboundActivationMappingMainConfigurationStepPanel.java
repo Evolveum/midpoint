@@ -22,15 +22,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-activation-mapping-outbound-main",
+@PanelInstance(identifier = "rw-activation-outbound-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.mapping.outbound.main", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.outbound.main", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class OutboundActivationMappingMainConfigurationStepPanel
         extends OutboundMappingMainConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-activation-mapping-outbound-main";
+    public static final String PANEL_TYPE = "rw-activation-outbound-main";
 
     public OutboundActivationMappingMainConfigurationStepPanel(ResourceDetailsModel model,
                                                                IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -44,18 +44,18 @@ public class OutboundActivationMappingMainConfigurationStepPanel
     @Override
     public IModel<String> getTitle() {
         return
-                createStringResource("PageResource.wizard.step.activation.mapping.outbound.main");
+                createStringResource("PageResource.wizard.step.activation.outbound.main");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.mapping.outbound.main.text");
+        return createStringResource("PageResource.wizard.step.activation.outbound.main.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.activation.mapping.outbound.main.subText",
+                "PageResource.wizard.step.activation.outbound.main.subText",
                 GuiDisplayNameUtil.getDisplayName(((PrismContainerValueWrapper)getValueModel().getObject()).getNewValue()));
     }
 

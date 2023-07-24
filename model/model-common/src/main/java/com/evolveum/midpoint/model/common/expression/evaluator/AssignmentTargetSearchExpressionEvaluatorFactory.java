@@ -25,6 +25,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTargetSearchExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Creates {@link AssignmentTargetSearchExpressionEvaluator} objects.
  *
@@ -49,16 +52,17 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException {
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException {
 
-        AssignmentTargetSearchExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBean(evaluatorElements,
-                AssignmentTargetSearchExpressionEvaluatorType.class, contextDescription);
+        AssignmentTargetSearchExpressionEvaluatorType evaluatorBean =
+                getSingleEvaluatorBean(
+                        evaluatorElements, AssignmentTargetSearchExpressionEvaluatorType.class, contextDescription);
 
         //noinspection unchecked
         return (ExpressionEvaluator<V>) new AssignmentTargetSearchExpressionEvaluator(
@@ -67,7 +71,6 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory
                 (PrismContainerDefinition<AssignmentType>) outputDefinition,
                 protector,
                 getObjectResolver(),
-                expressionFactory.getSecurityContextManager(),
-                expressionFactory.getLocalizationService());
+                getLocalizationService());
     }
 }

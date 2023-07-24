@@ -24,6 +24,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationFromLinkExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -46,14 +48,16 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result) throws SchemaException {
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException {
 
-        AssociationFromLinkExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBean(evaluatorElements,
-                AssociationFromLinkExpressionEvaluatorType.class, contextDescription);
+        AssociationFromLinkExpressionEvaluatorType evaluatorBean =
+                getSingleEvaluatorBean(evaluatorElements, AssociationFromLinkExpressionEvaluatorType.class, contextDescription);
 
         //noinspection unchecked
         return (ExpressionEvaluator<V>)

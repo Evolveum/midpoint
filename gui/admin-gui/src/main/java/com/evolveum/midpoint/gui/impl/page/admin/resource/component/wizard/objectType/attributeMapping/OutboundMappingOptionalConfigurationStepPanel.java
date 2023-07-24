@@ -29,15 +29,15 @@ import java.util.List;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-mapping-inbound-optional",
+@PanelInstance(identifier = "rw-attributes-inbound-optional",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.mapping.inbound.optional", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound.optional", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class OutboundMappingOptionalConfigurationStepPanel<ODM extends ObjectDetailsModels>
         extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
 
-    public static final String PANEL_TYPE = "rw-mapping-inbound-optional";
+    public static final String PANEL_TYPE = "rw-attributes-inbound-optional";
 
     private static final List<ItemName> VISIBLE_ITEMS = List.of(
             MappingType.F_DESCRIPTION,
@@ -63,17 +63,17 @@ public class OutboundMappingOptionalConfigurationStepPanel<ODM extends ObjectDet
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.mapping.inbound.optional");
+        return createStringResource("PageResource.wizard.step.attributes.inbound.optional");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.mapping.inbound.optional.text");
+        return createStringResource("PageResource.wizard.step.attributes.inbound.optional.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.mapping.inbound.optional.subText");
+        return createStringResource("PageResource.wizard.step.attributes.inbound.optional.subText");
     }
 
     @Override

@@ -52,7 +52,7 @@ public interface ObjectResolver {
      *
      * TODO resolve module dependencies to allow task to be of type Task
      */
-    <O extends ObjectType> O resolve(
+    @NotNull <O extends ObjectType> O resolve(
             Referencable ref,
             Class<O> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options,

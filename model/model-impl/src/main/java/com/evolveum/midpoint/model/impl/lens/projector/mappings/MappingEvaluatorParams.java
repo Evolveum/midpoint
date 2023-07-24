@@ -18,17 +18,19 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * @author semancik
+ * TODO determine the fate of this class
  *
+ * @author semancik
  */
 public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefinition<?>, T extends ObjectType, F extends FocusType> {
 
-    private Collection<MappingType> mappingTypes;
+    private Collection<ConfigurationItem<MappingType>> mappingBeans;
     private String mappingDesc;
     private XMLGregorianCalendar now;
     private MappingInitializer<V,D> initializer;
@@ -48,12 +50,12 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
     // If set to true then the target cannot be overridden in mapping
     private boolean fixTarget = false;
 
-    public Collection<MappingType> getMappingTypes() {
-        return mappingTypes;
+    public Collection<ConfigurationItem<MappingType>> getMappingBeans() {
+        return mappingBeans;
     }
 
-    public void setMappingTypes(Collection<MappingType> mappingTypes) {
-        this.mappingTypes = mappingTypes;
+    public void setMappingBeans(Collection<ConfigurationItem<MappingType>> mappingBeans) {
+        this.mappingBeans = mappingBeans;
     }
 
     public String getMappingDesc() {
