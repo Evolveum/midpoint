@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.schema.validator;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.processor.ProcessorMixin;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface UpgradeObjectProcessor<T extends Objectable> extends ProcessorMixin {
 
@@ -40,4 +38,14 @@ public interface UpgradeObjectProcessor<T extends Objectable> extends ProcessorM
      */
     boolean process(PrismObject<T> object, ItemPath path) throws Exception;
 
+    /**
+     * @param object before processing
+     * @param path
+     * @return Returns description of the upgrade if not done automatically.
+     * Should be single line (might end up in CSV) without any special characters.
+     * Best approach is to put in short description and link to documentation.
+     */
+    default String upgradeDescription(PrismObject<T> object, ItemPath path) {
+        return null;
+    }
 }

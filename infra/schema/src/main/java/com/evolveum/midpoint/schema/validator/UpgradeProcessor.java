@@ -1,17 +1,17 @@
 package com.evolveum.midpoint.schema.validator;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeProcessor {
 
@@ -66,6 +66,8 @@ public class UpgradeProcessor {
             return null;
         }
 
+        String description = processor.upgradeDescription((PrismObject) cloned, path);
+
         boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
 
         UpgradeValidationItem result = new UpgradeValidationItem(item);
@@ -74,6 +76,7 @@ public class UpgradeProcessor {
         result.setPhase(processor.getPhase());
         result.setType(processor.getType());
         result.setPriority(processor.getPriority());
+        result.setDescription(description);
 
         ObjectDelta<?> delta = object.diff(cloned);
         result.setDelta(delta);

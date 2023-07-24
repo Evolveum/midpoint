@@ -44,8 +44,14 @@ public class VerificationReporter {
             "Phase",
             "Priority",
             "Type",
+            "Upgrade description",
             "Skip upgrade [yes/no] Default: no"
     );
+
+    private static final int COLUMN_INDEX_OID = 0;
+    private static final int COLUMN_INDEX_PATH = 4;
+    private static final int COLUMN_INDEX_IDENTIFIER = 6;
+    private static final int COLUMN_INDEX_SKIP_UPGRADE = REPORT_HEADER.size() - 1;
 
     public static final CSVFormat CSV_FORMAT;
 
@@ -238,7 +244,7 @@ public class VerificationReporter {
             return "";
         }
 
-        String path = record.get(4);
+        String path = record.get(COLUMN_INDEX_PATH);
         if (StringUtils.isBlank(path)) {
             return "";
         }
@@ -251,7 +257,7 @@ public class VerificationReporter {
             return null;
         }
 
-        return record.get(6);
+        return record.get(COLUMN_INDEX_IDENTIFIER);
     }
 
     public static UUID getUuidFromRecord(CSVRecord record) {
@@ -259,8 +265,8 @@ public class VerificationReporter {
             return null;
         }
 
-        String uuid = record.get(0);
-        return StringUtils.isNotEmpty(uuid) ? UUID.fromString(uuid) : null;
+        String oid = record.get(COLUMN_INDEX_OID);
+        return StringUtils.isNotEmpty(oid) ? UUID.fromString(oid) : null;
     }
 
     public static boolean skipUpgradeForRecord(CSVRecord record) {
@@ -268,7 +274,7 @@ public class VerificationReporter {
             return true;
         }
 
-        String value = record.get(REPORT_HEADER.size() - 1);
+        String value = record.get(COLUMN_INDEX_SKIP_UPGRADE);
 
         return value.equalsIgnoreCase("true")
                 || value.equalsIgnoreCase("yes")
@@ -296,6 +302,7 @@ public class VerificationReporter {
         UpgradePhase phase = item.getPhase();
         UpgradePriority priority = item.getPriority();
         UpgradeType type = item.getType();
+        String upgradeDescription = item.getDescription();
 
         // this array has to match {@link VerifyConsumerWorker#REPORT_HEADER}
         return Arrays.asList(object.getOid(),
@@ -308,6 +315,7 @@ public class VerificationReporter {
                 phase != null ? phase.name() : null,
                 priority != null ? priority.name() : null,
                 type != null ? type.name() : null,
+                upgradeDescription,
                 null    // todo last column should have YES (skip upgrade for all non-auto changes by default)
         );
     }
