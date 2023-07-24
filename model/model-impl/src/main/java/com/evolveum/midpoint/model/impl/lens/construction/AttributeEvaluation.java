@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -26,13 +27,21 @@ import java.util.Collections;
 class AttributeEvaluation<AH extends AssignmentHolderType>
         extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, ResourceAttributeDefinition<?>> {
 
-    AttributeEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ResourceAttributeDefinition<?> refinedAttributeDefinition, MappingType mappingBean,
-            OriginType origin, MappingKindType mappingKind) {
-        super(constructionEvaluation, refinedAttributeDefinition.getItemName(),
+    AttributeEvaluation(
+            ConstructionEvaluation<AH, ?> constructionEvaluation,
+            ResourceAttributeDefinition<?> refinedAttributeDefinition,
+            ConfigurationItem<MappingType> mappingBeanWithOrigin,
+            OriginType origin,
+            MappingKindType mappingKind) {
+        super(
+                constructionEvaluation,
+                refinedAttributeDefinition.getItemName(),
                 ShadowType.F_ATTRIBUTES.append(refinedAttributeDefinition.getItemName()),
                 refinedAttributeDefinition,
-                refinedAttributeDefinition, mappingBean, origin, mappingKind);
+                refinedAttributeDefinition,
+                mappingBeanWithOrigin,
+                origin,
+                mappingKind);
     }
 
     @Override

@@ -16,19 +16,14 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluator;
-
-import com.evolveum.midpoint.schema.*;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
+import com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,6 +41,12 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.VirtualAssignmentSpecification;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -53,7 +54,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -148,8 +150,7 @@ public class LensUtil {
         propDelta.setRealValuesToReplace(accCtx.getIteration());
         PrismProperty<Integer> propNew = propDef.instantiate();
         propNew.setRealValue(accCtx.getIteration());
-        ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew, propDef);
-        return idi;
+        return new ItemDeltaItem<>(propOld, propDelta, propNew, propDef);
     }
 
     public static Object getIterationTokenVariableValue(LensProjectionContext accCtx) {
@@ -169,8 +170,7 @@ public class LensUtil {
         propDelta.setRealValuesToReplace(accCtx.getIterationToken());
         PrismProperty<String> propNew = propDef.instantiate();
         propNew.setRealValue(accCtx.getIterationToken());
-        ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew, propDef);
-        return idi;
+        return new ItemDeltaItem<>(propOld, propDelta, propNew, propDef);
     }
 
     /**
@@ -247,7 +247,14 @@ public class LensUtil {
         PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
+                expressionFactory.makeExpression(
+                        tokenExpressionType,
+                        outputDefinition,
+                        MiscSchemaUtil.getExpressionProfile(),
+                        "iteration token expression in "+accountContext.getHumanReadableName(),
+                        task,
+                        result);
 
         Collection<Source<?,?>> sources = new ArrayList<>();
         MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,
@@ -256,7 +263,8 @@ public class LensUtil {
         PrismProperty<Integer> input = inputDefinition.instantiate();
         input.addRealValue(iteration);
         ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
-        Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
+        Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource =
+                new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
         sources.add(iterationSource);
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
@@ -367,26 +375,36 @@ public class LensUtil {
                 taskExecutionMode);
     }
 
-    @NotNull
-    public static <R extends AbstractRoleType> Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle,
-            ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public static @NotNull <R extends AbstractRoleType> List<ConfigurationItem<AssignmentType>> getForcedAssignments(
+            LifecycleStateModelType lifecycleModel, String stateName,
+            ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
 
-        Collection<AssignmentType> forcedAssignments = new HashSet<>();
+        // We intentionally do not use DISTINCT option here, as it causes cache pass - at least in 4.8.
+        // Instead, we do the deduplication by using a set, hoping it will work well enough
+        // (assignments for the same object should be equal).
+        Set<AssignmentType> forcedAssignments = new HashSet<>();
 
-        VirtualAssignmentSpecification<R> virtualAssignmentSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
-        if (virtualAssignmentSpecification != null) {
-
-            ResultHandler<R> handler = (object, parentResult)  -> {
-                AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object, prismContext);
-                return forcedAssignments.add(assignment);
-            };
-
-            objectResolver.searchIterative(virtualAssignmentSpecification.getType(),
-                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()),
-                    createReadOnlyCollection(), handler, task, result);
+        VirtualAssignmentSpecification<R> forcedAssignmentSpec =
+                LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, stateName);
+        if (forcedAssignmentSpec != null) {
+            objectResolver.searchIterative(
+                    forcedAssignmentSpec.type(),
+                    prismContext.queryFactory().createQuery(forcedAssignmentSpec.filter()),
+                    createReadOnlyCollection(),
+                    (object, result1) -> {
+                        forcedAssignments.add(
+                                ObjectTypeUtil.createAssignmentTo(object));
+                        return true;
+                    },
+                    task, result);
         }
-        return forcedAssignments;
+        // Technically, the targetRef comes from forced assignment specification (potentially from various sources),
+        // but for the purpose of expression profile determination, these assignments are considered to be generated
+        // i.e. safe to evaluate under any profile. [Moreover, there are no expressions in these assignments ;)]
+        var originProvider = OriginProvider.generated();
+        return ConfigurationItem.ofList(new ArrayList<>(forcedAssignments), originProvider);
     }
 
     public static boolean isFocusValid(
@@ -418,6 +436,7 @@ public class LensUtil {
         return effectiveStatus == ActivationStatusType.ENABLED;
     }
 
+    /** Call this method through {@link AssignmentPathImpl} and eventually move there. */
     public static AssignmentPathVariables computeAssignmentPathVariables(AssignmentPathImpl assignmentPath) throws SchemaException {
         if (assignmentPath == null || assignmentPath.isEmpty()) {
             return null;
@@ -428,7 +447,8 @@ public class LensUtil {
         Iterator<AssignmentPathSegmentImpl> iterator = assignmentPath.getSegments().iterator();
         while (iterator.hasNext()) {
             AssignmentPathSegmentImpl segment = iterator.next();
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> segmentAssignmentIdi = segment.getAssignmentIdi();
+            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> segmentAssignmentIdi =
+                    segment.getAssignmentIdi();
 
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignmentIdi;
             // Magic assignment
@@ -462,34 +482,36 @@ public class LensUtil {
         AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
         vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().clone());
 
-        // a bit of hack -- TODO reconsider in 3.7
+        // a bit of hack -- if deleted, TestPreviewChanges and TestRbac start to fail -> TODO should be investigated
         // objects are already cloned
-        convertToLegacy(vars.getMagicAssignment());
-        convertToLegacy(vars.getThisAssignment());
-        convertToLegacy(vars.getFocusAssignment());
-        convertToLegacy(vars.getImmediateAssignment());
+        vars.setMagicAssignment(convertToLegacy(vars.getMagicAssignment()));
+        vars.setThisAssignment(convertToLegacy(vars.getThisAssignment()));
+        vars.setFocusAssignment(convertToLegacy(vars.getFocusAssignment()));
+        vars.setImmediateAssignment(convertToLegacy(vars.getImmediateAssignment()));
 
         return vars;
     }
 
-    private static void convertToLegacy(
+    private static ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> convertToLegacy(
             ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi) {
         if (idi == null || idi.getDelta() == null || idi.getSubItemDeltas() != null) {
-            return;
+            return idi;
         }
         // Legacy approach (when adding/removing assignments) was: itemOld+itemNew = value, delta = null
         // This was recently changed, to provide precise information (add = null->itemNew, delete = itemOld->null).
         // However, to not break scripts before 3.6 release we provide imitation of old behavior here.
         // (Moreover, for magic assignment the delta is not correct anyway.)
         if (idi.getDelta().isAdd() || idi.getDelta().isReplace()) {
-            idi.setItemOld(idi.getItemNew().clone());
+            return new ItemDeltaItem<>(idi.getItemNew().clone(), null, idi.getItemNew(), idi.getDefinition());
         } else {
-            idi.setItemNew(idi.getItemOld().clone());
+            return new ItemDeltaItem<>(idi.getItemOld(), null, idi.getItemOld().clone(), idi.getDefinition());
         }
-        idi.setDelta(null);
     }
 
-    private static void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi) throws SchemaException {
+    private static void mergeExtension(
+            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi,
+            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi)
+            throws SchemaException {
         mergeExtension(destIdi.getItemOld(), srcIdi.getItemOld());
         mergeExtension(destIdi.getItemNew(), srcIdi.getItemNew());
         if (srcIdi.getDelta() != null || srcIdi.getSubItemDeltas() != null) {
@@ -506,7 +528,8 @@ public class LensUtil {
         mergeExtensionContainers(dstItem, srcExtension);
     }
 
-    private static <O extends ObjectType> void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi,
+    private static <O extends ObjectType> void mergeExtension(
+            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi,
             PrismObject<O> srcObject) throws SchemaException {
         if (srcObject == null) {
             return;
@@ -518,7 +541,9 @@ public class LensUtil {
         mergeExtensionContainers(destIdi.getItemOld(), srcExtension);
     }
 
-    private static void mergeExtensionContainers(Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem, PrismContainer<Containerable> srcExtension) throws SchemaException {
+    private static void mergeExtensionContainers(
+            Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem,
+            PrismContainer<Containerable> srcExtension) throws SchemaException {
         if (dstItem == null) {
             return;
         }
@@ -531,15 +556,16 @@ public class LensUtil {
         }
     }
 
-    public static <V extends PrismValue,D extends ItemDefinition<?>> MappingBuilder<V,D> addAssignmentPathVariables(MappingBuilder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
+    public static <V extends PrismValue,D extends ItemDefinition<?>> MappingBuilder<V,D> addAssignmentPathVariables(
+            MappingBuilder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
         VariablesMap variablesMap = new VariablesMap();
-        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap, prismContext);
+        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap);
         return builder.addVariableDefinitions(variablesMap);
     }
 
-    public static VariablesMap getAssignmentPathVariablesMap(AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
+    public static VariablesMap getAssignmentPathVariablesMap(AssignmentPathVariables assignmentPathVariables) {
         VariablesMap variablesMap = new VariablesMap();
-        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap, prismContext);
+        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variablesMap);
         return variablesMap;
     }
 
@@ -857,20 +883,19 @@ public class LensUtil {
                 .collect(Collectors.toSet());
     }
 
-    public static <M extends MappingType> M setMappingTarget(M mapping, ItemPathType path) {
-        VariableBindingDefinitionType target = mapping.getTarget();
-        if (target == null) {
-            target = new VariableBindingDefinitionType();
-            target.setPath(path);
-            mapping = CloneUtil.cloneIfImmutable(mapping);
-            mapping.setTarget(target);
-        } else if (target.getPath() == null) {
-            target = target.clone();
-            target.setPath(path);
-            mapping = CloneUtil.cloneIfImmutable(mapping);
-            mapping.setTarget(target);
+    public static @NotNull<M extends MappingType> M setMappingTarget(@NotNull M mapping, ItemPathType path) {
+        VariableBindingDefinitionType existingTarget = mapping.getTarget();
+        if (existingTarget == null) {
+            //noinspection unchecked
+            return (M) CloneUtil.cloneIfImmutable(mapping)
+                    .target(new VariableBindingDefinitionType().path(path));
+        } else if (existingTarget.getPath() == null) {
+            //noinspection unchecked
+            return (M) CloneUtil.cloneIfImmutable(mapping)
+                    .target(existingTarget.clone().path(path));
+        } else {
+            return mapping;
         }
-        return mapping;
     }
 
     public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,
@@ -881,10 +906,10 @@ public class LensUtil {
         }
     }
 
-    @NotNull
-    public static PrismPropertyDefinition<Boolean> createConditionDefinition(PrismContext prismContext) {
-        MutablePrismPropertyDefinition<Boolean> booleanDefinition = prismContext.definitionFactory()
-                .createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN);
+    public static @NotNull PrismPropertyDefinition<Boolean> createConditionDefinition() {
+        MutablePrismPropertyDefinition<Boolean> booleanDefinition =
+                PrismContext.get().definitionFactory()
+                        .createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN);
         booleanDefinition.freeze();
         return booleanDefinition;
     }

@@ -72,8 +72,10 @@ abstract class ScriptingTaskCreator {
         AsynchronousScriptExecutionType asynchronousExecution = actx.action.getAsynchronousExecution();
         TaskType newTask;
         if (asynchronousExecution.getTaskTemplateRef() != null) {
-            List<PrismObject<? extends ObjectType>> tasks = beans.referenceResolver.resolve(asynchronousExecution.getTaskTemplateRef(), null,
-                    MODEL, createTaskFilterEvaluator(), actx.task, result);
+            List<PrismObject<? extends ObjectType>> tasks =
+                    beans.referenceResolver.resolve(
+                            asynchronousExecution.getTaskTemplateRef(), null,
+                            MODEL, createTaskFilterEvaluator(), actx.task, result);
             if (tasks.isEmpty()) {
                 throw new ObjectNotFoundException("Task template was specified but was not found", TaskType.class, null);
             } else if (tasks.size() > 1) {
@@ -94,15 +96,16 @@ abstract class ScriptingTaskCreator {
         return newTask;
     }
 
-    private ReferenceResolver.FilterEvaluator createTaskFilterEvaluator() {
+    private ReferenceResolver.FilterExpressionEvaluator createTaskFilterEvaluator() {
         return (rawFilter, result1) -> {
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ModelExpressionEnvironment<>(actx.context, null, actx.task, result1));
             try {
                 VariablesMap variables = createVariables();
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-                return ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, expressionProfile,
-                        beans.expressionFactory, beans.prismContext,
+                return ExpressionUtil.evaluateFilterExpressions(
+                        rawFilter, variables, expressionProfile,
+                        beans.expressionFactory,
                         "evaluating task template filter expression ", actx.task, result1);
             } finally {
                 ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();

@@ -97,6 +97,7 @@ public class VariablesUtil {
                 continue;       // todo or throw an exception?
             }
             String shortDesc = "scripting variable " + definition.getName();
+            // TODO why the difference between path and others?
             TypedValue valueAndDef;
             if (definition.getExpression().getExpressionEvaluator().size() == 1 &&
                     QNameUtil.match(SchemaConstantsGenerated.C_PATH, definition.getExpression().getExpressionEvaluator().get(0).getName())) {

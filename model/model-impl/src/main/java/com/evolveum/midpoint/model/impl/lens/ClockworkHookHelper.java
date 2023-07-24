@@ -150,7 +150,8 @@ public class ClockworkHookHelper {
         LOGGER.trace("Evaluating {}", shortDesc);
         // TODO: it would be nice to cache this
         // null output definition: this script has no output
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null,
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
+                scriptExpressionEvaluatorType, null,
                 context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, result);
 
         VariablesMap variables = new VariablesMap();

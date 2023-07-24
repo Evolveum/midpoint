@@ -451,7 +451,7 @@ public class AuthorizationEvaluation {
             }
 
             return ExpressionUtil.evaluateFilterExpressions(
-                    filter, variables, MiscSchemaUtil.getExpressionProfile(), b.expressionFactory, b.prismContext,
+                    filter, variables, MiscSchemaUtil.getExpressionProfile(), b.expressionFactory,
                     "expression in " + desc + " in authorization " + getDesc(), task, result);
         };
     }

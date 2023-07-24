@@ -8,7 +8,10 @@ package com.evolveum.midpoint.model.common.archetypes;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
@@ -228,7 +231,7 @@ public class ArchetypeManager implements Cache {
         ArchetypeType structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(allArchetypes);
         List<ArchetypeType> auxiliaryArchetypes = allArchetypes.stream()
                 .filter(ArchetypeTypeUtil::isAuxiliary)
-                .collect(Collectors.toList());
+                .toList();
         if (structuralArchetype == null && !auxiliaryArchetypes.isEmpty()) {
             throw new SchemaException("Auxiliary archetype cannot be assigned without structural archetype");
         }
@@ -278,6 +281,7 @@ public class ArchetypeManager implements Cache {
         if (cachedPolicy != null) {
             return cachedPolicy;
         }
+        // FIXME cache also empty (null) policies, but obviously not as "null" values
         ArchetypePolicyType mergedPolicy = computePolicyForArchetype(archetype, result);
         if (mergedPolicy != null) {
             archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
@@ -287,6 +291,8 @@ public class ArchetypeManager implements Cache {
 
     /**
      * Computes policy merged from this archetype and its super-archetypes.
+     *
+     * TODO we should return an empty policy even if it does not exist, in order to cache it
      */
     private ArchetypePolicyType computePolicyForArchetype(ArchetypeType archetype, OperationResult result)
             throws SchemaException, ConfigurationException {
@@ -341,7 +347,7 @@ public class ArchetypeManager implements Cache {
                 systemConfiguration);
     }
 
-    public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
             Class<O> objectClass,
             List<String> objectSubtypes,
             SystemConfigurationType systemConfiguration) throws ConfigurationException {
@@ -353,7 +359,8 @@ public class ArchetypeManager implements Cache {
             }
             ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
             if (objectType == null) {
-                throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
+                throw new ConfigurationException(
+                        "Unknown type " + typeQName + " in default object policy definition in system configuration");
             }
             if (objectType.getClassDefinition() == objectClass) {
                 String aSubType = aPolicyConfiguration.getSubtype();
@@ -388,14 +395,65 @@ public class ArchetypeManager implements Cache {
         return objectPolicyConfiguration.getLifecycleStateModel();
     }
 
-    public <O extends ObjectType> ExpressionProfile determineExpressionProfile(PrismObject<O> object, OperationResult result)
+    /**
+     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
+     */
+    public <O extends ObjectType> @NotNull ExpressionProfile determineExpressionProfile(
+            @NotNull PrismObject<O> object, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
-        ArchetypePolicyType archetypePolicy = determineArchetypePolicy(object, result);
-        if (archetypePolicy == null) {
-            return null;
+        Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
+        var profileId = determineExpressionProfileId(object, result);
+        if (profileId != null) {
+            return systemObjectCache.getExpressionProfile(profileId, result);
+        } else {
+            return ExpressionProfile.full();
         }
-        String expressionProfileId = archetypePolicy.getExpressionProfile();
-        return systemObjectCache.getExpressionProfile(expressionProfileId, result);
+    }
+
+    /**
+     * We intentionally do not use {@link #determineArchetypePolicy(ObjectType, OperationResult)} method, as it tries
+     * to merge the policy from all archetypes; and it's 1. slow, 2. unreliable, because of ignoring potential conflicts.
+     * Let's do it in more explicit way.
+     */
+    private <O extends ObjectType> @Nullable String determineExpressionProfileId(
+            @NotNull PrismObject<O> object, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+
+        O objectable = object.asObjectable();
+
+        var structuralArchetype = // hopefully obtained from the cache
+                objectable instanceof AssignmentHolderType assignmentHolder ?
+                        determineStructuralArchetype(assignmentHolder, result) : null;
+
+        // The policy is (generally) cached, so this should be fast
+        var structuralArchetypePolicy = getPolicyForArchetype(structuralArchetype, result);
+        if (structuralArchetypePolicy != null) {
+            var profileId = structuralArchetypePolicy.getExpressionProfile();
+            if (profileId != null) {
+                return profileId;
+            }
+        }
+
+        var objectPolicy = determineObjectPolicyConfiguration(objectable, result);
+        return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
+    }
+
+    public ExpressionProfile determineExpressionProfile(
+            @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
+            return determineExpressionProfile(inObject.getOriginatingPrismObject(), result);
+        } else if (origin instanceof ConfigurationItemOrigin.InDelta inDelta) {
+            return determineExpressionProfile(inDelta.getTargetPrismObject(), result);
+        } else if (origin instanceof ConfigurationItemOrigin.Generated) {
+            return ExpressionProfile.full(); // Most probably OK
+        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
+            return ExpressionProfile.full(); // Later, we may throw an exception here
+        } else if (origin instanceof ConfigurationItemOrigin.Detached) {
+            return ExpressionProfile.full(); // TODO we should perhaps return a restricted profile here (from the configuration?)
+        } else {
+            throw new AssertionError(origin);
+        }
     }
 
     @Override
@@ -547,12 +605,12 @@ public class ArchetypeManager implements Cache {
         /** Indexed by OID. Contains immutable objects. */
         private final Map<String, ObjectTemplateType> objects = new ConcurrentHashMap<>();
 
-        public void clear() {
+        void clear() {
             objects.clear();
         }
 
         /** Returns immutable object. */
-        public ObjectTemplateType get(@NotNull String oid, @NotNull TaskExecutionMode executionMode) {
+        ObjectTemplateType get(@NotNull String oid, @NotNull TaskExecutionMode executionMode) {
             if (executionMode.isProductionConfiguration()) {
                 return objects.get(oid);
             } else {
@@ -561,7 +619,7 @@ public class ArchetypeManager implements Cache {
         }
 
         /** Does not modify the object being added - creates a clone, if needed. */
-        public void put(@NotNull ObjectTemplateType template, @NotNull TaskExecutionMode executionMode) {
+        void put(@NotNull ObjectTemplateType template, @NotNull TaskExecutionMode executionMode) {
             if (executionMode.isProductionConfiguration()) {
                 objects.put(
                         Objects.requireNonNull(template.getOid()),

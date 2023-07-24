@@ -68,4 +68,30 @@
             </roleCatalog>
         </accessRequest>
     </adminGuiConfiguration>
+
+    <defaultObjectPolicyConfiguration id="2">
+        <itemConstraint>
+            <path>name</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </defaultObjectPolicyConfiguration>
+
+    <cleanupPolicy>
+        <simpleOperationExecutions>
+            <maxAge>P1D</maxAge>
+            <maxRecords>10</maxRecords>
+        </simpleOperationExecutions>
+        <complexOperationExecutions>
+            <maxAge>P1D</maxAge>
+            <maxRecords>10</maxRecords>
+        </complexOperationExecutions>
+    </cleanupPolicy>
 </systemConfiguration>

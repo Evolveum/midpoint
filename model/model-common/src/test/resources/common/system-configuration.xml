@@ -7,9 +7,7 @@
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
 
     <expressions>
@@ -28,8 +26,7 @@
                 <type>value</type>
                 <decision>allow</decision>
             </evaluator>
-<!--
-            Const is safe. But we need something to prohibit here.
+            <!-- Const is safe. But we need something to prohibit here.
             <evaluator>
                 <type>const</type>
                 <decision>allow</decision>
@@ -60,44 +57,44 @@
             </package>
             <class>
                 <name>java.lang.String</name>
-                    <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.CharSequence</name>
-                    <decision>allow</decision>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>java.util.List</name>
-                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision>
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.System</name>
-                    <description>Just a few methods of System are safe enough.</description>
-                    <decision>deny</decision>
-                    <method>
-                        <name>currentTimeMillis</name>
-                        <decision>allow</decision>
-                    </method>
+                <description>Just a few methods of System are safe enough.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>currentTimeMillis</name>
+                    <decision>allow</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.IllegalStateException</name>
-                    <description>Basic Java exception. Also used in test.</description>
-                    <decision>allow</decision>
+                <description>Basic Java exception. Also used in test.</description>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>java.lang.IllegalArgumentException</name>
-                    <description>Basic Java exception.</description>
-                    <decision>allow</decision>
+                <description>Basic Java exception.</description>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>

@@ -32,6 +32,7 @@ public class ResourceSearchSpecification extends SearchSpecification<ShadowType>
         super(prototype);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ResourceSearchSpecification clone() {
         return new ResourceSearchSpecification(this);

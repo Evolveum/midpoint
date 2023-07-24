@@ -20,7 +20,8 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DelayedDeleteEvaluator;
-import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.test.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -46,9 +46,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -119,9 +116,11 @@ public class TestMapping extends AbstractMappingTest {
     private static final String ROLE_COBALT_NEVERLAND_OID = "04aca9d6-caca-11e7-9c6a-97b71af3e545";
     private static final String ROLE_COBALT_NEVERLAND_VALUE = "Neverland";
 
-    private static final TestResource<RoleType> ROLE_TIMED = new TestResource<>(TEST_DIR, "role-timed.xml", "9af2f6d7-564f-45f8-bd8a-2f5cef1596a8");
+    private static final TestObject<RoleType> ROLE_TIMED = TestObject.file(
+            TEST_DIR, "role-timed.xml", "9af2f6d7-564f-45f8-bd8a-2f5cef1596a8");
 
-    private static final TestResource<RoleType> ROLE_DISABLED_MAPPING = new TestResource<>(TEST_DIR, "role-disabled-mapping.xml", "f7228a46-bc75-11eb-8529-0242ac130003");
+    private static final TestObject<RoleType> ROLE_DISABLED_MAPPING = TestObject.file(
+            TEST_DIR, "role-disabled-mapping.xml", "f7228a46-bc75-11eb-8529-0242ac130003");
 
     private static final String CAPTAIN_JACK_FULL_NAME = "Captain Jack Sparrow";
 
@@ -144,18 +143,18 @@ public class TestMapping extends AbstractMappingTest {
     private static final String USER_JIM_NAME = "jim";
     private static final String USER_TYPE_CARTHESIAN = "carthesian";
 
-    private static final TestResource<ServiceType> SERVICE_ROUTER =
-            new TestResource<>(TEST_DIR, "service-router.xml", "fbe770e4-75ef-4663-93b6-a9cd484f694b");
+    private static final TestObject<ServiceType> SERVICE_ROUTER =
+            TestObject.file(TEST_DIR, "service-router.xml", "fbe770e4-75ef-4663-93b6-a9cd484f694b");
     private static final String SERVICE_ROUTER_NAME = "router";
     private static final String SERVICE_BRIDGE_NAME = "bridge";
     private static final String SERVICE_GATEWAY_NAME = "gateway";
 
-    private static final TestResource<TaskType> TASK_IMPORT_PWD_COPY = new TestResource<>(
+    private static final TestObject<TaskType> TASK_IMPORT_PWD_COPY = TestObject.file(
             TEST_DIR, "task-dummy-services-pwd-copy-import.xml", "598e0ac7-4dd7-476e-bba8-d39ebf6c951a");
-    private static final TestResource<TaskType> TASK_IMPORT_PWD_GENERATE = new TestResource<>(
+    private static final TestObject<TaskType> TASK_IMPORT_PWD_GENERATE = TestObject.file(
             TEST_DIR, "task-dummy-services-pwd-generate-import.xml", "7a987537-9e87-47db-a62c-a7ba25a8fee5");
 
-    public static final File PREDEFINED_DIR = new File(TEST_DIR, "predefined");
+    private static final File PREDEFINED_DIR = new File(TEST_DIR, "predefined");
 
     private static final File RESOURCE_DUMMY_PREDEFINED_DID_FILE = new File(PREDEFINED_DIR,
             "resource-dummy-predefine-disable-instead-delete.xml");
@@ -250,8 +249,6 @@ public class TestMapping extends AbstractMappingTest {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TYPE_CARTHESIAN, USER_TEMPLATE_CARTHESIAN_OID, initResult);
 
         repoAddObjectFromFile(USER_SHELDON_FILE, initResult);
-//
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     private static void initMegaResource(DummyResourceContoller controller) throws ConflictException,
@@ -326,7 +323,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-                PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
+                PolyString.fromOrig(CAPTAIN_JACK_FULL_NAME));
 
         then();
         assertSuccess(result);
@@ -360,7 +357,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
-                PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
+                PolyString.fromOrig(CAPTAIN_JACK_FULL_NAME));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
@@ -397,7 +394,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                PrismTestUtil.createPolyString("Black Pearl"));
+                PolyString.fromOrig("Black Pearl"));
 
         then();
         assertSuccess(result);
@@ -939,7 +936,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, false);
-        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PolyString.fromOrig(USER_JACK_FULL_NAME));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
         deltas.add(userDelta);
 
@@ -1412,7 +1409,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-                PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
+                PolyString.fromOrig(CAPTAIN_JACK_FULL_NAME));
 
         then();
         assertSuccess(result);
@@ -1443,7 +1440,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                PrismTestUtil.createPolyString("Black Pearl"));
+                PolyString.fromOrig("Black Pearl"));
 
         then();
         assertSuccess(result);
@@ -1600,7 +1597,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATION, task, result,
-                PrismTestUtil.createPolyString("Brethren of the Coast"));
+                PolyString.fromOrig("Brethren of the Coast"));
 
         then();
         assertSuccess(result);
@@ -1734,7 +1731,7 @@ public class TestMapping extends AbstractMappingTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
                 RESOURCE_DUMMY_OID, null, true);
-        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PolyString.fromOrig(USER_JACK_FULL_NAME));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
         deltas.add(userDelta);
 
@@ -1783,7 +1780,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-                PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
+                PolyString.fromOrig(CAPTAIN_JACK_FULL_NAME));
 
         then();
         assertSuccess(result);
@@ -1817,7 +1814,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result,
-                PrismTestUtil.createPolyString("Fountain of Youth"));
+                PolyString.fromOrig("Fountain of Youth"));
 
         then();
         assertSuccess(result);
@@ -1964,7 +1961,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result,
-                PrismTestUtil.createPolyString("renamedJack"));
+                PolyString.fromOrig("renamedJack"));
 
         then();
         assertSuccess(result);
@@ -2287,7 +2284,7 @@ public class TestMapping extends AbstractMappingTest {
         displayDumpable("Dummy account before", dummyAccountBefore);
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BLOOD_ISLAND));
 
         then();
         assertSuccess(result);
@@ -2329,7 +2326,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
-                PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
+                PolyString.fromOrig(LOCALITY_SCABB_ISLAND));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         ModelExecuteOptions options = executeOptions().reconcile();
         modelService.executeChanges(deltas, options, task, result);
@@ -2377,7 +2374,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BOOTY_ISLAND));
 
         then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
@@ -2491,7 +2488,7 @@ public class TestMapping extends AbstractMappingTest {
         // preconditions
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
-        PrismAsserts.assertPropertyValue(userBefore, UserType.F_LOCALITY, createPolyString(LOCALITY_BOOTY_ISLAND));
+        PrismAsserts.assertPropertyValue(userBefore, UserType.F_LOCALITY, PolyString.fromOrig(LOCALITY_BOOTY_ISLAND));
         assertNoDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         when();
@@ -2698,7 +2695,7 @@ public class TestMapping extends AbstractMappingTest {
         displayDumpable("Dummy account before", dummyAccountBefore);
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BLOOD_ISLAND));
 
         then();
         assertSuccess(result);
@@ -2740,7 +2737,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
-                PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
+                PolyString.fromOrig(LOCALITY_SCABB_ISLAND));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         ModelExecuteOptions options = executeOptions().reconcile();
         modelService.executeChanges(deltas, options, task, result);
@@ -2788,7 +2785,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BOOTY_ISLAND));
 
         then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
@@ -2936,7 +2933,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString("Forbidden dodecahedron"));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig("Forbidden dodecahedron"));
 
         then();
         assertSuccess(result);
@@ -3009,7 +3006,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_SCABB_ISLAND));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_SCABB_ISLAND));
 
         then();
         assertSuccess(result);
@@ -3034,7 +3031,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BLOOD_ISLAND));
 
         then();
         assertSuccess(result);

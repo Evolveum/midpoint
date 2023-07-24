@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
+import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestTask;
@@ -49,7 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Tests inbound mappings. Uses live sync to do that.
- * These tests are much simpler and more focused than those in AbstractSynchronizationStoryTest.
+ * These tests are much simpler and more focused than those in {@link AbstractSynchronizationStoryTest}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

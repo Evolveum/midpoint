@@ -31,26 +31,26 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/lifecycle");
 
-    public static final File SYSTEM_CONFIGURATION_LIFECYCLE_FILE = new File(TEST_DIR, "system-configuration-lifecycle.xml");
+    private static final File SYSTEM_CONFIGURATION_LIFECYCLE_FILE = new File(TEST_DIR, "system-configuration-lifecycle.xml");
 
     // subtype = dataProcessingBasis
-    public static final File ROLE_HEADMASTER_FILE = new File(TEST_DIR, "role-headmaster.xml");
-    protected static final String ROLE_HEADMASTER_OID = "b9c885ba-034b-11e8-a708-13836b619045";
+    private static final File ROLE_HEADMASTER_FILE = new File(TEST_DIR, "role-headmaster.xml");
+    private static final String ROLE_HEADMASTER_OID = "b9c885ba-034b-11e8-a708-13836b619045";
 
     // subtype = dataProcessingBasis
-    public static final File ROLE_CARETAKER_FILE = new File(TEST_DIR, "role-caretaker.xml");
-    protected static final String ROLE_CARETAKER_OID = "9162a952-034b-11e8-afb7-138a763f2350";
+    private static final File ROLE_CARETAKER_FILE = new File(TEST_DIR, "role-caretaker.xml");
+    private static final String ROLE_CARETAKER_OID = "9162a952-034b-11e8-afb7-138a763f2350";
 
     // no subtype, this is NOT a dataProcessingBasis
-    public static final File ROLE_GAMBLER_FILE = new File(TEST_DIR, "role-gambler.xml");
-    protected static final String ROLE_GAMBLER_OID = "2bb2fb86-034e-11e8-9cf3-77abfc7aafec";
+    private static final File ROLE_GAMBLER_FILE = new File(TEST_DIR, "role-gambler.xml");
+    private static final String ROLE_GAMBLER_OID = "2bb2fb86-034e-11e8-9cf3-77abfc7aafec";
 
     //no subtype, forced in draft state
-    public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
+    private static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
 
-    public static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
+    private static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
 
-    public static final String SUBTYPE_EMPLOYEE = "employee";
+    private static final String SUBTYPE_EMPLOYEE = "employee";
     private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
 
     @Override
@@ -214,10 +214,10 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     }
 
     private void assertTelephoneNumber(PrismObject<UserType> user, Object expectedTelephoneNumber) {
-        assertEquals("Wrong telephoe number in " + user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
+        assertEquals("Wrong telephone number in " + user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
     }
 
-    protected <O extends ObjectType> void assertLifecycleState(PrismObject<O> object, String expectedLifecycleState) {
+    private <O extends ObjectType> void assertLifecycleState(PrismObject<O> object, String expectedLifecycleState) {
         assertEquals("Wrong lifecycle state in " + object, expectedLifecycleState, object.asObjectable().getLifecycleState());
     }
 

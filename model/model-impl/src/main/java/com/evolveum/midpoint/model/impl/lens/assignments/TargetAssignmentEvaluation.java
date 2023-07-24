@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetActivity;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -33,19 +36,27 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
     private final TargetActivity targetActivity;
     private final OperationResult result;
 
-    private final AssignmentType nextAssignment;
+    @NotNull private final AssignmentType nextAssignment;
+    @NotNull private final ConfigurationItemOrigin nextAssignmentOrigin;
 
-    TargetAssignmentEvaluation(AssignmentPathSegmentImpl segment, ConditionState targetOverallConditionState,
-            TargetActivity targetActivity, EvaluationContext<AH> ctx, OperationResult result,
-            AssignmentType nextAssignment) {
+    TargetAssignmentEvaluation(
+            AssignmentPathSegmentImpl segment,
+            ConditionState targetOverallConditionState,
+            TargetActivity targetActivity,
+            EvaluationContext<AH> ctx,
+            OperationResult result,
+            @NotNull AssignmentType nextAssignment,
+            @NotNull ConfigurationItemOrigin nextAssignmentOrigin) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
         this.targetActivity = targetActivity;
         this.result = result;
         this.nextAssignment = nextAssignment;
+        this.nextAssignmentOrigin = nextAssignmentOrigin;
     }
 
-    void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+    void evaluate()
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         assert ctx.assignmentPath.last() == segment;
@@ -70,8 +81,9 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
 
         AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl.Builder()
                 .source((AssignmentHolderType) segment.target)
-                .sourceDescription(segment.target+" in "+segment.sourceDescription)
+                .sourceDescription(segment.target + " in " + segment.sourceDescription)
                 .assignment(nextAssignment)
+                .assignmentOrigin(nextAssignmentOrigin)
                 .isAssignment()
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)

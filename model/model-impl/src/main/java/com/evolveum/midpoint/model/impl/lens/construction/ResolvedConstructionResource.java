@@ -44,8 +44,7 @@ public class ResolvedConstructionResource implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
-        if (!(o instanceof ResolvedConstructionResource)) { return false; }
-        ResolvedConstructionResource that = (ResolvedConstructionResource) o;
+        if (!(o instanceof ResolvedConstructionResource that)) { return false; }
         return warning == that.warning && Objects.equals(resource, that.resource);
     }
 

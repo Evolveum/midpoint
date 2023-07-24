@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="c8cae775-2c3b-49bb-98e3-482a095316ef">
+    <name>restricted-bad-construction-mapping</name>
+    <documentation>Role that contains non-conformant construction mapping.</documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
+                                'Should not be here'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

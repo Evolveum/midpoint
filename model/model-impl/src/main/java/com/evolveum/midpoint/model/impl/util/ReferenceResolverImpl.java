@@ -51,7 +51,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 
     public List<PrismObject<? extends ObjectType>> resolve(@NotNull ObjectReferenceType reference,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
-            FilterEvaluator filterEvaluator, Task task, OperationResult result) throws SchemaException,
+            FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         String oid = reference.getOid();
@@ -63,7 +63,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
                 return singletonList(reference.getObject());
             }
 
-            return resolveFromFilter(targetClass, reference, options, source, filterEvaluator, task, result);
+            return resolveFromFilter(targetClass, reference, options, source, filterExpressionEvaluator, task, result);
         } else {
             return singletonList(resolveFromOid(targetClass, oid, options, source, task, result));
         }
@@ -86,20 +86,16 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
         LOGGER.trace("Resolving {}:{} from {}", targetClass.getSimpleName(), oid, source);
-        switch (source) {
-            case REPOSITORY:
-                return repositoryService.getObject(targetClass, oid, options, result);
-            case MODEL:
-                return modelService.getObject(targetClass, oid, options, task, result);
-            default:
-                throw new AssertionError(source);
-        }
+        return switch (source) {
+            case REPOSITORY -> repositoryService.getObject(targetClass, oid, options, result);
+            case MODEL -> modelService.getObject(targetClass, oid, options, task, result);
+        };
     }
 
     @NotNull
     private List<PrismObject<? extends ObjectType>> resolveFromFilter(Class<? extends ObjectType> targetClass,
             ObjectReferenceType reference, Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
-            FilterEvaluator filterEvaluator, Task task, OperationResult result) throws SchemaException,
+            FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LOGGER.trace("Resolving filter on {} from {}", targetClass.getSimpleName(), source);
@@ -108,23 +104,17 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             throw new IllegalArgumentException("The OID and filter are both null in a reference: " + reference);
         }
         ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterBean, targetClass);
-        ObjectFilter evaluatedFilter = filterEvaluator != null ? filterEvaluator.evaluate(filter, result) : filter;
+        ObjectFilter evaluatedFilter =
+                filterExpressionEvaluator != null ? filterExpressionEvaluator.evaluate(filter, result) : filter;
 
         if (evaluatedFilter == null) {
             throw new SchemaException("The OID is null and filter could not be evaluated in " + reference);
         }
         ObjectQuery query = prismContext.queryFactory().createQuery(evaluatedFilter);
-        SearchResultList<? extends PrismObject<? extends ObjectType>> objects;
-        switch (source) {
-            case REPOSITORY:
-                objects = repositoryService.searchObjects(targetClass, query, options, result);
-                break;
-            case MODEL:
-                objects = modelService.searchObjects(targetClass, query, options, task, result);
-                break;
-            default:
-                throw new AssertionError(source);
-        }
+        SearchResultList<? extends PrismObject<? extends ObjectType>> objects = switch (source) {
+            case REPOSITORY -> repositoryService.searchObjects(targetClass, query, options, result);
+            case MODEL -> modelService.searchObjects(targetClass, query, options, task, result);
+        };
         //noinspection unchecked
         return (List<PrismObject<? extends ObjectType>>) objects;
     }

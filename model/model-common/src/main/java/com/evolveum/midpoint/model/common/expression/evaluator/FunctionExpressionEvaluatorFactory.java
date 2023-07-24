@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates {@link FunctionExpressionEvaluator} objects.
@@ -49,15 +51,18 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result)
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
         FunctionExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBeanRequired(evaluatorElements, FunctionExpressionEvaluatorType.class, contextDescription);
+
         return new FunctionExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, getObjectResolver());
     }
 }

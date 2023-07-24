@@ -10,14 +10,21 @@ package com.evolveum.midpoint.model.common.mapping;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
@@ -38,11 +45,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Builder is used to construct a configuration of Mapping object, which - after building - becomes
  * immutable.
- * <p>
+ *
  * In order to provide backward-compatibility with existing use of Mapping object, the builder has
  * also traditional setter methods. Both setters and "builder-style" methods MODIFY existing Builder
  * object (i.e. they do not create a new one).
- * <p>
+ *
  * TODO decide on which style of setters to keep (setters vs builder-style).
  */
 @SuppressWarnings({ "unused", "UnusedReturnValue" })
@@ -55,7 +62,7 @@ public abstract class AbstractMappingBuilder<
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
     private final VariablesMap variables = new VariablesMap();
-    private MBT mappingBean;
+    private ConfigurationItem<MBT> mappingConfigItem;
     private MappingKindType mappingKind;
     private ItemPath implicitSourcePath; // for tracing purposes
     private ItemPath implicitTargetPath; // for tracing purposes
@@ -81,7 +88,6 @@ public abstract class AbstractMappingBuilder<
     private boolean profiling;
     private String contextDescription;
     private QName mappingQName;
-    private ResourceObjectDefinition resourceObjectDefinition;
     private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
@@ -92,8 +98,8 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
-    public RT mappingBean(MBT val) {
-        mappingBean = val;
+    public RT mappingBean(MBT bean, @NotNull ConfigurationItemOrigin origin) {
+        mappingConfigItem = ConfigurationItem.of(bean, origin);
         return typedThis();
     }
 
@@ -127,8 +133,14 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
-    public RT expressionProfile(ExpressionProfile val) {
+    RT explicitExpressionProfile(ExpressionProfile val) {
         expressionProfile = val;
+        return typedThis();
+    }
+
+    public RT computeExpressionProfile(@NotNull OperationResult result) throws SchemaException, ConfigurationException {
+        var configItem = Objects.requireNonNull(mappingConfigItem, "no mapping");
+        expressionProfile = beans.archetypeManager.determineExpressionProfile(configItem.origin(), result);
         return typedThis();
     }
 
@@ -143,9 +155,6 @@ public abstract class AbstractMappingBuilder<
     }
 
     public RT sourceContext(ObjectDeltaObject<?> val) {
-        if (val != null && val.getDefinition() == null) {
-            throw new IllegalArgumentException("Attempt to set mapping source context without a definition");
-        }
         sourceContext = val;
         return typedThis();
     }
@@ -221,7 +230,6 @@ public abstract class AbstractMappingBuilder<
     }
 
     public RT resourceObjectDefinition(ResourceObjectDefinition val) {
-        resourceObjectDefinition = val;
         return typedThis();
     }
 
@@ -304,11 +312,7 @@ public abstract class AbstractMappingBuilder<
 
     public RT addVariableDefinition(String name, ObjectDeltaObject<?> value) {
         if (value != null) {
-            PrismObjectDefinition<?> definition = value.getDefinition();
-            if (definition == null) {
-                throw new IllegalArgumentException("Attempt to set variable '" + name + "' as ODO without a definition: " + value);
-            }
-            return addVariableDefinition(name, value, definition);
+            return addVariableDefinition(name, value, value.getDefinition());
         } else {
             return addVariableDefinition(name, null, ObjectDeltaObject.class); // todo ok?
         }
@@ -341,20 +345,16 @@ public abstract class AbstractMappingBuilder<
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isApplicableToChannel(String channel) {
-        return MappingImpl.isApplicableToChannel(mappingBean, channel);
+        return MappingImpl.isApplicableToChannel(mappingConfigItem.value(), channel);
     }
 
     public boolean isApplicableToExecutionMode(TaskExecutionMode executionMode) {
-        return SimulationUtil.isVisible(mappingBean, executionMode);
+        return SimulationUtil.isVisible(mappingConfigItem.value(), executionMode);
     }
 
     public RT additionalSource(Source<?, ?> source) {
         additionalSources.add(source);
         return typedThis();
-    }
-
-    public MappingStrengthType getStrength() {
-        return MappingImpl.getStrength(mappingBean);
     }
 
     //region Plain getters
@@ -366,8 +366,8 @@ public abstract class AbstractMappingBuilder<
         return variables;
     }
 
-    public MBT getMappingBean() {
-        return mappingBean;
+    ConfigurationItem<MBT> getMappingConfigItem() {
+        return mappingConfigItem;
     }
 
     public MappingKindType getMappingKind() {
@@ -468,10 +468,6 @@ public abstract class AbstractMappingBuilder<
 
     QName getMappingQName() {
         return mappingQName;
-    }
-
-    public ResourceObjectDefinition getResourceObjectDefinition() {
-        return resourceObjectDefinition;
     }
     //endregion
 

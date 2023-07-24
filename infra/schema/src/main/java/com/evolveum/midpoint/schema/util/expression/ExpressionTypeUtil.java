@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Various methods to assist in creating (maybe later parsing?) objects of {@link ExpressionType}.
  */
-public class ExpressionUtil {
+public class ExpressionTypeUtil {
 
     public static @NotNull ExpressionType forGroovyCode(String code) {
         ExpressionType expression = new ExpressionType();

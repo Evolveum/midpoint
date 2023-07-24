@@ -22,16 +22,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 /**
- * @author semancik
+ * The whole evaluation of a script: {@link ScriptExpressionEvaluatorType} compiled into {@link ScriptExpression} and evaluated.
  *
+ * The "context" can be understood just like e.g. `LensContext` - the whole operation, including the script itself.
+ *
+ * @see ScriptEvaluator#evaluate(ScriptExpressionEvaluationContext)
+ *
+ * @author semancik
  */
 public class ScriptExpressionEvaluationContext {
 
     private static final ThreadLocal<ScriptExpressionEvaluationContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
-    private ScriptExpressionEvaluatorType expressionType;
+    private ScriptExpressionEvaluatorType scriptBean;
     private VariablesMap variables;
-    private ItemDefinition outputDefinition;
+    private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ScriptExpressionReturnTypeType suggestedReturnType;
     private ObjectResolver objectResolver;
@@ -48,12 +53,12 @@ public class ScriptExpressionEvaluationContext {
 
     private ScriptEvaluationTraceType trace;
 
-    public ScriptExpressionEvaluatorType getExpressionType() {
-        return expressionType;
+    ScriptExpressionEvaluatorType getScriptBean() {
+        return scriptBean;
     }
 
-    public void setExpressionType(ScriptExpressionEvaluatorType expressionType) {
-        this.expressionType = expressionType;
+    public void setScriptBean(ScriptExpressionEvaluatorType scriptBean) {
+        this.scriptBean = scriptBean;
     }
 
     public VariablesMap getVariables() {
@@ -64,11 +69,11 @@ public class ScriptExpressionEvaluationContext {
         this.variables = variables;
     }
 
-    public ItemDefinition getOutputDefinition() {
+    public ItemDefinition<?> getOutputDefinition() {
         return outputDefinition;
     }
 
-    public void setOutputDefinition(ItemDefinition outputDefinition) {
+    public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
         this.outputDefinition = outputDefinition;
     }
 

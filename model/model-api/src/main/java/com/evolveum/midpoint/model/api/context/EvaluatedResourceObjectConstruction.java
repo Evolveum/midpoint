@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,19 +39,21 @@ public interface EvaluatedResourceObjectConstruction extends DebugDumpable, Seri
     /**
      * Kind of the resource object.
      */
-    @NotNull
-    ShadowKindType getKind();
+    @NotNull ShadowKindType getKind();
 
     /**
      * Intent of the resource object.
      */
-    String getIntent();
+    @NotNull String getIntent();
+
+    default @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return ResourceObjectTypeIdentification.of(getKind(), getIntent());
+    }
 
     /**
      * Tag of the resource object (for multiaccounts).
      */
-    @Nullable
-    String getTag();
+    @Nullable String getTag();
 
     /**
      * Is the resource object directly assigned to the focus object?

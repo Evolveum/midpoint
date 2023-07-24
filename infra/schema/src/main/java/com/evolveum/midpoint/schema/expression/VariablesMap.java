@@ -12,12 +12,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -34,11 +37,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author semancik
  */
-public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
+public class VariablesMap implements Map<String, TypedValue<?>>, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(VariablesMap.class);
 
-    private final Map<String, TypedValue> variables;
+    private final Map<String, TypedValue<?>> variables;
 
     /**
      * We register aliases to make variable dumps more organized by eliminating duplicate objects.
@@ -56,7 +59,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
         variables = new HashMap<>();
     }
 
-    private VariablesMap(Map<String, TypedValue> variablesMap) {
+    private VariablesMap(Map<String, TypedValue<?>> variablesMap) {
         this.variables = variablesMap;
     }
 
@@ -76,12 +79,12 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
         return variables.containsValue(value);
     }
 
-    public TypedValue get(Object key) {
+    public TypedValue<?> get(Object key) {
         return variables.get(key);
     }
 
     @SuppressWarnings("ConstantConditions")
-    public TypedValue put(String key, TypedValue typedValue) {
+    public TypedValue<?> put(String key, TypedValue<?> typedValue) {
         if (typedValue == null) {
             throw new IllegalArgumentException("Attempt to set variable '" + key + "' with null typed value: " + typedValue);
         }
@@ -123,7 +126,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      * e.g. it may be ItemDeltaItem of the actual real value. However, the class defines the real type
      * of the value precisely.
      */
-    public <T> TypedValue put(String key, Object value, Class<T> typeClass) {
+    public <T> TypedValue<?> put(String key, Object value, Class<T> typeClass) {
         if (typeClass == null) {
             throw new IllegalArgumentException("Attempt to set variable '" + key + "' without class specification: " + value);
         }
@@ -134,10 +137,10 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      * Convenience method to put objects with definition.
      * Maybe later improve by looking up full definition.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "UnusedReturnValue" })
     public <O extends ObjectType> TypedValue<O> putObject(String key, O objectType, Class<O> expectedClass) {
         if (objectType == null) {
-            return put(key, null, expectedClass);
+            return (TypedValue<O>) put(key, null, expectedClass);
         } else {
             return put(key, objectType, objectType.asPrismObject().getDefinition());
         }
@@ -147,10 +150,10 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      * Convenience method to put objects with definition.
      * Maybe later improve by looking up full definition.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "UnusedReturnValue" })
     public <O extends ObjectType> TypedValue<O> putObject(String key, PrismObject<O> object, Class<O> expectedClass) {
         if (object == null) {
-            return put(key, null, expectedClass);
+            return (TypedValue<O>) put(key, null, expectedClass);
         } else {
             return put(key, object, object.getDefinition());
         }
@@ -161,17 +164,17 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      * This is very simple now. But later on we may need to declare generics.
      * Therefore dedicated method would be easier to find all usages and fix them.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "UnusedReturnValue" })
     public <T> TypedValue<List<T>> putList(String key, List<T> list) {
-        return put(key, list, List.class);
+        return (TypedValue<List<T>>) put(key, list, List.class);
     }
 
-    public TypedValue remove(Object key) {
+    public TypedValue<?> remove(Object key) {
         aliases.remove(key);
         return variables.remove(key);
     }
 
-    public void putAll(Map<? extends String, ? extends TypedValue> m) {
+    public void putAll(@NotNull Map<? extends String, ? extends TypedValue<?>> m) {
         variables.putAll(m);
     }
 
@@ -191,12 +194,12 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     }
 
     @NotNull
-    public Collection<TypedValue> values() {
+    public Collection<TypedValue<?>> values() {
         return variables.values();
     }
 
     @NotNull
-    public Set<Entry<String, TypedValue>> entrySet() {
+    public Set<Entry<String, TypedValue<?>>> entrySet() {
         return variables.entrySet();
     }
 
@@ -209,6 +212,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      *
      * Mostly for testing. Use at your own risk.
      */
+    @VisibleForTesting
     public static VariablesMap create(PrismContext prismContext, Object... parameters) {
         VariablesMap vars = new VariablesMap();
         vars.fillIn(prismContext, parameters);
@@ -224,18 +228,20 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      *
      * Mostly for testing. Use at your own risk.
      */
-    protected void fillIn(PrismContext prismContext, Object... parameters) {
+    private void fillIn(PrismContext prismContext, Object... parameters) {
         for (int i = 0; i < parameters.length; i += 3) {
             Object nameObj = parameters[i];
-            String name = null;
+            String name;
             if (nameObj instanceof String) {
                 name = (String) nameObj;
             } else if (nameObj instanceof QName) {
                 name = ((QName) nameObj).getLocalPart();
+            } else {
+                throw new IllegalArgumentException("Unexpected name " + nameObj);
             }
             Object value = parameters[i + 1];
             Object defObj = parameters[i + 2];
-            ItemDefinition def;
+            ItemDefinition<?> def;
             if (defObj instanceof QName) {
                 def = prismContext.definitionFactory().createPropertyDefinition(
                         new QName(SchemaConstants.NS_C, name), (QName) defObj, null, null);
@@ -245,7 +251,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
                         new QName(SchemaConstants.NS_C, name), ((PrimitiveType) defObj).getQname(), null, null);
                 put(name, value, def);
             } else if (defObj instanceof ItemDefinition) {
-                def = (ItemDefinition) defObj;
+                def = (ItemDefinition<?>) defObj;
                 put(name, value, def);
             } else if (defObj instanceof Class) {
                 put(name, value, (Class<?>) defObj);
@@ -262,15 +268,15 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
 
     public String formatVariables() {
         StringBuilder sb = new StringBuilder();
-        Iterator<Entry<String, TypedValue>> i = entrySet().iterator();
+        Iterator<Entry<String, TypedValue<?>>> i = entrySet().iterator();
         while (i.hasNext()) {
-            Entry<String, TypedValue> entry = i.next();
+            Entry<String, TypedValue<?>> entry = i.next();
             if (!isAlias(entry.getKey())) {
                 SchemaDebugUtil.indentDebugDump(sb, 1);
                 sb.append(entry.getKey());
                 sb.append(getAliasesListFormatted(entry.getKey()));
                 sb.append(": ");
-                TypedValue valueDef = entry.getValue();
+                TypedValue<?> valueDef = entry.getValue();
                 Object value = valueDef.getValue();
                 // TODO: dump definitions?
                 if (value instanceof DebugDumpable) {
@@ -317,7 +323,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
 
     public String dumpSingleLine() {
         StringBuilder sb = new StringBuilder();
-        for (Entry<String, TypedValue> entry : variables.entrySet()) {
+        for (Entry<String, TypedValue<?>> entry : variables.entrySet()) {
             if (!isAlias(entry.getKey())) {
                 sb.append(entry.getKey());
                 sb.append(getAliasesListFormatted(entry.getKey()));
@@ -337,9 +343,9 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
         return sb.toString();
     }
 
-    private Map<String, TypedValue> getAliasReducedMap() {
-        Map<String, TypedValue> rv = new HashMap<>();
-        for (Entry<String, TypedValue> entry : variables.entrySet()) {
+    private Map<String, TypedValue<?>> getAliasReducedMap() {
+        Map<String, TypedValue<?>> rv = new HashMap<>();
+        for (Entry<String, TypedValue<?>> entry : variables.entrySet()) {
             String key = entry.getKey();
             if (!isAlias(key)) {
                 rv.put(key + getAliasesListFormatted(key), entry.getValue());
@@ -358,14 +364,13 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     }
 
     public void addVariableDefinitions(VariablesMap extraVariables, @NotNull Collection<String> exceptFor) {
-        for (Entry<String, TypedValue> entry : extraVariables.entrySet()) {
+        for (Entry<String, TypedValue<?>> entry : extraVariables.entrySet()) {
             if (exceptFor.contains(entry.getKey())) {
                 continue;
             }
-            TypedValue valueDef = entry.getValue();
+            TypedValue<?> valueDef = entry.getValue();
             Object value = valueDef.getValue();
-            if (!areDeltasAllowed() && value instanceof ObjectDeltaObject<?>) {
-                ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>) value;
+            if (!areDeltasAllowed() && value instanceof ObjectDeltaObject<?> odo) {
                 if (odo.getObjectDelta() != null) {
                     throw new IllegalArgumentException("Cannot use variables with deltas in addVariableDefinitions. Use addVariableDefinitionsOld or addVariableDefinitionsNew.");
                 }
@@ -392,14 +397,12 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      * of the object.
      */
     public void addVariableDefinitionsOld(VariablesMap extraVariables) {
-        for (Entry<String, TypedValue> entry : extraVariables.entrySet()) {
-            TypedValue valueDef = entry.getValue();
+        for (Entry<String, TypedValue<?>> entry : extraVariables.entrySet()) {
+            TypedValue<?> valueDef = entry.getValue();
             Object value = valueDef.getValue();
-            if (value instanceof ObjectDeltaObject<?>) {
-                ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>) value;
+            if (value instanceof ObjectDeltaObject<?> odo) {
                 value = odo.getOldObject();
-            } else if (value instanceof ItemDeltaItem<?, ?>) {
-                ItemDeltaItem<?, ?> idi = (ItemDeltaItem<?, ?>) value;
+            } else if (value instanceof ItemDeltaItem<?, ?> idi) {
                 value = idi.getItemOld();
             }
             put(entry.getKey(), valueDef.createTransformed(value));
@@ -413,14 +416,12 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
      * of the object.
      */
     public void addVariableDefinitionsNew(VariablesMap extraVariables) {
-        for (Entry<String, TypedValue> entry : extraVariables.entrySet()) {
-            TypedValue valueDef = entry.getValue();
+        for (Entry<String, TypedValue<?>> entry : extraVariables.entrySet()) {
+            TypedValue<?> valueDef = entry.getValue();
             Object value = valueDef.getValue();
-            if (value instanceof ObjectDeltaObject<?>) {
-                ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>) value;
+            if (value instanceof ObjectDeltaObject<?> odo) {
                 value = odo.getNewObject();
-            } else if (value instanceof ItemDeltaItem<?, ?>) {
-                ItemDeltaItem<?, ?> idi = (ItemDeltaItem<?, ?>) value;
+            } else if (value instanceof ItemDeltaItem<?, ?> idi) {
                 value = idi.getItemNew();
             }
             put(entry.getKey(), valueDef.createTransformed(value));
@@ -447,7 +448,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     }
 
     // TODO: maybe replace by put?
-    public <D extends ItemDefinition> void addVariableDefinition(String name, Object value, D definition) {
+    public <D extends ItemDefinition<?>> void addVariableDefinition(String name, Object value, D definition) {
         if (containsKey(name)) {
             LOGGER.warn("Duplicate definition of variable {}", name);
             return;
@@ -456,12 +457,12 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     }
 
     // TODO: maybe replace by put?
-    public <D extends ItemDefinition> void replaceVariableDefinition(String name, Object value, D definition) {
+    public <D extends ItemDefinition<?>> void replaceVariableDefinition(String name, Object value, D definition) {
         put(name, value, definition);
     }
 
     public Object getValue(String name) {
-        TypedValue typedValue = get(name);
+        TypedValue<?> typedValue = get(name);
         if (typedValue == null) {
             return null;
         }
@@ -497,17 +498,17 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     }
 
     public boolean haveDeltas() {
-        for (Map.Entry<String, TypedValue> entry : entrySet()) {
+        for (Map.Entry<String, TypedValue<?>> entry : entrySet()) {
             if (entry.getValue() == null) {
                 continue;
             }
             Object value = entry.getValue().getValue();
-            if (value instanceof ObjectDeltaObject<?>) {
-                if (((ObjectDeltaObject<?>) value).getObjectDelta() != null && !((ObjectDeltaObject<?>) value).getObjectDelta().isEmpty()) {
+            if (value instanceof ObjectDeltaObject<?> odo) {
+                if (!ObjectDelta.isEmpty(odo.getObjectDelta())) {
                     return true;
                 }
-            } else if (value instanceof ItemDeltaItem<?, ?>) {
-                if (((ItemDeltaItem<?, ?>) value).getDelta() != null && !((ItemDeltaItem<?, ?>) value).getDelta().isEmpty()) {
+            } else if (value instanceof ItemDeltaItem<?, ?> idi) {
+                if (!ItemDelta.isEmpty(idi.getDelta())) {
                     return true;
                 }
             }
@@ -531,5 +532,17 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     @Override
     public String toString() {
         return variables.toString();
+    }
+
+    public @NotNull VariablesMap shallowClone() {
+        var newVariables = new VariablesMap();
+        for (Entry<String, TypedValue<?>> entry : variables.entrySet()) {
+            String key = entry.getKey();
+            newVariables.put(key, entry.getValue());
+            if (isAlias(key)) {
+                newVariables.registerAlias(key, getAliasResolution(key));
+            }
+        }
+        return newVariables;
     }
 }

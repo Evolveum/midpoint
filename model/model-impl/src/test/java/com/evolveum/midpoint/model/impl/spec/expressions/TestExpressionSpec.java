@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -162,8 +162,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         ExpressionType expression = parseExpression(expressionFile);
         VariablesMap variables = prepareVariables(variablesStyle);
         Task task = getTestTask();
-        ExpressionEvaluationContext expressionContext =
-                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), task);
+        var expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), task);
 
         return evaluatePropertyExpression(expression, PrimitiveType.STRING, expressionContext, task.getResult());
     }
@@ -237,7 +236,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
         return variables;
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> PrismValueDeltaSetTriple<V> evaluateExpression(
+    private <V extends PrismValue, D extends ItemDefinition<?>> PrismValueDeltaSetTriple<V> evaluateExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {

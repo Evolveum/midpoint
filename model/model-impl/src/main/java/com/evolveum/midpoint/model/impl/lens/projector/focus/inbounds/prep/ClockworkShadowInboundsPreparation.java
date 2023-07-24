@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluatorParams;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
@@ -18,12 +23,17 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputPro
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -31,15 +41,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class ClockworkShadowInboundsPreparation<F extends FocusType> extends ShadowInboundsPreparation<F> {
 
@@ -108,7 +110,8 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
      * Also it is not clear why these mappings are not collected to the map for later execution,
      * just like regular mappings are.
      */
-    private void evaluateSpecialInbounds(Collection<MappingType> inboundMappingBeans,
+    private void evaluateSpecialInbounds(
+            List<MappingType> inboundMappingBeans,
             ItemPath sourcePath, ItemPath targetPath) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
@@ -230,8 +233,11 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
                     return false;
                 };
 
+        // FIXME Undetermined because of resource/object type inheritance
+        var originProvider = OriginProvider.undetermined();
+
         MappingEvaluatorParams<PrismValue, ItemDefinition<?>, F, F> params = new MappingEvaluatorParams<>();
-        params.setMappingTypes(inboundMappingBeans);
+        params.setMappingBeans(ConfigurationItem.ofList(inboundMappingBeans, originProvider));
         params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projectionContext.getResource());
         params.setNow(context.env.now);
         params.setInitializer(initializer);

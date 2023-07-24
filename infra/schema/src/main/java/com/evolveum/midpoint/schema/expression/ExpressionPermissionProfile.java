@@ -7,62 +7,96 @@
 package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.DeeplyFreezableList;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionClassProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionMethodProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionPackageProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionProfileType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Compiled expression permission profile.
- * Compiled from ExpressionPermissionProfileType.
+ * Compiled from {@link ExpressionPermissionProfileType}.
+ *
+ * Immutable.
+ *
+ * It is the basic building block of https://docs.evolveum.com/midpoint/reference/expressions/expressions/profiles/[Expression
+ * Profiles] functionality; contained within {@link ScriptExpressionProfile}.
  *
  * @author Radovan Semancik
  */
-public class ExpressionPermissionProfile implements Serializable {
+public class ExpressionPermissionProfile extends AbstractFreezable implements Serializable {
 
-    private final String identifier;
-    private AccessDecision decision;
-    private final List<ExpressionPermissionPackageProfileType> packageProfiles = new ArrayList<>();
-    private final List<ExpressionPermissionClassProfileType> classProfiles = new ArrayList<>();
+    @NotNull private final String identifier;
+    @NotNull private final AccessDecision defaultDecision;
+    @NotNull private final DeeplyFreezableList<ExpressionPermissionPackageProfileType> packageProfiles;
+    @NotNull private final DeeplyFreezableList<ExpressionPermissionClassProfileType> classProfiles;
 
-    public ExpressionPermissionProfile(String identifier) {
-        super();
+    private ExpressionPermissionProfile(
+            @NotNull String identifier,
+            @NotNull AccessDecision defaultDecision,
+            @NotNull DeeplyFreezableList<ExpressionPermissionPackageProfileType> packageProfiles,
+            @NotNull DeeplyFreezableList<ExpressionPermissionClassProfileType> classProfiles) {
         this.identifier = identifier;
+        this.defaultDecision = defaultDecision;
+        this.packageProfiles = packageProfiles;
+        this.classProfiles = classProfiles;
     }
 
-    public String getIdentifier() {
+    /** Creates semi-frozen profile (lists are open). */
+    public static ExpressionPermissionProfile open(
+            @NotNull String identifier,
+            @NotNull AccessDecision defaultDecision) {
+        return new ExpressionPermissionProfile(
+                identifier,
+                defaultDecision,
+                new DeeplyFreezableList<>(),
+                new DeeplyFreezableList<>());
+    }
+
+    /** Creates frozen profile. */
+    public static ExpressionPermissionProfile closed(
+            @NotNull String identifier,
+            @NotNull AccessDecision defaultDecision,
+            @NotNull List<ExpressionPermissionPackageProfileType> packageProfiles,
+            @NotNull List<ExpressionPermissionClassProfileType> classProfiles) {
+        var profile = new ExpressionPermissionProfile(
+                identifier,
+                defaultDecision,
+                new DeeplyFreezableList<>(CloneUtil.toImmutableContainerablesList(packageProfiles)),
+                new DeeplyFreezableList<>(CloneUtil.toImmutableContainerablesList(classProfiles)));
+        profile.freeze();
+        return profile;
+    }
+
+    @Override
+    protected void performFreeze() {
+        packageProfiles.freeze();
+        classProfiles.freeze();
+    }
+
+    public @NotNull String getIdentifier() {
         return identifier;
     }
 
-    public AccessDecision getDecision() {
-        return decision;
+    boolean hasRestrictions() {
+        return !classProfiles.isEmpty()
+                || !packageProfiles.isEmpty()
+                || defaultDecision != AccessDecision.ALLOW;
     }
 
-    public void setDecision(AccessDecision decision) {
-        this.decision = decision;
-    }
-
-    public List<ExpressionPermissionPackageProfileType> getPackageProfiles() {
-        return packageProfiles;
-    }
-
-    public List<ExpressionPermissionClassProfileType> getClassProfiles() {
-        return classProfiles;
-    }
-
-    public boolean hasRestrictions() {
-        return !classProfiles.isEmpty() || !packageProfiles.isEmpty() || decision != AccessDecision.ALLOW;
-    }
-
-    public AccessDecision decideClassAccess(String className, String methodName) {
+    @NotNull AccessDecision decideClassAccess(String className, String methodName) {
         ExpressionPermissionClassProfileType classProfile = getClassProfile(className);
         if (classProfile == null) {
             ExpressionPermissionPackageProfileType packageProfile = getPackageProfileByClassName(className);
             if (packageProfile == null) {
-                return decision;
+                return defaultDecision;
             } else {
                 return AccessDecision.translate(packageProfile.getDecision());
             }
@@ -102,7 +136,8 @@ public class ExpressionPermissionProfile implements Serializable {
         classProfiles.add(classProfile);
     }
 
-    private ExpressionPermissionMethodProfileType getMethodProfile(ExpressionPermissionClassProfileType classProfile, String methodName) {
+    private ExpressionPermissionMethodProfileType getMethodProfile(
+            ExpressionPermissionClassProfileType classProfile, String methodName) {
         if (methodName == null) {
             return null;
         }
@@ -117,7 +152,7 @@ public class ExpressionPermissionProfile implements Serializable {
     /**
      * Used to easily set up access for built-in class access rules.
      */
-    public void addClassAccessRule(String className, String methodName, AccessDecision decision) {
+    private void addClassAccessRule(String className, String methodName, AccessDecision decision) {
         ExpressionPermissionClassProfileType classProfile = getClassProfile(className);
         if (classProfile == null) {
             classProfile = new ExpressionPermissionClassProfileType();
@@ -137,7 +172,6 @@ public class ExpressionPermissionProfile implements Serializable {
                 methodProfile.setDecision(decision.getAuthorizationDecisionType());
             }
         }
-
     }
 
     /**
@@ -149,5 +183,14 @@ public class ExpressionPermissionProfile implements Serializable {
 
     public void addClassAccessRule(Class<?> clazz, AccessDecision decision) {
         addClassAccessRule(clazz.getName(), null, decision);
+    }
+
+    @Override
+    public String toString() {
+        return "ExpressionPermissionProfile[" +
+                "identifier=" + identifier + ", " +
+                "decision=" + defaultDecision + ", " +
+                "packageProfiles: " + packageProfiles.size() + ", " +
+                "classProfiles: " + classProfiles.size() + ']';
     }
 }

@@ -6,9 +6,17 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * This is NOT autowired evaluator. There is special need to manipulate objectResolver.
@@ -17,23 +25,32 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
  */
 public abstract class AbstractObjectResolvableExpressionEvaluatorFactory extends BaseExpressionEvaluatorFactory {
 
-    private final ExpressionFactory expressionFactory;
+    @NotNull private final ExpressionFactory expressionFactory;
     private ObjectResolver objectResolver;
 
-    public AbstractObjectResolvableExpressionEvaluatorFactory(ExpressionFactory expressionFactory) {
+    public AbstractObjectResolvableExpressionEvaluatorFactory(@NotNull ExpressionFactory expressionFactory) {
         this.expressionFactory = expressionFactory;
     }
 
-    protected ExpressionFactory getExpressionFactory() {
+    protected @NotNull ExpressionFactory getExpressionFactory() {
         return expressionFactory;
     }
 
-    public ObjectResolver getObjectResolver() {
-        return objectResolver;
+    public @NotNull ObjectResolver getObjectResolver() {
+        return Objects.requireNonNull(objectResolver, "no object resolver");
     }
 
     public void setObjectResolver(ObjectResolver objectResolver) {
         this.objectResolver = objectResolver;
+    }
+
+    /** May be null in some low-level tests. */
+    public @Nullable SecurityContextManager getSecurityContextManager() {
+        return expressionFactory.getSecurityContextManager();
+    }
+
+    public @NotNull LocalizationService getLocalizationService() {
+        return expressionFactory.getLocalizationService();
     }
 
     @PostConstruct

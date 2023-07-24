@@ -61,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
  * Extension of validator used to import objects to the repository.
- * <p/>
+ *
  * In addition to validating the objects the importer also tries to resolve the
  * references and may also do other repository-related stuff.
  *
@@ -112,7 +112,7 @@ public class ObjectImporter {
                     objectResult.addContext("objectNumber", index.incrementAndGet());
                     importParsedObject(object, objectResult, options, task);
                     objectResult.computeStatusIfUnknown();
-                    objectResult.cleanupResult();
+                    objectResult.cleanup();
                     parentResult.summarize();
 
                     if (objectResult.isAcceptable()) {
@@ -177,7 +177,7 @@ public class ObjectImporter {
                 }
             }
             validator.setStopAfterErrors(stopAfterErrors);
-            if (options != null && options.isCompatMode() != null && options.isCompatMode()) {
+            if (options != null && Boolean.TRUE.equals(options.isCompatMode())) {
                 validator.setCompatMode(true);
             }
             validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
@@ -203,8 +203,9 @@ public class ObjectImporter {
 
         object = migrator.migrate(object);
 
-        ModelImplUtils.resolveReferences(object, repository,
-                options != null && options.isReferentialIntegrity() != null && options.isReferentialIntegrity(),
+        ModelImplUtils.resolveReferences(
+                object, repository,
+                options != null && Boolean.TRUE.equals(options.isReferentialIntegrity()),
                 false, EvaluationTimeType.IMPORT, false, objectResult);
 
         objectResult.computeStatus();

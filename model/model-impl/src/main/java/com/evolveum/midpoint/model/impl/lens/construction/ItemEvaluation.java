@@ -10,6 +10,9 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+
 import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
@@ -85,7 +88,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     /**
      * Mapping definition.
      */
-    @NotNull private final MappingType mappingBean;
+    @NotNull private final ConfigurationItem<MappingType> mappingBeanWithOrigin;
 
     /**
      * Mapping origin.
@@ -102,10 +105,14 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
      */
     private MappingImpl<V, D> evaluatedMapping;
 
-    ItemEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation, @NotNull ItemName itemName,
+    ItemEvaluation(
+            @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
+            @NotNull ItemName itemName,
             @NotNull ItemPath itemPath,
             @NotNull RD itemRefinedDefinition,
-            @NotNull D itemPrismDefinition, @NotNull MappingType mappingBean, @NotNull OriginType originType,
+            @NotNull D itemPrismDefinition,
+            @NotNull ConfigurationItem<MappingType> mappingBeanWithOrigin,
+            @NotNull OriginType originType,
             @NotNull MappingKindType mappingKind) {
         this.constructionEvaluation = constructionEvaluation;
         this.construction = constructionEvaluation.construction;
@@ -113,7 +120,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         this.itemPath = itemPath;
         this.itemRefinedDefinition = itemRefinedDefinition;
         this.itemPrismDefinition = itemPrismDefinition;
-        this.mappingBean = mappingBean;
+        this.mappingBeanWithOrigin = mappingBeanWithOrigin;
         this.originType = originType;
         this.mappingKind = mappingKind;
     }
@@ -139,7 +146,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             // code and it has proper description.
             throw e;
         } catch (ObjectNotFoundException e) {
-            throw e.wrap(getEvaluationErrorMessagePrefix(e));
+            throw e.wrap(getEvaluationErrorMessagePrefix());
         } catch (SecurityViolationException e) {
             throw new SecurityViolationException(getEvaluationErrorMessage(e), e);
         } catch (ConfigurationException e) {
@@ -156,7 +163,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     }
 
     public @NotNull MappingType getMappingBean() {
-        return mappingBean;
+        return mappingBeanWithOrigin.value();
     }
 
     boolean hasEvaluatedMapping() {
@@ -168,7 +175,8 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        MappingBuilder<V, D> mappingBuilder = construction.getMappingFactory().createMappingBuilder(mappingBean, getShortDesc());
+        MappingBuilder<V, D> mappingBuilder =
+                construction.getMappingFactory().createMappingBuilder(mappingBeanWithOrigin, getShortDesc());
 
         LensProjectionContext projCtx = constructionEvaluation.projectionContext;
         ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
@@ -205,6 +213,8 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         // TODO: other variables?
 
+        mappingBuilder.computeExpressionProfile(constructionEvaluation.result);
+
         MappingImpl<V, D> mapping = mappingBuilder.build();
         construction.getMappingEvaluator().evaluateMapping(mapping, context, projCtx,
                 constructionEvaluation.task, constructionEvaluation.result);
@@ -226,22 +236,24 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             @Override
             public ValuePolicyType get(OperationResult result) {
 
-                if (mappingBean.getExpression() != null) {
-                    List<JAXBElement<?>> evaluators = mappingBean.getExpression().getExpressionEvaluator();
-                    for (JAXBElement<?> jaxbEvaluator : evaluators) {
-                        Object object = jaxbEvaluator.getValue();
-                        if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
-                            ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
-                            try {
-                                ValuePolicyType valuePolicyType = ModelBeans.get().modelObjectResolver.resolve(ref, ValuePolicyType.class,
-                                        null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+"value",
-                                        constructionEvaluation.task, result);
-                                if (valuePolicyType != null) {
-                                    return valuePolicyType;
-                                }
-                            } catch (CommonException ex) {
-                                throw new SystemException(ex.getMessage(), ex);
-                            }
+                ExpressionType expressionBean = mappingBeanWithOrigin.value().getExpression();
+                if (expressionBean == null) {
+                    return null;
+                }
+                List<JAXBElement<?>> evaluators = expressionBean.getExpressionEvaluator();
+                for (JAXBElement<?> jaxbEvaluator : evaluators) {
+                    Object object = jaxbEvaluator.getValue();
+                    if (object instanceof GenerateExpressionEvaluatorType genEvaluatorBean
+                            && genEvaluatorBean.getValuePolicyRef() != null) {
+                        ObjectReferenceType ref = genEvaluatorBean.getValuePolicyRef();
+                        try {
+                            return ModelBeans.get().modelObjectResolver.resolve(
+                                    ref, ValuePolicyType.class,
+                                    null,
+                                    "resolving value policy for generate attribute " + outputDefinition.getItemName() + "value",
+                                    constructionEvaluation.task, result);
+                        } catch (CommonException ex) {
+                            throw new SystemException(ex.getMessage(), ex);
                         }
                     }
                 }
@@ -287,10 +299,10 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     }
 
     private String getEvaluationErrorMessage(Exception e) {
-        return getEvaluationErrorMessagePrefix(e) + ": " + e.getMessage();
+        return getEvaluationErrorMessagePrefix() + ": " + e.getMessage();
     }
 
-    private String getEvaluationErrorMessagePrefix(Exception e) {
+    private String getEvaluationErrorMessagePrefix() {
         return "Error evaluating mapping for " + getTypedItemName() + " in " +
                 constructionEvaluation.evaluatedConstruction.getHumanReadableConstructionDescription();
     }

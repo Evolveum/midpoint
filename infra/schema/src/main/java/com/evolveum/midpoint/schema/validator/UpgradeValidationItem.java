@@ -18,6 +18,8 @@ public class UpgradeValidationItem implements DebugDumpable {
 
     private UpgradeType type;
 
+    private String description;
+
     private ObjectDelta<?> delta;
 
     public UpgradeValidationItem(ValidationItem item) {
@@ -76,6 +78,14 @@ public class UpgradeValidationItem implements DebugDumpable {
         return item;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(UpgradeValidationResult.class, indent);
@@ -85,6 +95,7 @@ public class UpgradeValidationItem implements DebugDumpable {
         DebugUtil.debugDumpWithLabelLn(sb, "phase", phase, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "priority", priority, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "description", description, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
         return sb.toString();
     }

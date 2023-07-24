@@ -262,10 +262,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     }
 
     private void addAssignmentTargetArgument(List<Object> args, PolicyRuleEvaluationContext<?> ctx) {
-        if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext)) {
+        if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext<?> actx)) {
             args.add("");
         } else {
-            AssignmentPolicyRuleEvaluationContext<?> actx = (AssignmentPolicyRuleEvaluationContext<?>) ctx;
             args.add(ObjectTypeUtil.createDisplayInformation(actx.evaluatedAssignment.getTarget(), false));
         }
     }

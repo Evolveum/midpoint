@@ -90,27 +90,27 @@ public class ModelExpressionEnvironment<F extends ObjectType, V extends PrismVal
         private OperationResult currentResult;
         private Task currentTask;
 
-        public ExpressionEnvironmentBuilder<F, V, D>  lensContext(ModelContext<F> lensContext) {
+        public ExpressionEnvironmentBuilder<F, V, D> lensContext(ModelContext<F> lensContext) {
             this.lensContext = lensContext;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D>  projectionContext(ModelProjectionContext projectionContext) {
+        public ExpressionEnvironmentBuilder<F, V, D> projectionContext(ModelProjectionContext projectionContext) {
             this.projectionContext = projectionContext;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D>  mapping(Mapping<V, D> mapping) {
+        public ExpressionEnvironmentBuilder<F, V, D> mapping(Mapping<V, D> mapping) {
             this.mapping = mapping;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D>  currentResult(OperationResult currentResult) {
+        public ExpressionEnvironmentBuilder<F, V, D> currentResult(OperationResult currentResult) {
             this.currentResult = currentResult;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D>  currentTask(Task currentTask) {
+        public ExpressionEnvironmentBuilder<F, V, D> currentTask(Task currentTask) {
             this.currentTask = currentTask;
             return this;
         }

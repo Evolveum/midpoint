@@ -200,10 +200,7 @@ public class StageComputeHelper {
         Set<ObjectReferenceType> rv = new HashSet<>();
         for (ObjectReferenceType approverRef : approverRefs) {
             Class<? extends Containerable> clazz =
-                    prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(approverRef.getType());
-            if (clazz == null) {
-                throw new IllegalStateException("Unknown object type " + approverRef.getType());
-            }
+                    prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(approverRef.getType());
             if (UserType.class.isAssignableFrom(clazz)) {
                 rv.add(approverRef.clone());
             } else if (AbstractRoleType.class.isAssignableFrom(clazz)) {

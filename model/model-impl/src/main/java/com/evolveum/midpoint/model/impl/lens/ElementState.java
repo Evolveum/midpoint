@@ -337,8 +337,9 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     }
 
     @NotNull PrismObject<O> getNewOrCurrentObjectRequired() {
-        if (getNewObject() != null) {
-            return getNewObject();
+        PrismObject<O> newObjectLocal = getNewObject();
+        if (newObjectLocal != null) {
+            return newObjectLocal;
         } else if (currentObject != null) {
             return currentObject;
         } else {

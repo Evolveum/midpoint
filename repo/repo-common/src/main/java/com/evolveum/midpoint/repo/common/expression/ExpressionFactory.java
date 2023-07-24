@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
@@ -59,8 +60,15 @@ public class ExpressionFactory implements Cache {
     private ExpressionEvaluatorFactory defaultEvaluatorFactory;
     private ObjectResolver objectResolver;
 
+    // Used by Spring
     public ExpressionFactory(SecurityContextManager securityContextManager, LocalizationService localizationService) {
         this.securityContextManager = securityContextManager;
+        this.localizationService = localizationService;
+    }
+
+    @VisibleForTesting
+    public ExpressionFactory(LocalizationService localizationService) {
+        this.securityContextManager = null;
         this.localizationService = localizationService;
     }
 
@@ -82,14 +90,14 @@ public class ExpressionFactory implements Cache {
         return localizationService;
     }
 
-    public SecurityContextManager getSecurityContextManager() {
-        return securityContextManager;
+    public @Nullable SecurityContextManager getSecurityContextManager() {
+        return securityContextManager; // may be null in low-level tests
     }
 
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile,
             String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition, expressionProfile);
         try {
             //noinspection unchecked
@@ -99,6 +107,8 @@ public class ExpressionFactory implements Cache {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {
                 throw (SchemaException) cause;
+            } else if (cause instanceof ConfigurationException) {
+                throw (ConfigurationException) cause;
             } else if (cause instanceof ObjectNotFoundException) {
                 throw (ObjectNotFoundException) cause;
             } else if (cause instanceof SecurityViolationException) {
@@ -114,20 +124,24 @@ public class ExpressionFactory implements Cache {
     public <T> Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> makePropertyExpression(
             ExpressionType expressionType, QName outputPropertyName,
             ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         //noinspection unchecked
         PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
         return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
     }
 
-    @NotNull
-    private <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createExpression(ExpressionType expressionType,
-            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result) {
+    private @NotNull <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createExpression(
+            @Nullable ExpressionType expressionBean,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull String shortDesc,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         try {
-            Expression<V, D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
-            expression.parse(this, shortDesc, task, result);
-            return expression;
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException e) {
+            return Expression.create(
+                    expressionBean, outputDefinition, expressionProfile,
+                    this, shortDesc, task, result);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException e) {
             throw new TunnelException(e);
         }
     }
@@ -146,6 +160,14 @@ public class ExpressionFactory implements Cache {
 
     public void setDefaultEvaluatorFactory(ExpressionEvaluatorFactory defaultEvaluatorFactory) {
         this.defaultEvaluatorFactory = defaultEvaluatorFactory;
+    }
+
+    public @NotNull PrismContext getPrismContext() {
+        return prismContext;
+    }
+
+    public @NotNull ObjectResolver getObjectResolver() {
+        return Objects.requireNonNull(objectResolver, "no object resolver");
     }
 
     static class ExpressionIdentifier {
@@ -189,13 +211,12 @@ public class ExpressionFactory implements Cache {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ExpressionIdentifier)) {
+            if (!(o instanceof ExpressionIdentifier that)) {
                 return false;
             }
-            ExpressionIdentifier that = (ExpressionIdentifier) o;
-            return Objects.equals(expressionBean, that.expressionBean) &&
-                    Objects.equals(outputDefinition, that.outputDefinition) &&
-                    Objects.equals(expressionProfileIdentifier, that.expressionProfileIdentifier);
+            return Objects.equals(expressionBean, that.expressionBean)
+                    && Objects.equals(outputDefinition, that.outputDefinition)
+                    && Objects.equals(expressionProfileIdentifier, that.expressionProfileIdentifier);
         }
 
         @Override

@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.Mapping;
@@ -87,14 +89,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     //region Configuration properties (almost unmodifiable)
 
-    /**
-     * Definition of the mapping.
-     */
+    /** "Rich" definition of the mapping. */
+    @NotNull final ConfigurationItem<MBT> mappingConfigItem;
+
+    /** "Pure" definition of the mapping. Just for convenience. */
     @NotNull final MBT mappingBean;
 
-    /**
-     * Classification of the mapping (for reporting and diagnostic purposes).
-     */
+    /** Classification of the mapping (for reporting and diagnostic purposes). */
     @Experimental
     private final MappingKindType mappingKind;
 
@@ -175,7 +176,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Expression profile to be used when evaluating various expressions (condition,
      * "main" expression, value set expressions, etc).
      */
-    final ExpressionProfile expressionProfile;
+    @NotNull final ExpressionProfile expressionProfile;
 
     /**
      * Information on the kind of mapping. (Partially overlaps with {@link #mappingKind}.)
@@ -375,14 +376,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     //region Constructors and (relatively) simple getters
     protected AbstractMappingImpl(AbstractMappingBuilder<V, D, MBT, ?> builder) {
         variables = builder.getVariables();
-        mappingBean = Objects.requireNonNull(builder.getMappingBean(), "Mapping definition cannot be null");
+        mappingConfigItem = Objects.requireNonNull(builder.getMappingConfigItem(), "Mapping definition cannot be null");
+        mappingBean = mappingConfigItem.value();
         mappingKind = builder.getMappingKind();
         implicitSourcePath = builder.getImplicitSourcePath();
         implicitTargetPath = builder.getImplicitTargetPath();
         targetPathOverride = builder.getTargetPathOverride();
         defaultSource = builder.getDefaultSource();
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
-        expressionProfile = builder.getExpressionProfile();
+        expressionProfile = Objects.requireNonNull(builder.getExpressionProfile(), "no expression profile");
         defaultTargetPath = builder.getDefaultTargetPath();
         originalTargetValues = builder.getOriginalTargetValues();
         sourceContext = builder.getSourceContext();
@@ -417,6 +419,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     @SuppressWarnings("CopyConstructorMissesField") // TODO what about the other fields
     protected AbstractMappingImpl(AbstractMappingImpl<V, D, MBT> prototype) {
+        this.mappingConfigItem = prototype.mappingConfigItem;
         this.mappingBean = prototype.mappingBean;
         this.mappingKind = prototype.mappingKind;
         this.implicitSourcePath = prototype.implicitSourcePath;
@@ -546,13 +549,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return mappingBean.getTarget().getSet() != null;
     }
 
-    public static boolean isApplicableToChannel(AbstractMappingType mappingType, String channelUri) {
-        List<String> exceptChannel = mappingType.getExceptChannel();
-        if (exceptChannel != null && !exceptChannel.isEmpty()) {
+    public static boolean isApplicableToChannel(AbstractMappingType mappingBean, String channelUri) {
+        List<String> exceptChannel = mappingBean.getExceptChannel();
+        if (!exceptChannel.isEmpty()) {
             return !exceptChannel.contains(channelUri);
         }
-        List<String> applicableChannels = mappingType.getChannel();
-        return applicableChannels == null || applicableChannels.isEmpty() || applicableChannels.contains(channelUri);
+        List<String> applicableChannels = mappingBean.getChannel();
+        return applicableChannels == null
+                || applicableChannels.isEmpty()
+                || applicableChannels.contains(channelUri);
     }
 
     public XMLGregorianCalendar getNow() {
@@ -889,7 +894,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         if (originalTargetValues == null) {
-            throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            throw new IllegalStateException(
+                    "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
 
         ValueSetDefinitionType rangeSetDefBean = target.getSet();
@@ -925,8 +931,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         for (V nonNegativeValue : outputTriple.getNonNegativeValues()) {
             if (nonNegativeValue != null) {
                 List<V> matchingOriginalValues = originalTargetValues.stream()
-                        .filter(originalValue -> nonNegativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
-                        .collect(Collectors.toList());
+                        .filter(originalValue ->
+                                nonNegativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
+                        .toList();
                 for (V matchingOriginalValue : matchingOriginalValues) {
 
                     // Looking for metadata with the same mapping spec but not present in "new" value.
@@ -975,8 +982,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             if (negativeValue != null) {
                 assert !negativeValue.hasValueMetadata();
                 List<V> matchingOriginalValues = originalTargetValues.stream()
-                        .filter(originalValue -> negativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
-                        .collect(Collectors.toList());
+                        .filter(originalValue ->
+                                negativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
+                        .toList();
 
                 if (matchingOriginalValues.isEmpty()) {
                     // Huh? There's no original value corresponding to the one being deleted.
@@ -1121,7 +1129,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void traceFailure(Throwable e) {
-        LOGGER.error("Error evaluating {}: {}-{}", getMappingContextDescription(), e.getMessage(), e);
+        LOGGER.error("Error evaluating {}: {}", getMappingContextDescription(), e.getMessage(), e);
         if (!shouldCreateTextTrace()) {
             return;
         }
@@ -1187,6 +1195,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         } else {
             sb.append(expression.shortDebugDump());
         }
+
+        sb.append("\nExpression profile: ").append(expressionProfile);
+        sb.append("\nOrigin: ").append(mappingConfigItem.origin().fullDescription());
+
         if (stateProperties != null) {
             sb.append("\nState:\n");
             DebugUtil.debugDumpMapMultiLine(sb, stateProperties, 1);
@@ -1245,6 +1257,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (outputTriple == null) {
             return;
         }
+        //noinspection rawtypes
         Visitor visitor = visitable -> {
             if (visitable instanceof PrismValue) {
                 ((PrismValue) visitable).recompute(PrismContext.get());
@@ -1271,10 +1284,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         computeConditionTriple(result);
 
-        boolean conditionOutputOld = computeConditionResult(conditionOutputTriple == null ? null : conditionOutputTriple.getNonPositiveValues());
+        boolean conditionOutputOld =
+                computeConditionResult(conditionOutputTriple == null ? null : conditionOutputTriple.getNonPositiveValues());
         conditionResultOld = conditionOutputOld && conditionMaskOld;
 
-        boolean conditionOutputNew = computeConditionResult(conditionOutputTriple == null ? null : conditionOutputTriple.getNonNegativeValues());
+        boolean conditionOutputNew =
+                computeConditionResult(conditionOutputTriple == null ? null : conditionOutputTriple.getNonNegativeValues());
         conditionResultNew = conditionOutputNew && conditionMaskNew;
     }
 
@@ -1283,15 +1298,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             ExpressionEvaluationException,
             CommunicationException,
             ConfigurationException {
-        ExpressionType conditionExpressionType = mappingBean.getCondition();
-        if (conditionExpressionType == null) {
+        ExpressionType conditionExpressionBean = mappingBean.getCondition();
+        if (conditionExpressionBean == null) {
             // True -> True
             conditionOutputTriple = PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
             conditionOutputTriple.addToZeroSet(PrismContext.get().itemFactory().createPropertyValue(Boolean.TRUE));
         } else {
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     ExpressionUtil.createCondition(
-                            conditionExpressionType,
+                            conditionExpressionBean,
                             expressionProfile,
                             ModelCommonBeans.get().expressionFactory,
                             "condition in " + getMappingContextDescription(),
@@ -1312,8 +1327,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
-                mappingBean.getExpression(), getOutputDefinition(), expressionProfile,
-                "expression in " + getMappingContextDescription(), task, result);
+                mappingBean.getExpression(),
+                getOutputDefinition(),
+                expressionProfile,
+                "expression in " + getMappingContextDescription(),
+                task,
+                result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(
                 sources, variables, "expression in " + getMappingContextDescription(), task);
         context.setDefaultSource(defaultSource);
@@ -1421,7 +1440,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         result = prime * result + ((conditionOutputTriple == null) ? 0 : conditionOutputTriple.hashCode());
         result = prime * result + ((defaultSource == null) ? 0 : defaultSource.hashCode());
         result = prime * result + ((defaultTargetDefinition == null) ? 0 : defaultTargetDefinition.hashCode());
-        result = prime * result + ((expressionProfile == null) ? 0 : expressionProfile.hashCode());
+        result = prime * result + expressionProfile.hashCode();
         result = prime * result + mappingBean.hashCode();
         result = prime * result + ((originObject == null) ? 0 : originObject.hashCode());
         result = prime * result + ((originType == null) ? 0 : originType.hashCode());
@@ -1440,7 +1459,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (this == obj) { return true; }
         if (obj == null) { return false; }
         if (getClass() != obj.getClass()) { return false; }
-        AbstractMappingImpl other = (MappingImpl) obj;
+        AbstractMappingImpl<?, ?, ?> other = (MappingImpl<?, ?>) obj;
         if (conditionMaskNew != other.conditionMaskNew) { return false; }
         if (conditionMaskOld != other.conditionMaskOld) { return false; }
         if (conditionOutputTriple == null) {
@@ -1452,9 +1471,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (defaultTargetDefinition == null) {
             if (other.defaultTargetDefinition != null) { return false; }
         } else if (!defaultTargetDefinition.equals(other.defaultTargetDefinition)) { return false; }
-        if (expressionProfile == null) {
-            if (other.expressionProfile != null) { return false; }
-        } else if (!expressionProfile.equals(other.expressionProfile)) { return false; }
+        if (!expressionProfile.equals(other.expressionProfile)) { return false; }
         if (!mappingBean.equals(other.mappingBean)) { return false; }
         if (originObject == null) {
             if (other.originObject != null) { return false; }
@@ -1508,15 +1525,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private String toStringStrength() {
-        switch (getStrength()) {
-            case NORMAL:
-                return "";
-            case WEAK:
-                return ", weak";
-            case STRONG:
-                return ", strong";
-        }
-        return null;
+        return switch (getStrength()) {
+            case NORMAL -> "";
+            case WEAK -> ", weak";
+            case STRONG -> ", strong";
+        };
     }
 
     @Override

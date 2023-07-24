@@ -16,10 +16,11 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -34,7 +35,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Executes specified script written e.g. in Groovy, JavaScript, Python, etc. Velocity template language is supported as well.
+ * Executes specified script written e.g. in Groovy, JavaScript, Python, etc.
+ * Apache Velocity template language is supported as well,
+ *
+ * It is a part of {@link Expression} and {@link ExpressionEvaluator} framework.
+ *
+ * This class is a bridge between the "relativity" and "script execution" aspects of the script expression evaluation:
+ *
+ * . {@link ScriptExpression} evaluates scripts and ignores all those complex aspects of expressions' relativity,
+ * . and {@link AbstractValueTransformationExpressionEvaluator} and the super-classes deal with relativity handling (etc)
+ * and ignore technical aspects of running Groovy/JS/whatever scripts.
  *
  * @author Radovan Semancik
  */
@@ -49,9 +59,8 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
             D outputDefinition,
             Protector protector,
             ScriptExpression scriptExpression,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
-        super(elementName, scriptBean, outputDefinition, protector, securityContextManager, localizationService);
+        super(elementName, scriptBean, outputDefinition, protector, localizationService);
         this.scriptExpression = scriptExpression;
     }
 
@@ -61,10 +70,11 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
     }
 
     @Override
-    @NotNull
-    protected List<V> transformSingleValue(VariablesMap variables, PlusMinusZero valueDestination, boolean useNew,
+    protected @NotNull List<V> transformSingleValue(
+            VariablesMap variables, PlusMinusZero valueDestination, boolean useNew,
             ExpressionEvaluationContext eCtx, String contextDescription, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         scriptExpression.setAdditionalConvertor(eCtx.getAdditionalConvertor());
         ScriptExpressionEvaluationContext sCtx = new ScriptExpressionEvaluationContext();
         sCtx.setVariables(variables);

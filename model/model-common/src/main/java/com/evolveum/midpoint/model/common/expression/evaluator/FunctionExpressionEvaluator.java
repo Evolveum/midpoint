@@ -65,7 +65,8 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         checkEvaluatorProfile(context);
 
         ObjectReferenceType functionLibraryRef = expressionEvaluatorBean.getLibraryRef();
@@ -174,8 +175,9 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         return true;
     }
 
-    private Expression<V, D> createFunctionExpression(ExpressionType functionToExecute, ExpressionEvaluationContext context,
-            OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+    private Expression<V, D> createFunctionExpression(
+            ExpressionType functionToExecute, ExpressionEvaluationContext context, OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
         OperationResult result = parentResult.createMinorSubresult(OP_MAKE_EXPRESSION);
         try {
             // TODO: expression profile should be determined from the function library archetype
@@ -184,7 +186,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             return context.getExpressionFactory()
                     .makeExpression(functionToExecute, outputDefinition, expressionProfile,
                             "function execution", context.getTask(), result);
-        } catch (SchemaException | ObjectNotFoundException e) {
+        } catch (SchemaException | ObjectNotFoundException | ConfigurationException e) {
             result.recordFatalError("Cannot make expression for " + functionToExecute + ". Reason: " + e.getMessage(), e);
             throw e;
         } finally {

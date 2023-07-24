@@ -11,6 +11,7 @@ import javax.script.*;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
@@ -19,11 +20,13 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * Expression evaluator that is using javax.script (JSR-223) engine.
- * <p>
- * This evaluator does not really support expression profiles. It has just one
- * global almighty compiler (ScriptEngine).
+ * Generic expression evaluator that is using javax.script (JSR-223) engine.
+ *
+ * This evaluator does not really support expression profiles. It has just one global almighty compiler ({@link ScriptEngine}).
+ * Groovy is handled by {@link GroovyScriptEvaluator}.
  *
  * @author Radovan Semancik
  */
@@ -43,7 +46,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         long initStartMs = System.currentTimeMillis();
         scriptEngine = scriptEngineManager.getEngineByName(engineName);
         if (scriptEngine == null) {
-            LOGGER.warn("The JSR-223 scripting engine for '" + engineName + "' was not found");
+            LOGGER.warn("The JSR-223 scripting engine for '{}' was not found", engineName);
             return;
         }
         LOGGER.info("Script engine for '{}' initialized in {} ms.",
@@ -51,7 +54,8 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     }
 
     @Override
-    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext) throws Exception {
+    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext)
+            throws Exception {
         return ((Compilable) scriptEngine).compile(codeString);
     }
 
@@ -77,7 +81,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     }
 
     @Override
-    public String getLanguageUrl() {
+    public @NotNull String getLanguageUrl() {
         return MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + getLanguageName();
     }
 

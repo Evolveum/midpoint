@@ -147,7 +147,9 @@ public class ModelCrudService {
         OperationResult result = parentResult.createSubresult(ADD_OBJECT);
         result.addParam(OperationResult.PARAM_OBJECT, object);
 
-        ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, result);
+        ModelImplUtils.resolveReferences(
+                object, repository, false, false,
+                EvaluationTimeType.IMPORT, true, result);
 
         String oid;
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
@@ -171,7 +173,7 @@ public class ModelCrudService {
 
             oid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, object);
             result.computeStatus();
-            result.cleanupResult();
+            result.cleanup();
 
         } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
             ModelImplUtils.recordFatalError(result, ex);
@@ -284,8 +286,10 @@ public class ModelCrudService {
      *             unknown error from underlying layers or other unexpected
      *             state
      */
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta> modifications, ModelExecuteOptions options, Task task, OperationResult parentResult)
+    public <T extends ObjectType> void modifyObject(
+            Class<T> type, String oid,
+            Collection<? extends ItemDelta<?, ?>> modifications, ModelExecuteOptions options,
+            Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
