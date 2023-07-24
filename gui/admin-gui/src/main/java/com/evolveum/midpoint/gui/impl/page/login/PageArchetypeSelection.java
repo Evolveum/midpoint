@@ -231,14 +231,17 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     }
 
     private Component createTilePanel(IModel<Tile<ArchetypeType>> tileModel) {
-        return new TilePanel<>(ID_ARCHETYPE_PANEL, tileModel) {
+        var tilePanel = new TilePanel<>(ID_ARCHETYPE_PANEL, tileModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onClick(AjaxRequestTarget target) {
                 updateArchetypeOidField(tileModel, target);
+                target.add(getArchetypesContainer());
             }
         };
+        tilePanel.add(AttributeModifier.append("class", getActiveClassModel(tileModel.getObject())));
+        return tilePanel;
     }
 
     private void updateArchetypeOidField(IModel<Tile<ArchetypeType>> tileModel, AjaxRequestTarget target) {
@@ -250,8 +253,16 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
         return tileModel.getObject().getValue().getOid();
     }
 
+    private IModel<String> getActiveClassModel(Tile<ArchetypeType> tile) {
+        var isArchetypeSelected = tile.getValue().getOid().equals(archetypeOidModel.getObject());
+        return isArchetypeSelected ? Model.of("active") : Model.of();
+    }
     private MidpointForm<?> getForm() {
         return (MidpointForm<?>) get(ID_MAIN_FORM);
+    }
+
+    private WebMarkupContainer getArchetypesContainer() {
+        return (WebMarkupContainer) getForm().get(ID_ARCHETYPE_SELECTION_PANEL);
     }
 
     private Component getArchetypeOidField() {
