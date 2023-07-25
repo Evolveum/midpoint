@@ -40,4 +40,7 @@
             </profiling>
         </reporting>
     </activity>
+    <modelOperationContext>
+        <state>execution</state>
+    </modelOperationContext>
 </task>
