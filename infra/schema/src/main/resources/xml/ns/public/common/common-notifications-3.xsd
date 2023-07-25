@@ -819,7 +819,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.5</a:deprecatedSince>
-                        <a:plannedRemoval>4.7</a:plannedRemoval>
+                        <a:plannedRemoval>5.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

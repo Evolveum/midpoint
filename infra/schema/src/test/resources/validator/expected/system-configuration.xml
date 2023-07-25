@@ -9,7 +9,38 @@
 
     <name>system-configuration</name>
 
+
+    <messageTransportConfiguration>
+        <customTransport>
+            <name>custom1</name>
+            <redirectToFile>notification-redirected.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+        <customTransport>
+            <name>custom2</name>
+            <redirectToFile>notification-redirected2.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+    </messageTransportConfiguration>
+
     <notificationConfiguration>
+        <handler>
+            <simpleUserNotifier>
+                <transport>custom1</transport>
+            </simpleUserNotifier>
+        </handler>
         <!--<sms>
             <gateway>
                 <urlExpression>
