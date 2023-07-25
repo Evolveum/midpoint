@@ -32,6 +32,11 @@ public class ReportDataProcessor implements UpgradeObjectProcessor<ReportDataTyp
     }
 
     @Override
+    public String upgradeDescription(PrismObject<ReportDataType> object, ItemPath path) {
+        return "Still needed, deprecation removed in 4.8";
+    }
+
+    @Override
     public boolean process(PrismObject<ReportDataType> object, ItemPath path) {
         return false;
     }

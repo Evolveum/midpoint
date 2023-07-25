@@ -225,9 +225,12 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     }
 
     @Test
-    public void test70ReportData() throws Exception {
+    public void test90ReportData() throws Exception {
         testUpgradeValidator("report-data.xml", result -> {
-            // todo assertts
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isFalse();
         });
     }
 
