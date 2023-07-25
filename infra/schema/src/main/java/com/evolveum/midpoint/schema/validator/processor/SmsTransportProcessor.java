@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class CustomTransportProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
+public class SmsTransportProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -37,7 +37,7 @@ public class CustomTransportProcessor implements UpgradeObjectProcessor<SystemCo
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentTypeAndItemName(object, path, NotificationConfigurationType.class, NotificationConfigurationType.F_CUSTOM_TRANSPORT);
+        return matchParentTypeAndItemName(object, path, NotificationConfigurationType.class, NotificationConfigurationType.F_SMS);
     }
 
     @Override
@@ -45,8 +45,8 @@ public class CustomTransportProcessor implements UpgradeObjectProcessor<SystemCo
         SystemConfigurationType config = object.asObjectable();
         NotificationConfigurationType notificationConfig = config.getNotificationConfiguration();
 
-        List<LegacyCustomTransportConfigurationType> customTransport = notificationConfig.getCustomTransport();
-        if (customTransport == null || customTransport.isEmpty()) {
+        List<SmsConfigurationType> sms = notificationConfig.getSms();
+        if (sms == null || sms.isEmpty()) {
             return false;
         }
 
@@ -56,17 +56,17 @@ public class CustomTransportProcessor implements UpgradeObjectProcessor<SystemCo
             config.setMessageTransportConfiguration(messageTransport);
         }
 
-        for (LegacyCustomTransportConfigurationType transport : customTransport) {
-            CustomTransportConfigurationType ct = new CustomTransportConfigurationType();
-            ct.setName(transport.getName());
-            ct.setExpression(transport.getExpression());
+        for (SmsConfigurationType transport : sms) {
+            SmsTransportConfigurationType st = new SmsTransportConfigurationType();
+            st.setDefaultFrom(transport.getDefaultFrom());
+            st.getGateway().addAll(transport.getGateway());
 
-            copyTransport(transport, ct);
+            copyTransport(transport, st);
 
-            messageTransport.getCustomTransport().add(ct);
+            messageTransport.getSms().add(st);
         }
 
-        customTransport.clear();
+        sms.clear();
 
         return true;
     }

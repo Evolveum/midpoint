@@ -15,28 +15,7 @@
                 <transport>custom1</transport>
             </simpleUserNotifier>
         </handler>
-        <customTransport name="custom1">
-            <redirectToFile>notification-redirected.log</redirectToFile>
-            <expression>
-                <script>
-                    <code>
-                        return null
-                    </code>
-                </script>
-            </expression>
-        </customTransport>
-        <customTransport name="custom2">
-            <redirectToFile>notification-redirected2.log</redirectToFile>
-            <expression>
-                <script>
-                    <code>
-                        return null
-                    </code>
-                </script>
-            </expression>
-        </customTransport>
-
-        <!--<sms>
+        <sms name="s1">
             <gateway>
                 <urlExpression>
                     <script>
@@ -47,7 +26,7 @@
                 </urlExpression>
             </gateway>
         </sms>
-        <sms>
+        <sms name="s2">
             <redirectToFile>redirected.log</redirectToFile>
             <blackList>blacklisted@example.com</blackList>
             <debug>true</debug>
@@ -72,7 +51,27 @@
                 <username>user</username>
                 <password>pass</password>
             </gateway>
-        </sms>-->
+        </sms>
+        <customTransport name="custom1">
+            <redirectToFile>notification-redirected.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+        <customTransport name="custom2">
+            <redirectToFile>notification-redirected2.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
     </notificationConfiguration>
 
     <roleManagement>
