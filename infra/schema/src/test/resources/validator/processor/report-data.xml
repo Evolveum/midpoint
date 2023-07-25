@@ -1,0 +1,8 @@
+<reportData xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>report data</name>
+    <filePath>/opt/file.csv</filePath>
+    <fileFormat>csv</fileFormat>
+    <reportRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
+    <nodeRef oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed"/>
+    <data>some data</data>
+</reportData>
