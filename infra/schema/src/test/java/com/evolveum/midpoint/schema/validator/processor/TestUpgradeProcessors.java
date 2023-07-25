@@ -180,7 +180,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test40TestRole() throws Exception {
         testUpgradeValidator("role.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(4);
+            Assertions.assertThat(result.getItems()).hasSize(5);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(PersonaTargetSubtypeProcessor.class));
             UpgradeValidationItemAsserter asserter = new UpgradeValidationItemAsserter(item);
