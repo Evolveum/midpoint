@@ -6,34 +6,31 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.authentication;
 
+import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
 
 import java.util.List;
 
-public class CorrelationModuleAuthentication extends CredentialModuleAuthenticationImpl {
+public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImpl implements CorrelationModuleAuthentication {
 
-    private List<ModuleItemConfigurationType> moduleConfiguration;
+    private String correlatorIdentifier;
 
-    public CorrelationModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
+    public CorrelationModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.CORRELATION, sequenceModule);
         setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {
-        CorrelationModuleAuthentication module = new CorrelationModuleAuthentication(this.getSequenceModule());
+        CorrelationModuleAuthenticationImpl module = new CorrelationModuleAuthenticationImpl(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
-        module.setModuleConfiguration(this.getModuleConfiguration());
+        module.setCorrelatorIdentifier(this.correlatorIdentifier);
         super.clone(module);
         return module;
     }
 
-    public void setModuleConfiguration(List<ModuleItemConfigurationType> moduleConfiguration) {
-        this.moduleConfiguration = moduleConfiguration;
-    }
-
-    public List<ModuleItemConfigurationType> getModuleConfiguration() {
-        return moduleConfiguration;
+    public void setCorrelatorIdentifier(String correlatorIdentifier) {
+        this.correlatorIdentifier = correlatorIdentifier;
     }
 }

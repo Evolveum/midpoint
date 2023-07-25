@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import com.evolveum.midpoint.authentication.impl.module.authentication.CorrelationModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.CorrelationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configurer.CorrelationModuleWebSecurityConfigurer;
 
 import com.evolveum.midpoint.authentication.impl.provider.CorrelationProvider;
@@ -15,7 +15,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,14 +57,12 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
-        CorrelationModuleAuthentication moduleAuthentication = new CorrelationModuleAuthentication(sequenceModule);
+        CorrelationModuleAuthenticationImpl moduleAuthentication = new CorrelationModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
-        moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-//        if (moduleType instanceof FocusIdentificationAuthenticationModuleType) {
-//            moduleAuthentication.setModuleConfiguration(((FocusIdentificationAuthenticationModuleType) moduleType).getItem());
-//        }
+        if (moduleType instanceof CorrelationAuthenticationModuleType) {
+            moduleAuthentication.setCorrelatorIdentifier(((CorrelationAuthenticationModuleType) moduleType).getCorrelationRuleIdentifier());
+        }
         return moduleAuthentication;
     }
 
