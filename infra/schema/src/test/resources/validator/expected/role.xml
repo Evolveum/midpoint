@@ -19,22 +19,25 @@
 
     <assignment id="2">
         <limitOtherPrivileges>
-            <caseManagementWorkItems>
+            <approvalWorkItems>
                 <all>true</all>
-            </caseManagementWorkItems>
+            </approvalWorkItems>
         </limitOtherPrivileges>
     </assignment>
 
     <inducement id="3">
         <limitOtherPrivileges>
-            <caseManagementWorkItems>
+            <approvalWorkItems>
                 <all>true</all>
-            </caseManagementWorkItems>
+            </approvalWorkItems>
         </limitOtherPrivileges>
     </inducement>
 
     <inducement id="4">
         <limitOtherPrivileges>
+            <approvalWorkItems>
+                <all>true</all>
+            </approvalWorkItems>
             <caseManagementWorkItems>
                 <all>false</all>
             </caseManagementWorkItems>
