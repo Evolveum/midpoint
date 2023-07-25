@@ -45,7 +45,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
             AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
 
         if (!(moduleType instanceof AbstractCredentialAuthenticationModuleType)) {
-            LOGGER.error("This factory supports only AbstractPasswordAuthenticationModuleType, but modelType is " + moduleType);
+            LOGGER.error("This factory supports only AbstractCredentialAuthenticationModuleType, but moduleType is " + moduleType);
             return null;
         }
 
