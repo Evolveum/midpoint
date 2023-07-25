@@ -17,4 +17,27 @@
         </personaConstruction>
     </assignment>
 
+    <assignment id="2">
+        <limitOtherPrivileges>
+            <caseManagementWorkItems>
+                <all>true</all>
+            </caseManagementWorkItems>
+        </limitOtherPrivileges>
+    </assignment>
+
+    <inducement id="3">
+        <limitOtherPrivileges>
+            <caseManagementWorkItems>
+                <all>true</all>
+            </caseManagementWorkItems>
+        </limitOtherPrivileges>
+    </inducement>
+
+    <inducement id="4">
+        <limitOtherPrivileges>
+            <caseManagementWorkItems>
+                <all>false</all>
+            </caseManagementWorkItems>
+        </limitOtherPrivileges>
+    </inducement>
 </role>
