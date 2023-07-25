@@ -188,7 +188,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test50SecurityPolicy() throws Exception {
         testUpgradeValidator("security-policy.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(9);
+                    .hasSize(11);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
