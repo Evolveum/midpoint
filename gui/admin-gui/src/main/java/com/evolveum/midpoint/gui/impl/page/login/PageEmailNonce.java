@@ -57,13 +57,15 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import java.util.List;
+
 /**
  * @author lskublik
  */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/emailNonce", matchUrlForSecurity = "/emailNonce")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
-public class PageEmailNonce extends PageAuthenticationBase {
+public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticationModuleType> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageEmailNonce.class);
@@ -128,6 +130,11 @@ public class PageEmailNonce extends PageAuthenticationBase {
     @Override
     protected String getModuleTypeName() {
         return AuthenticationModuleNameConstants.MAIL_NONCE;
+    }
+
+    @Override
+    protected List<MailNonceAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
+        return modules.getMailNonce();
     }
 
     @Override
@@ -212,28 +219,12 @@ public class PageEmailNonce extends PageAuthenticationBase {
             throw new RestartResponseException(PageEmailNonce.class);
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication)) {
-            getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("Bad type of authentication, support only MidpointAuthentication, but is "
-                    + authentication != null ? authentication.getClass().getName() : null);
-            throw new RestartResponseException(PageEmailNonce.class);
-        }
-
-        ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
-        if (!(moduleAuthentication instanceof CredentialModuleAuthentication)
-                && !AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getModuleTypeName())) {
-            getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("Bad type of module authentication, support only EmailNonceModuleAuthentication, but is "
-                    + moduleAuthentication != null ? moduleAuthentication.getClass().getName() : null);
-            throw new RestartResponseException(PageEmailNonce.class);
-        }
-        CredentialModuleAuthentication nonceAuth = (CredentialModuleAuthentication) moduleAuthentication;
-        String credentialName = nonceAuth.getCredentialName();
+        MailNonceAuthenticationModuleType moduleType = getAutheticationModuleConfiguration();
+        String credentialName = moduleType.getCredentialName();
 
         if (credentialName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getModuleIdentifier() + " haven't define name of credential");
+            LOGGER.error("EmailNonceModuleAuthentication " + moduleType.getIdentifier() + " haven't define name of credential");
             throw new RestartResponseException(PageEmailNonce.class);
         }
 

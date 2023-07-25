@@ -6,26 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.*;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
 
-import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -38,15 +22,30 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
-public class PageArchetypeSelection extends PageAuthenticationBase {
+public class PageArchetypeSelection extends PageAuthenticationBase<ArchetypeSelectionModuleType> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageArchetypeSelection.class);
@@ -90,15 +89,18 @@ public class PageArchetypeSelection extends PageAuthenticationBase {
     }
 
     @Override
+    protected List<ArchetypeSelectionModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
+        return modules.getArchetypeSelection();
+    }
+
+    @Override
     protected void initModels() {
         archetypeSelectionModuleModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected ArchetypeSelectionModuleType load() {
-                var securityPolicy = resolveSecurityPolicy(null);
-
-                return ConfigurationLoadUtil.loadArchetypeSelectionModuleForLoginRecovery(PageArchetypeSelection.this, securityPolicy);
+                return getAutheticationModuleConfiguration();
             }
         };
         allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();

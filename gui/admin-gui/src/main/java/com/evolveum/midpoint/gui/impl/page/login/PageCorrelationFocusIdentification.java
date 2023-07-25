@@ -10,16 +10,17 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.form.HiddenField;
+import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.login.dto.CorrelatorConfigDto;
 import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,17 +30,16 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationUseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @PageDescriptor(urls = {
 @Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
         permitAll = true,  loginPage = true, authModule = AuthenticationModuleNameConstants.CORRELATION)   //todo remove permit all later : [KV] why?
-public class PageCorrelationFocusIdentification extends PageAbstractAttributeVerification {
+public class PageCorrelationFocusIdentification extends PageAbstractAttributeVerification<CorrelationAuthenticationModuleType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,10 +48,13 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     private static final String OPERATION_DETERMINE_CORRELATOR_SETTINGS = DOT_CLASS + "determineCorrelatorSettings";
 
     private static final String ID_CORRELATE = "correlate";
+    private static final String ID_CORRELATOR_NAME = "correlatorName";
 
     private String archetypeOid;
 
     private boolean allowUndefinedArchetype;
+
+    private LoadableModel<CorrelatorConfigDto> correlatorModel;
 
     public PageCorrelationFocusIdentification() {
     }
@@ -66,77 +69,48 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         return null;
     }
 
+    //TODO refactor
     @Override
     protected List<VerificationAttributeDto> loadAttrbuteVerificationDtoList() {
-        return getCurrentCorrelationItemPathList()
-                .stream()
-                .map(p -> new VerificationAttributeDto(new ItemPathType(p)))
-                .collect(Collectors.toList());
+        return correlatorModel.getObject().getAttributeDtoList();
     }
 
-    private PathSet getCurrentCorrelationItemPathList() {
+    @Override
+    protected List<CorrelationAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
+        return modules.getCorrelation();
+    }
 
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication)) {
-            getSession().error(getString("No midPoint authentication is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-        if (moduleAuthentication == null
-                && !AuthenticationModuleNameConstants.CORRELATION.equals(moduleAuthentication.getModuleTypeName())) {
-            getSession().error(getString("No authentication module is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
-            getSession().error(getString("No module identifier is defined"));
-            throw new RestartResponseException(PageError.class);
-        }
-        CorrelationAuthenticationModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
-        if (module == null) {
-            getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        String correlatorName = module.getCorrelationRuleIdentifier();
+    @Override
+    protected void initModels() {
+        correlatorModel = new LoadableModel<>() {
+            @Override
+            protected CorrelatorConfigDto load() {
+                CorrelationAuthenticationModuleType module = getAutheticationModuleConfiguration();
+                String correlatorName = module.getCorrelationRuleIdentifier();
 
-        var index = 1; //todo this should be the index of the currently processing correlator
+                return new CorrelatorConfigDto(correlatorName, archetypeOid, getCorrelationAttributePaths(correlatorName));
+            }
+        };
+        allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();
+        archetypeOid = loadArchetypeOidFromAuthentication();
+        super.initModels();
+    }
 
-        Task task = createAnonymousTask(OPERATION_DETERMINE_CORRELATOR_SETTINGS);
+    private List<VerificationAttributeDto> getCorrelationAttributePaths(String correlatorName) {
         PathSet pathList;
         try {
+            Task task = createAnonymousTask(OPERATION_DETERMINE_CORRELATOR_SETTINGS);
             pathList = getCorrelationService().determineCorrelatorConfiguration(new CorrelatorDiscriminator(correlatorName, CorrelationUseType.USERNAME_RECOVERY), archetypeOid, task, task.getResult());
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Couldn't determine correlator configuration", e);
             pathList = new PathSet();
         }
 
-        return pathList;
-    }
-
-    private CorrelationAuthenticationModuleType getModuleByIdentifier(String moduleIdentifier) {
-        if (StringUtils.isEmpty(moduleIdentifier)) {
-            return null;
-        }
-
-        //TODO security policy defined for archetype? e.g. not null user but empty focus with archetype. but wouldn't it be hack?
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
-        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
-            getSession().error(getString("Security policy not found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        return securityPolicy.getAuthentication().getModules().getCorrelation()
+        return pathList
                 .stream()
-                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Override
-    protected void initModels() {
-        super.initModels();
-        allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();
-        archetypeOid = loadArchetypeOidFromAuthentication();
+                .map(p -> new VerificationAttributeDto(new ItemPathType(p)))
+                .collect(Collectors.toList());
     }
 
     private boolean loadAllowUndefinedArchetypeConfig() {
@@ -170,4 +144,12 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         return user;
     }
 
+    @Override
+    protected void initCustomLayout() {
+        super.initCustomLayout();
+
+        HiddenField<String> verified = new HiddenField<>(ID_CORRELATOR_NAME, new PropertyModel<>(correlatorModel, CorrelatorConfigDto.CORRELATOR_IDENTIFIER));
+        verified.setOutputMarkupId(true);
+        getForm().add(verified);
+    }
 }

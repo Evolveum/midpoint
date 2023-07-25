@@ -63,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/securityquestions", matchUrlForSecurity = "/securityquestions")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM)
-public class PageSecurityQuestions extends PageAuthenticationBase {
+public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuestionsFormAuthenticationModuleType> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSecurityQuestions.class);
@@ -355,6 +355,11 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     @Override
     protected String getModuleTypeName() {
         return AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM;
+    }
+
+    @Override
+    protected List<SecurityQuestionsFormAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
+        return modules.getSecurityQuestionsForm();
     }
 
     @Override

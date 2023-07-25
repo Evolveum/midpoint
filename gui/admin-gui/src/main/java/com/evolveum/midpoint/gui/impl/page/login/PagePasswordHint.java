@@ -7,11 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -21,24 +28,9 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HintAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lskublik
@@ -46,7 +38,7 @@ import jakarta.servlet.http.HttpSession;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/hint", matchUrlForSecurity = "/hint")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.HINT)
-public class PagePasswordHint extends PageAuthenticationBase {
+public class PagePasswordHint extends PageAuthenticationBase<HintAuthenticationModuleType> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PagePasswordHint.class);
@@ -161,6 +153,11 @@ public class PagePasswordHint extends PageAuthenticationBase {
     @Override
     protected String getModuleTypeName() {
         return AuthenticationModuleNameConstants.HINT;
+    }
+
+    @Override
+    protected List<HintAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
+        return modules.getHint();
     }
 
     @Override

@@ -6,26 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -42,16 +24,26 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/focusIdentification", matchUrlForSecurity = "/focusIdentification")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION)
-public class PageFocusIdentification extends PageAuthenticationBase {
+public class PageFocusIdentification extends PageAuthenticationBase<FocusIdentificationAuthenticationModuleType> {
     private static final long serialVersionUID = 1L;
 
 
@@ -83,27 +75,28 @@ public class PageFocusIdentification extends PageAuthenticationBase {
 
             @Override
             protected List<ItemPathType> load() {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (!(authentication instanceof MidpointAuthentication)) {
-                    getSession().error(getString("No midPoint authentication is found"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-                if (moduleAuthentication == null
-                        && !AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION.equals(moduleAuthentication.getModuleTypeName())) {
-                    getSession().error(getString("No authentication module is found"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
-                    getSession().error(getString("No module identifier is defined"));
-                    throw new RestartResponseException(PageError.class);
-                }
-                FocusIdentificationAuthenticationModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
-                if (module == null) {
-                    getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
-                    throw new RestartResponseException(PageError.class);
-                }
+//                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//                if (!(authentication instanceof MidpointAuthentication)) {
+//                    getSession().error(getString("No midPoint authentication is found"));
+//                    throw new RestartResponseException(PageError.class);
+//                }
+//                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+//                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+//                if (moduleAuthentication == null
+//                        && !AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION.equals(moduleAuthentication.getModuleTypeName())) {
+//                    getSession().error(getString("No authentication module is found"));
+//                    throw new RestartResponseException(PageError.class);
+//                }
+//                if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
+//                    getSession().error(getString("No module identifier is defined"));
+//                    throw new RestartResponseException(PageError.class);
+//                }
+//                FocusIdentificationAuthenticationModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
+//                if (module == null) {
+//                    getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
+//                    throw new RestartResponseException(PageError.class);
+//                }
+                FocusIdentificationAuthenticationModuleType module = getAutheticationModuleConfiguration();
                 List<ModuleItemConfigurationType> itemConfigs = module.getItem();
                 return itemConfigs.stream()
                         .map(config -> config.getPath())
@@ -217,6 +210,11 @@ public class PageFocusIdentification extends PageAuthenticationBase {
     @Override
     protected String getModuleTypeName() {
         return AuthenticationModuleNameConstants.FOCUS_IDENTIFICATION;
+    }
+
+    @Override
+    protected List<FocusIdentificationAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
+        return modules.getFocusIdentification();
     }
 
     private String generateAttributeValuesString() {

@@ -7,15 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.List;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -30,13 +22,21 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.List;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public abstract class PageAbstractAttributeVerification extends PageAuthenticationBase {
+public abstract class PageAbstractAttributeVerification<AM extends AbstractAuthenticationModuleType> extends PageAuthenticationBase<AM> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
@@ -48,16 +48,17 @@ public abstract class PageAbstractAttributeVerification extends PageAuthenticati
     private static final String ID_CSRF_FIELD = "csrfField";
 
 
-    private LoadableDetachableModel<List<VerificationAttributeDto>> attributePathModel;
-    private LoadableDetachableModel<UserType> userModel;
-    IModel<String> attrValuesModel = Model.of();
+    private LoadableModel<List<VerificationAttributeDto>> attributePathModel;
+    private LoadableModel<UserType> userModel;
+    private IModel<String> attrValuesModel = Model.of();
 
     public PageAbstractAttributeVerification() {
     }
 
     protected void initModels() {
-        attributePathModel = new LoadableDetachableModel<List<VerificationAttributeDto>>() {
+        attributePathModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected List<VerificationAttributeDto> load() {
                 return loadAttrbuteVerificationDtoList();
@@ -148,6 +149,5 @@ public abstract class PageAbstractAttributeVerification extends PageAuthenticati
         }
         return attrValues.toString();
     }
-
 
 }

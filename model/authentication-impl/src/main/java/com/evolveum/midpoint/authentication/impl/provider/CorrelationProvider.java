@@ -109,25 +109,6 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
 
 
                 correlationResult.getOwner();
-//
-//
-//                        Task task = createAnonymousTask("get security policy", manager);
-//                        OperationResult result = new OperationResult("get security policy");
-//
-//                        try {
-//                            return modelInteractionService.getSecurityPolicy(user, task, result);
-//                        } catch (CommonException e) {
-//                            LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
-//                            return null;
-//                        }
-//                    }
-//                });
-
-
-//                CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
-//
-//                correlatorFactoryRegistry.instantiateCorrelator()
-
 
                 UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
                 pwdToken.setAuthenticated(false);

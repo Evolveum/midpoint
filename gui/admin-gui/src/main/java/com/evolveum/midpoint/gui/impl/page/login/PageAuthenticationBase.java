@@ -16,6 +16,10 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -43,12 +47,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public abstract class PageAuthenticationBase extends AbstractPageLogin {
+public abstract class PageAuthenticationBase<AM extends AbstractAuthenticationModuleType> extends AbstractPageLogin {
 
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageAuthenticationBase.class.getName() + ".";
@@ -258,4 +258,51 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
     }
 
     protected  abstract String getModuleTypeName();
+
+    protected AM getAutheticationModuleConfiguration() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            getSession().error(getString("No midPoint authentication is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+        if (moduleAuthentication == null
+                || !getModuleTypeName().equals(moduleAuthentication.getModuleTypeName())) {
+            getSession().error(getString("No authentication module is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
+            getSession().error(getString("No module identifier is defined"));
+            throw new RestartResponseException(PageError.class);
+        }
+        AM module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
+        if (module == null) {
+            getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+
+        return module;
+    }
+
+    protected abstract List<AM> getAuthetcationModules(AuthenticationModulesType modules);
+
+    private AM getModuleByIdentifier(String moduleIdentifier) {
+        if (StringUtils.isEmpty(moduleIdentifier)) {
+            return null;
+        }
+
+        //TODO security policy defined for archetype? e.g. not null user but empty focus with archetype. but wouldn't it be hack?
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
+            getSession().error(getString("Security policy not found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        return getAuthetcationModules(securityPolicy.getAuthentication().getModules())
+                .stream()
+                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
+                .findFirst()
+                .orElse(null);
+    }
+
 }
