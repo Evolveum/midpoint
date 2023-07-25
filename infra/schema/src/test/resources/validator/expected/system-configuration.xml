@@ -49,6 +49,13 @@
         </sms>-->
     </notificationConfiguration>
 
+    <roleManagement>
+        <defaultAssignmentConstraints>
+            <allowSameTarget>true</allowSameTarget>
+            <allowSameRelation>true</allowSameRelation>
+        </defaultAssignmentConstraints>
+    </roleManagement>
+
     <adminGuiConfiguration>
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
