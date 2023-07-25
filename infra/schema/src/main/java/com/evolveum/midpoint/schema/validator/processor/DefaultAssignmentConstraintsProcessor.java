@@ -16,13 +16,11 @@ import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-// todo test
 @SuppressWarnings("unused")
 public class DefaultAssignmentConstraintsProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
 
     @Override
     public UpgradePhase getPhase() {
-        // todo before in 4.7.* but after in 4.4.*
         return UpgradePhase.BEFORE;
     }
 
