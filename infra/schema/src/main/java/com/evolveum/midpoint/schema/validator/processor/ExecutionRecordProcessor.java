@@ -13,11 +13,12 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
+// todo test
 @SuppressWarnings("unused")
-public class UseLegacyApproversProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
+public class ExecutionRecordProcessor implements UpgradeObjectProcessor<CaseType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -36,24 +37,14 @@ public class UseLegacyApproversProcessor implements UpgradeObjectProcessor<Syste
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentTypeAndItemName(object, path, WfConfigurationType.class,
-                WfConfigurationType.F_USE_LEGACY_APPROVERS_SPECIFICATION);
+        return matchParentTypeAndItemName(
+                object, path, ApprovalStageExecutionInformationType.class, ApprovalStageExecutionInformationType.F_EXECUTION_RECORD);
     }
 
     @Override
-    public boolean process(PrismObject<SystemConfigurationType> object, ItemPath path) throws Exception {
-        WfConfigurationType wfConfiguration = getItemParent(object, path);
-        if (wfConfiguration == null) {
-            return false;
-        }
-
-        wfConfiguration.setUseLegacyApproversSpecification(null);
-
-        wfConfiguration.asPrismContainerValue();
-        if (wfConfiguration.asPrismContainerValue().isEmpty()) {
-            object.asObjectable().setWorkflowConfiguration(null);
-        }
-
+    public boolean process(PrismObject<CaseType> object, ItemPath path) throws Exception {
+        ApprovalStageExecutionInformationType information = getItemParent(object, path);
+        information.setExecutionRecord(null);
         return true;
     }
 }

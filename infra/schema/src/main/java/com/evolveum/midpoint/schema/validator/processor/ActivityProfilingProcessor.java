@@ -7,20 +7,18 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import java.util.List;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BoundarySpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkSegmentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProfilingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTracingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @SuppressWarnings("unused")
-public class BoundaryProcessor implements UpgradeObjectProcessor<TaskType> {
+public class ActivityProfilingProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -29,39 +27,22 @@ public class BoundaryProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.NECESSARY;
+        return UpgradePriority.OPTIONAL;
     }
 
     @Override
     public UpgradeType getType() {
-        return UpgradeType.SEAMLESS;
+        return UpgradeType.MANUAL;
     }
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
         return matchParentTypeAndItemName(
-                object, path, StringWorkSegmentationType.class, StringWorkSegmentationType.F_BOUNDARY_CHARACTERS);
+                object, path, ActivityProfilingDefinitionType.class, ActivityProfilingDefinitionType.F_INTERVAL);
     }
 
     @Override
     public boolean process(PrismObject<TaskType> object, ItemPath path) throws Exception {
-        StringWorkSegmentationType segmentation = getItemParent(object, path);
-        if (segmentation == null) {
-            return false;
-        }
-
-        List<BoundarySpecificationType> boundaries = segmentation.getBoundary();
-        List<String> chars = segmentation.getBoundaryCharacters();
-        int i = 1;
-        for (String c : chars) {
-            BoundarySpecificationType boundary = new BoundarySpecificationType()
-                    .characters(c)
-                    .position(i++);
-            boundaries.add(boundary);
-        }
-
-        chars.clear();
-
-        return true;
+        return false;
     }
 }

@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 public interface ProcessorMixin {
 
@@ -73,7 +74,14 @@ public interface ProcessorMixin {
         return true;
     }
 
-    default <O extends Containerable> boolean matchParentType(PrismObject<?> object, ItemPath path, Class<O> type) {
+    default <O extends Containerable> boolean matchParentTypeAndItemName(
+            PrismObject<?> object, ItemPath path, Class<O> type, ItemName itemName) {
+
+        ItemName name = path.lastName();
+        if (name == null || !itemName.equivalent(name)) {
+            return false;
+        }
+
         Item item = object.findItem(path);
         if (item == null) {
             return false;
@@ -95,5 +103,15 @@ public interface ProcessorMixin {
         }
 
         return value.asContainerable();
+    }
+
+    default void copyTransport(NotificationTransportConfigurationType from, GeneralTransportConfigurationType to) {
+        to.setName(from.getName());
+        to.setDebug(from.isDebug());
+        to.setRedirectToFile(from.getRedirectToFile());
+        to.setLogToFile(from.getLogToFile());
+        to.getWhiteList().addAll(from.getWhiteList());
+        to.getBlackList().addAll(from.getBlackList());
+        to.setRecipientFilterExpression(from.getRecipientFilterExpression());
     }
 }

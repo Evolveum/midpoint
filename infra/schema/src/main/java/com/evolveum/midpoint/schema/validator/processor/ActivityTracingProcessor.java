@@ -13,11 +13,11 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTracingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @SuppressWarnings("unused")
-public class DefaultAssignmentConstraintsProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
+public class ActivityTracingProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -26,7 +26,7 @@ public class DefaultAssignmentConstraintsProcessor implements UpgradeObjectProce
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.NECESSARY;
+        return UpgradePriority.OPTIONAL;
     }
 
     @Override
@@ -36,12 +36,17 @@ public class DefaultAssignmentConstraintsProcessor implements UpgradeObjectProce
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchObjectTypeAndPathTemplate(object, path, SystemConfigurationType.class,
-                ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_DEFAULT_ASSIGNMENT_CONSTRAINTS));
+        return matchParentTypeAndItemName(
+                object, path, ActivityTracingDefinitionType.class, ActivityTracingDefinitionType.F_INTERVAL);
     }
 
     @Override
-    public boolean process(PrismObject<SystemConfigurationType> object, ItemPath path) {
+    public String upgradeDescription(PrismObject<TaskType> object, ItemPath path) {
+        return "Removal postponed to 5.0";
+    }
+
+    @Override
+    public boolean process(PrismObject<TaskType> object, ItemPath path) throws Exception {
         return false;
     }
 }

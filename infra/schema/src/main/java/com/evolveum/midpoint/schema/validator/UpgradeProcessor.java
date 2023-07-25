@@ -62,15 +62,14 @@ public class UpgradeProcessor {
             }
         }
 
+        UpgradeValidationItem result = new UpgradeValidationItem(item);
         if (processor == null) {
-            return null;
+            return result;
         }
 
         String description = processor.upgradeDescription((PrismObject) cloned, path);
 
         boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
-
-        UpgradeValidationItem result = new UpgradeValidationItem(item);
         result.setChanged(changed);
         result.setIdentifier(processor.getIdentifier());
         result.setPhase(processor.getPhase());
