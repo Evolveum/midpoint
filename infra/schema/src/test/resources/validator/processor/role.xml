@@ -10,6 +10,8 @@
 
     <name>role</name>
 
+    <subtype>some deprecated type</subtype>
+
     <assignment id="1">
         <personaConstruction>
             <targetType>some-type</targetType>
