@@ -7,17 +7,38 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AssociationSearchItemWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.input.DurationWithOneElementPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import jakarta.xml.bind.JAXBElement;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -67,12 +88,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
+import org.jetbrains.annotations.Nullable;
+
 public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectsPanel.class);
     private static final String DOT_CLASS = ResourceObjectsPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
     protected static final String OPERATION_RECLASSIFY_SHADOWS = DOT_CLASS + "reclassifyShadows";
+    protected static final String OPERATION_RELOAD_SHADOWS = DOT_CLASS + "reloadShadows";
 
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
@@ -84,6 +108,9 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private IModel<Boolean> showStatisticsModel = Model.of(false);
+
+    private AjaxSelfUpdatingTimerBehavior reloadedBehaviour;
+    private String taskOidForReloaded;
 
     public ResourceObjectsPanel(String id, ResourceDetailsModel resourceDetailsModel, ContainerPanelConfigurationType config) {
         super(id, resourceDetailsModel, config);
@@ -196,7 +223,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             ObjectQuery query = PrismContext.get().queryFactory().createQuery(
                     PrismContext.get().queryFactory().createAnd(filter, situationFilter));
             return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
-        } catch (CommonException |RuntimeException ex) {
+        } catch (CommonException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
         }
 
@@ -248,6 +275,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             protected List<Component> createToolbarButtonsList(String buttonId) {
                 List<Component> buttonsList = new ArrayList<>();
                 buttonsList.add(createReclassifyButton(buttonId));
+                buttonsList.add(createReloadButton(buttonId));
                 buttonsList.addAll(super.createToolbarButtonsList(buttonId));
                 return buttonsList;
 
@@ -327,7 +355,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-               return getResourceContentQuery();
+                return getResourceContentQuery();
             }
 
         };
@@ -369,6 +397,44 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             target.add(getPageBase().getFeedbackPanel());
         }
 
+    }
+
+    private ReloadableButton createReloadButton(String buttonId) {
+
+        ReloadableButton reload = new ReloadableButton(
+                buttonId, getPageBase()) {
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                target.add(getShadowTable());
+            }
+
+            @Override
+            protected ActivityDefinitionType createActivityDefinition() throws SchemaException {
+                SelectExpressionType selectAction = new SelectExpressionType()
+                        .path(new ItemPathType(ItemPath.create(ShadowType.F_NAME)));
+                ExecuteScriptType script = new ExecuteScriptType()
+                        .scriptingExpression(
+                                new JAXBElement<>(
+                                        SchemaConstantsGenerated.SC_SELECT,
+                                        SelectExpressionType.class,
+                                        selectAction));
+                return ActivityDefinitionBuilder.create(new IterativeScriptingWorkDefinitionType()
+                                        .objects(new ObjectSetType()
+                                                .type(ShadowType.COMPLEX_TYPE)
+                                                .query(PrismContext.get().getQueryConverter()
+                                                        .createQueryType(getResourceContentQuery())))
+                                        .scriptExecutionRequest(script))
+                                .build();
+            }
+
+            @Override
+            protected String getTaskName() {
+                return "Reload objects on " + getObjectWrapperObject().asObjectable();
+            }
+        };
+        reload.add(new VisibleBehaviour(() -> getSelectedObjectType() != null));
+        return reload;
     }
 
     private AjaxIconButton createReclassifyButton(String buttonId) {
