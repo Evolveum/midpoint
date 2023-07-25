@@ -165,7 +165,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(10);
+            Assertions.assertThat(result.getItems()).hasSize(11);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);

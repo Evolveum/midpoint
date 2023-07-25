@@ -11,6 +11,21 @@
 
 
     <messageTransportConfiguration>
+        <file>
+            <name>f1</name>
+            <file>a.csv</file>
+            <redirectToFile>redirect.csv</redirectToFile>
+            <debug>true</debug>
+            <whiteList>asdf</whiteList>
+            <blackList>jklo</blackList>
+            <recipientFilterExpression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </recipientFilterExpression>
+        </file>
         <sms>
             <name>s1</name>
             <gateway>
