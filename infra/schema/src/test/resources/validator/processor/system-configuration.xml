@@ -10,6 +10,32 @@
     <name>system-configuration</name>
 
     <notificationConfiguration>
+        <handler>
+            <simpleUserNotifier>
+                <transport>custom1</transport>
+            </simpleUserNotifier>
+        </handler>
+        <customTransport name="custom1">
+            <redirectToFile>notification-redirected.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+        <customTransport name="custom2">
+            <redirectToFile>notification-redirected2.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+
         <!--<sms>
             <gateway>
                 <urlExpression>

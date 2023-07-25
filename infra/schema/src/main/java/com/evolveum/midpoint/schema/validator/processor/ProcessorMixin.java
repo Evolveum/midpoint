@@ -105,4 +105,14 @@ public interface ProcessorMixin {
 
         return value.asContainerable();
     }
+
+    default void copyTransport(NotificationTransportConfigurationType from, GeneralTransportConfigurationType to) {
+        to.setName(from.getName());
+        to.setDebug(from.isDebug());
+        to.setRedirectToFile(from.getRedirectToFile());
+        to.setLogToFile(from.getLogToFile());
+        to.getWhiteList().addAll(from.getWhiteList());
+        to.getBlackList().addAll(from.getBlackList());
+        to.setRecipientFilterExpression(from.getRecipientFilterExpression());
+    }
 }
