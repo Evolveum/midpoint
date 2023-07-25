@@ -21,7 +21,7 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public UpgradePhase getPhase() {
-        return UpgradePhase.BEFORE;
+        return UpgradePhase.AFTER;
     }
 
     @Override
@@ -42,12 +42,6 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
-        OtherPrivilegesLimitationType limitation = getItemParent(object, path);
-        if (limitation.getCaseManagementWorkItems() == null) {
-            limitation.setCaseManagementWorkItems(limitation.getApprovalWorkItems());
-        }
-        limitation.setApprovalWorkItems(null);
-
-        return true;
+        return false;
     }
 }
