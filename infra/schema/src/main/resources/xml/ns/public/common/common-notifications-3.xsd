@@ -788,10 +788,9 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>NotificationConfigurationType.mail</a:displayName>
-                        <!-- TODO: not deprecated yet because it breaks old GUI, see comments in NotificationConfigTabPanel -->
-                        <!--<a:deprecated>true</a:deprecated>-->
-                        <!--<a:deprecatedSince>4.5</a:deprecatedSince>-->
-                        <!--<a:plannedRemoval>4.6</a:plannedRemoval>-->
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.5</a:deprecatedSince>
+                        <a:plannedRemoval>5.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

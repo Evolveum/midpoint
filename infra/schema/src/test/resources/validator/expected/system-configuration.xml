@@ -26,6 +26,13 @@
                 </script>
             </recipientFilterExpression>
         </file>
+        <mail>
+            <name>m2</name>
+            <defaultFrom>example@example.com</defaultFrom>
+            <server>
+                <host>localhost</host>
+            </server>
+        </mail>
         <sms>
             <name>s1</name>
             <gateway>

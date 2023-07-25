@@ -15,6 +15,12 @@
                 <transport>custom1</transport>
             </simpleUserNotifier>
         </handler>
+        <mail name="m2">
+            <defaultFrom>example@example.com</defaultFrom>
+            <server>
+                <host>localhost</host>
+            </server>
+        </mail>
         <file name="f1">
             <file>a.csv</file>
             <redirectToFile>redirect.csv</redirectToFile>
