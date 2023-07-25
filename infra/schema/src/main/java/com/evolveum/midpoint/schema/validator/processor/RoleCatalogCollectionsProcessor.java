@@ -23,7 +23,6 @@ public class RoleCatalogCollectionsProcessor implements UpgradeObjectProcessor<S
 
     @Override
     public UpgradePhase getPhase() {
-        // todo before in 4.7.* but after in 4.4.*
         return UpgradePhase.BEFORE;
     }
 
