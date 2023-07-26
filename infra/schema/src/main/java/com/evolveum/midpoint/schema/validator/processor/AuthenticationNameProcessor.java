@@ -51,19 +51,25 @@ public class AuthenticationNameProcessor implements UpgradeObjectProcessor<Secur
         Object parent = getItemParent(object, path);
         if (parent instanceof AuthenticationSequenceType) {
             AuthenticationSequenceType auth = (AuthenticationSequenceType) parent;
-            auth.setIdentifier(auth.getName());
+            if (auth.getIdentifier() == null) {
+                auth.setIdentifier(auth.getName());
+            }
             return true;
         }
 
         if (parent instanceof AuthenticationSequenceModuleType) {
             AuthenticationSequenceModuleType module = (AuthenticationSequenceModuleType) parent;
-            module.setIdentifier(module.getName());
+            if (module.getIdentifier() == null) {
+                module.setIdentifier(module.getName());
+            }
             return true;
         }
 
         if (parent instanceof AbstractAuthenticationModuleType) {
             AbstractAuthenticationModuleType module = (AbstractAuthenticationModuleType) parent;
-            module.setIdentifier(module.getName());
+            if (module.getIdentifier() == null) {
+                module.setIdentifier(module.getName());
+            }
             return true;
         }
 
