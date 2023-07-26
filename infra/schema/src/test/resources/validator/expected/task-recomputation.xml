@@ -49,4 +49,8 @@
             <name>sample</name>
         </policyConstraints>
     </policyRule>
+
+    <schedule>
+        <recurrence>recurring</recurrence>
+    </schedule>
 </task>
