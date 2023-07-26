@@ -147,7 +147,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test20TestCaseTaskRef() throws Exception {
         testUpgradeValidator("case.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(1);
+            Assertions.assertThat(result.getItems()).hasSize(3);
 
             UpgradeValidationItem item = assertGetItem(result, new ProcessorMixin() {
             }.getIdentifier(CaseTaskRefProcessor.class));
