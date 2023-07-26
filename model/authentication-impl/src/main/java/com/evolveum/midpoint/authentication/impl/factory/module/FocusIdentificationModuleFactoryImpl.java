@@ -21,8 +21,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        FocusIdentificationAuthenticationModuleType,
+        FocusIdentificationModuleAuthentication> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -30,7 +33,7 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(FocusIdentificationAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -53,7 +56,7 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected FocusIdentificationModuleAuthentication createEmptyModuleAuthentication(FocusIdentificationAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         FocusIdentificationModuleAuthentication moduleAuthentication = new FocusIdentificationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());

@@ -18,8 +18,11 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AttributeVerificationModuleFactory extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class AttributeVerificationModuleFactory extends AbstractCredentialModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        AttributeVerificationAuthenticationModuleType,
+        AttributeVerificationModuleAuthentication> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -28,7 +31,7 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
 
     @Override
     protected LoginFormModuleWebSecurityConfiguration createConfiguration(
-            AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+            AttributeVerificationAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -51,11 +54,11 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected AttributeVerificationModuleAuthentication createEmptyModuleAuthentication(AttributeVerificationAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         AttributeVerificationModuleAuthentication moduleAuthentication = new AttributeVerificationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;

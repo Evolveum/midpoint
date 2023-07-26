@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 @Component
-public class LdapModuleFactory extends AbstractModuleFactory {
+public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
 
@@ -56,7 +56,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
+    public AuthModule createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
             ServletRequest request, Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
@@ -70,14 +70,14 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
         configuration.setSequenceSuffix(sequenceSuffix);
 
-        configuration.addAuthenticationProvider(getProvider((LdapAuthenticationModuleType)moduleType));
+        configuration.addAuthenticationProvider(getProvider(moduleType));
 
         LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> module = createModule(configuration);
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(
-                (LdapAuthenticationModuleType) moduleType, configuration, sequenceModule);
+                moduleType, configuration, sequenceModule);
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }

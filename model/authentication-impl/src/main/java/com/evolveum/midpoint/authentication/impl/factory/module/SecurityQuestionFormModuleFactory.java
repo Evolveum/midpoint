@@ -22,8 +22,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        SecurityQuestionsFormAuthenticationModuleType,
+        SecurityQuestionFormModuleAuthentication> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -32,7 +35,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected LoginFormModuleWebSecurityConfiguration createConfiguration(
-            AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+            SecurityQuestionsFormAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -55,7 +58,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected SecurityQuestionFormModuleAuthentication createEmptyModuleAuthentication(SecurityQuestionsFormAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         SecurityQuestionFormModuleAuthentication moduleAuthentication = new SecurityQuestionFormModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());

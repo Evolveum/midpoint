@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class Saml2ModuleFactory extends RemoteModuleFactory {
+public class Saml2ModuleFactory extends RemoteModuleFactory<Saml2AuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(Saml2ModuleFactory.class);
 
@@ -51,7 +51,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
+    public AuthModule createModuleFilter(Saml2AuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
         if (!(moduleType instanceof Saml2AuthenticationModuleType)) {

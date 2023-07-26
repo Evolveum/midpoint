@@ -9,6 +9,9 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+
 import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
@@ -30,8 +33,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author skublik
  */
-public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurityConfiguration, CA extends ModuleWebSecurityConfigurer<C>>
-        extends AbstractModuleFactory {
+public abstract class AbstractCredentialModuleFactory<
+        C extends ModuleWebSecurityConfiguration,
+        CA extends ModuleWebSecurityConfigurer<C>,
+        MT extends AbstractAuthenticationModuleType,
+        MA extends ModuleAuthentication>
+        extends AbstractModuleFactory<MT> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
 
@@ -39,7 +46,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
     public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType,
+    public AuthModule createModuleFilter(MT moduleType,
             String sequenceSuffix, ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
             AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
@@ -51,6 +58,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
 
         isSupportedChannel(authenticationChannel);
 
+//        C configuration = createConfiguration(sequenceSuffix);
         C configuration = createConfiguration(moduleType, sequenceSuffix, authenticationChannel);
 
         configuration.addAuthenticationProvider(
@@ -60,7 +68,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         HttpSecurity http = getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration, necessity);
+        MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration, necessity);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
@@ -117,11 +125,13 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
     }
 
-    protected abstract ModuleAuthenticationImpl createEmptyModuleAuthentication(
-            AbstractAuthenticationModuleType moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule);
+    protected abstract MA createEmptyModuleAuthentication(
+            MT moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule);
 
-    protected abstract C createConfiguration(AbstractAuthenticationModuleType moduleType,
-            String prefixOfSequence, AuthenticationChannel authenticationChannel);
+    @Deprecated
+    protected abstract C createConfiguration(MT moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel);
+
+//    protected abstract C createConfiguration(String prefixOfSequence);
 
     protected abstract CA createModule(C configuration);
 

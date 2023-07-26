@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CorrelationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configurer.CorrelationModuleWebSecurityConfigurer;
 
@@ -24,7 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @Component
 public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+        <LoginFormModuleWebSecurityConfiguration,
+                CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+                CorrelationAuthenticationModuleType,
+                CorrelationModuleAuthentication> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -32,7 +36,7 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(CorrelationAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -55,14 +59,12 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected CorrelationModuleAuthentication createEmptyModuleAuthentication(CorrelationAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         CorrelationModuleAuthenticationImpl moduleAuthentication = new CorrelationModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        if (moduleType instanceof CorrelationAuthenticationModuleType) {
-            moduleAuthentication.setCorrelatorIdentifier(((CorrelationAuthenticationModuleType) moduleType).getCorrelationRuleIdentifier());
-        }
+        moduleAuthentication.setCorrelatorIdentifier(moduleType.getCorrelationRuleIdentifier());
         return moduleAuthentication;
     }
 

@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
+
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletRequest;
 
@@ -31,7 +34,7 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
  * @author skublik
  */
 
-public abstract class AbstractModuleFactory {
+public abstract class AbstractModuleFactory<MT extends AbstractAuthenticationModuleType> {
 
     @PostConstruct
     public void register() {
@@ -54,7 +57,7 @@ public abstract class AbstractModuleFactory {
 
     public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
-    public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
+    public abstract AuthModule createModuleFilter(MT moduleType, String sequenceSuffix,
                                                   ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                                   AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
                                                   AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception;

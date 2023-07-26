@@ -22,7 +22,7 @@ import jakarta.servlet.ServletRequest;
 /**
  * @author skublik
  */
-public abstract class RemoteModuleFactory extends AbstractModuleFactory {
+public abstract class RemoteModuleFactory<MT extends AbstractAuthenticationModuleType> extends AbstractModuleFactory<MT> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RemoteModuleFactory.class);
 

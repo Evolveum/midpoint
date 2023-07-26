@@ -24,8 +24,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
-        <ModuleWebSecurityConfiguration, HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
+public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
+        ModuleWebSecurityConfiguration,
+        HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>,
+        HttpBasicAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -33,7 +36,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected ModuleWebSecurityConfiguration createConfiguration(HttpBasicAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -55,14 +58,14 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(HttpBasicAuthenticationModuleType moduleType,
             ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.HTTP_BASIC, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        moduleAuthentication.setRealm(((HttpBasicAuthenticationModuleType) moduleType).getRealm());
+        moduleAuthentication.setRealm(moduleType.getRealm());
         return moduleAuthentication;
     }
 

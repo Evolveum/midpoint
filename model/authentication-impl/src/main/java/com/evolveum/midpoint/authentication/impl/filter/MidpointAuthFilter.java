@@ -258,12 +258,17 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 authWrapper.authModules = authModulesOfSpecificSequences.get(authWrapper.getSequenceIdentifier());
                 if (authWrapper.authModules != null) {
                     for (AuthModule authModule : authWrapper.authModules) {
-                        if (authModule != null && ((AuthModuleImpl) authModule).getConfiguration() != null) {
+                        List<AuthenticationProvider> authenticationProviders = authModule.getAuthenticationProviders();
+                        if (authenticationProviders != null) {
                             authenticationManager.getProviders().clear();
-                            for (AuthenticationProvider authenticationProvider : ((AuthModuleImpl) authModule).getConfiguration().getAuthenticationProviders()) {
-                                authenticationManager.getProviders().add(authenticationProvider);
-                            }
+                            authenticationManager.getProviders().addAll(authenticationProviders);
                         }
+//                        if (authModule != null && ((AuthModuleImpl) authModule).getConfiguration() != null) {
+//                            authenticationManager.getProviders().clear();
+//                            for (AuthenticationProvider authenticationProvider : ((AuthModuleImpl) authModule).getConfiguration().getAuthenticationProviders()) {
+//                                authenticationManager.getProviders().add(authenticationProvider);
+//                            }
+//                        }
                     }
                 }
             } else {

@@ -33,7 +33,7 @@ import java.util.Map;
  * @author skublik
  */
 @Component
-public class OidcClientModuleFactory extends RemoteModuleFactory {
+public class OidcClientModuleFactory extends RemoteModuleFactory<OidcAuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleFactory.class);
 
@@ -43,7 +43,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
+    public AuthModule createModuleFilter(OidcAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
         if (!(moduleType instanceof OidcAuthenticationModuleType)) {
@@ -51,7 +51,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
             return null;
         }
 
-        if (((OidcAuthenticationModuleType) moduleType).getClient().isEmpty()) {
+        if (moduleType.getClient().isEmpty()) {
             LOGGER.error("Client configuration of OidcAuthenticationModuleType is null");
             return null;
         }
@@ -59,7 +59,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
         isSupportedChannel(authenticationChannel);
 
         OidcClientModuleWebSecurityConfiguration configuration = OidcClientModuleWebSecurityConfiguration.build(
-                (OidcAuthenticationModuleType)moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
+                moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
         configuration.setSequenceSuffix(sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(
                 new OidcClientProvider(configuration.getAdditionalConfiguration())));

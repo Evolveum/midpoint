@@ -22,8 +22,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        LoginFormAuthenticationModuleType,
+        LoginFormModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -31,7 +34,7 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(LoginFormAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -53,11 +56,11 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected LoginFormModuleAuthenticationImpl createEmptyModuleAuthentication(LoginFormAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         LoginFormModuleAuthenticationImpl moduleAuthentication = new LoginFormModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;

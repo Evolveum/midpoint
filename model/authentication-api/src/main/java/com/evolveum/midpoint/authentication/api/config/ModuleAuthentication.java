@@ -105,4 +105,9 @@ public interface ModuleAuthentication {
     AutheticationFailedData getFailureData();
 
     void recordFailure(AuthenticationException exception);
+
+    void setFocusType(QName focusType);
+
+    ModuleAuthentication clone();
 }
+

@@ -23,8 +23,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
-        <ModuleWebSecurityConfiguration, MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
+public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
+        ModuleWebSecurityConfiguration,
+        MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>,
+        MailNonceAuthenticationModuleType,
+        MailNonceModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -32,7 +35,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected ModuleWebSecurityConfiguration createConfiguration(MailNonceAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         configuration.setSpecificLoginUrl(authenticationChannel.getSpecificLoginUrl());
@@ -56,11 +59,11 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected MailNonceModuleAuthenticationImpl createEmptyModuleAuthentication(MailNonceAuthenticationModuleType moduleType,
             ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;

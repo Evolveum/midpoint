@@ -14,7 +14,10 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.List;
 
 /**
  * @author skublik
@@ -31,7 +34,7 @@ public class AuthModuleImpl implements AuthModule {
 
     private ModuleWebSecurityConfiguration configuration;
 
-    private ModuleAuthenticationImpl baseModuleAuthentication;
+    private ModuleAuthentication baseModuleAuthentication;
 
     public SecurityFilterChain getSecurityFilterChain() {
         return securityFilterChain;
@@ -59,16 +62,21 @@ public class AuthModuleImpl implements AuthModule {
     }
 
     @Override
+    public List<AuthenticationProvider> getAuthenticationProviders() {
+        return configuration != null ? configuration.getAuthenticationProviders() : null;
+    }
+
+    @Override
     public String getModuleIdentifier() {
         return configuration.getModuleIdentifier();
     }
 
-    private void setBaseModuleAuthentication(ModuleAuthenticationImpl baseModuleAuthentication) {
+    private void setBaseModuleAuthentication(ModuleAuthentication baseModuleAuthentication) {
         this.baseModuleAuthentication = baseModuleAuthentication;
     }
 
     public static AuthModule build(SecurityFilterChain securityFilterChain, ModuleWebSecurityConfiguration configuration,
-                                       ModuleAuthenticationImpl baseModuleAuthentication) {
+                                       ModuleAuthentication baseModuleAuthentication) {
         Validate.notNull(securityFilterChain, "Couldn't build AuthModuleImpl, because filter is null");
         Validate.notNull(configuration, "Couldn't build AuthModuleImpl, because configuration is null");
         Validate.notNull(baseModuleAuthentication, "Couldn't build AuthModuleImpl, because base authentication module is null");

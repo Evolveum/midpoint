@@ -17,12 +17,12 @@ import com.evolveum.midpoint.authentication.impl.module.configurer.HintModuleWeb
 import com.evolveum.midpoint.authentication.impl.provider.HintAuthenticationProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author skublik
- */
 @Component
-public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        HintAuthenticationModuleType,
+        HintAuthenticationModuleAuthentication> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -30,7 +30,7 @@ public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModul
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(HintAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -53,11 +53,11 @@ public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModul
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
+    protected HintAuthenticationModuleAuthentication createEmptyModuleAuthentication(HintAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         HintAuthenticationModuleAuthentication moduleAuthentication = new HintAuthenticationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;

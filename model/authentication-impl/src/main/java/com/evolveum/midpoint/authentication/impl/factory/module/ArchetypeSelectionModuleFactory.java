@@ -21,7 +21,11 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFactory<LoginFormModuleWebSecurityConfiguration, ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        ArchetypeSelectionModuleType,
+        ArchetypeSelectionModuleAuthentication> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionModuleFactory.class);
 
@@ -31,17 +35,17 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+    protected ArchetypeSelectionModuleAuthentication createEmptyModuleAuthentication(ArchetypeSelectionModuleType moduleType, LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         ArchetypeSelectionModuleAuthentication moduleAuthentication = new ArchetypeSelectionModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType,
+    protected LoginFormModuleWebSecurityConfiguration createConfiguration(ArchetypeSelectionModuleType moduleType,
             String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);

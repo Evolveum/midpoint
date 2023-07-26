@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class HttpClusterModuleFactory extends AbstractModuleFactory {
+public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuthenticationModuleType> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {

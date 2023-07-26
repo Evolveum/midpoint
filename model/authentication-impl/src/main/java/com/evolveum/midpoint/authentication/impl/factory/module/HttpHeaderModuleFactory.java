@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 @Component
-public class HttpHeaderModuleFactory extends AbstractModuleFactory {
+public class HttpHeaderModuleFactory extends AbstractModuleFactory<HttpHeaderAuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
@@ -43,16 +43,14 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
+    public AuthModule createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
-        if (!(moduleType instanceof HttpHeaderAuthenticationModuleType)) {
-            LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + moduleType);
+        if (!(httpModuleType instanceof HttpHeaderAuthenticationModuleType)) {
+            LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + httpModuleType);
             return null;
         }
 
-        isSupportedChannel(authenticationChannel);
-        HttpHeaderAuthenticationModuleType httpModuleType = (HttpHeaderAuthenticationModuleType) moduleType;
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
         HttpHeaderModuleWebSecurityConfigurer<HttpHeaderModuleWebSecurityConfiguration> module =
