@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.validator.processor.ProcessorMixin;
 public interface UpgradeObjectProcessor<T extends Objectable> extends ProcessorMixin {
 
     /**
-     * @return Unique identifier of the processor. By default it is class name without "Processor" suffix.
+     * @return Unique identifier of the processor. By default, it is class name without "Processor" suffix.
      */
     default String getIdentifier() {
         return getIdentifier(getClass());
@@ -43,6 +43,7 @@ public interface UpgradeObjectProcessor<T extends Objectable> extends ProcessorM
      * @param path
      * @return Returns description of the upgrade if not done automatically.
      * Should be single line (might end up in CSV) without any special characters.
+     * Certainly not semicolon (;) and double quote (").
      * Best approach is to put in short description and link to documentation.
      */
     default String upgradeDescription(PrismObject<T> object, ItemPath path) {
