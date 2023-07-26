@@ -20,5 +20,11 @@
                 </network>
             </saml2>
         </modules>
+        <sequence id="2">
+            <name>sequencename</name>
+            <module id="3">
+                <name>deprecated items</name>
+            </module>
+        </sequence>
     </authentication>
 </securityPolicy>
