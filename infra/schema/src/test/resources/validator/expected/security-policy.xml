@@ -14,15 +14,15 @@
         <modules>
             <saml2 id="1">
                 <identifier>deprecated items</identifier>
-                <name>deprecated items</name>
             </saml2>
         </modules>
         <sequence id="2">
             <identifier>sequencename</identifier>
-            <name>sequencename</name>
             <module id="3">
                 <identifier>deprecated items</identifier>
-                <name>deprecated items</name>
+            </module>
+            <module id="4">
+                <identifier>unchanged</identifier>
             </module>
         </sequence>
     </authentication>
