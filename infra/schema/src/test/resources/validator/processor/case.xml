@@ -3,4 +3,17 @@
 
     <name>case</name>
     <taskRef oid="c5baeaf3-e917-4d1a-9aed-8a4bc147f5f9"/>
+    <modelContext>
+        <state>execution</state>
+        <projectionContext id="1">
+            <accountPasswordPolicy>
+                <stringPolicy>
+                    <description>123</description>
+                </stringPolicy>
+            </accountPasswordPolicy>
+        </projectionContext>
+        <projectionContext id="2">
+            <accountPasswordPolicyRef oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed"/>
+        </projectionContext>
+    </modelContext>
 </case>
