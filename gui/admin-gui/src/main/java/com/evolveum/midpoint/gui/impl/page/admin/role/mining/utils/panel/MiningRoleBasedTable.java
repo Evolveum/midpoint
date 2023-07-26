@@ -20,6 +20,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.data.SpecialBoxedTablePanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -51,10 +53,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanelActi
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanelStatus;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class MiningRoleBasedTable extends Panel {
 
@@ -66,7 +64,8 @@ public class MiningRoleBasedTable extends Panel {
     int specialColumnCount;
 
     public MiningRoleBasedTable(String id,
-            List<MiningRoleTypeChunk> roles, List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+            List<MiningRoleTypeChunk> roles, List<MiningUserTypeChunk> users, boolean sortable, double frequency,
+            IntersectionObject intersection, double maxFrequency, RoleAnalysisSearchMode searchMode) {
         super(id);
 
         fromCol = 1;
@@ -102,7 +101,7 @@ public class MiningRoleBasedTable extends Panel {
 
     public SpecialBoxedTablePanel<MiningUserTypeChunk> generateTable(RoleMiningProvider<MiningUserTypeChunk> provider,
             List<MiningRoleTypeChunk> roles, double frequency, IntersectionObject intersection,
-            double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+            double maxFrequency, RoleAnalysisSearchMode searchMode) {
 
         SpecialBoxedTablePanel<MiningUserTypeChunk> table = new SpecialBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns(roles, frequency, intersection, maxFrequency, searchMode),
@@ -152,7 +151,7 @@ public class MiningRoleBasedTable extends Panel {
     }
 
     public List<IColumn<MiningUserTypeChunk, String>> initColumns(List<MiningRoleTypeChunk> roles, double minFrequency,
-            IntersectionObject intersection, double maxFrequency, ClusterObjectUtils.SearchMode searchMode) {
+            IntersectionObject intersection, double maxFrequency, RoleAnalysisSearchMode searchMode) {
 
         List<IColumn<MiningUserTypeChunk, String>> columns = new ArrayList<>();
 

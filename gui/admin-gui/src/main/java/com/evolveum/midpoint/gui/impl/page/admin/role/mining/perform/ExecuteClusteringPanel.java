@@ -14,11 +14,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-
-import com.github.openjson.JSONObject;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -48,6 +45,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.C
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusteringExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -55,7 +53,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ExecuteClusteringPanel extends BasePanel<String> implements Popupable {
     private static final String ID_EXECUTE_CLUSTERING_FORM = "thresholds_form_cluster";
@@ -76,6 +74,8 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     AjaxSubmitButton executeClustering;
     AjaxSubmitButton filterSubmitButton;
 
+    OperationResult importResult = new OperationResult("ImportClusterTypeObject");
+
     public ExecuteClusteringPanel(String id, IModel<String> messageModel) {
         super(id, messageModel);
     }
@@ -83,7 +83,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        this.clusterOptions = new ClusterOptions((PageBase) getPage(), Mode.USER);
+        this.clusterOptions = new ClusterOptions((PageBase) getPage(), RoleAnalysisProcessMode.USER, RoleAnalysisSearchMode.INTERSECTION);
 
         Form<?> cluseterForm = clusterForm();
         add(cluseterForm);
@@ -102,39 +102,78 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 ClusteringExecutor clusteringExecutor = new ClusteringExecutor(clusterOptions.getMode());
                 List<PrismObject<RoleAnalysisCluster>> clusters = clusteringExecutor.execute(clusterOptions);
 
-                JSONObject options = new JSONObject();
-                options.put("name", clusterOptions.getName());
-                options.put("filter", clusterOptions.getQuery());
-                options.put("assignThreshold", clusterOptions.getAssignThreshold());
-                options.put("mode", clusterOptions.getMode());
-                options.put("similarity", clusterOptions.getSimilarity());
-                options.put("minIntersection", clusterOptions.getMinIntersections());
-                options.put("minGroup", clusterOptions.getMinGroupSize());
-                options.put("detectIntersection", clusterOptions.getDefaultIntersectionSearch());
-                options.put("detectMaxFrequency", clusterOptions.getDefaultMaxFrequency());
-                options.put("detectMinFrequency", clusterOptions.getDefaultMinFrequency());
-                options.put("detectOccupancy", clusterOptions.getDefaultOccupancySearch());
+                RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption = getRoleAnalysisSessionFilterOption();
 
-                importRoleAnalysisClusteringResult(clusters, options);
+                RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption = getRoleAnalysisSessionDetectionOption();
+
+                importRoleAnalysisClusteringResult(importResult, clusters, roleAnalysisSessionFilterOption,
+                        roleAnalysisSessionDetectionOption, clusterOptions.getName(), clusterOptions.getMode());
 
             }
 
-            private void importRoleAnalysisClusteringResult(List<PrismObject<RoleAnalysisCluster>> clusters, JSONObject options) {
+            @NotNull
+            private RoleAnalysisSessionDetectionOption getRoleAnalysisSessionDetectionOption() {
+                RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption = new RoleAnalysisSessionDetectionOption();
+                roleAnalysisSessionDetectionOption.setSearchMode(clusterOptions.getSearchMode());
+                roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
+                roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
+                roleAnalysisSessionDetectionOption.setMinOccupancy(clusterOptions.getDefaultOccupancySearch());
+                roleAnalysisSessionDetectionOption.setMinPropertyOverlap(clusterOptions.getDefaultIntersectionSearch());
+                roleAnalysisSessionDetectionOption.setJaccardSimilarityThreshold(clusterOptions.getDefaultJaccardThreshold());
+
+                return roleAnalysisSessionDetectionOption;
+            }
+
+            @NotNull
+            private RoleAnalysisSessionFilterOption getRoleAnalysisSessionFilterOption() {
+                RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption = new RoleAnalysisSessionFilterOption();
+                if (clusterOptions.getQuery() != null) {
+                    roleAnalysisSessionFilterOption.setAxiomFilter(clusterOptions.getQuery().toString());
+                }
+
+                roleAnalysisSessionFilterOption.setProcessMode(clusterOptions.getMode());
+                roleAnalysisSessionFilterOption.setSimilarityThreshold(clusterOptions.getSimilarity());
+                roleAnalysisSessionFilterOption.setMinUniqueGroupCount(clusterOptions.getMinGroupSize());
+                roleAnalysisSessionFilterOption.setMinPropertiesCount(clusterOptions.getAssignThreshold());
+                roleAnalysisSessionFilterOption.setMinPropertyOverlap(clusterOptions.getMinIntersections());
+                return roleAnalysisSessionFilterOption;
+            }
+
+            private void importRoleAnalysisClusteringResult(OperationResult result,
+                    List<PrismObject<RoleAnalysisCluster>> clusters,
+                    RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption,
+                    RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption,
+                    String name,
+                    RoleAnalysisProcessMode processMode) {
+
+                List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
+
+                @NotNull PageBase pageBase = (PageBase) getPage();
+                int processedObjectCount = 0;
+
+                QName complexType;
+                if (processMode.equals(RoleAnalysisProcessMode.ROLE)) {
+                    complexType = RoleType.COMPLEX_TYPE;
+                } else {complexType = UserType.COMPLEX_TYPE;}
+
                 double meanDensity = 0;
-                int elementsConsist = 0;
-                List<String> childRef = new ArrayList<>();
                 for (PrismObject<RoleAnalysisCluster> clusterTypePrismObject : clusters) {
                     meanDensity += Double.parseDouble(clusterTypePrismObject.asObjectable().getPointsDensity());
-                    elementsConsist += clusterTypePrismObject.asObjectable().getElementsCount();
-                    childRef.add(String.valueOf(clusterTypePrismObject.getOid()));
+                    processedObjectCount += clusterTypePrismObject.asObjectable().getElementsCount();
+
+                    ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+                    objectReferenceType.setOid(clusterTypePrismObject.getOid());
+                    objectReferenceType.setType(complexType);
+                    roleAnalysisClusterRef.add(objectReferenceType);
                 }
+
                 meanDensity = meanDensity / clusters.size();
 
-                String parentRef = importRoleAnalysisSessionObject(result, (PageBase) getPage(), meanDensity,
-                        elementsConsist, childRef, options);
+                String parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionFilterOption,
+                        roleAnalysisSessionDetectionOption, roleAnalysisClusterRef, processedObjectCount,
+                        meanDensity, "", name);
 
-                OperationResult result = new OperationResult("ImportClusterTypeObject");
-                Task task = ((PageBase) getPage()).createSimpleTask("ImportClusterTypeObject");
+                Task task = pageBase.createSimpleTask("ImportClusterTypeObject");
 
                 try {
                     for (PrismObject<RoleAnalysisCluster> clusterTypePrismObject : clusters) {
@@ -161,6 +200,55 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         form.setOutputMarkupPlaceholderTag(true);
         form.setVisible(false);
         add(form);
+
+        LabelWithHelpPanel labelMode = new LabelWithHelpPanel("searchMode_label",
+                Model.of("Search mode")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.search.mode");
+            }
+        };
+        labelMode.setOutputMarkupId(true);
+        form.add(labelMode);
+
+
+        TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
+                Model.of(clusterOptions.getSimilarity()));
+        thresholdField.setOutputMarkupId(true);
+        thresholdField.setOutputMarkupPlaceholderTag(true);
+        thresholdField.add(new EnableBehaviour(this::isEditMiningOptionAndJaccardMode));
+
+        form.add(thresholdField);
+
+        LabelWithHelpPanel thresholdLabel = new LabelWithHelpPanel(ID_JACCARD_THRESHOLD_FIELD + "_label",
+                Model.of("Similarity")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.option.similarity");
+            }
+        };
+        thresholdLabel.setOutputMarkupId(true);
+        form.add(thresholdLabel);
+
+        ChoiceRenderer<RoleAnalysisSearchMode> renderer = new ChoiceRenderer<>("value");
+
+        DropDownChoice<RoleAnalysisSearchMode> modeSelector = new DropDownChoice<>(
+                "searchModeSelector", Model.of(clusterOptions.getSearchMode()),
+                new ArrayList<>(EnumSet.allOf(RoleAnalysisSearchMode.class)), renderer);
+        modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                RoleAnalysisSearchMode modelObject = modeSelector.getModelObject();
+                clusterOptions.setSearchMode(modelObject);
+                target.add(thresholdField);
+            }
+        });
+        modeSelector.setOutputMarkupId(true);
+        modeSelector.setOutputMarkupPlaceholderTag(true);
+        modeSelector.setVisible(true);
+        modeSelector.add(new EnableBehaviour(this::isEditMiningOption));
+        form.add(modeSelector);
+
 
         TextField<Integer> intersectionField = new TextField<>("intersectionField",
                 Model.of(clusterOptions.getDefaultIntersectionSearch()));
@@ -240,6 +328,11 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                     clusterOptions.setDefaultOccupancySearch(occupancyField.getModelObject());
                     clusterOptions.setDefaultMinFrequency(minFrequencyField.getModelObject());
                     clusterOptions.setDefaultMaxFrequency(maxFrequencyField.getModelObject());
+
+                    if(clusterOptions.getSearchMode().equals(RoleAnalysisSearchMode.JACCARD)){
+                        clusterOptions.setDefaultJaccardThreshold(thresholdField.getModelObject());
+                    }
+
                     intersectionField.setEnabled(false);
                     this.add(AttributeAppender.replace("value",
                             createStringResource("RoleMining.edit.options.mining")));
@@ -256,6 +349,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 ajaxRequestTarget.add(occupancyField);
                 ajaxRequestTarget.add(minFrequencyField);
                 ajaxRequestTarget.add(maxFrequencyField);
+                ajaxRequestTarget.add(modeSelector);
                 ajaxRequestTarget.add(this);
 
             }
@@ -333,11 +427,11 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         labelMode.setOutputMarkupId(true);
         form.add(labelMode);
 
-        ChoiceRenderer<Mode> renderer = new ChoiceRenderer<>("displayString");
+        ChoiceRenderer<RoleAnalysisProcessMode> renderer = new ChoiceRenderer<>("value");
 
-        DropDownChoice<Mode> modeSelector = new DropDownChoice<>(
+        DropDownChoice<RoleAnalysisProcessMode> modeSelector = new DropDownChoice<>(
                 "modeSelector", Model.of(clusterOptions.getMode()),
-                new ArrayList<>(EnumSet.allOf(Mode.class)), renderer);
+                new ArrayList<>(EnumSet.allOf(RoleAnalysisProcessMode.class)), renderer);
         modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -415,7 +509,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         form.add(minAssign);
 
         LabelWithHelpPanel assignmentsLabel = new LabelWithHelpPanel(ID_MIN_ASSIGN + "_label",
-                Model.of("Min assignments")) {
+                Model.of("Min properties")) {
             @Override
             protected IModel<String> getHelpModel() {
                 return createStringResource("RoleMining.option.min.assign");
@@ -618,6 +712,11 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
 
     private boolean isEditMiningOption() {
         return editMiningOption;
+    }
+
+
+    private boolean isEditMiningOptionAndJaccardMode() {
+        return editMiningOption && clusterOptions.getSearchMode().equals(RoleAnalysisSearchMode.JACCARD) ;
     }
 
     private void setEditMiningOption(boolean editMiningOption) {

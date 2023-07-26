@@ -12,7 +12,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 public class MParentClusterObject extends MObject {
 
     public String riskLevel;
-    public Integer elementConsist;
+    public Integer processedObjectsCount;
     public String meanDensity;
     public String[] roleAnalysisClusterRef;
     public String processMode;

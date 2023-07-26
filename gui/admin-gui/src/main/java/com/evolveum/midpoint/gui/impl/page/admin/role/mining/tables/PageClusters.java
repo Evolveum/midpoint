@@ -346,13 +346,16 @@ public class PageClusters extends Panel {
                                                 parentRef, new OperationResult("getParent"));
                                         PageParameters params = new PageParameters();
                                         String oid = model.getObject().getValue().asPrismObject().getOid();
-                                        String processMode = getParent.asObjectable().getProcessMode();
+                                        assert getParent != null;
+                                        String processMode = getParent.asObjectable().getClusterOptions().getProcessMode().value();
+                                        String searchMode = getParent.asObjectable().getPatternDetectionOptions().getSearchMode().value();
                                         Integer elementsCount = model.getObject().getValue().getElementsCount();
                                         Integer pointsCount = model.getObject().getValue().getPointsCount();
                                         int max = Math.max(elementsCount, pointsCount);
 
                                         params.set(PageMiningOperation.PARAMETER_OID, oid);
                                         params.set(PageMiningOperation.PARAMETER_MODE, processMode);
+                                        params.set(PageMiningOperation.PARAMETER_SEARCH_MODE, searchMode);
                                         params.set(PageMiningOperation.PARAMETER_SORT, max);
 
                                         ((PageBase) getPage()).navigateToNext(PageMiningOperation.class, params);

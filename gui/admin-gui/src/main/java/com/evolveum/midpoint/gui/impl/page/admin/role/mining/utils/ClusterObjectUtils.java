@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
-import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 
 import com.evolveum.midpoint.util.exception.*;
 
-import com.github.openjson.JSONObject;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -65,38 +63,6 @@ public class ClusterObjectUtils {
         public String getDisplayString() {
             return displayString;
         }
-    }
-
-    public enum Mode {
-        ROLE("ROLE"),
-        USER("USER");
-
-        private final String displayString;
-
-        Mode(String displayString) {
-            this.displayString = displayString;
-        }
-
-        public String getDisplayString() {
-            return displayString;
-        }
-
-    }
-
-    public enum SearchMode {
-        JACCARD("JACCARD"),
-        INTERSECTION("INTERSECTION");
-
-        private final String displayString;
-
-        SearchMode(String displayString) {
-            this.displayString = displayString;
-        }
-
-        public String getDisplayString() {
-            return displayString;
-        }
-
     }
 
     public static void importRoleAnalysisClusterObject(OperationResult result, Task task, @NotNull PageBase pageBase,
@@ -161,52 +127,91 @@ public class ClusterObjectUtils {
     }
 
     public static String importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
-            double meanDensity, int elementsConsist, List<String> childRef, JSONObject options) {
-        Task task = pageBase.createSimpleTask("Import ParentClusterType object");
+            RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption,
+            RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption,
+            List<ObjectReferenceType> roleAnalysisClusterRef,
+            int processedObjectCount,
+            double meanDensity,
+            String riskLevel,
+            String name) {
+        Task task = pageBase.createSimpleTask("Import RoleAnalysisSessionOption object");
 
-        PrismObject<RoleAnalysisSession> parentClusterTypePrismObject = generateParentClusterObject(pageBase, meanDensity, elementsConsist,
-                childRef, options);
+        PrismObject<RoleAnalysisSession> roleAnalysisSessionPrismObject = generateParentClusterObject(pageBase,
+                roleAnalysisSessionFilterOption, roleAnalysisSessionDetectionOption, roleAnalysisClusterRef,
+                processedObjectCount, meanDensity, riskLevel, name);
 
-        pageBase.getModelService().importObject(parentClusterTypePrismObject, null, task, result);
+        ModelService modelService = pageBase.getModelService();
+        modelService.importObject(roleAnalysisSessionPrismObject, null, task, result);
 
-        return parentClusterTypePrismObject.getOid();
+        return roleAnalysisSessionPrismObject.getOid();
     }
 
-    public static PrismObject<RoleAnalysisSession> generateParentClusterObject(PageBase pageBase, double density, int consist,
-            List<String> childRef, JSONObject options) {
+    public static PrismObject<RoleAnalysisSession> generateParentClusterObject(PageBase pageBase,
+            RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption,
+            RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption,
+            List<ObjectReferenceType> roleAnalysisClusterRef,
+            int processedObjectCount,
+            double meanDensity,
+            String riskLevel,
+            String name
+    ) {
 
-        PrismObject<RoleAnalysisSession> parentClusterObject = null;
+        PrismObject<RoleAnalysisSession> roleAnalysisSessionPrismObject = null;
         try {
-            parentClusterObject = pageBase.getPrismContext()
+            roleAnalysisSessionPrismObject = pageBase.getPrismContext()
                     .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleAnalysisSession.class).instantiate();
         } catch (SchemaException e) {
-            LOGGER.error("Error while generating ParentClusterType object: {}", e.getMessage(), e);
-        }
-        assert parentClusterObject != null;
-
-        RoleAnalysisSession clusterType = parentClusterObject.asObjectable();
-        String name = options.getString("name");
-        if (name == null) {
-            clusterType.setName(PolyStringType.fromOrig(options.getString("identifier")));
-        } else {
-            clusterType.setName(PolyStringType.fromOrig(name));
-
+            LOGGER.error("Failed to create RoleAnalysisSession object: {}", e.getMessage(), e);
         }
 
-        clusterType.getRoleAnalysisClusterRef().addAll(childRef);
-        clusterType.setMeanDensity(String.format("%.3f", density));
-        clusterType.setElementConsist(consist);
-        clusterType.setProcessMode(options.getString("mode"));
-        clusterType.setOptions(String.valueOf(options));
+        assert roleAnalysisSessionPrismObject != null;
 
-        return parentClusterObject;
+        RoleAnalysisSession roleAnalysisSession = roleAnalysisSessionPrismObject.asObjectable();
+        roleAnalysisSession.setName(PolyStringType.fromOrig(name));
+        roleAnalysisSession.getRoleAnalysisClusterRef().addAll(roleAnalysisClusterRef);
+        roleAnalysisSession.setProcessedObjectsCount(processedObjectCount);
+        roleAnalysisSession.setClusterOptions(roleAnalysisSessionFilterOption);
+        roleAnalysisSession.setPatternDetectionOptions(roleAnalysisSessionDetectionOption);
+        roleAnalysisSession.setMeanDensity(meanDensity);
+        roleAnalysisSession.setRiskLevel(riskLevel);
+
+        return roleAnalysisSessionPrismObject;
     }
 
+//    public static PrismObject<RoleAnalysisSession> generateParentClusterObject(PageBase pageBase, double density, int consist,
+//            List<String> childRef, JSONObject options) {
+//
+//        PrismObject<RoleAnalysisSession> parentClusterObject = null;
+//        try {
+//            parentClusterObject = pageBase.getPrismContext()
+//                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleAnalysisSession.class).instantiate();
+//        } catch (SchemaException e) {
+//            LOGGER.error("Error while generating ParentClusterType object: {}", e.getMessage(), e);
+//        }
+//        assert parentClusterObject != null;
+//
+//        RoleAnalysisSession clusterType = parentClusterObject.asObjectable();
+//        String name = options.getString("name");
+//        if (name == null) {
+//            clusterType.setName(PolyStringType.fromOrig(options.getString("identifier")));
+//        } else {
+//            clusterType.setName(PolyStringType.fromOrig(name));
+//        }
+//
+//        clusterType.getRoleAnalysisClusterRef().addAll(childRef);
+//        clusterType.setMeanDensity(String.format("%.3f", density));
+//        clusterType.setElementConsist(consist);
+//        clusterType.setProcessMode(options.getString("mode"));
+//        clusterType.setOptions(String.valueOf(options));
+//
+//        return parentClusterObject;
+//    }
+
     public static void deleteRoleAnalysisObjects(OperationResult result, @NotNull PageBase pageBase, String parentClusterOid,
-            List<String> roleAnalysisClusterRef) {
+            List<ObjectReferenceType> roleAnalysisClusterRef) {
         try {
-            for (String roleAnalysisClusterOid : roleAnalysisClusterRef) {
-                deleteRoleAnalysisCluster(result, pageBase, roleAnalysisClusterOid);
+            for (ObjectReferenceType roleAnalysisClusterOid : roleAnalysisClusterRef) {
+                deleteRoleAnalysisCluster(result, pageBase, roleAnalysisClusterOid.getOid());
             }
             deleteRoleAnalysisSession(result, pageBase, parentClusterOid);
         } catch (Exception e) {

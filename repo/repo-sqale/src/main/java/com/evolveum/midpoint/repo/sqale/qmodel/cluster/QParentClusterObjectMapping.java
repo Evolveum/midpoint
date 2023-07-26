@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cluster;
 
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,11 +30,12 @@ public class QParentClusterObjectMapping
                 RoleAnalysisSession.class, QParentClusterData.class, repositoryContext);
 
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
-        addItemMapping(F_ELEMENT_CONSIST, stringMapper(q -> q.meanDensity));
-        addItemMapping(F_ROLE_ANALYSIS_CLUSTER_REF, multiStringMapper(q -> q.roleAnalysisClusterRef));
-        addItemMapping(F_OPTIONS, stringMapper(q -> q.options));
-        addItemMapping(F_ELEMENT_CONSIST, integerMapper(q -> q.elementConsist));
-        addItemMapping(F_PROCESS_MODE, stringMapper(q -> q.processMode));
+        addItemMapping(F_PROCESSED_OBJECTS_COUNT, integerMapper(q -> q.processedObjectsCount));
+        addItemMapping(F_MEAN_DENSITY, stringMapper(q -> q.meanDensity));
+//        addItemMapping(F_ROLE_ANALYSIS_CLUSTER_REF, multiStringMapper(q -> q.roleAnalysisClusterRef));
+//        addItemMapping(F_OPTIONS, stringMapper(q -> q.options));
+//        addItemMapping(F_ELEMENT_CONSIST, integerMapper(q -> q.elementConsist));
+//        addItemMapping(F_PROCESS_MODE, stringMapper(q -> q.processMode));
 
     }
 
@@ -55,11 +55,12 @@ public class QParentClusterObjectMapping
         MParentClusterObject row = super.toRowObjectWithoutFullObject(clusterObject, jdbcSession);
 
         row.riskLevel = clusterObject.getRiskLevel();
-        row.meanDensity = clusterObject.getMeanDensity();
-        row.roleAnalysisClusterRef = stringsToArray(clusterObject.getRoleAnalysisClusterRef());
-        row.options = clusterObject.getOptions();
-        row.elementConsist = clusterObject.getElementConsist();
-        row.processMode = clusterObject.getProcessMode();
+        row.meanDensity = clusterObject.getMeanDensity().toString();
+        row.processedObjectsCount = clusterObject.getProcessedObjectsCount();
+//        row.roleAnalysisClusterRef = stringsToArray(clusterObject.getRoleAnalysisClusterRef());
+//        row.options = clusterObject.getOptions();
+//        row.elementConsist = clusterObject.getElementConsist();
+//        row.processMode = clusterObject.getProcessMode();
 
         return row;
     }

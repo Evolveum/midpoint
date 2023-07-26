@@ -1196,11 +1196,8 @@ CREATE TABLE m_role_analysis_session_table (
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
         CHECK (objectType = 'ROLE_ANALYSIS_SESSION'),
         riskLevel TEXT,
-        roleAnalysisClusterRef TEXT[],
-        elementConsist INTEGER,
-        meanDensity TEXT,
-        processMode TEXT,
-        options TEXT
+        processedObjectsCount INTEGER,
+        meanDensity TEXT
 )
     INHERITS (m_assignment_holder);
 

@@ -7,8 +7,9 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getImageScaleScript;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.Mode;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -52,7 +53,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
         MiningOperationChunk miningOperationChunk = new MiningOperationChunk();
         miningOperationChunk.run(cluster, (PageBase) getPage(),
-                Mode.valueOf(mode), result, false, true);
+                RoleAnalysisProcessMode.valueOf(mode), result, false, true);
         CustomImageResource imageResource;
 
         imageResource = new CustomImageResource(miningOperationChunk, mode);

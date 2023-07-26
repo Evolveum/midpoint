@@ -103,6 +103,25 @@
 
 
                     <div class="form-group row">
+
+                        <label for="searchMode" class="col-sm-2 col-form-label" wicket:id="searchMode_label"></label>
+
+                        <div class="col-sm-10">
+                            <select class="btn btn-default btn-sm dropdown-toggle" id="searchMode" style="width:150px"
+                                    wicket:id="searchModeSelector"></select>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group row">
+                        <label for="jaccardDistanceSearch" class="col-sm-2 col-form-label" wicket:id="eps_cluster_label"></label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="jaccardDistanceSearch" placeholder="Jaccard Distance"
+                                    wicket:id="eps_cluster">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
                         <label for="intersectionField" class="col-sm-2 col-form-label" wicket:id="intersection_label"></label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control" id="intersectionField" placeholder="Intersection"

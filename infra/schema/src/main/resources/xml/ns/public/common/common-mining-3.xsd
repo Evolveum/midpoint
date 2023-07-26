@@ -197,6 +197,8 @@
 
     <xsd:element name="roleAnalysisCluster" type="tns:RoleAnalysisCluster" substitutionGroup="tns:object"/>
 
+
+
     <xsd:complexType name="RoleAnalysisSession">
         <xsd:annotation>
             <xsd:documentation>
@@ -215,31 +217,11 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                    <xsd:element name="clusterOptions" type="c:RoleAnalysisSessionFilterOption" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    The options element within the RoleAnalysisSession class represents cluster options for role
-                                    analysis. It is loaded as a JSON string format, allowing the configuration settings and choices
-                                    for the clusters to be defined in a structured and flexible manner.
-                                    This JSON string can be easily parsed and processed to extract the specific
-                                    options required for the role analysis session. The following keys are currently used:
-
-                                    Cluster Options Query: Specifies the query or filter applied to the userType object.
-                                    assignThreshold: Minimum count of relation with compared object. USER MODE - min role assign.
-                                    mode: Determines the process mode for role analysis.
-                                    similarity: Similarity threshold used for clustering (Jaccard).
-                                    minIntersection: Minimum number of intersections required.
-                                    minGroup: Specifies the minimum size of a group (unique objects).
-
-                                    For default business role suggestion:
-                                    detectIntersection: Minimum number of intersections required.
-                                    detectMaxFrequency: Maximum allowed frequency.
-                                    detectMinFrequency: Minimum required frequency.
-                                    detectOccupancy: Minimum occupancy.
-
-                                    These keys represent specific configuration options within the options element,
-                                    and their corresponding values define the desired settings for the role analysis session.
+                                    Object clustering options.
 
                                     Furthermore, the role analysis session allows for the possibility of updating these values.
                                     If there is a need to modify or refine the cluster options during the analysis process, the values
@@ -250,37 +232,22 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="processMode" type="xsd:string" minOccurs="0">
+                    <xsd:element name="patternDetectionOptions" type="c:RoleAnalysisSessionDetectionOption" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    The mode element specifies the process mode for role analysis. It determines the specific approach
-                                    or methodology used during the analysis. The value of this element is a string that describes the
-                                    process mode.
+                                    Default business roles detection options.
 
-                                    We currently use an enum type to identify the mode (ROLE MODE, USER MODE)
-                                    For Role Analysis (ROLE MODE):
-                                    Role perspective is taken into account. The role mining process focuses on identifying
-                                    and analyzing roles based on their similarity and considering the perspective of roles
-                                    (vectors of users who have this role are compared). Objects
-                                    that meet the specified conditions, determined by the input parameters, are added to the data set
-                                    to facilitate role mining
-
-                                    For User Analysis (USER MODE):
-                                    User perspective is taken into account. The user mining process focuses on identifying and
-                                    analyzing users based on their similarity and considering the perspective of users
-                                    (the role vectors assigned to the given users are compared). Objects that
-                                    meet the specified conditions, determined by the input parameters, are added to the data set to
-                                    facilitate role mining.
+                                    Furthermore, the role analysis session allows for the possibility of updating these values.
+                                    If there is a need to modify or refine the cluster options during the analysis process, the values
+                                    associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
+                                    role analysis based on changing requirements or new insights gained during the analysis phase.
                                 </p>
                             </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisSession.processMode</a:displayName>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="roleAnalysisClusterRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="roleAnalysisClusterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -288,6 +255,33 @@
                                     associated with the role analysis session.
                                 </p>
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="processedObjectsCount" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    ProcessedObjectsCount represents the number of main objects (processed objects)
+                                    that are part of clusters (RoleAnalysisSession).
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisSession.processedObjectCount</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="meanDensity" type="xsd:double" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    It expresses the average overlap density of child clusters (RoleAnalysisSession).
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisSession.meanDensity</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -306,32 +300,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="elementConsist" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    ElementConsist represents the number of main objects (elements)
-                                    that are part of clusters (RoleAnalysisSession).
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisSession.elementConsist</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="meanDensity" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    It expresses the average overlap density of child clusters (RoleAnalysisSession).
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisSession.meanDensity</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -340,4 +308,281 @@
     </xsd:complexType>
 
     <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSession" substitutionGroup="tns:object"/>
+
+    <xsd:complexType name="RoleAnalysisSessionFilterOption">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object clustering options.
+
+                Furthermore, the role analysis session allows for the possibility of updating these values.
+                If there is a need to modify or refine the cluster options during the analysis process, the values
+                associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
+                role analysis based on changing requirements or new insights gained during the analysis phase.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="axiomFilter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the query or filter applied to the userType object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionFilterOption.axiomFilter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processMode" type="tns:RoleAnalysisProcessMode" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The mode element specifies the process mode for role analysis. It determines the specific approach
+                            or methodology used during the analysis. The value of this element is a string that describes the
+                            process mode.
+
+                            We currently use an enum type to identify the mode (ROLE MODE, USER MODE)
+                            For Role Analysis (ROLE MODE):
+                            Role perspective is taken into account. The role mining process focuses on identifying
+                            and analyzing roles based on their similarity and considering the perspective of roles
+                            (vectors of users who have this role are compared). Objects
+                            that meet the specified conditions, determined by the input parameters, are added to the data set
+                            to facilitate role mining
+
+                            For User Analysis (USER MODE):
+                            User perspective is taken into account. The user mining process focuses on identifying and
+                            analyzing users based on their similarity and considering the perspective of users
+                            (the role vectors assigned to the given users are compared). Objects that
+                            meet the specified conditions, determined by the input parameters, are added to the data set to
+                            facilitate role mining.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisProcessMode.processMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="similarityThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Similarity threshold used for clustering (Jaccard)
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionFilterOption.similarityThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minUniqueGroupCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the minimum size of a group (unique objects).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionFilterOption.minUniqueGroupSize</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minPropertiesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum count of relation with compared object. USER MODE - min role assign. ROLE MODE - min members count.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionFilterOption.minPropertiesCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minPropertyOverlap" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum property overlap size.
+                            In the case of USER MODE, the user is included in the analysis, if there are other users who have
+                            at least "minOverlapCondition" equal roles.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionFilterOption.minPropertyOverlap</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RoleAnalysisSessionDetectionOption">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default business roles detection options.
+
+                Furthermore, the role analysis session allows for the possibility of updating these values.
+                If there is a need to modify or refine the cluster options during the analysis process, the values
+                associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
+                role analysis based on changing requirements or new insights gained during the analysis phase.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="minPropertyOverlap" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum property overlap size.
+                            In the case of USER MODE, the user is included in the analysis, if there are other users who have
+                            at least "minOverlapCondition" equal roles.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionDetectionOption.minOverlap</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minOccupancy" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The minimum number of objects covered by the found business role.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionDetectionOption.minOccupancy</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minFrequencyThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum required frequency. If the condition is not met, the objects are not included in the
+                            detection (search).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionDetectionOption.minFrequencyThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxFrequencyThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximum required frequency. If the condition is not met, the objects are not included in the
+                            detection (search).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionDetectionOption.maxFrequencyThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="jaccardSimilarityThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            A similarity threshold used to find similar objects based on their properties.
+                            Only allowed in JACCARD search mode.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionDetectionOption.jaccardSimilarityThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="searchMode" type="tns:RoleAnalysisSearchMode" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Business role search or detection mode.
+                            JACCARD - search by jaccard index.
+                            INTERSECTION - exact search by overlapping properties.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSearchMode.searchMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="RoleAnalysisProcessMode">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enum value for process mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="role">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during parsing over role objects
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="user">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during parsing over user objects
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisSearchMode">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enum value for search mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jaccard">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during jaccard search.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JACCARD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="intersection">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during intersection search.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INTERSECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 </xsd:schema>

@@ -10,8 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
 
 public class ClusterOptions implements Serializable {
     private PageBase pageBase;
@@ -21,26 +22,29 @@ public class ClusterOptions implements Serializable {
     private String identifier;
     private ObjectFilter query;
     private int assignThreshold;
-    ClusterObjectUtils.Mode mode;
+    RoleAnalysisProcessMode mode;
+    RoleAnalysisSearchMode searchMode;
     String name;
     int defaultIntersectionSearch = 10;
     int defaultOccupancySearch = 10;
     double defaultMinFrequency = 0.4;
     double defaultMaxFrequency = 1;
+    double defaultJaccardThreshold = 0.8;
 
-    public ClusterOptions(PageBase pageBase, ClusterObjectUtils.Mode mode) {
+    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessMode mode,RoleAnalysisSearchMode searchMode) {
         this.pageBase = pageBase;
         this.mode = mode;
+        this.searchMode = searchMode;
         setDefaultOptions(mode);
     }
 
-    private void setDefaultOptions(ClusterObjectUtils.Mode mode) {
-        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+    private void setDefaultOptions(RoleAnalysisProcessMode mode) {
+        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
             this.similarity = 0.6;
             this.assignThreshold = 300;
             this.minIntersections = 10;
             this.minGroupSize = 2;
-        } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
+        } else if (mode.equals(RoleAnalysisProcessMode.USER)) {
             this.similarity = 0.8;
             this.assignThreshold = 10;
             this.minIntersections = 10;
@@ -104,11 +108,11 @@ public class ClusterOptions implements Serializable {
         this.assignThreshold = assignThreshold;
     }
 
-    public ClusterObjectUtils.Mode getMode() {
+    public RoleAnalysisProcessMode getMode() {
         return mode;
     }
 
-    public void setMode(ClusterObjectUtils.Mode mode) {
+    public void setMode(RoleAnalysisProcessMode mode) {
         this.mode = mode;
     }
 
@@ -152,4 +156,19 @@ public class ClusterOptions implements Serializable {
         this.defaultMaxFrequency = defaultMaxFrequency;
     }
 
+    public RoleAnalysisSearchMode getSearchMode() {
+        return searchMode;
+    }
+
+    public void setSearchMode(RoleAnalysisSearchMode searchMode) {
+        this.searchMode = searchMode;
+    }
+
+    public double getDefaultJaccardThreshold() {
+        return defaultJaccardThreshold;
+    }
+
+    public void setDefaultJaccardThreshold(double defaultJaccardThreshold) {
+        this.defaultJaccardThreshold = defaultJaccardThreshold;
+    }
 }

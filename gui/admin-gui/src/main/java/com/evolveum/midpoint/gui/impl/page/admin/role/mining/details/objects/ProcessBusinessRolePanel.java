@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -35,10 +37,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkIconPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ProcessBusinessRolePanel extends BasePanel<String> implements Popupable {
 
@@ -46,10 +44,10 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
     private static final String ID_CANCEL_OK = "cancel";
     List<MiningRoleTypeChunk> miningRoleTypeChunks;
     List<MiningUserTypeChunk> miningUserTypeChunks;
-    ClusterObjectUtils.Mode mode;
+    RoleAnalysisProcessMode mode;
 
     public ProcessBusinessRolePanel(String id, IModel<String> messageModel, List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
-            ClusterObjectUtils.Mode mode) {
+            RoleAnalysisProcessMode mode) {
         super(id, messageModel);
         this.mode = mode;
         this.miningRoleTypeChunks = miningRoleTypeChunks;
@@ -68,7 +66,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
 
         DisplayType displayTypeElement;
         DisplayType displayTypePoints;
-        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
 
             for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
                 if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
@@ -132,7 +130,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+                        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
                         } else {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
@@ -157,7 +155,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+                        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
                         } else {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);

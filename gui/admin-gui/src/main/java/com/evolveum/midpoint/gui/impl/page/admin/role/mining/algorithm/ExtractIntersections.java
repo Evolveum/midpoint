@@ -10,21 +10,22 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
 
 public class ExtractIntersections {
 
     public static List<IntersectionObject> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency,
-            double maxFrequency, int minIntersection, Integer minOccupancy, ClusterObjectUtils.Mode mode) {
+            double maxFrequency, int minIntersection, Integer minOccupancy, RoleAnalysisProcessMode mode) {
 
         List<IntersectionObject> intersections = new ArrayList<>();
 
-        if (mode.equals(ClusterObjectUtils.Mode.USER)) {
+        if (mode.equals(RoleAnalysisProcessMode.USER)) {
             loadUsersIntersections(miningRoleTypeChunks, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
-        } else if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
             loadRolesIntersections(miningUserTypeChunks, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
         }
 
@@ -49,7 +50,7 @@ public class ExtractIntersections {
             if (size >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(users), size * users.size(),
                         "outer", size,
-                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+                        null, new HashSet<>(), RoleAnalysisSearchMode.INTERSECTION));
             }
 
         }
@@ -101,7 +102,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(users), counter * users.size(),
                         "outer", counter,
-                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+                        null, new HashSet<>(), RoleAnalysisSearchMode.INTERSECTION));
             }
         }
 
@@ -121,7 +122,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(users), counter * users.size(),
                         "inner", counter,
-                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+                        null, new HashSet<>(), RoleAnalysisSearchMode.INTERSECTION));
             }
 
         }
@@ -147,7 +148,7 @@ public class ExtractIntersections {
             if (size >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * size,
                         "outer", size,
-                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+                        null, new HashSet<>(), RoleAnalysisSearchMode.INTERSECTION));
             }
 
         }
@@ -199,7 +200,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(roles), counter * roles.size(),
                         "outer", counter,
-                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+                        null, new HashSet<>(), RoleAnalysisSearchMode.INTERSECTION));
             }
         }
 
@@ -220,7 +221,7 @@ public class ExtractIntersections {
             if (counter >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(roles), counter * roles.size(),
                         "inner", counter,
-                        null, new HashSet<>(), ClusterObjectUtils.SearchMode.INTERSECTION));
+                        null, new HashSet<>(), RoleAnalysisSearchMode.INTERSECTION));
             }
 
         }

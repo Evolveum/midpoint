@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -23,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.TextFiel
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
 
 public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
 
@@ -38,7 +37,7 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     double similarity = 0.8;
     Integer minIntersection = 10;
     Integer minOccupancy = 5;
-    ClusterObjectUtils.SearchMode searchModeSelected = ClusterObjectUtils.SearchMode.INTERSECTION;
+    RoleAnalysisSearchMode searchModeSelected = RoleAnalysisSearchMode.INTERSECTION;
 
     public boolean isJaccardSearchMode() {
         return searchMode;
@@ -61,17 +60,17 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel("search_mode_button", new LoadableModel<>() {
             @Override
             protected Object load() {
-                return Model.of(getSearchModeSelected().getDisplayString());
+                return Model.of(getSearchModeSelected().value());
             }
         }) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (searchMode) {
                     searchMode = false;
-                    searchModeSelected = ClusterObjectUtils.SearchMode.INTERSECTION;
+                    searchModeSelected = RoleAnalysisSearchMode.INTERSECTION;
                 } else {
                     searchMode = true;
-                    searchModeSelected = ClusterObjectUtils.SearchMode.JACCARD;
+                    searchModeSelected = RoleAnalysisSearchMode.JACCARD;
                 }
                 target.add(components);
                 target.add(this);
@@ -201,7 +200,7 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         return similarity;
     }
 
-    public ClusterObjectUtils.SearchMode getSearchModeSelected() {
+    public RoleAnalysisSearchMode getSearchModeSelected() {
         return searchModeSelected;
     }
 

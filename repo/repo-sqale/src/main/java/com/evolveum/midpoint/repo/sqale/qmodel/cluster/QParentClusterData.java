@@ -28,8 +28,8 @@ public class QParentClusterData extends QAssignmentHolder<MParentClusterObject> 
             ColumnMetadata.named("options").ofType(Types.VARCHAR);
     public static final ColumnMetadata RISK_LEVEL =
             ColumnMetadata.named("riskLevel").ofType(Types.VARCHAR);
-    public static final ColumnMetadata ELEMENT_CONSIST =
-            ColumnMetadata.named("elementConsist").ofType(Types.INTEGER);
+    public static final ColumnMetadata PROCESSED_OBJECTS_COUNT =
+            ColumnMetadata.named("processedObjectsCount").ofType(Types.INTEGER);
     public static final ColumnMetadata MEAN_DENSITY =
             ColumnMetadata.named("meanDensity").ofType(Types.VARCHAR);
     public static final ColumnMetadata PROCESS_MODE =
@@ -38,7 +38,7 @@ public class QParentClusterData extends QAssignmentHolder<MParentClusterObject> 
     public final StringPath options = createString("options", OPTIONS);
     public final StringPath meanDensity = createString("meanDensity", MEAN_DENSITY);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
-    public final NumberPath<Integer> elementConsist = createInteger("elementConsist", ELEMENT_CONSIST);
+    public final NumberPath<Integer> processedObjectsCount = createInteger("processedObjectsCount", PROCESSED_OBJECTS_COUNT);
     public final StringPath processMode = createString("processMode", PROCESS_MODE);
     public final ArrayPath<String[], String> roleAnalysisClusterRef = createArray("roleAnalysisClusterRef",
             String[].class, ROLE_ANALYSIS_CLUSTERS_REF);

@@ -16,9 +16,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractJaccard;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -273,32 +278,51 @@ public class ClusterAlgorithmUtils {
             OperationResult operationResult, ClusterOptions clusterOptions) {
 
         if (clusterOptions != null) {
-            ClusterObjectUtils.Mode mode = clusterOptions.getMode();
+            RoleAnalysisProcessMode mode = clusterOptions.getMode();
             int group = Math.min(clusterOptions.getDefaultOccupancySearch(), clusterOptions.getMinGroupSize());
             int intersection = Math.min(clusterOptions.getDefaultIntersectionSearch(), clusterOptions.getMinIntersections());
             double defaultMaxFrequency = clusterOptions.getDefaultMaxFrequency();
             double defaultMinFrequency = clusterOptions.getDefaultMinFrequency();
+            RoleAnalysisSearchMode searchMode = clusterOptions.getSearchMode();
 
-            if (mode.equals(ClusterObjectUtils.Mode.ROLE)) {
+            if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
-                        ClusterObjectUtils.Mode.ROLE, operationResult, true, false);
+                        RoleAnalysisProcessMode.ROLE, operationResult, true, false);
                 List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
                 List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
-                possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
-                        defaultMaxFrequency,
-                        group, intersection, mode);
-            } else if (mode.equals(ClusterObjectUtils.Mode.USER)) {
+
+                if (searchMode.equals(RoleAnalysisSearchMode.JACCARD)) {
+                    possibleBusinessRole = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks,
+                            defaultMinFrequency,
+                            defaultMaxFrequency,
+                            group, intersection, mode, clusterOptions.getDefaultJaccardThreshold());
+                } else {
+                    possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
+                            defaultMaxFrequency,
+                            group, intersection, mode);
+                }
+
+            } else if (mode.equals(RoleAnalysisProcessMode.USER)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
-                        ClusterObjectUtils.Mode.USER, operationResult, true, false);
+                        RoleAnalysisProcessMode.USER, operationResult, true, false);
                 List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
                 List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
-                possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
-                        defaultMaxFrequency,
-                        intersection, group, mode);
+
+                if (searchMode.equals(RoleAnalysisSearchMode.JACCARD)) {
+                    possibleBusinessRole = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks,
+                            defaultMinFrequency,
+                            defaultMaxFrequency,
+                            intersection, group, mode, clusterOptions.getDefaultJaccardThreshold());
+                } else {
+                    possibleBusinessRole = businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks, defaultMinFrequency,
+                            defaultMaxFrequency,
+                            intersection, group, mode);
+                }
+
             }
 
             loadIntersections(jsonObjectList, possibleBusinessRole);
@@ -343,7 +367,7 @@ public class ClusterAlgorithmUtils {
                 elements.add(elementsArray.getString(i));
             }
             mergedIntersection.add(new IntersectionObject(points, metric, type, currentElements, totalElements,
-                    elements, ClusterObjectUtils.SearchMode.INTERSECTION));
+                    elements, RoleAnalysisSearchMode.INTERSECTION));
         }
 
         return mergedIntersection;
