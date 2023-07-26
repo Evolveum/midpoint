@@ -649,7 +649,7 @@
                                 provided by the ID Match service. It should be the single one (no composition), and must not
                                 return uncertain results: only "existing (single) owner" and "no owner" answers are accepted.
 
-                                DEPRECATED: Please use "referenceIdProperty" instead.
+                                REMOVED: Please use "referenceIdProperty" instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:removed>true</a:removed>

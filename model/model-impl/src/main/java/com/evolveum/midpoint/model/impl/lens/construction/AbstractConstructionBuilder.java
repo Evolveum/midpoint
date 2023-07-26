@@ -12,9 +12,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Builder for all the constructions (resource object and persona).
@@ -25,7 +29,8 @@ public class AbstractConstructionBuilder
         EC extends EvaluatedAbstractConstruction<AH>,
         RT extends AbstractConstructionBuilder<AH, ACT, EC, RT>> {
 
-    ACT constructionBean;
+    ConfigurationItem<ACT> constructionConfigItem;
+    ConfigurationItemOrigin constructionOrigin;
     AssignmentPathImpl assignmentPath;
     ObjectType source;
     OriginType originType;
@@ -33,8 +38,15 @@ public class AbstractConstructionBuilder
     XMLGregorianCalendar now;
     boolean valid;
 
-    public RT constructionBean(ACT val) {
-        constructionBean = val;
+    public RT constructionBean(@NotNull ACT bean, @NotNull ConfigurationItemOrigin constructionOrigin) {
+        constructionConfigItem = ConfigurationItem.of(bean, constructionOrigin);
+        this.constructionOrigin = constructionOrigin;
+        return typedThis();
+    }
+
+    public RT noConstructionBean(@NotNull ConfigurationItemOrigin constructionOrigin) {
+        constructionConfigItem = null;
+        this.constructionOrigin = constructionOrigin;
         return typedThis();
     }
 

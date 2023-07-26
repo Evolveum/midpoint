@@ -8,12 +8,14 @@ package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,7 +62,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     private final IModel<ExpressionWrapper> parent;
     private LoadableModel<RecognizedEvaluator> typeModel;
-    private IModel<String> helpModel;
+    private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
     private boolean isInColumn = false;
 
@@ -74,14 +76,17 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 "ExpressionEvaluatorType.LITERAL.show.button"),
         SCRIPT(ExpressionEvaluatorType.SCRIPT,
                 ScriptExpressionPanel.class,
-                "ExpressionEvaluatorType.SCRIPT.show.button");
+                "ExpressionEvaluatorType.SCRIPT.show.button"),
+        GENERATE(ExpressionEvaluatorType.GENERATE,
+                GenerateExpressionPanel.class,
+                "ExpressionEvaluatorType.GENERATE.show.button");
 
         private final ExpressionEvaluatorType type;
-        private final Class<? extends BasePanel> evaluatorPanel;
+        private final Class<? extends EvaluatorExpressionPanel> evaluatorPanel;
         private final String buttonLabelKeyPrefix;
 
         RecognizedEvaluator(
-                ExpressionEvaluatorType type, Class<? extends BasePanel> evaluatorPanel, String buttonLabelKeyPrefix) {
+                ExpressionEvaluatorType type, Class<? extends EvaluatorExpressionPanel> evaluatorPanel, String buttonLabelKeyPrefix) {
             this.type = type;
             this.evaluatorPanel = evaluatorPanel;
             this.buttonLabelKeyPrefix = buttonLabelKeyPrefix;
@@ -136,13 +141,32 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         }
 
         if (helpModel == null) {
-            if (StringUtils.isNotEmpty(getModelObject().getDescription())) {
-                helpModel = getPageBase().createStringResource(getModelObject().getDescription());
-            } else {
-                helpModel = () -> StringEscapeUtils.escapeHtml4(
-                        ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER));
+            helpModel = new LoadableModel<>(false) {
+                @Override
+                protected String load() {
+                    if (StringUtils.isNotEmpty(getModelObject().getDescription())) {
+                        return getPageBase().createStringResource(getModelObject().getDescription()).getString();
+                    }
 
-            }
+                    Class<? extends EvaluatorExpressionPanel> evaluatorPanel = null;
+                    if (typeModel != null && typeModel.getObject() != null) {
+                        evaluatorPanel = typeModel.getObject().evaluatorPanel;
+                    }
+
+                    if (evaluatorPanel != null) {
+                        try {
+                            Method m = evaluatorPanel.getMethod("getInfoDescription", ExpressionType.class, PageBase.class);
+                            return (String) m.invoke(null, getModelObject(), getPageBase());
+                        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                            LOGGER.debug("Couldn't find method getInfoDescription in class " + evaluatorPanel.getSimpleName());
+                        }
+
+                    }
+
+                    return StringEscapeUtils.escapeHtml4(
+                            ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER));
+                }
+            };
         }
     }
 
@@ -166,7 +190,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         Label infoIcon = new Label(ID_INFO_ICON);
         infoIcon.add(AttributeModifier.replace("title", helpModel));
         infoIcon.add(new InfoTooltipBehavior());
-        infoIcon.add(new VisibleBehaviour(() -> !isExpressionEmpty() && isInfoLabelNotEmpty()));
+        infoIcon.add(new VisibleBehaviour(() -> !isExpressionEmpty() && isInfoLabelNotEmpty() && isHelpDescriptionNotEmpty()));
         infoContainer.add(infoIcon);
 
         AjaxButton resetButton = new AjaxButton(ID_RESET_BUTTON) {
@@ -174,6 +198,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             public void onClick(AjaxRequestTarget target) {
                 ExpressionPanel.this.getModelObject().getExpressionEvaluator().clear();
                 typeModel.reset();
+                helpModel.reset();
                 infoLabelModel.setObject("");
 
                 updateLabelForExistingEvaluator();
@@ -182,7 +207,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 ExpressionPanel.this.addOrReplace(createEvaluatorPanel());
                 ExpressionPanel.this.addOrReplace(createTypeButton());
 
-                target.add(ExpressionPanel.this.get(ID_EVALUATOR_PANEL));
+                target.add(getEvaluatorPanel());
                 target.add(ExpressionPanel.this.get(ID_TYPE_CHOICE));
                 target.add(ExpressionPanel.this.get(ID_TYPE_BUTTON));
                 target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
@@ -194,7 +219,6 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         infoContainer.add(resetButton);
 
         if (isExpressionEmpty() || typeModel.getObject() != null) {
-
 
             updateLabelForExistingEvaluator();
 
@@ -212,6 +236,14 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             infoLabelModel.setObject(
                     getPageBase().createStringResource("ExpressionPanel.unrecognizedEvaluator").getString());
         }
+    }
+
+    private boolean isHelpDescriptionNotEmpty() {
+        return helpModel != null && StringUtils.isNotEmpty(helpModel.getObject());
+    }
+
+    private Component getEvaluatorPanel() {
+        return get(ID_EVALUATOR_PANEL);
     }
 
     private boolean isInfoLabelNotEmpty() {
@@ -271,10 +303,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 addOrReplace(createEvaluatorPanel());
                 addOrReplace(createTypeButton());
 
-                target.add(get(ID_EVALUATOR_PANEL));
+                target.add(getEvaluatorPanel());
                 target.add(get(ID_TYPE_BUTTON));
                 target.add(get(ID_TYPE_CHOICE));
                 target.add(ExpressionPanel.this);
+
+                helpModel.reset();
             }
         });
 
@@ -320,6 +354,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                             updateLabelForExistingEvaluator();
                             target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
                             target.add(ExpressionPanel.this);
+
+                            helpModel.reset();
                         }
                     };
                     getPageBase().showMainPopup(popupPanel, target);
@@ -331,10 +367,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                         updateLabelForExistingEvaluator();
                     }
 
-                    target.add(ExpressionPanel.this.get(ID_EVALUATOR_PANEL));
+                    target.add(getEvaluatorPanel());
                     target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
                     target.add(ExpressionPanel.this.get(ID_TYPE_BUTTON));
                     target.add(ExpressionPanel.this);
+
+                    helpModel.reset();
                 }
             }
 
@@ -355,6 +393,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private WebMarkupContainer createEvaluatorPanel() {
         return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false);
     }
+
     private WebMarkupContainer createEvaluatorPanel(String id, boolean isInPopup) {
         RecognizedEvaluator type = typeModel.getObject();
         if (type != null && type.evaluatorPanel != null) {

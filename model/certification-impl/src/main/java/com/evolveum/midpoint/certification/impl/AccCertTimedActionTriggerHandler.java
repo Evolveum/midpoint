@@ -68,7 +68,9 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
                 }
                 executeNotifications(timeBeforeAction, action, campaign, triggerScannerTask, result);
             } else {
-                WorkItemActionsType actions = ObjectTypeUtil.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
+                WorkItemActionsType actions =
+                        ObjectTypeUtil.getExtensionItemRealValue(
+                                trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
                 if (actions == null) {
                     LOGGER.warn("Trigger without workItemActions; ignoring it: {}", trigger);
                     return;
@@ -97,7 +99,8 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 //        caseController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
     }
 
-    private void executeActions(WorkItemActionsType actions, AccessCertificationCampaignType campaign, Task triggerScannerTask,
+    private void executeActions(
+            WorkItemActionsType actions, AccessCertificationCampaignType campaign, Task triggerScannerTask,
             OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             ObjectAlreadyExistsException, ConfigurationException, CommunicationException {

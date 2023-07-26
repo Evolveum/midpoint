@@ -20,6 +20,9 @@ import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+/**
+ * TODO enable under some extra profile, since this will download newest version of midpoint (takes some time to execute + bandwidth)
+ */
 public class DistributionManagerTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(DistributionManagerTest.class);

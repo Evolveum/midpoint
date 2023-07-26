@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="ca8c4ffd-98ed-4ca7-9097-44db924155c9">
+    <name>restricted-good</name>
+    <documentation>Role that contains only "correct" mappings w.r.t. `restricted` expression profile.</documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>"My name is '$name'"</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'I-am-safe'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

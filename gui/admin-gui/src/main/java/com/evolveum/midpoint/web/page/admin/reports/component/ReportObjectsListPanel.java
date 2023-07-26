@@ -81,7 +81,8 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
 
     @Override
     protected Class<C> getDefaultType() {
-        return view == null ? (Class<C>) ObjectType.class : view.getTargetClass(getPrismContext());
+        //noinspection unchecked
+        return view == null ? (Class<C>) ObjectType.class : view.getTargetClass();
     }
 
     private void initView() {
@@ -144,7 +145,8 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
                     variables.putAll(getSearchModel().getObject().getFilterVariables(getVariables(), getPageBase()));
                     processReferenceVariables(variables);
                 }
-                Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
+                Collection<SelectorOptions<GetOperationOptions>> defaultOptions =
+                        DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(), getSchemaService());
 
                 List<C> list = (List<C>) getModelInteractionService().searchObjectsFromCollection(getReport().getObjectCollection().getCollection(), qNameType, defaultOptions, query.getPaging(), variables, task, result);
                 if (LOGGER.isTraceEnabled()) {
@@ -161,7 +163,8 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
             @Override
             protected Integer countObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
                     throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-                Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(getPrismContext()), getSchemaService());
+                Collection<SelectorOptions<GetOperationOptions>> defaultOptions =
+                        DefaultColumnUtils.createOption(getObjectCollectionView().getTargetClass(), getSchemaService());
                 QName qNameType = WebComponentUtil.anyClassToQName(getPrismContext(), type);
                 VariablesMap variables = new VariablesMap();
                 if (getSearchModel().getObject() != null) {

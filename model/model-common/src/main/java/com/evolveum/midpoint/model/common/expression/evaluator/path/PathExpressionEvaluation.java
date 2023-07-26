@@ -10,8 +10,8 @@ package com.evolveum.midpoint.model.common.expression.evaluator.path;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.AbstractItemDeltaItem;
 import com.evolveum.midpoint.prism.util.DefinitionResolver;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -83,7 +83,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
         Object variableValue = variableValueAndDefinition.getValue();
         if (variableValue == null) {
             return null;
-        } else if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?,?>) {
+        } else if (variableValue instanceof Item || variableValue instanceof AbstractItemDeltaItem<?>) {
             return IdiResolutionContext.fromAnyObject(variableValue);
         } else if (variableValue instanceof PrismValue) {
             return new ValueResolutionContext((PrismValue) variableValue, context.getContextDescription());
@@ -99,7 +99,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
     private PrismValueDeltaSetTriple<V> prepareOutputTriple(OperationResult result) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
             ExpressionEvaluationException {
-        PrismValueDeltaSetTriple<V> outputTriple = resolutionContext.createOutputTriple(evaluator.getPrismContext());
+        PrismValueDeltaSetTriple<V> outputTriple = resolutionContext.createOutputTriple();
         evaluator.applyValueMetadata(outputTriple, context, result);
         return evaluator.finishOutputTriple(outputTriple, context.getAdditionalConvertor(), null);
     }
@@ -134,15 +134,17 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
                 }
 
             } else if (resolutionContext.isStructuredProperty()) {
-                resolutionContext = resolutionContext.resolveStructuredProperty(pathToResolve,
-                        (PrismPropertyDefinition) evaluator.getOutputDefinition(), evaluator.getPrismContext());
+                resolutionContext = resolutionContext.resolveStructuredProperty(
+                        pathToResolve, (PrismPropertyDefinition<?>) evaluator.getOutputDefinition(), evaluator.getPrismContext());
                 pathToResolve = ItemPath.EMPTY_PATH;
 
             } else if (resolutionContext.isNull()) {
                 pathToResolve = ItemPath.EMPTY_PATH;
 
             } else {
-                throw new ExpressionEvaluationException("Cannot resolve path "+ pathToResolve +" on "+ resolutionContext +" in "+ context.getContextDescription());
+                throw new ExpressionEvaluationException(
+                        "Cannot resolve path %s on %s in %s".formatted(
+                                pathToResolve, resolutionContext, context.getContextDescription()));
             }
         }
     }

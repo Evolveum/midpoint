@@ -178,10 +178,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             PrismValue value = valuesTuple.get(sourceIndex);
 
             String name = sourceTriple.getName().getLocalPart();
-            ItemDefinition definition = sourceTriple.getSource().getDefinition();
-            if (definition == null) { // TODO reconsider @NotNull annotation on getDefinition
-                throw new IllegalArgumentException("Source '" + name + "' without a definition");
-            }
+            ItemDefinition<?> definition = sourceTriple.getSource().getDefinition();
             staticVariables.put(name, getRealContent(value, sourceTriple.getResidualPath()), definition);
             // Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced
             // with the same value. We pretend that this is the same as ADD case.

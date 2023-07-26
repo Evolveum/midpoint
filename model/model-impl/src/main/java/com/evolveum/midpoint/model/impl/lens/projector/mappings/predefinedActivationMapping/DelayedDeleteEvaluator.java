@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * This evaluator delayed delete base on duration from configuration {@link DelayedDeleteActivationMappingType}.
  * As reference time is used value of attribute activation/disableTimestamp from shadow.
- * We should combine with {@link DisableInsteadDeleteEvaluator}.
+ * We should combine with {@link DisableInsteadOfDeleteEvaluator}.
  */
 public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator {
 

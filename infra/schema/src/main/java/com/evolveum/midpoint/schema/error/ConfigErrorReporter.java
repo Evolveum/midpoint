@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.error;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,8 @@ import static com.evolveum.midpoint.util.QNameUtil.getLocalPart;
  * executing arbitrary deltas at any given time. This would need to be limited somehow.
  *
  * TODO consider using getPath method to provide exact path of the element in the object
+ *
+ * See {@link ConfigurationItem} for a possible replacement.
  */
 @Experimental
 public class ConfigErrorReporter {

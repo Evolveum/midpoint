@@ -119,8 +119,7 @@ public class PipelineData implements DebugDumpable {
         List<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (PipelineItem item : data) {
             PrismValue value = item.getValue();
-            if (value instanceof PrismObjectValue) {
-                PrismObjectValue<?> objectValue = (PrismObjectValue<?>) value;
+            if (value instanceof PrismObjectValue<?> objectValue) {
                 ObjectReferenceType ref = new ObjectReferenceType();
                 ref.setType(objectValue.asPrismObject().getDefinition().getTypeName());
                 ref.setOid(objectValue.getOid());
@@ -144,8 +143,7 @@ public class PipelineData implements DebugDumpable {
                 } else {
                     throw new ScriptExecutionException("Unsupported reference type: " + value.getClass());
                 }
-            } else if (value instanceof PrismReferenceValue) {
-                PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+            } else if (value instanceof PrismReferenceValue referenceValue) {
                 ObjectReferenceType ref = new ObjectReferenceType();
                 ref.setupReferenceValue(referenceValue);
                 retval.add(ref);
@@ -161,7 +159,7 @@ public class PipelineData implements DebugDumpable {
         ObjectQuery query = context.getQueryConverter().createObjectQuery(type, queryBean);
         SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
                 .searchObjects(type, query, createReadOnlyCollection(), context.getTask(), result);
-        return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o, context.getPrismContext())).collect(Collectors.toList());
+        return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
     }
 
     static @NotNull PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables, PrismContext prismContext) {
@@ -170,9 +168,8 @@ public class PipelineData implements DebugDumpable {
             for (Object object : input.getValue()) {
                 if (object instanceof PrismValue) {
                     rv.addValue((PrismValue) object, frozenInitialVariables);
-                } else if (object instanceof RawType) {
+                } else if (object instanceof RawType raw) {
                     // a bit of hack: this should have been solved by the parser (we'll fix this later)
-                    RawType raw = (RawType) object;
                     PrismValue prismValue = raw.getAlreadyParsedValue();
                     if (prismValue != null) {
                         rv.addValue(prismValue, frozenInitialVariables);

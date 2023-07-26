@@ -104,7 +104,7 @@ public class ImportController {
      */
     public void handleDataRecord(InputReportLine line, RunningTask workerTask, OperationResult result) throws CommonException {
         if (compiledCollection != null) {
-            Class<ObjectType> type = compiledCollection.getTargetClass(reportService.getPrismContext());
+            Class<ObjectType> type = compiledCollection.getTargetClass();
             if (type == null) {
                 String message = "Definition of type in view is null";
                 LOGGER.error(message);
@@ -380,7 +380,7 @@ public class ImportController {
         Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));
         CSVFormat csvFormat = support.createCsvFormat();
         if (compiledCollection != null) {
-            Class<ObjectType> type = compiledCollection.getTargetClass(reportService.getPrismContext());
+            Class<ObjectType> type = compiledCollection.getTargetClass();
             if (type == null) {
                 throw new IllegalArgumentException("Couldn't define type of imported objects");
             }

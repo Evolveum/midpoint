@@ -987,18 +987,24 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);
 
-        Item oldItem = account.findItem(ICFS_NAME_PATH);
-        ItemDelta delta = prismContext.deltaFactory().property().createModificationAddProperty(
+        PrismProperty<String> oldItem = account.findProperty(ICFS_NAME_PATH);
+        PropertyDelta<?> delta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ICFS_NAME_PATH,
-                (PrismPropertyDefinition) oldItem.getDefinition(),
-                ((PrismPropertyValue) oldItem.getAnyValue()).getValue());
+                oldItem.getDefinition(),
+                oldItem.getAnyValue().getValue());
 
         PrismObject<UserType> user = evaluator.getUserDefinition().instantiate();
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
-                evaluator.createInboudMapping(
-                        "mapping-inbound.xml", shortTestName, delta, user.asObjectable(), account.asObjectable(), null, null);
+                evaluator.createInboundMapping(
+                        "mapping-inbound.xml",
+                        shortTestName,
+                        delta,
+                        user.asObjectable(),
+                        account.asObjectable(),
+                        null,
+                        null);
 
         when();
         mapping.evaluate(createTask(), createOperationResult());

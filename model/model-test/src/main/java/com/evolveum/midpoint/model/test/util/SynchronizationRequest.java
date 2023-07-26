@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.util.expression.ExpressionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestSpringBeans;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -131,7 +131,7 @@ public class SynchronizationRequest {
                                 .map(s -> "'" + s + "'")
                                 .collect(Collectors.joining(",")));
                 tracing.getBeforeItemCondition().add(new BeforeItemConditionType()
-                        .expression(ExpressionUtil.forGroovyCode(script)));
+                        .expression(ExpressionTypeUtil.forGroovyCode(script)));
             }
             reporting.tracing(tracing);
         }

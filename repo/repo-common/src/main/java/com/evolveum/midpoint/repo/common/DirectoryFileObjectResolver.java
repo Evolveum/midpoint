@@ -44,9 +44,11 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
     }
 
     @Override
-    public <T extends ObjectType> T resolve(Referencable ref, Class<T> expectedType,
+    public <T extends ObjectType> @NotNull T resolve(Referencable ref, Class<T> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         return getObject(expectedType, ref.getOid(), options, task, result);
     }
 

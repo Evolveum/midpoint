@@ -504,6 +504,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                                 ObjectType targetObjectType) {
                 ownerDetailsPerformed((FocusType) targetObjectType);
             }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+                return ShadowTablePanel.this.isShadowDetailsEnabled(rowModel);
+            }
         };
         columns.add(ownerColumn);
 

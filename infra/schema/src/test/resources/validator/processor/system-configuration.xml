@@ -7,8 +7,35 @@
 <systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="3947d3b1-b6e8-46ec-b382-1bde67da6f07">
 
+    <name>system-configuration</name>
+
     <notificationConfiguration>
-        <!--<sms>
+        <handler>
+            <simpleUserNotifier>
+                <transport>custom1</transport>
+            </simpleUserNotifier>
+        </handler>
+        <mail name="m2">
+            <defaultFrom>example@example.com</defaultFrom>
+            <server>
+                <host>localhost</host>
+            </server>
+        </mail>
+        <file name="f1">
+            <file>a.csv</file>
+            <redirectToFile>redirect.csv</redirectToFile>
+            <debug>true</debug>
+            <whiteList>asdf</whiteList>
+            <blackList>jklo</blackList>
+            <recipientFilterExpression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </recipientFilterExpression>
+        </file>
+        <sms name="s1">
             <gateway>
                 <urlExpression>
                     <script>
@@ -19,7 +46,7 @@
                 </urlExpression>
             </gateway>
         </sms>
-        <sms>
+        <sms name="s2">
             <redirectToFile>redirected.log</redirectToFile>
             <blackList>blacklisted@example.com</blackList>
             <debug>true</debug>
@@ -44,11 +71,38 @@
                 <username>user</username>
                 <password>pass</password>
             </gateway>
-        </sms>-->
+        </sms>
+        <customTransport name="custom1">
+            <redirectToFile>notification-redirected.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+        <customTransport name="custom2">
+            <redirectToFile>notification-redirected2.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
     </notificationConfiguration>
 
     <roleManagement>
+        <defaultAssignmentConstraints>
+            <allowSameTarget>true</allowSameTarget>
+            <allowSameRelation>true</allowSameRelation>
+        </defaultAssignmentConstraints>
         <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
+        <defaultCollection>
+            <collectionUri>allRoles</collectionUri>
+        </defaultCollection>
         <roleCatalogCollections>
             <collection>
                 <collectionUri>allRoles</collectionUri>
@@ -58,4 +112,34 @@
             </collection>
         </roleCatalogCollections>
     </roleManagement>
+
+    <adminGuiConfiguration>
+        <userDashboardLink>
+            <targetUrl>https://google.com</targetUrl>
+        </userDashboardLink>
+    </adminGuiConfiguration>
+
+    <defaultObjectPolicyConfiguration id="2">
+        <propertyConstraint>
+            <path>name</path>
+            <visibility>visible</visibility>
+        </propertyConstraint>
+        <propertyConstraint>
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+        </propertyConstraint>
+        <itemConstraint>
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </defaultObjectPolicyConfiguration>
+    <cleanupPolicy>
+        <objectResults>
+            <maxAge>P1D</maxAge>
+            <maxRecords>10</maxRecords>
+        </objectResults>
+    </cleanupPolicy>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>always</useLegacyApproversSpecification>
+    </workflowConfiguration>
 </systemConfiguration>

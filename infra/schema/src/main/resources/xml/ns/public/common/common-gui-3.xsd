@@ -449,6 +449,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -488,6 +489,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -510,6 +512,11 @@
     </xsd:complexType>
 
     <xsd:simpleType name="RoleCatalogViewType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="tile">
                 <xsd:annotation>
@@ -542,6 +549,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -572,6 +580,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -605,6 +614,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="RolesOfTeammateType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0"/>
@@ -655,6 +669,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -671,6 +686,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -687,6 +703,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -712,6 +729,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -728,6 +746,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

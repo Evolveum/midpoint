@@ -14,12 +14,14 @@ import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 
+@SuppressWarnings("unused")
 public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
 
     @Override
     public UpgradePhase getPhase() {
-        return UpgradePhase.AFTER;
+        return UpgradePhase.BEFORE;
     }
 
     @Override
@@ -34,13 +36,18 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        // todo implement
-        return false;
+        return matchParentTypeAndItemName(
+                object, path, OtherPrivilegesLimitationType.class, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);
     }
 
     @Override
     public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
-        // todo implement
-        return false;
+        OtherPrivilegesLimitationType limitation = getItemParent(object, path);
+        if (limitation.getCaseManagementWorkItems() == null) {
+            limitation.setCaseManagementWorkItems(limitation.getApprovalWorkItems());
+        }
+        limitation.setApprovalWorkItems(null);
+
+        return true;
     }
 }

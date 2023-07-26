@@ -94,14 +94,13 @@ public class FilterClause extends SelectorClause {
             @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (!(value instanceof PrismContainerValue<?>)) {
+        if (!(value instanceof PrismContainerValue<?> pcv)) {
             // This is because of filter limitations;
             // TODO we should support application of filters to reference values (and probably property values as well)
             throw new UnsupportedOperationException(String.format(
                     "Object selector with filter cannot be used for values other than container ones: %s",
                     getDiagInfo(value)));
         }
-        PrismContainerValue<?> pcv = (PrismContainerValue<?>) value;
         try {
             ObjectFilter evaluatedFilter = getEvaluatedFilter(ctx);
             if (evaluatedFilter.match(pcv, SchemaService.get().matchingRuleRegistry())) {

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -691,6 +692,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public ResourceType getResource() {
         return resource;
+    }
+
+    public @NotNull ResourceType getResourceRequired() {
+        return MiscUtil.stateNonNull(resource, "No resource in %s", this);
     }
 
     public void setResource(ResourceType resource) {

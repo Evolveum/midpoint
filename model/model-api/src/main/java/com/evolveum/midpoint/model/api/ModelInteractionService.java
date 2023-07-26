@@ -500,9 +500,12 @@ public interface ModelInteractionService {
      */
     @Experimental
     @NotNull
-    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection,
-            @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass,
-            @NotNull Task task, @NotNull OperationResult result)
+    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+            @NotNull PrismObject<ObjectCollectionType> collection,
+            @Nullable CompiledObjectCollectionView preCompiledView,
+            @Nullable Class<? extends ObjectType> targetTypeClass,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException;
 

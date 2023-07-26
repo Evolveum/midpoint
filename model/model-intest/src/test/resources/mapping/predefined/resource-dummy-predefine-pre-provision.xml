@@ -106,9 +106,9 @@
                         </expression>
                     </outbound>
                 </administrativeStatus>
-                <disableInsteadDelete>
+                <disableInsteadOfDelete>
                     <lifecycleState>active</lifecycleState>
-                </disableInsteadDelete>
+                </disableInsteadOfDelete>
                 <preProvision>
                     <createBefore>-P5D</createBefore>
                 </preProvision>

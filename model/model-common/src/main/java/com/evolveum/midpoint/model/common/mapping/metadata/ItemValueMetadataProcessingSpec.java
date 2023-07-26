@@ -18,6 +18,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.MetadataMappingConfigItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.model.common.mapping.metadata.ProcessingUtil.getProcessingOfItem;
 
@@ -48,7 +53,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemValueMetadataProcessingSpec.class);
 
-    @NotNull private final Collection<MetadataMappingType> mappings = new ArrayList<>();
+    @NotNull private final Collection<MetadataMappingConfigItem> mappings = new ArrayList<>();
     @NotNull private final Collection<MetadataItemDefinitionType> itemDefinitions = new ArrayList<>();
     @NotNull private final Collection<ItemPath> metadataPathsToIgnore = new ArrayList<>();
 
@@ -70,14 +75,16 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         return new ItemValueMetadataProcessingSpec(scope);
     }
 
-    public void populateFromCurrentFocusTemplate(ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+    public void populateFromCurrentFocusTemplate(
+            @NotNull ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         populateFromCurrentFocusTemplate(
                 ModelExpressionThreadLocalHolder.getLensContext(), dataPath, objectResolver, contextDesc, task, result);
     }
 
-    public void populateFromCurrentFocusTemplate(ModelContext<?> lensContext, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+    public void populateFromCurrentFocusTemplate(
+            ModelContext<?> lensContext, @NotNull ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (lensContext != null) {
@@ -96,7 +103,9 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         return mappings.isEmpty() && itemDefinitions.isEmpty();
     }
 
-    private void addFromObjectTemplate(ObjectTemplateType rootTemplate, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+    private void addFromObjectTemplate(
+            @NotNull ObjectTemplateType rootTemplate, @NotNull ItemPath dataPath,
+            ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -117,12 +126,13 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         }
     }
 
-    private void addFromObjectTemplate(ObjectTemplateType template, ItemPath dataPath) {
+    private void addFromObjectTemplate(@NotNull ObjectTemplateType template, @NotNull ItemPath dataPath) {
         try {
             addHandling(template.getMeta(), dataPath);
 
             for (ObjectTemplateItemDefinitionType itemDef : template.getItem()) {
-                if (itemDef.getRef() != null && itemDef.getRef().getItemPath().equivalent(dataPath)) {
+                ItemPathType ref = itemDef.getRef();
+                if (ref != null && ref.getItemPath().equivalent(dataPath)) {
                     addHandling(itemDef.getMeta(), dataPath);
                 }
             }
@@ -131,24 +141,32 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         }
     }
 
-    private void addHandling(MetadataHandlingType handling, ItemPath dataPath) throws SchemaException {
+    /** Assumes that `handling` is embedded in its originating object. */
+    private void addHandling(@Nullable MetadataHandlingType handling, @NotNull ItemPath dataPath)
+            throws SchemaException {
         if (isHandlingApplicable(handling, dataPath)) {
-            addMetadataMappings(handling.getMapping());
+            addMetadataMappings(handling.getMapping(), ConfigurationItemOrigin::embedded);
             addMetadataItems(handling.getItem(), dataPath);
         }
     }
 
     private boolean isHandlingApplicable(MetadataHandlingType handling, ItemPath dataPath) throws SchemaException {
-        return handling != null && ProcessingUtil.doesApplicabilityMatch(handling.getApplicability(), dataPath);
+        return handling != null
+                && ProcessingUtil.doesApplicabilityMatch(handling.getApplicability(), dataPath);
     }
 
-    private void addMetadataItems(List<MetadataItemDefinitionType> items, ItemPath dataPath) throws SchemaException {
+    /** Assumes that each item is embedded in its originating object. */
+    private void addMetadataItems(List<MetadataItemDefinitionType> items, ItemPath dataPath)
+            throws SchemaException {
         for (MetadataItemDefinitionType item : items) {
             if (isMetadataItemDefinitionApplicable(item, dataPath)) {
                 itemDefinitions.add(item);
                 for (MetadataMappingType itemMapping : item.getMapping()) {
                     if (isMetadataMappingApplicable(itemMapping)) {
-                        mappings.add(provideDefaultTarget(itemMapping, item));
+                        mappings.add(
+                                MetadataMappingConfigItem.of(
+                                        provideDefaultTarget(itemMapping, item),
+                                        ConfigurationItemOrigin.embedded(itemMapping)));
                     }
                 }
             }
@@ -160,7 +178,8 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
     }
 
     private MetadataMappingType provideDefaultTarget(MetadataMappingType itemMapping, MetadataItemDefinitionType item) {
-        if (itemMapping.getTarget() != null && itemMapping.getTarget().getPath() != null) {
+        VariableBindingDefinitionType targetSpec = itemMapping.getTarget();
+        if (targetSpec != null && targetSpec.getPath() != null) {
             return itemMapping;
         } else {
             checkRefNotNull(item);
@@ -181,15 +200,17 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         }
     }
 
-    public void addMetadataMappings(List<MetadataMappingType> mappingsToAdd) {
+    public void addMetadataMappings(
+            @NotNull List<MetadataMappingType> mappingsToAdd, @NotNull OriginProvider<MetadataMappingType> originProvider) {
         for (MetadataMappingType mapping : mappingsToAdd) {
             if (isMetadataMappingApplicable(mapping)) {
-                mappings.add(mapping);
+                mappings.add(
+                        MetadataMappingConfigItem.of(mapping, originProvider));
             }
         }
     }
 
-    public @NotNull Collection<MetadataMappingType> getMappings() {
+    public @NotNull Collection<ConfigurationItem<MetadataMappingType>> getMappings() {
         return Collections.unmodifiableCollection(mappings);
     }
 
@@ -284,7 +305,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
 
         DebugUtil.debugDumpWithLabelLn(sb, "Mappings defined",
                 mappings.stream()
-                        .map(this::getTargetPath)
+                        .map(m -> getTargetPath(m.value()))
                         .collect(Collectors.toList()), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Items defined",
                 itemDefinitions.stream()
@@ -295,8 +316,9 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         return sb.toString();
     }
 
-    private ItemPathType getTargetPath(MetadataMappingType mapping) {
-        return mapping != null && mapping.getTarget() != null ? mapping.getTarget().getPath() : null;
+    private ItemPathType getTargetPath(@NotNull MetadataMappingType mapping) {
+        VariableBindingDefinitionType targetSpec = mapping.getTarget();
+        return targetSpec != null ? targetSpec.getPath() : null;
     }
 
     public void addPathsToIgnore(@NotNull List<ItemPathType> pathsToIgnore) {

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -44,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
 import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.prettyPrintLazily;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -61,12 +65,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private final LensFocusContext<AH> focusContext;
 
     /**
-     * Looks like the source of the evaluated assignments. It is initialized to focus object new (if exists),
-     * or object current (otherwise).
-     *
-     * TODO research + explain this better
+     * The source of the evaluated assignments. It is initialized to focus object new (if exists), or object current (otherwise).
      */
-    private final AssignmentHolderType source;
+    @NotNull private final AssignmentHolderType source;
 
     private final AssignmentEvaluator<AH> assignmentEvaluator;
     private final ModelBeans beans;
@@ -78,18 +79,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     @NotNull private final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
 
-    private ContainerDelta<AssignmentType> currentAssignmentDelta;
+    @NotNull private ContainerDelta<AssignmentType> currentAssignmentDelta;
 
     private AssignmentTripleEvaluator(Builder<AH> builder) throws SchemaException {
         context = builder.context;
-        focusContext = context.getFocusContext();
-        if (focusContext != null) {
-            focusStateModel = focusContext.getLifecycleModel();
-        } else {
-            focusStateModel = null;
-        }
+        focusContext = context.getFocusContextRequired();
+        focusStateModel = focusContext.getLifecycleModel();
 
-        source = builder.source;
+        source = Objects.requireNonNull(builder.source, "No source");
         assignmentEvaluator = builder.assignmentEvaluator;
         beans = builder.beans;
         now = builder.now;
@@ -97,13 +94,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         result = builder.result;
 
         evaluatedAssignmentTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
-        computeCurrentAssignmentDelta();
+        currentAssignmentDelta = computeCurrentAssignmentDelta(focusContext);
     }
 
     public void reset(boolean alsoMemberOfInvocations) throws SchemaException {
         assignmentEvaluator.reset(alsoMemberOfInvocations);
         evaluatedAssignmentTriple.clear();
-        computeCurrentAssignmentDelta();
+        currentAssignmentDelta = computeCurrentAssignmentDelta(focusContext);
     }
 
     @NotNull DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException,
@@ -112,11 +109,17 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Assignment current delta (i.e. from current to new object):\n{}", currentAssignmentDelta.debugDumpLazily());
 
-        Collection<AssignmentType> virtualAssignments = getVirtualAssignments();
+        Collection<ConfigurationItem<AssignmentType>> virtualAssignments = getVirtualAssignments();
 
         SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
-        assignmentCollection.collectAndFreeze(focusContext.getObjectCurrent(), focusContext.getObjectOld(), currentAssignmentDelta,
-                virtualAssignments, beans.prismContext);
+        assignmentCollection.collectAndFreeze(
+                focusContext.getObjectCurrent(),
+                focusContext.getObjectOld(),
+                assignment -> ConfigurationItemOrigin.inDelta(
+                        focusContext.getObjectNewOrCurrentRequired().asObjectable(),
+                        AssignmentHolderType.F_ASSIGNMENT),
+                currentAssignmentDelta,
+                virtualAssignments);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
@@ -135,9 +138,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     @NotNull
-    private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Collection<AssignmentType> forcedAssignments =
+    private Collection<ConfigurationItem<AssignmentType>> getVirtualAssignments()
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        Collection<ConfigurationItem<AssignmentType>> forcedAssignments =
                 focusContext.isDelete() ?
                         List.of() :
                         LensUtil.getForcedAssignments(
@@ -149,23 +153,23 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         LOGGER.trace("Task for process (operation result is not updated): {}",
                 lazy(() -> task.getRawTaskObjectClonedIfNecessary().debugDump()));
         Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
-        Collection<AssignmentType> taskAssignments = allTasksToRoot.stream()
+        Collection<ConfigurationItem<AssignmentType>> taskAssignments = allTasksToRoot.stream()
                 .filter(Task::hasAssignments)
                 .map(this::createTaskAssignment)
                 .collect(Collectors.toList());
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
-        List<AssignmentType> virtualAssignments = new ArrayList<>(forcedAssignments);
+        List<ConfigurationItem<AssignmentType>> virtualAssignments = new ArrayList<>(forcedAssignments);
         virtualAssignments.addAll(taskAssignments);
         return virtualAssignments;
     }
 
-    private AssignmentType createTaskAssignment(Task fromTask) {
+    private ConfigurationItem<AssignmentType> createTaskAssignment(Task fromTask) {
         AssignmentType taskAssignment = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.asReferenceValue().setObject(fromTask.getRawTaskObjectClonedIfNecessary());
         taskAssignment.setTargetRef(targetRef);
-        return taskAssignment;
+        return ConfigurationItem.of(taskAssignment, ConfigurationItemOrigin.generated());
     }
 
     private String getNewObjectLifecycleState(LensFocusContext<AH> focusContext) {
@@ -195,7 +199,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             assignmentChanged = true;
             forceRecon = false;
             innerAssignmentDeltas = List.of();
-            assignmentPlacementDesc = "delta for "+source;
+            assignmentPlacementDesc = "delta for " + source;
         } else {
             innerAssignmentDeltas = getInnerAssignmentDeltas(focusContext, assignmentElement);
             if (!innerAssignmentDeltas.isEmpty()) {
@@ -479,7 +483,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                     .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                     .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
         }
-        return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(value.asContainerable()), definition);
+        return new ItemDeltaItem<>(
+                LensUtil.createAssignmentSingleValueContainer(value.asContainerable()),
+                definition);
     }
 
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
@@ -531,9 +537,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             PrismContainerValue<AssignmentType> value, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
             throws SchemaException {
         ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi =
-                new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(value.asContainerable()), value.getDefinition());
-        idi.setResolvePath(AssignmentHolderType.F_ASSIGNMENT);
-        idi.setSubItemDeltas(subItemDeltas);
+                new ItemDeltaItem<>(
+                        LensUtil.createAssignmentSingleValueContainer(value.asContainerable()),
+                        value.getDefinition(),
+                        AssignmentHolderType.F_ASSIGNMENT,
+                        subItemDeltas);
         idi.recompute();
         return idi;
     }
@@ -609,7 +617,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                             primaryAssignmentMode,
                             evaluateOld,
                             source,
-                            assignmentPlacementDesc,
+                            emptyIfNull(assignmentPlacementDesc),
                             smartAssignment.getOrigin(),
                             task,
                             subResult);
@@ -654,27 +662,26 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-    private void computeCurrentAssignmentDelta() throws SchemaException {
-        currentAssignmentDelta = getCurrentAssignmentDelta(focusContext);
-        currentAssignmentDelta.expand(focusContext.getObjectCurrent(), LOGGER);
-    }
-
     /**
      * Returns delta of user assignments - for the current wave i.e. the one that transforms current to new object.
      */
-    private ContainerDelta<AssignmentType> getCurrentAssignmentDelta(LensFocusContext<AH> focusContext) throws SchemaException {
+    private ContainerDelta<AssignmentType> computeCurrentAssignmentDelta(LensFocusContext<AH> focusContext)
+            throws SchemaException {
+        ContainerDelta<AssignmentType> resultingDelta;
         ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta();
         if (ObjectDelta.isDelete(focusDelta)) {
-            return getAssignmentDeltaOnDelete(focusContext);
-        }
-
-        ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
-                focusDelta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT) : null;
-        if (assignmentDelta != null) {
-            return assignmentDelta;
+            resultingDelta = getAssignmentDeltaOnDelete(focusContext);
         } else {
-            return createEmptyAssignmentDelta(focusContext);
+            ContainerDelta<AssignmentType> assignmentDelta =
+                    focusDelta != null ? focusDelta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT) : null;
+            if (assignmentDelta != null) {
+                resultingDelta = assignmentDelta;
+            } else {
+                resultingDelta = createEmptyAssignmentDelta(focusContext);
+            }
         }
+        resultingDelta.expand(focusContext.getObjectCurrent(), LOGGER);
+        return resultingDelta;
     }
 
     private ContainerDelta<AssignmentType> getAssignmentDeltaOnDelete(LensFocusContext<AH> focusContext) throws SchemaException {
@@ -727,7 +734,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             return this;
         }
 
-        public Builder<AH> assignmentEvaluator(AssignmentEvaluator<AH> val) {
+        Builder<AH> assignmentEvaluator(AssignmentEvaluator<AH> val) {
             assignmentEvaluator = val;
             return this;
         }

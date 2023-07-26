@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,9 +59,11 @@ public class OutboundProcessor {
         // Each projection is evaluated in a single wave only. So we take into account all changes of focus from wave 0 to this one.
         ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
 
+        ResourceType resource = projCtx.getResourceRequired();
         PlainResourceObjectConstructionBuilder<AH> builder = new PlainResourceObjectConstructionBuilder<AH>()
+                .noConstructionBean(ConfigurationItemOrigin.undetermined()) // FIXME
                 .projectionContext(projCtx)
-                .source(projCtx.getResource())
+                .source(resource)
                 .lensContext(context)
                 .now(clock.currentTimeXMLGregorianCalendar()) // todo
                 .originType(OriginType.ASSIGNMENTS) // fixme

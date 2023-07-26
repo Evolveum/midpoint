@@ -6,33 +6,31 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import java.io.Serializable;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
-import java.util.Objects;
-
 /**
- * A superclass for both resource object constructions (ResourceObjectConstruction)
- * and persona object constructions (PersonaConstruction).
+ * A superclass for both resource object constructions ({@link ResourceObjectConstruction})
+ * and persona object constructions ({@link PersonaConstruction}).
  *
  * Contains the construction definition (bean) and the relevant context: assignment path, source object, lens context,
  * validity information. Basically, everything that is needed to evaluate this construction.
@@ -44,18 +42,25 @@ import java.util.Objects;
  *
  * @param <AH> focus type to which this construction applies
  * @param <ACT> type of the construction bean (e.g. ConstructionType, PersonaConstructionType)
- * @param <EC> "EvaluatedXXX" class paired with the construction (e.g. {@link EvaluatedPlainResourceObjectConstructionImpl}, {@link EvaluatedPersonaConstructionImpl})
+ * @param <EC> "EvaluatedXXX" class paired with the construction
+ * (e.g. {@link EvaluatedPlainResourceObjectConstructionImpl}, {@link EvaluatedPersonaConstructionImpl})
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedAbstractConstruction<AH>>
+public abstract class AbstractConstruction<
+        AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedAbstractConstruction<AH>>
         implements DebugDumpable, Serializable {
 
     /**
-     * Definition of the assigned construction.
+     * Definition of the assigned construction wrapped as a configuration item.
      * (For "artificial" constructions created during outbound mappings evaluations it is null.)
      */
-    @Nullable protected final ACT constructionBean;
+    @Nullable final ConfigurationItem<ACT> constructionConfigItem;
+
+    /**
+     * The real value from {@link #constructionConfigItem}, if present. Just for convenience.
+     */
+    @Nullable final ACT constructionBean;
 
     /**
      * If this construction is assigned, this is the path to it.
@@ -66,6 +71,9 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
     /**
      * Object in which the construction is defined: either assignment segment source object
      * (assignment holder) or a resource object.
+     *
+     * TODO consider if not superseded by the origin in {@link #constructionConfigItem},
+     *  at least for assigned constructions
      */
     @NotNull protected final ObjectType source;
 
@@ -98,12 +106,6 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
     private ObjectDeltaObject<AH> focusOdoAbsolute;
 
     /**
-     * TODO
-     * Again, not clear if relevant for persona constructions.
-     */
-    final ExpressionProfile expressionProfile;
-
-    /**
      * Is the construction valid in the new state, i.e.
      * - is the whole assignment path active (regarding activation and lifecycle state),
      * - and are all conditions on the path enabled? (EXCLUDING the focus object itself)
@@ -125,15 +127,13 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
 
     AbstractConstruction(AbstractConstructionBuilder<AH, ACT, EC, ?> builder) {
         this.assignmentPath = builder.assignmentPath;
-        this.constructionBean = builder.constructionBean;
+        this.constructionConfigItem = builder.constructionConfigItem;
+        this.constructionBean = constructionConfigItem != null ? constructionConfigItem.value() : null;
         this.source = builder.source;
         this.originType = builder.originType;
         this.lensContext = builder.lensContext;
         this.now = builder.now;
         this.valid = builder.valid;
-
-        // TODO: this is wrong. It should be set up during the evaluation process.
-        this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
 
     public @NotNull ObjectType getSource() {
@@ -157,14 +157,12 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
     }
 
     public void setFocusOdoAbsolute(ObjectDeltaObject<AH> focusOdoAbsolute) {
-        if (focusOdoAbsolute.getDefinition() == null) {
-            throw new IllegalArgumentException("No definition in focus ODO " + focusOdoAbsolute);
-        }
         this.focusOdoAbsolute = focusOdoAbsolute;
     }
 
     public boolean isWeak() {
-        return constructionBean != null && constructionBean.getStrength() == ConstructionStrengthType.WEAK;
+        return constructionBean != null
+                && constructionBean.getStrength() == ConstructionStrengthType.WEAK;
     }
 
     public boolean isValid() {
@@ -190,28 +188,45 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
      */
     abstract public boolean isIgnored();
 
-    public AssignmentPathVariables getAssignmentPathVariables() throws SchemaException {
+    AssignmentPathVariables getAssignmentPathVariables() throws SchemaException {
         if (assignmentPathVariables == null) {
-            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
+            assignmentPathVariables = assignmentPath != null ? assignmentPath.computePathVariables() : null;
         }
         return assignmentPathVariables;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof AbstractConstruction))
+        } else if (!(o instanceof AbstractConstruction<?, ?, ?> that)) {
             return false;
-        AbstractConstruction<?, ?, ?> that = (AbstractConstruction<?, ?, ?>) o;
-        return valid == that.valid &&
-                wasValid == that.wasValid &&
-                Objects.equals(constructionBean, that.constructionBean) &&
-                Objects.equals(assignmentPath, that.assignmentPath);
+        } else {
+            return valid == that.valid
+                    && wasValid == that.wasValid
+                    && Objects.equals(constructionBean, that.constructionBean)
+                    && Objects.equals(assignmentPath, that.assignmentPath);
+        }
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(constructionBean);
+    }
+
+    void debugDumpConstructionDescription(StringBuilder sb, int indent) {
+        String description = constructionBean != null ? constructionBean.getDescription() : null;
+        if (description != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpLabel(sb, "description", indent + 1);
+            sb.append(" ").append(description);
+        }
+    }
+
+    void debugDumpAssignmentPath(StringBuilder sb, int indent) {
+        if (assignmentPath != null) {
+            sb.append("\n");
+            sb.append(assignmentPath.debugDump(indent + 1));
+        }
     }
 }

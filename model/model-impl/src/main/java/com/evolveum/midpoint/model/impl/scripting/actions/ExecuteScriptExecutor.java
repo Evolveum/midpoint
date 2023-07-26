@@ -180,8 +180,9 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
 
         ScriptExpression scriptExpression;
         try {
-            scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition,
-                    expressionProfile, expressionFactory, "script", globalResult);
+            scriptExpression =
+                    scriptExpressionFactory.createScriptExpression(
+                            script, outputDefinition, expressionProfile, expressionFactory, "script", globalResult);
         } catch (ExpressionSyntaxException | SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
         }
@@ -267,7 +268,9 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
 
         LensContext<?> lensContext = getLensContext(externalVariables);
-        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '" + NAME + "' action", context.getTask(), result);
+        List<?> rv = ModelImplUtils.evaluateScript(
+                scriptExpression, lensContext, variables, true,
+                "in '" + NAME + "' action", context.getTask(), result);
 
         if (rv.isEmpty()) {
             return null;

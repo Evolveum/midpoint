@@ -9,19 +9,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div wicket:id="valueContainer">
-        <div class="prism-property-label p-0">
-            <span wicket:id="valueContainerLabel" />
-            <button wicket:id="add" class="btn btn-tool text-primary" trigger="hover">
-                <i class="fa fa-plus-circle pr-1"></i>
-                <wicket:message key="VerticalFormItemHeaderPanel.addValue"/>
-            </button>
-
-            <button wicket:id="remove" class="btn btn-tool text-danger" trigger="hover">
-                <i class="fa fa-eraser pr-1"></i>
-                <wicket:message key="VerticalFormItemHeaderPanel.removeAll"/>
-            </button>
-        </div>
-        <div class="prism-property-value" wicket:id="valueInput"/>
+        <wicket:child/>
         <span wicket:id="feedback"/>
     </div>
 </wicket:panel>

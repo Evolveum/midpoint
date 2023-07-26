@@ -71,8 +71,10 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
      */
     @NotNull final PrismValueDeltaSetTriple<V> outputTriple;
 
-    CombinatorialEvaluation(ExpressionEvaluationContext context, OperationResult parentResult,
-            AbstractValueTransformationExpressionEvaluator<V, D, E> evaluator) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+    CombinatorialEvaluation(
+            ExpressionEvaluationContext context, OperationResult parentResult,
+            AbstractValueTransformationExpressionEvaluator<V, D, E> evaluator)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ConfigurationException {
         super(context, parentResult, evaluator);
         this.evaluatorBean = evaluator.getExpressionEvaluatorBean();
         this.sourceTripleList = createSourceTriplesList();
@@ -222,7 +224,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createConditionExpression()
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         if (evaluatorBean.getCondition() != null) {
             return ExpressionUtil.createCondition(evaluatorBean.getCondition(), context.getExpressionProfile(),
                     context.getExpressionFactory(), "condition in " + context.getContextDescription(), context.getTask(),

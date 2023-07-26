@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -164,54 +164,75 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
     private void evaluateAssignments() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         for (AssignmentType assignment : target.getAssignment()) {
-            new TargetAssignmentEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx, result, assignment)
+            new TargetAssignmentEvaluation<>(
+                    segment, targetOverallConditionState, targetActivity, ctx, result,
+                    assignment, ConfigurationItemOrigin.embedded(assignment))
                     .evaluate();
         }
     }
 
     private void evaluateInducements() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-        if (target instanceof AbstractRoleType) {
-            for (AssignmentType inducement : ((AbstractRoleType) target).getInducement()) {
-                new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx, result, inducement, false)
+        if (target instanceof AbstractRoleType abstractRole) {
+            for (AssignmentType inducement : abstractRole.getInducement()) {
+                new TargetInducementEvaluation<>(
+                        segment, targetOverallConditionState, targetActivity, ctx, result,
+                        inducement, ConfigurationItemOrigin.embedded(inducement), false)
                         .evaluate();
             }
         }
     }
 
-    private void evaluateArchetypeHierarchy() throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        if (ArchetypeType.class.isAssignableFrom(target.getClass())) {
-            ObjectReferenceType superArchetype = ((ArchetypeType) target).getSuperArchetypeRef();
-            if (superArchetype == null) {
-                return;
-            }
-
-            PrismContainerDefinition<AssignmentType> def = target.asPrismObject().getDefinition().findContainerDefinition(ArchetypeType.F_INDUCEMENT);
-            PrismContainer<AssignmentType> inducement = def.instantiate();
-            PrismContainerValue<AssignmentType> inducementValue = inducement.createNewValue();
-            AssignmentType inducementRealValue = inducementValue.asContainerable();
-            inducementRealValue.setTargetRef(superArchetype);
-
-            new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx, result, inducementRealValue, true)
-                    .evaluate();
+    private void evaluateArchetypeHierarchy()
+            throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+        if (!(target instanceof ArchetypeType archetype)) {
+            return;
         }
+        ObjectReferenceType superArchetypeRef = archetype.getSuperArchetypeRef();
+        if (superArchetypeRef == null) {
+            return;
+        }
+
+        AssignmentType artificialInducement = createInducementWithDefinition(superArchetypeRef);
+        ConfigurationItemOrigin inducementOrigin = ConfigurationItemOrigin.generated();
+
+        new TargetInducementEvaluation<>(
+                segment, targetOverallConditionState, targetActivity, ctx, result,
+                artificialInducement, inducementOrigin, true)
+                .evaluate();
+    }
+
+    /** We need to have the definition, as we are going to put the value into {@link ItemDeltaItem} later. */
+    private @NotNull AssignmentType createInducementWithDefinition(ObjectReferenceType superArchetypeRef) throws SchemaException {
+        PrismContainer<AssignmentType> inducementContainer =
+                target.asPrismObject().getDefinition()
+                        .<AssignmentType>findContainerDefinition(ArchetypeType.F_INDUCEMENT)
+                        .instantiate();
+        AssignmentType inducement = inducementContainer.createNewValue().asContainerable();
+        inducement.setTargetRef(superArchetypeRef);
+        return inducement;
     }
 
     private void evaluateTargetPayload() {
         new TargetPayloadEvaluation<>(segment, targetOverallConditionState, targetActivity, ctx).evaluate();
     }
 
-    private ConditionState determineTargetConditionState()
+    private @NotNull ConditionState determineTargetConditionState()
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        MappingType condition = target instanceof AbstractRoleType ? ((AbstractRoleType) target).getCondition() : null;
+        MappingType conditionBean = target instanceof AbstractRoleType abstractRole ? abstractRole.getCondition() : null;
+        if (conditionBean == null) {
+            return ConditionState.allTrue();
+        }
         // TODO why we use "segment.source" as source object for condition evaluation even if
         //  we evaluate condition in target role? We should probably use the role itself as the source here.
         AssignmentHolderType source = segment.source;
         return ctx.conditionEvaluator.computeConditionState(
-                condition,
+                conditionBean,
+                ConfigurationItemOrigin.embedded(conditionBean),
                 source,
-                "condition in " + segment.getTargetDescription(), target,
+                "condition in " + segment.getTargetDescription(),
                 result);
     }
 

@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SimulationModePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTilePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,6 +35,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapper<
         ? extends Containerable>, MappingTile<PrismContainerValueWrapper<? extends Containerable>>> {
@@ -50,8 +54,12 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
     protected void onInitialize() {
         super.onInitialize();
 
-        try {
-            IModel<PrismPropertyWrapper> model = () -> {
+        initLifeCycleStatePanel();
+    }
+
+    private void initLifeCycleStatePanel() {
+//        try {
+            IModel<PrismPropertyWrapper<String>> model = () -> {
                 try {
                     return getModelObject().getValue().findProperty(MappingType.F_LIFECYCLE_STATE);
                 } catch (SchemaException e) {
@@ -59,18 +67,20 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
                 }
                 return null;
             };
-            Panel panel = getPageBase().initItemPanel(
-                    ID_LIFECYCLE_STATE,
-                    model.getObject().getTypeName(),
-                    model,
-                    new ItemPanelSettingsBuilder()
-                            .headerVisibility(false)
-                            .displayedInColumn(true)
-                            .build());
+
+            SimulationModePanel panel = new SimulationModePanel(ID_LIFECYCLE_STATE, model);
+//            Panel panel = getPageBase().initItemPanel(
+//                    ID_LIFECYCLE_STATE,
+//                    model.getObject().getTypeName(),
+//                    model,
+//                    new ItemPanelSettingsBuilder()
+//                            .headerVisibility(false)
+//                            .displayedInColumn(true)
+//                            .build());
             add(panel);
-        } catch (SchemaException e) {
-            LOGGER.debug("Couldn't find panel factory for property " + MappingType.F_LIFECYCLE_STATE);
-        }
+//        } catch (SchemaException e) {
+//            LOGGER.debug("Couldn't find panel factory for property " + MappingType.F_LIFECYCLE_STATE);
+//        }
     }
 
     @Override
@@ -81,6 +91,15 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
                 "class",
                 "card selectable col-12 catalog-tile-panel d-flex flex-column align-items-center px-3 pb-3 pt-3 h-100 mb-0 btn"));
 
+        boolean isConfigurable = true;
+        if (getModelObject().getValue().getItems().size() == 1) {
+            @NotNull ItemName itemName = getModelObject().getValue().getItems().iterator().next().getItemName();
+            if (itemName.equivalent(MappingType.F_LIFECYCLE_STATE)) {
+                isConfigurable = false;
+            }
+        }
+
+        boolean finalIsConfigurable = isConfigurable;
         AjaxIconButton configureButton = new AjaxIconButton(
                 ID_CONFIGURE_BUTTON,
                 Model.of("fa fa-gear"),
@@ -92,8 +111,22 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
             public void onClick(AjaxRequestTarget target) {
                 onConfigureClick(target, MappingTilePanel.this.getModelObject());
             }
+
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+
+                if (!finalIsConfigurable) {
+                    add(AttributeAppender.replace(
+                            "title",
+                            PageBase.createStringResourceStatic("MappingTilePanel.disabledConfiguration")));
+                }
+            }
         };
         configureButton.showTitleAsLabel(true);
+        if (!isConfigurable) {
+            configureButton.add(AttributeAppender.append("class", "disabled"));
+        }
         add(configureButton);
 
         Label help = new Label(ID_HELP);
@@ -103,14 +136,16 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
         help.add(new VisibleBehaviour(this::isHelpTextVisible));
         add(help);
 
-        AjaxButton removeButton = new AjaxButton(ID_REMOVE_BUTTON) {
+        AjaxIconButton removeButton = new AjaxIconButton(
+                ID_REMOVE_BUTTON,
+                Model.of("fa fa-trash"),
+                createStringResource("MappingTilePanel.button.remove")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onRemovePerformed(
-                        (PrismContainerValueWrapper<? extends Containerable>) MappingTilePanel.this.getModelObject().getValue(),
-                        target);
+                onRemovePerformed(MappingTilePanel.this.getModelObject().getValue(), target);
             }
         };
+        removeButton.showTitleAsLabel(true);
         add(removeButton);
 
         get(ID_DESCRIPTION).add(AttributeAppender.append("title", getModelObject().getDescription()));

@@ -35,7 +35,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
 
     @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
+    public void beforeClass() throws Exception {
         TestUtils.zipFile(new File("./src/test/resources/org-monkey-island-simple.xml"), new File(PATH_MONKEY_ISLAND_SIMPLE_ZIP));
 
         super.beforeClass();

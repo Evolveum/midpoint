@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="a6ace69f-ecfb-457b-97ea-0b5a8b4a6ad3">
+    <name>restricted-auto-good</name>
+    <documentation>
+        Auto-assigned role that contains only "correct" mappings w.r.t. `restricted` expression profile.
+    </documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping>
+                <expression>
+                    <script>
+                        <code>
+                            assignment // compliant
+                        </code>
+                    </script>
+                </expression>
+                <condition>
+                    <script>
+                        <code>true</code> <!-- compliant -->
+                    </script>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+                <filter>
+                    <q:equal>
+                        <q:path>costCenter</q:path>
+                        <q:value>auto</q:value> <!-- no scripting expressions here are supported for now -->
+                    </q:equal>
+                </filter>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

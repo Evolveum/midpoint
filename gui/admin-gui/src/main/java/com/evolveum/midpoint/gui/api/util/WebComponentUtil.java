@@ -2376,9 +2376,11 @@ public final class WebComponentUtil {
 
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {
         try {
-            return ExpressionUtil.evaluateFilterExpressions(objectFilter, variables, MiscSchemaUtil.getExpressionProfile(),
-                    pageBase.getExpressionFactory(), pageBase.getPrismContext(), "collection filter",
-                    pageBase.createSimpleTask(result.getOperation()), result);
+            return ExpressionUtil.evaluateFilterExpressions(
+                    objectFilter, variables,
+                    MiscSchemaUtil.getExpressionProfile(),
+                    pageBase.getExpressionFactory(),
+                    "collection filter", pageBase.createSimpleTask(result.getOperation()), result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException ex) {
             result.recordPartialError("Unable to evaluate filter exception, ", ex);
@@ -5809,15 +5811,20 @@ public final class WebComponentUtil {
             return "fa fa-circle";
         }
 
-        if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null) {
+        if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null
+                || object.getParentContainerValue(ResourcePasswordDefinitionType.class) != null) {
             if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)){
-                PrismContainerValueWrapper<ResourceBidirectionalMappingType> parent =
+
+                PrismContainerValueWrapper parent =
                         object.getParentContainerValue(ResourceBidirectionalMappingType.class);
+                if (parent == null) {
+                    parent = object.getParentContainerValue(ResourcePasswordDefinitionType.class);
+                }
                 if (parent == null) {
                     return "fa fa-circle";
                 }
 
-                PrismContainerDefinition<ResourceBidirectionalMappingType> parentDef = parent.getDefinition();
+                PrismContainerDefinition parentDef = parent.getDefinition();
                 return createMappingIcon(parentDef);
 
             } else {
@@ -5842,13 +5849,28 @@ public final class WebComponentUtil {
             return "fa fa-arrow-right-to-bracket";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_LOCKOUT_STATUS)) {
             return "fa fa-user-lock";
-        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_DELETE)) {
+        } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DISABLE_INSTEAD_OF_DELETE)) {
             return "fa fa-user-slash";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_DELAYED_DELETE)) {
             return "fa fa-clock";
         } else if (QNameUtil.match(def.getItemName(), ResourceActivationDefinitionType.F_PRE_PROVISION)) {
             return "fa fa-user-plus";
+        } else if (QNameUtil.match(def.getItemName(), ResourceCredentialsDefinitionType.F_PASSWORD)) {
+            return "fa fa-key";
         }
         return "fa fa-circle";
+    }
+
+    public static LookupTableType loadLookupTable(String lookupTableOid, PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("Load lookup table");
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                .createLookupTableRetrieveOptions(pageBase.getSchemaService());
+        PrismObject<LookupTableType> prismLookupTable =
+                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
+        if (prismLookupTable != null) {
+            return  prismLookupTable.asObjectable();
+        }
+        return null;
     }
 }

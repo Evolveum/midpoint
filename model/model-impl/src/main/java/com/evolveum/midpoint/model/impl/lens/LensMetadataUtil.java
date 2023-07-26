@@ -32,7 +32,7 @@ public class LensMetadataUtil {
     private static final Trace LOGGER = TraceManager.getTrace(LensMetadataUtil.class);
 
     public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(
-            ItemPath itemPath,
+            @NotNull ItemPath itemPath,
             LensContext<?> lensContext,
             ModelBeans beans,
             MappingEvaluationEnvironment env,
@@ -53,7 +53,8 @@ public class LensMetadataUtil {
     }
 
     @NotNull
-    private static ItemValueMetadataProcessingSpec createProcessingSpec(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
+    private static ItemValueMetadataProcessingSpec createProcessingSpec(
+            @NotNull ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {

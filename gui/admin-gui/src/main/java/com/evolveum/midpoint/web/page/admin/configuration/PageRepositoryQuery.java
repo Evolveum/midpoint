@@ -577,10 +577,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             objectType = ObjectType.COMPLEX_TYPE;
         }
         @SuppressWarnings("unchecked")
-        Class<? extends ObjectType> clazz = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectType);
-        if (clazz == null) {
-            throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
-        }
+        Class<? extends ObjectType> clazz = (Class<? extends ObjectType>)
+                prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
 
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
@@ -597,8 +595,11 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         if (queryWithExprEvaluated == null) {
             QueryType queryType = prismContext.parserFor(queryText).language(dataLanguage).parseRealValue(QueryType.class);
             ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-            queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new VariablesMap(),
-                    MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
+            queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(
+                    objectQuery, new VariablesMap(),
+                    MiscSchemaUtil.getExpressionProfile(),
+                    getExpressionFactory(),
+                    "evaluate query expressions", task, result);
         }
 
         request.setType(clazz);

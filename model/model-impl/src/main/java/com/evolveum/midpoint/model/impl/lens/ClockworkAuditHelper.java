@@ -167,14 +167,16 @@ public class ClockworkAuditHelper {
         auditHelper.addRecordMessage(auditRecord, clone.getMessage());
 
         for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
-            auditHelper.evaluateAuditRecordProperty(property, auditRecord, primaryObject,
+            auditHelper.evaluateAuditRecordProperty(
+                    property, auditRecord, primaryObject,
                     context.getPrivilegedExpressionProfile(), task, result);
         }
 
         if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
             auditRecord = auditHelper.evaluateRecordingExpression(
-                    auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject, context.getPrivilegedExpressionProfile(),
+                    auditConfiguration.getEventRecordingExpression(), auditRecord, primaryObject,
+                    context.getPrivilegedExpressionProfile(),
                     (sTask, sResult) -> new ModelExpressionEnvironment<>(context, null, sTask, sResult),
                     task, result);
         }

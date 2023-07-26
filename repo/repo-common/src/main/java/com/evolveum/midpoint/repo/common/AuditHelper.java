@@ -214,8 +214,8 @@ public class AuditHelper {
                 variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
                 variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
                 String shortDesc = "value for custom column of audit table";
-                Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression,
-                        expressionProfile, expressionFactory, shortDesc, task, result);
+                Collection<String> values = ExpressionUtil.evaluateStringExpression(
+                        variables, expression, expressionProfile, expressionFactory, shortDesc, task, result);
                 if (values == null || values.isEmpty()) {
                     // nothing to do
                 } else if (values.size() == 1) {

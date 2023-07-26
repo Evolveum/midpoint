@@ -67,7 +67,8 @@ public class CustomFunctions {
      * This method is invoked by the scripts. It is supposed to be only public method exposed
      * by this class.
      */
-    public <V extends PrismValue, D extends ItemDefinition> Object execute(String functionName, Map<String, Object> params) throws ExpressionEvaluationException {
+    public <V extends PrismValue, D extends ItemDefinition<?>> Object execute(String functionName, Map<String, Object> params)
+            throws ExpressionEvaluationException {
         Validate.notNull(functionName, "Function name must be specified");
 
         ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
@@ -85,7 +86,8 @@ public class CustomFunctions {
             } else {
                 // Better throwing an exception than introducing memory leak if initialization-time result is used.
                 // This situation should never occur anyway.
-                throw new IllegalStateException("No operation result in ScriptExpressionEvaluationContext for the current thread found");
+                throw new IllegalStateException(
+                        "No operation result in ScriptExpressionEvaluationContext for the current thread found");
             }
         } else {
             // Better throwing an exception than introducing memory leak if initialization-time result is used.
@@ -160,7 +162,8 @@ public class CustomFunctions {
     }
 
     @NotNull
-    private <D extends ItemDefinition> D prepareOutputDefinition(QName returnType, ExpressionReturnMultiplicityType returnMultiplicity) {
+    private <D extends ItemDefinition<?>> D prepareOutputDefinition(
+            QName returnType, ExpressionReturnMultiplicityType returnMultiplicity) {
         D outputDefinition;
         ItemDefinition<?> existingDefinition = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
         if (existingDefinition != null) {

@@ -104,7 +104,8 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
     /**
      * TODO move to prism-api
      */
-    private static @NotNull ObjectQuery createObjectQuery(@NotNull Class<? extends Containerable> containerType,
+    private static @NotNull ObjectQuery createObjectQuery(
+            @NotNull Class<? extends Containerable> containerType,
             @Nullable QueryType query) throws SchemaException {
         return Objects.requireNonNullElseGet(
                 PrismContext.get().getQueryConverter().createObjectQuery(containerType, query),

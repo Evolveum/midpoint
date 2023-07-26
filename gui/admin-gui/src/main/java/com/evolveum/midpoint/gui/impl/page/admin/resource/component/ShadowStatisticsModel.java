@@ -47,7 +47,7 @@ public class ShadowStatisticsModel extends LoadableModel<ChartConfiguration> {
                 Arrays.stream(SynchronizationSituationType.values())
                         .map(situation -> new ShadowStatisticsDto(situation, createTotalsModel(prepareSynchroniationSituationFilter(situation))))
                         .collect(Collectors.toList());
-        shadowStatisticsList.add(new ShadowStatisticsDto(null, createTotalsModel(null)));
+        shadowStatisticsList.add(new ShadowStatisticsDto(null, createTotalsModel(prepareSynchroniationSituationFilter(null))));
         return shadowStatisticsList;
     }
 

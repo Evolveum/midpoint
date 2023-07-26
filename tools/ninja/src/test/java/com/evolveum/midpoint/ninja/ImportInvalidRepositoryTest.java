@@ -32,7 +32,7 @@ public class ImportInvalidRepositoryTest extends NinjaSpringTest {
 
     @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
+    public void beforeClass() throws Exception {
         TestUtils.zipFile(new File("./src/test/resources/unknown-nodes"), new File(PATH_UNKNOWN_NODES_ZIP));
 
         super.beforeClass();

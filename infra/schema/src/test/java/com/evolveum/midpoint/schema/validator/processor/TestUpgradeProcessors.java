@@ -8,12 +8,15 @@
 package com.evolveum.midpoint.schema.validator.processor;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.assertj.core.api.Assertions;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -22,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.validator.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -34,21 +38,14 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     private static final Trace LOGGER = TraceManager.getTrace(TestUpgradeProcessors.class);
 
     private static final File RESOURCES = new File("./src/test/resources/validator/processor");
+    private static final File EXPECTED = new File("./src/test/resources/validator/expected");
 
     private PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
 
     private <O extends ObjectType> void testUpgradeValidator(String fileName, Consumer<UpgradeValidationResult> resultConsumer) throws Exception {
-        File file = new File(RESOURCES, fileName);
-        Assertions.assertThat(file)
-                .exists()
-                .isFile()
-                .isNotEmpty();
-
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
-
-        Assertions.assertThat(object).isNotNull();
+        PrismObject<O> object = parseObject(new File(RESOURCES, fileName));
 
         ObjectUpgradeValidator validator = new ObjectUpgradeValidator(getPrismContext());
         validator.showAllWarnings();
@@ -59,12 +56,68 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         LOGGER.info("Validation result:\n{}", result.debugDump());
 
         resultConsumer.accept(result);
+
+        assertUpgrade(fileName, result);
+    }
+
+    private <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
+        Assertions.assertThat(file)
+                .exists()
+                .isFile()
+                .isNotEmpty();
+
+        PrismObject<O> object = getPrismContext().parserFor(file).compat().parse();
+        Assertions.assertThat(object).isNotNull();
+
+        return object;
+    }
+
+    private void assertUpgrade(String file, UpgradeValidationResult result) {
+        try {
+            PrismObject original = parseObject(new File(RESOURCES, file));
+            PrismObject updated = original.clone();
+            PrismObject<?> expected = parseObject(new File(EXPECTED, file));
+
+            result.getItems().stream()
+                    .filter(item -> item.getIdentifier() != null)
+                    .sorted(Comparator.comparing(UpgradeValidationItem::getIdentifier))
+                    .forEach(item -> {
+                        String identifier = item.getIdentifier();
+                        if (identifier == null) {
+                            return;
+                        }
+
+                        UpgradeObjectProcessor<?> processor = UpgradeProcessor.getProcessor(identifier);
+                        if (processor == null) {
+                            return;
+                        }
+
+                        ItemPath path = item.getItem().getItemPath();
+                        try {
+                            processor.process(updated, path);
+                        } catch (Exception ex) {
+                            LOGGER.error("Couldn't process item", ex);
+                            AssertJUnit.fail(ex.getMessage());
+                        }
+                    });
+
+            String msg = "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
+                    "\nUPDATED:\n" + PrismTestUtil.serializeObjectToString(updated) +
+                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original);
+
+            LOGGER.info(msg);
+
+            AssertJUnit.assertTrue(msg, expected.equivalent(updated));
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't assert upgrade result", ex);
+            AssertJUnit.fail(ex.getMessage());
+        }
     }
 
     @Test
     public void test00CheckIdentifierUniqueness() {
         Map<String, Class<?>> identifiers = new HashMap<>();
-        UpgradeObjectsHandler.PROCESSORS.forEach(p -> {
+        UpgradeProcessor.PROCESSORS.forEach(p -> {
             String identifier = p.getIdentifier();
             Class<?> existing = identifiers.get(identifier);
             if (existing != null) {
@@ -85,7 +138,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("resource.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
-                    .hasSize(2);
+                    .hasSize(5);
 
             // todo assert items
         });
@@ -112,7 +165,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(2);
+            Assertions.assertThat(result.getItems()).hasSize(12);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
@@ -121,15 +174,13 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             item = assertGetItem(result, getProcessorIdentifier(RoleCatalogRefProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
             Assertions.assertThat(item.isChanged()).isTrue();
-
-            // todo assert deltas
         });
     }
 
     @Test
     public void test40TestRole() throws Exception {
         testUpgradeValidator("role.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(1);
+            Assertions.assertThat(result.getItems()).hasSize(5);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(PersonaTargetSubtypeProcessor.class));
             UpgradeValidationItemAsserter asserter = new UpgradeValidationItemAsserter(item);
@@ -138,8 +189,46 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
             asserter.assertPath(ItemPath.create(
                     RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_PERSONA_CONSTRUCTION, PersonaConstructionType.F_TARGET_SUBTYPE));
             Assertions.assertThat(item.getDelta().getModifiedItems()).isEmpty();
+        });
+    }
 
-            // todo assert deltas
+    @Test
+    public void test50SecurityPolicy() throws Exception {
+        testUpgradeValidator("security-policy.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isFalse();
+        });
+    }
+
+    @Test
+    public void test60TaskLivesync() throws Exception {
+        testUpgradeValidator("task-livesync.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(2);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
+    @Test
+    public void test70Archetype() throws Exception {
+        testUpgradeValidator("archetype.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
+    @Test
+    public void test80TaskRecomputation() throws Exception {
+        testUpgradeValidator("task-recomputation.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(6);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
         });
     }
 

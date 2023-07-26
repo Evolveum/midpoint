@@ -42,6 +42,10 @@ public abstract class Action<O, R> {
 
     }
 
+    /**
+     * @return target where the log should be printed. In case action result is printed to the standard output, log messages
+     * should go to the standard error no to mix the output. Otherwise, log messages should go to the standard output.
+     */
     public LogTarget getLogTarget() {
         return LogTarget.SYSTEM_OUT;
     }
@@ -63,6 +67,10 @@ public abstract class Action<O, R> {
         }
     }
 
+    /**
+     * @param allOptions
+     * @return Level of application context initialization required for this action.
+     */
     @NotNull
     public NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
         return NinjaApplicationContextLevel.FULL_REPOSITORY;
