@@ -10,18 +10,18 @@ package com.evolveum.midpoint.schema.validator.processor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensProjectionContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @SuppressWarnings("unused")
 public class AccountPasswordPolicyProcessor implements UpgradeObjectProcessor<ObjectType> {
 
-    public static final ItemName F_ACCOUNT_PASSWORD_POLICY = new ItemName(ObjectFactory.NAMESPACE, "accountPasswordPolicy");
+    public static final ItemName F_ACCOUNT_PASSWORD_POLICY = new ItemName(SchemaConstantsGenerated.NS_COMMON, "accountPasswordPolicy");
 
     @Override
     public UpgradePhase getPhase() {
