@@ -43,4 +43,10 @@
     <modelOperationContext>
         <state>execution</state>
     </modelOperationContext>
+
+    <policyRule>
+        <policyConstraints>
+            <name>sample</name>
+        </policyConstraints>
+    </policyRule>
 </task>

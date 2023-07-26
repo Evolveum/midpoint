@@ -46,4 +46,10 @@
             </profiling>
         </reporting>
     </activity>
+
+    <policyRule>
+        <policyConstraints>
+            <name>sample</name>
+        </policyConstraints>
+    </policyRule>
 </task>
