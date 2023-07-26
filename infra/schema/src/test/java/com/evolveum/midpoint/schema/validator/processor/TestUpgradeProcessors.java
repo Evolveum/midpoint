@@ -208,7 +208,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test70Archetype() throws Exception {
         testUpgradeValidator("archetype.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(1);
+                    .hasSize(2);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
