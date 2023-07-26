@@ -39,6 +39,12 @@ public class TaskPolicyProcessor implements UpgradeObjectProcessor<TaskType> {
     }
 
     @Override
+    public String upgradeDescription(PrismObject<TaskType> object, ItemPath path) {
+        return "There is a migration to the use of focusValidityScan.validityConstraint item, although not a complete one: "
+                + "even if the ability to recompute objects is retained, custom policy actions can no longer be defined.";
+    }
+
+    @Override
     public boolean process(PrismObject<TaskType> object, ItemPath path) throws Exception {
         return false;
     }
