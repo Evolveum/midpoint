@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
+
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -441,9 +444,21 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (processingDifferentAuthenticationSequence(mpAuthentication, authWrapper.sequence)) {
             clearAuthentication(httpRequest);
             authenticationManager.getProviders().clear();
-            authModules = AuthSequenceUtil.buildModuleFilters(
-                    authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
-                    authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
+            authModules = new AuthenticationSequenceModuleCreator(
+                    authModuleRegistry,
+                    authWrapper.sequence,
+                    httpRequest,
+                    authWrapper.authenticationsPolicy.getModules(),
+                    authWrapper.authenticationChannel)
+                    .credentialsPolicy(authWrapper.credentialsPolicy)
+                    .sharedObjects(sharedObjects)
+                    .create();
+//            )
+//
+//
+//                    AuthSequenceUtil.buildModuleFilters(
+//                    authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
+//                    authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
         } else {
             authModules = mpAuthentication.getAuthModules();
         }

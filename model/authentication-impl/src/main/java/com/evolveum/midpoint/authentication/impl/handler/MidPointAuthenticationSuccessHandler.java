@@ -9,6 +9,9 @@ package com.evolveum.midpoint.authentication.impl.handler;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+
+import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -169,9 +172,19 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(newSecurityPolicy,
                 mpAuthentication.getSequenceIdentifier());
         mpAuthentication.setSequence(sequence);
-        List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
-                authModuleRegistry, sequence, request, newSecurityPolicy.getAuthentication().getModules(),
-                newSecurityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
+        List<AuthModule> modules = new AuthenticationSequenceModuleCreator(
+                authModuleRegistry,
+                sequence,
+                request,
+                newSecurityPolicy.getAuthentication().getModules(),
+                mpAuthentication.getAuthenticationChannel())
+                .credentialsPolicy(newSecurityPolicy.getCredentials())
+                .sharedObjects(mpAuthentication.getSharedObjects())
+                .create();
+//        )
+//        List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
+//                authModuleRegistry, sequence, request, newSecurityPolicy.getAuthentication().getModules(),
+//                newSecurityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
         modules.removeIf(Objects::isNull);
         mpAuthentication.setAuthModules(modules);
 //        mpAuthentication.setMerged(true);

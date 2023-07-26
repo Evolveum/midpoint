@@ -35,12 +35,13 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
     }
 
     @Override
-    protected ArchetypeSelectionModuleAuthentication createEmptyModuleAuthentication(ArchetypeSelectionModuleType moduleType, LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+    protected ArchetypeSelectionModuleAuthentication createEmptyModuleAuthentication(ArchetypeSelectionModuleType moduleType,
+            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
         ArchetypeSelectionModuleAuthentication moduleAuthentication = new ArchetypeSelectionModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
-        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        moduleAuthentication.setNameOfModule(moduleType.getIdentifier());
         return moduleAuthentication;
     }
 
@@ -51,6 +52,7 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
+
 
     @Override
     protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {

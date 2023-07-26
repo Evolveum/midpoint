@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuthenticationModuleType> {
+public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuthenticationModuleType, ModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -38,7 +38,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuth
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
+    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
             ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
             AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {

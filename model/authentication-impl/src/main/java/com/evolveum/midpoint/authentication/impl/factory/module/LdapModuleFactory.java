@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 @Component
-public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationModuleType> {
+public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationModuleType, ModuleAuthenticationImpl> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
 
@@ -56,7 +56,7 @@ public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationM
     }
 
     @Override
-    public AuthModule createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
+    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
             ServletRequest request, Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 

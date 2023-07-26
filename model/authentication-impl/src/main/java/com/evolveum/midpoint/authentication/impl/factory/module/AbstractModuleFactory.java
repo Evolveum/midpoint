@@ -34,7 +34,7 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
  * @author skublik
  */
 
-public abstract class AbstractModuleFactory<MT extends AbstractAuthenticationModuleType> {
+public abstract class AbstractModuleFactory<MT extends AbstractAuthenticationModuleType, MA extends ModuleAuthentication> {
 
     @PostConstruct
     public void register() {
@@ -57,7 +57,7 @@ public abstract class AbstractModuleFactory<MT extends AbstractAuthenticationMod
 
     public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
-    public abstract AuthModule createModuleFilter(MT moduleType, String sequenceSuffix,
+    public abstract AuthModule<MA> createModuleFilter(MT moduleType, String sequenceSuffix,
                                                   ServletRequest request, Map<Class<?>, Object> sharedObjects,
                                                   AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
                                                   AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception;

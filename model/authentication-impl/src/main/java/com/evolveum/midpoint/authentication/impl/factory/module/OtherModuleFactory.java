@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
+
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+
 import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
@@ -22,7 +25,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 @Experimental
-public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType> extends AbstractModuleFactory<MT> {
+public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType, MA extends ModuleAuthentication> extends AbstractModuleFactory<MT, MA> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OtherModuleFactory.class);
 
@@ -35,7 +38,7 @@ public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType> ext
     }
 
     @Override
-    public AuthModule createModuleFilter(MT module, String sequenceSuffix, ServletRequest request,
+    public AuthModule<MA> createModuleFilter(MT module, String sequenceSuffix, ServletRequest request,
             Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 

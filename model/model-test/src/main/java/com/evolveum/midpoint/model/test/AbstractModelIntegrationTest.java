@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -4679,6 +4680,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
+            public void setFocusType(QName focusType) {
+
+            }
+
+            @Override
             public String getPrefix() {
                 return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
                         + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER + "/";
@@ -4698,6 +4704,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public Integer getOrder() {
                 return 10;
             }
+
+            @Override
+            public ModuleAuthentication clone() {
+                return null;
+                //TODO
+            }
         };
         mpAuthentication.addAuthentications(moduleAuthentication);
         AuthModule authModule = new AuthModule() {
@@ -4714,6 +4726,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public Integer getOrder() {
                 return 1;
+            }
+
+            @Override
+            public List<AuthenticationProvider> getAuthenticationProviders() {
+                //TODO
+                return null;
             }
         };
         mpAuthentication.setAuthModules(Collections.singletonList(authModule));

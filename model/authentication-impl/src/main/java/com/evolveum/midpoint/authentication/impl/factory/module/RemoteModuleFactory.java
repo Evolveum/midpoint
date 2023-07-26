@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,7 +23,7 @@ import jakarta.servlet.ServletRequest;
 /**
  * @author skublik
  */
-public abstract class RemoteModuleFactory<MT extends AbstractAuthenticationModuleType> extends AbstractModuleFactory<MT> {
+public abstract class RemoteModuleFactory<MT extends AbstractAuthenticationModuleType, MA extends ModuleAuthenticationImpl> extends AbstractModuleFactory<MT, MA> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RemoteModuleFactory.class);
 

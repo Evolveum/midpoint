@@ -175,23 +175,6 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
-    private boolean showErrorMessage() {
-        return !previousPrecessedModuleHasRequisiteNecessity();
-    }
-
-    private boolean previousPrecessedModuleHasRequisiteNecessity() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            int index = mpAuthentication.getIndexOfProcessingModule(false);
-            if (index > 0) {
-                ModuleAuthentication module = mpAuthentication.getAuthModules().get(index - 1).getBaseModuleAuthentication();
-                return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(module.getNecessity());
-            }
-        }
-        return false;
-    }
-
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();

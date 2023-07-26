@@ -23,7 +23,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class AuthModuleImpl implements AuthModule {
+public class AuthModuleImpl<MA extends ModuleAuthentication> implements AuthModule<MA> {
 
     @VisibleForTesting
     public AuthModuleImpl(){
@@ -34,7 +34,7 @@ public class AuthModuleImpl implements AuthModule {
 
     private ModuleWebSecurityConfiguration configuration;
 
-    private ModuleAuthentication baseModuleAuthentication;
+    private MA baseModuleAuthentication;
 
     public SecurityFilterChain getSecurityFilterChain() {
         return securityFilterChain;
@@ -44,16 +44,12 @@ public class AuthModuleImpl implements AuthModule {
         this.securityFilterChain = securityFilterChain;
     }
 
-    public ModuleWebSecurityConfiguration getConfiguration() {
-        return configuration;
-    }
-
     private void setConfiguration(ModuleWebSecurityConfiguration configuration) {
         this.configuration = configuration;
     }
 
-    public ModuleAuthentication getBaseModuleAuthentication() {
-        return baseModuleAuthentication.clone();
+    public MA getBaseModuleAuthentication() {
+        return (MA) baseModuleAuthentication.clone();
     }
 
     @Override
@@ -71,7 +67,7 @@ public class AuthModuleImpl implements AuthModule {
         return configuration.getModuleIdentifier();
     }
 
-    private void setBaseModuleAuthentication(ModuleAuthentication baseModuleAuthentication) {
+    private void setBaseModuleAuthentication(MA baseModuleAuthentication) {
         this.baseModuleAuthentication = baseModuleAuthentication;
     }
 

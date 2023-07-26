@@ -34,7 +34,7 @@ import java.util.Map;
  * @author skublik
  */
 @Component
-public class OidcResourceServerModuleFactory extends RemoteModuleFactory<OidcAuthenticationModuleType> {
+public class OidcResourceServerModuleFactory extends RemoteModuleFactory<OidcAuthenticationModuleType, ModuleAuthenticationImpl> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcResourceServerModuleFactory.class);
 
@@ -44,7 +44,7 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory<OidcAut
     }
 
     @Override
-    public AuthModule createModuleFilter(OidcAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
+    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(OidcAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
         if (!(moduleType instanceof OidcAuthenticationModuleType)) {

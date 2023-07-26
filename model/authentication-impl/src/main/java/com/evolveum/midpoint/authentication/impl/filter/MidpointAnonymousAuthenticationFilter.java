@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGN
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+
+import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -118,9 +121,19 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         }
         AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
         AuthenticationChannel authenticationChannel = AuthSequenceUtil.buildAuthChannel(authChannelRegistry, sequence);
-        List<AuthModule> authModules = AuthSequenceUtil.buildModuleFilters(
-                authRegistry, sequence, request, authenticationsPolicy.getModules(),
-                null, new HashMap<>(), authenticationChannel);
+
+        List<AuthModule> authModules =
+                new AuthenticationSequenceModuleCreator(
+                        authRegistry,
+                        sequence,
+                        request,
+                        authenticationsPolicy.getModules(),
+                        authenticationChannel)
+                        .create();
+
+//        List<AuthModule> authModules = AuthSequenceUtil.buildModuleFilters(
+//                authRegistry, sequence, request, authenticationsPolicy.getModules(),
+//                null, new HashMap<>(), authenticationChannel);
         authentication.setAuthModules(authModules);
         if (authModules != null && !authModules.isEmpty()) {
             ModuleAuthenticationImpl module = (ModuleAuthenticationImpl) authModules.get(0).getBaseModuleAuthentication();

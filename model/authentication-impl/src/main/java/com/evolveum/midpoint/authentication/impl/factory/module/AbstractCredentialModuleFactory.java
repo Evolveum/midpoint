@@ -38,7 +38,7 @@ public abstract class AbstractCredentialModuleFactory<
         CA extends ModuleWebSecurityConfigurer<C>,
         MT extends AbstractAuthenticationModuleType,
         MA extends ModuleAuthentication>
-        extends AbstractModuleFactory<MT> {
+        extends AbstractModuleFactory<MT, MA> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
 
@@ -46,10 +46,17 @@ public abstract class AbstractCredentialModuleFactory<
     public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
     @Override
-    public AuthModule createModuleFilter(MT moduleType,
-            String sequenceSuffix, ServletRequest request, Map<Class<?>, Object> sharedObjects,
-            AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
-            AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
+    public AuthModule<MA> createModuleFilter(
+            MT moduleType,
+            String sequenceSuffix,
+            ServletRequest request,
+            Map<Class<?>, Object> sharedObjects,
+            AuthenticationModulesType authenticationsPolicy,
+            CredentialsPolicyType credentialPolicy,
+            AuthenticationChannel authenticationChannel,
+            AuthenticationSequenceModuleType necessity)
+
+            throws Exception {
 
         if (!(moduleType instanceof AbstractCredentialAuthenticationModuleType)) {
             LOGGER.error("This factory supports only AbstractCredentialAuthenticationModuleType, but moduleType is " + moduleType);
@@ -58,21 +65,29 @@ public abstract class AbstractCredentialModuleFactory<
 
         isSupportedChannel(authenticationChannel);
 
-//        C configuration = createConfiguration(sequenceSuffix);
+//        C configuration = createConfiguration().init();
+
         C configuration = createConfiguration(moduleType, sequenceSuffix, authenticationChannel);
 
         configuration.addAuthenticationProvider(
                 getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
-        CA module = createModule(configuration);
-        HttpSecurity http = getNewHttpSecurity(module);
-        setSharedObjects(http, sharedObjects);
-
         MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration, necessity);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
+
+
+        CA module = createModule(configuration);
+        module.setObjectPostProcessor(getObjectObjectPostProcessor());
+
+        HttpSecurity http = getNewHttpSecurity(module);
+        setSharedObjects(http, sharedObjects);
         SecurityFilterChain filter = http.build();
+
+
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
+
+
 
     protected AuthenticationProvider getProvider(
             AbstractCredentialAuthenticationModuleType moduleType,
@@ -131,7 +146,7 @@ public abstract class AbstractCredentialModuleFactory<
     @Deprecated
     protected abstract C createConfiguration(MT moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel);
 
-//    protected abstract C createConfiguration(String prefixOfSequence);
+//    protected abstract C createConfiguration();
 
     protected abstract CA createModule(C configuration);
 

@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 @Component
-public class HttpHeaderModuleFactory extends AbstractModuleFactory<HttpHeaderAuthenticationModuleType> {
+public class HttpHeaderModuleFactory extends AbstractModuleFactory<HttpHeaderAuthenticationModuleType, ModuleAuthenticationImpl> {
 
     private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
@@ -43,7 +43,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<HttpHeaderAut
     }
 
     @Override
-    public AuthModule createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
+    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
         if (!(httpModuleType instanceof HttpHeaderAuthenticationModuleType)) {

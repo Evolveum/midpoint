@@ -18,12 +18,12 @@ import java.util.List;
  * @author skublik
  */
 
-public interface AuthModule {
+public interface AuthModule<MA extends ModuleAuthentication> {
 
     /**
      * @return module authentication (result after authentication process)
      */
-    ModuleAuthentication getBaseModuleAuthentication();
+    MA getBaseModuleAuthentication();
 
     String getModuleIdentifier();
 
