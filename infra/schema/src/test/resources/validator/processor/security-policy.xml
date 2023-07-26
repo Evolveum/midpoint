@@ -25,6 +25,9 @@
             <module id="3">
                 <name>deprecated items</name>
             </module>
+            <module id="4">
+                <identifier>unchanged</identifier>
+            </module>
         </sequence>
     </authentication>
 </securityPolicy>

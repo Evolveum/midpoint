@@ -54,6 +54,7 @@ public class AuthenticationNameProcessor implements UpgradeObjectProcessor<Secur
             if (auth.getIdentifier() == null) {
                 auth.setIdentifier(auth.getName());
             }
+            auth.setName(null);
             return true;
         }
 
@@ -62,6 +63,7 @@ public class AuthenticationNameProcessor implements UpgradeObjectProcessor<Secur
             if (module.getIdentifier() == null) {
                 module.setIdentifier(module.getName());
             }
+            module.setName(null);
             return true;
         }
 
@@ -70,6 +72,7 @@ public class AuthenticationNameProcessor implements UpgradeObjectProcessor<Secur
             if (module.getIdentifier() == null) {
                 module.setIdentifier(module.getName());
             }
+            module.setName(null);
             return true;
         }
 
