@@ -11,15 +11,16 @@
     <name>archetype</name>
 
     <archetypePolicy>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>name</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>givenName</path>
             <visibility>hidden</visibility>
+            <oidBound>true</oidBound>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>familyName</path>
             <visibility>visible</visibility>
         </itemConstraint>
