@@ -10,7 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 
 @ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
 @DirtiesContext
@@ -48,8 +48,8 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         try (Connection connection = repositoryDataSource.getConnection()) {
             JdbcTemplate template = new JdbcTemplate(new SingleConnectionDataSource(connection, true));
-            template.update("update m_global_metadata set value=? where name = ?", "123456", UpgradeConstants.LABEL_SCHEMA_CHANGE_NUMBER);
-            template.execute("commit");
+            template.update("UPDATE m_global_metadata SET value=? WHERE name = ?", "123456", SqaleUtils.SCHEMA_CHANGE_NUMBER);
+            template.execute("COMMIT");
         }
 
         when();
