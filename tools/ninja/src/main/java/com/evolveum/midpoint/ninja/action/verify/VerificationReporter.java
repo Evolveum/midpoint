@@ -91,7 +91,7 @@ public class VerificationReporter {
     }
 
     public void destroy() {
-        if (createDeltaFile) {
+        if (deltaWriter != null) {
             try {
                 deltaWriter.write("</deltas>\n");
             } catch (IOException ex) {
@@ -230,11 +230,13 @@ public class VerificationReporter {
                 continue;
             }
 
-            try {
-                deltaWriter.write(DeltaConvertor.serializeDelta(
-                        (ObjectDelta) item.getDelta(), DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
-            } catch (SchemaException | IOException ex) {
-                log.error("Couldn't write object delta to XML file", ex);
+            if (deltaWriter != null) {
+                try {
+                    deltaWriter.write(DeltaConvertor.serializeDelta(
+                            (ObjectDelta) item.getDelta(), DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
+                } catch (SchemaException | IOException ex) {
+                    log.error("Couldn't write object delta to XML file", ex);
+                }
             }
         }
     }
