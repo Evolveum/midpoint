@@ -10,7 +10,6 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 import java.util.UUID;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.factory.module.LdapModuleFactory;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModu
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -72,8 +72,9 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
 
     public RemoteModuleWebSecurityConfigurer(MT moduleType, String prefix, AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(moduleType, prefix, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, prefix, authenticationChannel, postProcessor, request, provider);
     }
 
     protected ModelAuditRecorder getAuditProvider() {

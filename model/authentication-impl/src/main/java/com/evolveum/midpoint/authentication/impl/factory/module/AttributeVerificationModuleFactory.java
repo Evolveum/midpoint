@@ -36,7 +36,9 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new AttributeVerificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new AttributeVerificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix,
+                authenticationChannel, objectPostProcessor, request,
+                new AttributeVerificationProvider());
 //        return null;
     }
 

@@ -13,13 +13,13 @@ import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustReso
 import com.evolveum.midpoint.authentication.impl.filter.HttpClusterAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -52,8 +52,9 @@ public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityCon
             String sequeneSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(moduleType, sequeneSuffix, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, sequeneSuffix, authenticationChannel, postProcessor, request, provider);
     }
 
     @Override

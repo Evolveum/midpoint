@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationM
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -62,8 +63,9 @@ public class SamlModuleWebSecurityConfigurer extends RemoteModuleWebSecurityConf
     public SamlModuleWebSecurityConfigurer(Saml2AuthenticationModuleType moduleType,
             String sequenceSuffix, AuthenticationChannel channel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(moduleType, sequenceSuffix, channel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, sequenceSuffix, channel, postProcessor, request, provider);
     }
 
     @Override

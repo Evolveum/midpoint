@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MailNonceAuthenticat
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -42,8 +43,9 @@ public class MailNonceFormModuleWebSecurityConfigurer extends ModuleWebSecurityC
             String prefixOfSequence,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request, provider);
     }
 
     @Override

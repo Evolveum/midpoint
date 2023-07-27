@@ -49,7 +49,9 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<
 
     @Override
     protected HttpHeaderModuleWebSecurityConfigurer createModuleConfigurer(HttpHeaderAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new HttpHeaderModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new HttpHeaderModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
+                objectPostProcessor, request,
+                new PasswordProvider());
     }
 
     @Override
@@ -60,7 +62,6 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-    @Override
     public AuthModule<ModuleAuthenticationImpl> createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {

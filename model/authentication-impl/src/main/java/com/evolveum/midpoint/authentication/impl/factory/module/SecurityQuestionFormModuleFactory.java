@@ -36,7 +36,9 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new SecurityQuestionsFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new SecurityQuestionsFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel,
+                objectPostProcessor, request,
+                new SecurityQuestionProvider());
     }
 
     @Override

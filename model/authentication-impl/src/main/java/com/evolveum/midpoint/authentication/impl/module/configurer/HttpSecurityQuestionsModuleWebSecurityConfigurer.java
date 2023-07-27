@@ -21,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticati
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -57,8 +58,9 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
             String suffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(moduleType, suffix, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, suffix, authenticationChannel, postProcessor, request, provider);
     }
 
     @Override

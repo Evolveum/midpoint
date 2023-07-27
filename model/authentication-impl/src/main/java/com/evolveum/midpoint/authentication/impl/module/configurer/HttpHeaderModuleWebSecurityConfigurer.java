@@ -25,6 +25,7 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -46,8 +47,9 @@ public class HttpHeaderModuleWebSecurityConfigurer extends LoginFormModuleWebSec
     public HttpHeaderModuleWebSecurityConfigurer(HttpHeaderAuthenticationModuleType httpHeaderAuthenticationModuleType,
             String prefixOfSequence, AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(httpHeaderAuthenticationModuleType, prefixOfSequence, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(httpHeaderAuthenticationModuleType, prefixOfSequence, authenticationChannel, postProcessor, request, provider);
     }
 
     @Override

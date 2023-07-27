@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticati
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
@@ -61,8 +62,9 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
             String prefixOfSequence,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request, provider);
 //        this.configuration = getConfiguration();
     }
 

@@ -38,7 +38,9 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
 
     @Override
     protected HttpBasicModuleWebSecurityConfigurer createModuleConfigurer(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new HttpBasicModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new HttpBasicModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
+                objectPostProcessor, request,
+                new PasswordProvider());
     }
 
     @Override

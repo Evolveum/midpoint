@@ -42,7 +42,6 @@ public abstract class AbstractCredentialModuleFactory<
     @Override
     public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
-    @Override
     public AuthModule<MA> createModuleFilter(
             MT moduleType,
             String sequenceSuffix,
@@ -149,14 +148,14 @@ public abstract class AbstractCredentialModuleFactory<
         return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
     }
 
-    protected abstract MA createEmptyModuleAuthentication(
-            MT moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request);
+//    protected abstract MA createEmptyModuleAuthentication(
+//            MT moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request);
 
 
-    protected abstract CA createModuleConfigurer(MT moduleType,
-            String sequenceSuffix,
-            AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request);
+//    protected abstract CA createModuleConfigurer(MT moduleType,
+//            String sequenceSuffix,
+//            AuthenticationChannel authenticationChannel,
+//            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request);
 
 
     protected abstract AuthenticationProvider createProvider(CredentialPolicyType usedPolicy);

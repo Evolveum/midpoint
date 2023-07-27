@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormM
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HintAuthenticationModuleType;
 
 import jakarta.servlet.ServletRequest;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -33,8 +34,9 @@ public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurit
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> objectPostProcessor,
-            ServletRequest request) {
-        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request, provider);
     }
 
     @Override

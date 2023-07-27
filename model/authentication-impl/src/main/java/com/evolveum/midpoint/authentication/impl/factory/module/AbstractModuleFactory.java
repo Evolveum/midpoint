@@ -70,11 +70,6 @@ public abstract class AbstractModuleFactory<
 
     public abstract boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel);
 
-    public abstract AuthModule<MA> createModuleFilter(MT moduleType, String sequenceSuffix,
-                                                  ServletRequest request, Map<Class<?>, Object> sharedObjects,
-                                                  AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
-                                                  AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception;
-
     @Override
     public AuthModule<MA> createAuthModule(MT moduleType, String sequenceSuffix,
             ServletRequest request, Map<Class<?>, Object> sharedObjects,
@@ -88,9 +83,12 @@ public abstract class AbstractModuleFactory<
 //        configuration.addAuthenticationProvider(
 //                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
+        CA configurer = createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor(), request);
+//        configurer.addAuthenticationProvider(
+//                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
         CA moduleConfigurer = getObjectObjectPostProcessor()
-                .postProcess(createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor(), request));
+                .postProcess(configurer);
 
         HttpSecurity http =  moduleConfigurer.getNewHttpSecurity();
         http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);

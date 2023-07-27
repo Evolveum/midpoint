@@ -44,7 +44,9 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory<
 
     @Override
     protected HttpClusterModuleWebSecurityConfigurer createModuleConfigurer(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new HttpClusterModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new HttpClusterModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
+                objectPostProcessor, request,
+                new ClusterProvider());
     }
 
     @Override
@@ -55,7 +57,6 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-    @Override
     public AuthModule<ModuleAuthenticationImpl> createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
             ServletRequest request, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpBasicAuthenticat
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -56,8 +57,9 @@ public class HttpBasicModuleWebSecurityConfigurer extends ModuleWebSecurityConfi
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
-            ServletRequest request) {
-        super(module, sequenceSuffix, authenticationChannel, postProcessor, request);
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(module, sequenceSuffix, authenticationChannel, postProcessor, request, provider);
     }
 
 

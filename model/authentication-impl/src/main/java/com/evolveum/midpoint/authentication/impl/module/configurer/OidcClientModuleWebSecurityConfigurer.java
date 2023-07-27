@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationMo
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -53,8 +54,9 @@ public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecuri
 
     public OidcClientModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
             String prefix, AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor, ServletRequest request) {
-        super(moduleType, prefix, authenticationChannel, postProcessor, request);
+            ObjectPostProcessor<Object> postProcessor, ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, prefix, authenticationChannel, postProcessor, request, provider);
     }
 
     @Override

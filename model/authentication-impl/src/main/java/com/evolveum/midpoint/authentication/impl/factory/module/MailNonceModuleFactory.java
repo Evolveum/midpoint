@@ -36,7 +36,9 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
 
     @Override
     protected MailNonceFormModuleWebSecurityConfigurer createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new MailNonceFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new MailNonceFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
+                objectPostProcessor, request,
+                new MailNonceProvider());
     }
 
     //TODO

@@ -53,11 +53,10 @@ public class Saml2ModuleFactory extends RemoteModuleFactory<SamlModuleWebSecurit
 
     @Override
     protected SamlModuleWebSecurityConfigurer createModuleConfigurer(Saml2AuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor objectPostProcessor, ServletRequest request) {
-        return new SamlModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new SamlModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request, new Saml2Provider());
 
     }
 
-    @Override
     public AuthModule<ModuleAuthenticationImpl> createModuleFilter(Saml2AuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
                                          Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {

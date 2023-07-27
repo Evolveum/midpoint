@@ -83,9 +83,14 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     public ModuleWebSecurityConfigurer(MT moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request, AuthenticationProvider provider) {
         this.objectPostProcessor = objectPostProcessor;
+        //todo this is nto very good :)
         this.configuration = buildConfiguration(moduleType, sequenceSuffix, authenticationChannel, request);
+        if (provider != null) {
+            this.configuration.addAuthenticationProvider(objectPostProcessor.postProcess(provider));
+        }
     }
 
     protected C buildConfiguration(MT moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
@@ -144,7 +149,6 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
                 .servletApi();
 
         http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
-//        http.addFilterBefore(new SequenceAuditFilter(authenticationRecorder), RequestCacheAwareFilter.class);
 
         http.csrf();
         if (!csrfEnabled) {

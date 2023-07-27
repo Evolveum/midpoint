@@ -52,7 +52,9 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new ArchetypeSelectionModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+        return new ArchetypeSelectionModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix,
+                authenticationChannel, objectPostProcessor, request,
+                new ArchetypeSelectionAuthenticationProvider());
 //        return null;
     }
 
