@@ -9,8 +9,32 @@
 
     <name>system-configuration</name>
 
-    <notificationConfiguration>
-        <!--<sms>
+
+    <messageTransportConfiguration>
+        <file>
+            <name>f1</name>
+            <file>a.csv</file>
+            <redirectToFile>redirect.csv</redirectToFile>
+            <debug>true</debug>
+            <whiteList>asdf</whiteList>
+            <blackList>jklo</blackList>
+            <recipientFilterExpression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </recipientFilterExpression>
+        </file>
+        <mail>
+            <name>m2</name>
+            <defaultFrom>example@example.com</defaultFrom>
+            <server>
+                <host>localhost</host>
+            </server>
+        </mail>
+        <sms>
+            <name>s1</name>
             <gateway>
                 <urlExpression>
                     <script>
@@ -22,6 +46,7 @@
             </gateway>
         </sms>
         <sms>
+            <name>s2</name>
             <redirectToFile>redirected.log</redirectToFile>
             <blackList>blacklisted@example.com</blackList>
             <debug>true</debug>
@@ -46,8 +71,45 @@
                 <username>user</username>
                 <password>pass</password>
             </gateway>
-        </sms>-->
+        </sms>
+        <customTransport>
+            <name>custom1</name>
+            <redirectToFile>notification-redirected.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+        <customTransport>
+            <name>custom2</name>
+            <redirectToFile>notification-redirected2.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+    </messageTransportConfiguration>
+
+    <notificationConfiguration>
+        <handler>
+            <simpleUserNotifier>
+                <transport>custom1</transport>
+            </simpleUserNotifier>
+        </handler>
     </notificationConfiguration>
+
+    <roleManagement>
+        <defaultAssignmentConstraints>
+            <allowSameTarget>true</allowSameTarget>
+            <allowSameRelation>true</allowSameRelation>
+        </defaultAssignmentConstraints>
+    </roleManagement>
 
     <adminGuiConfiguration>
         <userDashboardLink>

@@ -18,16 +18,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleCatalogType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-/**
- * support-4.4 - not usable
- * support-4.7 - BEFORE phase
- */
 @SuppressWarnings("unused")
 public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemConfigurationType>, ProcessorMixin {
 
     @Override
     public UpgradePhase getPhase() {
-        // todo before in 4.7.* but after in 4.4.*
         return UpgradePhase.BEFORE;
     }
 

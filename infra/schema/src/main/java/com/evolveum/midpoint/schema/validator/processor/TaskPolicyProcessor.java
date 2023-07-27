@@ -13,11 +13,10 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @SuppressWarnings("unused")
-public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
+public class TaskPolicyProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -26,28 +25,27 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.OPTIONAL;
+        return UpgradePriority.NECESSARY;
     }
 
     @Override
     public UpgradeType getType() {
-        return UpgradeType.SEAMLESS;
+        return UpgradeType.MANUAL;
     }
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentTypeAndItemName(
-                object, path, OtherPrivilegesLimitationType.class, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);
+        return matchParentTypeAndItemName(object, path, TaskType.class, TaskType.F_POLICY_RULE);
     }
 
     @Override
-    public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
-        OtherPrivilegesLimitationType limitation = getItemParent(object, path);
-        if (limitation.getCaseManagementWorkItems() == null) {
-            limitation.setCaseManagementWorkItems(limitation.getApprovalWorkItems());
-        }
-        limitation.setApprovalWorkItems(null);
+    public String upgradeDescription(PrismObject<TaskType> object, ItemPath path) {
+        return "There is a migration to the use of focusValidityScan.validityConstraint item, although not a complete one: "
+                + "even if the ability to recompute objects is retained, custom policy actions can no longer be defined.";
+    }
 
-        return true;
+    @Override
+    public boolean process(PrismObject<TaskType> object, ItemPath path) throws Exception {
+        return false;
     }
 }

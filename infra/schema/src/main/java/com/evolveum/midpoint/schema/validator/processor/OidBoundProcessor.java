@@ -13,15 +13,15 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @SuppressWarnings("unused")
-public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
+public class OidBoundProcessor implements UpgradeObjectProcessor<ObjectType> {
 
     @Override
     public UpgradePhase getPhase() {
-        return UpgradePhase.BEFORE;
+        return UpgradePhase.AFTER;
     }
 
     @Override
@@ -31,23 +31,21 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public UpgradeType getType() {
-        return UpgradeType.SEAMLESS;
+        return UpgradeType.MANUAL;
     }
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentTypeAndItemName(
-                object, path, OtherPrivilegesLimitationType.class, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);
+        return matchParentTypeAndItemName(object, path, ItemConstraintType.class, ItemConstraintType.F_OID_BOUND);
     }
 
     @Override
-    public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
-        OtherPrivilegesLimitationType limitation = getItemParent(object, path);
-        if (limitation.getCaseManagementWorkItems() == null) {
-            limitation.setCaseManagementWorkItems(limitation.getApprovalWorkItems());
-        }
-        limitation.setApprovalWorkItems(null);
+    public String upgradeDescription(PrismObject<ObjectType> object, ItemPath path) {
+        return "No action needed for now, no replacement available currently.";
+    }
 
-        return true;
+    @Override
+    public boolean process(PrismObject<ObjectType> object, ItemPath path) throws Exception {
+        return false;
     }
 }

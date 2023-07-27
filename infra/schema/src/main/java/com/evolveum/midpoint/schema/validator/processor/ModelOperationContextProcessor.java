@@ -13,19 +13,13 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import java.util.List;
-
-// todo implement + tests
 @SuppressWarnings("unused")
-public class SmsConfigurationProcessor implements UpgradeObjectProcessor<SystemConfigurationType> {
+public class ModelOperationContextProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public UpgradePhase getPhase() {
-        // todo before in 4.7.* but after in 4.4.*
         return UpgradePhase.BEFORE;
     }
 
@@ -41,18 +35,14 @@ public class SmsConfigurationProcessor implements UpgradeObjectProcessor<SystemC
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchObjectTypeAndPathTemplate(object, path, SystemConfigurationType.class, ItemPath.create(
-                SystemConfigurationType.F_NOTIFICATION_CONFIGURATION, NotificationConfigurationType.F_SMS
-        ));
+        return matchParentTypeAndItemName(object, path, TaskType.class, TaskType.F_MODEL_OPERATION_CONTEXT);
     }
 
     @Override
-    public boolean process(PrismObject<SystemConfigurationType> object, ItemPath path) {
-        SystemConfigurationType system = object.asObjectable();
-        NotificationConfigurationType notification = system.getNotificationConfiguration();
-        List<SmsConfigurationType> smsList = notification.getSms();
+    public boolean process(PrismObject<TaskType> object, ItemPath path) throws Exception {
+        TaskType task = object.asObjectable();
+        task.setModelOperationContext(null);
 
-
-        return false;
+        return true;
     }
 }

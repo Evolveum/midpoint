@@ -147,7 +147,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test20TestCaseTaskRef() throws Exception {
         testUpgradeValidator("case.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(1);
+            Assertions.assertThat(result.getItems()).hasSize(3);
 
             UpgradeValidationItem item = assertGetItem(result, new ProcessorMixin() {
             }.getIdentifier(CaseTaskRefProcessor.class));
@@ -165,7 +165,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(7);
+            Assertions.assertThat(result.getItems()).hasSize(12);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
@@ -180,7 +180,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test40TestRole() throws Exception {
         testUpgradeValidator("role.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(1);
+            Assertions.assertThat(result.getItems()).hasSize(5);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(PersonaTargetSubtypeProcessor.class));
             UpgradeValidationItemAsserter asserter = new UpgradeValidationItemAsserter(item);
@@ -196,9 +196,9 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test50SecurityPolicy() throws Exception {
         testUpgradeValidator("security-policy.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(0);
+                    .hasSize(3);
 
-            Assertions.assertThat(result.hasChanges()).isFalse();
+            Assertions.assertThat(result.hasChanges()).isTrue();
         });
     }
 
@@ -216,7 +216,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test70Archetype() throws Exception {
         testUpgradeValidator("archetype.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(1);
+                    .hasSize(2);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
@@ -226,7 +226,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test80TaskRecomputation() throws Exception {
         testUpgradeValidator("task-recomputation.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(4);
+                    .hasSize(7);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });

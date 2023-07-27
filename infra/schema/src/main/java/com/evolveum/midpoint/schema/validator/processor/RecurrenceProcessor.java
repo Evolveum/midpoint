@@ -13,11 +13,12 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @SuppressWarnings("unused")
-public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
+public class RecurrenceProcessor implements UpgradeObjectProcessor<TaskType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -26,7 +27,7 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.OPTIONAL;
+        return UpgradePriority.CRITICAL;
     }
 
     @Override
@@ -36,17 +37,22 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchParentTypeAndItemName(
-                object, path, OtherPrivilegesLimitationType.class, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);
+        return matchParentTypeAndItemName(object, path, TaskType.class, TaskType.F_RECURRENCE);
     }
 
     @Override
-    public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
-        OtherPrivilegesLimitationType limitation = getItemParent(object, path);
-        if (limitation.getCaseManagementWorkItems() == null) {
-            limitation.setCaseManagementWorkItems(limitation.getApprovalWorkItems());
+    public boolean process(PrismObject<TaskType> object, ItemPath path) throws Exception {
+        TaskType task = object.asObjectable();
+        TaskRecurrenceType recurrence = task.getRecurrence();
+
+        ScheduleType schedule = task.getSchedule();
+        if (schedule == null) {
+            schedule = new ScheduleType();
+            task.setSchedule(schedule);
         }
-        limitation.setApprovalWorkItems(null);
+
+        schedule.setRecurrence(recurrence);
+        task.setRecurrence(null);
 
         return true;
     }

@@ -40,4 +40,15 @@
             </profiling>
         </reporting>
     </activity>
+    <modelOperationContext>
+        <state>execution</state>
+    </modelOperationContext>
+
+    <policyRule>
+        <policyConstraints>
+            <name>sample</name>
+        </policyConstraints>
+    </policyRule>
+
+    <recurrence>recurring</recurrence>
 </task>

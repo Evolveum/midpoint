@@ -13,8 +13,17 @@
     <authentication>
         <modules>
             <saml2 id="1">
-                <name>deprecated items</name>
+                <identifier>deprecated items</identifier>
             </saml2>
         </modules>
+        <sequence id="2">
+            <identifier>sequencename</identifier>
+            <module id="3">
+                <identifier>deprecated items</identifier>
+            </module>
+            <module id="4">
+                <identifier>unchanged</identifier>
+            </module>
+        </sequence>
     </authentication>
 </securityPolicy>

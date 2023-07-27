@@ -10,6 +10,8 @@
 
     <name>role</name>
 
+    <subtype>some deprecated type</subtype>
+
     <assignment id="1">
         <personaConstruction>
             <targetType>some-type</targetType>
@@ -17,4 +19,30 @@
         </personaConstruction>
     </assignment>
 
+    <assignment id="2">
+        <limitOtherPrivileges>
+            <approvalWorkItems>
+                <all>true</all>
+            </approvalWorkItems>
+        </limitOtherPrivileges>
+    </assignment>
+
+    <inducement id="3">
+        <limitOtherPrivileges>
+            <approvalWorkItems>
+                <all>true</all>
+            </approvalWorkItems>
+        </limitOtherPrivileges>
+    </inducement>
+
+    <inducement id="4">
+        <limitOtherPrivileges>
+            <approvalWorkItems>
+                <all>true</all>
+            </approvalWorkItems>
+            <caseManagementWorkItems>
+                <all>false</all>
+            </caseManagementWorkItems>
+        </limitOtherPrivileges>
+    </inducement>
 </role>

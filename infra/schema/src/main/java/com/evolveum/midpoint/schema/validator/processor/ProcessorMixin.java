@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -16,6 +14,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 public interface ProcessorMixin {
 
@@ -103,5 +103,15 @@ public interface ProcessorMixin {
         }
 
         return value.asContainerable();
+    }
+
+    default void copyTransport(NotificationTransportConfigurationType from, GeneralTransportConfigurationType to) {
+        to.setName(from.getName());
+        to.setDebug(from.isDebug());
+        to.setRedirectToFile(from.getRedirectToFile());
+        to.setLogToFile(from.getLogToFile());
+        to.getWhiteList().addAll(from.getWhiteList());
+        to.getBlackList().addAll(from.getBlackList());
+        to.setRecipientFilterExpression(from.getRecipientFilterExpression());
     }
 }

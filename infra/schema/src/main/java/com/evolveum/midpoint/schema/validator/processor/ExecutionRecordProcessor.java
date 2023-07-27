@@ -13,11 +13,12 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
+// todo test
 @SuppressWarnings("unused")
-public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<AssignmentHolderType> {
+public class ExecutionRecordProcessor implements UpgradeObjectProcessor<CaseType> {
 
     @Override
     public UpgradePhase getPhase() {
@@ -26,7 +27,7 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.OPTIONAL;
+        return UpgradePriority.NECESSARY;
     }
 
     @Override
@@ -37,17 +38,13 @@ public class ApprovalWorkItemsProcessor implements UpgradeObjectProcessor<Assign
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
         return matchParentTypeAndItemName(
-                object, path, OtherPrivilegesLimitationType.class, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);
+                object, path, ApprovalStageExecutionInformationType.class, ApprovalStageExecutionInformationType.F_EXECUTION_RECORD);
     }
 
     @Override
-    public boolean process(PrismObject<AssignmentHolderType> object, ItemPath path) {
-        OtherPrivilegesLimitationType limitation = getItemParent(object, path);
-        if (limitation.getCaseManagementWorkItems() == null) {
-            limitation.setCaseManagementWorkItems(limitation.getApprovalWorkItems());
-        }
-        limitation.setApprovalWorkItems(null);
-
+    public boolean process(PrismObject<CaseType> object, ItemPath path) throws Exception {
+        ApprovalStageExecutionInformationType information = getItemParent(object, path);
+        information.setExecutionRecord(null);
         return true;
     }
 }

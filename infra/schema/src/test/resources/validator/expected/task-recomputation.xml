@@ -46,4 +46,14 @@
             </profiling>
         </reporting>
     </activity>
+
+    <policyRule>
+        <policyConstraints>
+            <name>sample</name>
+        </policyConstraints>
+    </policyRule>
+
+    <schedule>
+        <recurrence>recurring</recurrence>
+    </schedule>
 </task>

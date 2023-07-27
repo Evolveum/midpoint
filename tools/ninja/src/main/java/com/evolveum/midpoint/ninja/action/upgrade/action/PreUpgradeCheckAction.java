@@ -14,6 +14,7 @@ import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -52,21 +53,21 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
         RepositoryDiag diag = repository.getRepositoryDiag();
 
         boolean result = validateChangeNumber(
-                diag.getAdditionalDetails(), UpgradeConstants.LABEL_SCHEMA_CHANGE_NUMBER,
-                UpgradeConstants.SUPPORTED_SCHEMA_CHANGE_NUMBER);
+                diag.getAdditionalDetails(), SqaleUtils.SCHEMA_CHANGE_NUMBER,
+                SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
         if (!result) {
             return false;
         }
 
         // todo this will not work if audit was not configured or is in different database!
         return validateChangeNumber(
-                diag.getAdditionalDetails(), UpgradeConstants.LABEL_SCHEMA_AUDIT_CHANGE_NUMBER,
-                UpgradeConstants.SUPPORTED_SCHEMA_AUDIT_CHANGE_NUMBER);
+                diag.getAdditionalDetails(), SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER,
+                SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
     }
 
-    private boolean validateChangeNumber(List<LabeledString> list, String label, String expected) {
+    private boolean validateChangeNumber(List<LabeledString> list, String label, int expected) {
         String number = getValue(list, label);
-        boolean equals = Objects.equals(number, expected);
+        boolean equals = Objects.equals(number, Integer.toString(expected));
 
         if (!equals) {
             log.error(ConsoleFormat.formatError(
@@ -117,11 +118,10 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
                 "Node versions in cluster: ", Arrays.toString(versions.toArray())));
 
         String version = versions.iterator().next();
-        boolean match = Arrays.asList(UpgradeConstants.SUPPORTED_VERSIONS).contains(version);
-        if (!match) {
+        if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {
             log.error(ConsoleFormat.formatErrorMessageWithParameter(
-                    "There are midPoint nodes with versions that doesn't match supported version for upgrade (" +
-                            Arrays.toString(UpgradeConstants.SUPPORTED_VERSIONS) + ")", Arrays.toString(versions.toArray())));
+                    "There are midPoint nodes with versions {} that doesn't match supported version for upgrade (" +
+                            UpgradeConstants.SUPPORTED_VERSION + ")", Arrays.toString(versions.toArray())));
             return false;
         }
 
