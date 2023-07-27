@@ -12,12 +12,12 @@ import com.evolveum.midpoint.authentication.impl.module.configurer.CorrelationMo
 
 import com.evolveum.midpoint.authentication.impl.provider.CorrelationProvider;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,8 +37,8 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
     }
 
     @Override
-    protected CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(CorrelationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        return new CorrelationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    protected CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(CorrelationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new CorrelationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
 
     @Override
     protected CorrelationModuleAuthentication createEmptyModuleAuthentication(CorrelationAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         CorrelationModuleAuthenticationImpl moduleAuthentication = new CorrelationModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());

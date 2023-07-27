@@ -12,28 +12,20 @@ import java.util.Map;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
-import com.evolveum.midpoint.authentication.impl.filter.RefuseUnauthenticatedRequestFilter;
-
 import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 /**
  * @author skublik
@@ -43,7 +35,7 @@ public abstract class AbstractCredentialModuleFactory<
         CA extends ModuleWebSecurityConfigurer<C, MT>,
         MT extends AbstractAuthenticationModuleType,
         MA extends ModuleAuthentication>
-        extends AbstractModuleFactory<MT, MA> {
+        extends AbstractModuleFactory<C, CA, MT, MA> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
 
@@ -76,20 +68,21 @@ public abstract class AbstractCredentialModuleFactory<
 //                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
 
-        CA moduleConfigurer = getObjectObjectPostProcessor()
-                .postProcess(createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor()));
+//        CA moduleConfigurer = getObjectObjectPostProcessor()
+//                .postProcess(createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor()));
 
-        HttpSecurity http =  moduleConfigurer.getNewHttpSecurity();
-        http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
-        setSharedObjects(http, sharedObjects);
+//        HttpSecurity http =  moduleConfigurer.getNewHttpSecurity();
+//        http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
+//        setSharedObjects(http, sharedObjects);
+//
+//        SecurityFilterChain filter = http.build();
+//
+//
+//        MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, moduleConfigurer.getConfiguration(), necessity);
+//        moduleAuthentication.setFocusType(moduleType.getFocusType());
 
-        SecurityFilterChain filter = http.build();
-
-
-        MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, moduleConfigurer.getConfiguration(), necessity);
-        moduleAuthentication.setFocusType(moduleType.getFocusType());
-
-        return AuthModuleImpl.build(filter, moduleConfigurer.getConfiguration(), moduleAuthentication);
+//        return AuthModuleImpl.build(filter, moduleConfigurer.getConfiguration(), moduleAuthentication);
+        return null;
     }
 
 
@@ -157,13 +150,13 @@ public abstract class AbstractCredentialModuleFactory<
     }
 
     protected abstract MA createEmptyModuleAuthentication(
-            MT moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule);
+            MT moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request);
 
 
     protected abstract CA createModuleConfigurer(MT moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor);
+            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request);
 
 
     protected abstract AuthenticationProvider createProvider(CredentialPolicyType usedPolicy);

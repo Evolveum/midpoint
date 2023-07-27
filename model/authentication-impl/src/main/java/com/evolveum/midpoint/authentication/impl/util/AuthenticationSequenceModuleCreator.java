@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.authentication.impl.factory.module.ModuleFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -91,9 +92,9 @@ public class AuthenticationSequenceModuleCreator<MA extends ModuleAuthentication
             String sequenceModuleIdentifier = StringUtils.isNotEmpty(sequenceModule.getIdentifier()) ?
                     sequenceModule.getIdentifier() : sequenceModule.getName();
             AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
-            AbstractModuleFactory<AbstractAuthenticationModuleType, MA> moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
+            ModuleFactory<AbstractAuthenticationModuleType, MA> moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
 
-            return moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
+            return moduleFactory.createAuthModule(module, sequence.getChannel().getUrlSuffix(), request,
                     sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
 
         } catch (Exception e) {
@@ -114,13 +115,13 @@ public class AuthenticationSequenceModuleCreator<MA extends ModuleAuthentication
             String type = header.split(" ")[0];
             if (AuthenticationModuleNameConstants.CLUSTER.equalsIgnoreCase(type)) {
                 List<AuthModule<MA>> authModules = new ArrayList<>();
-                HttpClusterModuleFactory factory = authRegistry.findModelFactoryByClass(HttpClusterModuleFactory.class);
+                HttpClusterModuleFactory factory = authRegistry.findModuleFactoryByClass(HttpClusterModuleFactory.class);
                 AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                 };
                 module.setIdentifier(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
                 try {
                     //noinspection unchecked
-                    authModules.add((AuthModule<MA>) factory.createModuleFilter(module, urlSuffix, httpRequest,
+                    authModules.add((AuthModule<MA>) factory.createAuthModule(module, urlSuffix, httpRequest,
                             sharedObjects, authenticationModulesType, credentialPolicy, null,
                             new AuthenticationSequenceModuleType()
                                     .necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT)

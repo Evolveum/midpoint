@@ -13,6 +13,8 @@ import java.util.Optional;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,12 +29,12 @@ public class AuthModuleRegistryImpl {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuthModuleRegistryImpl.class);
 
-    List<AbstractModuleFactory> moduleFactories = new ArrayList<>();
+    List<ModuleFactory> moduleFactories = new ArrayList<>();
 
-    public void addToRegistry(AbstractModuleFactory factory) {
+    public void addToRegistry(ModuleFactory factory) {
         moduleFactories.add(factory);
 
-        Comparator<? super AbstractModuleFactory> comparator =
+        Comparator<? super ModuleFactory> comparator =
                 (f1,f2) -> {
 
                     Integer f1Order = f1.getOrder();
@@ -57,26 +59,30 @@ public class AuthModuleRegistryImpl {
 
     }
 
-    public AbstractModuleFactory findModuleFactory(AbstractAuthenticationModuleType configuration, AuthenticationChannel authenticationChannel) {
+    public <MT extends AbstractAuthenticationModuleType, MA extends ModuleAuthentication> ModuleFactory<MT, MA> findModuleFactory(
+            AbstractAuthenticationModuleType configuration, AuthenticationChannel authenticationChannel) {
 
-        Optional<AbstractModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration, authenticationChannel)).findFirst();
+        Optional<ModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration, authenticationChannel)).findFirst();
         if (opt.isEmpty()) {
             LOGGER.trace("No factory found for {}", configuration);
             return null;
         }
-        AbstractModuleFactory factory = opt.get();
+        ModuleFactory factory = opt.get();
         LOGGER.trace("Found component factory {} for {}", factory, configuration);
         return factory;
     }
 
-    public <T extends AbstractModuleFactory> T findModelFactoryByClass(Class<T> clazz) {
+    public <T extends ModuleFactory> T findModuleFactoryByClass(Class<T> clazz) {
 
-        Optional<T> opt = (Optional<T>) moduleFactories.stream().filter(f -> f.getClass().equals(clazz)).findFirst();
-        if (opt.isEmpty()) {
-            LOGGER.trace("No factory found for class {}", clazz);
-            return null;
-        }
-        T factory = opt.get();
+        T factory = (T) moduleFactories.stream()
+                .filter(f -> f.getClass().equals(clazz))
+                .findFirst()
+                .orElse(null);
+//        if (opt.isEmpty()) {
+//            LOGGER.trace("No factory found for class {}", clazz);
+//            return null;
+//        }
+//        T factory = opt.get();
         LOGGER.trace("Found component factory {} for class {}", factory, clazz);
         return factory;
     }

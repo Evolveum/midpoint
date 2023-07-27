@@ -22,6 +22,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebS
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
@@ -33,13 +34,30 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 @Component
-public class HttpHeaderModuleFactory extends AbstractModuleFactory<HttpHeaderAuthenticationModuleType, ModuleAuthenticationImpl> {
+public class HttpHeaderModuleFactory extends AbstractModuleFactory<
+        HttpHeaderModuleWebSecurityConfiguration,
+        HttpHeaderModuleWebSecurityConfigurer,
+        HttpHeaderAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
     private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof HttpHeaderAuthenticationModuleType;
+    }
+
+    @Override
+    protected HttpHeaderModuleWebSecurityConfigurer createModuleConfigurer(HttpHeaderAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new HttpHeaderModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+    }
+
+    @Override
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(HttpHeaderAuthenticationModuleType moduleType, HttpHeaderModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication(sequenceModule);
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        return moduleAuthentication;
     }
 
     @Override
@@ -53,9 +71,9 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<HttpHeaderAut
 
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
-        HttpHeaderModuleWebSecurityConfigurer<HttpHeaderModuleWebSecurityConfiguration> module =
-                getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfigurer<>(configuration));
-        HttpSecurity http = getNewHttpSecurity(module);
+        HttpHeaderModuleWebSecurityConfigurer module =
+                getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfigurer(configuration));
+        HttpSecurity http = module.getNewHttpSecurity();//getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);

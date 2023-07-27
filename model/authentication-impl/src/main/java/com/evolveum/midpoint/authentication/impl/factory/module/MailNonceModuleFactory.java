@@ -8,12 +8,11 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import com.evolveum.midpoint.authentication.impl.provider.MailNonceProvider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.MailNonceFormModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
@@ -36,8 +35,8 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected MailNonceFormModuleWebSecurityConfigurer createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        return new MailNonceFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    protected MailNonceFormModuleWebSecurityConfigurer createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new MailNonceFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     //TODO
@@ -53,7 +52,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
 
     @Override
     protected MailNonceModuleAuthenticationImpl createEmptyModuleAuthentication(MailNonceAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
+            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.authentication.impl.filter.RedirectForLoginPagesWit
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,13 +83,12 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     public ModuleWebSecurityConfigurer(MT moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor) {
-        this.configuration = buildConfiguration(moduleType, sequenceSuffix, authenticationChannel);
+            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
         this.objectPostProcessor = objectPostProcessor;
-
+        this.configuration = buildConfiguration(moduleType, sequenceSuffix, authenticationChannel, request);
     }
 
-    protected C buildConfiguration(MT moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel) {
+    protected C buildConfiguration(MT moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
         LoginFormModuleWebSecurityConfiguration config = new LoginFormModuleWebSecurityConfiguration();
         config.setSequenceSuffix(sequenceSuffix);
         config.setModuleIdentifier(moduleType.getIdentifier() != null ? moduleType.getIdentifier() : moduleType.getName());

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -32,8 +33,11 @@ public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormM
         super(configuration);
     }
 
-    public FocusIdentificationModuleWebSecurityConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    public FocusIdentificationModuleWebSecurityConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override

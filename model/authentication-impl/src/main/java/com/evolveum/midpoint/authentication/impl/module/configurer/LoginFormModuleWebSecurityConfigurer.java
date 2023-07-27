@@ -20,6 +20,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -49,19 +50,20 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
     @Autowired(required = false)
     private LogoutFilter requestSingleLogoutFilter;
 
-    private final C configuration;
+//    private final C configuration;
 
     public LoginFormModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
-        this.configuration = configuration;
+//        this.configuration = configuration;
     }
 
     public LoginFormModuleWebSecurityConfigurer(MT moduleType,
             String prefixOfSequence,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor) {
-        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
-        this.configuration = (C) getConfiguration();
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request);
+//        this.configuration = getConfiguration();
     }
 
     @Override
@@ -88,10 +90,10 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
         return new MidpointFormLoginConfigurer<>(new MidpointUsernamePasswordAuthenticationFilter());
     }
 
-    @Override
-    public C getConfiguration() {
-        return configuration;
-    }
+//    @Override
+//    public C getConfiguration() {
+//        return configuration;
+//    }
 
     protected SessionRegistry getSessionRegistry() {
         return sessionRegistry;

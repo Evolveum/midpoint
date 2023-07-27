@@ -20,7 +20,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
@@ -33,13 +35,22 @@ import java.util.Map;
  * @author skublik
  */
 @Component
-public class OidcClientModuleFactory extends RemoteModuleFactory<OidcAuthenticationModuleType, ModuleAuthenticationImpl> {
+public class OidcClientModuleFactory extends RemoteModuleFactory<
+        OidcClientModuleWebSecurityConfiguration,
+        OidcClientModuleWebSecurityConfigurer,
+        OidcAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleFactory.class);
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof OidcAuthenticationModuleType && !(authenticationChannel instanceof RestAuthenticationChannel);
+    }
+
+    @Override
+    protected OidcClientModuleWebSecurityConfigurer createModuleConfigurer(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new OidcClientModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override
@@ -64,17 +75,45 @@ public class OidcClientModuleFactory extends RemoteModuleFactory<OidcAuthenticat
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(
                 new OidcClientProvider(configuration.getAdditionalConfiguration())));
 
-        OidcClientModuleWebSecurityConfigurer<OidcClientModuleWebSecurityConfiguration> module = getObjectObjectPostProcessor().postProcess(
-                new OidcClientModuleWebSecurityConfigurer<>(configuration));
+        OidcClientModuleWebSecurityConfigurer module = getObjectObjectPostProcessor().postProcess(
+                new OidcClientModuleWebSecurityConfigurer(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         module.setPublicUrlPrefix(getPublicUrlPrefix(request));
+
+
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
+        SecurityFilterChain filter = http.build();
 
         ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
-        SecurityFilterChain filter = http.build();
+
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+    }
+
+    @Override
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcAuthenticationModuleType moduleType, OidcClientModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        OidcClientModuleAuthenticationImpl moduleAuthentication = new OidcClientModuleAuthenticationImpl(sequenceModule);
+        List<IdentityProvider> providers = new ArrayList<>();
+        configuration.getClientRegistrationRepository().forEach(
+                client -> {
+                    IdentityProvider provider = createIdentityProvider(client, request, configuration);
+                    providers.add(provider);
+                }
+        );
+        moduleAuthentication.setClientsRepository(configuration.getClientRegistrationRepository());
+        moduleAuthentication.setProviders(providers);
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+        return moduleAuthentication;
+    }
+
+    private IdentityProvider createIdentityProvider(ClientRegistration client, ServletRequest request, OidcClientModuleWebSecurityConfiguration configuration) {
+        String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
+                + OidcClientModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
+        return new IdentityProvider()
+                .setLinkText(client.getClientName())
+                .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", client.getRegistrationId()));
     }
 
     public ModuleAuthenticationImpl createEmptyModuleAuthentication(

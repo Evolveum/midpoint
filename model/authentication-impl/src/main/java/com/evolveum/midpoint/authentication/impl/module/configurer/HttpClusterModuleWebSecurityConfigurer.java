@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointAllowAllAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
@@ -14,9 +15,12 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -29,7 +33,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpClusterModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, AbstractAuthenticationModuleType> {
+public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, AbstractAuthenticationModuleType> {
 
     @Autowired
     private SecurityEnforcer securityEnforcer;
@@ -40,8 +44,23 @@ public class HttpClusterModuleWebSecurityConfigurer<C extends ModuleWebSecurityC
     @Autowired
     private TaskManager taskManager;
 
-    public HttpClusterModuleWebSecurityConfigurer(C configuration) {
+    public HttpClusterModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
         super(configuration);
+    }
+
+    public HttpClusterModuleWebSecurityConfigurer(AbstractAuthenticationModuleType moduleType,
+            String sequeneSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(moduleType, sequeneSuffix, authenticationChannel, postProcessor, request);
+    }
+
+    @Override
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
     }
 
     @Override

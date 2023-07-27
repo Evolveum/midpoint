@@ -13,23 +13,25 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointForm
 import com.evolveum.midpoint.authentication.impl.module.configuration.LdapModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LdapAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 
 /**
  * @author lskublik
  */
 
-public class LdapWebSecurityConfigurer<C extends LdapModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfigurer<C, LdapAuthenticationModuleType> {
+public class LdapWebSecurityConfigurer extends LoginFormModuleWebSecurityConfigurer<LdapModuleWebSecurityConfiguration, LdapAuthenticationModuleType> {
 
-    public LdapWebSecurityConfigurer(C configuration) {
+    public LdapWebSecurityConfigurer(LdapModuleWebSecurityConfiguration configuration) {
         super(configuration);
     }
 
-    public LdapWebSecurityConfigurer(LdapAuthenticationModuleType moduleType,
-            String prefixOfSequence,
+    public LdapWebSecurityConfigurer(LdapAuthenticationModuleType module,
+            String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor) {
-        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(module, sequenceSuffix, authenticationChannel, postProcessor, request);
     }
 
     protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {

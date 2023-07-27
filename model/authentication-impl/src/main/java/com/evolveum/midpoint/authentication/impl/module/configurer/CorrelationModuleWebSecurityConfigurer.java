@@ -10,17 +10,15 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.CorrelationAuthenticationFilter;
-import com.evolveum.midpoint.authentication.impl.filter.FocusIdentificationAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointAttributeConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionModuleType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -37,8 +35,9 @@ public class CorrelationModuleWebSecurityConfigurer<C extends LoginFormModuleWeb
     public CorrelationModuleWebSecurityConfigurer(CorrelationAuthenticationModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor) {
-        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override

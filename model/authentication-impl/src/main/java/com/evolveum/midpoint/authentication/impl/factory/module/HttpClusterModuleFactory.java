@@ -22,6 +22,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebS
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
@@ -30,11 +31,28 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuthenticationModuleType, ModuleAuthenticationImpl> {
+public class HttpClusterModuleFactory extends AbstractModuleFactory<
+        ModuleWebSecurityConfigurationImpl,
+        HttpClusterModuleWebSecurityConfigurer,
+        AbstractAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return false;
+    }
+
+    @Override
+    protected HttpClusterModuleWebSecurityConfigurer createModuleConfigurer(AbstractAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new HttpClusterModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+    }
+
+    @Override
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER, sequenceModule);
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        return moduleAuthentication;
     }
 
     @Override
@@ -43,12 +61,12 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuth
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
             AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
-        ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, sequenceSuffix);
+        ModuleWebSecurityConfigurationImpl configuration = createConfiguration(moduleType, sequenceSuffix);
 
         configuration.addAuthenticationProvider(createProvider());
 
-        HttpClusterModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> module = createModule(configuration);
-        HttpSecurity http = getNewHttpSecurity(module);
+        HttpClusterModuleWebSecurityConfigurer module = createModule(configuration);
+        HttpSecurity http = module.getNewHttpSecurity(); //getNewHttpSecurity(module);
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);
@@ -56,21 +74,21 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory<AbstractAuth
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    private ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {
+    private ModuleWebSecurityConfigurationImpl createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
 
-    private HttpClusterModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
-        return getObjectObjectPostProcessor().postProcess(new HttpClusterModuleWebSecurityConfigurer<>(configuration));
+    private HttpClusterModuleWebSecurityConfigurer createModule(ModuleWebSecurityConfigurationImpl configuration) {
+        return getObjectObjectPostProcessor().postProcess(new HttpClusterModuleWebSecurityConfigurer(configuration));
     }
 
     private AuthenticationProvider createProvider() {
         return getObjectObjectPostProcessor().postProcess(new ClusterProvider());
     }
 
-    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
         ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());

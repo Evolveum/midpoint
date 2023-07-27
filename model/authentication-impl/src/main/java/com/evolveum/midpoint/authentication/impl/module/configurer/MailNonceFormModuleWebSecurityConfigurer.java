@@ -21,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailNonceAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,12 +41,13 @@ public class MailNonceFormModuleWebSecurityConfigurer extends ModuleWebSecurityC
     public MailNonceFormModuleWebSecurityConfigurer(MailNonceAuthenticationModuleType moduleType,
             String prefixOfSequence,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor) {
-        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request);
     }
 
     @Override
-    protected ModuleWebSecurityConfigurationImpl buildConfiguration(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel) {
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
         configuration.setSequenceSuffix(sequenceSuffix);
         configuration.setSpecificLoginUrl(authenticationChannel.getSpecificLoginUrl());

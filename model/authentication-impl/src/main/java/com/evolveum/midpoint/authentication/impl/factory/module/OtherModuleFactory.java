@@ -2,7 +2,10 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+
+import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
 
 import jakarta.servlet.ServletRequest;
 
@@ -25,20 +28,26 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 @Experimental
-public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType, MA extends ModuleAuthentication> extends AbstractModuleFactory<MT, MA> {
+public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType,
+        MA extends ModuleAuthentication> implements ModuleFactory<MT, MA> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OtherModuleFactory.class);
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Override
+//    @Override
     public boolean match(AbstractAuthenticationModuleType module, AuthenticationChannel authenticationChannel) {
         return module instanceof OtherAuthenticationModuleType;
     }
 
     @Override
-    public AuthModule<MA> createModuleFilter(MT module, String sequenceSuffix, ServletRequest request,
+    public Integer getOrder() {
+        return 0;
+    }
+
+    //    @Override
+    public AuthModule<MA> createAuthModule(MT module, String sequenceSuffix, ServletRequest request,
             Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
@@ -54,7 +63,7 @@ public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType, MA 
         Class<AbstractModuleFactory> factoryClazz = (Class) Class.forName(factoryClass);
         AbstractModuleFactory factory = applicationContext.getBean(factoryClazz);
 
-        return factory.createModuleFilter(module, sequenceSuffix, request, sharedObjects,
+        return factory.createAuthModule(module, sequenceSuffix, request, sharedObjects,
                 authenticationsPolicy, credentialPolicy, authenticationChannel, sequenceModule);
     }
 }

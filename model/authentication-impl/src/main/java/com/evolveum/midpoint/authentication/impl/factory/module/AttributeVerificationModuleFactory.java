@@ -8,13 +8,12 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.AttributeVerificationModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configurer.ArchetypeSelectionModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.configurer.AttributeVerificationModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.AttributeVerificationProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
@@ -36,8 +35,8 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
             AttributeVerificationAuthenticationModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor) {
-        return new AttributeVerificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new AttributeVerificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
 //        return null;
     }
 
@@ -53,7 +52,7 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
 
     @Override
     protected AttributeVerificationModuleAuthentication createEmptyModuleAuthentication(AttributeVerificationAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         AttributeVerificationModuleAuthentication moduleAuthentication = new AttributeVerificationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());

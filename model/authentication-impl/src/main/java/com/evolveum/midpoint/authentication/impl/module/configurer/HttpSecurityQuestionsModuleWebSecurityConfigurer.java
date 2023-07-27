@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -55,12 +56,13 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
     public HttpSecurityQuestionsModuleWebSecurityConfigurer(HttpSecQAuthenticationModuleType moduleType,
             String suffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor) {
-        super(moduleType, suffix, authenticationChannel, postProcessor);
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(moduleType, suffix, authenticationChannel, postProcessor, request);
     }
 
     @Override
-    protected ModuleWebSecurityConfigurationImpl buildConfiguration(HttpSecQAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel) {
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(HttpSecQAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
         configuration.setSequenceSuffix(sequenceSuffix);
         return configuration;

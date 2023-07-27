@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
@@ -20,8 +21,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -34,7 +37,7 @@ import java.util.Collections;
  * @author skublik
  */
 
-public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C, OidcAuthenticationModuleType> {
+public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecurityConfigurer<OidcClientModuleWebSecurityConfiguration, OidcAuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleWebSecurityConfigurer.class);
     public static final String OIDC_LOGIN_PATH = "/oidc/select";
@@ -44,8 +47,22 @@ public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWeb
 
     private String publicUrlPrefix;
 
-    public OidcClientModuleWebSecurityConfigurer(C configuration) {
+    public OidcClientModuleWebSecurityConfigurer(OidcClientModuleWebSecurityConfiguration configuration) {
         super(configuration);
+    }
+
+    public OidcClientModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
+            String prefix, AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor, ServletRequest request) {
+        super(moduleType, prefix, authenticationChannel, postProcessor, request);
+    }
+
+    @Override
+    protected OidcClientModuleWebSecurityConfiguration buildConfiguration(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        OidcClientModuleWebSecurityConfiguration configuration = OidcClientModuleWebSecurityConfiguration.build(
+                moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
     }
 
     @Override

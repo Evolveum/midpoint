@@ -9,12 +9,11 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 import com.evolveum.midpoint.authentication.impl.provider.SecurityQuestionProvider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.HttpSecurityQuestionsModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
@@ -37,8 +36,8 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected HttpSecurityQuestionsModuleWebSecurityConfigurer createModuleConfigurer(HttpSecQAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        return new HttpSecurityQuestionsModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    protected HttpSecurityQuestionsModuleWebSecurityConfigurer createModuleConfigurer(HttpSecQAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new HttpSecurityQuestionsModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override
@@ -53,7 +52,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected HttpModuleAuthentication createEmptyModuleAuthentication(HttpSecQAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
+            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.SECURITY_QUESTIONS, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());

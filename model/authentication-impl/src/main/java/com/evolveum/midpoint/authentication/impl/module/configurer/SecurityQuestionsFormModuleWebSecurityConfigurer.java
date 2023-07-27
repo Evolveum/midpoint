@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsFormAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
@@ -35,8 +36,9 @@ public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFor
     public SecurityQuestionsFormModuleWebSecurityConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType,
             String prefixOfSequence,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor) {
-        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request);
     }
 
     @Override

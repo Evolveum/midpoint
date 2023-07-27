@@ -20,6 +20,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormM
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -34,8 +35,9 @@ public class ArchetypeSelectionModuleWebSecurityConfigurer<C extends LoginFormMo
     public ArchetypeSelectionModuleWebSecurityConfigurer(ArchetypeSelectionModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor) {
-        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override

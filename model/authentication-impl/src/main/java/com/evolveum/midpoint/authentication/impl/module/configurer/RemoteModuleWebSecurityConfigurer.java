@@ -9,8 +9,19 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.factory.module.LdapModuleFactory;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,11 +32,11 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModu
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -48,17 +59,21 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> extends ModuleWebSecurityConfigurer<C, MT> {
 
-    @Autowired
-    private ModelAuditRecorder auditProvider;
+    private static final Trace LOGGER = TraceManager.getTrace(RemoteModuleWebSecurityConfigurer.class);
 
-    @Autowired
-    private AuthModuleRegistryImpl authRegistry;
-
-    @Autowired
-    private AuthChannelRegistryImpl authChannelRegistry;
+    @Autowired private ModelAuditRecorder auditProvider;
+    @Autowired private AuthModuleRegistryImpl authRegistry;
+    @Autowired private AuthChannelRegistryImpl authChannelRegistry;
+    @Autowired SystemObjectCache systemObjectCache;
 
     public RemoteModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public RemoteModuleWebSecurityConfigurer(MT moduleType, String prefix, AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(moduleType, prefix, authenticationChannel, postProcessor, request);
     }
 
     protected ModelAuditRecorder getAuditProvider() {
@@ -144,6 +159,16 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
                 }
             }
             return detailsSource.buildDetails(context);
+        }
+    }
+
+    protected String getPublicUrlPrefix(ServletRequest request) {
+        try {
+            PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
+            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable(), request.getServerName());
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load system configuration", e);
+            return null;
         }
     }
 }

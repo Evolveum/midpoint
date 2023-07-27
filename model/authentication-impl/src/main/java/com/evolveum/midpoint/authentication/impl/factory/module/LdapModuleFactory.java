@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
@@ -43,9 +44,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 @Component
-public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationModuleType, ModuleAuthenticationImpl> {
+public class LdapModuleFactory extends AbstractModuleFactory<
+        LdapModuleWebSecurityConfiguration,
+        LdapWebSecurityConfigurer,
+        LdapAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LdapModuleFactory.class);
 
     @Autowired
     private Protector protector;
@@ -53,6 +58,22 @@ public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationM
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof LdapAuthenticationModuleType;
+    }
+
+    @Override
+    protected LdapWebSecurityConfigurer createModuleConfigurer(LdapAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new LdapWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+    }
+
+    @Override
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType, LdapModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication(sequenceModule);
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+        if (moduleType.getSearch() != null) {
+            moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
+        }
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        return moduleAuthentication;
     }
 
     @Override
@@ -72,8 +93,9 @@ public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationM
 
         configuration.addAuthenticationProvider(getProvider(moduleType));
 
-        LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> module = createModule(configuration);
-        HttpSecurity http = getNewHttpSecurity(module);
+        LdapWebSecurityConfigurer module = createModule(configuration);
+//        HttpSecurity http = getNewHttpSecurity(module);
+        HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(
@@ -115,8 +137,8 @@ public class LdapModuleFactory extends AbstractModuleFactory<LdapAuthenticationM
         return provider;
     }
 
-    private LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> createModule(LdapModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfigurer<>(configuration));
+    private LdapWebSecurityConfigurer createModule(LdapModuleWebSecurityConfiguration configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfigurer(configuration));
     }
 
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,

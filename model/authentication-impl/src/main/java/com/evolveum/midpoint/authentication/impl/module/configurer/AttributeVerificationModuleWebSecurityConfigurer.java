@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionModuleType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationAuthenticationModuleType;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -33,8 +33,9 @@ public class AttributeVerificationModuleWebSecurityConfigurer<C extends LoginFor
     public AttributeVerificationModuleWebSecurityConfigurer(AttributeVerificationAuthenticationModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> objectPostProcessor) {
-        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
 
     }
 

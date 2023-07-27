@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.FocusIdentificationModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.FocusIdentificationProvider;
@@ -34,8 +34,8 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
     }
 
     @Override
-    protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        return new FocusIdentificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new FocusIdentificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
     }
 
     @Override
@@ -50,14 +50,14 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
 
     @Override
     protected FocusIdentificationModuleAuthentication createEmptyModuleAuthentication(FocusIdentificationAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         FocusIdentificationModuleAuthentication moduleAuthentication = new FocusIdentificationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         if (moduleType instanceof FocusIdentificationAuthenticationModuleType) {
-            moduleAuthentication.setModuleConfiguration(((FocusIdentificationAuthenticationModuleType) moduleType).getItem());
+            moduleAuthentication.setModuleConfiguration(moduleType.getItem());
         }
         return moduleAuthentication;
     }

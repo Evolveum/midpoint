@@ -11,6 +11,7 @@ import java.io.IOException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpHeaderAuthenticationModuleType;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -34,18 +35,24 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
  * @author skublik
  */
 
-public class HttpHeaderModuleWebSecurityConfigurer<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfigurer<C, HttpHeaderAuthenticationModuleType> {
+public class HttpHeaderModuleWebSecurityConfigurer extends LoginFormModuleWebSecurityConfigurer<HttpHeaderModuleWebSecurityConfiguration, HttpHeaderAuthenticationModuleType> {
 
     @Autowired private MidpointProviderManager authenticationManager;
 
-    public HttpHeaderModuleWebSecurityConfigurer(C configuration) {
+    public HttpHeaderModuleWebSecurityConfigurer(HttpHeaderModuleWebSecurityConfiguration configuration) {
         super(configuration);
     }
 
     public HttpHeaderModuleWebSecurityConfigurer(HttpHeaderAuthenticationModuleType httpHeaderAuthenticationModuleType,
             String prefixOfSequence, AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor) {
-        super(httpHeaderAuthenticationModuleType, prefixOfSequence, authenticationChannel, postProcessor);
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request) {
+        super(httpHeaderAuthenticationModuleType, prefixOfSequence, authenticationChannel, postProcessor, request);
+    }
+
+    @Override
+    protected HttpHeaderModuleWebSecurityConfiguration buildConfiguration(HttpHeaderAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        return HttpHeaderModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
     }
 
     @Override

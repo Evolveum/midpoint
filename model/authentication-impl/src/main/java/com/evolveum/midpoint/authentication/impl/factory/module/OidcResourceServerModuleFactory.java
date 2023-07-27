@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,13 +35,31 @@ import java.util.Map;
  * @author skublik
  */
 @Component
-public class OidcResourceServerModuleFactory extends RemoteModuleFactory<OidcAuthenticationModuleType, ModuleAuthenticationImpl> {
+public class OidcResourceServerModuleFactory<C extends RemoteModuleWebSecurityConfiguration> extends RemoteModuleFactory<
+        C,
+        OidcResourceServerModuleWebSecurityConfigurer<C>,
+        OidcAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcResourceServerModuleFactory.class);
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof OidcAuthenticationModuleType && authenticationChannel instanceof RestAuthenticationChannel;
+    }
+
+    @Override
+    protected OidcResourceServerModuleWebSecurityConfigurer createModuleConfigurer(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new OidcResourceServerModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request);
+    }
+
+    @Override
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(OidcAuthenticationModuleType moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        OidcResourceServerModuleAuthentication moduleAuthentication = new OidcResourceServerModuleAuthentication(sequenceModule);
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        moduleAuthentication.setRealm(getRealm(moduleType.getResourceServer()));
+        return moduleAuthentication;
     }
 
     @Override
