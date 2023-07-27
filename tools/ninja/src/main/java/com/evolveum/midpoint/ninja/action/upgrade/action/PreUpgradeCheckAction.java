@@ -54,7 +54,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
 
         boolean result = validateChangeNumber(
                 diag.getAdditionalDetails(), SqaleUtils.SCHEMA_CHANGE_NUMBER,
-                SqaleUtils.SCHEMA_CHANGE_NUMBER);
+                SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
         if (!result) {
             return false;
         }
@@ -62,12 +62,12 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
         // todo this will not work if audit was not configured or is in different database!
         return validateChangeNumber(
                 diag.getAdditionalDetails(), SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER,
-                SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER);
+                SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
     }
 
-    private boolean validateChangeNumber(List<LabeledString> list, String label, String expected) {
+    private boolean validateChangeNumber(List<LabeledString> list, String label, int expected) {
         String number = getValue(list, label);
-        boolean equals = Objects.equals(number, expected);
+        boolean equals = Objects.equals(number, Integer.toString(expected));
 
         if (!equals) {
             log.error(ConsoleFormat.formatError(
@@ -120,7 +120,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
         String version = versions.iterator().next();
         if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {
             log.error(ConsoleFormat.formatErrorMessageWithParameter(
-                    "There are midPoint nodes with versions that doesn't match supported version for upgrade (" +
+                    "There are midPoint nodes with versions {} that doesn't match supported version for upgrade (" +
                             UpgradeConstants.SUPPORTED_VERSION + ")", Arrays.toString(versions.toArray())));
             return false;
         }
