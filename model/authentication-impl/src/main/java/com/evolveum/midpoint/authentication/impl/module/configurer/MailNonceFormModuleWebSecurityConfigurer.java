@@ -14,8 +14,8 @@ import com.evolveum.midpoint.authentication.impl.filter.MailNonceAuthenticationF
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointFormLoginConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 
@@ -31,9 +31,9 @@ import org.springframework.security.core.Authentication;
  * @author skublik
  */
 
-public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, MailNonceAuthenticationModuleType> {
+public class MailNonceFormModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, MailNonceAuthenticationModuleType> {
 
-    public MailNonceFormModuleWebSecurityConfigurer(C configuration) {
+    public MailNonceFormModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
         super(configuration);
     }
 
@@ -42,6 +42,14 @@ public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurit
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor) {
         super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
+    }
+
+    @Override
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel) {
+        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        configuration.setSpecificLoginUrl(authenticationChannel.getSpecificLoginUrl());
+        return configuration;
     }
 
     @Override

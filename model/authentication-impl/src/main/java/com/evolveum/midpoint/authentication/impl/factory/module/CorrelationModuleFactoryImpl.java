@@ -37,13 +37,6 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(CorrelationAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
-    }
-
-    @Override
     protected CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new CorrelationModuleWebSecurityConfigurer<>(configuration));

@@ -33,15 +33,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
         return moduleType instanceof SecurityQuestionsFormAuthenticationModuleType;
     }
-
-    @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(
-            SecurityQuestionsFormAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
-    }
-
+    
     @Override
     protected SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {

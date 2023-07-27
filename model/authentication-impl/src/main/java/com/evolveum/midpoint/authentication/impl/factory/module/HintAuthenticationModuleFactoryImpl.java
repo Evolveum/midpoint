@@ -31,13 +31,6 @@ public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModul
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(HintAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
-    }
-
-    @Override
     protected HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new HintModuleWebSecurityConfigurer<>(configuration));

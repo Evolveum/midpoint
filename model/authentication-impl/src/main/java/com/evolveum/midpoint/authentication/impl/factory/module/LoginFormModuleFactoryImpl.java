@@ -35,13 +35,6 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(LoginFormAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
-    }
-
-    @Override
     protected LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, LoginFormAuthenticationModuleType> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new LoginFormModuleWebSecurityConfigurer<>(configuration));
     }

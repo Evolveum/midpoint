@@ -168,10 +168,6 @@ public abstract class AbstractCredentialModuleFactory<
     protected abstract MA createEmptyModuleAuthentication(
             MT moduleType, C configuration, AuthenticationSequenceModuleType sequenceModule);
 
-    @Deprecated
-    protected abstract C createConfiguration(MT moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel);
-
-//    protected abstract C createConfiguration();
 
     protected abstract CA createModuleConfigurer(MT moduleType,
             String sequenceSuffix,

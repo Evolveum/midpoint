@@ -26,8 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @Component
 public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
-        ModuleWebSecurityConfiguration,
-        HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>,
+        ModuleWebSecurityConfigurationImpl,
+        HttpBasicModuleWebSecurityConfigurer,
         HttpBasicAuthenticationModuleType,
         ModuleAuthenticationImpl> {
 
@@ -37,20 +37,13 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(HttpBasicAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
-    }
-
-    @Override
-    protected HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
+    protected HttpBasicModuleWebSecurityConfigurer createModule(ModuleWebSecurityConfigurationImpl configuration) {
         return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfigurer(configuration));
     }
 
     @Override
-    protected HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModuleConfigurer(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        return new HttpBasicModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    protected HttpBasicModuleWebSecurityConfigurer createModuleConfigurer(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new HttpBasicModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override
@@ -65,7 +58,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
 
     @Override
     protected ModuleAuthenticationImpl createEmptyModuleAuthentication(HttpBasicAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
         HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.HTTP_BASIC, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());

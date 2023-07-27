@@ -14,8 +14,8 @@ import com.evolveum.midpoint.authentication.impl.filter.HttpBasicAuthenticationF
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpBasicAuthenticationModuleType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, HttpBasicAuthenticationModuleType> {
+public class HttpBasicModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, HttpBasicAuthenticationModuleType> {
 
     @Autowired
     private ModelService model;
@@ -47,7 +47,7 @@ public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityCon
     @Autowired
     private TaskManager taskManager;
 
-    public HttpBasicModuleWebSecurityConfigurer(C configuration) {
+    public HttpBasicModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
         super(configuration);
     }
 
@@ -56,6 +56,14 @@ public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityCon
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor) {
         super(module, sequenceSuffix, authenticationChannel, postProcessor);
+    }
+
+
+    @Override
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel) {
+        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
     }
 
     @Override

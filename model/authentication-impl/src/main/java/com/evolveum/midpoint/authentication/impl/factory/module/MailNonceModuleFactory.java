@@ -25,8 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @Component
 public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
-        ModuleWebSecurityConfiguration,
-        MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>,
+        ModuleWebSecurityConfigurationImpl,
+        MailNonceFormModuleWebSecurityConfigurer,
         MailNonceAuthenticationModuleType,
         MailNonceModuleAuthenticationImpl> {
 
@@ -36,21 +36,13 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(MailNonceAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        configuration.setSpecificLoginUrl(authenticationChannel.getSpecificLoginUrl());
-        return configuration;
+    protected MailNonceFormModuleWebSecurityConfigurer createModule(ModuleWebSecurityConfigurationImpl configuration) {
+        return  getObjectObjectPostProcessor().postProcess(new MailNonceFormModuleWebSecurityConfigurer(configuration));
     }
 
     @Override
-    protected MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new MailNonceFormModuleWebSecurityConfigurer<>(configuration));
-    }
-
-    @Override
-    protected MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
-        return new MailNonceFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+    protected MailNonceFormModuleWebSecurityConfigurer createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new MailNonceFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     //TODO
@@ -66,7 +58,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
 
     @Override
     protected MailNonceModuleAuthenticationImpl createEmptyModuleAuthentication(MailNonceAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
         MailNonceModuleAuthenticationImpl moduleAuthentication = new MailNonceModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
