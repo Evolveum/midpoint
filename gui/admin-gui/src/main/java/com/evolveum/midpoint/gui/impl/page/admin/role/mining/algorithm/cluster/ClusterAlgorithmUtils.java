@@ -21,9 +21,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTyp
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -278,22 +278,22 @@ public class ClusterAlgorithmUtils {
             OperationResult operationResult, ClusterOptions clusterOptions) {
 
         if (clusterOptions != null) {
-            RoleAnalysisProcessMode mode = clusterOptions.getMode();
+            RoleAnalysisProcessModeType mode = clusterOptions.getMode();
             int group = Math.min(clusterOptions.getDefaultOccupancySearch(), clusterOptions.getMinGroupSize());
             int intersection = Math.min(clusterOptions.getDefaultIntersectionSearch(), clusterOptions.getMinIntersections());
             double defaultMaxFrequency = clusterOptions.getDefaultMaxFrequency();
             double defaultMinFrequency = clusterOptions.getDefaultMinFrequency();
-            RoleAnalysisSearchMode searchMode = clusterOptions.getSearchMode();
+            RoleAnalysisSearchModeType searchMode = clusterOptions.getSearchMode();
 
-            if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+            if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
-                        RoleAnalysisProcessMode.ROLE, operationResult, true, false);
+                        RoleAnalysisProcessModeType.ROLE, operationResult, true, false);
                 List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
                 List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
 
-                if (searchMode.equals(RoleAnalysisSearchMode.JACCARD)) {
+                if (searchMode.equals(RoleAnalysisSearchModeType.JACCARD)) {
                     possibleBusinessRole = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks,
                             defaultMinFrequency,
                             defaultMaxFrequency,
@@ -304,15 +304,15 @@ public class ClusterAlgorithmUtils {
                             group, intersection, mode);
                 }
 
-            } else if (mode.equals(RoleAnalysisProcessMode.USER)) {
+            } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
                 MiningOperationChunk miningOperationChunk = new MiningOperationChunk(clusterType, pageBase,
-                        RoleAnalysisProcessMode.USER, operationResult, true, false);
+                        RoleAnalysisProcessModeType.USER, operationResult, true, false);
                 List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
                 List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                         ClusterObjectUtils.SORT.NONE);
 
-                if (searchMode.equals(RoleAnalysisSearchMode.JACCARD)) {
+                if (searchMode.equals(RoleAnalysisSearchModeType.JACCARD)) {
                     possibleBusinessRole = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks,
                             defaultMinFrequency,
                             defaultMaxFrequency,
@@ -367,7 +367,7 @@ public class ClusterAlgorithmUtils {
                 elements.add(elementsArray.getString(i));
             }
             mergedIntersection.add(new IntersectionObject(points, metric, type, currentElements, totalElements,
-                    elements, RoleAnalysisSearchMode.INTERSECTION));
+                    elements, RoleAnalysisSearchModeType.INTERSECTION));
         }
 
         return mergedIntersection;

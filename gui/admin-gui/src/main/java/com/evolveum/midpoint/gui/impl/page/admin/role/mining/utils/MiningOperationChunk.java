@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -40,7 +40,7 @@ public class MiningOperationChunk implements Serializable {
     }
 
     public MiningOperationChunk(@NotNull RoleAnalysisCluster clusterType,
-            PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult, boolean chunk, boolean full) {
+            PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult, boolean chunk, boolean full) {
 
         resetState();
         resetList();
@@ -49,7 +49,7 @@ public class MiningOperationChunk implements Serializable {
     }
 
     public void run(RoleAnalysisCluster clusterType,
-            PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult, boolean chunk, boolean full) {
+            PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult, boolean chunk, boolean full) {
 
         resetState();
         resetList();
@@ -58,11 +58,11 @@ public class MiningOperationChunk implements Serializable {
     }
 
     private void getMiningClusterStructureFull(@NotNull RoleAnalysisCluster cluster,
-            PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult) {
+            PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult) {
 
         ListMultimap<String, String> roleChunk = ArrayListMultimap.create();
 
-        if (mode.equals(RoleAnalysisProcessMode.USER)) {
+        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             List<String> members = cluster.getElements();
             int usersCount = members.size();
             for (int i = 0; i < members.size(); i++) {
@@ -110,7 +110,7 @@ public class MiningOperationChunk implements Serializable {
 
             }
 
-        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             List<String> rolesElements = cluster.getElements();
 
             ListMultimap<String, String> userChunk = ArrayListMultimap.create();
@@ -162,12 +162,12 @@ public class MiningOperationChunk implements Serializable {
     }
 
     private void getChunkedMiningClusterStructureFull(@NotNull RoleAnalysisCluster cluster,
-            PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult) {
+            PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult) {
 
         //this set of roles List<String> has users String...
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
-        if (mode.equals(RoleAnalysisProcessMode.USER)) {
+        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             List<String> members = cluster.getElements();
             int membersCount = members.size();
             for (int i = 0; i < membersCount; i++) {
@@ -244,7 +244,7 @@ public class MiningOperationChunk implements Serializable {
                 roleCount++;
             }
 
-        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             List<String> rolesElements = cluster.getElements();
 
             int elementsCount = rolesElements.size();
@@ -328,11 +328,11 @@ public class MiningOperationChunk implements Serializable {
     }
 
     private void getMiningClusterStructure(@NotNull RoleAnalysisCluster cluster,
-            PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult) {
+            PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult) {
 
         ListMultimap<String, String> roleChunk = ArrayListMultimap.create();
 
-        if (mode.equals(RoleAnalysisProcessMode.USER)) {
+        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             List<String> members = cluster.getElements();
             int usersCount = members.size();
             for (String membersOid : members) {
@@ -370,7 +370,7 @@ public class MiningOperationChunk implements Serializable {
                 miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), strings, chunkName, frequency, Status.NEUTRAL));
             }
 
-        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             List<String> rolesElements = cluster.getElements();
 
             ListMultimap<String, String> userChunk = ArrayListMultimap.create();
@@ -413,12 +413,12 @@ public class MiningOperationChunk implements Serializable {
     }
 
     private void getChunkedMiningClusterStructure(@NotNull RoleAnalysisCluster cluster,
-            PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult) {
+            PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult) {
 
         //this set of roles List<String> has users String...
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
-        if (mode.equals(RoleAnalysisProcessMode.USER)) {
+        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             List<String> members = cluster.getElements();
             for (String membersOid : members) {
                 PrismObject<UserType> user = getUserTypeObject(pageBase, membersOid, operationResult);
@@ -474,7 +474,7 @@ public class MiningOperationChunk implements Serializable {
                 miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
             }
 
-        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             List<String> rolesElements = cluster.getElements();
 
             for (String membersOid : rolesElements) {
@@ -678,7 +678,7 @@ public class MiningOperationChunk implements Serializable {
         return sorted;
     }
 
-    private void resolveAndExecute(RoleAnalysisCluster clusterType, PageBase pageBase, RoleAnalysisProcessMode mode, OperationResult operationResult,
+    private void resolveAndExecute(RoleAnalysisCluster clusterType, PageBase pageBase, RoleAnalysisProcessModeType mode, OperationResult operationResult,
             boolean chunk, boolean full) {
         if (full) {
             if (chunk) {

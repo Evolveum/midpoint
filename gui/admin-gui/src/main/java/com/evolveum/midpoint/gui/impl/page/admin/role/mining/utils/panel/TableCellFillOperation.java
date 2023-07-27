@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -45,10 +45,10 @@ public class TableCellFillOperation {
     }
 
     public static void updateRoleBasedTableData(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
-            IModel<MiningUserTypeChunk> model, List<String> rowRoles, RoleAnalysisSearchMode searchMode,
+            IModel<MiningUserTypeChunk> model, List<String> rowRoles, RoleAnalysisSearchModeType searchMode,
             ClusterObjectUtils.Status colStatus, List<String> colRoles, IntersectionObject intersection,
             MiningRoleTypeChunk roleChunk) {
-        if (searchMode.equals(RoleAnalysisSearchMode.INTERSECTION)) {
+        if (searchMode.equals(RoleAnalysisSearchModeType.INTERSECTION)) {
             intersectionMode(cellItem, componentId, model, rowRoles, colStatus, colRoles, intersection, roleChunk);
         } else {
             List<String> rowUsers = model.getObject().getUsers();
@@ -123,10 +123,10 @@ public class TableCellFillOperation {
     }
 
     public static void updateUserBasedTableData(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
-            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, RoleAnalysisSearchMode searchMode,
+            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, RoleAnalysisSearchModeType searchMode,
             List<String> colUsers, IntersectionObject intersection,
             ClusterObjectUtils.Status colStatus, MiningUserTypeChunk userChunk) {
-        if (searchMode.equals(RoleAnalysisSearchMode.INTERSECTION)) {
+        if (searchMode.equals(RoleAnalysisSearchModeType.INTERSECTION)) {
             intersectionMode(cellItem, componentId, model, rowUsers, colUsers, intersection, colStatus, userChunk);
         } else {
             List<String> rowRoles = model.getObject().getRoles();

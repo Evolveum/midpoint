@@ -15,6 +15,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -45,7 +47,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
 public class PageClusters extends Panel {
 
@@ -342,7 +343,7 @@ public class PageClusters extends Panel {
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     String parentRef = model.getObject().getValue().getParentRef();
                                     if (parentRef != null) {
-                                        PrismObject<RoleAnalysisSession> getParent = getParentClusterByOid(getPageBase(),
+                                        PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid(getPageBase(),
                                                 parentRef, new OperationResult("getParent"));
                                         PageParameters params = new PageParameters();
                                         String oid = model.getObject().getValue().asPrismObject().getOid();

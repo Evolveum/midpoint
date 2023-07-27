@@ -44,10 +44,11 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
     private static final String ID_CANCEL_OK = "cancel";
     List<MiningRoleTypeChunk> miningRoleTypeChunks;
     List<MiningUserTypeChunk> miningUserTypeChunks;
-    RoleAnalysisProcessMode mode;
+    RoleAnalysisProcessModeType mode;
 
-    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
-            RoleAnalysisProcessMode mode) {
+    public ProcessBusinessRolePanel(String id, IModel<String> messageModel, List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            List<MiningUserTypeChunk> miningUserTypeChunks,
+            RoleAnalysisProcessModeType mode) {
         super(id, messageModel);
         this.mode = mode;
         this.miningRoleTypeChunks = miningRoleTypeChunks;
@@ -66,7 +67,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
 
         DisplayType displayTypeElement;
         DisplayType displayTypePoints;
-        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
 
             for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
                 if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
@@ -130,7 +131,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+                        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
                         } else {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
@@ -155,7 +156,7 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+                        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
                             ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
                         } else {
                             ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);

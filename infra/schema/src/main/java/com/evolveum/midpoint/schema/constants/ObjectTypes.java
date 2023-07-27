@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public enum ObjectTypes {
 
     ROLE_ANALYSIS_SESSION(SchemaConstants.C_ROLE_ANALYSIS_SESSION_TYPE, SchemaConstants.C_ROLE_ANALYSIS_SESSION,
-            RoleAnalysisSession.class, ObjectManager.MODEL, "roleAnalysisSession"),
+            RoleAnalysisSessionType.class, ObjectManager.MODEL, "roleAnalysisSession"),
     ROLE_ANALYSIS_CLUSTER(SchemaConstants.C_ROLE_ANALYSIS_CLUSTER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_CLUSTER,
             RoleAnalysisCluster.class, ObjectManager.MODEL, "roleAnalysisCluster"),
 

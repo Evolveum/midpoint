@@ -10,9 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -23,14 +23,14 @@ public class ExtractJaccard {
 
     public static List<IntersectionObject> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency,
-            double maxFrequency, int minIntersection, Integer minOccupancy, RoleAnalysisProcessMode mode, double similarity) {
+            double maxFrequency, int minIntersection, Integer minOccupancy, RoleAnalysisProcessModeType mode, double similarity) {
 
         List<IntersectionObject> intersections = new ArrayList<>();
 
-        if (mode.equals(RoleAnalysisProcessMode.USER)) {
+        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             loadUsersIntersections(miningRoleTypeChunks, minFrequency, maxFrequency, minIntersection, intersections,
                     minOccupancy, similarity);
-        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             loadRolesIntersections(miningUserTypeChunks, minFrequency, maxFrequency, minIntersection, intersections,
                     minOccupancy, similarity);
         }
@@ -56,7 +56,7 @@ public class ExtractJaccard {
             if (size >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(users), size * users.size(),
                         "jaccard", size,
-                        null, new HashSet<>(miningRoleTypeChunk.getRoles()), RoleAnalysisSearchMode.JACCARD));
+                        null, new HashSet<>(miningRoleTypeChunk.getRoles()), RoleAnalysisSearchModeType.JACCARD));
             }
 
         }
@@ -88,7 +88,7 @@ public class ExtractJaccard {
 
             intersections.add(new IntersectionObject(users, users.size() * roles.size(),
                     "jaccard", roles.size(),
-                    null, roles, RoleAnalysisSearchMode.JACCARD));
+                    null, roles, RoleAnalysisSearchModeType.JACCARD));
         }
 
     }
@@ -113,7 +113,7 @@ public class ExtractJaccard {
             if (occupancy >= minOccupancy) {
                 intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * occupancy,
                         "outer", occupancy,
-                        null, new HashSet<>(miningUserTypeChunk.getUsers()), RoleAnalysisSearchMode.JACCARD));
+                        null, new HashSet<>(miningUserTypeChunk.getUsers()), RoleAnalysisSearchModeType.JACCARD));
             }
 
         }
@@ -145,7 +145,7 @@ public class ExtractJaccard {
 
             intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * users.size(),
                     "jaccard", users.size(),
-                    null, users, RoleAnalysisSearchMode.JACCARD));
+                    null, users, RoleAnalysisSearchModeType.JACCARD));
         }
 
     }

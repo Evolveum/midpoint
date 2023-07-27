@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
+
 import java.io.Serializable;
 import java.util.Set;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
 
 public class IntersectionObject implements Serializable {
 
@@ -24,10 +24,10 @@ public class IntersectionObject implements Serializable {
     Integer totalElements;
     double metric;
     Set<String> elements;
-    RoleAnalysisSearchMode searchMode;
+    RoleAnalysisSearchModeType searchMode;
 
     public IntersectionObject(Set<String> points, double metric, String type, int currentElements,
-            Integer totalElements, Set<String> elements, RoleAnalysisSearchMode searchMode) {
+            Integer totalElements, Set<String> elements, RoleAnalysisSearchModeType searchMode) {
         this.elements = elements;
         this.points = points;
         this.metric = metric;
@@ -61,7 +61,7 @@ public class IntersectionObject implements Serializable {
         return totalElements;
     }
 
-    public RoleAnalysisSearchMode getSearchMode() {
+    public RoleAnalysisSearchModeType getSearchMode() {
         return searchMode;
     }
 }

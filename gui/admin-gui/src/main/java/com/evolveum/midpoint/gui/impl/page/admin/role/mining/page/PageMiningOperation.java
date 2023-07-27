@@ -14,9 +14,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -94,27 +93,27 @@ public class PageMiningOperation extends PageAdmin {
     List<MiningUserTypeChunk> miningUserTypeChunks;
     ClusterObjectUtils.SORT sortMode;
 
-    RoleAnalysisSearchMode searchMode = RoleAnalysisSearchMode.INTERSECTION;
+    RoleAnalysisSearchModeType searchMode = RoleAnalysisSearchModeType.INTERSECTION;
 
     String getPageParameterOid() {
         PageParameters params = getPageParameters();
         return params.get(PARAMETER_OID).toString();
     }
 
-    RoleAnalysisProcessMode getPageParameterMode() {
+    RoleAnalysisProcessModeType getPageParameterMode() {
         PageParameters params = getPageParameters();
-        if (params.get(PARAMETER_MODE).toString().equals(RoleAnalysisProcessMode.USER.value())) {
-            return RoleAnalysisProcessMode.USER;
+        if (params.get(PARAMETER_MODE).toString().equals(RoleAnalysisProcessModeType.USER.value())) {
+            return RoleAnalysisProcessModeType.USER;
         }
-        return RoleAnalysisProcessMode.ROLE;
+        return RoleAnalysisProcessModeType.ROLE;
     }
 
-    RoleAnalysisSearchMode getPageParameterSearchMode() {
+    RoleAnalysisSearchModeType getPageParameterSearchMode() {
         PageParameters params = getPageParameters();
-        if (params.get(PARAMETER_SEARCH_MODE).toString().equals(RoleAnalysisSearchMode.INTERSECTION.value())) {
-            return RoleAnalysisSearchMode.INTERSECTION;
+        if (params.get(PARAMETER_SEARCH_MODE).toString().equals(RoleAnalysisSearchModeType.INTERSECTION.value())) {
+            return RoleAnalysisSearchModeType.INTERSECTION;
         }
-        return RoleAnalysisSearchMode.JACCARD;
+        return RoleAnalysisSearchModeType.JACCARD;
     }
 
     int getPageParameterSort() {
@@ -208,7 +207,7 @@ public class PageMiningOperation extends PageAdmin {
                         minIntersection = getMinIntersection();
                         intersection = null;
                         searchMode = getSearchModeSelected();
-                        if (searchMode.equals(RoleAnalysisSearchMode.JACCARD)) {
+                        if (searchMode.equals(RoleAnalysisSearchModeType.JACCARD)) {
                             mergedIntersection = ExtractJaccard.businessRoleDetection(miningRoleTypeChunks, miningUserTypeChunks,
                                     minFrequency, maxFrequency,
                                     minIntersection, minOccupancy, getPageParameterMode(), getSimilarity());
@@ -271,13 +270,13 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
-            RoleAnalysisSearchMode searchMode) {
-        if (getPageParameterMode().equals(RoleAnalysisProcessMode.ROLE)) {
+            RoleAnalysisSearchModeType searchMode) {
+        if (getPageParameterMode().equals(RoleAnalysisProcessModeType.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
                     miningUserTypeChunks, false, minFrequency, null, maxFrequency, searchMode);
             boxedTablePanel.setOutputMarkupId(true);
             add(boxedTablePanel);
-        } else if (getPageParameterMode().equals(RoleAnalysisProcessMode.USER)) {
+        } else if (getPageParameterMode().equals(RoleAnalysisProcessModeType.USER)) {
             MiningUserBasedTable boxedTablePanel = generateMiningUserBasedTable(miningRoleTypeChunks,
                     miningUserTypeChunks, false, minFrequency, null, maxFrequency);
             boxedTablePanel.setOutputMarkupId(true);
@@ -286,7 +285,7 @@ public class PageMiningOperation extends PageAdmin {
 
     }
 
-    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, RoleAnalysisSearchMode searchMode,
+    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, RoleAnalysisSearchModeType searchMode,
             List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks) {
 
         if (resetStatus) {
@@ -298,7 +297,7 @@ public class PageMiningOperation extends PageAdmin {
             }
         }
 
-        if (getPageParameterMode().equals(RoleAnalysisProcessMode.ROLE)) {
+        if (getPageParameterMode().equals(RoleAnalysisProcessModeType.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
                     miningUserTypeChunks, false, minFrequency, intersection, maxFrequency, searchMode);
             boxedTablePanel.setOutputMarkupId(true);
@@ -306,7 +305,7 @@ public class PageMiningOperation extends PageAdmin {
             target.appendJavaScript(getScaleScript());
             target.add(getMiningRoleBasedTable().setOutputMarkupId(true));
 
-        } else if (getPageParameterMode().equals(RoleAnalysisProcessMode.USER)) {
+        } else if (getPageParameterMode().equals(RoleAnalysisProcessModeType.USER)) {
 
             MiningUserBasedTable boxedTablePanel = generateMiningUserBasedTable(miningRoleTypeChunks,
                     miningUserTypeChunks, false, minFrequency, intersection, maxFrequency);
@@ -349,7 +348,7 @@ public class PageMiningOperation extends PageAdmin {
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection,
-            double maxFrequency, RoleAnalysisSearchMode searchMode) {
+            double maxFrequency, RoleAnalysisSearchModeType searchMode) {
         return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
             public void resetTable(AjaxRequestTarget target) {

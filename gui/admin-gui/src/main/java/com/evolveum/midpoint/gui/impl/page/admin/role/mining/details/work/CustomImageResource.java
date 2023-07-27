@@ -21,7 +21,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTyp
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.apache.wicket.request.resource.DynamicImageResource;
 
@@ -48,14 +48,14 @@ public class CustomImageResource extends DynamicImageResource {
     @Override
     protected byte[] getImageData(Attributes attributes) {
 
-        RoleAnalysisProcessMode mode1 = RoleAnalysisProcessMode.valueOf(mode);
+        RoleAnalysisProcessModeType mode1 = RoleAnalysisProcessModeType.valueOf(mode);
 
 
 
         BufferedImage image;
         Graphics2D graphics;
 
-        if (mode1.equals(RoleAnalysisProcessMode.ROLE)) {
+        if (mode1.equals(RoleAnalysisProcessModeType.ROLE)) {
             List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
             List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.JACCARD);
             width = miningRoleTypeChunks.size();

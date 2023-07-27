@@ -199,13 +199,15 @@
 
 
 
-    <xsd:complexType name="RoleAnalysisSession">
+
+
+    <xsd:complexType name="RoleAnalysisSessionType">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    The RoleAnalysisSession represents a session for role analysis, providing a container for
+                    The RoleAnalysisSessionType represents a session for role analysis, providing a container for
                     RoleAnalysisCluster objects. It serves as a parent object that contains references and basic
-                    information about its child clusters (RoleAnalysisSession).
+                    information about its child clusters (RoleAnalysisSessionType).
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -217,7 +219,18 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="clusterOptions" type="c:RoleAnalysisSessionFilterOption" minOccurs="0">
+                    <xsd:element name="roleAnalysisClusterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    The roleAnalysisClusterRef element represents references to clusters
+                                    associated with the role analysis session.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="clusterOptions" type="c:RoleAnalysisSessionClusterOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -232,7 +245,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="patternDetectionOptions" type="c:RoleAnalysisSessionDetectionOption" minOccurs="0">
+                    <xsd:element name="patternDetectionOptions" type="c:RoleAnalysisSessionDetectionOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -247,69 +260,28 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="roleAnalysisClusterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="sessionStatistic" type="c:RoleAnalysisSessionStatisticType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    The roleAnalysisClusterRef element represents references to clusters
-                                    associated with the role analysis session.
-                                </p>
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="processedObjectsCount" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    ProcessedObjectsCount represents the number of main objects (processed objects)
-                                    that are part of clusters (RoleAnalysisSession).
+                                    The container consists of statistical data about the RoleAnalysisSession.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisSession.processedObjectCount</a:displayName>
+                                <a:displayName>RoleAnalysisSessionStatisticType.sessionStatistic</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <xsd:element name="meanDensity" type="xsd:double" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    It expresses the average overlap density of child clusters (RoleAnalysisSession).
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisSession.meanDensity</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Not currently used (future).
-                                    Indication of the level of risk associated with the child clusters (RoleAnalysisSession).
-                                    This may be a numeric value, textual label are any other suitable machine-processable indication.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisSession.riskLevel</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
 
     </xsd:complexType>
 
-    <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSession" substitutionGroup="tns:object"/>
+    <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSessionType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="RoleAnalysisSessionFilterOption">
+
+    <xsd:complexType name="RoleAnalysisSessionClusterOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 Object clustering options.
@@ -332,11 +304,11 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionFilterOption.axiomFilter</a:displayName>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.axiomFilter</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processMode" type="tns:RoleAnalysisProcessMode" minOccurs="0">
+            <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -361,7 +333,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisProcessMode.processMode</a:displayName>
+                        <a:displayName>RoleAnalysisProcessModeType.processMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -373,7 +345,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionFilterOption.similarityThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.similarityThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -385,7 +357,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionFilterOption.minUniqueGroupSize</a:displayName>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.minUniqueGroupSize</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -397,7 +369,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionFilterOption.minPropertiesCount</a:displayName>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertiesCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -411,7 +383,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionFilterOption.minPropertyOverlap</a:displayName>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertyOverlap</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -419,7 +391,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="RoleAnalysisSessionDetectionOption">
+    <xsd:complexType name="RoleAnalysisSessionDetectionOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 Default business roles detection options.
@@ -444,7 +416,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOption.minOverlap</a:displayName>
+                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minOverlap</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -456,7 +428,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOption.minOccupancy</a:displayName>
+                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minOccupancy</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -469,7 +441,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOption.minFrequencyThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minFrequencyThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -482,7 +454,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOption.maxFrequencyThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisSessionDetectionOptionType.maxFrequencyThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -495,11 +467,11 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOption.jaccardSimilarityThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisSessionDetectionOptionType.jaccardSimilarityThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="searchMode" type="tns:RoleAnalysisSearchMode" minOccurs="0">
+            <xsd:element name="searchMode" type="tns:RoleAnalysisSearchModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -509,7 +481,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSearchMode.searchMode</a:displayName>
+                        <a:displayName>RoleAnalysisSearchModeType.searchMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -517,7 +489,63 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="RoleAnalysisProcessMode">
+    <xsd:complexType name="RoleAnalysisSessionStatisticType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The container consists of statistical data about the RoleAnalysisSession.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processedObjectsCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            ProcessedObjectsCount represents the number of main objects (processed objects)
+                            that are part of clusters (RoleAnalysisSessionType).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedObjectCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="meanDensity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the average overlap density of child clusters (RoleAnalysisSessionType).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.meanDensity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Not currently used (future).
+                            Indication of the level of risk associated with the child clusters (RoleAnalysisSessionType).
+                            This may be a numeric value, textual label are any other suitable machine-processable indication.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.riskLevel</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+
+    <xsd:simpleType name="RoleAnalysisProcessModeType">
         <xsd:annotation>
             <xsd:documentation>
                 Enum value for process mode.
@@ -551,7 +579,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="RoleAnalysisSearchMode">
+    <xsd:simpleType name="RoleAnalysisSearchModeType">
         <xsd:annotation>
             <xsd:documentation>
                 Enum value for search mode.

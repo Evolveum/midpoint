@@ -16,6 +16,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -57,7 +59,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSession;
 
 @PageDescriptor(
         urls = {
@@ -90,8 +91,8 @@ public class MainPageMining extends PageAdmin {
         initLayout();
     }
 
-    private MainObjectListPanel<RoleAnalysisSession> getTable() {
-        return (MainObjectListPanel<RoleAnalysisSession>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private MainObjectListPanel<RoleAnalysisSessionType> getTable() {
+        return (MainObjectListPanel<RoleAnalysisSessionType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private InlineMenuItem createDeleteInlineMenu() {
@@ -107,7 +108,7 @@ public class MainPageMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
-                        List<SelectableBean<RoleAnalysisSession>> selectedObjects = getTable().getSelectedObjects();
+                        List<SelectableBean<RoleAnalysisSessionType>> selectedObjects = getTable().getSelectedObjects();
                         OperationResult result = new OperationResult("Delete clusters objects");
                         if (selectedObjects == null || selectedObjects.size() == 0) {
                             try {
@@ -117,7 +118,7 @@ public class MainPageMining extends PageAdmin {
                             }
                         } else {
 
-                            for (SelectableBean<RoleAnalysisSession> selectedObject : selectedObjects) {
+                            for (SelectableBean<RoleAnalysisSessionType> selectedObject : selectedObjects) {
                                 try {
                                     String parentOid = selectedObject.getValue().asPrismObject().getOid();
                                     List<ObjectReferenceType> roleAnalysisClusterRef = selectedObject.getValue().getRoleAnalysisClusterRef();
@@ -150,7 +151,7 @@ public class MainPageMining extends PageAdmin {
                     () -> getString("PageAdmin.menu.top.resources.templates.list.nonNativeRepositoryWarning")));
             return;
         }
-        MainObjectListPanel<RoleAnalysisSession> table = new MainObjectListPanel<>(ID_TABLE, RoleAnalysisSession.class) {
+        MainObjectListPanel<RoleAnalysisSessionType> table = new MainObjectListPanel<>(ID_TABLE, RoleAnalysisSessionType.class) {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
@@ -160,18 +161,18 @@ public class MainPageMining extends PageAdmin {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<RoleAnalysisSession>, String>> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> createDefaultColumns() {
 
-                List<IColumn<SelectableBean<RoleAnalysisSession>, String>> columns = new ArrayList<>();
+                List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns = new ArrayList<>();
 
-                IColumn<SelectableBean<RoleAnalysisSession>, String> column;
+                IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
 
                 column = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
 
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
 
                         ParentClusterBasicDetailsPanel detailsPanel = new ParentClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                 Model.of("TO DO: details"), rowModel) {
@@ -189,15 +190,15 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("mode")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         cellItem.add(new Label(componentId,
                                 model.getObject().getValue() != null && model.getObject().getValue().getClusterOptions().getProcessMode() != null ?
                                         model.getObject().getValue().getClusterOptions().getProcessMode() : null));
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -207,14 +208,14 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("similarity.option")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
-                        RoleAnalysisSession value = model.getObject().getValue();
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                        RoleAnalysisSessionType value = model.getObject().getValue();
                         cellItem.add(new Label(componentId, value.getClusterOptions().getSimilarityThreshold()));
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -224,14 +225,14 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("intersection.option")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
-                        RoleAnalysisSession value = model.getObject().getValue();
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                        RoleAnalysisSessionType value = model.getObject().getValue();
                         cellItem.add(new Label(componentId,value.getClusterOptions().getMinPropertyOverlap()));
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -241,14 +242,14 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("properties.option")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
-                        RoleAnalysisSession value = model.getObject().getValue();
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                        RoleAnalysisSessionType value = model.getObject().getValue();
                         cellItem.add(new Label(componentId,value.getClusterOptions().getMinPropertiesCount()));
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -258,14 +259,14 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("group.option")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
-                        RoleAnalysisSession value = model.getObject().getValue();
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                        RoleAnalysisSessionType value = model.getObject().getValue();
                         cellItem.add(new Label(componentId,value.getClusterOptions().getMinUniqueGroupCount()));
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -275,11 +276,11 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("density")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
 
                         String meanDensity = new DecimalFormat("#.###")
-                                .format(Math.round(model.getObject().getValue().getMeanDensity() * 1000.0) / 1000.0);
+                                .format(Math.round(model.getObject().getValue().getSessionStatistic().getMeanDensity() * 1000.0) / 1000.0);
 
                         String colorClass = getColorClass(meanDensity);
 
@@ -293,7 +294,7 @@ public class MainPageMining extends PageAdmin {
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -303,15 +304,15 @@ public class MainPageMining extends PageAdmin {
                 column = new AbstractExportableColumn<>(getHeaderTitle("consist")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         cellItem.add(new Label(componentId,
-                                model.getObject().getValue() != null && model.getObject().getValue().getProcessedObjectsCount() != null ?
-                                        model.getObject().getValue().getProcessedObjectsCount() : null));
+                                model.getObject().getValue() != null && model.getObject().getValue().getSessionStatistic().getProcessedObjectsCount() != null ?
+                                        model.getObject().getValue().getSessionStatistic().getProcessedObjectsCount() : null));
                     }
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSession>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return Model.of("");
                     }
 
@@ -322,8 +323,8 @@ public class MainPageMining extends PageAdmin {
                         createStringResource("RoleMining.button.title.load")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSession>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSession>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue().getName() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
@@ -358,7 +359,7 @@ public class MainPageMining extends PageAdmin {
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisSession.F_NAME.toString();
+                        return RoleAnalysisSessionType.F_NAME.toString();
                     }
                 };
                 columns.add(column);

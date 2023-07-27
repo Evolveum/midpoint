@@ -11,16 +11,16 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public class ClusteringExecutor {
 
     private Clusterable clusterable;
 
-    public ClusteringExecutor(RoleAnalysisProcessMode mode) {
-        if (mode.equals(RoleAnalysisProcessMode.USER)) {
+    public ClusteringExecutor(RoleAnalysisProcessModeType mode) {
+        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             this.clusterable = new UserBasedClustering();
-        } else if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             this.clusterable = new RoleBasedClustering();
         }
     }

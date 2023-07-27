@@ -11,8 +11,8 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessMode;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 public class ClusterOptions implements Serializable {
     private PageBase pageBase;
@@ -22,8 +22,8 @@ public class ClusterOptions implements Serializable {
     private String identifier;
     private ObjectFilter query;
     private int assignThreshold;
-    RoleAnalysisProcessMode mode;
-    RoleAnalysisSearchMode searchMode;
+    RoleAnalysisProcessModeType mode;
+    RoleAnalysisSearchModeType searchMode;
     String name;
     int defaultIntersectionSearch = 10;
     int defaultOccupancySearch = 10;
@@ -31,20 +31,20 @@ public class ClusterOptions implements Serializable {
     double defaultMaxFrequency = 1;
     double defaultJaccardThreshold = 0.8;
 
-    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessMode mode,RoleAnalysisSearchMode searchMode) {
+    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode,RoleAnalysisSearchModeType searchMode) {
         this.pageBase = pageBase;
         this.mode = mode;
         this.searchMode = searchMode;
         setDefaultOptions(mode);
     }
 
-    private void setDefaultOptions(RoleAnalysisProcessMode mode) {
-        if (mode.equals(RoleAnalysisProcessMode.ROLE)) {
+    private void setDefaultOptions(RoleAnalysisProcessModeType mode) {
+        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             this.similarity = 0.6;
             this.assignThreshold = 300;
             this.minIntersections = 10;
             this.minGroupSize = 2;
-        } else if (mode.equals(RoleAnalysisProcessMode.USER)) {
+        } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             this.similarity = 0.8;
             this.assignThreshold = 10;
             this.minIntersections = 10;
@@ -108,11 +108,11 @@ public class ClusterOptions implements Serializable {
         this.assignThreshold = assignThreshold;
     }
 
-    public RoleAnalysisProcessMode getMode() {
+    public RoleAnalysisProcessModeType getMode() {
         return mode;
     }
 
-    public void setMode(RoleAnalysisProcessMode mode) {
+    public void setMode(RoleAnalysisProcessModeType mode) {
         this.mode = mode;
     }
 
@@ -156,11 +156,11 @@ public class ClusterOptions implements Serializable {
         this.defaultMaxFrequency = defaultMaxFrequency;
     }
 
-    public RoleAnalysisSearchMode getSearchMode() {
+    public RoleAnalysisSearchModeType getSearchMode() {
         return searchMode;
     }
 
-    public void setSearchMode(RoleAnalysisSearchMode searchMode) {
+    public void setSearchMode(RoleAnalysisSearchModeType searchMode) {
         this.searchMode = searchMode;
     }
 

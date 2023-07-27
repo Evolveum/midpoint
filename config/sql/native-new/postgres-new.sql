@@ -1194,11 +1194,9 @@ CREATE INDEX m_role_analysis_cluster_table_similarGroupsCount_idx ON m_role_anal
 CREATE TABLE m_role_analysis_session_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
-        CHECK (objectType = 'ROLE_ANALYSIS_SESSION'),
-        riskLevel TEXT,
-        processedObjectsCount INTEGER,
-        meanDensity TEXT
-)
+        CHECK (objectType = 'ROLE_ANALYSIS_SESSION')
+
+        )
     INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_role_analysis_session_table_oid_insert_tr BEFORE INSERT ON m_role_analysis_session_table
@@ -1208,11 +1206,11 @@ CREATE TRIGGER m_role_analysis_session_table_update_tr BEFORE UPDATE ON m_role_a
 CREATE TRIGGER m_role_analysis_session_table_oid_delete_tr AFTER DELETE ON m_role_analysis_session_table
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE INDEX m_role_analysis_session_table_clustersRef_idx ON m_role_analysis_session_table USING gin (clustersRef);
-CREATE INDEX m_role_analysis_session_table_identifier_idx ON m_role_analysis_session_table (identifier);
-CREATE INDEX m_role_analysis_session_table_riskLevel_idx ON m_role_analysis_session_table (riskLevel);
-CREATE INDEX m_role_analysis_session_table_consist_idx ON m_role_analysis_session_table (consist);
-CREATE INDEX m_role_analysis_session_table_density_idx ON m_role_analysis_session_table (density);
+--CREATE INDEX m_role_analysis_session_table_clustersRef_idx ON m_role_analysis_session_table USING gin (clustersRef);
+--CREATE INDEX m_role_analysis_session_table_identifier_idx ON m_role_analysis_session_table (identifier);
+--CREATE INDEX m_role_analysis_session_table_riskLevel_idx ON m_role_analysis_session_table (riskLevel);
+--CREATE INDEX m_role_analysis_session_table_consist_idx ON m_role_analysis_session_table (consist);
+--CREATE INDEX m_role_analysis_session_table_density_idx ON m_role_analysis_session_table (density);
 
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/

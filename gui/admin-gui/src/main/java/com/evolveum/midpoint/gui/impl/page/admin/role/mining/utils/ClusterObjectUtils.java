@@ -115,7 +115,7 @@ public class ClusterObjectUtils {
 
         ModelService service = pageBase.getModelService();
         ObjectQuery queryType = pageBase.getPrismContext().queryFor(AssignmentHolderType.class)
-                .type(RoleAnalysisSession.class).build();
+                .type(RoleAnalysisSessionType.class).build();
 
         try {
             service.searchObjectsIterative(AssignmentHolderType.class, queryType, handler, null,
@@ -127,18 +127,16 @@ public class ClusterObjectUtils {
     }
 
     public static String importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
-            RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption,
-            RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption,
+            RoleAnalysisSessionClusterOptionType roleAnalysisSessionClusterOption,
+            RoleAnalysisSessionDetectionOptionType roleAnalysisSessionDetectionOption,
+            RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType,
             List<ObjectReferenceType> roleAnalysisClusterRef,
-            int processedObjectCount,
-            double meanDensity,
-            String riskLevel,
             String name) {
         Task task = pageBase.createSimpleTask("Import RoleAnalysisSessionOption object");
 
-        PrismObject<RoleAnalysisSession> roleAnalysisSessionPrismObject = generateParentClusterObject(pageBase,
-                roleAnalysisSessionFilterOption, roleAnalysisSessionDetectionOption, roleAnalysisClusterRef,
-                processedObjectCount, meanDensity, riskLevel, name);
+        PrismObject<RoleAnalysisSessionType> roleAnalysisSessionPrismObject = generateParentClusterObject(pageBase,
+                roleAnalysisSessionClusterOption, roleAnalysisSessionDetectionOption, roleAnalysisClusterRef,
+                roleAnalysisSessionStatisticType, name);
 
         ModelService modelService = pageBase.getModelService();
         modelService.importObject(roleAnalysisSessionPrismObject, null, task, result);
@@ -146,35 +144,30 @@ public class ClusterObjectUtils {
         return roleAnalysisSessionPrismObject.getOid();
     }
 
-    public static PrismObject<RoleAnalysisSession> generateParentClusterObject(PageBase pageBase,
-            RoleAnalysisSessionFilterOption roleAnalysisSessionFilterOption,
-            RoleAnalysisSessionDetectionOption roleAnalysisSessionDetectionOption,
+    public static PrismObject<RoleAnalysisSessionType> generateParentClusterObject(PageBase pageBase,
+            RoleAnalysisSessionClusterOptionType roleAnalysisSessionClusterOption,
+            RoleAnalysisSessionDetectionOptionType roleAnalysisSessionDetectionOption,
             List<ObjectReferenceType> roleAnalysisClusterRef,
-            int processedObjectCount,
-            double meanDensity,
-            String riskLevel,
+            RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType,
             String name
     ) {
 
-        PrismObject<RoleAnalysisSession> roleAnalysisSessionPrismObject = null;
+        PrismObject<RoleAnalysisSessionType> roleAnalysisSessionPrismObject = null;
         try {
             roleAnalysisSessionPrismObject = pageBase.getPrismContext()
-                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleAnalysisSession.class).instantiate();
+                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleAnalysisSessionType.class).instantiate();
         } catch (SchemaException e) {
-            LOGGER.error("Failed to create RoleAnalysisSession object: {}", e.getMessage(), e);
+            LOGGER.error("Failed to create RoleAnalysisSessionType object: {}", e.getMessage(), e);
         }
 
         assert roleAnalysisSessionPrismObject != null;
 
-        RoleAnalysisSession roleAnalysisSession = roleAnalysisSessionPrismObject.asObjectable();
+        RoleAnalysisSessionType roleAnalysisSession = roleAnalysisSessionPrismObject.asObjectable();
         roleAnalysisSession.setName(PolyStringType.fromOrig(name));
         roleAnalysisSession.getRoleAnalysisClusterRef().addAll(roleAnalysisClusterRef);
-        roleAnalysisSession.setProcessedObjectsCount(processedObjectCount);
-        roleAnalysisSession.setClusterOptions(roleAnalysisSessionFilterOption);
+        roleAnalysisSession.setSessionStatistic(roleAnalysisSessionStatisticType);
+        roleAnalysisSession.setClusterOptions(roleAnalysisSessionClusterOption);
         roleAnalysisSession.setPatternDetectionOptions(roleAnalysisSessionDetectionOption);
-        roleAnalysisSession.setMeanDensity(meanDensity);
-        roleAnalysisSession.setRiskLevel(riskLevel);
-
         return roleAnalysisSessionPrismObject;
     }
 
@@ -190,7 +183,7 @@ public class ClusterObjectUtils {
 //        }
 //        assert parentClusterObject != null;
 //
-//        RoleAnalysisSession clusterType = parentClusterObject.asObjectable();
+//        RoleAnalysisSessionType clusterType = parentClusterObject.asObjectable();
 //        String name = options.getString("name");
 //        if (name == null) {
 //            clusterType.setName(PolyStringType.fromOrig(options.getString("identifier")));
@@ -271,11 +264,11 @@ public class ClusterObjectUtils {
 
     }
 
-    public static PrismObject<RoleAnalysisSession> getParentClusterByOid(@NotNull PageBase pageBase,
+    public static PrismObject<RoleAnalysisSessionType> getParentClusterByOid(@NotNull PageBase pageBase,
             String oid, OperationResult result) {
         try {
             return pageBase.getRepositoryService()
-                    .getObject(RoleAnalysisSession.class, oid, null, result);
+                    .getObject(RoleAnalysisSessionType.class, oid, null, result);
         } catch (ObjectNotFoundException ignored) {
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -331,7 +324,7 @@ public class ClusterObjectUtils {
     public static int countParentClusterTypeObjects(@NotNull PageBase pageBase) {
         OperationResult operationResult = new OperationResult("countClusters");
         try {
-            return pageBase.getRepositoryService().countObjects(RoleAnalysisSession.class, null, null, operationResult);
+            return pageBase.getRepositoryService().countObjects(RoleAnalysisSessionType.class, null, null, operationResult);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
