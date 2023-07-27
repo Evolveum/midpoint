@@ -34,12 +34,6 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
     }
 
     @Override
-    protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
-            LoginFormModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new FocusIdentificationModuleWebSecurityConfigurer<>(configuration));
-    }
-
-    @Override
     protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
         return new FocusIdentificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }

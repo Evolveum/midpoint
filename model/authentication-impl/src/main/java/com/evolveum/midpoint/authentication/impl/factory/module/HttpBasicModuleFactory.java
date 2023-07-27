@@ -37,11 +37,6 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected HttpBasicModuleWebSecurityConfigurer createModule(ModuleWebSecurityConfigurationImpl configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfigurer(configuration));
-    }
-
-    @Override
     protected HttpBasicModuleWebSecurityConfigurer createModuleConfigurer(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
         return new HttpBasicModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }

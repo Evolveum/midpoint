@@ -70,23 +70,14 @@ public abstract class AbstractCredentialModuleFactory<
 
         isSupportedChannel(authenticationChannel);
 
-//        C configuration = createConfiguration().init();
 
-//        C configuration = createConfiguration(moduleType, sequenceSuffix, authenticationChannel);
-
+        //TODO PROVIDERS
 //        configuration.addAuthenticationProvider(
 //                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
 
-
-
-//        CA moduleConfigurer = createModule(configuration);
-
         CA moduleConfigurer = getObjectObjectPostProcessor()
                 .postProcess(createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor()));
-//        moduleConfigurer.setObjectPostProcessor(getObjectObjectPostProcessor());
-
-//        HttpSecurity http = getNewHttpSecurity(moduleConfigurer);
 
         HttpSecurity http =  moduleConfigurer.getNewHttpSecurity();
         http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
@@ -174,7 +165,6 @@ public abstract class AbstractCredentialModuleFactory<
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> objectPostProcessor);
 
-    protected abstract CA createModule(C configuration);
 
     protected abstract AuthenticationProvider createProvider(CredentialPolicyType usedPolicy);
 

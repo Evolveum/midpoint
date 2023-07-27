@@ -47,11 +47,6 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
     }
 
     @Override
-    protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new ArchetypeSelectionModuleWebSecurityConfigurer<>(configuration));
-    }
-
-    @Override
     protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(
             ArchetypeSelectionModuleType moduleType,
             String sequenceSuffix,

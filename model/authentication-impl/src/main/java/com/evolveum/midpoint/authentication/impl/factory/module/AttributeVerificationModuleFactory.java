@@ -32,12 +32,6 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
     }
 
     @Override
-    protected AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
-            LoginFormModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new AttributeVerificationModuleWebSecurityConfigurer<>(configuration));
-    }
-
-    @Override
     protected AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(
             AttributeVerificationAuthenticationModuleType moduleType,
             String sequenceSuffix,

@@ -36,11 +36,6 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected MailNonceFormModuleWebSecurityConfigurer createModule(ModuleWebSecurityConfigurationImpl configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new MailNonceFormModuleWebSecurityConfigurer(configuration));
-    }
-
-    @Override
     protected MailNonceFormModuleWebSecurityConfigurer createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
         return new MailNonceFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
