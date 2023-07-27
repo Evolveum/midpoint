@@ -76,7 +76,13 @@ public abstract class AbstractModuleFactory<
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
             AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
-        validateChanelAndModule(authenticationChannel, moduleType);
+        if (moduleType == null) {
+            LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is null ");
+            throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
+                    + " for null module ");
+        }
+
+        isSupportedChannel(authenticationChannel);
 
 
         //TODO PROVIDERS
@@ -106,25 +112,6 @@ public abstract class AbstractModuleFactory<
 
     protected void postProcessFilter(SecurityFilterChain filter, CA configurer) {
         // Nothing to do here. Subclasses may override.
-    }
-
-    protected void validateChanelAndModule(AuthenticationChannel authenticationChannel, MT moduleType) {
-        if (!(moduleType instanceof AbstractCredentialAuthenticationModuleType)) {
-            LOGGER.error("This factory supports only AbstractCredentialAuthenticationModuleType, but moduleType is " + moduleType);
-            throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
-                    + " for module " + moduleType);
-        }
-
-
-        if (authenticationChannel == null) {
-            return;
-        }
-
-        //TODO chanel
-        if (SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(authenticationChannel.getChannelId())) {
-            throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
-                    + " for channel " + authenticationChannel.getChannelId());
-        }
     }
 
     protected abstract CA createModuleConfigurer(MT moduleType,

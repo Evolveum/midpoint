@@ -57,43 +57,4 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
-//            ServletRequest request, Map<Class<?>, Object> sharedObjects,
-//            AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
-//            AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
-//
-//        ModuleWebSecurityConfigurationImpl configuration = createConfiguration(moduleType, sequenceSuffix);
-//
-//        configuration.addAuthenticationProvider(createProvider());
-//
-//        HttpClusterModuleWebSecurityConfigurer module = createModule(configuration);
-//        HttpSecurity http = module.getNewHttpSecurity(); //getNewHttpSecurity(module);
-//        setSharedObjects(http, sharedObjects);
-//
-//        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);
-//        SecurityFilterChain filter = http.build();
-//        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
-//    }
-
-//    private ModuleWebSecurityConfigurationImpl createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {
-//        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-//        configuration.setSequenceSuffix(prefixOfSequence);
-//        return configuration;
-//    }
-//
-//    private HttpClusterModuleWebSecurityConfigurer createModule(ModuleWebSecurityConfigurationImpl configuration) {
-//        return getObjectObjectPostProcessor().postProcess(new HttpClusterModuleWebSecurityConfigurer(configuration));
-//    }
-//
-//    private AuthenticationProvider createProvider() {
-//        return getObjectObjectPostProcessor().postProcess(new ClusterProvider());
-//    }
-//
-//    private ModuleAuthenticationImpl createEmptyModuleAuthentication(ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
-//        ModuleAuthenticationImpl moduleAuthentication = new ModuleAuthenticationImpl(AuthenticationModuleNameConstants.CLUSTER, sequenceModule);
-//        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-//        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-//        return moduleAuthentication;
-//    }
-
 }

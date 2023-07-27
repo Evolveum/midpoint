@@ -50,6 +50,12 @@ public class OidcResourceServerModuleFactory<C extends RemoteModuleWebSecurityCo
 
     @Override
     protected OidcResourceServerModuleWebSecurityConfigurer<C> createModuleConfigurer(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        OidcResourceServerAuthenticationModuleType resourceServer = moduleType.getResourceServer();
+        if (resourceServer == null) {
+            LOGGER.error("Resource configuration of OidcAuthenticationModuleType is null");
+            return null;
+        }
+
         return new OidcResourceServerModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request, null);
     }
 

@@ -54,6 +54,11 @@ public class OidcClientModuleFactory extends RemoteModuleFactory<
 
     @Override
     protected OidcClientModuleWebSecurityConfigurer createModuleConfigurer(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        if (moduleType.getClient().isEmpty()) {
+            LOGGER.error("Client configuration of OidcAuthenticationModuleType is null");
+            return null; //TODO shouldn't we throw exception?
+        }
+
         return new OidcClientModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
                 objectPostProcessor, request,
                 new OidcClientProvider(null));//TODO configuration.getAdditionalConfiguration()));

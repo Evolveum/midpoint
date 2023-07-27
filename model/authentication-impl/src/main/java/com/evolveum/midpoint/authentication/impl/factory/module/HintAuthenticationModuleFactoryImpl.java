@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -47,5 +49,11 @@ public class HintAuthenticationModuleFactoryImpl extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-
+    @Override
+    protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {
+        if (!SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(authenticationChannel.getChannelId())) {
+            throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
+                    + " for channel " + authenticationChannel.getChannelId());
+        }
+    }
 }

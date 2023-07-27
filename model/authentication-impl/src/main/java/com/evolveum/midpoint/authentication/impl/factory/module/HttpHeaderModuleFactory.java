@@ -62,7 +62,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
+    //    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
 //                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
 //            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 //        if (!(httpModuleType instanceof HttpHeaderAuthenticationModuleType)) {

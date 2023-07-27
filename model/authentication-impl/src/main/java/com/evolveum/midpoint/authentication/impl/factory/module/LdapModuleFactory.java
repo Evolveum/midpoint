@@ -78,7 +78,7 @@ public class LdapModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
+    //    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
 //            ServletRequest request, Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
 //            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 //
