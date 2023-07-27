@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.ArchetypeSelectionAuthenticationFilter;
@@ -17,13 +18,24 @@ import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationF
 
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionModuleType;
+
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-public class ArchetypeSelectionModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class ArchetypeSelectionModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, ArchetypeSelectionModuleType> {
+
 
     public ArchetypeSelectionModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public ArchetypeSelectionModuleWebSecurityConfigurer(ArchetypeSelectionModuleType moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

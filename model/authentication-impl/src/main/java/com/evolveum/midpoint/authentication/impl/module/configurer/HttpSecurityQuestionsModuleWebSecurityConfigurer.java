@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpSecurityQuestionsAuthenticationEntryPoint;
@@ -16,7 +17,10 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticationModuleType;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -30,7 +34,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpSecurityQuestionsModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class HttpSecurityQuestionsModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, HttpSecQAuthenticationModuleType> {
 
     @Autowired
     private ModelService model;
@@ -46,6 +50,13 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer<C extends ModuleWe
 
     public HttpSecurityQuestionsModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public HttpSecurityQuestionsModuleWebSecurityConfigurer(HttpSecQAuthenticationModuleType moduleType,
+            String suffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor) {
+        super(moduleType, suffix, authenticationChannel, postProcessor);
     }
 
     @Override

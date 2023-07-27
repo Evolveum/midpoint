@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -43,6 +44,11 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
     protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new FocusIdentificationModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new FocusIdentificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

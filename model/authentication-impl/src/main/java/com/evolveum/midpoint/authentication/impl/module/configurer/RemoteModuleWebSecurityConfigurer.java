@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 
 import jakarta.servlet.ServletRequest;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.prism.PrismContext;
  * @author skublik
  */
 
-public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> extends ModuleWebSecurityConfigurer<C, MT> {
 
     @Autowired
     private ModelAuditRecorder auditProvider;

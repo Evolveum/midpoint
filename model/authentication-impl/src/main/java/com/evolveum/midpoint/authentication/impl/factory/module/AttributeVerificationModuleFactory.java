@@ -10,11 +10,13 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.AttributeVerificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configurer.ArchetypeSelectionModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.configurer.AttributeVerificationModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.AttributeVerificationProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,6 +43,16 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
     protected AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new AttributeVerificationModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(
+            AttributeVerificationAuthenticationModuleType moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor) {
+        return new AttributeVerificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+//        return null;
     }
 
     @Override

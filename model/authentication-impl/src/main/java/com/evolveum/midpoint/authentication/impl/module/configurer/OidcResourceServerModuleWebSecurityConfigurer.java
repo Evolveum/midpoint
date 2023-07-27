@@ -20,6 +20,9 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcResourceServerAuthenticationModuleType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -30,7 +33,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  */
 
 public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModuleWebSecurityConfiguration>
-        extends ModuleWebSecurityConfigurer<C> {
+        extends ModuleWebSecurityConfigurer<C, OidcAuthenticationModuleType> {
 
     @Autowired
     private ModelService model;

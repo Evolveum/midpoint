@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,7 +34,7 @@ import java.util.Collections;
  * @author skublik
  */
 
-public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C> {
+public class OidcClientModuleWebSecurityConfigurer<C extends OidcClientModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C, OidcAuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleWebSecurityConfigurer.class);
     public static final String OIDC_LOGIN_PATH = "/oidc/select";

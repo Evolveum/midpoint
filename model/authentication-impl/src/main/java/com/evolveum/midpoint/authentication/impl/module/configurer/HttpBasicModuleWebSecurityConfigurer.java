@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
@@ -15,7 +16,10 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpBasicAuthenticationModuleType;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -29,7 +33,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, HttpBasicAuthenticationModuleType> {
 
     @Autowired
     private ModelService model;
@@ -45,6 +49,13 @@ public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityCon
 
     public HttpBasicModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public HttpBasicModuleWebSecurityConfigurer(HttpBasicAuthenticationModuleType module,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor) {
+        super(module, sequenceSuffix, authenticationChannel, postProcessor);
     }
 
     @Override

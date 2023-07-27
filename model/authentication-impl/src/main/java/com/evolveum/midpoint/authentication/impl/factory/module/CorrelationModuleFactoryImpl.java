@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.impl.module.configurer.CorrelationMo
 import com.evolveum.midpoint.authentication.impl.provider.CorrelationProvider;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -46,6 +47,11 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
     protected CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new CorrelationModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(CorrelationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new CorrelationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

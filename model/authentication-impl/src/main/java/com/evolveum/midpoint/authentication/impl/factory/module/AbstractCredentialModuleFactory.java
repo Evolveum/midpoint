@@ -12,6 +12,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
+import com.evolveum.midpoint.authentication.impl.filter.RefuseUnauthenticatedRequestFilter;
+
 import jakarta.servlet.ServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -30,12 +33,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
+
 /**
  * @author skublik
  */
 public abstract class AbstractCredentialModuleFactory<
         C extends ModuleWebSecurityConfiguration,
-        CA extends ModuleWebSecurityConfigurer<C>,
+        CA extends ModuleWebSecurityConfigurer<C, MT>,
         MT extends AbstractAuthenticationModuleType,
         MA extends ModuleAuthentication>
         extends AbstractModuleFactory<MT, MA> {
@@ -67,56 +72,76 @@ public abstract class AbstractCredentialModuleFactory<
 
 //        C configuration = createConfiguration().init();
 
-        C configuration = createConfiguration(moduleType, sequenceSuffix, authenticationChannel);
+//        C configuration = createConfiguration(moduleType, sequenceSuffix, authenticationChannel);
 
-        configuration.addAuthenticationProvider(
-                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
-
-        MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration, necessity);
-        moduleAuthentication.setFocusType(moduleType.getFocusType());
+//        configuration.addAuthenticationProvider(
+//                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
 
-        CA module = createModule(configuration);
-        module.setObjectPostProcessor(getObjectObjectPostProcessor());
 
-        HttpSecurity http = getNewHttpSecurity(module);
+
+//        CA moduleConfigurer = createModule(configuration);
+
+        CA moduleConfigurer = getObjectObjectPostProcessor()
+                .postProcess(createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor()));
+//        moduleConfigurer.setObjectPostProcessor(getObjectObjectPostProcessor());
+
+//        HttpSecurity http = getNewHttpSecurity(moduleConfigurer);
+
+        HttpSecurity http =  moduleConfigurer.getNewHttpSecurity();
+        http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
         setSharedObjects(http, sharedObjects);
+
         SecurityFilterChain filter = http.build();
 
 
-        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+        MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, moduleConfigurer.getConfiguration(), necessity);
+        moduleAuthentication.setFocusType(moduleType.getFocusType());
+
+        return AuthModuleImpl.build(filter, moduleConfigurer.getConfiguration(), moduleAuthentication);
     }
 
 
-
-    protected AuthenticationProvider getProvider(
-            AbstractCredentialAuthenticationModuleType moduleType,
-            CredentialsPolicyType credentialsPolicy) {
-        CredentialPolicyType usedPolicy = null;
-        String credentialName = moduleType.getCredentialName();
-
+    private List<CredentialPolicyType> collectCredentialPolicies(CredentialsPolicyType credentialsPolicy) {
         List<CredentialPolicyType> credentialPolicies = new ArrayList<>();
         if (credentialsPolicy != null) {
             credentialPolicies.add(credentialsPolicy.getPassword());
             credentialPolicies.add(credentialsPolicy.getSecurityQuestions());
             credentialPolicies.addAll(credentialsPolicy.getNonce());
         }
+        return credentialPolicies;
+    }
 
+    private CredentialPolicyType determineUsedPolicy(List<CredentialPolicyType> credentialPolicies, String credentialName) {
+        CredentialPolicyType usedPolicy = null;
         for (CredentialPolicyType processedPolicy : credentialPolicies) {
-            if (processedPolicy != null) {
-                if (StringUtils.isNotBlank(credentialName)) {
-                    if (credentialName.equals(processedPolicy.getName())) {
-                        usedPolicy = processedPolicy;
-                    }
-                } else if (supportedClass() != null && processedPolicy.getClass().isAssignableFrom(supportedClass())) {
+            if (processedPolicy == null) {
+                continue;
+            }
+            if (StringUtils.isNotBlank(credentialName)) {
+                if (credentialName.equals(processedPolicy.getName())) {
                     usedPolicy = processedPolicy;
                 }
+            } else if (supportedClass() != null && processedPolicy.getClass().isAssignableFrom(supportedClass())) {
+                usedPolicy = processedPolicy;
             }
         }
-        if (usedPolicy == null && (PasswordCredentialsPolicyType.class.equals(supportedClass()) || supportedClass() == null)) {
-            return getObjectObjectPostProcessor().postProcess(createProvider(null));
-        }
+        return usedPolicy;
+    }
+
+    protected AuthenticationProvider getProvider(
+            AbstractCredentialAuthenticationModuleType moduleType,
+            CredentialsPolicyType credentialsPolicy) {
+        String credentialName = moduleType.getCredentialName();
+
+        List<CredentialPolicyType> credentialPolicies = collectCredentialPolicies(credentialsPolicy);
+        CredentialPolicyType usedPolicy = determineUsedPolicy(credentialPolicies, credentialName);
+
+
         if (usedPolicy == null) {
+            if (PasswordCredentialsPolicyType.class.equals(supportedClass()) || supportedClass() == null) {
+                return getObjectObjectPostProcessor().postProcess(createProvider(null));
+            }
             String message = StringUtils.isBlank(credentialName)
                     ? ("Couldn't find credential for module " + moduleType)
                     : ("Couldn't find credential with name " + credentialName);
@@ -147,6 +172,11 @@ public abstract class AbstractCredentialModuleFactory<
     protected abstract C createConfiguration(MT moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel);
 
 //    protected abstract C createConfiguration();
+
+    protected abstract CA createModuleConfigurer(MT moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor);
 
     protected abstract CA createModule(C configuration);
 

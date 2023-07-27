@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
@@ -25,6 +26,10 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import com.evolveum.midpoint.authentication.impl.filter.RedirectForLoginPagesWithAuthenticationFilter;
 
+import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionModuleType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +58,7 @@ import com.evolveum.midpoint.prism.PrismContext;
  * @author skublik
  */
 
-public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> {//extends WebSecurityConfigurerAdapter {
+public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> {//extends WebSecurityConfigurerAdapter {
 
     @Autowired private AuditedAccessDeniedHandler accessDeniedHandler;
     @Autowired private MidPointGuiAuthorizationEvaluator accessDecisionManager;
@@ -74,6 +79,22 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     public ModuleWebSecurityConfigurer(C configuration){
 //        super(true);
         this.configuration = configuration;
+    }
+
+    public ModuleWebSecurityConfigurer(MT moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor) {
+        this.configuration = buildConfiguration(moduleType, sequenceSuffix);
+        this.objectPostProcessor = objectPostProcessor;
+
+    }
+
+    protected C buildConfiguration(MT moduleType, String sequenceSuffix) {
+        LoginFormModuleWebSecurityConfiguration config = new LoginFormModuleWebSecurityConfiguration();
+        config.setSequenceSuffix(sequenceSuffix);
+        config.setModuleIdentifier(moduleType.getIdentifier() != null ? moduleType.getIdentifier() : moduleType.getName());
+        return (C) config;
     }
 
     public C getConfiguration() {

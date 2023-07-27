@@ -14,6 +14,8 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -27,7 +29,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpClusterModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class HttpClusterModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, AbstractAuthenticationModuleType> {
 
     @Autowired
     private SecurityEnforcer securityEnforcer;

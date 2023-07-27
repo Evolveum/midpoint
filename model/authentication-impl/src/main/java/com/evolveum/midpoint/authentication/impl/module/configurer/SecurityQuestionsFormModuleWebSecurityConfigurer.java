@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
@@ -16,16 +17,26 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormM
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsFormAuthenticationModuleType;
+
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 /**
  * @author skublik
  */
 
-public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, SecurityQuestionsFormAuthenticationModuleType> {
 
     public SecurityQuestionsFormModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public SecurityQuestionsFormModuleWebSecurityConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType,
+            String prefixOfSequence,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -47,7 +48,8 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
 
     @Override
     protected LoginFormModuleWebSecurityConfiguration createConfiguration(ArchetypeSelectionModuleType moduleType,
-            String prefixOfSequence, AuthenticationChannel authenticationChannel) {
+            String prefixOfSequence,
+            AuthenticationChannel authenticationChannel) {
         LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
@@ -57,6 +59,16 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
     @Override
     protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new ArchetypeSelectionModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(
+            ArchetypeSelectionModuleType moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor) {
+        return new ArchetypeSelectionModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
+//        return null;
     }
 
     @Override

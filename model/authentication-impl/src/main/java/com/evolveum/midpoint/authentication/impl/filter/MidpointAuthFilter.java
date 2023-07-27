@@ -93,7 +93,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     public void createFilterForAuthenticatedRequest() {
-        ModuleWebSecurityConfigurer<?> module =
+        ModuleWebSecurityConfigurer<?, ?> module =
                 objectObjectPostProcessor.postProcess(new ModuleWebSecurityConfigurer<>(null));
         module.setObjectPostProcessor(objectObjectPostProcessor);
     }

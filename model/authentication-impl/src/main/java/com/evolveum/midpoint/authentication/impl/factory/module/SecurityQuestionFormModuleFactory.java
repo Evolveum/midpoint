@@ -14,6 +14,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.SecurityQ
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,6 +46,11 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
     protected SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new SecurityQuestionsFormModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new SecurityQuestionsFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

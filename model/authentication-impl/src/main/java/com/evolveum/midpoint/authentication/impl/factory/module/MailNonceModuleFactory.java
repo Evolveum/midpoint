@@ -15,6 +15,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonce
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,6 +46,11 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
     @Override
     protected MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new MailNonceFormModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected MailNonceFormModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModuleConfigurer(MailNonceAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new MailNonceFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     //TODO

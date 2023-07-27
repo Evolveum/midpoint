@@ -83,7 +83,7 @@ public abstract class AbstractModuleFactory<MT extends AbstractAuthenticationMod
     }
 
     HttpSecurity getNewHttpSecurity(ModuleWebSecurityConfigurer module) throws Exception {
-        module.setObjectPostProcessor(getObjectObjectPostProcessor());
+//        module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity httpSecurity =  module.getNewHttpSecurity();
         httpSecurity.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
         return httpSecurity;

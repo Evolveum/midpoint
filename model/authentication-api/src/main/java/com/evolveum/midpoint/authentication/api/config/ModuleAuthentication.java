@@ -20,6 +20,8 @@ import javax.xml.namespace.QName;
 /**
  * Wrapper for authentication module, provide all information about actual state
  *
+ * wrapps authentication sequence module and add attributes such as state
+ *
  * @author skublik
  */
 

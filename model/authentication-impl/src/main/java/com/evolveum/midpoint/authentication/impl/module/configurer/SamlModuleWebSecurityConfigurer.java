@@ -17,6 +17,8 @@ import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequest
 import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequestSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationModuleType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,7 +44,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 
-public class SamlModuleWebSecurityConfigurer<C extends SamlModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C> {
+public class SamlModuleWebSecurityConfigurer<C extends SamlModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C, Saml2AuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfigurer.class);
     public static final String SAML_LOGIN_PATH = "/saml2/select";

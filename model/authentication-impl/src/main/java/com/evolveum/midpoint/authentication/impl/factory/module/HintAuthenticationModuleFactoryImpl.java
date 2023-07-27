@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -40,6 +41,11 @@ public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModul
     protected HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
             LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new HintModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(HintAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new HintModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.LoginForm
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
-        LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, LoginFormAuthenticationModuleType>,
         LoginFormAuthenticationModuleType,
         LoginFormModuleAuthenticationImpl> {
 
@@ -41,8 +42,13 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
+    protected LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, LoginFormAuthenticationModuleType> createModule(LoginFormModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new LoginFormModuleWebSecurityConfigurer<>(configuration));
+    }
+
+    @Override
+    protected LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, LoginFormAuthenticationModuleType> createModuleConfigurer(LoginFormAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new LoginFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

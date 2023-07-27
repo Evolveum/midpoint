@@ -16,6 +16,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModul
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,6 +46,11 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
     @Override
     protected HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfigurer(configuration));
+    }
+
+    @Override
+    protected HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModuleConfigurer(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        return new HttpBasicModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

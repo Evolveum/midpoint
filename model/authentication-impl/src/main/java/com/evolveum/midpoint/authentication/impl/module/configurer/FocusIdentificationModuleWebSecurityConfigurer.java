@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
+
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -21,10 +25,15 @@ import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationF
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
-public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration>
+        extends ModuleWebSecurityConfigurer<C, FocusIdentificationAuthenticationModuleType> {
 
     public FocusIdentificationModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public FocusIdentificationModuleWebSecurityConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor);
     }
 
     @Override

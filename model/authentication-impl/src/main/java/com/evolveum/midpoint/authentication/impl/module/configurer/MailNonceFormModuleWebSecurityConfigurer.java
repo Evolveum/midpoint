@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
@@ -18,7 +19,10 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailNonceAuthenticationModuleType;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 
@@ -27,10 +31,17 @@ import org.springframework.security.core.Authentication;
  * @author skublik
  */
 
-public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class MailNonceFormModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, MailNonceAuthenticationModuleType> {
 
     public MailNonceFormModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
+    }
+
+    public MailNonceFormModuleWebSecurityConfigurer(MailNonceAuthenticationModuleType moduleType,
+            String prefixOfSequence,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor);
     }
 
     @Override
