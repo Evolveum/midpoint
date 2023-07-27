@@ -1,16 +1,14 @@
-package com.evolveum.midpoint.authentication.impl.factory.module;
+package com.evolveum.midpoint.authentication.api;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import java.util.Map;
+
+import jakarta.servlet.ServletRequest;
+
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-
-import jakarta.servlet.ServletRequest;
-
-import java.util.Map;
 
 public interface ModuleFactory<MT extends AbstractAuthenticationModuleType, MA extends ModuleAuthentication> {
 

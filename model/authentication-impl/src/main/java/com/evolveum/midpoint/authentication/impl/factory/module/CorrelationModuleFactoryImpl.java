@@ -6,20 +6,19 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.CorrelationModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.configurer.CorrelationModuleWebSecurityConfigurer;
-
-import com.evolveum.midpoint.authentication.impl.provider.CorrelationProvider;
-
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.CorrelationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.authentication.impl.module.configurer.CorrelationModuleWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.impl.provider.CorrelationProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthenticationModuleType;
 
 /**
  * @author skublik

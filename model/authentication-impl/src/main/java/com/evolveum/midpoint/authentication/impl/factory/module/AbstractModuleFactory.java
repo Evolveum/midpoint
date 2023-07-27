@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.ModuleFactory;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 

@@ -2,26 +2,20 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-
-import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.api.ModuleFactory;
 
 import jakarta.servlet.ServletRequest;
-
-import com.evolveum.midpoint.authentication.api.AuthModule;
-
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).

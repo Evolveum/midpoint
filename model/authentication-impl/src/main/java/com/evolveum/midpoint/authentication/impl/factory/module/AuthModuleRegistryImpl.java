@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
+import com.evolveum.midpoint.authentication.api.ModuleFactory;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.springframework.stereotype.Component;

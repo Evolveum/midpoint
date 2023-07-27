@@ -36,6 +36,13 @@ public class LdapWebSecurityConfigurer extends LoginFormModuleWebSecurityConfigu
         super(module, sequenceSuffix, authenticationChannel, postProcessor, request, provider);
     }
 
+    @Override
+    protected LdapModuleWebSecurityConfiguration buildConfiguration(LdapAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
+    }
+
     protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {
         return new MidpointFormLoginConfigurer(new LdapAuthenticationFilter());
     }

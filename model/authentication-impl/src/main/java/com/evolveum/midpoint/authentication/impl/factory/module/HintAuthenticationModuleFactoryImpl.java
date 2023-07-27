@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +15,10 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.HintAuthe
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.HintModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.HintAuthenticationProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HintAuthenticationModuleType;
 
 @Component
 public class HintAuthenticationModuleFactoryImpl extends AbstractModuleFactory<

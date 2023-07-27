@@ -15,6 +15,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteMod
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcClientModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.oidc.OidcClientLogoutSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.oidc.OidcLoginConfigurer;
+import com.evolveum.midpoint.authentication.impl.provider.OidcClientProvider;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,9 +55,9 @@ public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecuri
 
     public OidcClientModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
             String prefix, AuthenticationChannel authenticationChannel,
-            ObjectPostProcessor<Object> postProcessor, ServletRequest request,
-            AuthenticationProvider provider) {
-        super(moduleType, prefix, authenticationChannel, postProcessor, request, provider);
+            ObjectPostProcessor<Object> postProcessor, ServletRequest request) {
+        super(moduleType, prefix, authenticationChannel, postProcessor, request, null);
+        this.publicUrlPrefix = getPublicUrlPrefix(request);
     }
 
     @Override
@@ -64,6 +65,9 @@ public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecuri
         OidcClientModuleWebSecurityConfiguration configuration = OidcClientModuleWebSecurityConfiguration.build(
                 moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
         configuration.setSequenceSuffix(sequenceSuffix);
+        configuration.addAuthenticationProvider(getObjectPostProcessor().postProcess(
+                new OidcClientProvider(configuration.getAdditionalConfiguration())));
+
         return configuration;
     }
 

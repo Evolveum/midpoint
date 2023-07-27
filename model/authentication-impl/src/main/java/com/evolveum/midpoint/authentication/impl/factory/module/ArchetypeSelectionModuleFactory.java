@@ -7,19 +7,18 @@
 
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import jakarta.servlet.ServletRequest;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ArchetypeSelectionModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.ArchetypeSelectionModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.ArchetypeSelectionAuthenticationProvider;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import jakarta.servlet.ServletRequest;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 @Component
 public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
@@ -28,7 +27,6 @@ public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
         ArchetypeSelectionModuleType,
         ArchetypeSelectionModuleAuthentication> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionModuleFactory.class);
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -54,7 +52,6 @@ public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
         return new ArchetypeSelectionModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix,
                 authenticationChannel, objectPostProcessor, request,
                 new ArchetypeSelectionAuthenticationProvider());
-//        return null;
     }
 
 }
