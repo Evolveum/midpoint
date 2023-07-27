@@ -8,10 +8,8 @@ package com.evolveum.midpoint.authentication.api.config;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 import jakarta.servlet.http.HttpServletRequest;
-
-import com.evolveum.midpoint.authentication.api.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -21,6 +19,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
+import com.evolveum.midpoint.authentication.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
@@ -61,7 +60,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     /**
      * Authentication module created basic on configuration of module
      */
-    private List<AuthModule> authModules = new ArrayList<>();
+    private List<AuthModule<?>> authModules = new ArrayList<>();
 
     private Object principal;
     private Object credential;
@@ -95,13 +94,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         this.sequence = sequence;
     }
 
-    public List<AuthModule> getAuthModules() {
+    public List<AuthModule<?>> getAuthModules() {
         return authModules;
     }
 
-    public void setAuthModules(List<AuthModule> authModules) {
+    public void setAuthModules(List<AuthModule<?>> authModules) {
         if (!this.authModules.isEmpty()) {
-            List<AuthModule> modules = new ArrayList<>();
+            List<AuthModule<?>> modules = new ArrayList<>();
             modules.addAll(this.authModules);
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(modules);
         }

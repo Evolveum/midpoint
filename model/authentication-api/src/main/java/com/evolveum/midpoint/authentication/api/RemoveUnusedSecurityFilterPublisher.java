@@ -31,7 +31,7 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     private static RemoveUnusedSecurityFilterPublisher instance;
 
-    public void publishCustomEvent(final List<AuthModule> modules) {
+    public void publishCustomEvent(final List<AuthModule<?>> modules) {
         LOGGER.trace("Publishing RemoveUnusedSecurityFilterEvent event. With authentication modules: " + modules);
         RemoveUnusedSecurityFilterEventImpl customSpringEvent = new RemoveUnusedSecurityFilterEventImpl(this, modules);
         applicationEventPublisher.publishEvent(customSpringEvent);
@@ -48,15 +48,15 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     private static class RemoveUnusedSecurityFilterEventImpl extends RemoveUnusedSecurityFilterEvent {
 
-        private final List<AuthModule> modules;
+        private final List<AuthModule<?>> modules;
 
-        RemoveUnusedSecurityFilterEventImpl(Object source, List<AuthModule> modules) {
+        RemoveUnusedSecurityFilterEventImpl(Object source, List<AuthModule<?>> modules) {
             super(source);
             this.modules = modules;
         }
 
         @Override
-        public List<AuthModule> getAuthModules() {
+        public List<AuthModule<?>> getAuthModules() {
             return modules;
         }
     }

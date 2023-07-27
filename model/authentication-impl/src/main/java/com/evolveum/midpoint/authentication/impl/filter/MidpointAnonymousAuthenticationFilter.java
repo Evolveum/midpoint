@@ -9,26 +9,13 @@ package com.evolveum.midpoint.authentication.impl.filter;
 import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-
-import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-
-import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
-
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.core.Authentication;
@@ -38,6 +25,14 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.Assert;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
+import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -94,8 +89,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
     }
 
     protected void processAuthentication(ServletRequest req) {
-        if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() == null) {
                 Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
@@ -122,7 +116,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
         AuthenticationChannel authenticationChannel = AuthSequenceUtil.buildAuthChannel(authChannelRegistry, sequence);
 
-        List<AuthModule> authModules =
+        List<AuthModule<?>> authModules =
                 new AuthenticationSequenceModuleCreator(
                         authRegistry,
                         sequence,
@@ -131,9 +125,6 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
                         authenticationChannel)
                         .create();
 
-//        List<AuthModule> authModules = AuthSequenceUtil.buildModuleFilters(
-//                authRegistry, sequence, request, authenticationsPolicy.getModules(),
-//                null, new HashMap<>(), authenticationChannel);
         authentication.setAuthModules(authModules);
         if (authModules != null && !authModules.isEmpty()) {
             ModuleAuthenticationImpl module = (ModuleAuthenticationImpl) authModules.get(0).getBaseModuleAuthentication();

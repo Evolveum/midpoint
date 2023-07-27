@@ -82,7 +82,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private final PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
 
-    private final Map<String, List<AuthModule>> authModulesOfSpecificSequences = new HashMap<>();
+    private final Map<String, List<AuthModule<?>>> authModulesOfSpecificSequences = new HashMap<>();
 
     public MidpointAuthFilter(Map<Class<?>, Object> sharedObjects) {
         this.sharedObjects = sharedObjects;
@@ -438,13 +438,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return indexOfProcessingModule;
     }
 
-    private List<AuthModule> createAuthenticationModuleBySequence(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper,
+    private List<AuthModule<?>> createAuthenticationModuleBySequence(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper,
             HttpServletRequest httpRequest) {
-        List<AuthModule> authModules;
+        List<AuthModule<?>> authModules;
         if (processingDifferentAuthenticationSequence(mpAuthentication, authWrapper.sequence)) {
             clearAuthentication(httpRequest);
             authenticationManager.getProviders().clear();
-            authModules = new AuthenticationSequenceModuleCreator(
+            //noinspection unchecked
+            authModules = new AuthenticationSequenceModuleCreator<>(
                     authModuleRegistry,
                     authWrapper.sequence,
                     httpRequest,
@@ -453,12 +454,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
                     .credentialsPolicy(authWrapper.credentialsPolicy)
                     .sharedObjects(sharedObjects)
                     .create();
-//            )
-//
-//
-//                    AuthSequenceUtil.buildModuleFilters(
-//                    authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
-//                    authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
         } else {
             authModules = mpAuthentication.getAuthModules();
         }
@@ -545,7 +540,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationsPolicyType authenticationsPolicy;
         CredentialsPolicyType credentialsPolicy = null;
         PrismObject<SecurityPolicyType> securityPolicy = null;
-        List<AuthModule> authModules;
+        List<AuthModule<?>> authModules;
         AuthenticationSequenceType sequence = null;
         AuthenticationChannel authenticationChannel;
 

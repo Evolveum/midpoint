@@ -10,13 +10,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -33,6 +30,7 @@ import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegist
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
+import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,8 +70,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;
         String authenticatedChannel = null;
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        if (authentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
             moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
             if (mpAuthentication.getAuthenticationChannel() != null) {
@@ -142,13 +139,9 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     }
 
     private boolean isNewSecurityPolicyFound(MidpointAuthentication mpAuthentication) {
-        if (mpAuthentication.getPrincipal() == null || !(mpAuthentication.getPrincipal() instanceof MidPointPrincipal)) {
+        if (mpAuthentication.getPrincipal() == null || !(mpAuthentication.getPrincipal() instanceof MidPointPrincipal principal)) {
             return false;
         }
-//        if (mpAuthentication.isMerged()) {
-//            return false;
-//        }
-        MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
         SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
         if (securityPolicy == null) {
             return false;
@@ -172,7 +165,8 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(newSecurityPolicy,
                 mpAuthentication.getSequenceIdentifier());
         mpAuthentication.setSequence(sequence);
-        List<AuthModule> modules = new AuthenticationSequenceModuleCreator(
+        //noinspection unchecked
+        List<AuthModule<?>> modules = new AuthenticationSequenceModuleCreator<>(
                 authModuleRegistry,
                 sequence,
                 request,
@@ -181,13 +175,8 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                 .credentialsPolicy(newSecurityPolicy.getCredentials())
                 .sharedObjects(mpAuthentication.getSharedObjects())
                 .create();
-//        )
-//        List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
-//                authModuleRegistry, sequence, request, newSecurityPolicy.getAuthentication().getModules(),
-//                newSecurityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
         modules.removeIf(Objects::isNull);
         mpAuthentication.setAuthModules(modules);
-//        mpAuthentication.setMerged(true);
     }
 
     @Override
