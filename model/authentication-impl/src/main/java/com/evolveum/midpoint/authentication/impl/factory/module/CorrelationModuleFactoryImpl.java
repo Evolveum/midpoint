@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactory
+public class CorrelationModuleFactoryImpl extends AbstractModuleFactory
         <LoginFormModuleWebSecurityConfiguration,
                 CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
                 CorrelationAuthenticationModuleType,
@@ -41,16 +41,6 @@ public class CorrelationModuleFactoryImpl extends AbstractCredentialModuleFactor
         return new CorrelationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel,
                 objectPostProcessor, request,
                 new CorrelationProvider());
-    }
-
-    @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new CorrelationProvider();
-    }
-
-    @Override
-    protected Class<? extends CredentialPolicyType> supportedClass() {
-        return null;
     }
 
     @Override

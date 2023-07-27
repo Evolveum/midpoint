@@ -44,11 +44,6 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new PasswordProvider();
-    }
-
-    @Override
     protected Class<? extends CredentialPolicyType> supportedClass() {
         return PasswordCredentialsPolicyType.class;
     }

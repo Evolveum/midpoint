@@ -57,40 +57,40 @@ public class Saml2ModuleFactory extends RemoteModuleFactory<SamlModuleWebSecurit
 
     }
 
-    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(Saml2AuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
-                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
-        if (!(moduleType instanceof Saml2AuthenticationModuleType)) {
-            LOGGER.error("This factory support only Saml2AuthenticationModuleType, but modelType is " + moduleType);
-            return null;
-        }
-
-        isSupportedChannel(authenticationChannel);
-
-        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
-        configuration.setSequenceSuffix(sequenceSuffix);
-        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
-
-        SamlModuleWebSecurityConfigurer module = getObjectObjectPostProcessor().postProcess(
-                new SamlModuleWebSecurityConfigurer(configuration));
-        HttpSecurity http = null;//getNewHttpSecurity(module);
-        setSharedObjects(http, sharedObjects);
-
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule, request);
-        moduleAuthentication.setFocusType(moduleType.getFocusType());
-        SecurityFilterChain filter = http.build();
-
-        //TODO filterimg
-        for (Filter f : filter.getFilters()){
-            if (f instanceof MidpointSaml2WebSsoAuthenticationRequestFilter) {
-                ((MidpointSaml2WebSsoAuthenticationRequestFilter) f).getAuthenticationRequestResolver().setRequestMatcher(
-                        new AntPathRequestMatcher(module.getPrefix()
-                                + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID));
-                break;
-            }
-        }
-        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
-    }
+//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(Saml2AuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
+//                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+//            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
+//        if (!(moduleType instanceof Saml2AuthenticationModuleType)) {
+//            LOGGER.error("This factory support only Saml2AuthenticationModuleType, but modelType is " + moduleType);
+//            return null;
+//        }
+//
+//        isSupportedChannel(authenticationChannel);
+//
+//        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
+//        configuration.setSequenceSuffix(sequenceSuffix);
+//        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
+//
+//        SamlModuleWebSecurityConfigurer module = getObjectObjectPostProcessor().postProcess(
+//                new SamlModuleWebSecurityConfigurer(configuration));
+//        HttpSecurity http = null;//getNewHttpSecurity(module);
+//        setSharedObjects(http, sharedObjects);
+//
+//        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule, request);
+//        moduleAuthentication.setFocusType(moduleType.getFocusType());
+//        SecurityFilterChain filter = http.build();
+//
+//        //TODO filtering
+//        for (Filter f : filter.getFilters()){
+//            if (f instanceof MidpointSaml2WebSsoAuthenticationRequestFilter) {
+//                ((MidpointSaml2WebSsoAuthenticationRequestFilter) f).getAuthenticationRequestResolver().setRequestMatcher(
+//                        new AntPathRequestMatcher(module.getPrefix()
+//                                + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID));
+//                break;
+//            }
+//        }
+//        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+//    }
 
     @Override
     protected void postProcessFilter(SecurityFilterChain filter, SamlModuleWebSecurityConfigurer configurer) {
@@ -113,7 +113,9 @@ public class Saml2ModuleFactory extends RemoteModuleFactory<SamlModuleWebSecurit
         Saml2ModuleAuthenticationImpl moduleAuthentication = new Saml2ModuleAuthenticationImpl(sequenceModule);
         List<IdentityProvider> providers = new ArrayList<>();
         for (RelyingPartyRegistration p : configuration.getRelyingPartyRegistrationRepository()) {
-            IdentityProvider provider = createIdentityProvider(p, request, configuration);
+            SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
+            IdentityProvider provider = createIdentityProvider(RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID,
+                    p.getRegistrationId(), request, configuration, config.getLinkText());
             providers.add(provider);
         }
         moduleAuthentication.setProviders(providers);
@@ -123,34 +125,34 @@ public class Saml2ModuleFactory extends RemoteModuleFactory<SamlModuleWebSecurit
         return moduleAuthentication;
     }
 
-    private IdentityProvider createIdentityProvider(RelyingPartyRegistration relyingParty, ServletRequest request, SamlModuleWebSecurityConfiguration configuration) {
-        String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
-                + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
-        SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(relyingParty.getRegistrationId());
-        return new IdentityProvider()
-                .setLinkText(config.getLinkText())
-                .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", relyingParty.getRegistrationId()));
-    }
+//    private IdentityProvider createIdentityProvider(RelyingPartyRegistration relyingParty, ServletRequest request, SamlModuleWebSecurityConfiguration configuration) {
+//        String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
+//                + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
+//        SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(relyingParty.getRegistrationId());
+//        return new IdentityProvider()
+//                .setLinkText(config.getLinkText())
+//                .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", relyingParty.getRegistrationId()));
+//    }
 
-    public ModuleAuthenticationImpl createEmptyModuleAuthentication(
-            SamlModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
-        Saml2ModuleAuthenticationImpl moduleAuthentication = new Saml2ModuleAuthenticationImpl(sequenceModule);
-        List<IdentityProvider> providers = new ArrayList<>();
-        configuration.getRelyingPartyRegistrationRepository().forEach(
-                p -> {
-                    String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
-                            + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
-                    SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
-                    IdentityProvider mp = new IdentityProvider()
-                                .setLinkText(config.getLinkText())
-                                .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", p.getRegistrationId()));
-                        providers.add(mp);
-                }
-        );
-        moduleAuthentication.setProviders(providers);
-        moduleAuthentication.setAdditionalConfiguration(configuration.getAdditionalConfiguration());
-        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        return moduleAuthentication;
-    }
+//    public ModuleAuthenticationImpl createEmptyModuleAuthentication(
+//            SamlModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+//        Saml2ModuleAuthenticationImpl moduleAuthentication = new Saml2ModuleAuthenticationImpl(sequenceModule);
+//        List<IdentityProvider> providers = new ArrayList<>();
+//        configuration.getRelyingPartyRegistrationRepository().forEach(
+//                p -> {
+//                    String authRequestPrefixUrl = request.getServletContext().getContextPath() + configuration.getPrefixOfModule()
+//                            + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID;
+//                    SamlAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
+//                    IdentityProvider mp = new IdentityProvider()
+//                                .setLinkText(config.getLinkText())
+//                                .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", p.getRegistrationId()));
+//                        providers.add(mp);
+//                }
+//        );
+//        moduleAuthentication.setProviders(providers);
+//        moduleAuthentication.setAdditionalConfiguration(configuration.getAdditionalConfiguration());
+//        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+//        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+//        return moduleAuthentication;
+//    }
 }

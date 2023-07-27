@@ -51,17 +51,15 @@ public class OtherModuleFactory<MT extends AbstractAuthenticationModuleType,
             Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
 
-        if (!(module instanceof OtherAuthenticationModuleType)) {
+        if (!(module instanceof OtherAuthenticationModuleType other)) {
             LOGGER.error("This factory support only OtherAuthenticationModuleType, but module is " + module);
             return null;
         }
 
-        OtherAuthenticationModuleType other = (OtherAuthenticationModuleType) module;
-
         String factoryClass = other.getFactoryClass();
 
-        Class<AbstractModuleFactory> factoryClazz = (Class) Class.forName(factoryClass);
-        AbstractModuleFactory factory = applicationContext.getBean(factoryClazz);
+        Class<ModuleFactory<MT, MA>> factoryClazz = (Class) Class.forName(factoryClass);
+        ModuleFactory<MT, MA> factory = applicationContext.getBean(factoryClazz);
 
         return factory.createAuthModule(module, sequenceSuffix, request, sharedObjects,
                 authenticationsPolicy, credentialPolicy, authenticationChannel, sequenceModule);

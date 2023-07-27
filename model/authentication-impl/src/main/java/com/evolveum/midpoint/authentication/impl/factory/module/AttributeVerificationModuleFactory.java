@@ -19,7 +19,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AttributeVerificationModuleFactory extends AbstractCredentialModuleFactory<
+public class AttributeVerificationModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
         AttributeVerificationAuthenticationModuleType,
@@ -43,22 +43,11 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
     }
 
     @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new AttributeVerificationProvider();
-    }
-
-    @Override
-    protected Class<? extends CredentialPolicyType> supportedClass() {
-        return null;    //todo for now we don't have credentials policy for attribute verification
-    }
-
-    @Override
     protected AttributeVerificationModuleAuthentication createEmptyModuleAuthentication(AttributeVerificationAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         AttributeVerificationModuleAuthentication moduleAuthentication = new AttributeVerificationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
-        moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;
     }

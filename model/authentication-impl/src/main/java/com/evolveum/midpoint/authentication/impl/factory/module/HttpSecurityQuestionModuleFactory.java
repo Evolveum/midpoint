@@ -43,11 +43,6 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new SecurityQuestionProvider();
-    }
-
-    @Override
     protected Class<? extends CredentialPolicyType> supportedClass() {
         return SecurityQuestionsCredentialsPolicyType.class;
     }

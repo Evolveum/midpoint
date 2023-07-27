@@ -62,32 +62,32 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
-                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
-        if (!(httpModuleType instanceof HttpHeaderAuthenticationModuleType)) {
-            LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + httpModuleType);
-            return null;
-        }
+//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(HttpHeaderAuthenticationModuleType httpModuleType, String sequenceSuffix, ServletRequest request,
+//                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+//            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
+//        if (!(httpModuleType instanceof HttpHeaderAuthenticationModuleType)) {
+//            LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + httpModuleType);
+//            return null;
+//        }
+//
+//        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, sequenceSuffix);
+//        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
+//        HttpHeaderModuleWebSecurityConfigurer module =
+//                getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfigurer(configuration));
+//        HttpSecurity http = module.getNewHttpSecurity();//getNewHttpSecurity(module);
+//        setSharedObjects(http, sharedObjects);
+//
+//        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);
+//        moduleAuthentication.setFocusType(httpModuleType.getFocusType());
+//        SecurityFilterChain filter = http.build();
+//        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+//    }
 
-        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, sequenceSuffix);
-        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
-        HttpHeaderModuleWebSecurityConfigurer module =
-                getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfigurer(configuration));
-        HttpSecurity http = module.getNewHttpSecurity();//getNewHttpSecurity(module);
-        setSharedObjects(http, sharedObjects);
-
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(configuration, sequenceModule);
-        moduleAuthentication.setFocusType(httpModuleType.getFocusType());
-        SecurityFilterChain filter = http.build();
-        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
-    }
-
-    private ModuleAuthenticationImpl createEmptyModuleAuthentication(
-            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
-        HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication(sequenceModule);
-        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        return moduleAuthentication;
-    }
+//    private ModuleAuthenticationImpl createEmptyModuleAuthentication(
+//            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule) {
+//        HttpHeaderModuleAuthentication moduleAuthentication = new HttpHeaderModuleAuthentication(sequenceModule);
+//        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+//        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+//        return moduleAuthentication;
+//    }
 }

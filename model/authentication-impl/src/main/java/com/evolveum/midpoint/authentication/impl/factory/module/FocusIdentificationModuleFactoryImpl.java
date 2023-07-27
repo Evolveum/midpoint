@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModuleFactory<
+public class FocusIdentificationModuleFactoryImpl extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
         FocusIdentificationAuthenticationModuleType,
@@ -41,26 +41,13 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractCredentialModu
     }
 
     @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new FocusIdentificationProvider();
-    }
-
-    @Override
-    protected Class<? extends CredentialPolicyType> supportedClass() {
-        return null;
-    }
-
-    @Override
     protected FocusIdentificationModuleAuthentication createEmptyModuleAuthentication(FocusIdentificationAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         FocusIdentificationModuleAuthentication moduleAuthentication = new FocusIdentificationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
-        moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        if (moduleType instanceof FocusIdentificationAuthenticationModuleType) {
-            moduleAuthentication.setModuleConfiguration(moduleType.getItem());
-        }
+        moduleAuthentication.setModuleConfiguration(moduleType.getItem());
         return moduleAuthentication;
     }
 

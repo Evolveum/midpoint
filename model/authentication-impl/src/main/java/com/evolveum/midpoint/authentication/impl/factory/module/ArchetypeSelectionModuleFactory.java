@@ -22,7 +22,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFactory<
+public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
         ArchetypeSelectionModuleType,
@@ -41,7 +41,6 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
         ArchetypeSelectionModuleAuthentication moduleAuthentication = new ArchetypeSelectionModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
-        moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(moduleType.getIdentifier());
         return moduleAuthentication;
     }
@@ -56,16 +55,6 @@ public class ArchetypeSelectionModuleFactory extends AbstractCredentialModuleFac
                 authenticationChannel, objectPostProcessor, request,
                 new ArchetypeSelectionAuthenticationProvider());
 //        return null;
-    }
-
-    @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new ArchetypeSelectionAuthenticationProvider();
-    }
-
-    @Override
-    protected Class<? extends CredentialPolicyType> supportedClass() {
-        return null;
     }
 
 }

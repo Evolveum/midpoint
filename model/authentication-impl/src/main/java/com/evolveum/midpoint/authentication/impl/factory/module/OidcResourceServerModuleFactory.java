@@ -49,7 +49,7 @@ public class OidcResourceServerModuleFactory<C extends RemoteModuleWebSecurityCo
     }
 
     @Override
-    protected OidcResourceServerModuleWebSecurityConfigurer createModuleConfigurer(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+    protected OidcResourceServerModuleWebSecurityConfigurer<C> createModuleConfigurer(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
         return new OidcResourceServerModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request, null);
     }
 
@@ -62,90 +62,90 @@ public class OidcResourceServerModuleFactory<C extends RemoteModuleWebSecurityCo
         return moduleAuthentication;
     }
 
-    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(OidcAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
-                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
-        if (!(moduleType instanceof OidcAuthenticationModuleType)) {
-            LOGGER.error("This factory support only OidcAuthenticationModuleType, but modelType is " + moduleType);
-            return null;
-        }
+//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(OidcAuthenticationModuleType moduleType, String sequenceSuffix, ServletRequest request,
+//                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+//            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType necessity) throws Exception {
+//        if (!(moduleType instanceof OidcAuthenticationModuleType)) {
+//            LOGGER.error("This factory support only OidcAuthenticationModuleType, but modelType is " + moduleType);
+//            return null;
+//        }
+//
+//        OidcResourceServerAuthenticationModuleType resourceServer = moduleType.getResourceServer();
+//        if (resourceServer == null) {
+//            LOGGER.error("Resource configuration of OidcAuthenticationModuleType is null");
+//            return null;
+//        }
+//
+//        isSupportedChannel(authenticationChannel);
+//
+//        RemoteModuleWebSecurityConfiguration configuration;
+//        if (resourceServer.getJwt() != null) {
+//            configuration = createJwtResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
+//        } else if (resourceServer.getOpaqueToken() != null) {
+//            configuration = createOpaqueTokenResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
+//        } else {
+//            configuration = createJwtResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
+//        }
+//
+//
+//        OidcResourceServerModuleWebSecurityConfigurer<RemoteModuleWebSecurityConfiguration> module
+//                = getObjectObjectPostProcessor().postProcess(new OidcResourceServerModuleWebSecurityConfigurer<>(configuration));
+//        module.setObjectPostProcessor(getObjectObjectPostProcessor());
+//        HttpSecurity http = module.getNewHttpSecurity();
+//        setSharedObjects(http, sharedObjects);
+//
+//        ModuleAuthenticationImpl moduleAuthentication =
+//                createEmptyModuleAuthentication(configuration, resourceServer, necessity);
+//        moduleAuthentication.setFocusType(moduleType.getFocusType());
+//        SecurityFilterChain filter = http.build();
+//        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+//    }
 
-        OidcResourceServerAuthenticationModuleType resourceServer = moduleType.getResourceServer();
-        if (resourceServer == null) {
-            LOGGER.error("Resource configuration of OidcAuthenticationModuleType is null");
-            return null;
-        }
+//    private RemoteModuleWebSecurityConfiguration createOpaqueTokenResourceServerConfiguration(
+//            AbstractAuthenticationModuleType moduleType,
+//            OidcResourceServerAuthenticationModuleType resourceServer,
+//            String sequenceSuffix) {
+//        OpaqueTokenOidcResourceServerConfiguration configuration =
+//                OpaqueTokenOidcResourceServerConfiguration.build(
+//                        (OidcAuthenticationModuleType)moduleType,
+//                        sequenceSuffix);
+//        configuration.setSequenceSuffix(sequenceSuffix);
+//
+//        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(
+//                new OidcResourceServerProvider(configuration.getIntrospector())));
+//        return configuration;
+//    }
 
-        isSupportedChannel(authenticationChannel);
+//    private RemoteModuleWebSecurityConfiguration createJwtResourceServerConfiguration(
+//            AbstractAuthenticationModuleType moduleType,
+//            OidcResourceServerAuthenticationModuleType resourceServer,
+//            String sequenceSuffix) {
+//
+//        JwtOidcResourceServerConfiguration configuration =
+//                JwtOidcResourceServerConfiguration.build(
+//                        (OidcAuthenticationModuleType)moduleType,
+//                        sequenceSuffix);
+//        configuration.setSequenceSuffix(sequenceSuffix);
+//
+//        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+//        if (resourceServer.getJwt() != null && resourceServer.getJwt().getNameOfUsernameClaim() != null) {
+//            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getJwt().getNameOfUsernameClaim());
+//        } else if (resourceServer.getNameOfUsernameClaim() != null) {
+//            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getNameOfUsernameClaim());
+//        }
+//        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(
+//                new OidcResourceServerProvider(configuration.getDecoder(), jwtAuthenticationConverter)));
+//        return configuration;
+//    }
 
-        RemoteModuleWebSecurityConfiguration configuration;
-        if (resourceServer.getJwt() != null) {
-            configuration = createJwtResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
-        } else if (resourceServer.getOpaqueToken() != null) {
-            configuration = createOpaqueTokenResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
-        } else {
-            configuration = createJwtResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
-        }
-
-
-        OidcResourceServerModuleWebSecurityConfigurer<RemoteModuleWebSecurityConfiguration> module
-                = getObjectObjectPostProcessor().postProcess(new OidcResourceServerModuleWebSecurityConfigurer<>(configuration));
-        module.setObjectPostProcessor(getObjectObjectPostProcessor());
-        HttpSecurity http = module.getNewHttpSecurity();
-        setSharedObjects(http, sharedObjects);
-
-        ModuleAuthenticationImpl moduleAuthentication =
-                createEmptyModuleAuthentication(configuration, resourceServer, necessity);
-        moduleAuthentication.setFocusType(moduleType.getFocusType());
-        SecurityFilterChain filter = http.build();
-        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
-    }
-
-    private RemoteModuleWebSecurityConfiguration createOpaqueTokenResourceServerConfiguration(
-            AbstractAuthenticationModuleType moduleType,
-            OidcResourceServerAuthenticationModuleType resourceServer,
-            String sequenceSuffix) {
-        OpaqueTokenOidcResourceServerConfiguration configuration =
-                OpaqueTokenOidcResourceServerConfiguration.build(
-                        (OidcAuthenticationModuleType)moduleType,
-                        sequenceSuffix);
-        configuration.setSequenceSuffix(sequenceSuffix);
-
-        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(
-                new OidcResourceServerProvider(configuration.getIntrospector())));
-        return configuration;
-    }
-
-    private RemoteModuleWebSecurityConfiguration createJwtResourceServerConfiguration(
-            AbstractAuthenticationModuleType moduleType,
-            OidcResourceServerAuthenticationModuleType resourceServer,
-            String sequenceSuffix) {
-
-        JwtOidcResourceServerConfiguration configuration =
-                JwtOidcResourceServerConfiguration.build(
-                        (OidcAuthenticationModuleType)moduleType,
-                        sequenceSuffix);
-        configuration.setSequenceSuffix(sequenceSuffix);
-
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        if (resourceServer.getJwt() != null && resourceServer.getJwt().getNameOfUsernameClaim() != null) {
-            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getJwt().getNameOfUsernameClaim());
-        } else if (resourceServer.getNameOfUsernameClaim() != null) {
-            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getNameOfUsernameClaim());
-        }
-        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(
-                new OidcResourceServerProvider(configuration.getDecoder(), jwtAuthenticationConverter)));
-        return configuration;
-    }
-
-    private ModuleAuthenticationImpl createEmptyModuleAuthentication(RemoteModuleWebSecurityConfiguration configuration,
-            OidcResourceServerAuthenticationModuleType resourceServer, AuthenticationSequenceModuleType sequenceModule) {
-        OidcResourceServerModuleAuthentication moduleAuthentication = new OidcResourceServerModuleAuthentication(sequenceModule);
-        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        moduleAuthentication.setRealm(getRealm(resourceServer));
-        return moduleAuthentication;
-    }
+//    private ModuleAuthenticationImpl createEmptyModuleAuthentication(RemoteModuleWebSecurityConfiguration configuration,
+//            OidcResourceServerAuthenticationModuleType resourceServer, AuthenticationSequenceModuleType sequenceModule) {
+//        OidcResourceServerModuleAuthentication moduleAuthentication = new OidcResourceServerModuleAuthentication(sequenceModule);
+//        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+//        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+//        moduleAuthentication.setRealm(getRealm(resourceServer));
+//        return moduleAuthentication;
+//    }
 
     private String getRealm(OidcResourceServerAuthenticationModuleType resourceServer) {
         if (resourceServer.getJwt() != null) {

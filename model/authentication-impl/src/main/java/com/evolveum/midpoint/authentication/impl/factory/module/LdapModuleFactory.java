@@ -78,32 +78,32 @@ public class LdapModuleFactory extends AbstractModuleFactory<
         return moduleAuthentication;
     }
 
-    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
-            ServletRequest request, Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
-
-        if (!(moduleType instanceof LdapAuthenticationModuleType)) {
-            LOGGER.error("This factory support only LdapAuthenticationModuleType, but modelType is " + moduleType);
-            return null;
-        }
-
-        isSupportedChannel(authenticationChannel);
-
-        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
-        configuration.setSequenceSuffix(sequenceSuffix);
-
-        configuration.addAuthenticationProvider(getProvider(moduleType));
-
-        LdapWebSecurityConfigurer module = createModule(configuration);
-//        HttpSecurity http = getNewHttpSecurity(module);
-        HttpSecurity http = module.getNewHttpSecurity();
-        setSharedObjects(http, sharedObjects);
-
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(
-                moduleType, configuration, sequenceModule);
-        SecurityFilterChain filter = http.build();
-        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
-    }
+//    public AuthModule<ModuleAuthenticationImpl> createModuleFilter(LdapAuthenticationModuleType moduleType, String sequenceSuffix,
+//            ServletRequest request, Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+//            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
+//
+//        if (!(moduleType instanceof LdapAuthenticationModuleType)) {
+//            LOGGER.error("This factory support only LdapAuthenticationModuleType, but modelType is " + moduleType);
+//            return null;
+//        }
+//
+//        isSupportedChannel(authenticationChannel);
+//
+//        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
+//        configuration.setSequenceSuffix(sequenceSuffix);
+//
+//        configuration.addAuthenticationProvider(getProvider(moduleType));
+//
+//        LdapWebSecurityConfigurer module = createModule(configuration);
+////        HttpSecurity http = getNewHttpSecurity(module);
+//        HttpSecurity http = module.getNewHttpSecurity();
+//        setSharedObjects(http, sharedObjects);
+//
+//        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(
+//                moduleType, configuration, sequenceModule);
+//        SecurityFilterChain filter = http.build();
+//        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+//    }
 
     private AuthenticationProvider getProvider(LdapAuthenticationModuleType moduleType){
         DefaultSpringSecurityContextSource ctx = new DefaultSpringSecurityContextSource(moduleType.getHost());
@@ -138,18 +138,18 @@ public class LdapModuleFactory extends AbstractModuleFactory<
         return provider;
     }
 
-    private LdapWebSecurityConfigurer createModule(LdapModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfigurer(configuration));
-    }
-
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
-        LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication(sequenceModule);
-        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        if (moduleType.getSearch() != null) {
-            moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
-        }
-        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        return moduleAuthentication;
-    }
+//    private LdapWebSecurityConfigurer createModule(LdapModuleWebSecurityConfiguration configuration) {
+//        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfigurer(configuration));
+//    }
+//
+//    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,
+//            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+//        LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication(sequenceModule);
+//        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+//        if (moduleType.getSearch() != null) {
+//            moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
+//        }
+//        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+//        return moduleAuthentication;
+//    }
 }

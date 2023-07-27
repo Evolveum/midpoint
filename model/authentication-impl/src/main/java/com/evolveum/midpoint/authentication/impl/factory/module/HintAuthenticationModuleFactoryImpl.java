@@ -19,7 +19,7 @@ import com.evolveum.midpoint.authentication.impl.provider.HintAuthenticationProv
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
-public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModuleFactory<
+public class HintAuthenticationModuleFactoryImpl extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
         HintAuthenticationModuleType,
@@ -38,22 +38,11 @@ public class HintAuthenticationModuleFactoryImpl extends AbstractCredentialModul
     }
 
     @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new HintAuthenticationProvider();
-    }
-
-    @Override
-    protected Class<? extends CredentialPolicyType> supportedClass() {
-        return null;
-    }
-
-    @Override
     protected HintAuthenticationModuleAuthentication createEmptyModuleAuthentication(HintAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         HintAuthenticationModuleAuthentication moduleAuthentication = new HintAuthenticationModuleAuthentication(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
-        moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;
     }

@@ -41,12 +41,6 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory<
                 new MailNonceProvider());
     }
 
-    //TODO
-    @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new MailNonceProvider();
-    }
-
     @Override
     protected Class<? extends CredentialPolicyType> supportedClass() {
         return NonceCredentialsPolicyType.class;
