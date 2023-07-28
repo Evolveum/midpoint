@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
-
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +23,7 @@ import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -59,11 +58,18 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
 
     @Override
     public VerifyResult execute() throws Exception {
+        VerifyResult result;
         if (!options.getFiles().isEmpty()) {
-            return verifyFiles();
+            result = verifyFiles();
+        } else {
+            result = super.execute();
         }
 
-        return super.execute();
+        log.info(
+                "Verification finished, {} critical, {} necessary, {} optional issues found",
+                result.getCriticalCount(), result.getNecessaryCount(), result.getOptionalCount());
+
+        return result;
     }
 
     private VerifyResult verifyFiles() throws IOException {
