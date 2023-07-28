@@ -5,28 +5,24 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.ninja;
+package com.evolveum.midpoint.ninja.action;
 
 /**
- * Class that allows to return result and expected exit code from ninja execution.
+ * Class that allows to return result and expected exit code from action execution.
  * <p>
  * It's not a record for now because of the need to support Java 11.
  */
-public final class MainResult<T> {
+public final class ActionResult<T> {
 
     private final T result;
 
     private final int exitCode;
 
-    public static final MainResult<?> EMPTY_ERROR = new MainResult<>(null, 1);
-
-    public static final MainResult<?> EMPTY_SUCCESS = new MainResult<>(null, 0);
-
-    public MainResult(T result) {
+    public ActionResult(T result) {
         this(result, 0);
     }
 
-    public MainResult(T result, int exitCode) {
+    public ActionResult(T result, int exitCode) {
         this.result = result;
         this.exitCode = exitCode;
     }
