@@ -55,6 +55,7 @@ public class Main {
         this.err = err;
     }
 
+    // todo main doesn't return error code non zero if error occurrs, fix this
     protected <T> Object run(String[] args) {
         AnsiConsole.systemInstall();
 
