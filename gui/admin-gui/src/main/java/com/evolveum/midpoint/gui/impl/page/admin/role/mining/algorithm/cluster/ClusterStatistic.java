@@ -10,11 +10,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 import java.io.Serializable;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ClusterStatistic implements Serializable {
 
-    Set<String> elementsOid;
+    Set<ObjectReferenceType> processedObjectRef;
     int totalPoints;
     int totalElements;
     int minVectorPoint;
@@ -23,33 +24,33 @@ public class ClusterStatistic implements Serializable {
     double meanPoints;
     double density;
     PolyStringType name;
-    Set<String> pointsOid;
+    Set<ObjectReferenceType> propertiesRef;
 
-    public ClusterStatistic(PolyStringType name, Set<String> elementsOid, int totalElements,
+    public ClusterStatistic(PolyStringType name, Set<ObjectReferenceType> processedObjectRef, int totalElements,
             int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
-        this.elementsOid = elementsOid;
+        this.processedObjectRef = processedObjectRef;
         this.totalPoints = totalPoints;
         this.minVectorPoint = minVectorPoint;
         this.maxVectorPoint = maxVectorPoint;
         this.clusterSize = clusterSize;
         this.meanPoints = meanPoints;
 //        this.frequencyMap = frequencyMap;
-        this.pointsOid = null;
+        this.propertiesRef = null;
         this.density = density;
         this.name = name;
         this.totalElements = totalElements;
     }
 
-    public ClusterStatistic(PolyStringType name, Set<String> pointsOid, Set<String> elementsOid, int totalElements,
+    public ClusterStatistic(PolyStringType name, Set<ObjectReferenceType> propertiesRef, Set<ObjectReferenceType> processedObjectRef, int totalElements,
             int totalPoints, int minVectorPoint, int maxVectorPoint, int clusterSize, double meanPoints, double density) {
-        this.elementsOid = elementsOid;
+        this.processedObjectRef = processedObjectRef;
         this.totalPoints = totalPoints;
         this.minVectorPoint = minVectorPoint;
         this.maxVectorPoint = maxVectorPoint;
         this.clusterSize = clusterSize;
         this.meanPoints = meanPoints;
 //        this.frequencyMap = frequencyMap;
-        this.pointsOid = pointsOid;
+        this.propertiesRef = propertiesRef;
         this.density = density;
         this.name = name;
         this.totalElements = totalElements;
@@ -59,12 +60,12 @@ public class ClusterStatistic implements Serializable {
         return totalElements;
     }
 
-    public Set<String> getPointsOid() {
-        return pointsOid;
+    public Set<ObjectReferenceType> getPropertiesRef() {
+        return propertiesRef;
     }
 
-    public Set<String> getElementsOid() {
-        return elementsOid;
+    public Set<ObjectReferenceType> getProcessedObjectRef() {
+        return processedObjectRef;
     }
 
     public int getTotalPoints() {

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.MembersDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
@@ -63,7 +63,7 @@ public class MiningUserBasedTable extends Panel {
     int specialColumnCount;
 
     public MiningUserBasedTable(String id, List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection,
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
             double maxFrequency, RoleAnalysisSearchModeType searchMode) {
         super(id);
 
@@ -100,7 +100,7 @@ public class MiningUserBasedTable extends Panel {
     int columnPageCount = 100;
 
     public SpecialBoxedTablePanel<MiningRoleTypeChunk> generateTable(RoleMiningProvider<MiningRoleTypeChunk> provider,
-            List<MiningUserTypeChunk> users, double frequency, IntersectionObject intersection,
+            List<MiningUserTypeChunk> users, double frequency, DetectedPattern intersection,
             double maxFrequency, RoleAnalysisSearchModeType searchMode) {
 
         SpecialBoxedTablePanel<MiningRoleTypeChunk> table = new SpecialBoxedTablePanel<>(
@@ -151,7 +151,7 @@ public class MiningUserBasedTable extends Panel {
     }
 
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users, double minFrequency,
-            IntersectionObject intersection, double maxFrequency, RoleAnalysisSearchModeType searchMode) {
+                                                                  DetectedPattern intersection, double maxFrequency, RoleAnalysisSearchModeType searchMode) {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 

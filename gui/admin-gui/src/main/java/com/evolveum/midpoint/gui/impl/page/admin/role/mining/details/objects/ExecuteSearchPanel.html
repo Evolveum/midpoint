@@ -13,8 +13,16 @@
     <div>
 
 
-        <div class="col-12 row">
-            <div class="btn btn-default" wicket:id="search_mode_button"></div>
+        <div class="d-flex flex-column gap-2">
+            <div>
+                <label class="sr-only" for="inlineForm"></label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <p style="width:200px" class="input-group-text">Detection mode</p>
+                    </div>
+                    <div wicket:id="search_mode_button" class="form-control" id="inlineForm"></div>
+                </div>
+            </div>
         </div>
 
         <form
@@ -40,17 +48,15 @@
                 <input class="btn btn-default" type="submit" value="Execute search"
                         wicket:id="ajax_submit_link"/>
 
-<!--                <div class="col d-flex ">-->
-<!--                    <div class="ml-4 btn btn-default"-->
-<!--                            wicket:id="process_selections_id"></div>-->
-<!--                </div>-->
+                <!--                <div class="col d-flex ">-->
+                <!--                    <div class="ml-4 btn btn-default"-->
+                <!--                            wicket:id="process_selections_id"></div>-->
+                <!--                </div>-->
 
             </div>
         </form>
 
     </div>
-
-
 
 
 </wicket:panel>

@@ -36,8 +36,8 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     double minFrequency = 0.3;
     double maxFrequency = 1.0;
     double similarity = 0.8;
-    Integer minIntersection = 10;
-    Integer minOccupancy = 5;
+    Integer minIntersection = 5;
+    Integer minOccupancy = 10;
     RoleAnalysisSearchModeType searchModeSelected = RoleAnalysisSearchModeType.INTERSECTION;
 
     public boolean isJaccardSearchMode() {
@@ -61,7 +61,7 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel("search_mode_button", new LoadableModel<>() {
             @Override
             protected Object load() {
-                return Model.of(getSearchModeSelected().value());
+                return Model.of(getSearchModeSelected().value().toUpperCase());
             }
         }) {
             @Override

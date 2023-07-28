@@ -9,19 +9,22 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningUserTypeChunk;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.addDetectedObjectIntersection;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.addDetectedObjectJaccard;
+
 public class ExtractIntersections {
 
-    public static List<IntersectionObject> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
+    public static List<DetectedPattern> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency,
             double maxFrequency, int minIntersection, Integer minOccupancy, RoleAnalysisProcessModeType mode) {
 
-        List<IntersectionObject> intersections = new ArrayList<>();
+        List<DetectedPattern> intersections = new ArrayList<>();
 
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             loadUsersIntersections(miningRoleTypeChunks, minFrequency, maxFrequency, minIntersection, intersections, minOccupancy);
@@ -33,24 +36,22 @@ public class ExtractIntersections {
     }
 
     private static void loadUsersIntersections(List<MiningRoleTypeChunk> miningRoleTypeChunks, double minFrequency, double maxFrequency,
-            int minIntersection, List<IntersectionObject> intersections, int minOccupancy) {
+            int minIntersection, List<DetectedPattern> intersections, int minOccupancy) {
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
             double frequency = miningRoleTypeChunk.getFrequency();
             if (frequency < minFrequency || frequency > maxFrequency) {
                 continue;
             }
-            List<String> users = miningRoleTypeChunk.getUsers();
-            if (users.size() < minIntersection) {
+            Set<String> members = new HashSet<>(miningRoleTypeChunk.getUsers());
+            if (members.size() < minIntersection) {
                 continue;
             }
             preparedObjects.add(miningRoleTypeChunk);
 
-            int size = miningRoleTypeChunk.getRoles().size();
-            if (size >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(users), size * users.size(),
-                        "outer", size,
-                        null, new HashSet<>(), RoleAnalysisSearchModeType.INTERSECTION));
+            int propertiesCount = miningRoleTypeChunk.getRoles().size();
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectIntersection(propertiesCount, members, null));
             }
 
         }
@@ -90,46 +91,42 @@ public class ExtractIntersections {
             }
         }
 
-        for (List<String> users : outerIntersectionsList) {
-            int counter = 0;
+        for (List<String> members : outerIntersectionsList) {
+            int propertiesCount = 0;
             for (MiningRoleTypeChunk preparedObject : preparedObjects) {
                 Set<String> basicUsers = new HashSet<>(preparedObject.getUsers());
-                if (basicUsers.containsAll(users)) {
-                    counter = counter + preparedObject.getRoles().size();
+                if (basicUsers.containsAll(members)) {
+                    propertiesCount = propertiesCount + preparedObject.getRoles().size();
                 }
             }
 
-            if (counter >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(users), counter * users.size(),
-                        "outer", counter,
-                        null, new HashSet<>(), RoleAnalysisSearchModeType.INTERSECTION));
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectIntersection(propertiesCount, new HashSet<>(members), null));
             }
         }
 
-        for (List<String> users : innerIntersections) {
-            int counter = 0;
+        for (List<String> members : innerIntersections) {
+            int propertiesCount = 0;
 
-            if (outerIntersectionsList.contains(users)) {
+            if (outerIntersectionsList.contains(members)) {
                 continue;
             }
 
             for (MiningRoleTypeChunk preparedObject : preparedObjects) {
                 Set<String> basicUsers = new HashSet<>(preparedObject.getUsers());
-                if (basicUsers.containsAll(users)) {
-                    counter = counter + preparedObject.getRoles().size();
+                if (basicUsers.containsAll(members)) {
+                    propertiesCount = propertiesCount + preparedObject.getRoles().size();
                 }
             }
-            if (counter >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(users), counter * users.size(),
-                        "inner", counter,
-                        null, new HashSet<>(), RoleAnalysisSearchModeType.INTERSECTION));
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectIntersection(propertiesCount, new HashSet<>(members), null));
             }
 
         }
     }
 
     private static void loadRolesIntersections(List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency, double maxFrequency,
-            int minIntersection, List<IntersectionObject> intersections, int minOccupancy) {
+            int minIntersection, List<DetectedPattern> intersections, int minOccupancy) {
         List<MiningUserTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
             double frequency = miningUserTypeChunk.getFrequency();
@@ -137,18 +134,16 @@ public class ExtractIntersections {
                 continue;
             }
 
-            List<String> roles = miningUserTypeChunk.getRoles();
-            if (roles.size() < minIntersection) {
+            Set<String> members = new HashSet<>(miningUserTypeChunk.getRoles());
+            if (members.size() < minIntersection) {
                 continue;
             }
 
             preparedObjects.add(miningUserTypeChunk);
 
-            int size = miningUserTypeChunk.getUsers().size();
-            if (size >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * size,
-                        "outer", size,
-                        null, new HashSet<>(), RoleAnalysisSearchModeType.INTERSECTION));
+            int propertiesCount = miningUserTypeChunk.getUsers().size();
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectIntersection(propertiesCount, members, null));
             }
 
         }
@@ -188,40 +183,36 @@ public class ExtractIntersections {
             }
         }
 
-        for (List<String> roles : outerIntersectionsList) {
-            int counter = 0;
+        for (List<String> members : outerIntersectionsList) {
+            int propertiesCount = 0;
             for (MiningUserTypeChunk preparedObject : preparedObjects) {
                 Set<String> basicUsers = new HashSet<>(preparedObject.getRoles());
-                if (basicUsers.containsAll(roles)) {
-                    counter = counter + preparedObject.getUsers().size();
+                if (basicUsers.containsAll(members)) {
+                    propertiesCount = propertiesCount + preparedObject.getUsers().size();
                 }
             }
 
-            if (counter >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(roles), counter * roles.size(),
-                        "outer", counter,
-                        null, new HashSet<>(), RoleAnalysisSearchModeType.INTERSECTION));
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectIntersection(propertiesCount, new HashSet<>(members), null));
             }
         }
 
-        for (List<String> roles : innerIntersections) {
-            int counter = 0;
+        for (List<String> members : innerIntersections) {
+            int propertiesCount = 0;
 
-            if (outerIntersectionsList.contains(roles)) {
+            if (outerIntersectionsList.contains(members)) {
                 continue;
             }
 
             for (MiningUserTypeChunk preparedObject : preparedObjects) {
                 Set<String> basicUsers = new HashSet<>(preparedObject.getRoles());
-                if (basicUsers.containsAll(roles)) {
-                    counter = counter + preparedObject.getUsers().size();
+                if (basicUsers.containsAll(members)) {
+                    propertiesCount = propertiesCount + preparedObject.getUsers().size();
                 }
             }
 
-            if (counter >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(roles), counter * roles.size(),
-                        "inner", counter,
-                        null, new HashSet<>(), RoleAnalysisSearchModeType.INTERSECTION));
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectIntersection(propertiesCount, new HashSet<>(members), null));
             }
 
         }

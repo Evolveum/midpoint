@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.work;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getImageScaleScript;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.apache.wicket.Component;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
@@ -50,7 +50,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private void initLayout() {
 
-        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
         MiningOperationChunk miningOperationChunk = new MiningOperationChunk();
         miningOperationChunk.run(cluster, (PageBase) getPage(),
                 RoleAnalysisProcessModeType.valueOf(mode), result, false, true);

@@ -27,7 +27,7 @@ public enum ObjectTypes {
     ROLE_ANALYSIS_SESSION(SchemaConstants.C_ROLE_ANALYSIS_SESSION_TYPE, SchemaConstants.C_ROLE_ANALYSIS_SESSION,
             RoleAnalysisSessionType.class, ObjectManager.MODEL, "roleAnalysisSession"),
     ROLE_ANALYSIS_CLUSTER(SchemaConstants.C_ROLE_ANALYSIS_CLUSTER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_CLUSTER,
-            RoleAnalysisCluster.class, ObjectManager.MODEL, "roleAnalysisCluster"),
+            RoleAnalysisClusterType.class, ObjectManager.MODEL, "roleAnalysisCluster"),
 
     CONNECTOR(SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
             ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),

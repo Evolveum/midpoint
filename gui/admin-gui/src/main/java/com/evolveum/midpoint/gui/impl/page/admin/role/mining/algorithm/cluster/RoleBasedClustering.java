@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -39,16 +39,17 @@ public class RoleBasedClustering implements Clusterable {
     OperationResult operationResult = new OperationResult("Map UserType object for clustering");
 
     @Override
-    public List<PrismObject<RoleAnalysisCluster>> executeClustering(ClusterOptions clusterOptions) {
+    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
         long start = startTimer(" prepare clustering object");
-        int assignThreshold = clusterOptions.getAssignThreshold();
+        int assignThreshold = clusterOptions.getMinProperties();
         int minIntersections = clusterOptions.getMinIntersections();
         int threshold = Math.max(assignThreshold, minIntersections);
+        int maxProperties = Math.max(clusterOptions.getMaxProperties(), threshold);
 
         PageBase pageBase = clusterOptions.getPageBase();
         ObjectFilter query = clusterOptions.getQuery();
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
-                threshold, query);
+                threshold, maxProperties, query);
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
 
@@ -70,7 +71,7 @@ public class RoleBasedClustering implements Clusterable {
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull PageBase pageBase,
-            int threshold, ObjectFilter roleQuery) {
+            int threshold, int maxProperties, ObjectFilter roleQuery) {
 
         //role //user
         ListMultimap<String, String> userTypeMap = ArrayListMultimap.create();
@@ -103,7 +104,8 @@ public class RoleBasedClustering implements Clusterable {
         ListMultimap<List<String>, String> flippedMap = ArrayListMultimap.create();
         for (String key : userTypeMap.keySet()) {
             List<String> values = userTypeMap.get(key);
-            if (threshold <= values.size()) {
+            int propertiesCount = values.size();
+            if (threshold <= propertiesCount && maxProperties >= propertiesCount) {
                 flippedMap.put(values, key);
             }
         }

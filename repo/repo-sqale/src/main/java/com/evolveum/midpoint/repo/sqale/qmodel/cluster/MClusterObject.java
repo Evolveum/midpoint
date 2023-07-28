@@ -8,13 +8,20 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.cluster;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+
+import java.util.UUID;
 
 public class MClusterObject extends MObject {
 
     public String[] elements;
     public Integer elementsCount;
     public Integer pointsCount;
-    public String parentRef;
+    public UUID parentRefTargetOid;
+    public MObjectType parentRefTargetType;
+
+    public Integer parentRefRelationId;
+
     public String[] defaultDetection;
     public String pointsDensity;
     public String pointsMean;

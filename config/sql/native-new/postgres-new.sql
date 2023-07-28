@@ -1162,16 +1162,10 @@ CREATE TABLE m_role_analysis_cluster_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_CLUSTER') STORED
         CHECK (objectType = 'ROLE_ANALYSIS_CLUSTER'),
-        elements TEXT[],
-        elementsCount INTEGER,
-        pointsCount INTEGER,
-        parentRef TEXT,
-        defaultDetection TEXT[],
-        pointsDensity TEXT,
-        pointsMean TEXT,
-        pointsMinOccupation INTEGER,
-        pointsMaxOccupation INTEGER,
-        riskLevel TEXT
+        parentRefTargetOid UUID,
+        parentRefTargetType ObjectType,
+        parentRefRelationId INTEGER REFERENCES m_uri(id)
+
 )
     INHERITS (m_assignment_holder);
 

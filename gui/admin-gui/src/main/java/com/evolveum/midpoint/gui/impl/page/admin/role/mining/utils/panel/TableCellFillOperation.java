@@ -20,7 +20,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
@@ -44,21 +44,9 @@ public class TableCellFillOperation {
         }
     }
 
-    public static void updateRoleBasedTableData(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
-            IModel<MiningUserTypeChunk> model, List<String> rowRoles, RoleAnalysisSearchModeType searchMode,
-            ClusterObjectUtils.Status colStatus, List<String> colRoles, IntersectionObject intersection,
-            MiningRoleTypeChunk roleChunk) {
-        if (searchMode.equals(RoleAnalysisSearchModeType.INTERSECTION)) {
-            intersectionMode(cellItem, componentId, model, rowRoles, colStatus, colRoles, intersection, roleChunk);
-        } else {
-            List<String> rowUsers = model.getObject().getUsers();
-            jaccardMode(cellItem, componentId, model, rowUsers, rowRoles, colStatus, colRoles, intersection, roleChunk);
-        }
-    }
-
-    private static void jaccardMode(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
+    private static void jaccardModeRoleProcess(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
             IModel<MiningUserTypeChunk> model, List<String> rowUsers, List<String> rowRoles,
-            ClusterObjectUtils.Status colStatus, List<String> colRoles, IntersectionObject intersection,
+            ClusterObjectUtils.Status colStatus, List<String> colRoles, DetectedPattern intersection,
             MiningRoleTypeChunk roleChunk) {
 
         ClusterObjectUtils.Status status = model.getObject().getStatus();
@@ -66,9 +54,10 @@ public class TableCellFillOperation {
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowRoles, colRoles, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getElements() != null) {
-                Set<String> roles = intersection.getPoints();
-                Set<String> users = intersection.getElements();
+            if (intersection != null && intersection.getMembers() != null) {
+                Set<String> roles = intersection.getMembers();
+                Set<String> users = intersection.getProperties();
+
                 boolean containsAllRowUsers = users.containsAll(new HashSet<>(rowUsers));
 
                 if (containsAllRowUsers && roles.containsAll(new HashSet<>(colRoles))) {
@@ -90,17 +79,17 @@ public class TableCellFillOperation {
         }
     }
 
-    private static void intersectionMode(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
+    private static void intersectionModeRoleProcess(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
             IModel<MiningUserTypeChunk> model, List<String> rowRoles, ClusterObjectUtils.Status colStatus,
-            List<String> colRoles, IntersectionObject intersection, MiningRoleTypeChunk roleChunk) {
+            List<String> colRoles, DetectedPattern intersection, MiningRoleTypeChunk roleChunk) {
 
         ClusterObjectUtils.Status status = model.getObject().getStatus();
 
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowRoles, colRoles, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getPoints() != null) {
-                Set<String> roles = intersection.getPoints();
+            if (intersection != null && intersection.getMembers() != null) {
+                Set<String> roles = intersection.getMembers();
                 boolean found = new HashSet<>(roles).containsAll(colRoles) && new HashSet<>(rowRoles).containsAll(roles);
 
                 if (found) {
@@ -122,20 +111,32 @@ public class TableCellFillOperation {
         }
     }
 
-    public static void updateUserBasedTableData(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
-            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, RoleAnalysisSearchModeType searchMode,
-            List<String> colUsers, IntersectionObject intersection,
-            ClusterObjectUtils.Status colStatus, MiningUserTypeChunk userChunk) {
+    public static void updateRoleBasedTableData(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
+            IModel<MiningUserTypeChunk> model, List<String> rowRoles, RoleAnalysisSearchModeType searchMode,
+            ClusterObjectUtils.Status colStatus, List<String> colRoles, DetectedPattern intersection,
+            MiningRoleTypeChunk roleChunk) {
         if (searchMode.equals(RoleAnalysisSearchModeType.INTERSECTION)) {
-            intersectionMode(cellItem, componentId, model, rowUsers, colUsers, intersection, colStatus, userChunk);
+            intersectionModeRoleProcess(cellItem, componentId, model, rowRoles, colStatus, colRoles, intersection, roleChunk);
         } else {
-            List<String> rowRoles = model.getObject().getRoles();
-            jaccardMode(cellItem, componentId, model, rowUsers, rowRoles, colStatus, colUsers, intersection, userChunk);
+            List<String> rowUsers = model.getObject().getUsers();
+            jaccardModeRoleProcess(cellItem, componentId, model, rowUsers, rowRoles, colStatus, colRoles, intersection, roleChunk);
         }
     }
 
-    private static void intersectionMode(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
-            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, List<String> colUsers, IntersectionObject intersection,
+    public static void updateUserBasedTableData(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
+            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, RoleAnalysisSearchModeType searchMode,
+            List<String> colUsers, DetectedPattern intersection,
+            ClusterObjectUtils.Status colStatus, MiningUserTypeChunk userChunk) {
+        if (searchMode.equals(RoleAnalysisSearchModeType.INTERSECTION)) {
+            intersectionModeUserProcess(cellItem, componentId, model, rowUsers, colUsers, intersection, colStatus, userChunk);
+        } else {
+            List<String> rowRoles = model.getObject().getRoles();
+            jaccardModeUserProcess(cellItem, componentId, model, rowUsers, rowRoles, colStatus, colUsers, intersection, userChunk);
+        }
+    }
+
+    private static void intersectionModeUserProcess(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
+            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, List<String> colUsers, DetectedPattern intersection,
             ClusterObjectUtils.Status colStatus, MiningUserTypeChunk userChunk) {
 
         ClusterObjectUtils.Status status = model.getObject().getStatus();
@@ -143,8 +144,8 @@ public class TableCellFillOperation {
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowUsers, colUsers, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getPoints() != null) {
-                Set<String> users = intersection.getPoints();
+            if (intersection != null && intersection.getMembers() != null) {
+                Set<String> users = intersection.getMembers();
                 boolean found = users != null && new HashSet<>(users).containsAll(colUsers) && new HashSet<>(rowUsers).containsAll(users);
 
                 if (found) {
@@ -166,17 +167,17 @@ public class TableCellFillOperation {
         }
     }
 
-    private static void jaccardMode(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
+    private static void jaccardModeUserProcess(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
             IModel<MiningRoleTypeChunk> model, List<String> rowUsers, List<String> rowRoles, ClusterObjectUtils.Status
-            colStatus, List<String> colUsers, IntersectionObject intersection, MiningUserTypeChunk userChunk) {
+            colStatus, List<String> colUsers, DetectedPattern intersection, MiningUserTypeChunk userChunk) {
         ClusterObjectUtils.Status status = model.getObject().getStatus();
 
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowUsers, colUsers, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getElements() != null) {
-                Set<String> roles = intersection.getElements();
-                Set<String> users = intersection.getPoints();
+            if (intersection != null && intersection.getProperties() != null) {
+                Set<String> roles = intersection.getProperties();
+                Set<String> users = intersection.getMembers();
                 if (roles.containsAll(new HashSet<>(rowRoles))) {
                     if (users.containsAll(new HashSet<>(colUsers))) {
                         if (new HashSet<>(rowUsers).containsAll(new HashSet<>(colUsers))) {
@@ -205,7 +206,8 @@ public class TableCellFillOperation {
 
     }
 
-    public static void filledCell(@NotNull Item<?> cellItem, String componentId, List<String> containsAll, List<String> contain, String colorTrue, String colorFalse) {
+    public static void filledCell(@NotNull Item<?> cellItem, String componentId, List<String> containsAll,
+            List<String> contain, String colorTrue, String colorFalse) {
         String cellColor = new HashSet<>(containsAll).containsAll(new HashSet<>(contain)) ? colorTrue : colorFalse;
         cellItem.add(AttributeModifier.append("class", cellColor));
         cellItem.add(new EmptyPanel(componentId));

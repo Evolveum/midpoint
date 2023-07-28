@@ -8,7 +8,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cluster;
 
 import java.sql.Types;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+
 import com.querydsl.core.types.dsl.ArrayPath;
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
@@ -32,9 +36,23 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
             ColumnMetadata.named("elementsCount").ofType(Types.INTEGER);
     public final NumberPath<Integer> elementsCount = createInteger("elementsCount", ELEMENTS_COUNT);
 
-    public static final ColumnMetadata PARENT_REF =
-            ColumnMetadata.named("parentRef").ofType(Types.VARCHAR);
-    public final StringPath parentRef = createString("parentRef", PARENT_REF);
+    public static final ColumnMetadata PARENT_REF_TARGET_OID =
+            ColumnMetadata.named("parentRefTargetOid").ofType(UuidPath.UUID_TYPE);
+
+    public final UuidPath parentRefTargetOid =
+            createUuid("parentRefTargetOid", PARENT_REF_TARGET_OID);
+
+    public static final ColumnMetadata PARENT_REF_TARGET_TYPE =
+            ColumnMetadata.named("parentRefTargetType").ofType(Types.OTHER);
+
+    public final EnumPath<MObjectType> parentRefTargetType =
+            createEnum("parentRefTargetType", MObjectType.class, PARENT_REF_TARGET_TYPE);
+
+    public static final ColumnMetadata PARENT_REF_TARGET_RELATION =
+            ColumnMetadata.named("parentRefRelationId").ofType(Types.INTEGER);
+
+    public final NumberPath<Integer> parentRefRelationId =
+            createInteger("parentRefRelationId", PARENT_REF_TARGET_RELATION);
 
     public static final ColumnMetadata POINTS_COUNT =
             ColumnMetadata.named("pointsCount").ofType(Types.INTEGER);

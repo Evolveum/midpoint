@@ -33,7 +33,7 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -45,23 +45,23 @@ public class MiningIntersectionTable extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
 
-    public MiningIntersectionTable(String id, List<IntersectionObject> miningSets) {
+    public MiningIntersectionTable(String id, List<DetectedPattern> miningSets) {
         super(id);
-        RoleMiningProvider<IntersectionObject> provider = new RoleMiningProvider<>(
+        RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(miningSets) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<IntersectionObject> object) {
+            public void setObject(List<DetectedPattern> object) {
                 super.setObject(object);
             }
 
         }, true);
 
-        provider.setSort(IntersectionObject.F_METRIC, SortOrder.DESCENDING);
+        provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
 
-        RoleMiningBoxedTablePanel<IntersectionObject> table = new RoleMiningBoxedTablePanel<>(
+        RoleMiningBoxedTablePanel<DetectedPattern> table = new RoleMiningBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns(),
                 null, true, false);
         table.setOutputMarkupId(true);
@@ -73,15 +73,15 @@ public class MiningIntersectionTable extends Panel {
 
 
 
-    public List<IColumn<IntersectionObject, String>> initColumns() {
+    public List<IColumn<DetectedPattern, String>> initColumns() {
 
-        List<IColumn<IntersectionObject, String>> columns = new ArrayList<>();
+        List<IColumn<DetectedPattern, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<IntersectionObject> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<DetectedPattern> rowModel) {
 
                 return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
             }
@@ -91,7 +91,7 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public String getSortProperty() {
-                return IntersectionObject.F_METRIC;
+                return DetectedPattern.F_METRIC;
             }
 
             @Override
@@ -100,10 +100,10 @@ public class MiningIntersectionTable extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
-                    IModel<IntersectionObject> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getMetric()));
+                item.add(new Label(componentId, rowModel.getObject().getClusterMetric()));
             }
 
             @Override
@@ -117,7 +117,7 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public String getSortProperty() {
-                return IntersectionObject.F_TYPE;
+                return DetectedPattern.F_TYPE;
             }
 
             @Override
@@ -126,10 +126,10 @@ public class MiningIntersectionTable extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
-                    IModel<IntersectionObject> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getType()));
+                item.add(new Label(componentId, rowModel.getObject().getSearchMode()));
             }
 
             @Override
@@ -143,7 +143,7 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public String getSortProperty() {
-                return IntersectionObject.F_METRIC;
+                return DetectedPattern.F_METRIC;
             }
 
             @Override
@@ -152,10 +152,10 @@ public class MiningIntersectionTable extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
-                    IModel<IntersectionObject> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getPoints().size()));
+                item.add(new Label(componentId, rowModel.getObject().getMembers().size()));
             }
 
             @Override
@@ -168,7 +168,7 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public String getSortProperty() {
-                return IntersectionObject.F_METRIC;
+                return DetectedPattern.F_METRIC;
             }
 
             @Override
@@ -177,10 +177,10 @@ public class MiningIntersectionTable extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
-                    IModel<IntersectionObject> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getCurrentElements()));
+                item.add(new Label(componentId, rowModel.getObject().getClusterRelatedPropertiesOccupation()));
             }
 
             @Override
@@ -195,11 +195,11 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public String getSortProperty() {
-                return IntersectionObject.F_METRIC;
+                return DetectedPattern.F_METRIC;
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
+            public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
                 return null;
             }
 
@@ -209,8 +209,8 @@ public class MiningIntersectionTable extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
-                    IModel<IntersectionObject> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
                 AjaxButton ajaxButton = new AjaxButton(componentId,
                         createStringResource("RoleMining.button.title.compute")) {
@@ -243,11 +243,11 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public String getSortProperty() {
-                return IntersectionObject.F_METRIC;
+                return DetectedPattern.F_METRIC;
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<IntersectionObject> iModel) {
+            public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
                 return null;
             }
 
@@ -257,8 +257,8 @@ public class MiningIntersectionTable extends Panel {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<IntersectionObject>> item, String componentId,
-                    IModel<IntersectionObject> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
                 AjaxButton ajaxButton = new AjaxButton(componentId, createStringResource("RoleMining.button.title.load")) {
                     @Override
@@ -300,7 +300,7 @@ public class MiningIntersectionTable extends Panel {
         return createStringResource("RoleMining.cluster.table.column.header." + identifier);
     }
 
-    protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<IntersectionObject> rowModel){
+    protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel){
 
     }
 }

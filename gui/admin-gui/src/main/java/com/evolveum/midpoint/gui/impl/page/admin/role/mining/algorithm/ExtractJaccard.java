@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
@@ -19,13 +19,15 @@ import com.google.common.collect.ListMultimap;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.addDetectedObjectJaccard;
+
 public class ExtractJaccard {
 
-    public static List<IntersectionObject> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
+    public static List<DetectedPattern> businessRoleDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency,
             double maxFrequency, int minIntersection, Integer minOccupancy, RoleAnalysisProcessModeType mode, double similarity) {
 
-        List<IntersectionObject> intersections = new ArrayList<>();
+        List<DetectedPattern> intersections = new ArrayList<>();
 
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             loadUsersIntersections(miningRoleTypeChunks, minFrequency, maxFrequency, minIntersection, intersections,
@@ -39,24 +41,26 @@ public class ExtractJaccard {
     }
 
     private static void loadUsersIntersections(List<MiningRoleTypeChunk> miningRoleTypeChunks, double minFrequency, double maxFrequency,
-            int minIntersection, List<IntersectionObject> intersections, int minOccupancy, double similarity) {
+            int minIntersection, List<DetectedPattern> intersections, int minOccupancy, double similarity) {
+
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
             double frequency = miningRoleTypeChunk.getFrequency();
             if (frequency < minFrequency || frequency > maxFrequency) {
                 continue;
             }
-            List<String> users = miningRoleTypeChunk.getUsers();
-            if (users.size() < minIntersection) {
+            Set<String> members = new HashSet<>(miningRoleTypeChunk.getUsers());
+            int membersCount = members.size();
+            if (membersCount < minIntersection) {
                 continue;
             }
             preparedObjects.add(miningRoleTypeChunk);
 
-            int size = miningRoleTypeChunk.getRoles().size();
-            if (size >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(users), size * users.size(),
-                        "jaccard", size,
-                        null, new HashSet<>(miningRoleTypeChunk.getRoles()), RoleAnalysisSearchModeType.JACCARD));
+            int propertiesCount = miningRoleTypeChunk.getRoles().size();
+            if (propertiesCount >= minOccupancy) {
+
+                intersections.add(addDetectedObjectJaccard(new HashSet<>(miningRoleTypeChunk.getRoles()),
+                        members, null));
             }
 
         }
@@ -79,22 +83,20 @@ public class ExtractJaccard {
 
         for (MiningRoleTypeChunk key : map.keySet()) {
             List<MiningRoleTypeChunk> values = map.get(key);
-            Set<String> users = new HashSet<>(key.getUsers());
-            Set<String> roles = new HashSet<>(key.getRoles());
+            Set<String> members = new HashSet<>(key.getUsers());
+            Set<String> properties = new HashSet<>(key.getRoles());
             for (MiningRoleTypeChunk value : values) {
-                users.addAll(value.getUsers());
-                roles.addAll(value.getRoles());
+                members.addAll(value.getUsers());
+                properties.addAll(value.getRoles());
             }
 
-            intersections.add(new IntersectionObject(users, users.size() * roles.size(),
-                    "jaccard", roles.size(),
-                    null, roles, RoleAnalysisSearchModeType.JACCARD));
+            intersections.add(addDetectedObjectJaccard(properties, members, null));
         }
 
     }
 
     private static void loadRolesIntersections(List<MiningUserTypeChunk> miningUserTypeChunks, double minFrequency, double maxFrequency,
-            int minIntersection, List<IntersectionObject> intersections, int minOccupancy, double similarity) {
+            int minIntersection, List<DetectedPattern> intersections, int minOccupancy, double similarity) {
         List<MiningUserTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
             double frequency = miningUserTypeChunk.getFrequency();
@@ -102,18 +104,16 @@ public class ExtractJaccard {
                 continue;
             }
 
-            List<String> roles = miningUserTypeChunk.getRoles();
-            if (roles.size() < minIntersection) {
+            Set<String> members = new HashSet<>(miningUserTypeChunk.getRoles());
+            if (members.size() < minIntersection) {
                 continue;
             }
-
             preparedObjects.add(miningUserTypeChunk);
 
-            int occupancy = miningUserTypeChunk.getUsers().size();
-            if (occupancy >= minOccupancy) {
-                intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * occupancy,
-                        "outer", occupancy,
-                        null, new HashSet<>(miningUserTypeChunk.getUsers()), RoleAnalysisSearchModeType.JACCARD));
+            Set<String> properties = new HashSet<>(miningUserTypeChunk.getUsers());
+            int propertiesCount = properties.size();
+            if (propertiesCount >= minOccupancy) {
+                intersections.add(addDetectedObjectJaccard(properties, members, null));
             }
 
         }
@@ -136,16 +136,15 @@ public class ExtractJaccard {
 
         for (MiningUserTypeChunk key : map.keySet()) {
             List<MiningUserTypeChunk> values = map.get(key);
-            Set<String> users = new HashSet<>(key.getUsers());
-            Set<String> roles = new HashSet<>(key.getRoles());
+            Set<String> properties = new HashSet<>(key.getUsers());
+            Set<String> members = new HashSet<>(key.getRoles());
             for (MiningUserTypeChunk value : values) {
-                roles.addAll(value.getRoles());
-                users.addAll(value.getUsers());
+                members.addAll(value.getRoles());
+                properties.addAll(value.getUsers());
             }
 
-            intersections.add(new IntersectionObject(new HashSet<>(roles), roles.size() * users.size(),
-                    "jaccard", users.size(),
-                    null, users, RoleAnalysisSearchModeType.JACCARD));
+            intersections.add(addDetectedObjectJaccard(properties, members, null));
+
         }
 
     }

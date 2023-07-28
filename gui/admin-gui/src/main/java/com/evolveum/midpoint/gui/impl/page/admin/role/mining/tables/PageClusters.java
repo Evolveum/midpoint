@@ -15,7 +15,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class PageClusters extends Panel {
 
@@ -77,8 +78,9 @@ public class PageClusters extends Panel {
     private ObjectQuery getCustomizeContentQuery() {
 
         if (parentOid != null) {
-            return ((PageBase) getPage()).getPrismContext().queryFor(RoleAnalysisCluster.class)
-                    .item(RoleAnalysisCluster.F_PARENT_REF).eq(parentOid)
+            return ((PageBase) getPage()).getPrismContext().queryFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
+                    .ref(parentOid, RoleAnalysisSessionType.COMPLEX_TYPE)
                     .build();
         }
         return null;
@@ -86,11 +88,11 @@ public class PageClusters extends Panel {
 
     protected MainObjectListPanel<?> clusterTable() {
 
-        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisCluster.class) {
+        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisClusterType.class) {
 
             @Override
-            protected ISelectableDataProvider<SelectableBean<RoleAnalysisCluster>> createProvider() {
-                SelectableBeanObjectDataProvider<RoleAnalysisCluster> provider = createSelectableBeanObjectDataProvider(() ->
+            protected ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
+                SelectableBeanObjectDataProvider<RoleAnalysisClusterType> provider = createSelectableBeanObjectDataProvider(() ->
                         getCustomizeContentQuery(), null);
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
@@ -99,26 +101,26 @@ public class PageClusters extends Panel {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<RoleAnalysisCluster>, String>> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> createDefaultColumns() {
 
-                List<IColumn<SelectableBean<RoleAnalysisCluster>, String>> columns = new ArrayList<>();
+                List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns = new ArrayList<>();
 
-                IColumn<SelectableBean<RoleAnalysisCluster>, String> column;
+                IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
 
                 column = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
 
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleAnalysisCluster>> rowModel) {
+                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
 
                         PageBase pageBase = (PageBase) getPage();
                         OperationResult operationResult = new OperationResult("prepareObjects");
                         List<PrismObject<FocusType>> elements = new ArrayList<>();
 
-                        List<String> elements1 = rowModel.getObject().getValue().getElements();
-                        for (String s : elements1) {
-                            elements.add(getFocusTypeObject(pageBase, s, operationResult));
+                        List<ObjectReferenceType> elements1 = rowModel.getObject().getValue().getMembers();
+                        for (ObjectReferenceType objectReferenceType : elements1) {
+                            elements.add(getFocusTypeObject(pageBase, objectReferenceType.getOid(), operationResult));
                         }
 
                         List<PrismObject<FocusType>> points = new ArrayList<>();
@@ -141,10 +143,12 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.column.header.density")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        String pointsDensity = model.getObject().getValue().getPointsDensity();
+                        String pointsDensity = String.format("%.3f",
+                                model.getObject().getValue().getClusterStatistic().getPropertiesDensity());
+
                         String colorClass = getColorClass(pointsDensity);
 
                         Label label = new Label(componentId, pointsDensity);
@@ -163,12 +167,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_POINTS_DENSITY.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);
@@ -177,22 +181,21 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.members.count")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        cellItem.add(new Label(componentId,
-                                model.getObject().getValue() != null && model.getObject().getValue().getElementsCount() != null ?
-                                        model.getObject().getValue().getElementsCount() : null));
+                        cellItem.add(new Label(componentId, model.getObject().getValue().getClusterStatistic()
+                                .getMembersObjectsCount()));
                     }
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_ELEMENTS_COUNT.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
 
                     @Override
@@ -206,10 +209,13 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.roles.count")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getPointsCount() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getPointsCount()));
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+
+                        if (model.getObject().getValue() != null && model.getObject().getValue()
+                                .getClusterStatistic().getPropertiesCount() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue()
+                                    .getClusterStatistic().getPropertiesCount()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -224,12 +230,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_POINTS_COUNT.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);
@@ -238,10 +244,12 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.column.header.min.roles")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getPointsMinOccupation() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getPointsMinOccupation()));
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue()
+                                .getClusterStatistic().getPropertiesMinOccupation() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue()
+                                    .getClusterStatistic().getPropertiesMinOccupation()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -256,12 +264,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_POINTS_MIN_OCCUPATION.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);
@@ -270,10 +278,12 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.column.header.max.roles")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getPointsMaxOccupation() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getPointsMaxOccupation()));
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue()
+                                .getClusterStatistic().getPropertiesMaxOccupation() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue()
+                                    .getClusterStatistic().getPropertiesMaxOccupation()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -288,12 +298,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_POINTS_MAX_OCCUPATION.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);
@@ -302,10 +312,12 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.column.header.mean")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getPointsMean() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getPointsMean()));
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue()
+                                .getClusterStatistic().getPropertiesMean() != null) {
+                            cellItem.add(new Label(componentId, model.getObject().getValue()
+                                    .getClusterStatistic().getPropertiesMean()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -320,12 +332,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_POINTS_MEAN.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);
@@ -333,15 +345,17 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.similar.groups.count")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getElementsCount() != null) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue()
+                                .getClusterStatistic().getMembersObjectsCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
-                                    Model.of(String.valueOf(model.getObject().getValue().getElementsCount()))) {
+                                    Model.of(String.valueOf(model.getObject().getValue()
+                                            .getClusterStatistic().getMembersObjectsCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    String parentRef = model.getObject().getValue().getParentRef();
+                                    String parentRef = model.getObject().getValue().getRoleAnalysisSessionRef().getOid();
                                     if (parentRef != null) {
                                         PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid(getPageBase(),
                                                 parentRef, new OperationResult("getParent"));
@@ -350,8 +364,8 @@ public class PageClusters extends Panel {
                                         assert getParent != null;
                                         String processMode = getParent.asObjectable().getClusterOptions().getProcessMode().value();
                                         String searchMode = getParent.asObjectable().getPatternDetectionOptions().getSearchMode().value();
-                                        Integer elementsCount = model.getObject().getValue().getElementsCount();
-                                        Integer pointsCount = model.getObject().getValue().getPointsCount();
+                                        Integer elementsCount = model.getObject().getValue().getClusterStatistic().getMembersObjectsCount();
+                                        Integer pointsCount = model.getObject().getValue().getClusterStatistic().getPropertiesCount();
                                         int max = Math.max(elementsCount, pointsCount);
 
                                         params.set(PageMiningOperation.PARAMETER_OID, oid);
@@ -388,12 +402,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_ELEMENTS_COUNT.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);
@@ -402,9 +416,10 @@ public class PageClusters extends Panel {
                         createStringResource("RoleMining.cluster.table.similar.image.popup")) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisCluster>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisCluster>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getElementsCount() != null) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue()
+                                .getClusterStatistic().getMembersObjectsCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
                                     Model.of("popup")) {
@@ -441,12 +456,12 @@ public class PageClusters extends Panel {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override
                     public String getSortProperty() {
-                        return RoleAnalysisCluster.F_ELEMENTS_COUNT.toString();
+                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
                     }
                 };
                 columns.add(column);

@@ -23,7 +23,8 @@ public class MiningRoleTypeChunk implements Serializable {
 
     ClusterObjectUtils.Status status;
 
-    public MiningRoleTypeChunk(List<String> roles, List<String> users, String chunkName, double frequency, ClusterObjectUtils.Status status) {
+    public MiningRoleTypeChunk(List<String> roles, List<String> users, String chunkName, double frequency,
+            ClusterObjectUtils.Status status) {
         this.roles = roles;
         this.users = users;
         this.chunkName = chunkName;

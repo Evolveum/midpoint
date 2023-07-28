@@ -228,7 +228,7 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         RoleAnalysisSessionType value = model.getObject().getValue();
-                        cellItem.add(new Label(componentId,value.getClusterOptions().getMinPropertyOverlap()));
+                        cellItem.add(new Label(componentId, value.getClusterOptions().getMinPropertyOverlap()));
                     }
 
                     @Override
@@ -245,7 +245,10 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         RoleAnalysisSessionType value = model.getObject().getValue();
-                        cellItem.add(new Label(componentId,value.getClusterOptions().getMinPropertiesCount()));
+                        cellItem.add(new Label(componentId,
+                                value.getClusterOptions().getMinPropertiesCount()
+                                        + " - "
+                                        + value.getClusterOptions().getMaxPropertiesCount()));
                     }
 
                     @Override
@@ -262,7 +265,7 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         RoleAnalysisSessionType value = model.getObject().getValue();
-                        cellItem.add(new Label(componentId,value.getClusterOptions().getMinUniqueGroupCount()));
+                        cellItem.add(new Label(componentId, value.getClusterOptions().getMinUniqueGroupCount()));
                     }
 
                     @Override

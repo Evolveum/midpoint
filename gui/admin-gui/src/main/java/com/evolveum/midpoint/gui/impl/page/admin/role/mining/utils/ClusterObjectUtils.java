@@ -66,8 +66,8 @@ public class ClusterObjectUtils {
     }
 
     public static void importRoleAnalysisClusterObject(OperationResult result, Task task, @NotNull PageBase pageBase,
-            @NotNull PrismObject<RoleAnalysisCluster> cluster, String parentRef) {
-        cluster.asObjectable().setParentRef(parentRef);
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster, ObjectReferenceType parentRef) {
+        cluster.asObjectable().setRoleAnalysisSessionRef(parentRef);
         pageBase.getModelService().importObject(cluster, null, task, result);
     }
 
@@ -90,7 +90,7 @@ public class ClusterObjectUtils {
 
         ModelService service = pageBase.getModelService();
         ObjectQuery queryType = pageBase.getPrismContext().queryFor(AssignmentHolderType.class)
-                .type(RoleAnalysisCluster.class).build();
+                .type(RoleAnalysisClusterType.class).build();
 
         try {
             service.searchObjectsIterative(AssignmentHolderType.class, queryType, handler, null,
@@ -126,7 +126,7 @@ public class ClusterObjectUtils {
         }
     }
 
-    public static String importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
+    public static ObjectReferenceType importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
             RoleAnalysisSessionClusterOptionType roleAnalysisSessionClusterOption,
             RoleAnalysisSessionDetectionOptionType roleAnalysisSessionDetectionOption,
             RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType,
@@ -141,7 +141,10 @@ public class ClusterObjectUtils {
         ModelService modelService = pageBase.getModelService();
         modelService.importObject(roleAnalysisSessionPrismObject, null, task, result);
 
-        return roleAnalysisSessionPrismObject.getOid();
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setOid(roleAnalysisSessionPrismObject.getOid());
+        objectReferenceType.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
+        return objectReferenceType;
     }
 
     public static PrismObject<RoleAnalysisSessionType> generateParentClusterObject(PageBase pageBase,
@@ -312,10 +315,10 @@ public class ClusterObjectUtils {
         }
     }
 
-    public static @NotNull PrismObject<RoleAnalysisCluster> getClusterTypeObject(@NotNull PageBase pageBase, String oid) {
+    public static @NotNull PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull PageBase pageBase, String oid) {
         OperationResult operationResult = new OperationResult("GetCluster");
         try {
-            return pageBase.getRepositoryService().getObject(RoleAnalysisCluster.class, oid, null, operationResult);
+            return pageBase.getRepositoryService().getObject(RoleAnalysisClusterType.class, oid, null, operationResult);
         } catch (ObjectNotFoundException | SchemaException e) {
             throw new RuntimeException(e);
         }

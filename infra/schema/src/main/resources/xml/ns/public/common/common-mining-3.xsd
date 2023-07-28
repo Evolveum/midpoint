@@ -22,7 +22,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            TODO
+            Parts of the role of analysts.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -33,10 +33,10 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
-    <xsd:complexType name="RoleAnalysisCluster">
+    <xsd:complexType name="RoleAnalysisClusterType">
         <xsd:annotation>
             <xsd:documentation>
-                A set of clusters based on density and similarity. An object defines a group of objects that are similar
+                A set of grouped object based on density and similarity. An object defines a group of objects that are similar
                 according to the specified conditions or fall into one category based on the specified conditions.
             </xsd:documentation>
             <xsd:appinfo>
@@ -48,143 +48,47 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="elements" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="members" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The main object that was analyzed. In the case of ROLE MODE, the list of role object (elements = roles)
+                                The main object that was analyzed. In the case of ROLE MODE, the list of role object (members = roles)
                                 IDs that make up the given group is included in the object. In the case of USER MODE,
-                                the list of users object (elements = users) IDs that make up the given group is included in the object.
+                                the list of users object (members = users) IDs that make up the given group is included in the object.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="elementsCount" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    The absolute value of the elements in the given group.
-                                    In the case of USER MODE, it is the count of users. (elements = users)
-                                    In the case of ROLE MODE, it is the count of roles. (elements = roles)
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.elementsCount</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="pointsCount" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    The absolute value of the points (objects) according to which the "elements" were included
-                                    in the given group.
-                                    In the case of USER MODE, it is the count of roles. (roles = points, elements = users)
-                                    In the case of ROLE MODE, it is the count of users. (users = points, elements = roles)
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.pointCount</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="parentRef" type="xsd:string" minOccurs="0">
+                    <xsd:element name="roleAnalysisSessionRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Identifies the parent object under which the RoleAnalysisCluster is included.
                                 The UUID is commonly used for this purpose.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.parentRef</a:displayName>
+                                <a:displayName>RoleAnalysisClusterType.parentRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="defaultDetection" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="detection" type="c:RoleAnalysisClusterDetectionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                It consists of a sheet of oids of objects in which a match was found according
+                                It consists of a sheet of ref objects and their specification in which a match was found according
                                 to the set parameters. These objects are subsequently processed as a proposal
                                 for applying changes in the system (Business role).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="pointsDensity" type="xsd:string" minOccurs="0">
+                    <xsd:element name="clusterStatistic" type="c:RoleAnalysisClusterStatisticType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Context of clustering refers to the measure of how tightly packed or concentrated the
-                                    data points are within a cluster.
-                                    This parameter represents the total overlap of compared objects.
-
-                                    In the case of USER MODE, it is the role overlay over all users.
-                                    In the case of ROLE MODE, it is the role overlay over all roles.
+                                    The container consists of statistical data about the RoleAnalysisCluster.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.density</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="pointsMean" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Average number of compared objects (points) per element in a given group (RoleAnalysisCluster).
-                                    In the case of USER MODE, it is the average number of roles. (points = roles)
-                                    In the case of ROLE MODE, it is the average number of users. (points = users)
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.mean</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="pointsMinOccupation" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Minimum number of compared objects (points) among the element in a given group (RoleAnalysisCluster).
-                                    In the case of USER MODE, it is the minimum roles set size. (points = roles)
-                                    In the case of ROLE MODE, it is the minimum users set size. (points = users)
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.minOccupation</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="pointsMaxOccupation" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Maximum number of compared objects (points) among the element in a given group (RoleAnalysisCluster).
-                                    In the case of USER MODE, it is the highest roles set size. (points = roles)
-                                    In the case of ROLE MODE, it is the highest users set size. (points = users)
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.maxOccupation</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Not currently used (future).
-                                    Indication of the level of risk associated with the (RoleAnalysisCluster).
-                                    This may be a numeric value, textual label are any other suitable machine-processable indication.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisCluster.riskLevel</a:displayName>
+                                <a:displayName>RoleAnalysisClusterStatisticType.clusterStatistic</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -195,10 +99,215 @@
 
     </xsd:complexType>
 
-    <xsd:element name="roleAnalysisCluster" type="tns:RoleAnalysisCluster" substitutionGroup="tns:object"/>
+    <xsd:element name="roleAnalysisCluster" type="tns:RoleAnalysisClusterType" substitutionGroup="tns:object"/>
 
+    <xsd:complexType name="RoleAnalysisClusterStatisticType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The container consists of statistical data about the RoleAnalysisCluster.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="membersObjectsCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The absolute value of the members in the given group.
+                            In the case of USER MODE, it is the count of users. (members = users)
+                            In the case of ROLE MODE, it is the count of roles. (members = roles)
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.membersObjectsCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
+            <xsd:element name="propertiesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The absolute value of the properties (objects) according to which the "members" were included
+                            in the given group.
+                            In the case of USER MODE, it is the count of roles. (roles = properties, members = users)
+                            In the case of ROLE MODE, it is the count of users. (users = properties, members = roles)
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
+            <xsd:element name="propertiesDensity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Context of clustering refers to the measure of how tightly packed or concentrated the
+                            data points are within a cluster.
+                            This parameter represents the total overlap of compared objects.
+
+                            In the case of USER MODE, it is the role (properties) overlay over all users (members).
+                            In the case of ROLE MODE, it is the user (properties) overlay over all roles (members).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesDensity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="propertiesMean" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Average number of compared objects (properties) per member in a given group (RoleAnalysisCluster).
+                            In the case of USER MODE, it is the average number of roles (properties).
+                            In the case of ROLE MODE, it is the average number of users (properties).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMean</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="propertiesMinOccupation" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum number of compared objects (properties) among the element in a given
+                            group (RoleAnalysisCluster).
+                            In the case of USER MODE, it is the minimum roles (properties) set size.
+                            In the case of ROLE MODE, it is the minimum users (properties) set size.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMinOccupation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="propertiesMaxOccupation" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximum number of compared objects (properties) among the element in a given
+                            group (RoleAnalysisCluster).
+                            In the case of USER MODE, it is the highest roles (properties) set size.
+                            In the case of ROLE MODE, it is the highest users (properties) set size.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMaxOccupation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Not currently used (future).
+                            Indication of the level of risk associated with the (RoleAnalysisClusterType).
+                            This may be a numeric value, textual label are any other suitable machine-processable indication.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterStatisticType.riskLevel</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RoleAnalysisClusterDetectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default business roles detection options.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="membersObject" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The main object that was analyzed. In the case of ROLE MODE, the list of roles (members) object
+                        IDs that make up the given group is included in the object. In the case of USER MODE,
+                        the list of users (members) object IDs that make up the given group is included in the object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="properties" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Properties used for comparison.
+                        USER MODE (properties) - role assign.
+                        ROLE MODE (properties) - members count.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="searchMode" type="tns:RoleAnalysisSearchModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Business role pattern detection mode.
+                            JACCARD - search by jaccard index.
+                            INTERSECTION - exact search by overlapping properties.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSearchModeType.searchMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="clusterRelatedPropertiesOccupation" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the number of objects included in the group (cluster) to which
+                            the found business role can be applied.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterDetectionType.clusterRelatedPropertiesOccupation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="allPropertiesOccupation" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the number of all objects to which the found business role can be applied.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterDetectionType.allPropertiesOccupation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the range of reduced values when applying the business role design.
+                            (Included in the group (cluster))
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisClusterDetectionType.clusterMetric</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
 
     <xsd:complexType name="RoleAnalysisSessionType">
@@ -207,7 +316,7 @@
                 <p>
                     The RoleAnalysisSessionType represents a session for role analysis, providing a container for
                     RoleAnalysisCluster objects. It serves as a parent object that contains references and basic
-                    information about its child clusters (RoleAnalysisSessionType).
+                    information about its child clusters (RoleAnalysisClusterType).
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -223,7 +332,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    The roleAnalysisClusterRef element represents references to clusters
+                                    Represents references to clusters (RoleAnalysisClusterType)
                                     associated with the role analysis session.
                                 </p>
                             </xsd:documentation>
@@ -235,6 +344,11 @@
                             <xsd:documentation>
                                 <p>
                                     Object clustering options.
+
+                                    Specification of parameters utilized for establishing cluster
+                                    generation conditions, specifically pertaining to the RoleAnalysisClusterType.
+                                    These parameters play a critical role in defining the criteria and conditions for
+                                    grouping objects into clusters, enabling effective role analysis.
 
                                     Furthermore, the role analysis session allows for the possibility of updating these values.
                                     If there is a need to modify or refine the cluster options during the analysis process, the values
@@ -249,7 +363,10 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Default business roles detection options.
+                                    Options for Detecting Business Roles
+
+                                    These parameters serve as key specifications for performing searches
+                                    and analyzes aimed at discovering different business roles.
 
                                     Furthermore, the role analysis session allows for the possibility of updating these values.
                                     If there is a need to modify or refine the cluster options during the analysis process, the values
@@ -280,11 +397,15 @@
 
     <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSessionType" substitutionGroup="tns:object"/>
 
-
     <xsd:complexType name="RoleAnalysisSessionClusterOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 Object clustering options.
+
+                Specification of parameters utilized for establishing cluster
+                generation conditions, specifically pertaining to the RoleAnalysisClusterType.
+                These parameters play a critical role in defining the criteria and conditions for
+                grouping objects into clusters, enabling effective role analysis.
 
                 Furthermore, the role analysis session allows for the possibility of updating these values.
                 If there is a need to modify or refine the cluster options during the analysis process, the values
@@ -313,18 +434,17 @@
                     <xsd:documentation>
                         <p>
                             The mode element specifies the process mode for role analysis. It determines the specific approach
-                            or methodology used during the analysis. The value of this element is a string that describes the
-                            process mode.
+                            or methodology used during the analysis.
 
                             We currently use an enum type to identify the mode (ROLE MODE, USER MODE)
-                            For Role Analysis (ROLE MODE):
+                            For Role Analysis (ROLE):
                             Role perspective is taken into account. The role mining process focuses on identifying
                             and analyzing roles based on their similarity and considering the perspective of roles
                             (vectors of users who have this role are compared). Objects
                             that meet the specified conditions, determined by the input parameters, are added to the data set
                             to facilitate role mining
 
-                            For User Analysis (USER MODE):
+                            For User Analysis (USER):
                             User perspective is taken into account. The user mining process focuses on identifying and
                             analyzing users based on their similarity and considering the perspective of users
                             (the role vectors assigned to the given users are compared). Objects that
@@ -341,7 +461,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Similarity threshold used for clustering (Jaccard)
+                            Similarity threshold used for clustering (Jaccard).
+                            If the condition is not met, then the objects are grouped.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -354,6 +475,11 @@
                     <xsd:documentation>
                         <p>
                             Specifies the minimum size of a group (unique objects).
+                            We consider a unique object to be a separate unique object with unique properties
+                            or a group of objects consisting of the same properties.
+
+                            NOTE: The parameter checks the number of these unique objects, not the total
+                            number of included objects in the cluster.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -365,7 +491,23 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Minimum count of relation with compared object. USER MODE - min role assign. ROLE MODE - min members count.
+                            Minimum count of relation with compared object.
+                            USER MODE - min role assign.
+                            ROLE MODE - min members count.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertiesCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxPropertiesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximum count of relation with compared object.
+                            USER MODE - min role assign.
+                            ROLE MODE - min members count.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -378,8 +520,10 @@
                     <xsd:documentation>
                         <p>
                             Minimum property overlap size.
-                            In the case of USER MODE, the user is included in the analysis, if there are other users who have
+                            In the case of USER MODE, the user is included in the analysis, if there are other user(s) who have
                             at least "minOverlapCondition" equal roles.
+                            In the case of ROLE MODE, the role is included in the analysis, if there are other role(s) who have
+                            at least "minOverlapCondition" equal users.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -394,7 +538,10 @@
     <xsd:complexType name="RoleAnalysisSessionDetectionOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Default business roles detection options.
+                Options for Detecting Business Roles
+
+                These parameters serve as key specifications for performing searches
+                and analyzes aimed at discovering different business roles.
 
                 Furthermore, the role analysis session allows for the possibility of updating these values.
                 If there is a need to modify or refine the cluster options during the analysis process, the values
@@ -411,8 +558,10 @@
                     <xsd:documentation>
                         <p>
                             Minimum property overlap size.
-                            In the case of USER MODE, the user is included in the analysis, if there are other users who have
+                            In the case of USER MODE, the user is included in the analysis, if there are other user(s) who have
                             at least "minOverlapCondition" equal roles.
+                            In the case of ROLE MODE, the role is included in the analysis, if there are other role(s) who have
+                            at least "minOverlapCondition" equal users.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -425,6 +574,8 @@
                     <xsd:documentation>
                         <p>
                             The minimum number of objects covered by the found business role.
+                            In the case of USER MODE - the number of roles of which the business role consists.
+                            In the case of ROLE MODE - the number of users to which the business role can be applied.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -438,6 +589,10 @@
                         <p>
                             Minimum required frequency. If the condition is not met, the objects are not included in the
                             detection (search).
+                            In the case of USER MODE - frequency of application of roles (properties)
+                            due to processed members(users)
+                            In the case of ROLE MODE - frequency of disposition of users (properties)
+                            due to processed members(roles)
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -451,6 +606,10 @@
                         <p>
                             Maximum required frequency. If the condition is not met, the objects are not included in the
                             detection (search).
+                            In the case of USER MODE - frequency of application of roles (properties)
+                            due to processed members (users)
+                            In the case of ROLE MODE - frequency of disposition of users (properties)
+                            due to processed members (roles)
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -503,8 +662,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            ProcessedObjectsCount represents the number of main objects (processed objects)
-                            that are part of clusters (RoleAnalysisSessionType).
+                            ProcessedObjectsCount represents the number of members objects
+                            that are part of clusters RoleAnalysisClusterType belonging to RoleAnalysisSessionType.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -517,7 +676,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            It expresses the average overlap density of child clusters (RoleAnalysisSessionType).
+                            It expresses the average overlap density of child clusters (RoleAnalysisClusterType).
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

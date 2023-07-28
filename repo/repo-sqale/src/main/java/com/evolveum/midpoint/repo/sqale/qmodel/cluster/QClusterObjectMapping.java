@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cluster;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -16,8 +15,10 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF;
+
 public class QClusterObjectMapping
-        extends QAssignmentHolderMapping<RoleAnalysisCluster, QClusterData, MClusterObject> {
+        extends QAssignmentHolderMapping<RoleAnalysisClusterType, QClusterData, MClusterObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "roleAnalysisCluster";
 
@@ -27,19 +28,24 @@ public class QClusterObjectMapping
 
     private QClusterObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QClusterData.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                RoleAnalysisCluster.class, QClusterData.class, repositoryContext);
+                RoleAnalysisClusterType.class, QClusterData.class, repositoryContext);
 
-        addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
-        addItemMapping(F_PARENT_REF, stringMapper(q -> q.parentRef));
-        addItemMapping(F_ELEMENTS, multiStringMapper(q -> q.elements));
-        addItemMapping(F_POINTS_COUNT, integerMapper(q -> q.pointsCount));
-        addItemMapping(F_ELEMENTS_COUNT, integerMapper(q -> q.elementsCount));
-        addItemMapping(F_POINTS_MEAN, stringMapper(q -> q.pointsMean));
-        addItemMapping(F_POINTS_MIN_OCCUPATION, integerMapper(q -> q.pointsMinOccupation));
-        addItemMapping(F_POINTS_MAX_OCCUPATION, integerMapper(q -> q.pointsMaxOccupation));
-        addItemMapping(F_POINTS_DENSITY, stringMapper(q -> q.pointsDensity));
-        addItemMapping(F_PARENT_REF, stringMapper(q -> q.parentRef));
-        addItemMapping(F_DEFAULT_DETECTION, multiStringMapper(q -> q.defaultDetection));
+//        addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
+
+        addRefMapping(F_ROLE_ANALYSIS_SESSION_REF,
+                q -> q.parentRefTargetOid,
+                q -> q.parentRefTargetType,
+                q -> q.parentRefRelationId,
+                QObjectMapping::getObjectMapping);
+//        addItemMapping(F_ELEMENTS, multiStringMapper(q -> q.elements));
+//        addItemMapping(F_POINTS_COUNT, integerMapper(q -> q.pointsCount));
+//        addItemMapping(F_ELEMENTS_COUNT, integerMapper(q -> q.elementsCount));
+//        addItemMapping(F_POINTS_MEAN, stringMapper(q -> q.pointsMean));
+//        addItemMapping(F_POINTS_MIN_OCCUPATION, integerMapper(q -> q.pointsMinOccupation));
+//        addItemMapping(F_POINTS_MAX_OCCUPATION, integerMapper(q -> q.pointsMaxOccupation));
+//        addItemMapping(F_POINTS_DENSITY, stringMapper(q -> q.pointsDensity));
+//        addItemMapping(F_PARENT_REF, stringMapper(q -> q.parentRef));
+//        addItemMapping(F_DEFAULT_DETECTION, multiStringMapper(q -> q.defaultDetection));
 
     }
 
@@ -55,19 +61,23 @@ public class QClusterObjectMapping
 
     @Override
     public @NotNull MClusterObject toRowObjectWithoutFullObject(
-            RoleAnalysisCluster clusterObject, JdbcSession jdbcSession) {
+            RoleAnalysisClusterType clusterObject, JdbcSession jdbcSession) {
         MClusterObject row = super.toRowObjectWithoutFullObject(clusterObject, jdbcSession);
 
-        row.riskLevel = clusterObject.getRiskLevel();
-        row.pointsCount = clusterObject.getPointsCount();
-        row.elementsCount = clusterObject.getElementsCount();
-        row.pointsMean = clusterObject.getPointsMean();
-        row.pointsDensity = clusterObject.getPointsDensity();
-        row.pointsMinOccupation = clusterObject.getPointsMinOccupation();
-        row.pointsMaxOccupation = clusterObject.getPointsMaxOccupation();
-        row.elements = stringsToArray(clusterObject.getElements());
-        row.parentRef = clusterObject.getParentRef();
-        row.defaultDetection = stringsToArray(clusterObject.getDefaultDetection());
+//        row.riskLevel = clusterObject.getRiskLevel();
+//        row.pointsCount = clusterObject.getPointsCount();
+//        row.elementsCount = clusterObject.getElementsCount();
+//        row.pointsMean = clusterObject.getPointsMean();
+//        row.pointsDensity = clusterObject.getPointsDensity();
+//        row.pointsMinOccupation = clusterObject.getPointsMinOccupation();
+//        row.pointsMaxOccupation = clusterObject.getPointsMaxOccupation();
+//        row.elements = stringsToArray(clusterObject.getElements());
+
+        setReference(clusterObject.getRoleAnalysisSessionRef(),
+                o -> row.parentRefTargetOid = o,
+                t -> row.parentRefTargetType = t,
+                r -> row.parentRefRelationId = r);
+//        row.defaultDetection = stringsToArray(clusterObject.getDefaultDetection());
 
         return row;
     }

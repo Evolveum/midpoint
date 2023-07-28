@@ -10,8 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public interface Clusterable {
-    List<PrismObject<RoleAnalysisCluster>> executeClustering(ClusterOptions clusterOptions);
+    List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions);
 }

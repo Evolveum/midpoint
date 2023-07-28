@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.ExtractJaccard;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ExecuteSearchPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ProcessBusinessRolePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.IntersectionObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningOperationChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.MiningRoleTypeChunk;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
+
 
 @PageDescriptor(
         urls = {
@@ -78,9 +79,9 @@ public class PageMiningOperation extends PageAdmin {
     Integer minOccupancy = 5;
     double maxFrequency = 1.0;
     Integer minIntersection = 10;
-    List<IntersectionObject> mergedIntersection = new ArrayList<>();
+    List<DetectedPattern> mergedIntersection = new ArrayList<>();
     AjaxButton processButton;
-    IntersectionObject intersection = null;
+    DetectedPattern intersection = null;
     boolean compress = true;
 
     String compressMode = "COMPRESS MODE";
@@ -145,7 +146,7 @@ public class PageMiningOperation extends PageAdmin {
         searchMode = getPageParameterSearchMode();
 
         long start = startTimer("LOAD DATA");
-        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
         mergedIntersection = loadDefaultIntersection(cluster);
         loadMiningTableData();
         endTimer(start, "LOAD DATA");
@@ -257,7 +258,7 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     private void loadMiningTableData() {
-        RoleAnalysisCluster cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterOid()).asObjectable();
 
         //TODO should only be used on a gui request?
         // In the case of large datasets, Jaccard sorting is
@@ -318,7 +319,7 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection, double maxFrequency) {
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection, double maxFrequency) {
         return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
@@ -347,7 +348,7 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, IntersectionObject intersection,
+            List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
             double maxFrequency, RoleAnalysisSearchModeType searchMode) {
         return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
@@ -377,11 +378,11 @@ public class PageMiningOperation extends PageAdmin {
         };
     }
 
-    public Component generateTableIntersection(String id, List<IntersectionObject> miningSets) {
+    public Component generateTableIntersection(String id, List<DetectedPattern> miningSets) {
 
         MiningIntersectionTable components = new MiningIntersectionTable(id, miningSets) {
             @Override
-            protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<IntersectionObject> rowModel) {
+            protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
                 intersection = rowModel.getObject();
 
                 updateMiningTable(ajaxRequestTarget, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);

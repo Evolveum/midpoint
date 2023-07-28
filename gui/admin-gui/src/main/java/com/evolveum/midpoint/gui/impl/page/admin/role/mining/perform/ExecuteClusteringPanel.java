@@ -16,6 +16,8 @@ import java.util.EnumSet;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -64,6 +66,8 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     private static final String ID_NAME_FIELD = "name_field";
     private static final String ID_INTERSECTION_THRESHOLD_FIELD = "intersection_field_min_cluster";
     private static final String ID_MIN_ASSIGN = "assign_min_occupy";
+    private static final String ID_MAX_ASSIGN = "assign_max_occupy";
+
     private static final String ID_GROUP_THRESHOLD_FIELD = "group_min_cluster";
     private static final String ID_SUBMIT_BUTTON = "ajax_submit_link_cluster";
 
@@ -102,7 +106,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             protected void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
 
                 ClusteringExecutor clusteringExecutor = new ClusteringExecutor(clusterOptions.getMode());
-                List<PrismObject<RoleAnalysisCluster>> clusters = clusteringExecutor.execute(clusterOptions);
+                List<PrismObject<RoleAnalysisClusterType>> clusters = clusteringExecutor.execute(clusterOptions);
 
                 RoleAnalysisSessionClusterOptionType roleAnalysisSessionClusterOption = getRoleAnalysisSessionFilterOption();
 
@@ -136,13 +140,14 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 roleAnalysisSessionClusterOption.setProcessMode(clusterOptions.getMode());
                 roleAnalysisSessionClusterOption.setSimilarityThreshold(clusterOptions.getSimilarity());
                 roleAnalysisSessionClusterOption.setMinUniqueGroupCount(clusterOptions.getMinGroupSize());
-                roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getAssignThreshold());
+                roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getMinProperties());
+                roleAnalysisSessionClusterOption.setMaxPropertiesCount(clusterOptions.getMaxProperties());
                 roleAnalysisSessionClusterOption.setMinPropertyOverlap(clusterOptions.getMinIntersections());
                 return roleAnalysisSessionClusterOption;
             }
 
             private void importRoleAnalysisClusteringResult(OperationResult result,
-                    List<PrismObject<RoleAnalysisCluster>> clusters,
+                    List<PrismObject<RoleAnalysisClusterType>> clusters,
                     RoleAnalysisSessionClusterOptionType roleAnalysisSessionClusterOption,
                     RoleAnalysisSessionDetectionOptionType roleAnalysisSessionDetectionOption,
                     String name,
@@ -159,9 +164,10 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 } else {complexType = UserType.COMPLEX_TYPE;}
 
                 double meanDensity = 0;
-                for (PrismObject<RoleAnalysisCluster> clusterTypePrismObject : clusters) {
-                    meanDensity += Double.parseDouble(clusterTypePrismObject.asObjectable().getPointsDensity());
-                    processedObjectCount += clusterTypePrismObject.asObjectable().getElementsCount();
+                for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
+                    RoleAnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistic();
+                    meanDensity += clusterStatistic.getPropertiesDensity();
+                    processedObjectCount += clusterStatistic.getMembersObjectsCount();
 
                     ObjectReferenceType objectReferenceType = new ObjectReferenceType();
                     objectReferenceType.setOid(clusterTypePrismObject.getOid());
@@ -175,13 +181,13 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 roleAnalysisSessionStatisticType.setProcessedObjectsCount(processedObjectCount);
                 roleAnalysisSessionStatisticType.setMeanDensity(meanDensity);
 
-                String parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionClusterOption,
+                ObjectReferenceType parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionClusterOption,
                         roleAnalysisSessionDetectionOption, roleAnalysisSessionStatisticType, roleAnalysisClusterRef, name);
 
                 Task task = pageBase.createSimpleTask("ImportClusterTypeObject");
 
                 try {
-                    for (PrismObject<RoleAnalysisCluster> clusterTypePrismObject : clusters) {
+                    for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
                         importRoleAnalysisClusterObject(result, task, ((PageBase) getPage()), clusterTypePrismObject, parentRef);
                     }
                 } catch (NumberFormatException e) {
@@ -504,15 +510,26 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         form.add(intersectionLabel);
 
         TextField<Integer> minAssign = new TextField<>(ID_MIN_ASSIGN,
-                Model.of(clusterOptions.getAssignThreshold()));
+                Model.of(clusterOptions.getMinProperties()));
         minAssign.setOutputMarkupId(true);
         minAssign.setOutputMarkupPlaceholderTag(true);
         minAssign.setVisible(true);
         minAssign.add(new EnableBehaviour(this::isEditClusterOption));
         form.add(minAssign);
 
+        OperationResult operationResult = new OperationResult("count roles");
+        int defaultThreshold = 1000;
+        clusterOptions.setMaxProperties(defaultThreshold);
+        TextField<Integer> maxAssign = new TextField<>(ID_MAX_ASSIGN,
+                Model.of(clusterOptions.getMaxProperties()));
+        maxAssign.setOutputMarkupId(true);
+        maxAssign.setOutputMarkupPlaceholderTag(true);
+        maxAssign.setVisible(true);
+        maxAssign.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(maxAssign);
+
         LabelWithHelpPanel assignmentsLabel = new LabelWithHelpPanel(ID_MIN_ASSIGN + "_label",
-                Model.of("Min properties")) {
+                Model.of("Properties range")) {
             @Override
             protected IModel<String> getHelpModel() {
                 return createStringResource("RoleMining.option.min.assign");
@@ -550,7 +567,8 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                     clusterOptions.setSimilarity(thresholdField.getModelObject());
                     clusterOptions.setMinIntersections(minIntersectionField.getModelObject());
                     clusterOptions.setMinGroupSize(minGroupField.getModelObject());
-                    clusterOptions.setAssignThreshold(minAssign.getModelObject());
+                    clusterOptions.setMinProperties(minAssign.getModelObject());
+                    clusterOptions.setMaxProperties(maxAssign.getModelObject());
                     this.add(AttributeAppender.replace("value",
                             createStringResource("RoleMining.edit.options.cluster")));
                     this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
@@ -565,9 +583,11 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 target.add(executeClustering);
                 target.add(nameField);
                 target.add(minAssign);
+                target.add(maxAssign);
                 target.add(thresholdField);
                 target.add(minIntersectionField);
                 target.add(minGroupField);
+                target.add(modeSelector);
                 target.add(this);
             }
         };

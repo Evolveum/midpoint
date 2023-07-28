@@ -21,17 +21,18 @@ public class ClusterOptions implements Serializable {
     private int minIntersections;
     private String identifier;
     private ObjectFilter query;
-    private int assignThreshold;
+    private int minProperties;
+    private int maxProperties;
     RoleAnalysisProcessModeType mode;
     RoleAnalysisSearchModeType searchMode;
     String name;
-    int defaultIntersectionSearch = 10;
+    int defaultIntersectionSearch = 5;
     int defaultOccupancySearch = 10;
-    double defaultMinFrequency = 0.4;
+    double defaultMinFrequency = 0.3;
     double defaultMaxFrequency = 1;
     double defaultJaccardThreshold = 0.8;
 
-    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode,RoleAnalysisSearchModeType searchMode) {
+    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode, RoleAnalysisSearchModeType searchMode) {
         this.pageBase = pageBase;
         this.mode = mode;
         this.searchMode = searchMode;
@@ -41,12 +42,12 @@ public class ClusterOptions implements Serializable {
     private void setDefaultOptions(RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             this.similarity = 0.6;
-            this.assignThreshold = 300;
+            this.minProperties = 300;
             this.minIntersections = 10;
             this.minGroupSize = 2;
         } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             this.similarity = 0.8;
-            this.assignThreshold = 10;
+            this.minProperties = 10;
             this.minIntersections = 10;
             this.minGroupSize = 5;
         }
@@ -100,12 +101,12 @@ public class ClusterOptions implements Serializable {
         this.query = query;
     }
 
-    public int getAssignThreshold() {
-        return assignThreshold;
+    public int getMinProperties() {
+        return minProperties;
     }
 
-    public void setAssignThreshold(int assignThreshold) {
-        this.assignThreshold = assignThreshold;
+    public void setMinProperties(int minProperties) {
+        this.minProperties = minProperties;
     }
 
     public RoleAnalysisProcessModeType getMode() {
@@ -171,4 +172,15 @@ public class ClusterOptions implements Serializable {
     public void setDefaultJaccardThreshold(double defaultJaccardThreshold) {
         this.defaultJaccardThreshold = defaultJaccardThreshold;
     }
+
+    public int getMaxProperties() {
+        return maxProperties;
+    }
+
+    public void setMaxProperties(int maxProperties) {
+        this.maxProperties = maxProperties;
+    }
+
 }
+
+

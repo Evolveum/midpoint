@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.ml.clustering.Cluster;
@@ -29,7 +31,6 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCluster;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class UserBasedClustering implements Clusterable {
@@ -37,19 +38,20 @@ public class UserBasedClustering implements Clusterable {
     OperationResult operationResult = new OperationResult("Map UserType object for clustering");
 
     @Override
-    public List<PrismObject<RoleAnalysisCluster>> executeClustering(ClusterOptions clusterOptions) {
+    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
 
         long start = startTimer(" prepare clustering object");
         int minIntersections = clusterOptions.getMinIntersections();
-        int assignThreshold = clusterOptions.getAssignThreshold();
+        int assignThreshold = clusterOptions.getMinProperties();
         int threshold = Math.max(assignThreshold, minIntersections);
-        clusterOptions.setAssignThreshold(threshold);
+        int maxProperties = Math.max(clusterOptions.getMaxProperties(), threshold);
+        clusterOptions.setMinProperties(threshold);
         clusterOptions.setMinIntersections(minIntersections);
 
         PageBase pageBase = clusterOptions.getPageBase();
         //roles //users
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
-                threshold, clusterOptions.getQuery());
+                threshold, maxProperties, clusterOptions.getQuery());
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
 
@@ -70,7 +72,7 @@ public class UserBasedClustering implements Clusterable {
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, PageBase pageBase,
-            int threshold, ObjectFilter userQuery) {
+            int threshold, int maxProperties, ObjectFilter userQuery) {
 
         //role //user
         ListMultimap<List<String>, String> userTypeMap = ArrayListMultimap.create();
@@ -78,7 +80,8 @@ public class UserBasedClustering implements Clusterable {
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
             try {
                 List<String> element = ClusterObjectUtils.getRolesOid(object.asObjectable());
-                if (element.size() >= threshold) {
+                int propertiesCount = element.size();
+                if (threshold <= propertiesCount && maxProperties >= propertiesCount) {
                     Collections.sort(element);
                     userTypeMap.putAll(element, Collections.singletonList(object.asObjectable().getOid()));
                 }
