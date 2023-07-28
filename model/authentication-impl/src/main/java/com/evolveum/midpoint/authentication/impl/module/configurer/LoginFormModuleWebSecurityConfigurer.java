@@ -36,27 +36,7 @@ import org.springframework.security.web.authentication.preauth.RequestAttributeA
 
 public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> extends ModuleWebSecurityConfigurer<C, MT> {
 
-    @Autowired
-    private AuditedLogoutHandler auditedLogoutHandler;
-
-    @Autowired
-    private SessionRegistry sessionRegistry;
-
-    @Autowired
-    private Environment environment;
-
-    @Autowired(required = false)
-    private RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter;
-
-    @Autowired(required = false)
-    private LogoutFilter requestSingleLogoutFilter;
-
-//    private final C configuration;
-
-    public LoginFormModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-//        this.configuration = configuration;
-    }
+    @Autowired private SessionRegistry sessionRegistry;
 
     public LoginFormModuleWebSecurityConfigurer(MT moduleType,
             String prefixOfSequence,
@@ -91,11 +71,6 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
     protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {
         return new MidpointFormLoginConfigurer<>(new MidpointUsernamePasswordAuthenticationFilter());
     }
-
-//    @Override
-//    public C getConfiguration() {
-//        return configuration;
-//    }
 
     protected SessionRegistry getSessionRegistry() {
         return sessionRegistry;

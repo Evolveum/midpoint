@@ -44,10 +44,6 @@ public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityCon
     @Autowired
     private TaskManager taskManager;
 
-    public HttpClusterModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
-        super(configuration);
-    }
-
     public HttpClusterModuleWebSecurityConfigurer(AbstractAuthenticationModuleType moduleType,
             String sequeneSuffix,
             AuthenticationChannel authenticationChannel,

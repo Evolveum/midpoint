@@ -27,11 +27,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
-public class CorrelationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, CorrelationAuthenticationModuleType> {
-
-    public CorrelationModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
+public class CorrelationModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, CorrelationAuthenticationModuleType> {
 
     public CorrelationModuleWebSecurityConfigurer(CorrelationAuthenticationModuleType moduleType,
             String sequenceSuffix,

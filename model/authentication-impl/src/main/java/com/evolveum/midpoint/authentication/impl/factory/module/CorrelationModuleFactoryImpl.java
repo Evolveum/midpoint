@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthentic
 @Component
 public class CorrelationModuleFactoryImpl extends AbstractModuleFactory
         <LoginFormModuleWebSecurityConfiguration,
-                CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+                CorrelationModuleWebSecurityConfigurer,
                 CorrelationAuthenticationModuleType,
                 CorrelationModuleAuthentication> {
 
@@ -36,8 +36,8 @@ public class CorrelationModuleFactoryImpl extends AbstractModuleFactory
     }
 
     @Override
-    protected CorrelationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(CorrelationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new CorrelationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel,
+    protected CorrelationModuleWebSecurityConfigurer createModuleConfigurer(CorrelationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new CorrelationModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
                 objectPostProcessor, request,
                 new CorrelationProvider());
     }

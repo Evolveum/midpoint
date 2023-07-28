@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
-        SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        SecurityQuestionsFormModuleWebSecurityConfigurer,
         SecurityQuestionsFormAuthenticationModuleType,
         SecurityQuestionFormModuleAuthentication> {
 
@@ -33,8 +33,8 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected SecurityQuestionsFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new SecurityQuestionsFormModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel,
+    protected SecurityQuestionsFormModuleWebSecurityConfigurer createModuleConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new SecurityQuestionsFormModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
                 objectPostProcessor, request,
                 new SecurityQuestionProvider());
     }

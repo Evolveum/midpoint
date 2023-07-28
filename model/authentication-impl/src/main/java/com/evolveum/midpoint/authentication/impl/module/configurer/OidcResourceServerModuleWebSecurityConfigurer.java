@@ -49,10 +49,6 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired TaskManager taskManager;
 
-    public OidcResourceServerModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
-
     public OidcResourceServerModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,

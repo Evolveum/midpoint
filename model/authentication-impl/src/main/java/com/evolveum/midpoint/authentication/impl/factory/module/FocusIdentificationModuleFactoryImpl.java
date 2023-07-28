@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationA
 @Component
 public class FocusIdentificationModuleFactoryImpl extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
-        FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        FocusIdentificationModuleWebSecurityConfigurer,
         FocusIdentificationAuthenticationModuleType,
         FocusIdentificationModuleAuthentication> {
 
@@ -35,8 +35,8 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractModuleFactory<
     }
 
     @Override
-    protected FocusIdentificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new FocusIdentificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix, authenticationChannel,
+    protected FocusIdentificationModuleWebSecurityConfigurer createModuleConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new FocusIdentificationModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
                 objectPostProcessor, request,
                 new FocusIdentificationProvider());
     }

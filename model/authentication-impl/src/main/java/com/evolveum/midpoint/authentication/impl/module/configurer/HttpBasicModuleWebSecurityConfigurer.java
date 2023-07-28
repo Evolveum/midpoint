@@ -49,10 +49,6 @@ public class HttpBasicModuleWebSecurityConfigurer extends ModuleWebSecurityConfi
     @Autowired
     private TaskManager taskManager;
 
-    public HttpBasicModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
-        super(configuration);
-    }
-
     public HttpBasicModuleWebSecurityConfigurer(HttpBasicAuthenticationModuleType module,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,

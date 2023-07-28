@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 @Component
 public class AttributeVerificationModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
-        AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        AttributeVerificationModuleWebSecurityConfigurer,
         AttributeVerificationAuthenticationModuleType,
         AttributeVerificationModuleAuthentication> {
 
@@ -32,12 +32,12 @@ public class AttributeVerificationModuleFactory extends AbstractModuleFactory<
     }
 
     @Override
-    protected AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(
+    protected AttributeVerificationModuleWebSecurityConfigurer createModuleConfigurer(
             AttributeVerificationAuthenticationModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new AttributeVerificationModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix,
+        return new AttributeVerificationModuleWebSecurityConfigurer(moduleType, sequenceSuffix,
                 authenticationChannel, objectPostProcessor, request,
                 new AttributeVerificationProvider());
     }

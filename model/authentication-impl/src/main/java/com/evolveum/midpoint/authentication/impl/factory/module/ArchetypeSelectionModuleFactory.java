@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 @Component
 public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
-        ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
+        ArchetypeSelectionModuleWebSecurityConfigurer,
         ArchetypeSelectionModuleType,
         ArchetypeSelectionModuleAuthentication> {
 
@@ -44,12 +44,12 @@ public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
     }
 
     @Override
-    protected ArchetypeSelectionModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModuleConfigurer(
+    protected ArchetypeSelectionModuleWebSecurityConfigurer createModuleConfigurer(
             ArchetypeSelectionModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new ArchetypeSelectionModuleWebSecurityConfigurer<>(moduleType, sequenceSuffix,
+        return new ArchetypeSelectionModuleWebSecurityConfigurer(moduleType, sequenceSuffix,
                 authenticationChannel, objectPostProcessor, request,
                 new ArchetypeSelectionAuthenticationProvider());
     }

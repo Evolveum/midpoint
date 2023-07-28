@@ -26,10 +26,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 public class HintModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, HintAuthenticationModuleType> {
 
-    public HintModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
-
     public HintModuleWebSecurityConfigurer(HintAuthenticationModuleType moduleType,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,

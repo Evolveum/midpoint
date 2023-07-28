@@ -25,11 +25,7 @@ import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationS
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
-public class AttributeVerificationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, AttributeVerificationAuthenticationModuleType> {
-
-    public AttributeVerificationModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
+public class AttributeVerificationModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, AttributeVerificationAuthenticationModuleType> {
 
     public AttributeVerificationModuleWebSecurityConfigurer(AttributeVerificationAuthenticationModuleType moduleType,
             String sequenceSuffix,

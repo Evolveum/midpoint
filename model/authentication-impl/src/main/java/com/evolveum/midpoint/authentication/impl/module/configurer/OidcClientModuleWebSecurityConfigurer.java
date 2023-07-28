@@ -44,14 +44,8 @@ public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecuri
     private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleWebSecurityConfigurer.class);
     public static final String OIDC_LOGIN_PATH = "/oidc/select";
 
-    @Autowired
-    private ModelAuditRecorder auditProvider;
-
+    @Autowired private ModelAuditRecorder auditProvider;
     private String publicUrlPrefix;
-
-    public OidcClientModuleWebSecurityConfigurer(OidcClientModuleWebSecurityConfiguration configuration) {
-        super(configuration);
-    }
 
     public OidcClientModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
             String prefix, AuthenticationChannel authenticationChannel,

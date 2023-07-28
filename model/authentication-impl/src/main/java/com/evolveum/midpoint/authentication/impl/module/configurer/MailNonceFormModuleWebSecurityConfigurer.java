@@ -35,10 +35,6 @@ import org.springframework.security.core.Authentication;
 
 public class MailNonceFormModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, MailNonceAuthenticationModuleType> {
 
-    public MailNonceFormModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
-        super(configuration);
-    }
-
     public MailNonceFormModuleWebSecurityConfigurer(MailNonceAuthenticationModuleType moduleType,
             String prefixOfSequence,
             AuthenticationChannel authenticationChannel,

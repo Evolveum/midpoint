@@ -28,11 +28,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
  * @author skublik
  */
 
-public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, SecurityQuestionsFormAuthenticationModuleType> {
-
-    public SecurityQuestionsFormModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
+public class SecurityQuestionsFormModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, SecurityQuestionsFormAuthenticationModuleType> {
 
     public SecurityQuestionsFormModuleWebSecurityConfigurer(SecurityQuestionsFormAuthenticationModuleType moduleType,
             String prefixOfSequence,

@@ -50,10 +50,6 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
     @Autowired
     private TaskManager taskManager;
 
-    public HttpSecurityQuestionsModuleWebSecurityConfigurer(ModuleWebSecurityConfigurationImpl configuration) {
-        super(configuration);
-    }
-
     public HttpSecurityQuestionsModuleWebSecurityConfigurer(HttpSecQAuthenticationModuleType moduleType,
             String suffix,
             AuthenticationChannel authenticationChannel,

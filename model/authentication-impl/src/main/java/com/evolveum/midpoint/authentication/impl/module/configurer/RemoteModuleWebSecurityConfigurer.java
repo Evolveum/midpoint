@@ -66,10 +66,6 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
     @Autowired private AuthChannelRegistryImpl authChannelRegistry;
     @Autowired SystemObjectCache systemObjectCache;
 
-    public RemoteModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
-
     public RemoteModuleWebSecurityConfigurer(MT moduleType, String prefix, AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,
             ServletRequest request,

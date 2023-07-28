@@ -26,12 +26,8 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-public class ArchetypeSelectionModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C, ArchetypeSelectionModuleType> {
+public class ArchetypeSelectionModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, ArchetypeSelectionModuleType> {
 
-
-    public ArchetypeSelectionModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
 
     public ArchetypeSelectionModuleWebSecurityConfigurer(ArchetypeSelectionModuleType moduleType,
             String sequenceSuffix,

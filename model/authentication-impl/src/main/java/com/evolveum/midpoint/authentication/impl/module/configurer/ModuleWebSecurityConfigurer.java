@@ -66,7 +66,6 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     @Autowired private AuthChannelRegistryImpl authChannelRegistry;
     @Autowired private PrismContext prismContext;
     @Autowired private ApplicationContext context;
-//    @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;

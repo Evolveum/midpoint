@@ -23,10 +23,6 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 
 public class LdapWebSecurityConfigurer extends LoginFormModuleWebSecurityConfigurer<LdapModuleWebSecurityConfiguration, LdapAuthenticationModuleType> {
 
-    public LdapWebSecurityConfigurer(LdapModuleWebSecurityConfiguration configuration) {
-        super(configuration);
-    }
-
     public LdapWebSecurityConfigurer(LdapAuthenticationModuleType module,
             String sequenceSuffix,
             AuthenticationChannel authenticationChannel,

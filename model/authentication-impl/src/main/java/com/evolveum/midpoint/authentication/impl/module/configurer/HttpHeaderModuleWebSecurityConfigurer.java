@@ -40,10 +40,6 @@ public class HttpHeaderModuleWebSecurityConfigurer extends LoginFormModuleWebSec
 
     @Autowired private MidpointProviderManager authenticationManager;
 
-    public HttpHeaderModuleWebSecurityConfigurer(HttpHeaderModuleWebSecurityConfiguration configuration) {
-        super(configuration);
-    }
-
     public HttpHeaderModuleWebSecurityConfigurer(HttpHeaderAuthenticationModuleType httpHeaderAuthenticationModuleType,
             String prefixOfSequence, AuthenticationChannel authenticationChannel,
             ObjectPostProcessor<Object> postProcessor,

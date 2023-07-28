@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
-
 import jakarta.servlet.ServletRequest;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.core.annotation.Order;
@@ -17,6 +14,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.FocusIdentificationAuthenticationFilter;
@@ -25,14 +23,11 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
 
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
-public class FocusIdentificationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration>
-        extends ModuleWebSecurityConfigurer<C, FocusIdentificationAuthenticationModuleType> {
-
-    public FocusIdentificationModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-    }
+public class FocusIdentificationModuleWebSecurityConfigurer
+        extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, FocusIdentificationAuthenticationModuleType> {
 
     public FocusIdentificationModuleWebSecurityConfigurer(FocusIdentificationAuthenticationModuleType moduleType, String sequenceSuffix,
             AuthenticationChannel authenticationChannel,
