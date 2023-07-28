@@ -4,7 +4,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
@@ -64,19 +63,13 @@ public interface NinjaTestMixin {
      * This is not enough to support tests on other DB (it doesn't run dbtest profile properly)
      * or for Native repository, but {@link #clearMidpointTestDatabase(ApplicationContext)} can be used in the preExecute block.
      */
-    default void setupMidpointHome() throws IOException {
-//        FileUtils.deleteDirectory(TARGET_HOME);
-//
-//        File baseHome = new File(RESOURCES_DIRECTORY, "midpoint-home");
-//
-//        FileUtils.copyDirectory(baseHome, TARGET_HOME);
-//
-//        // This tells Ninja to use the right config XML for Native repo.
-//        // Ninja tests don't support test.config.file property as other midPoint tests.
-//        String testConfigFile = System.getProperty("test.config.file");
-//        if (testConfigFile != null) {
-//            System.setProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY, testConfigFile);
-//        }
+    default void setupMidpointHome() {
+        // This tells Ninja to use the right config XML for Native repo.
+        // Ninja tests don't support test.config.file property as other midPoint tests.
+        String testConfigFile = System.getProperty("test.config.file");
+        if (testConfigFile != null) {
+            System.setProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY, testConfigFile);
+        }
     }
 
     default void clearMidpointTestDatabase(ApplicationContext context) {
@@ -178,7 +171,7 @@ public interface NinjaTestMixin {
         }
     }
 
-    default Object executeTest(
+    default MainResult executeTest(
             @Nullable StreamValidator validateOut, @Nullable StreamValidator validateErr, @NotNull String... args)
             throws Exception {
 
