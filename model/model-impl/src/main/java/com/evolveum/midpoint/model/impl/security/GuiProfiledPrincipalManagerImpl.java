@@ -171,14 +171,15 @@ public class GuiProfiledPrincipalManagerImpl
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        return getPrincipal(getUserByOid(oid, clazz, result).asPrismObject());
+        return getPrincipal(
+                getUserByOid(oid, clazz, result).asPrismObject(),
+                result);
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus)
+    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
-        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(focus, null, result);
     }
 

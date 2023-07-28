@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="8496dbbe-0032-4533-8b94-b2ab89658136">
+    <name>role-with-service-mapping-standard</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.authentication.api.util.AuthUtil
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType
+
+                            def service = midpoint.searchObjectByName(ServiceType, 'one')?.name?.orig
+                            def principalName = AuthUtil.principalObjectRequired.name.orig
+                            "$description: ${service} ($principalName)"
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>costCenter</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

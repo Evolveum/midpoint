@@ -78,12 +78,11 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         FocusType focus = getUserByOid(oid, clazz, result);
-        return getPrincipal(focus.asPrismObject());
+        return getPrincipal(focus.asPrismObject(), result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException {
-        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result) throws SchemaException {
         return getPrincipal(focus, null, result);
     }
 

@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="959f0672-e122-44b6-aef6-ca7612ade154">
+    <name>regular-user</name>
+    <authorization>
+        <name>self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-request-modify-description</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <item>description</item>
+    </authorization>
+    <authorization>
+        <name>self-execution-modify</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    <authorization>
+        <name>assignment-target-get</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <!-- No services are allowed here -->
+    </authorization>
+</role>
