@@ -37,14 +37,26 @@ public class VerifyResult {
         return getItemPriorityCount(priority) > 0L;
     }
 
-    public synchronized Long getItemPriorityCount(UpgradePriority priority) {
+    public synchronized long getItemPriorityCount(UpgradePriority priority) {
         Long count = priorities.get(priority);
         return count != null ? count : 0L;
     }
 
     public synchronized void incrementPriorityItemCount(UpgradePriority priority) {
-        Long count = getItemPriorityCount(priority);
+        long count = getItemPriorityCount(priority);
 
         priorities.put(priority, ++count);
+    }
+
+    public long getCriticalCount() {
+        return getItemPriorityCount(UpgradePriority.CRITICAL);
+    }
+
+    public long getNecessaryCount() {
+        return getItemPriorityCount(UpgradePriority.NECESSARY);
+    }
+
+    public long getOptionalCount() {
+        return getItemPriorityCount(UpgradePriority.OPTIONAL);
     }
 }

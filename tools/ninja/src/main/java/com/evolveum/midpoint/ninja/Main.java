@@ -23,6 +23,7 @@ import org.fusesource.jansi.AnsiConsole;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
@@ -33,9 +34,9 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 public class Main {
 
     public static void main(String[] args) {
-        MainResult result = new Main().run(args);
+        MainResult<?> result = new Main().run(args);
 
-        int exitCode = result.getExitCode();
+        int exitCode = result.exitCode();
         if (exitCode != 0) {
             System.exit(exitCode);
         }
@@ -62,7 +63,7 @@ public class Main {
     }
 
     // todo main doesn't return error code non zero if error occurrs, fix this
-    protected <T> @NotNull MainResult run(String[] args) {
+    protected <T> @NotNull MainResult<?> run(String[] args) {
         AnsiConsole.systemInstall();
 
         JCommander jc = NinjaUtils.setupCommandLineParser();
@@ -120,8 +121,12 @@ public class Main {
                 context.getLog().info(ConsoleFormat.formatActionStartMessage(action));
 
                 Object result = action.execute();
+                if (result instanceof ActionResult) {
+                    ActionResult<?> actionResult = (ActionResult<?>) result;
+                    return new MainResult<>(actionResult.result(), actionResult.exitCode());
+                }
 
-                return new MainResult(result);
+                return new MainResult<>(result);
             } finally {
                 action.destroy();
             }
