@@ -8,6 +8,7 @@ package com.evolveum.midpoint.ninja;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,12 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 public class Main {
 
     public static void main(String[] args) {
-        new Main().run(args);
+        MainResult result = new Main().run(args);
+
+        int exitCode = result.getExitCode();
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
     }
 
     private PrintStream out = System.out;
@@ -56,7 +62,7 @@ public class Main {
     }
 
     // todo main doesn't return error code non zero if error occurrs, fix this
-    protected <T> Object run(String[] args) {
+    protected <T> @NotNull MainResult run(String[] args) {
         AnsiConsole.systemInstall();
 
         JCommander jc = NinjaUtils.setupCommandLineParser();
@@ -65,7 +71,7 @@ public class Main {
             jc.parse(args);
         } catch (ParameterException ex) {
             err.println(ex.getMessage());
-            return null;
+            return MainResult.EMPTY_ERROR;
         }
 
         String parsedCommand = jc.getParsedCommand();
@@ -78,17 +84,17 @@ public class Main {
             err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");
             printHelp(jc, parsedCommand);
-            return null;
+            return MainResult.EMPTY_ERROR;
         }
 
         if (BooleanUtils.isTrue(base.isVersion())) {
             printVersion(base.isVerbose());
-            return null;
+            return MainResult.EMPTY_SUCCESS;
         }
 
         if (base.isHelp() || parsedCommand == null) {
             printHelp(jc, parsedCommand);
-            return null;
+            return MainResult.EMPTY_SUCCESS;
         }
 
         NinjaContext context = null;
@@ -97,7 +103,7 @@ public class Main {
 
             if (action == null) {
                 err.println("Action for command '" + parsedCommand + "' not found");
-                return null;
+                return MainResult.EMPTY_ERROR;
             }
 
             //noinspection unchecked
@@ -113,21 +119,25 @@ public class Main {
 
                 context.getLog().info(ConsoleFormat.formatActionStartMessage(action));
 
-                return action.execute();
+                Object result = action.execute();
+
+                return new MainResult(result);
             } finally {
                 action.destroy();
             }
         } catch (InputParameterException ex) {
             err.println("ERROR: " + ex.getMessage());
+
+            return MainResult.EMPTY_ERROR;
         } catch (Exception ex) {
             handleException(base, ex);
+
+            return MainResult.EMPTY_ERROR;
         } finally {
             cleanupResources(base, context);
 
             AnsiConsole.systemUninstall();
         }
-
-        return null;
     }
 
     private void cleanupResources(BaseOptions opts, NinjaContext context) {
@@ -158,7 +168,13 @@ public class Main {
     }
 
     private void printVersion(boolean verbose) {
-        try (InputStream is = Main.class.getResource("/version").openStream()) {
+        URL url = Main.class.getResource("/version");
+        if (url == null) {
+            err.println("Couldn't obtain version");
+            return;
+        }
+
+        try (InputStream is = url.openStream()) {
             String version = IOUtils.toString(is, StandardCharsets.UTF_8).trim();
             out.println(version);
         } catch (Exception ex) {
