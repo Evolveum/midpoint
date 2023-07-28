@@ -64,7 +64,7 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
 
     public void init(B http) throws Exception {
         Saml2AuthenticationTokenConverter authenticationConverter = new Saml2AuthenticationTokenConverter(
-                (RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository));
+                new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository));
         this.saml2WebSsoAuthenticationFilter = new MidpointSaml2WebSsoAuthenticationFilter(authenticationConverter, this.loginProcessingUrl, auditProvider);
         this.setAuthenticationFilter(this.saml2WebSsoAuthenticationFilter);
         super.loginProcessingUrl(this.loginProcessingUrl);

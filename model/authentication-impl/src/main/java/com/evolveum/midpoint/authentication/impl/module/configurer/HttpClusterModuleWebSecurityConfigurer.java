@@ -35,14 +35,9 @@ import com.evolveum.midpoint.task.api.TaskManager;
 
 public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, AbstractAuthenticationModuleType> {
 
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    private SecurityContextManager securityContextManager;
-
-    @Autowired
-    private TaskManager taskManager;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired private TaskManager taskManager;
 
     public HttpClusterModuleWebSecurityConfigurer(AbstractAuthenticationModuleType moduleType,
             String sequeneSuffix,

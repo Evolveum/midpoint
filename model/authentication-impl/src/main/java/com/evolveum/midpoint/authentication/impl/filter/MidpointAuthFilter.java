@@ -94,7 +94,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     public void createFilterForAuthenticatedRequest() {
         ModuleWebSecurityConfigurer<?, ?> module =
-                objectObjectPostProcessor.postProcess(new ModuleWebSecurityConfigurer<>(null));
+                objectObjectPostProcessor.postProcess(new ModuleWebSecurityConfigurer<>());
         module.setObjectPostProcessor(objectObjectPostProcessor);
     }
 
@@ -256,30 +256,25 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private void initAuthenticationModule(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
-        if (AuthSequenceUtil.isClusterSequence(httpRequest)) {
-            if (authModulesOfSpecificSequences.containsKey(authWrapper.getSequenceIdentifier())) {
-                authWrapper.authModules = authModulesOfSpecificSequences.get(authWrapper.getSequenceIdentifier());
-                if (authWrapper.authModules != null) {
-                    for (AuthModule authModule : authWrapper.authModules) {
-                        List<AuthenticationProvider> authenticationProviders = authModule.getAuthenticationProviders();
-                        if (authenticationProviders != null) {
-                            authenticationManager.getProviders().clear();
-                            authenticationManager.getProviders().addAll(authenticationProviders);
-                        }
-//                        if (authModule != null && ((AuthModuleImpl) authModule).getConfiguration() != null) {
-//                            authenticationManager.getProviders().clear();
-//                            for (AuthenticationProvider authenticationProvider : ((AuthModuleImpl) authModule).getConfiguration().getAuthenticationProviders()) {
-//                                authenticationManager.getProviders().add(authenticationProvider);
-//                            }
-//                        }
+        if (!AuthSequenceUtil.isClusterSequence(httpRequest)) {
+            authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
+            return;
+        }
+
+        if (authModulesOfSpecificSequences.containsKey(authWrapper.getSequenceIdentifier())) {
+            authWrapper.authModules = authModulesOfSpecificSequences.get(authWrapper.getSequenceIdentifier());
+            if (authWrapper.authModules != null) {
+                for (AuthModule authModule : authWrapper.authModules) {
+                    List<AuthenticationProvider> authenticationProviders = authModule.getAuthenticationProviders();
+                    if (authenticationProviders != null) {
+                        authenticationManager.getProviders().clear();
+                        authenticationManager.getProviders().addAll(authenticationProviders);
                     }
                 }
-            } else {
-                authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
-                authModulesOfSpecificSequences.put(authWrapper.getSequenceIdentifier(), authWrapper.authModules);
             }
         } else {
             authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
+            authModulesOfSpecificSequences.put(authWrapper.getSequenceIdentifier(), authWrapper.authModules);
         }
     }
 

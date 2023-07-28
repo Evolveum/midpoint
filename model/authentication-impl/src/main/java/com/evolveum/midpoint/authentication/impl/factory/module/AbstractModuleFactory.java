@@ -85,14 +85,7 @@ public abstract class AbstractModuleFactory<
 
         isSupportedChannel(authenticationChannel);
 
-
-        //TODO PROVIDERS
-//        configuration.addAuthenticationProvider(
-//                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
-
         CA configurer = createModuleConfigurer(moduleType, sequenceSuffix, authenticationChannel, getObjectObjectPostProcessor(), request);
-//        configurer.addAuthenticationProvider(
-//                getProvider((AbstractCredentialAuthenticationModuleType) moduleType, credentialPolicy));
 
         CA moduleConfigurer = getObjectObjectPostProcessor()
                 .postProcess(configurer);

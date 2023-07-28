@@ -37,17 +37,10 @@ import com.evolveum.midpoint.task.api.TaskManager;
 
 public class HttpBasicModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, HttpBasicAuthenticationModuleType> {
 
-    @Autowired
-    private ModelService model;
-
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    private SecurityContextManager securityContextManager;
-
-    @Autowired
-    private TaskManager taskManager;
+    @Autowired private ModelService model;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired private TaskManager taskManager;
 
     public HttpBasicModuleWebSecurityConfigurer(HttpBasicAuthenticationModuleType module,
             String sequenceSuffix,

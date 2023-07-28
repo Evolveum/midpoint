@@ -10,25 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
-import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
-import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
-import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.filter.MidpointAnonymousAuthenticationFilter;
-import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-
-import com.evolveum.midpoint.authentication.impl.filter.RedirectForLoginPagesWithAuthenticationFilter;
-
-import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-
 import jakarta.servlet.ServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,13 +32,29 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
+import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
+import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
+import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.authentication.impl.filter.MidpointAnonymousAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.RedirectForLoginPagesWithAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.handler.AuditedAccessDeniedHandler;
+import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 
 /**
  * @author skublik
  */
 
-public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> {//extends WebSecurityConfigurerAdapter {
+public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> {
 
     @Autowired private AuditedAccessDeniedHandler accessDeniedHandler;
     @Autowired private MidPointGuiAuthorizationEvaluator accessDecisionManager;
@@ -72,11 +69,17 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
 
 
     private ObjectPostProcessor<Object> objectPostProcessor;
-    private final C configuration;
+    private AuthenticationProvider provider;
+    private String sequenceSuffix;
 
-    public ModuleWebSecurityConfigurer(C configuration){
-//        super(true);
-        this.configuration = configuration;
+    private MT moduleType;
+    private AuthenticationChannel authenticationChannel;
+    private ServletRequest request;
+
+
+    private C configuration;
+
+    public ModuleWebSecurityConfigurer(){
     }
 
     public ModuleWebSecurityConfigurer(MT moduleType,
@@ -85,32 +88,34 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
             ObjectPostProcessor<Object> objectPostProcessor,
             ServletRequest request, AuthenticationProvider provider) {
         this.objectPostProcessor = objectPostProcessor;
-        //todo this is nto very good :)
-        this.configuration = buildConfiguration(moduleType, sequenceSuffix, authenticationChannel, request);
-        if (provider != null) {
-            this.configuration.addAuthenticationProvider(objectPostProcessor.postProcess(provider));
-        }
+        this.provider = provider;
+        this.sequenceSuffix = sequenceSuffix;
+        this.moduleType = moduleType;
+        this.authenticationChannel = authenticationChannel;
+        this.request = request;
     }
 
     protected C buildConfiguration(MT moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
-        LoginFormModuleWebSecurityConfiguration config = new LoginFormModuleWebSecurityConfiguration();
+        LoginFormModuleWebSecurityConfiguration config = LoginFormModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
         config.setSequenceSuffix(sequenceSuffix);
         config.setModuleIdentifier(moduleType.getIdentifier() != null ? moduleType.getIdentifier() : moduleType.getName());
+        //noinspection unchecked
         return (C) config;
     }
 
     public C getConfiguration() {
+        if (configuration == null) {
+            configuration = buildConfiguration(moduleType, sequenceSuffix, authenticationChannel, request);
+        }
         return configuration;
     }
 
     public String getPrefix() {
-        return configuration.getPrefixOfModule();
+        return getConfiguration().getPrefixOfModule();
     }
 
-//    @Override
     public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
         this.objectPostProcessor = objectPostProcessor;
-//        super.setObjectPostProcessor(objectPostProcessor);
     }
 
     public ObjectPostProcessor<Object> getObjectPostProcessor() {
@@ -118,9 +123,10 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     }
 
     public HttpSecurity getNewHttpSecurity() throws Exception {
-        AuthenticationManagerBuilder authenticationBuilder = new AuthenticationManagerBuilder(this.objectPostProcessor);
-        authenticationBuilder.parentAuthenticationManager(authenticationManager());
-        configure(authenticationBuilder);
+        AuthenticationManagerBuilder authenticationBuilder = new AuthenticationManagerBuilder(this.objectPostProcessor)
+                .parentAuthenticationManager(authenticationManager())
+                .authenticationProvider(provider);
+
         HttpSecurity http = new HttpSecurity(this.objectPostProcessor, authenticationBuilder, createSharedObjects());
         configure(http);
         return http;
@@ -132,7 +138,6 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         return sharedObjects;
     }
 
-//    @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
@@ -164,25 +169,11 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
     }
 
-//    @Override
     protected AuthenticationManager authenticationManager() throws Exception {
-        if (configuration != null && !configuration.getAuthenticationProviders().isEmpty()) {
-            for (AuthenticationProvider authenticationProvider : configuration.getAuthenticationProviders()) {
-                if (!(authenticationManager.getProviders().contains(authenticationProvider))) {
-                    authenticationManager.getProviders().add(authenticationProvider);
-                }
-            }
+        if (!(authenticationManager.getProviders().contains(provider))) {
+            authenticationManager.getProviders().add(provider);
         }
         return authenticationManager;
-    }
-
-//    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        if (configuration != null && !configuration.getAuthenticationProviders().isEmpty()) {
-            for (AuthenticationProvider authenticationProvider : configuration.getAuthenticationProviders()) {
-                auth.authenticationProvider(authenticationProvider);
-            }
-        }
     }
 
     protected RequestMatcher getLogoutMatcher(HttpSecurity http, String logoutUrl) {
@@ -213,8 +204,9 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     protected LogoutSuccessHandler createLogoutHandler(String defaultSuccessLogoutURL) {
         AuditedLogoutHandler handler = objectPostProcessor.postProcess(new AuditedLogoutHandler());
         if (StringUtils.isNotBlank(defaultSuccessLogoutURL)
-        && (defaultSuccessLogoutURL.startsWith("/") || defaultSuccessLogoutURL.startsWith("http")
-        || defaultSuccessLogoutURL.startsWith("https"))) {
+            && (defaultSuccessLogoutURL.startsWith("/")
+                || defaultSuccessLogoutURL.startsWith("http")
+                || defaultSuccessLogoutURL.startsWith("https"))) {
             handler.setDefaultTargetUrl(defaultSuccessLogoutURL);
         }
         return handler;
