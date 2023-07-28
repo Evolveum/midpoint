@@ -63,7 +63,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
 
         then();
 
-        VerifyResult result = (VerifyResult) mainResult.getObject();
+        VerifyResult result = (VerifyResult) mainResult.result();
 
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(11L);
@@ -148,7 +148,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
                 "--overwrite",
                 "--output", OUTPUT.getPath());
 
-        VerifyResult result = (VerifyResult) mainResult.getObject();
+        VerifyResult result = (VerifyResult) mainResult.result();
 
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(1L);
@@ -187,7 +187,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
                 "-m", getMidpointHome(),
                 "verify");
 
-        VerifyResult result = (VerifyResult) mainResult.getObject();
+        VerifyResult result = (VerifyResult) mainResult.result();
         Assertions.assertThat(result).isNotNull();
 
         // todo more asserts
