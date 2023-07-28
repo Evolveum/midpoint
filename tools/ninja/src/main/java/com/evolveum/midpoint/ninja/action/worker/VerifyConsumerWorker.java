@@ -75,13 +75,6 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
             if (options.isStopOnCriticalError() && result.hasCritical()) {
                 shouldConsumerStop();
             }
-            ObjectDelta delta = prismObject.diff(cloned);
-
-            if (delta.isEmpty()) {
-                return;
-            }
-
-            writer.write(DeltaConvertor.serializeDelta(delta, DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
         } catch (Exception ex) {
             log.error("Couldn't verify object {} ({})", ex, object.getName(), object.getOid());
         }
