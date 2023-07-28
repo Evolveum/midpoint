@@ -80,8 +80,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        securityContextManager.setupPreAuthenticatedSecurityContext(focus);
+    public void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        securityContextManager.setupPreAuthenticatedSecurityContext(focus, result);
     }
 
     @Override
@@ -370,12 +371,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return securityContextManager.runAs(producer, user);
+    public <T> T runAs(
+            @NotNull ResultAwareProducer<T> producer,
+            @Nullable PrismObject<? extends FocusType> newPrincipalObject,
+            boolean privileged,
+            @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        return securityContextManager.runAs(producer, newPrincipalObject, privileged, result);
     }
 
     @Override
-    public <T> T runPrivileged(Producer<T> producer) {
+    public <T> T runPrivileged(@NotNull Producer<T> producer) {
         return securityContextManager.runPrivileged(producer);
     }
 

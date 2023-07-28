@@ -111,35 +111,42 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private <O extends ObjectType> void executeScriptsFromCollectedRules(List<EvaluatedPolicyRuleImpl> rules,
-            LensContext<O> context, Task task, OperationResult parentResult) {
+    private <O extends ObjectType> void executeScriptsFromCollectedRules(
+            List<EvaluatedPolicyRuleImpl> rules,
+            LensContext<O> context,
+            Task task,
+            OperationResult parentResult) {
 
         // Must not be minor because of background OID information.
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPTS_FROM_RULES);
         try (RunAsRunner runAsRunner = runAsRunnerFactory.runner()) {
             for (EvaluatedPolicyRuleImpl rule : rules) {
-                List<ScriptExecutionPolicyActionType> enabledActions = rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
+                List<ScriptExecutionPolicyActionType> enabledActions =
+                        rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
                 LOGGER.trace("Rule {} has {} enabled script execution actions", rule, enabledActions.size());
                 for (ScriptExecutionPolicyActionType action : enabledActions) {
                     ActionContext actx = new ActionContext(action, rule, context, task, this);
                     try {
                         // We should consider ordering actions to be executed by runAsRef to avoid unnecessary context switches.
-                        runAsRunner.runAs(() -> executeScriptingAction(actx, result), actx.action.getRunAsRef(), result);
+                        runAsRunner.runAs(
+                                () -> executeScriptingAction(actx, result),
+                                actx.action.getRunAsRef(),
+                                result);
                     } catch (CommonException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute scripting action - continuing with others (if present)", e);
                     }
                 }
             }
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
             // This is really ugly hack (MID-6753). The operation result for the whole clockwork processing should not be
             // FATAL_ERROR just because of scripts execution failure. On the other hand, this particular operation failed
             // fatally. So, in theory, this fatal->partial switch should be done at the level of parent operation
             // i.e. clockwork click. The traditional way of doing this is treating that operation result as "composite".
-            // However, we intentionally do not do it in that way,because it would change the whole error handling
+            // However, we intentionally do not do it in that way, because it would change the whole error handling
             // as we are used to. So this hack is definitely the lesser evil for now.
             if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
                 result.setStatus(OperationResultStatus.PARTIAL_ERROR);

@@ -184,13 +184,16 @@ public class CertificationManagerImpl implements CertificationManager {
             try {
                 PrismObject<UserType> administrator = repositoryService
                         .getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
-                securityContextManager.runAs(() -> { // TODO reconsider this "runAs"
-                    for (String definitionOid : definitionOids) {
-                        startAdHocCertification(focus, definitionOid, task, result);
-                    }
-                    parentResult.computeStatus();
-                    return null;
-                }, administrator);
+                securityContextManager.runAs(
+                        (lResult) -> { // TODO reconsider this "runAs"
+                            for (String definitionOid : definitionOids) {
+                                startAdHocCertification(focus, definitionOid, task, lResult);
+                            }
+                            return null;
+                        },
+                        administrator,
+                        false,
+                        result);
             } catch (Throwable e) {
                 result.recordException(e);
                 throw e;

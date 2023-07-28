@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * Mix of various tests for issues that are difficult to replicate using dummy resources.
+ * Tests the "run as" feature, including its performance.
  *
  * @author Radovan Semancik
  */

@@ -35,6 +35,9 @@
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
 
     <xsd:complexType name="PolicyConstraintsType">
         <xsd:annotation>
@@ -2254,12 +2257,33 @@
                                     this user.
                                 </p>
                                 <p>
-                                    If no user is specified then the identify of currently logged-in user or
+                                    If no user is specified then the identity of currently logged-in user or
                                     the owner of the task will be used.
+                                </p>
+                                <p>
+                                    DEPRECATED: use "privileges" instead.
+                                    Cannot be present when "privileges" are used.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="privileges" type="tns:ExecutionPrivilegesSpecificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Privileges and identity that will be used to execute the script.
+                                (Note that search for relevant objects is currently done directly via repository,
+                                so it is not covered by authorizations.)
+
+                                For asynchronous executions, the identity stemming from "runAsRef" property of this item
+                                will be used as the respective task owner.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.8</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3035,6 +3059,17 @@
                     <xsd:documentation>
                         Mode of execution.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskOwnerRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Owner of the task created. The default is the currently logged-in user; or the one impersonated
+                        via runAsRef.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="taskTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
