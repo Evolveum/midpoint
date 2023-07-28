@@ -52,7 +52,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
 
         when();
 
-        VerifyResult result = (VerifyResult) executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
+        MainResult mainResult = executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
                 "-v",
                 "-m", getMidpointHome(),
                 "verify",
@@ -62,6 +62,8 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
                 "--output", OUTPUT.getPath());
 
         then();
+
+        VerifyResult result = (VerifyResult) mainResult.getObject();
 
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(1L);
@@ -134,13 +136,15 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
 
         when();
 
-        VerifyResult result = (VerifyResult) executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
+        MainResult mainResult = executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
                 "-v",
                 "-m", getMidpointHome(),
                 "verify",
                 "--report-style", "csv",
                 "--overwrite",
                 "--output", OUTPUT.getPath());
+
+        VerifyResult result = (VerifyResult) mainResult.getObject();
 
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(1L);

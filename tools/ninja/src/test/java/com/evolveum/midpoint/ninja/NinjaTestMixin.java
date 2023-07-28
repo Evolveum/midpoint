@@ -65,18 +65,18 @@ public interface NinjaTestMixin {
      * or for Native repository, but {@link #clearMidpointTestDatabase(ApplicationContext)} can be used in the preExecute block.
      */
     default void setupMidpointHome() throws IOException {
-        FileUtils.deleteDirectory(TARGET_HOME);
-
-        File baseHome = new File(RESOURCES_DIRECTORY, "midpoint-home");
-
-        FileUtils.copyDirectory(baseHome, TARGET_HOME);
-
-        // This tells Ninja to use the right config XML for Native repo.
-        // Ninja tests don't support test.config.file property as other midPoint tests.
-        String testConfigFile = System.getProperty("test.config.file");
-        if (testConfigFile != null) {
-            System.setProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY, testConfigFile);
-        }
+//        FileUtils.deleteDirectory(TARGET_HOME);
+//
+//        File baseHome = new File(RESOURCES_DIRECTORY, "midpoint-home");
+//
+//        FileUtils.copyDirectory(baseHome, TARGET_HOME);
+//
+//        // This tells Ninja to use the right config XML for Native repo.
+//        // Ninja tests don't support test.config.file property as other midPoint tests.
+//        String testConfigFile = System.getProperty("test.config.file");
+//        if (testConfigFile != null) {
+//            System.setProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY, testConfigFile);
+//        }
     }
 
     default void clearMidpointTestDatabase(ApplicationContext context) {
