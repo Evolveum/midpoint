@@ -8,6 +8,7 @@ package com.evolveum.midpoint.security.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
@@ -108,7 +109,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
         if (userProfileService == null) {
             LOGGER.warn("No user profile service set up in SecurityEnforcer. "
                     + "This is OK in low-level tests but it is a serious problem in running system");
-            principal = new MidPointPrincipal(focus.asObjectable());
+            principal = MidPointPrincipal.create(focus.asObjectable());
         } else {
             principal = userProfileService.getPrincipal(focus, result);
         }
@@ -175,24 +176,26 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
         Authorization privilegedAuthorization = SecurityUtil.createPrivilegedAuthorization();
 
         if (origAuthentication != null) {
+            Collection<GrantedAuthority> newAuthorities;
             Object newPrincipal;
             Object origPrincipal = origAuthentication.getPrincipal();
             if (isAnonymous(origAuthentication)) {
                 newPrincipal = origPrincipal;
+                newAuthorities = createNewAuthorities(origAuthentication, privilegedAuthorization);
             } else {
                 LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal != null ? origPrincipal.getClass() : null);
                 if (origPrincipal instanceof MidPointPrincipal midPointPrincipal) {
-                    MidPointPrincipal newMidPointPrincipal = midPointPrincipal.clone();
-                    newMidPointPrincipal.addAuthorization(privilegedAuthorization);
+                    MidPointPrincipal newMidPointPrincipal =
+                            midPointPrincipal.cloneWithAdditionalAuthorizations(
+                                    List.of(privilegedAuthorization));
                     newPrincipal = newMidPointPrincipal;
+                    newAuthorities = List.copyOf(newMidPointPrincipal.getAuthorities());
                 } else {
                     newPrincipal = null;
+                    newAuthorities = createNewAuthorities(origAuthentication, privilegedAuthorization);
                 }
             }
 
-            Collection<GrantedAuthority> newAuthorities = new ArrayList<>();
-            newAuthorities.addAll(origAuthentication.getAuthorities());
-            newAuthorities.add(privilegedAuthorization);
             PreAuthenticatedAuthenticationToken newAuthorization =
                     new PreAuthenticatedAuthenticationToken(newPrincipal, null, newAuthorities);
 
@@ -201,6 +204,13 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
         } else {
             LOGGER.debug("No original authentication, do NOT setting any privileged security context");
         }
+    }
+
+    private Collection<GrantedAuthority> createNewAuthorities(
+            Authentication origAuthentication, Authorization privilegedAuthorization) {
+        Collection<GrantedAuthority> newAuthorities = new ArrayList<>(origAuthentication.getAuthorities());
+        newAuthorities.add(privilegedAuthorization);
+        return newAuthorities;
     }
 
     @Override

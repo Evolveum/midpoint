@@ -23,7 +23,8 @@
 
                             def service = midpoint.searchObjectByName(ServiceType, 'one')?.name?.orig
                             def principalName = AuthUtil.principalObjectRequired.name.orig
-                            "$description: ${service} ($principalName)"
+                            def actorName = actor.name.orig
+                            "$description: s:$service p:$principalName a:$actorName"
                         </code>
                     </script>
                 </expression>

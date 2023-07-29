@@ -20,14 +20,22 @@
                         <runPrivileged>true</runPrivileged>
                     </privileges>
                     <script>
-                        <code>
+                        <code><![CDATA[
                             import com.evolveum.midpoint.authentication.api.util.AuthUtil
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType
 
+                            if (midpoint.isEvaluateNew()) {
+                                // just to check the auditing records
+                                midpoint.addObject(
+                                        new ServiceType()
+                                                .name(System.currentTimeMillis() + ":" + (int) (Math.random() * 1000000)))
+                            }
+
                             def service = midpoint.searchObjectByName(ServiceType, 'one')?.name?.orig
                             def principalName = AuthUtil.principalObjectRequired.name.orig
-                            "$description: ${service} ($principalName)"
-                        </code>
+                            def actorName = actor.name.orig
+                            "$description: s:$service p:$principalName a:$actorName"
+                        ]]></code>
                     </script>
                 </expression>
                 <target>

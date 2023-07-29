@@ -133,7 +133,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
      * It is the subject of the operation. Authorizations of the initiator are used
      * to evaluate access to the operation. This is the entity who is formally responsible
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
-     * the initiator may be an organization in later midPoint versions.
+     * the initiator may be an organization, a role, or a service in later midPoint versions.
      */
     private PrismReferenceValue initiatorRef;
 
@@ -148,6 +148,25 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
      * much sense).
      */
     private PrismReferenceValue attorneyRef;
+
+    /**
+     * The effective principal that was used to execute the action. This is the subject whose authorizations were evaluated
+     * to determine whether the action is allowed or not. Usually it is the same as initiator. But e.g. when "runAsRef" mechanism
+     * is used for expression evaluation (or the like), the effective principal is the one that was used to evaluate
+     * the expression.
+     *
+     * TODO determine the name
+     */
+    private PrismReferenceValue effectivePrincipalRef;
+
+    /**
+     * True if the effective privileges used to execute the operation differ from the regular (declared) privileges
+     * of the {@link #effectivePrincipalRef}. This is usually the case when "runPrivileged" mechanism is used
+     * for expression evaluation (or the like).
+     *
+     * TODO determine the name ... effectiveAuthorizationsModified?
+     */
+    private Boolean effectivePrivilegesModified;
 
     /**
      * (primary) target (object, the thing acted on): store OID, type, name.
@@ -331,8 +350,33 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     /**
      * It is assumed the ref has oid, type and description set.
      */
+    @SuppressWarnings("unused") // just for completeness
     public void setAttorneyRef(PrismReferenceValue attorneyRef) {
         this.attorneyRef = attorneyRef;
+    }
+
+    public @Nullable PrismReferenceValue getEffectivePrincipalRef() {
+        return effectivePrincipalRef;
+    }
+
+    public void setEffectivePrincipal(@Nullable PrismObject<? extends FocusType> object) {
+        this.effectivePrincipalRef = object != null
+                ? createRefValueWithDescription(object)
+                : null;
+    }
+
+    /** It is assumed the ref has oid, type and description set. */
+    @SuppressWarnings("unused") // just for completeness
+    public void setEffectivePrincipalRef(PrismReferenceValue effectivePrincipalRef) {
+        this.effectivePrincipalRef = effectivePrincipalRef;
+    }
+
+    public Boolean isEffectivePrivilegesModified() {
+        return effectivePrivilegesModified;
+    }
+
+    public void setEffectivePrivilegesModified(Boolean effectivePrivilegesModified) {
+        this.effectivePrivilegesModified = effectivePrivilegesModified;
     }
 
     public PrismReferenceValue getTargetRef() {
@@ -621,6 +665,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         clone.remoteHostAddress = this.remoteHostAddress;
         clone.nodeIdentifier = this.nodeIdentifier;
         clone.initiatorRef = this.initiatorRef;
+        clone.effectivePrincipalRef = this.effectivePrincipalRef;
+        clone.effectivePrivilegesModified = this.effectivePrivilegesModified;
         clone.attorneyRef = this.attorneyRef;
         clone.outcome = this.outcome;
         clone.sessionIdentifier = this.sessionIdentifier;
@@ -633,8 +679,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         clone.result = this.result;
         clone.parameter = this.parameter;
         clone.message = this.message;
-        clone.properties.putAll(properties);        // TODO deep clone?
-        clone.references.putAll(references);        // TODO deep clone?
+        clone.properties.putAll(properties); // TODO deep clone?
+        clone.references.putAll(references); // TODO deep clone?
         clone.resourceOids.addAll(resourceOids);
         clone.customColumnProperty.putAll(customColumnProperty);
         return clone;
@@ -646,6 +692,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
                 + " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
                 + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
                 + ", I=" + formatReference(initiatorRef) + ", A=" + formatReference(attorneyRef)
+                + ", EP=" + formatReference(effectivePrincipalRef) + ", epm=" + effectivePrivilegesModified
                 + ", T=" + formatReference(targetRef) + ", TO=" + formatReference(targetOwnerRef) + ", et=" + eventType
                 + ", es=" + eventStage + ", D=" + deltas + ", ch=" + channel + ", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
@@ -674,7 +721,6 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
             return "null";
         }
         if (refVal.getObject() != null) {
-            //noinspection unchecked
             return formatObject(refVal.getObject());
         }
         return refVal.toString();
@@ -697,6 +743,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatReference(initiatorRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Attorney", formatReference(attorneyRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective principal", formatReference(effectivePrincipalRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective privileges modified", effectivePrivilegesModified, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(targetRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatReference(targetOwnerRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Type", eventType, indent + 1);

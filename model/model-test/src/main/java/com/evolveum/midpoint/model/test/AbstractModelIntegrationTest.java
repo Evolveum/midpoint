@@ -37,6 +37,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.*;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -4614,6 +4615,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         login(principal);
     }
 
+    /** This should be maybe automatic during "login" method call. But currently it is not. */
+    protected void setPrincipalAsTestTaskOwner() throws NotLoggedInException {
+        Task testTask = Objects.requireNonNull(getTestTask(), "no test task");
+        testTask.setOwnerRef(
+                AuthUtil.getPrincipalRefRequired());
+    }
+
     protected MidPointPrincipal getMidPointPrincipal(PrismObject<UserType> user)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
@@ -4746,7 +4754,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void loginSuperUser(MidPointPrincipal principal) {
-        principal.addAuthorization(SecurityUtil.createPrivilegedAuthorization());
+        principal.addExtraAuthorizationIfMissing(SecurityUtil.createPrivilegedAuthorization());
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(createMpAuthentication(authentication));

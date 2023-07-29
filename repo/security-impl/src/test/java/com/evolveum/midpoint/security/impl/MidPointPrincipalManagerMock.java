@@ -95,7 +95,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
 
-        MidPointPrincipal principal = new MidPointPrincipal(focus.asObjectable());
+        MidPointPrincipal principal = MidPointPrincipal.create(focus.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
     }
@@ -143,10 +143,6 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         OperationResult result = new OperationResult(MidPointPrincipalManagerMock.class.getName() + ".addAuthorizations");
 
         principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, result));
-
-//        if (systemConfiguration != null) {
-//            principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
-//        }
 
         principal.addAuthorization(
                 new Authorization(

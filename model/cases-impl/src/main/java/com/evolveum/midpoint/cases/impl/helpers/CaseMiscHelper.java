@@ -56,13 +56,11 @@ public class CaseMiscHelper {
     @Autowired private Clock clock;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    public PrismObject<UserType> getRequesterIfExists(CaseType aCase, OperationResult result) {
-        if (aCase == null || aCase.getRequestorRef() == null) {
-            return null;
-        }
-        ObjectReferenceType requesterRef = aCase.getRequestorRef();
+    public PrismObject<? extends FocusType> getRequesterIfExists(CaseType aCase, OperationResult result) {
         //noinspection unchecked
-        return (PrismObject<UserType>) resolveAndStoreObjectReference(requesterRef, result);
+        return (PrismObject<? extends FocusType>) resolveAndStoreObjectReference(
+                aCase != null ? aCase.getRequestorRef() : null,
+                result);
     }
 
     private TypedValue<PrismObject<?>> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {

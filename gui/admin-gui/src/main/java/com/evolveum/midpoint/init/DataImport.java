@@ -24,7 +24,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -71,16 +70,15 @@ public abstract class DataImport {
 
     public abstract void init() throws SchemaException;
 
-    protected SecurityContext provideFakeSecurityContext() throws SchemaException {
+    protected SecurityContext provideFakeSecurityContext() {
         // We need to provide a fake Spring security context here.
         // We have to fake it because we do not have anything in the repository yet. And to get
         // something to the repository we need a context. Chicken and egg. So we fake the egg.
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        MidPointPrincipal principal = new MidPointPrincipal(
+        MidPointPrincipal principal = MidPointPrincipal.privileged(
                 new UserType()
                         .oid(SystemObjectsType.USER_ADMINISTRATOR.value())
                         .name("initAdmin"));
-        principal.addAuthorization(SecurityUtil.createPrivilegedAuthorization());
         Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
         securityContext.setAuthentication(authentication);
         return securityContext;

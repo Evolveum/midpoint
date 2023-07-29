@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.model.intest;
 
 import java.io.File;
+import java.util.Objects;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -21,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests various combinations of `runAsRef`, `runAsPrivileged`, and `taskOwnerRef` (in `executeScript` policy action).
@@ -48,6 +51,8 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        dummyAuditService.setEnabled(true);
+
         initTestObjects(initTask, initResult,
                 ROLE_REGULAR_USER,
                 ROLE_WITH_SERVICE_MAPPING_STANDARD,
@@ -69,12 +74,12 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
         login(userAdministrator);
 
         when("description is set");
-        setDescription(user.getOid(), "hi", task, result);
+        setDescription(user.getOid(), "desc1", task, result);
 
         then("the service is visible in the cost center value");
         assertSuccess(result);
         assertUserAfter(user.getOid())
-                .assertCostCenter("hi: one (administrator)");
+                .assertCostCenter("desc1: s:one p:administrator a:administrator");
     }
 
     @SafeVarargs
@@ -107,12 +112,13 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
         login(user.asPrismObject());
 
         when("description is set");
-        setDescription(user.getOid(), "hi", task, result);
+        setDescription(user.getOid(), "desc2", task, result);
 
         then("the service is NOT visible in the cost center value");
         assertSuccess(result);
         assertUserAfter(user.getOid())
-                .assertCostCenter("hi: null (test110StandardMappingAsRegular)"); // no privileges to read service
+                // no privileges to read service
+                .assertCostCenter("desc2: s:null p:test110StandardMappingAsRegular a:test110StandardMappingAsRegular");
     }
 
     /** Processing "runAs" mapping under user with limited privileges. */
@@ -126,14 +132,32 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
 
         and("logged in as itself");
         login(user.asPrismObject());
+        setPrincipalAsTestTaskOwner();
 
         when("description is set");
-        setDescription(user.getOid(), "hi", task, result);
+        dummyAuditService.clear();
+        setDescription(user.getOid(), "desc3", task, result);
 
         then("the service is visible in the cost center value");
         assertSuccess(result);
         assertUserAfter(user.getOid())
-                .assertCostCenter("hi: one (administrator)"); // run-as
+                .assertCostCenter("desc3: s:one p:administrator a:test120RunAsMappingAsRegular"); // run-as
+
+        and("audit is OK");
+        displayDumpable("audit", dummyAuditService);
+
+        assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), false); // user
+        assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), USER_ADMINISTRATOR_OID, false); // service
+    }
+
+    private void assertAuditRecords(
+            AuditEventType eventType, String initiatorOid, String effectivePrincipalOid, boolean privilegesModified) {
+        dummyAuditService.getRecordsOfType(eventType).forEach(r -> {
+            assertThat(r.getInitiatorRef().getOid()).as("initiator OID").isEqualTo(initiatorOid);
+            assertThat(Objects.requireNonNull(r.getEffectivePrincipalRef()).getOid())
+                    .as("effective principal OID").isEqualTo(effectivePrincipalOid);
+            assertThat(r.isEffectivePrivilegesModified()).as("privileges modified flag").isEqualTo(privilegesModified);
+        });
     }
 
     /** Processing "privileged" mapping under user with limited privileges. */
@@ -147,13 +171,21 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
 
         and("logged in as itself");
         login(user.asPrismObject());
+        setPrincipalAsTestTaskOwner();
 
         when("description is set");
-        setDescription(user.getOid(), "hi", task, result);
+        dummyAuditService.clear();
+        setDescription(user.getOid(), "desc4", task, result);
 
         then("the service is visible in the cost center value");
         assertSuccess(result);
         assertUserAfter(user.getOid())
-                .assertCostCenter("hi: one (test130PrivilegedMappingAsRegular)");
+                .assertCostCenter("desc4: s:one p:test130PrivilegedMappingAsRegular a:test130PrivilegedMappingAsRegular");
+
+        and("audit is OK");
+        displayDumpable("audit", dummyAuditService);
+
+        assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), false); // user
+        assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), user.getOid(), true); // service
     }
 }
