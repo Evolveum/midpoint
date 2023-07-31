@@ -47,6 +47,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             return new ActionResult<>(false, 3);
         }
 
+        log.info("Pre-upgrade checks finished successfully");
         return new ActionResult<>(true);
     }
 
