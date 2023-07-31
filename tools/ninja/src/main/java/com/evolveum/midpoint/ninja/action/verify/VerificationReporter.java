@@ -329,19 +329,9 @@ public class VerificationReporter {
 
         items.add(object.toDebugName());
 
-        UpgradePhase phase = item.getPhase();
-        if (phase != null) {
-            items.add(phase);
-        }
-
         UpgradePriority priority = item.getPriority();
         if (priority != null) {
             items.add(priority);
-        }
-
-        UpgradeType type = item.getType();
-        if (type != null) {
-            items.add(type);
         }
 
         if (validationItem.getItemPath() != null) {
@@ -354,6 +344,7 @@ public class VerificationReporter {
         }
 
         writer.write(StringUtils.join(items, " "));
+        writer.write("\n");
     }
 
     private String writeMessage(LocalizableMessage message) throws IOException {
