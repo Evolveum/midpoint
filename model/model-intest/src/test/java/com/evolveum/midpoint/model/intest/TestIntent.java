@@ -44,8 +44,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
 
         rememberSteadyResources();
-
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test

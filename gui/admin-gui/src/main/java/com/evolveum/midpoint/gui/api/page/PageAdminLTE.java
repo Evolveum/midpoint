@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
+import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -749,8 +750,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return securityContextManager.runPrivileged(producer);
     }
 
-    public <T> T runAsChecked(CheckedProducer<T> producer, PrismObject<UserType> user) throws CommonException {
-        return securityContextManager.runAsChecked(producer, user);
+    public <T> T runAsChecked(
+            ResultAwareCheckedProducer<T> producer,
+            PrismObject<UserType> user,
+            OperationResult result) throws CommonException {
+        return securityContextManager.runAsChecked(producer, user, result);
     }
 
     @NotNull

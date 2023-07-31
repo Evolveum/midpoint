@@ -133,7 +133,9 @@ public class RunningLightweightTaskImpl extends RunningTaskQuartzImpl implements
     private void setupSecurityContext(OperationResult result) {
         try {
             // Task owner is cloned because otherwise we get CMEs when recomputing the owner user during login process
-            beans.securityContextManager.setupPreAuthenticatedSecurityContext(CloneUtil.clone(getOwner(result)));
+            beans.securityContextManager.setupPreAuthenticatedSecurityContext(
+                    CloneUtil.clone(getOwner(result)),
+                    result);
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set up task security context {}", e, this);
             throw new SystemException(e.getMessage(), e);

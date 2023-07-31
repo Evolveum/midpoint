@@ -10,6 +10,7 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 import java.util.*;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
-public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolean> {
+public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, ActionResult<Boolean>> {
 
     @Override
     public String getOperationName() {
@@ -30,23 +31,24 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
     }
 
     @Override
-    public Boolean execute() throws Exception {
+    public ActionResult<Boolean> execute() throws Exception {
         final RepositoryService repository = context.getRepository();
 
         if (!repository.isNative()) {
             log.error("Repository implementation is not using native PostgreSQL");
-            return false;
+            return new ActionResult<>(false, 1);
         }
 
         if (!options.isSkipNodesVersionCheck() && !checkNodesVersion(repository)) {
-            return false;
+            return new ActionResult<>(false, 2);
         }
 
         if (!options.isSkipDatabaseVersionCheck() && !checkDatabaseSchemaVersion(repository)) {
-            return false;
+            return new ActionResult<>(false, 3);
         }
 
-        return true;
+        log.info("Pre-upgrade checks finished successfully");
+        return new ActionResult<>(true);
     }
 
     private boolean checkDatabaseSchemaVersion(RepositoryService repository) {
@@ -119,9 +121,9 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
 
         String version = versions.iterator().next();
         if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {
-            log.error(ConsoleFormat.formatErrorMessageWithParameter(
-                    "There are midPoint nodes with versions {} that doesn't match supported version for upgrade (" +
-                            UpgradeConstants.SUPPORTED_VERSION + ")", Arrays.toString(versions.toArray())));
+            log.error(
+                    "There are midPoint nodes with versions " + Arrays.toString(versions.toArray())
+                            + " that doesn't match supported version for upgrade (" + UpgradeConstants.SUPPORTED_VERSION + ")");
             return false;
         }
 

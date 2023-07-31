@@ -154,11 +154,14 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
             ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
                     .item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToCreate)
                     .asObjectDelta(userOid);
-            runAsChecked(() -> {
-                Task task = createSimpleTask(OPERATION_ASSIGN_DEFAULT_ROLES);
-                WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
-                return null;
-            }, administrator);
+            runAsChecked(
+                    (lResult) -> {
+                        Task task = createSimpleTask(OPERATION_ASSIGN_DEFAULT_ROLES);
+                        WebModelServiceUtils.save(delta, lResult, task, PageRegistrationConfirmation.this);
+                        return null;
+                    },
+                    administrator,
+                    result);
         } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.assignDefaultRoles.fatalError"), e);
             throw e;
@@ -171,16 +174,19 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
             OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createSubresult(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
         try {
-            runAsChecked(() -> {
-                Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
-                ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object()
-                        .createModificationDeleteContainer(UserType.class, userOid,
-                                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
-                                nonce);
-                delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
-                WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
-                return null;
-            }, administrator);
+            runAsChecked(
+                    (lResult) -> {
+                        Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
+                        ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object()
+                                .createModificationDeleteContainer(UserType.class, userOid,
+                                        ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+                                        nonce);
+                        delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+                        WebModelServiceUtils.save(delta, lResult, task, PageRegistrationConfirmation.this);
+                        return null;
+                    },
+                    administrator,
+                    result);
         } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.removeNonceAndSetLifecycleState.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove nonce and set lifecycle state", e);
@@ -197,21 +203,24 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         }
         OperationResult result = parentResult.createSubresult(OPERATION_ASSIGN_ADDITIONAL_ROLE);
         try {
-            runAsChecked(() -> {
-                Task task = createAnonymousTask(OPERATION_ASSIGN_ADDITIONAL_ROLE);
-                ObjectDelta<UserType> assignRoleDelta;
-                AssignmentType assignment = new AssignmentType();
-                assignment.setTargetRef(ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
-                getPrismContext().adopt(assignment);
-                List<ItemDelta> userDeltas = new ArrayList<>();
-                userDeltas.add(getPrismContext().deltaFactory().container().createModificationAdd(UserType.F_ASSIGNMENT,
-                        UserType.class, assignment));
-                assignRoleDelta = getPrismContext().deltaFactory().object().createModifyDelta(userOid, userDeltas, UserType.class
-                );
-                assignRoleDelta.setPrismContext(getPrismContext());
-                WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
-                return null;
-            }, administrator);
+            runAsChecked(
+                    (lResult) -> {
+                        Task task = createAnonymousTask(OPERATION_ASSIGN_ADDITIONAL_ROLE);
+                        ObjectDelta<UserType> assignRoleDelta;
+                        AssignmentType assignment = new AssignmentType();
+                        assignment.setTargetRef(ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
+                        getPrismContext().adopt(assignment);
+                        List<ItemDelta> userDeltas = new ArrayList<>();
+                        userDeltas.add(getPrismContext().deltaFactory().container().createModificationAdd(UserType.F_ASSIGNMENT,
+                                UserType.class, assignment));
+                        assignRoleDelta = getPrismContext().deltaFactory().object().createModifyDelta(userOid, userDeltas, UserType.class
+                        );
+                        assignRoleDelta.setPrismContext(getPrismContext());
+                        WebModelServiceUtils.save(assignRoleDelta, lResult, task, PageRegistrationConfirmation.this);
+                        return null;
+                    },
+                    administrator,
+                    result);
         } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.assignAdditionalRoleIfPresent.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign additional role", e);

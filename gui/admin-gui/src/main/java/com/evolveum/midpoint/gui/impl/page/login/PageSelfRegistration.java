@@ -247,20 +247,22 @@ public class PageSelfRegistration extends PageAbstractFlow {
         try {
             PrismObject<UserType> administrator = getAdministratorPrivileged(result);
 
-            runAsChecked(() -> {
-                ObjectDelta<UserType> userDelta;
-                Task task = createSimpleTask(OPERATION_SAVE_USER, null);
-                task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-                try {
-                    userDelta = prepareUserDelta(task, result);
-                    userDelta.setPrismContext(getPrismContext());
-                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-                    result.recordFatalError(getString("PageSelfRegistration.message.createDelta.fatalError", e.getMessage()), e);
-                    return result;
-                }
-                WebModelServiceUtils.save(userDelta, executeOptions().overwrite(), result, task, PageSelfRegistration.this);
-                return result;
-            }, administrator);
+            runAsChecked(
+                    (lResult) -> {
+                        ObjectDelta<UserType> userDelta;
+                        Task task = createSimpleTask(OPERATION_SAVE_USER, null);
+                        task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
+                        try {
+                            userDelta = prepareUserDelta(task, lResult);
+                            userDelta.setPrismContext(getPrismContext());
+                        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                            lResult.recordFatalError(getString("PageSelfRegistration.message.createDelta.fatalError", e.getMessage()), e);
+                            return null;
+                        }
+                        WebModelServiceUtils.save(userDelta, executeOptions().overwrite(), lResult, task, PageSelfRegistration.this);
+                        return null;
+                    },
+                    administrator, result);
         } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageSelfRegistration.message.saveUser.fatalError"), e);
         } finally {

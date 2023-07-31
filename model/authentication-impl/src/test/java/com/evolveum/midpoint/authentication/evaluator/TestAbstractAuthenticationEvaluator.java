@@ -186,15 +186,16 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             }
 
             @Override
-            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                return getPrincipal(user, null, null);
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user, OperationResult result)
+                    throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                return getPrincipal(user, null, result);
             }
 
             @Override
             public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
                     AuthorizationTransformer authorizationLimiter, OperationResult result)
                     throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user);
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user, result);
                 addFakeAuthorization(principal);
                 return principal;
             }

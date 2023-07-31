@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  *  Adds recompute triggers to objects in an optimized way:
+ *
  *  - The triggers are set to a given time in future (e.g. 1 minute from now).
  *  - If more requests to create triggers to the same object come before that time comes (minus some safety margin,
  *    e.g. 2 seconds), their creation is skipped.
