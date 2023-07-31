@@ -9,4 +9,6 @@ package com.evolveum.midpoint.authentication.api.config;
 
 public interface CorrelationModuleAuthentication extends ModuleAuthentication {
 
+    String getCurrentCorrelatorIdentifier();
+
 }

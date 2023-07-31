@@ -382,7 +382,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 correlationDefinitionBean,
                 preFocus,
                 archetypeOid,
-                determineObjectTemplate(null, preFocus, task, result),
+                determineObjectTemplate(archetypeOid, preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 discriminator,
                 task);

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
@@ -48,8 +50,18 @@ public class CorrelationModuleFactoryImpl extends AbstractModuleFactory
         CorrelationModuleAuthenticationImpl moduleAuthentication = new CorrelationModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        moduleAuthentication.setCorrelatorIdentifier(moduleType.getCorrelationRuleIdentifier());
+        moduleAuthentication.setCorrelators(moduleType.getCorrelator());
         return moduleAuthentication;
     }
 
+    @Override
+    protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {
+        if (authenticationChannel == null) {
+            return;
+        }
+        if (!SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI.equals(authenticationChannel.getChannelId())) {
+            throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
+                    + " for channel " + authenticationChannel.getChannelId());
+        }
+    }
 }

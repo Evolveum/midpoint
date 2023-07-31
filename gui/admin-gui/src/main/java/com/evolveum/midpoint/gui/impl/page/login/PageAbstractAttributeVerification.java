@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -139,9 +140,13 @@ public abstract class PageAbstractAttributeVerification<AM extends AbstractAuthe
     private String generateAttributeValuesString() {
         JSONArray attrValues = new JSONArray();
         attributePathModel.getObject().forEach(entry -> {
+            String value = entry.getValue();
+            if (StringUtils.isBlank(value)) {
+                return;
+            }
             JSONObject json  = new JSONObject();
             json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
-            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, entry.getValue());
+            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, value);
             attrValues.put(json);
         });
         if (attrValues.length() == 0) {

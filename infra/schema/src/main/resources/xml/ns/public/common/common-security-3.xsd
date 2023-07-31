@@ -444,7 +444,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="correlationRuleIdentifier" type="xsd:string" minOccurs="0">
+                    <xsd:element name="correlator" type="tns:CorrelationModuleConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 "name" attribute of the correlator as set in object template.
@@ -454,6 +454,25 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationModuleConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for correlation module. E.g. which correlator to use specified by its identifier.
+                Ordering if more than one correlator is used, etc. TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlatorIdentifier" type="xsd:string"/>
+            <xsd:element name="order" type="xsd:int"/>
+            <!-- TODO thresholds-->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="OtherAuthenticationModuleParameterType">

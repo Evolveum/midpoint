@@ -27,10 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Producer;
@@ -89,19 +86,25 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
         try {
             Authentication token = null;
             if (authentication instanceof CorrelationVerificationToken) {
+
                 CompleteCorrelationResult correlationResult;
                 try {
+
+                    Authentication processingAuthentication = SecurityUtil.getAuthentication();
+                    String archetypeOid;
+                    if (processingAuthentication instanceof MidpointAuthentication mpAuthentication) {
+                        archetypeOid = mpAuthentication.getArchetypeOid();
+                    } else {
+                        archetypeOid = null;
+                    }
+
                     correlationResult = securityContextManager.runPrivileged(() -> {
                         Task task = taskManager.createTaskInstance("correlate");
                         task.setChannel(SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI);
 
                         CorrelationVerificationToken correlationToken = (CorrelationVerificationToken) authentication;
                         try {
-                            Authentication processingAuthentication = SecurityUtil.getAuthentication();
-                            String archetypeOid = null;
-                            if (processingAuthentication instanceof MidpointAuthentication mpAuthentication) {
-                                archetypeOid = mpAuthentication.getArchetypeOid();
-                            }
+
                             CompleteCorrelationResult result = correlationService.correlate(correlationToken.getPreFocus(focusType),
                                     archetypeOid,
                                     new CorrelatorDiscriminator(correlationToken.getCorrelatorName(), CorrelationUseType.USERNAME_RECOVERY),
@@ -118,29 +121,31 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
                             throw new TunnelException(e);
                         }
                     });
+
+                    ObjectType owner = correlationResult.getOwner();
+
+                    if (owner != null) {
+                        try {
+                            MidPointPrincipal principal = focusProfileService.getPrincipalByOid(owner.getOid(), focusType);
+                            return new UsernamePasswordAuthenticationToken(principal, null);
+                        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                                SecurityViolationException | ExpressionEvaluationException e) {
+                            throw new RuntimeException(e);
+                            //TODO
+                        }
+
+                    }
+//                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
+//                pwdToken.setAuthenticated(false);
+//                return pwdToken;
+                    return authentication;
                 } catch (Exception e) {
                     LOGGER.error("Cannot correlate user, {}", e.getMessage(), e);
                     throw new AuthenticationServiceException("web.security.provider.unavailable");
                 }
 
 
-                ObjectType owner = correlationResult.getOwner();
 
-                if (owner != null) {
-                    try {
-                        MidPointPrincipal principal = focusProfileService.getPrincipalByOid(owner.getOid(), focusType);
-                        return new UsernamePasswordAuthenticationToken(principal, null);
-                    } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                            SecurityViolationException | ExpressionEvaluationException e) {
-                        throw new RuntimeException(e);
-                        //TODO
-                    }
-
-                }
-//                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
-//                pwdToken.setAuthenticated(false);
-//                return pwdToken;
-                return token;
 
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);

@@ -23,9 +23,10 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
     private String correlatorName;
     private Map<ItemPath, String> attributes;
 
-    public CorrelationVerificationToken(Map<ItemPath, String> attributes) {
+    public CorrelationVerificationToken(Map<ItemPath, String> attributes, String correlatorName) {
         super(null);
         this.attributes = attributes;
+        this.correlatorName = correlatorName;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
     }
 
     public String getCorrelatorName() {
-        return "blabla";//correlatorName;
+        return correlatorName;
     }
 
     public FocusType getPreFocus(Class<? extends FocusType> focusType) {

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthe
 import com.evolveum.midpoint.authentication.impl.filter.CorrelationAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointAttributeConfigurer;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.handler.CorrelationAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
@@ -48,7 +49,7 @@ public class CorrelationModuleWebSecurityConfigurer extends ModuleWebSecurityCon
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
-                        new MidPointAuthenticationSuccessHandler())).permitAll();
+                        new CorrelationAuthenticationSuccessHandler())).permitAll();
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/correlation"));
 

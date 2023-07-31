@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.CorrelationVerificationToken;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,7 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.Map;
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.CorrelationVerificationToken;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class CorrelationAuthenticationFilter extends MidpointFocusVerificationFilter {
 
@@ -33,11 +32,17 @@ public class CorrelationAuthenticationFilter extends MidpointFocusVerificationFi
     }
 
     protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {
-        return new CorrelationVerificationToken(attributeValues);
+        return new CorrelationVerificationToken(attributeValues, null); //TDO refactor
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        return super.attemptAuthentication(request, response);
+        validateRequest(request);
+
+        Map<ItemPath, String> attributeValues = obtainAttributeValues(request);
+        String correlatorName = request.getParameter("correlatorName");
+        AbstractAuthenticationToken authRequest = new CorrelationVerificationToken(attributeValues, correlatorName);
+
+        return this.getAuthenticationManager().authenticate(authRequest);
     }
 }

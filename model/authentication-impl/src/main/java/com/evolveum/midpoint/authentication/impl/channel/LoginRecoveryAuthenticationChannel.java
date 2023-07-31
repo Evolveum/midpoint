@@ -12,8 +12,11 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 public class LoginRecoveryAuthenticationChannel extends AuthenticationChannelImpl {
 
@@ -29,5 +32,17 @@ public class LoginRecoveryAuthenticationChannel extends AuthenticationChannelImp
         return "/loginRecovery";
     }
 
+//    public Collection<Authorization> resolveAuthorities(@NotNull Collection<Authorization> authorities) {
+//        ArrayList<Authorization> newAuthorities = new ArrayList<>();
+//        for (Authorization authzI : authorities) {
+//            authzI.getAction().removeIf(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
+//        }
+//        AuthorizationType authorizationBean = new AuthorizationType();
+//        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_USERNAME_RECOVERY_URL);
+//        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationBean);
+//        newAuthorities.add(selfServiceCredentialsAuthz);
+//        newAuthorities.addAll(authorities);
+//        return Collections.unmodifiableList(newAuthorities);
+//    }
 
 }

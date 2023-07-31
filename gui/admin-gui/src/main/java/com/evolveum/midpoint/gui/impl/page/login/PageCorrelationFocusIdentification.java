@@ -10,6 +10,11 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.web.page.error.PageError;
+
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
@@ -86,8 +91,24 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
         correlatorModel = new LoadableModel<>() {
             @Override
             protected CorrelatorConfigDto load() {
-                CorrelationAuthenticationModuleType module = getAutheticationModuleConfiguration();
-                String correlatorName = module.getCorrelationRuleIdentifier();
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (!(authentication instanceof MidpointAuthentication)) {
+                    getSession().error(getString("No midPoint authentication is found"));
+                    throw new RestartResponseException(PageError.class);
+                }
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+                if (moduleAuthentication == null
+                        || !getModuleTypeName().equals(moduleAuthentication.getModuleTypeName())) {
+                    getSession().error(getString("No authentication module is found"));
+                    throw new RestartResponseException(PageError.class);
+                }
+
+                CorrelationModuleAuthentication module = (CorrelationModuleAuthentication) moduleAuthentication;
+                String correlatorName = module.getCurrentCorrelatorIdentifier();
+
+                //TODO do not return moduleType byt moduleAthentication
+//                CorrelationAuthenticationModuleType module = getAutheticationModuleConfiguration();
 
                 return new CorrelatorConfigDto(correlatorName, archetypeOid, getCorrelationAttributePaths(correlatorName));
             }
