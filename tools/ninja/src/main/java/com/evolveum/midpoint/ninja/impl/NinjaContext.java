@@ -41,7 +41,7 @@ public class NinjaContext implements Closeable {
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
     private static final String AUDIT_SERVICE_BEAN = "auditService";
 
-    private static final String CTX_NINJA = "classpath:ctx-ninja.xml";
+    private static final String CTX_NINJA = "classpath*:ctx-ninja.xml";
 
     public final PrintStream out;
 

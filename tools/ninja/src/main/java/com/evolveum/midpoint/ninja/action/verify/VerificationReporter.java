@@ -2,10 +2,7 @@ package com.evolveum.midpoint.ninja.action.verify;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -322,29 +319,52 @@ public class VerificationReporter {
         );
     }
 
-    private void writeValidationItem(Writer writer, PrismObject<?> object, UpgradeValidationItem validationItem) throws IOException {
-        if (validationItem.getItem().getStatus() != null) {
-            writer.append(validationItem.getItem().getStatus().toString());
-            writer.append(" ");
+    private void writeValidationItem(Writer writer, PrismObject<?> object, UpgradeValidationItem item) throws IOException {
+        ValidationItem validationItem = item.getItem();
+
+        List<Object> items = new ArrayList<>();
+
+        if (validationItem.getStatus() != null) {
+            items.add(validationItem.getStatus());
         } else {
             writer.append("INFO ");
         }
-        writer.append(object.toString());
-        writer.append(" ");
-        if (validationItem.getItem().getItemPath() != null) {
-            writer.append(validationItem.getItem().getItemPath().toString());
-            writer.append(" ");
+
+        items.add(object.toDebugName());
+
+        UpgradePhase phase = item.getPhase();
+        if (phase != null) {
+            items.add(phase);
         }
-        writeMessage(writer, validationItem.getItem().getMessage());
-        writer.append("\n");
+
+        UpgradePriority priority = item.getPriority();
+        if (priority != null) {
+            items.add(priority);
+        }
+
+        UpgradeType type = item.getType();
+        if (type != null) {
+            items.add(type);
+        }
+
+        if (validationItem.getItemPath() != null) {
+            items.add(validationItem.getItemPath());
+        }
+
+        String msg = writeMessage(validationItem.getMessage());
+        if (msg != null) {
+            items.add(msg);
+        }
+
+        writer.write(StringUtils.join(items, " "));
     }
 
-    private void writeMessage(Writer writer, LocalizableMessage message) throws IOException {
+    private String writeMessage(LocalizableMessage message) throws IOException {
         if (message == null) {
-            return;
+            return null;
         }
         // TODO: localization?
-        writer.append(message.getFallbackMessage());
+        return message.getFallbackMessage();
     }
 
     public VerifyResult getResult() {

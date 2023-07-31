@@ -422,6 +422,7 @@ public class SchemaDebugUtil {
         appendPropertyIfNotNull(sb, "allowEmptyValues", expressionType.isAllowEmptyValues());
         appendPropertyIfNotNull(sb, "queryInterpretationOfNoValue", expressionType.getQueryInterpretationOfNoValue());
         appendPropertyIfNotNull(sb, "runAsRef", expressionType.getRunAsRef());
+        // FIXME "privileges" are not dumped
         List<JAXBElement<?>> expressionEvaluators = expressionType.getExpressionEvaluator();
         sb.append("evaluator").append("=");
         if (expressionEvaluators.isEmpty()) {

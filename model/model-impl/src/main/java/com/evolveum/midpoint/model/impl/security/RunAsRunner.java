@@ -82,7 +82,7 @@ public class RunAsRunner implements AutoCloseable {
             ExpressionEvaluationException {
         Class<? extends FocusType> clazz = getObjectClass(typeName);
         PrismObject<? extends FocusType> focus = beans.repositoryService.getObject(clazz, oid, null, parentResult);
-        beans.securityContextManager.setupPreAuthenticatedSecurityContext(focus);
+        beans.securityContextManager.setupPreAuthenticatedSecurityContext(focus, parentResult);
     }
 
     @NotNull

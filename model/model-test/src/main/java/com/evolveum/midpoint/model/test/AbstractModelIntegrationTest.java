@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.test;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.OPERATION_GET_PRINCIPAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
@@ -36,6 +37,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.*;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -4607,9 +4609,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         login(testObject.getNameOrig());
     }
 
-    protected void login(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
+    protected void login(PrismObject<UserType> user)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        MidPointPrincipal principal = getMidPointPrincipal(user);
         login(principal);
+    }
+
+    /** This should be maybe automatic during "login" method call. But currently it is not. */
+    protected void setPrincipalAsTestTaskOwner() throws NotLoggedInException {
+        Task testTask = Objects.requireNonNull(getTestTask(), "no test task");
+        testTask.setOwnerRef(
+                AuthUtil.getPrincipalRefRequired());
+    }
+
+    protected MidPointPrincipal getMidPointPrincipal(PrismObject<UserType> user)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        // If we are brave enough, we can use getTestOperationResult here -- later.
+        return focusProfileService.getPrincipal(user, new OperationResult(OPERATION_GET_PRINCIPAL));
     }
 
     protected void login(MidPointPrincipal principal) {
@@ -4739,18 +4757,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return mpAuthentication;
     }
 
-    protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void loginSuperUser(String principalName)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = focusProfileService.getPrincipal(principalName, UserType.class);
         loginSuperUser(principal);
     }
 
-    protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
-        loginSuperUser(principal);
+    protected void loginSuperUser(PrismObject<UserType> user)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        loginSuperUser(
+                getMidPointPrincipal(user));
     }
 
     protected void loginSuperUser(MidPointPrincipal principal) {
-        principal.addAuthorization(SecurityUtil.createPrivilegedAuthorization());
+        principal.addExtraAuthorizationIfMissing(SecurityUtil.createPrivilegedAuthorization());
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(createMpAuthentication(authentication));
@@ -5309,7 +5331,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations)
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
+        MidPointPrincipal principal = getMidPointPrincipal(user);
         assertNotNull("No principal for " + user, principal);
         assertAuthorizations(principal, expectedAuthorizations);
     }
@@ -5325,7 +5347,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertNoAuthorizations(PrismObject<UserType> user)
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
+        MidPointPrincipal principal = getMidPointPrincipal(user);
         assertNotNull("No principal for " + user, principal);
         assertNoAuthorizations(principal);
     }
