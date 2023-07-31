@@ -228,7 +228,7 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         RoleAnalysisSessionType value = model.getObject().getValue();
-                        cellItem.add(new Label(componentId, value.getClusterOptions().getMinPropertyOverlap()));
+                        cellItem.add(new Label(componentId, value.getClusterOptions().getMinPropertiesOverlap()));
                     }
 
                     @Override
@@ -310,8 +310,8 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         cellItem.add(new Label(componentId,
-                                model.getObject().getValue() != null && model.getObject().getValue().getSessionStatistic().getProcessedObjectsCount() != null ?
-                                        model.getObject().getValue().getSessionStatistic().getProcessedObjectsCount() : null));
+                                model.getObject().getValue() != null && model.getObject().getValue().getSessionStatistic().getProcessedObjectCount() != null ?
+                                        model.getObject().getValue().getSessionStatistic().getProcessedObjectCount() : null));
                     }
 
                     @Override

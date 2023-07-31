@@ -170,7 +170,7 @@ public class ClusterObjectUtils {
         roleAnalysisSession.getRoleAnalysisClusterRef().addAll(roleAnalysisClusterRef);
         roleAnalysisSession.setSessionStatistic(roleAnalysisSessionStatisticType);
         roleAnalysisSession.setClusterOptions(roleAnalysisSessionClusterOption);
-        roleAnalysisSession.setPatternDetectionOptions(roleAnalysisSessionDetectionOption);
+        roleAnalysisSession.setPatternDetectionOption(roleAnalysisSessionDetectionOption);
         return roleAnalysisSessionPrismObject;
     }
 

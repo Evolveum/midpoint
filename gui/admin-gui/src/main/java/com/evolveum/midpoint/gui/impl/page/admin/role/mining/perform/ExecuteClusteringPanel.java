@@ -16,8 +16,6 @@ import java.util.EnumSet;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -124,7 +122,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
                 roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
                 roleAnalysisSessionDetectionOption.setMinOccupancy(clusterOptions.getDefaultOccupancySearch());
-                roleAnalysisSessionDetectionOption.setMinPropertyOverlap(clusterOptions.getDefaultIntersectionSearch());
+                roleAnalysisSessionDetectionOption.setMinPropertiesOverlap(clusterOptions.getDefaultIntersectionSearch());
                 roleAnalysisSessionDetectionOption.setJaccardSimilarityThreshold(clusterOptions.getDefaultJaccardThreshold());
 
                 return roleAnalysisSessionDetectionOption;
@@ -134,7 +132,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             private RoleAnalysisSessionClusterOptionType getRoleAnalysisSessionFilterOption() {
                 RoleAnalysisSessionClusterOptionType roleAnalysisSessionClusterOption = new RoleAnalysisSessionClusterOptionType();
                 if (clusterOptions.getQuery() != null) {
-                    roleAnalysisSessionClusterOption.setAxiomFilter(clusterOptions.getQuery().toString());
+                    roleAnalysisSessionClusterOption.setFilter(clusterOptions.getQuery().toString());
                 }
 
                 roleAnalysisSessionClusterOption.setProcessMode(clusterOptions.getMode());
@@ -142,7 +140,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 roleAnalysisSessionClusterOption.setMinUniqueGroupCount(clusterOptions.getMinGroupSize());
                 roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getMinProperties());
                 roleAnalysisSessionClusterOption.setMaxPropertiesCount(clusterOptions.getMaxProperties());
-                roleAnalysisSessionClusterOption.setMinPropertyOverlap(clusterOptions.getMinIntersections());
+                roleAnalysisSessionClusterOption.setMinPropertiesOverlap(clusterOptions.getMinIntersections());
                 return roleAnalysisSessionClusterOption;
             }
 
@@ -167,7 +165,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
                     RoleAnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistic();
                     meanDensity += clusterStatistic.getPropertiesDensity();
-                    processedObjectCount += clusterStatistic.getMembersObjectsCount();
+                    processedObjectCount += clusterStatistic.getMemberCount();
 
                     ObjectReferenceType objectReferenceType = new ObjectReferenceType();
                     objectReferenceType.setOid(clusterTypePrismObject.getOid());
@@ -178,7 +176,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 meanDensity = meanDensity / clusters.size();
 
                 RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType = new RoleAnalysisSessionStatisticType();
-                roleAnalysisSessionStatisticType.setProcessedObjectsCount(processedObjectCount);
+                roleAnalysisSessionStatisticType.setProcessedObjectCount(processedObjectCount);
                 roleAnalysisSessionStatisticType.setMeanDensity(meanDensity);
 
                 ObjectReferenceType parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionClusterOption,

@@ -48,12 +48,13 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="members" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="member" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The main object that was analyzed. In the case of ROLE MODE, the list of role object (members = roles)
-                                IDs that make up the given group is included in the object. In the case of USER MODE,
-                                the list of users object (members = users) IDs that make up the given group is included in the object.
+                                The main object that was analyzed. In the case of ROLE MODE, the list of role
+                                object (members = roles) references that make up the given group is included in the object.
+                                In the case of USER MODE, the list of users object (members = users) references that make up
+                                the given group is included in the object.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -65,7 +66,7 @@
                                 The UUID is commonly used for this purpose.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisClusterType.parentRef</a:displayName>
+                                <a:displayName>RoleAnalysisClusterType.roleAnalysisSessionRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -73,9 +74,9 @@
                     <xsd:element name="detection" type="c:RoleAnalysisClusterDetectionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                It consists of a sheet of ref objects and their specification in which a match was found according
-                                to the set parameters. These objects are subsequently processed as a proposal
-                                for applying changes in the system (Business role).
+                                It consists of a sheet of reference objects and their specifications in which matches are found
+                                based on the set parameters. These objects are subsequently processed as proposals for
+                                implementing changes in the system (Business role).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -111,7 +112,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="membersObjectsCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="memberCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -121,7 +122,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisClusterStatisticType.membersObjectsCount</a:displayName>
+                        <a:displayName>RoleAnalysisClusterStatisticType.memberCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -235,7 +236,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="membersObject" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="member" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         The main object that was analyzed. In the case of ROLE MODE, the list of roles (members) object
@@ -280,7 +281,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="allPropertiesOccupation" type="xsd:int" minOccurs="0">
+            <xsd:element name="fullPropertiesOccupation" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -359,7 +360,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="patternDetectionOptions" type="c:RoleAnalysisSessionDetectionOptionType" minOccurs="0">
+                    <xsd:element name="patternDetectionOption" type="c:RoleAnalysisSessionDetectionOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -369,9 +370,10 @@
                                     and analyzes aimed at discovering different business roles.
 
                                     Furthermore, the role analysis session allows for the possibility of updating these values.
-                                    If there is a need to modify or refine the cluster options during the analysis process, the values
-                                    associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
-                                    role analysis based on changing requirements or new insights gained during the analysis phase.
+                                    If there is a need to modify or refine the cluster options during the analysis process,
+                                    the values associated with the keys can be updated accordingly. This flexibility enables
+                                    modification of the role analysis based on changing requirements or new insights gained
+                                    during the analysis phase.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
@@ -417,7 +419,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="axiomFilter" type="xsd:string" minOccurs="0">
+            <xsd:element name="filter" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -515,7 +517,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minPropertyOverlap" type="xsd:int" minOccurs="0">
+            <xsd:element name="minPropertiesOverlap" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -527,7 +529,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertyOverlap</a:displayName>
+                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertiesOverlap</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -553,7 +555,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="minPropertyOverlap" type="xsd:int" minOccurs="0">
+            <xsd:element name="minPropertiesOverlap" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -565,7 +567,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minOverlap</a:displayName>
+                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minPropertiesOverlap</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -658,11 +660,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="processedObjectsCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="processedObjectCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            ProcessedObjectsCount represents the number of members objects
+                            ProcessedObjectCount represents the number of members objects
                             that are part of clusters RoleAnalysisClusterType belonging to RoleAnalysisSessionType.
                         </p>
                     </xsd:documentation>

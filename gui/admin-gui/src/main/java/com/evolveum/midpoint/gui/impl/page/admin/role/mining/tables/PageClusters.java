@@ -118,7 +118,7 @@ public class PageClusters extends Panel {
                         OperationResult operationResult = new OperationResult("prepareObjects");
                         List<PrismObject<FocusType>> elements = new ArrayList<>();
 
-                        List<ObjectReferenceType> elements1 = rowModel.getObject().getValue().getMembers();
+                        List<ObjectReferenceType> elements1 = rowModel.getObject().getValue().getMember();
                         for (ObjectReferenceType objectReferenceType : elements1) {
                             elements.add(getFocusTypeObject(pageBase, objectReferenceType.getOid(), operationResult));
                         }
@@ -185,7 +185,7 @@ public class PageClusters extends Panel {
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
                         cellItem.add(new Label(componentId, model.getObject().getValue().getClusterStatistic()
-                                .getMembersObjectsCount()));
+                                .getMemberCount()));
                     }
 
                     @Override
@@ -348,11 +348,11 @@ public class PageClusters extends Panel {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue()
-                                .getClusterStatistic().getMembersObjectsCount() != null) {
+                                .getClusterStatistic().getMemberCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
                                     Model.of(String.valueOf(model.getObject().getValue()
-                                            .getClusterStatistic().getMembersObjectsCount()))) {
+                                            .getClusterStatistic().getMemberCount()))) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     String parentRef = model.getObject().getValue().getRoleAnalysisSessionRef().getOid();
@@ -363,8 +363,8 @@ public class PageClusters extends Panel {
                                         String oid = model.getObject().getValue().asPrismObject().getOid();
                                         assert getParent != null;
                                         String processMode = getParent.asObjectable().getClusterOptions().getProcessMode().value();
-                                        String searchMode = getParent.asObjectable().getPatternDetectionOptions().getSearchMode().value();
-                                        Integer elementsCount = model.getObject().getValue().getClusterStatistic().getMembersObjectsCount();
+                                        String searchMode = getParent.asObjectable().getPatternDetectionOption().getSearchMode().value();
+                                        Integer elementsCount = model.getObject().getValue().getClusterStatistic().getMemberCount();
                                         Integer pointsCount = model.getObject().getValue().getClusterStatistic().getPropertiesCount();
                                         int max = Math.max(elementsCount, pointsCount);
 
@@ -419,7 +419,7 @@ public class PageClusters extends Panel {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue()
-                                .getClusterStatistic().getMembersObjectsCount() != null) {
+                                .getClusterStatistic().getMemberCount() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
                                     Model.of("popup")) {

@@ -224,7 +224,7 @@ public class ClusterAlgorithmUtils {
 
         if (clusterStatistic != null) {
             RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = new RoleAnalysisClusterStatisticType();
-            roleAnalysisClusterStatisticType.setMembersObjectsCount(clusterStatistic.getTotalElements());
+            roleAnalysisClusterStatisticType.setMemberCount(clusterStatistic.getTotalElements());
             roleAnalysisClusterStatisticType.setPropertiesCount(clusterStatistic.getTotalPoints());
             roleAnalysisClusterStatisticType.setPropertiesMinOccupation(clusterStatistic.getMinVectorPoint());
             roleAnalysisClusterStatisticType.setPropertiesMaxOccupation(clusterStatistic.getMaxVectorPoint());
@@ -241,7 +241,7 @@ public class ClusterAlgorithmUtils {
         ClusterStatistic clusterStatistic = statisticLoad(dataPointCluster, dataPoints, clusterIndex, complexType);
 
         RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = new RoleAnalysisClusterStatisticType();
-        roleAnalysisClusterStatisticType.setMembersObjectsCount(clusterStatistic.getTotalElements());
+        roleAnalysisClusterStatisticType.setMemberCount(clusterStatistic.getTotalElements());
         roleAnalysisClusterStatisticType.setPropertiesCount(clusterStatistic.getTotalPoints());
         roleAnalysisClusterStatisticType.setPropertiesMinOccupation(clusterStatistic.getMinVectorPoint());
         roleAnalysisClusterStatisticType.setPropertiesMaxOccupation(clusterStatistic.getMaxVectorPoint());
@@ -292,7 +292,7 @@ public class ClusterAlgorithmUtils {
                 pointsSize, minVectorPoint, maxVectorPoint, dataPoints.size(), meanPoints, density);
 
         RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = new RoleAnalysisClusterStatisticType();
-        roleAnalysisClusterStatisticType.setMembersObjectsCount(elementsOid.size());
+        roleAnalysisClusterStatisticType.setMemberCount(elementsOid.size());
         roleAnalysisClusterStatisticType.setPropertiesCount(pointsSize);
         roleAnalysisClusterStatisticType.setPropertiesMinOccupation(minVectorPoint);
         roleAnalysisClusterStatisticType.setPropertiesMaxOccupation(maxVectorPoint);
@@ -319,7 +319,7 @@ public class ClusterAlgorithmUtils {
         RoleAnalysisClusterType clusterType = clusterTypePrismObject.asObjectable();
         clusterType.setOid(String.valueOf(UUID.randomUUID()));
         clusterType.setClusterStatistic(roleAnalysisClusterStatisticType);
-        clusterType.getMembers().addAll(occupiedUsers);
+        clusterType.getMember().addAll(occupiedUsers);
         clusterType.setName(clusterStatistic.getName());
 
         //TODO any change everything, currently only due to testing.
@@ -353,7 +353,7 @@ public class ClusterAlgorithmUtils {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(processedObjectOid.getOid());
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMembersObject().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getMember().add(objectReferenceType);
             }
 
             int propertiesCount = properties.size();
@@ -455,7 +455,7 @@ public class ClusterAlgorithmUtils {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMembersObject().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getMember().add(objectReferenceType);
 
             }
 
@@ -486,7 +486,7 @@ public class ClusterAlgorithmUtils {
 
             List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getProperties();
             Integer clusterRelatedPropertiesOccupation = roleAnalysisClusterDetectionType.getClusterRelatedPropertiesOccupation();
-            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getMembersObject();
+            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getMember();
             Set<String> members = new HashSet<>();
             for (ObjectReferenceType objectReferenceType : membersObject) {
                 members.add(objectReferenceType.getOid());
