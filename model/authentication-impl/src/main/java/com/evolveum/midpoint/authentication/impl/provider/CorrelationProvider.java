@@ -123,6 +123,7 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
                     });
 
                     ObjectType owner = correlationResult.getOwner();
+                    //TODO save result and find a way how to use it when next correlators run
 
                     if (owner != null) {
                         try {
@@ -135,9 +136,6 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
                         }
 
                     }
-//                UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
-//                pwdToken.setAuthenticated(false);
-//                return pwdToken;
                     return authentication;
                 } catch (Exception e) {
                     LOGGER.error("Cannot correlate user, {}", e.getMessage(), e);
