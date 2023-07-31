@@ -64,6 +64,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         DownloadDistributionOptions downloadOpts = new DownloadDistributionOptions();
         downloadOpts.setTempDirectory(tempDirectory);
         downloadOpts.setDistributionArchive(options.getDistributionArchive());
+        downloadOpts.setDistributionVersion(options.getDistributionVersion());
 
         DownloadDistributionAction downloadAction = new DownloadDistributionAction();
         downloadAction.init(context, downloadOpts);
