@@ -79,10 +79,6 @@ public class VerificationReporter {
         this.log = log;
     }
 
-    public boolean isCreateDeltaFile() {
-        return createDeltaFile;
-    }
-
     public void setCreateDeltaFile(boolean createDeltaFile) {
         this.createDeltaFile = createDeltaFile;
     }
@@ -330,22 +326,12 @@ public class VerificationReporter {
             writer.append("INFO ");
         }
 
-        items.add(object.toDebugName());
-
-        UpgradePhase phase = item.getPhase();
-        if (phase != null) {
-            items.add(phase);
-        }
-
         UpgradePriority priority = item.getPriority();
         if (priority != null) {
             items.add(priority);
         }
 
-        UpgradeType type = item.getType();
-        if (type != null) {
-            items.add(type);
-        }
+        items.add(getObjectDisplayName(object));
 
         if (validationItem.getItemPath() != null) {
             items.add(validationItem.getItemPath());
@@ -357,9 +343,22 @@ public class VerificationReporter {
         }
 
         writer.write(StringUtils.join(items, " "));
+        writer.write("\n");
     }
 
-    private String writeMessage(LocalizableMessage message) throws IOException {
+    private String getObjectDisplayName(PrismObject<?> object) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(object.getName());
+        sb.append(" (");
+        sb.append(object.getOid());
+        sb.append(", ");
+        sb.append(object.getCompileTimeClass().getSimpleName());
+        sb.append(")");
+
+        return sb.toString();
+    }
+
+    private String writeMessage(LocalizableMessage message) {
         if (message == null) {
             return null;
         }

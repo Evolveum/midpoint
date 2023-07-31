@@ -5,13 +5,15 @@ import java.io.File;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
+
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "upgradeDistribution")
 public class UpgradeDistributionOptions {
 
     public static final String P_TEMP_DIR_LONG = "--temp-directory";
 
     public static final String P_DISTRIBUTION_ARCHIVE = "--distribution-archive";
-
+    public static final String P_DISTRIBUTION_VERSION = "--distribution-version";
     public static final String P_BACKUP_MIDPOINT_DIRECTORY = "--backup-midpoint-directory";
 
     public static final String P_INSTALLATION_DIRECTORY = "--installation-directory";
@@ -44,6 +46,9 @@ public class UpgradeDistributionOptions {
 
     @Parameter(names = { P_SKIP_PRE_CHECK }, descriptionKey = "upgradeDistribution.skipPreCheck")
     private boolean skipPreCheck;
+
+    @Parameter(names = { P_DISTRIBUTION_VERSION }, descriptionKey = "upgradeDistribution.distributionVersion", hidden = true)
+    private String distributionVersion = UpgradeConstants.SUPPORTED_VERSION_TARGET;
 
     public File getTempDirectory() {
         return tempDirectory;
@@ -107,5 +112,13 @@ public class UpgradeDistributionOptions {
 
     public void setSkipPreCheck(boolean skipPreCheck) {
         this.skipPreCheck = skipPreCheck;
+    }
+
+    public String getDistributionVersion() {
+        return distributionVersion;
+    }
+
+    public void setDistributionVersion(String distributionVersion) {
+        this.distributionVersion = distributionVersion;
     }
 }

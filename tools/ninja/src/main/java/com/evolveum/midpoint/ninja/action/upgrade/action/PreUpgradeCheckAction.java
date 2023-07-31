@@ -47,6 +47,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             return new ActionResult<>(false, 3);
         }
 
+        log.info("Pre-upgrade checks finished successfully");
         return new ActionResult<>(true);
     }
 
@@ -120,9 +121,9 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
 
         String version = versions.iterator().next();
         if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {
-            log.error(ConsoleFormat.formatErrorMessageWithParameter(
-                    "There are midPoint nodes with versions {} that doesn't match supported version for upgrade (" +
-                            UpgradeConstants.SUPPORTED_VERSION + ")", Arrays.toString(versions.toArray())));
+            log.error(
+                    "There are midPoint nodes with versions " + Arrays.toString(versions.toArray())
+                            + " that doesn't match supported version for upgrade (" + UpgradeConstants.SUPPORTED_VERSION + ")");
             return false;
         }
 
