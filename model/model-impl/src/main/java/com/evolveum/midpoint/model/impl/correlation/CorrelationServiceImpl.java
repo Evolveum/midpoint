@@ -102,12 +102,13 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Override
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
+            @Nullable String archetypeOid,
             @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        CompleteContext ctx = getCompleteContext(preFocus, discriminator, task, result);
+        CompleteContext ctx = getCompleteContext(preFocus, archetypeOid, discriminator, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
 
@@ -368,6 +369,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     private @NotNull CompleteContext getCompleteContext(
             @NotNull FocusType preFocus,
+            @Nullable String archetypeOid,
             @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -379,6 +381,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         return CompleteContext.forFocus(
                 correlationDefinitionBean,
                 preFocus,
+                archetypeOid,
                 determineObjectTemplate(null, preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 discriminator,
@@ -488,6 +491,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         static CompleteContext forFocus(
                 @NotNull CorrelationDefinitionType correlationDefinitionBean,
                 @NotNull FocusType preFocus,
+                @Nullable String archetypeOid,
                 @Nullable ObjectTemplateType objectTemplate,
                 @Nullable SystemConfigurationType systemConfiguration,
                 @NotNull CorrelatorDiscriminator discriminator,
@@ -502,6 +506,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             var correlationContext =
                     new CorrelationContext.Focus(
                             preFocus,
+                            archetypeOid,
                             systemConfiguration,
                             task);
             return new CompleteContext(correlatorContext, correlationContext);

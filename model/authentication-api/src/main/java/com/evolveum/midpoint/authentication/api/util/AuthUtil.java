@@ -154,8 +154,7 @@ public class AuthUtil {
     private static ModuleAuthentication getProcessingModule(boolean required) {
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (required && moduleAuthentication == null) {
                 LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);

@@ -205,9 +205,12 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
      */
     public static class Focus extends CorrelationContext {
 
+        private final String archetypeOid;
+
         public Focus(
-                @NotNull FocusType preFocus, @Nullable SystemConfigurationType systemConfiguration, @NotNull Task task) {
+                @NotNull FocusType preFocus, @Nullable String archetypeOid, @Nullable SystemConfigurationType systemConfiguration, @NotNull Task task) {
             super(preFocus, systemConfiguration, task);
+            this.archetypeOid = archetypeOid;
         }
 
         @Override
@@ -217,7 +220,8 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
 
         @Override
         public @Nullable String getArchetypeOid() {
-            throw new UnsupportedOperationException(); // TODO implement
+            return archetypeOid;
+//            throw new UnsupportedOperationException(); // TODO implement
         }
 
         @Override

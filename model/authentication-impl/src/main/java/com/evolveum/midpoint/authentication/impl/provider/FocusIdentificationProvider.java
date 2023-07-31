@@ -73,8 +73,8 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 }
                 ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
                 List<ModuleItemConfigurationType> itemsConfig = null;
-                if (moduleAuthentication instanceof FocusIdentificationModuleAuthentication) {
-                    itemsConfig = ((FocusIdentificationModuleAuthentication) moduleAuthentication).getModuleConfiguration();
+                if (moduleAuthentication instanceof FocusIdentificationModuleAuthentication focusModuleAuthentication) {
+                    itemsConfig = focusModuleAuthentication.getModuleConfiguration();
                 }
                 FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, itemsConfig, null);
                 token = getEvaluator().authenticateUserPreAuthenticated(connEnv, ctx);

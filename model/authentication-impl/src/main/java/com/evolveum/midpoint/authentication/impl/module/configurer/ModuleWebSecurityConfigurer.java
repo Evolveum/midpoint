@@ -88,7 +88,9 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
             ObjectPostProcessor<Object> objectPostProcessor,
             ServletRequest request, AuthenticationProvider provider) {
         this.objectPostProcessor = objectPostProcessor;
-        this.provider = provider;
+        if (provider != null) {
+            this.provider = objectPostProcessor.postProcess(provider);
+        }
         this.sequenceSuffix = sequenceSuffix;
         this.moduleType = moduleType;
         this.authenticationChannel = authenticationChannel;
@@ -106,6 +108,9 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     public C getConfiguration() {
         if (configuration == null) {
             configuration = buildConfiguration(moduleType, sequenceSuffix, authenticationChannel, request);
+            if (provider != null) {
+                configuration.addAuthenticationProvider(this.provider);
+            }
         }
         return configuration;
     }
