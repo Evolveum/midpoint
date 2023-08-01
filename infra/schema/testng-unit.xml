@@ -142,6 +142,7 @@
             <class name="com.evolveum.midpoint.schema.TestParseFilter"/>
             <class name="com.evolveum.midpoint.schema.TestFilterSimplifier"/>
             <class name="com.evolveum.midpoint.schema.simulations.TestSimulationMetricComputations"/>
+            <class name="com.evolveum.midpoint.schema.validator.processor.TestUpgradeProcessors"/>
         </classes>
     </test>
 </suite>
