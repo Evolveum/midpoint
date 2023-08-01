@@ -28,6 +28,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
@@ -297,6 +298,50 @@ public final class WebComponentUtil {
 
     public static RestartResponseException restartOnLoginPageException() {
         return new RestartResponseException(PageLogin.class);
+    }
+
+    public static void setTaskStateBeforeSave(
+            PrismObjectWrapper<TaskType> taskWrapper, boolean runEnabled, PageBase pageBase, AjaxRequestTarget target) {
+        try {
+            PrismPropertyWrapper<TaskExecutionStateType> executionState = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATE));
+            PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
+            if (executionState == null || schedulingState == null) {
+                throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
+            }
+
+            if (runEnabled) {
+                executionState.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
+                schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
+            } else {
+                if (!ItemStatus.ADDED.equals(taskWrapper.getStatus())) {
+                    return;
+                }
+                executionState.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
+                schedulingState.getValue().setRealValue(TaskSchedulingStateType.SUSPENDED);
+            }
+
+            PrismReferenceWrapper<Referencable> taskOwner = taskWrapper.findReference(ItemPath.create(TaskType.F_OWNER_REF));
+            if (taskOwner == null) {
+                return;
+            }
+            PrismReferenceValueWrapperImpl<Referencable> taskOwnerValue = taskOwner.getValue();
+            if (taskOwnerValue == null) {
+                return;
+            }
+
+            if (taskOwnerValue.getNewValue() == null || taskOwnerValue.getNewValue().isEmpty()) {
+                GuiProfiledPrincipal guiPrincipal = AuthUtil.getPrincipalUser();
+                if (guiPrincipal == null) {
+                    //BTW something very strange must happened
+                    return;
+                }
+                FocusType focus = guiPrincipal.getFocus();
+                taskOwnerValue.setRealValue(ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT));
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error while finishing task settings.", e);
+            target.add(pageBase.getFeedbackPanel());
+        }
     }
 
     public enum AssignmentOrder {
