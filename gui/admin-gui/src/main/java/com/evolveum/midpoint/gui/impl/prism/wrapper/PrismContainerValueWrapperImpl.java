@@ -713,14 +713,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public PrismContainerValue<C> getContainerValueApplyDelta() throws SchemaException {
         PrismContainerValue<C> oldValue = WebPrismUtil.cleanupEmptyContainerValue(getOldValue().clone());
 
-        Collection<ItemDelta> deltas = new ArrayList<>();
-        for (ItemWrapper<?, ?> itemWrapper : getItems()) {
-            Collection<ItemDelta> delta = itemWrapper.getDelta();
-            if (delta == null || delta.isEmpty()) {
-                continue;
-            }
-            deltas.addAll(delta);
-        }
+        Collection<ItemDelta> deltas = getDeltas();
 
         for (ItemDelta delta : deltas) {
             ItemDelta deltaForValue = delta.cloneWithChangedParentPath(
@@ -731,5 +724,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         }
 
         return oldValue;
+    }
+
+    @Override
+    public Collection<ItemDelta> getDeltas() throws SchemaException {
+        Collection<ItemDelta> deltas = new ArrayList<>();
+        for (ItemWrapper<?, ?> itemWrapper : getItems()) {
+            Collection<ItemDelta> delta = itemWrapper.getDelta();
+            if (delta == null || delta.isEmpty()) {
+                continue;
+            }
+            deltas.addAll(delta);
+        }
+        return deltas;
     }
 }

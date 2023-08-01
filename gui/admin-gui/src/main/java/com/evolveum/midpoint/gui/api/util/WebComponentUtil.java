@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
@@ -144,10 +145,6 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -5777,6 +5774,26 @@ public final class WebComponentUtil {
 
     public static <O extends ObjectType> String getLabelForType(Class<O> type, boolean startsWithUppercase) {
         return translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type.getSimpleName(), startsWithUppercase));
+    }
+
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismContainerValueWrapper value) {
+        Collection<ItemDelta> deltas = List.of();
+        try {
+            deltas = value.getDeltas();
+        } catch (SchemaException e) {
+            //couldn't get deltas of items
+        }
+
+        if (!deltas.isEmpty()) {
+            new Toast()
+                    .warning()
+                    .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
+                    .icon("fa fa-exclamation")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.body").getString())
+                    .show(target);
+        }
     }
 
     /**
