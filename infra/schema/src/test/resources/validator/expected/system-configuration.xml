@@ -166,6 +166,14 @@
                 </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage id="10">
+                <type>UserType</type>
+                <container id="9">
+                    <identifier>123</identifier>
+                </container>
+            </objectDetailsPage>
+        </objectDetails>
         <accessRequest>
             <roleCatalog>
                 <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>

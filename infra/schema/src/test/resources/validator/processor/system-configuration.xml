@@ -165,6 +165,14 @@
                 </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage id="10">
+                <type>UserType</type>
+                <container id="9">
+                    <identifier>123</identifier>
+                </container>
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
 
     <defaultObjectPolicyConfiguration id="2">
