@@ -132,6 +132,18 @@
                 <action id="5">
                     <identifier>action2</identifier>
                 </action>
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>oneLevel</defaultValue>
+                    </scopeConfiguration>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView id="6">
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>subtree</defaultValue>
+                    </scopeConfiguration>
+                </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>
         <accessRequest>
