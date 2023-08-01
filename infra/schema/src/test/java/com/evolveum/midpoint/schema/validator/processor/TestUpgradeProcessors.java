@@ -232,6 +232,16 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         });
     }
 
+    @Test
+    public void test100TaskNonIterative() throws Exception {
+        testUpgradeValidator("task-non-iterative.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
     private UpgradeValidationItem assertGetItem(UpgradeValidationResult result, String identifier) {
         Assertions.assertThat(result).isNotNull();
 
