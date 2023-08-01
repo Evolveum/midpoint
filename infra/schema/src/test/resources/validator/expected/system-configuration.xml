@@ -62,6 +62,22 @@
                 </formSpecification>
             </objectForm>
         </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>oneLevel</defaultValue>
+                    </scopeConfiguration>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView id="6">
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>subtree</defaultValue>
+                    </scopeConfiguration>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+        </objectCollectionViews>
     </adminGuiConfiguration>
 
     <defaultObjectPolicyConfiguration id="2">
