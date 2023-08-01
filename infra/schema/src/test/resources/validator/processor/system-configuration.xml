@@ -126,6 +126,16 @@
                 </formSpecification>
             </objectForm>
         </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <action id="4">
+                    <name>action1</name>
+                </action>
+                <action id="5">
+                    <name>action2</name>
+                </action>
+            </objectCollectionView>
+        </objectCollectionViews>
     </adminGuiConfiguration>
 
     <defaultObjectPolicyConfiguration id="2">
