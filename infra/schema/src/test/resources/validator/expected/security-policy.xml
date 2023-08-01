@@ -26,4 +26,7 @@
             </module>
         </sequence>
     </authentication>
+    <credentialsReset>
+        <identifier>sample-name</identifier>
+    </credentialsReset>
 </securityPolicy>
