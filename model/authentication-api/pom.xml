@@ -46,6 +46,11 @@
             <artifactId>model-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.prism</groupId>
+            <artifactId>prism-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--SPRING-->
         <dependency>

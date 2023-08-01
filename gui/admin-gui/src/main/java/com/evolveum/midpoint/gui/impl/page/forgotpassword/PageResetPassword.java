@@ -72,14 +72,14 @@ public class PageResetPassword extends AbstractPageLogin {
         form.setOutputMarkupId(true);
         add(form);
 
-        ChangePasswordPanel<? extends FocusType> changePasswordPanel = new ChangePasswordPanel<>(ID_CHANGE_PASSWORD_PANEL, new LoadableDetachableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
+        IModel<FocusType> principalModel = new LoadableDetachableModel<FocusType>() {
             @Override
             protected FocusType load() {
                 return getPrincipalFocus();
             }
-        }) {
+        };
+
+        ChangePasswordPanel<FocusType> changePasswordPanel = new ChangePasswordPanel<>(ID_CHANGE_PASSWORD_PANEL, principalModel) {
 
             @Override
             protected boolean shouldCheckOldPassword() {

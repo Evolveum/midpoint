@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.api.config;
 
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
@@ -18,6 +14,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Evaluator which checks credentials of identity and return authenticated data about authenticated identity.
