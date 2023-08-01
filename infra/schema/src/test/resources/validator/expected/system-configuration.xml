@@ -71,6 +71,11 @@
                     <objectTypeConfiguration>
                         <defaultValue>UserType</defaultValue>
                     </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="7">
+                            <displayName>sample1</displayName>
+                        </searchItem>
+                    </searchItems>
                 </searchBoxConfiguration>
             </objectCollectionView>
             <objectCollectionView id="6">
@@ -81,6 +86,14 @@
                     <objectTypeConfiguration>
                         <defaultValue>OrgType</defaultValue>
                     </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="8">
+                            <displayName>sample2</displayName>
+                            <display>
+                                <label>sample3</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
                 </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>
