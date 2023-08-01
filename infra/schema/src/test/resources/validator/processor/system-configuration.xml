@@ -117,6 +117,54 @@
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>OrgType</type>
+                <formSpecification>
+                    <title>Transform</title>
+                    <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <action id="4">
+                    <name>action1</name>
+                </action>
+                <action id="5">
+                    <name>action2</name>
+                </action>
+                <searchBoxConfiguration>
+                    <defaultScope>oneLevel</defaultScope>
+                    <defaultObjectType>UserType</defaultObjectType>
+                    <searchItems>
+                        <searchItem id="7">
+                            <displayName>sample1</displayName>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView id="6">
+                <searchBoxConfiguration>
+                    <defaultScope>oneLevel</defaultScope>
+                    <defaultObjectType>RoleType</defaultObjectType>
+                    <scopeConfiguration>
+                        <defaultValue>subtree</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>OrgType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="8">
+                            <displayName>sample2</displayName>
+                            <display>
+                                <label>sample3</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+        </objectCollectionViews>
     </adminGuiConfiguration>
 
     <defaultObjectPolicyConfiguration id="2">
