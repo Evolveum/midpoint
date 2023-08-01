@@ -10,25 +10,28 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationUseType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 
 public class CorrelatorDiscriminator {
 
-    private String correlatorIdentifier;
-    private CorrelationUseType use;
+    /**
+     * Correlator identifier. It is either a name of the correlator object or null.
+     * Null is supported for synchronization.
+     */
+    @Nullable private final String correlatorIdentifier;
+    @NotNull private final CorrelationUseType use;
 
-    public CorrelatorDiscriminator(String correlatorIdentifier, CorrelationUseType use) {
+    public CorrelatorDiscriminator(@Nullable String correlatorIdentifier, @NotNull CorrelationUseType use) {
         this.correlatorIdentifier = correlatorIdentifier;
         this.use = use;
     }
 
-    public boolean match(CompositeCorrelatorType correlatorType) {
-        if (correlatorType == null) {
-            return false;
-        }
-
-        return Objects.equals(correlatorType.getName(), correlatorIdentifier)
-                && correlatorType.getUse() == use;
+    public boolean match(@NotNull CompositeCorrelatorType correlator) {
+        return Objects.equals(correlator.getName(), correlatorIdentifier)
+                && correlator.getUse() == use;
     }
 }
 

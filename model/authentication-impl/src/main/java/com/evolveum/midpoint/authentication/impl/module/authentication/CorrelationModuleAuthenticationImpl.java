@@ -10,16 +10,22 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImpl implements CorrelationModuleAuthentication {
 
     private List<CorrelationModuleConfigurationType> correlators;
     private int currentProcessingCorrelator;
+
+    private CandidateOwnersMap candidateOwners = new CandidateOwnersMap();
 
     public CorrelationModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.CORRELATION, sequenceModule);
@@ -51,5 +57,16 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     public void setNextCorrelator() {
         currentProcessingCorrelator++;
+    }
+
+    public void addCandidateOwners(CandidateOwnersMap map) {
+        candidateOwners.mergeWith(map);
+    }
+
+    public Set<String> getCandidateOids() {
+        return candidateOwners.values()
+                .stream()
+                .map(CandidateOwner::getOid)
+                .collect(Collectors.toSet());
     }
 }

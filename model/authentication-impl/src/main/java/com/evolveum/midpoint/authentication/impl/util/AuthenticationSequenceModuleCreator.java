@@ -93,8 +93,14 @@ public class AuthenticationSequenceModuleCreator<MA extends ModuleAuthentication
             AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
             ModuleFactory<AbstractAuthenticationModuleType, MA> moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
 
-            return moduleFactory.createAuthModule(module, sequence.getChannel().getUrlSuffix(), request,
-                    sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
+            return moduleFactory.createAuthModule(module,
+                    sequence.getChannel().getUrlSuffix(),
+                    request,
+                    sharedObjects,
+                    authenticationModulesType,
+                    credentialPolicy,
+                    authenticationChannel,
+                    sequenceModule);
 
         } catch (Exception e) {
             LOGGER.error("Couldn't build filter for module moduleFactory", e);

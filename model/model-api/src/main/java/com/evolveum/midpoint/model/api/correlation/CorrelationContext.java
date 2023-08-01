@@ -21,6 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+
 /**
  * The context of the correlation and correlator state update operations.
  * (Both work on an object being synchronized. The use in the latter case is experimental, though.)
@@ -73,6 +75,15 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
 
     /** Returns the archetype for focus objects that the candidate(s) must possess. Null means "no restrictions".  */
     public abstract @Nullable String getArchetypeOid();
+
+    /** Returns candidate owners returned from previous correlator
+     *  If more than one correlator are defined to be used, they will
+     *  run separatelly. First correlator probably won't have any candidates to consider,
+     *  but every next correlator might consider a cadidate set from previous correlator
+     *  as a base for the search.
+     * @return
+     */
+    public abstract @NotNull Set<String> getCandidateOids();
 
     public @Nullable SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
@@ -173,6 +184,11 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         }
 
         @Override
+        public @NotNull Set<String> getCandidateOids() {
+            throw new UnsupportedOperationException("Not supported yet");
+        }
+
+        @Override
         public @NotNull Shadow asShadowCtx() {
             return this;
         }
@@ -206,11 +222,17 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
     public static class Focus extends CorrelationContext {
 
         private final String archetypeOid;
+        private final Set<String> candidateOids;
 
         public Focus(
-                @NotNull FocusType preFocus, @Nullable String archetypeOid, @Nullable SystemConfigurationType systemConfiguration, @NotNull Task task) {
+                @NotNull FocusType preFocus,
+                @Nullable String archetypeOid,
+                @NotNull Set<String> candidateOids,
+                @Nullable SystemConfigurationType systemConfiguration,
+                @NotNull Task task) {
             super(preFocus, systemConfiguration, task);
             this.archetypeOid = archetypeOid;
+            this.candidateOids = candidateOids;
         }
 
         @Override
@@ -222,6 +244,11 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         public @Nullable String getArchetypeOid() {
             return archetypeOid;
 //            throw new UnsupportedOperationException(); // TODO implement
+        }
+
+        @Override
+        public @NotNull Set<String> getCandidateOids() {
+            return candidateOids;
         }
 
         @Override

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
@@ -43,6 +44,7 @@ public interface CorrelationService {
     @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
             @Nullable String archetypeOid,
+            @NotNull Set<String> candidateOids,
             @NotNull CorrelatorDiscriminator discriminator,
 //            @NotNull ObjectTemplateType objectTemplate, //todo should be removed, archetype is to be here instead
             @NotNull Task task,

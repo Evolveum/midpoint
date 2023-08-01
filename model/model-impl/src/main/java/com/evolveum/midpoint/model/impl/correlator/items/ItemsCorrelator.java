@@ -111,6 +111,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 return correlationItems.createIdentityQuery(
                         correlationContext.getFocusType(),
                         correlationContext.getArchetypeOid(),
+                        correlationContext.getCandidateOids(),
                         correlationContext.getTask(),
                         result);
             } else {

@@ -97,7 +97,6 @@ public abstract class AbstractModuleFactory<
         SecurityFilterChain filter = http.build();
         postProcessFilter(filter, moduleConfigurer);
 
-
         MA moduleAuthentication = createEmptyModuleAuthentication(moduleType, moduleConfigurer.getConfiguration(), sequenceModule, request);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
 

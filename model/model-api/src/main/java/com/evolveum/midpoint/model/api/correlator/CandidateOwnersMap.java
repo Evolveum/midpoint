@@ -55,4 +55,15 @@ public class CandidateOwnersMap implements Serializable, DebugDumpable {
         DebugUtil.toStringCollection(sb, map.values(), indent + 1);
         return sb.toString();
     }
+
+    public void mergeWith(CandidateOwnersMap other) {
+        for (CandidateOwner candidateOwner : other.values()) {
+            CandidateOwner existing = map.get(candidateOwner.getOid());
+            if (existing == null) {
+                map.put(candidateOwner.getOid(), candidateOwner);
+            } else {
+                existing.increaseConfidence(candidateOwner.getConfidence());
+            }
+        }
+    }
 }

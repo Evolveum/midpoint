@@ -119,18 +119,19 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
     }
 
     private List<VerificationAttributeDto> getCorrelationAttributePaths(String correlatorName) {
-        PathSet pathList;
+        PathSet paths;
         try {
             Task task = createAnonymousTask(OPERATION_DETERMINE_CORRELATOR_SETTINGS);
-            pathList = getCorrelationService().determineCorrelatorConfiguration(new CorrelatorDiscriminator(correlatorName, CorrelationUseType.USERNAME_RECOVERY), archetypeOid, task, task.getResult());
+            paths = getCorrelationService().determineCorrelatorConfiguration(
+                    new CorrelatorDiscriminator(correlatorName, CorrelationUseType.USERNAME_RECOVERY), archetypeOid, task, task.getResult());
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Couldn't determine correlator configuration", e);
-            pathList = new PathSet();
+            paths = new PathSet();
         }
 
-        return pathList
+        return paths
                 .stream()
-                .map(p -> new VerificationAttributeDto(new ItemPathType(p)))
+                .map(path -> new VerificationAttributeDto(new ItemPathType(path)))
                 .collect(Collectors.toList());
     }
 

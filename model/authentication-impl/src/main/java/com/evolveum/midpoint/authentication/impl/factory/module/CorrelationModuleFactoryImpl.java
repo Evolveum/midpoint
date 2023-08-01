@@ -39,8 +39,12 @@ public class CorrelationModuleFactoryImpl extends AbstractModuleFactory
 
     @Override
     protected CorrelationModuleWebSecurityConfigurer createModuleConfigurer(CorrelationAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new CorrelationModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
-                objectPostProcessor, request,
+        return new CorrelationModuleWebSecurityConfigurer(
+                moduleType,
+                sequenceSuffix,
+                authenticationChannel,
+                objectPostProcessor,
+                request,
                 new CorrelationProvider());
     }
 

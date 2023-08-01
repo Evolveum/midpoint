@@ -147,6 +147,10 @@ public class FocusAuthenticationResultRecorder {
     }
 
     public void recordSequenceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        if (principal == null) {
+            //TODO logging?
+            return;
+        }
         FocusType focusBefore = principal.getFocus().clone();
 
         AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());

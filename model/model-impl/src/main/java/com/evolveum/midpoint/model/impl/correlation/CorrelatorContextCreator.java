@@ -69,16 +69,17 @@ public class CorrelatorContextCreator {
     }
 
 
-
+    //TODO change signature to composite correlator + thresholds
+    //TODO at least correlation defintiion nullable
     public static CorrelatorContext<?> createRootContext(
-            @NotNull CorrelationDefinitionType correlationDefinitionBean,
-            CorrelatorDiscriminator correlatorDiscriminator,
+            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelatorDiscriminator correlatorDiscriminator,
             @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration
     )
             throws ConfigurationException, SchemaException {
         CompositeCorrelatorType correlators;
-        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean.getCorrelators();
+        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean == null ? null : correlationDefinitionBean.getCorrelators();
         if (specificCorrelators != null) {
             correlators = specificCorrelators;
         } else {

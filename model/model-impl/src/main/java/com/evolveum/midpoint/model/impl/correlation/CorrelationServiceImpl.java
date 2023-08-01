@@ -11,10 +11,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
@@ -103,12 +100,13 @@ public class CorrelationServiceImpl implements CorrelationService {
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
             @Nullable String archetypeOid,
+            @NotNull Set<String> cadidateOdis,
             @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        CompleteContext ctx = getCompleteContext(preFocus, archetypeOid, discriminator, task, result);
+        CompleteContext ctx = getCompleteContext(preFocus, archetypeOid, cadidateOdis, discriminator, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
 
@@ -370,6 +368,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     private @NotNull CompleteContext getCompleteContext(
             @NotNull FocusType preFocus,
             @Nullable String archetypeOid,
+            @NotNull Set<String> candidateOids,
             @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -382,8 +381,9 @@ public class CorrelationServiceImpl implements CorrelationService {
                 correlationDefinitionBean,
                 preFocus,
                 archetypeOid,
+                candidateOids,
                 determineObjectTemplate(archetypeOid, preFocus, task, result),
-                asObjectable(systemObjectCache.getSystemConfiguration(result)),
+                systemObjectCache.getSystemConfigurationBean(result),
                 discriminator,
                 task);
     }
@@ -438,7 +438,7 @@ public class CorrelationServiceImpl implements CorrelationService {
      */
     public ObjectTemplateType determineObjectTemplate(
             @Nullable String explicitArchetypeOid,
-            @NotNull FocusType preFocus,
+            @Nullable FocusType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
@@ -492,6 +492,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 @NotNull CorrelationDefinitionType correlationDefinitionBean,
                 @NotNull FocusType preFocus,
                 @Nullable String archetypeOid,
+                @NotNull Set<String> candidateOids,
                 @Nullable ObjectTemplateType objectTemplate,
                 @Nullable SystemConfigurationType systemConfiguration,
                 @NotNull CorrelatorDiscriminator discriminator,
@@ -507,65 +508,29 @@ public class CorrelationServiceImpl implements CorrelationService {
                     new CorrelationContext.Focus(
                             preFocus,
                             archetypeOid,
+                            candidateOids,
                             systemConfiguration,
                             task);
             return new CompleteContext(correlatorContext, correlationContext);
         }
     }
 
-
-//    //TODO should be removed
-//    @Override
-//    public CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
-//            SystemConfigurationType systemConfiguration) {
-//        try {
-//            return CorrelatorContextCreator.createRootContext(new CorrelationDefinitionType(),
-//                    objectTemplate, systemConfiguration).getConfiguration();
-//        } catch (SchemaException|ConfigurationException ex) {
-//            //todo
-//        }
-//        return null;
-//    }
-
-
     //TODO to many parameters, refactor to some context object.
     @Override
-    public PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        ObjectTemplateType template = determineObjectTemplate(archetypeOid, new UserType(), task, result);
-        //@NotNull correlation definition bean. probably shoudl be changed
-        CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(new CorrelationDefinitionType(), discriminator,
-                template, systemObjectCache.getSystemConfiguration(result).asObjectable());
+    public PathSet determineCorrelatorConfiguration(
+            @NotNull CorrelatorDiscriminator discriminator,
+            @Nullable String archetypeOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        ObjectTemplateType template = determineObjectTemplate(archetypeOid, null, task, result);
+        //TODO //@NotNull correlation definition bean. probably shoudl be changed
+        CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(
+                new CorrelationDefinitionType(),
+                discriminator,
+                template,
+                systemObjectCache.getSystemConfigurationBean(result));
 
         return ctx.getConfiguration().getCorrelationItemPaths();
-
-//        String definedCorrelatorName = compositeCorrelator.getName();
-//        if (!correlatorName.equals(definedCorrelatorName)) {
-//            return List.of();
-//        }
-//        //TODO for now hardcoded only for items correlator.
-//        List<ItemsSubCorrelatorType> itemsCorrelator = compositeCorrelator.getItems();
-//
-//        List<CorrelationItemType> items = itemsCorrelator.stream()
-//                        .filter(item -> filterForTier(item, tier))
-//                .map(ItemsCorrelatorType::getItem)
-//                .collect(Collectors.flatMapping(Collection::stream, Collectors.toCollection(ArrayList::new)));
-//
-//        return items.stream()
-//                        .map(item -> item.getRef() != null ? item.getRef().getItemPath() : null)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toList());
     }
-
-//    private boolean filterForTier(ItemsSubCorrelatorType item, int tier) {
-//        CorrelatorCompositionDefinitionType compositionDefinition = item.getComposition();
-//        if (compositionDefinition == null) {
-//            return true;
-//        }
-//        Integer itemTier = compositionDefinition.getTier();
-//        if (itemTier == null) {
-//            return true;
-//        }
-//        return itemTier == tier;
-//    }
 
 }

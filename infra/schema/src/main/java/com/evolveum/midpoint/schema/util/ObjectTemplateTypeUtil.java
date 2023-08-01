@@ -32,11 +32,11 @@ public class ObjectTemplateTypeUtil {
             return null;
         }
         ObjectTemplateCorrelationType correlation = template.getCorrelation();
-        List<CompositeCorrelatorType> correlators = correlation != null ? correlation.getCorrelators() : null;
-        if (correlators == null) {
-            return null;
-        }
-        return correlators.stream().filter(discriminator::match).findFirst().orElse(null);
+        List<CompositeCorrelatorType> correlators = correlation != null ? correlation.getCorrelators() : List.of();
+        return correlators.stream()
+                .filter(discriminator::match)
+                .findFirst()
+                .orElse(null);
     }
 
     public static @Nullable ObjectTemplateItemDefinitionType findItemDefinition(
