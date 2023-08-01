@@ -34,6 +34,8 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
 
     protected static final File TEST_DIR = new File(TEST_RESOURCES_PATH, "run-as");
 
+    private static final TestObject<FunctionLibraryType> LIBRARY_PRIVILEGED = TestObject.file(
+            TEST_DIR, "library-privileged.xml", "ce5dd72f-8606-49e2-9e1d-d9e6d6806fb8");
     private static final TestObject<RoleType> ROLE_REGULAR_USER = TestObject.file(
             TEST_DIR, "role-regular-user.xml", "959f0672-e122-44b6-aef6-ca7612ade154");
 
@@ -43,6 +45,9 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "role-with-service-mapping-run-as.xml", "b22e91cc-64c8-4c3b-99d3-11d86b57dda8");
     private static final TestObject<RoleType> ROLE_WITH_SERVICE_MAPPING_PRIVILEGED = TestObject.file(
             TEST_DIR, "role-with-service-mapping-privileged.xml", "8c32a639-97dc-4fed-83a4-3f496c5cb0df");
+
+    private static final TestObject<RoleType> ROLE_WITH_METHOD_STANDARD = TestObject.file(
+            TEST_DIR, "role-with-method-standard.xml", "5a833aaf-a1f6-47e7-af86-dbf97143cf12");
 
     private static final TestObject<ServiceType> SERVICE_ONE = TestObject.file(
             TEST_DIR, "service-one.xml", "3c938d46-8fee-4e23-8618-6514b969b4b2");
@@ -54,10 +59,12 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
         dummyAuditService.setEnabled(true);
 
         initTestObjects(initTask, initResult,
+                LIBRARY_PRIVILEGED,
                 ROLE_REGULAR_USER,
                 ROLE_WITH_SERVICE_MAPPING_STANDARD,
                 ROLE_WITH_SERVICE_MAPPING_RUN_AS,
                 ROLE_WITH_SERVICE_MAPPING_PRIVILEGED,
+                ROLE_WITH_METHOD_STANDARD,
                 SERVICE_ONE);
     }
 
@@ -187,5 +194,26 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
 
         assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), false); // user
         assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), user.getOid(), true); // service
+    }
+
+    /** Using the standard library method under administrator. */
+    @Test
+    public void test200StandardMethodAsAdmin() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("regular user with 'method standard' is created");
+        UserType user = addRegularUser(getTestNameShort(), ROLE_WITH_METHOD_STANDARD);
+
+        and("logged in as administrator");
+        login(userAdministrator);
+
+        when("description is set");
+        setDescription(user.getOid(), "desc1", task, result);
+
+        then("the service is visible in the cost center value");
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .assertCostCenter("desc1: s:one p:administrator a:administrator");
     }
 }

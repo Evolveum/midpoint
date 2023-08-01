@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -36,6 +36,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptVariableEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueVariableModeType;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -143,10 +145,8 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             SecurityViolationException, ExpressionEvaluationException {
         Map<String, Object> scriptVariableMap = new HashMap<>();
         // Functions
-        if (context.getFunctions() != null) {
-            for (FunctionLibrary funcLib : context.getFunctions()) {
-                scriptVariableMap.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
-            }
+        for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
+            scriptVariableMap.put(funcLib.getVariableName(), funcLib.getImplementation());
         }
 
         // Variables
@@ -209,8 +209,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         }
     }
 
-    @NotNull
-    private <T, V extends PrismValue> List<V> convertResultToPrismValues(
+    private @NotNull <T, V extends PrismValue> List<V> convertResultToPrismValues(
             Object evalRawResult, @NotNull ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException {
 

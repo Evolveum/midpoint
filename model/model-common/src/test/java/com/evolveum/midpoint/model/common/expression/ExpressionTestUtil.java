@@ -27,7 +27,7 @@ import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.evaluator.ConstExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
@@ -97,9 +97,9 @@ public class ExpressionTestUtil {
         expressionFactory.registerEvaluatorFactory(generateFactory);
 
         // script
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
-        functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
+        functions.add(FunctionLibraryUtil.createLogFunctionLibraryBinding(prismContext));
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(functions, resolver);
 
         scriptExpressionFactory.registerEvaluator(

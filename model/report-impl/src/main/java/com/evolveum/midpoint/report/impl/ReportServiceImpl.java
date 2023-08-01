@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.*;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
@@ -134,7 +135,7 @@ public class ReportServiceImpl implements ReportService {
                     scriptExpressionBean, context.getOutputDefinition(), context.getExpressionProfile(),
                     expressionFactory, context.getContextDescription(), context.getResult());
 
-            scriptExpression.setFunctions(createFunctionLibraries(scriptExpression.getFunctions()));
+            scriptExpression.setFunctionLibraryBindings(createFunctionLibraries(scriptExpression.getFunctionLibraryBindings()));
 
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ExpressionEnvironment(context.getTask(), context.getResult()));
@@ -149,14 +150,13 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private Collection<FunctionLibrary> createFunctionLibraries(Collection<FunctionLibrary> originalFunctions) {
-        FunctionLibrary midPointLib = new FunctionLibrary();
-        midPointLib.setVariableName("report");
-        midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        midPointLib.setGenericFunctions(reportFunctions);
+    private Collection<FunctionLibraryBinding> createFunctionLibraries(Collection<FunctionLibraryBinding> originalFunctions) {
+        FunctionLibraryBinding reportLib = new FunctionLibraryBinding(
+                MidPointConstants.FUNCTION_LIBRARY_REPORT_VARIABLE_NAME,
+                reportFunctions);
 
-        Collection<FunctionLibrary> functions = new ArrayList<>(originalFunctions);
-        functions.add(midPointLib);
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>(originalFunctions);
+        functions.add(reportLib);
         return functions;
     }
 
