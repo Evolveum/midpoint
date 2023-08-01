@@ -469,6 +469,11 @@ The changes since 4.7 are of interest probably for "advanced" midPoint deploymen
 You should at least scan through them, though.
 ====
 
+* The resolution of a function library object in <function> expression is now handled by a lower-level component (`FunctionLibraryManager`) without checking for authorizations.
+If needed, the access to the functionality provided by these libraries should be restricted by expression profiles instead.
+(Note that the calls to functions from withing scripts ignored authorizations from the beginning.)
+See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c980015fed12c26e[c9b1ce].
+
 // * The behavior of synchronization reaction to `deleted` situation was changed.
 // Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.
 // See commit link:https://github.com/Evolveum/midpoint/commit/89e139da[89e139da].
