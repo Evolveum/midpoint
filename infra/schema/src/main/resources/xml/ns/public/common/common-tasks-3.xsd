@@ -581,7 +581,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="affects" minOccurs="0">
+                    <xsd:element name="affects" type="tns:TaskAffectedType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Searchable set of object set coordinates (eg. resource + kind + intent for resource objects,

@@ -21,7 +21,7 @@ import java.sql.Types;
 
 public class QAffectedResourceObjects extends QContainer<MAffectedResourceObjects, MTask> {
 
-    public static final String TABLE_NAME = " m_task_affects_resource_objects";
+    public static final String TABLE_NAME = "m_task_affects_resource_objects";
 
     public static final ColumnMetadata OBJECT_CLASS_ID =
             ColumnMetadata.named("objectClassId").ofType(Types.INTEGER);

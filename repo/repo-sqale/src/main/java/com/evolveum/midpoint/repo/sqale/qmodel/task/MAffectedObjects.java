@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
 import java.util.UUID;
 
-public class MAffectedResourceObject extends MContainer {
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-    public Integer objectClassId;
-    public UUID resourceRefTargetOid;
-    public MObjectType resourceRefTargetType;
-    public Integer resourceRefRelationId;
-    public String intent;
-    public String tag;
-    public ShadowKindType kind;
+public class MAffectedObjects extends MContainer {
+
+    public MObjectType type;
+    public UUID archetypeRefTargetOid;
+    public MObjectType archetypeRefTargetType;
+    public Integer archetypeRefRelationId;
+
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -15,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class QAffectedResourceObjectsMapping extends QContainerMapping<BasicResourceObjectSetType,QAffectedResourceObjects,MAffectedResourceObjects,MTask> {
 
-    public static final String DEFAULT_ALIAS_NAME = "aro";
+    public static final String DEFAULT_ALIAS_NAME = "taro";
 
     private static QAffectedResourceObjectsMapping instance;
 
@@ -52,7 +58,7 @@ public class QAffectedResourceObjectsMapping extends QContainerMapping<BasicReso
 
     @Override
     public MAffectedResourceObjects newRowObject(MTask ownerRow) {
-        var row = super.newRowObject();
+        var row = newRowObject();
         row.ownerOid = ownerRow.oid;
         return row;
     }
