@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -28,21 +29,61 @@ import java.util.*;
 @Component
 public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefinitionTypePanelFactory implements Serializable {
 
+    private static final List<ItemPath> MATCHED_PATHS = List.of(
+            ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+
+            ItemPath.create(
+                    ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                    ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS),
+            ItemPath.create(
+                    ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                    ResourceActivationDefinitionType.F_EXISTENCE),
+            ItemPath.create(
+                    ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                    ResourceActivationDefinitionType.F_VALID_TO),
+            ItemPath.create(
+                    ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                    ResourceActivationDefinitionType.F_VALID_FROM),
+            ItemPath.create(
+                    ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                    ResourceActivationDefinitionType.F_LOCKOUT_STATUS),
+
+            ItemPath.create(
+                    ResourceObjectTypeDefinitionType.F_CREDENTIALS,
+                    ResourceCredentialsDefinitionType.F_PASSWORD)
+
+    );
+
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName())
-                && (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+                && MATCHED_PATHS.stream().anyMatch(path -> {
+            if (createTargetPath(path).equivalent(wrapper.getPath().namedSegmentsOnly())) {
+                return true;
+            }
+            if (createSourcePath(path).equivalent(wrapper.getPath().namedSegmentsOnly())) {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private ItemPath createTargetPath(ItemPath containerPath) {
+        return ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
-                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                containerPath,
                 ResourceAttributeDefinitionType.F_INBOUND,
-                InboundMappingType.F_TARGET))
-                || wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+                InboundMappingType.F_TARGET);
+    }
+
+    private ItemPath createSourcePath(ItemPath containerPath) {
+        return ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
-                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                containerPath,
                 ResourceAttributeDefinitionType.F_OUTBOUND,
-                MappingType.F_SOURCE)));
+                InboundMappingType.F_SOURCE);
     }
 
     @Override
