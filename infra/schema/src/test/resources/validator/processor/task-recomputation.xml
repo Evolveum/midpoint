@@ -36,6 +36,7 @@
                 <interval>10</interval>
             </tracing>
         </reporting>
+        <executionMode>dryRun</executionMode>
     </activity>
     <modelOperationContext>
         <state>execution</state>
