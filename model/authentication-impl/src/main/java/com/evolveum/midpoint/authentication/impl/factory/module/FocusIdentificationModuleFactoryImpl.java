@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.FocusIdentificationModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.FocusIdentificationProvider;
@@ -27,7 +27,7 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         FocusIdentificationModuleWebSecurityConfigurer,
         FocusIdentificationAuthenticationModuleType,
-        FocusIdentificationModuleAuthentication> {
+        FocusIdentificationModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -42,9 +42,9 @@ public class FocusIdentificationModuleFactoryImpl extends AbstractModuleFactory<
     }
 
     @Override
-    protected FocusIdentificationModuleAuthentication createEmptyModuleAuthentication(FocusIdentificationAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
-        FocusIdentificationModuleAuthentication moduleAuthentication = new FocusIdentificationModuleAuthentication(sequenceModule);
+    protected FocusIdentificationModuleAuthenticationImpl createEmptyModuleAuthentication(FocusIdentificationAuthenticationModuleType moduleType,
+                                                                                          LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        FocusIdentificationModuleAuthenticationImpl moduleAuthentication = new FocusIdentificationModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());

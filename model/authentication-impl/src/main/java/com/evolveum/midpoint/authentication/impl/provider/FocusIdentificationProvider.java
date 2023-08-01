@@ -10,7 +10,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.FocusIdentificationAuthenticationContext;
@@ -73,7 +73,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
                 }
                 ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
                 List<ModuleItemConfigurationType> itemsConfig = null;
-                if (moduleAuthentication instanceof FocusIdentificationModuleAuthentication focusModuleAuthentication) {
+                if (moduleAuthentication instanceof FocusIdentificationModuleAuthenticationImpl focusModuleAuthentication) {
                     itemsConfig = focusModuleAuthentication.getModuleConfiguration();
                 }
                 FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(attrValuesMap, focusType, itemsConfig, null);

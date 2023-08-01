@@ -43,13 +43,11 @@ public class CorrelationAuthenticationSuccessHandler extends MidPointAuthenticat
 
 
         if (!(moduleAuthentication instanceof CorrelationModuleAuthenticationImpl correlationModuleAuthentication)) {
-            moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
             super.onAuthenticationSuccess(request, response, authentication);
             return;
         }
 
         if (correlationModuleAuthentication.isLastCorrelator()) {
-            moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
             super.onAuthenticationSuccess(request, response, authentication);
             return;
         }

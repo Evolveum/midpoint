@@ -7,24 +7,21 @@
 
 package com.evolveum.midpoint.gui.impl.page.lostusername;
 
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @PageDescriptor(
         urls = {
@@ -38,10 +35,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class PageUsernameRecovery extends AbstractPageLogin {
 
     private static final String ID_FOUND_USERS = "foundUsers";
-    private static final String ID_BACK_BUTTON = "back";
+
 
     public PageUsernameRecovery() {
         super();
+    }
+
+    @Override
+    protected boolean isBackButtonVisible() {
+        return true;
     }
 
     @Override
@@ -59,20 +61,16 @@ public class PageUsernameRecovery extends AbstractPageLogin {
             Label label = new Label(ID_FOUND_USERS, getString("PageUsernameRecovery.noUserFound"));
             add(label);
         }
-
-        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed();
-            }
-        };
-        backButton.setOutputMarkupId(true);
-        add(backButton);
     }
 
     @Override
-    protected void confirmAuthentication() {
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("Username recovery");
     }
+
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("Username recovery description");
+    }
+
 }

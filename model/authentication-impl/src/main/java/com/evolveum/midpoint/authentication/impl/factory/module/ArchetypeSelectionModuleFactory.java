@@ -8,11 +8,12 @@
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import jakarta.servlet.ServletRequest;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ArchetypeSelectionModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ArchetypeSelectionModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.ArchetypeSelectionModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.ArchetypeSelectionAuthenticationProvider;
@@ -25,7 +26,7 @@ public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         ArchetypeSelectionModuleWebSecurityConfigurer,
         ArchetypeSelectionModuleType,
-        ArchetypeSelectionModuleAuthentication> {
+        ArchetypeSelectionModuleAuthenticationImpl> {
 
 
     @Override
@@ -34,12 +35,14 @@ public class ArchetypeSelectionModuleFactory extends AbstractModuleFactory<
     }
 
     @Override
-    protected ArchetypeSelectionModuleAuthentication createEmptyModuleAuthentication(ArchetypeSelectionModuleType moduleType,
+    protected ArchetypeSelectionModuleAuthenticationImpl createEmptyModuleAuthentication(ArchetypeSelectionModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
-        ArchetypeSelectionModuleAuthentication moduleAuthentication = new ArchetypeSelectionModuleAuthentication(sequenceModule);
+        ArchetypeSelectionModuleAuthenticationImpl moduleAuthentication = new ArchetypeSelectionModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setNameOfModule(moduleType.getIdentifier());
+        moduleAuthentication.setAllowUndefined(BooleanUtils.isTrue(moduleType.isAllowUndefinedArchetype()));
+        moduleAuthentication.setArchetypeSelection(moduleType.getArchetypeSelection());
         return moduleAuthentication;
     }
 

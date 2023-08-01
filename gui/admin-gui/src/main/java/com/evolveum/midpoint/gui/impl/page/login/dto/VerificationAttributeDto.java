@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.login.dto;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import java.io.Serializable;
@@ -14,14 +15,14 @@ import java.io.Serializable;
 public class VerificationAttributeDto implements Serializable {
 
     public static final String F_VALUE = "value";
-    private ItemPathType itemPath;
+    private final ItemPath itemPath;
     private String value;
 
-    public VerificationAttributeDto(ItemPathType itemPath) {
+    public VerificationAttributeDto(ItemPath itemPath) {
         this.itemPath = itemPath;
     }
 
-    public ItemPathType getItemPath() {
+    public ItemPath getItemPath() {
         return itemPath;
     }
 

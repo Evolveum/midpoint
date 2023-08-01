@@ -11,7 +11,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form class="form-horizontal" action="ignore" wicket:id="mainForm">
+    <form class="form-horizontal" action="ignore" wicket:id="form">
         <div class="form-group mb-2 login-panel-control" wicket:id="staticLayout">
             <label class="col-form-label">
                 <wicket:message key="PageForgetPassword.email"/>
@@ -26,11 +26,6 @@
         <a class="btn btn-primary flex-wrap gap-2 justify-content-center login-panel-control" wicket:id="submitIdentifier">
         </a>
     </form>
-
-    <a class="text-center login-panel-control mt-2" style="display: inline-block;" wicket:id="back">
-        <i class="fas fa-arrow-left mr-2"></i>
-        <span wicket:id="backButtonLabel"/>
-    </a>
 </wicket:extend>
 
 </body>

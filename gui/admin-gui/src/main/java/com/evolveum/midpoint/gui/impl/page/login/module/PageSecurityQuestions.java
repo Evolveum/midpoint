@@ -5,22 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -35,26 +28,25 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.gui.impl.page.login.PageAbstractAuthenticationModule;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -63,35 +55,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/securityquestions", matchUrlForSecurity = "/securityquestions")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM)
-public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuestionsFormAuthenticationModuleType> {
-    private static final long serialVersionUID = 1L;
+public class PageSecurityQuestions extends PageAbstractAuthenticationModule<CredentialModuleAuthentication> {
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSecurityQuestions.class);
 
     private static final String ID_USERNAME = "username";
-    private static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
-    private static final String ID_DYNAMIC_FORM = "dynamicForm";
     private static final String ID_USER = "user";
-    private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_ANSWER_FIELD = "answer";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_INSIDE_FORM = "insideForm";
     private static final String ID_FIRST_LEVEL_BUTTONS = "firstLevelButtons";
-    private static final String ID_BACK_1_BUTTON = "back1";
     private static final String ID_SHOW_QUESTIONS_BUTTON = "showQuestions";
     private static final String ID_QUESTIONS = "questions";
     private static final String ID_QUESTION_TEXT = "questionText";
     private static final String ID_QUESTION_ANSWER = "questionAnswer";
-    private static final String ID_BACK_2_BUTTON = "back2";
 
     private IModel<String> answerModel;
     private LoadableModel<List<SecurityQuestionDto>> questionsModel;
     private LoadableDetachableModel<UserType> userModel;
 
+
     public PageSecurityQuestions() {
+        initModels();
     }
 
-    @Override
+//    @Override
     protected void initModels() {
         answerModel = Model.of();
         userModel = new LoadableDetachableModel<>() {
@@ -101,7 +90,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
                 return principal != null ? (UserType) principal.getFocus() : PageSecurityQuestions.this.searchUser();
             }
         };
-        questionsModel = new LoadableModel<List<SecurityQuestionDto>>(false) {
+        questionsModel = new LoadableModel<>(false) {
             @Override
             protected List<SecurityQuestionDto> load() {
                 try {
@@ -124,14 +113,8 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
     }
 
     @Override
-    protected void initCustomLayout() {
-        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
-        add(form);
-
+    protected void initModuleLayout(MidpointForm form) {
         initStaticLayout(form);
-
-        initDynamicLayout(form, PageSecurityQuestions.this);
 
         initButtons(form);
 
@@ -141,10 +124,8 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
 
     }
 
-    private void initSendingInformation(MidpointForm<?> form) {
-        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        form.add(csrfField);
 
+    private void initSendingInformation(MidpointForm<?> form) {
         HiddenField<String> answer = new HiddenField<>(ID_ANSWER_FIELD, answerModel);
         answer.setOutputMarkupId(true);
         form.add(answer);
@@ -160,9 +141,9 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
         questionsContainer.add(new VisibleBehaviour(() -> userModel.getObject() != null));
         form.add(questionsContainer);
 
-        ListView<SecurityQuestionDto> questionsView = new ListView<SecurityQuestionDto>(ID_QUESTIONS, questionsModel) {
+        ListView<SecurityQuestionDto> questionsView = new ListView<>(ID_QUESTIONS, questionsModel) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<SecurityQuestionDto> item) {
@@ -184,8 +165,6 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
         questionsView.setOutputMarkupId(true);
         questionsContainer.add(questionsView);
 
-
-        questionsContainer.add(createBackButton(ID_BACK_2_BUTTON));
     }
 
     private String generateAnswer() {
@@ -211,7 +190,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
 
         AjaxButton showQuestion = new AjaxButton(ID_SHOW_QUESTIONS_BUTTON) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -219,20 +198,13 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
             }
         };
         firstLevelButtonContainer.add(showQuestion);
-
-        firstLevelButtonContainer.add(createBackButton(ID_BACK_1_BUTTON));
     }
 
     private void initStaticLayout(MidpointForm<?> form) {
         RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_USERNAME, Model.of());
         visibleUsername.setOutputMarkupId(true);
         visibleUsername.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        visibleUsername.add(new VisibleBehaviour(() -> !isUserDefined() && !isDynamicForm()));
         form.add(visibleUsername);
-    }
-
-    private boolean isUserDefined() {
-        return userModel.getObject() != null;
     }
 
     private void showQuestions(AjaxRequestTarget target) {
@@ -249,7 +221,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
     }
 
     private List<SecurityQuestionDto> createUsersSecurityQuestionsList() throws BadCredentialsException {
-        UserType user = userModel.getObject();
+        UserType user = searchUser();//userModel.getObject();
 
         if (user == null) {
             return new ArrayList<>();
@@ -316,21 +288,10 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
         return (PageBase) getPage();
     }
 
-    protected ObjectQuery createStaticFormQuery() {
-        String username = getUsernameFieldValue();
-        return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
-                .eqPoly(username).matchingNorm().build();
-    }
-
     private String getUsernameFieldValue() {
         RequiredTextField<String> usernameTextFiled = getVisibleUsername();
         return usernameTextFiled != null ? usernameTextFiled.getModelObject() : null;
     }
-
-//    private void passwordResetNotSupported() {
-//        getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
-//        throw new RestartResponseException(PageForgotPassword.this);
-//    }
 
     private MidpointForm<?> getMainForm() {
         return (MidpointForm) get(ID_MAIN_FORM);
@@ -344,22 +305,8 @@ public class PageSecurityQuestions extends PageAuthenticationBase<SecurityQuesti
         return (HiddenField) getMainForm().get(ID_ANSWER_FIELD);
     }
 
-    protected DynamicFormPanel getDynamicForm(){
-        return (DynamicFormPanel) getMainForm().get(createComponentPath(ID_DYNAMIC_LAYOUT, ID_DYNAMIC_FORM));
-    }
-
     private RequiredTextField getVisibleUsername(){
         return (RequiredTextField) getMainForm().get(ID_USERNAME);
-    }
-
-    @Override
-    protected String getModuleTypeName() {
-        return AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM;
-    }
-
-    @Override
-    protected List<SecurityQuestionsFormAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
-        return modules.getSecurityQuestionsForm();
     }
 
     @Override

@@ -5,40 +5,28 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import java.io.Serial;
 
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.login.PageAuthenticationBase;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -54,10 +42,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import java.util.List;
 
 /**
  * @author lskublik
@@ -65,20 +52,15 @@ import java.util.List;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/emailNonce", matchUrlForSecurity = "/emailNonce")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
-public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticationModuleType> {
-    private static final long serialVersionUID = 1L;
+public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthentication> {
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageEmailNonce.class);
 
     private static final String ID_STATIC_LAYOUT = "staticLayout";
     private static final String ID_EMAIL = "email";
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_HINT_PANEL = "hintPanel";
-    private static final String ID_HINT_LABEL = "hintLabel";
-    private static final String ID_BACK_BUTTON = "back";
-    private static final String ID_BACK_BUTTON_LABEL = "backButtonLabel";
+    private static final String ID_MAIN_FORM = "form";
     private static final String ID_SUBMIT_IDENTIFIER = "submitIdentifier";
-    private static final String ID_CONTINUE_RESET_PASSWORD = "continueResetPassword";
 
     private boolean submited;
     private UserType user = null;
@@ -87,28 +69,25 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
         if (principal != null) {
             userIdentifierSubmitPerformed(null);
             submited = true;
-
-//            throw new RestartResponseException(PageEmailNonce.class);
         }
     }
 
 
-    protected void initCustomLayout() {
-        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
+    @Override
+    protected void initModuleLayout(MidpointForm form) {
         form.add(new VisibleBehaviour(() -> !submited));
-        add(form);
 
         initStaticLayout(form);
 
         initDynamicLayout(form, PageEmailNonce.this);
 
         initButtons(form);
-
     }
+
     private void initButtons(MidpointForm form) {
         AjaxSubmitButton submitUserIdentifier = new AjaxSubmitButton(ID_SUBMIT_IDENTIFIER, createStringResource("PageBase.button.submit")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -123,35 +102,11 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
         };
         submitUserIdentifier.add(new VisibleBehaviour(() -> !submited));
         form.add(submitUserIdentifier);
-
-        add(createBackButton(ID_BACK_BUTTON));
     }
 
     @Override
     protected String getModuleTypeName() {
         return AuthenticationModuleNameConstants.MAIL_NONCE;
-    }
-
-    @Override
-    protected List<MailNonceAuthenticationModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
-        return modules.getMailNonce();
-    }
-
-    @Override
-    protected AjaxButton createBackButton(String id){
-        AjaxButton backButton = new AjaxButton(id) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed();
-            }
-        };
-        backButton.setOutputMarkupId(true);
-
-        Label backButtonLabel = new Label(ID_BACK_BUTTON_LABEL, createStringResource("PageEmailNonce.backButtonLabel"));
-        backButton.add(backButtonLabel);
-        return backButton;
     }
 
     private void userIdentifierSubmitPerformed(AjaxRequestTarget target) {
@@ -167,11 +122,6 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
     private void continuePasswordReset(AjaxRequestTarget target) {
         validateUserNotNullOrFail();
         NonceCredentialsPolicyType noncePolicy = getMailNoncePolicy(user.asPrismObject());
-        if (noncePolicy == null) {
-            LOGGER.debug("No policies for reset password defined");
-            getSession().error(getString("pageForgetPassword.message.policy.not.found"));
-            throw new RestartResponseException(PageEmailNonce.class);
-        }
 
         OperationResult result = saveUserNonce(user, noncePolicy);
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
@@ -193,7 +143,7 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
         }
     }
 
-    private NonceCredentialsPolicyType getMailNoncePolicy(PrismObject<UserType> user) {
+    private @NotNull NonceCredentialsPolicyType getMailNoncePolicy(PrismObject<UserType> user) {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(user);
         LOGGER.trace("Found security policy: {}", securityPolicy);
 
@@ -219,19 +169,19 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
             throw new RestartResponseException(PageEmailNonce.class);
         }
 
-        MailNonceAuthenticationModuleType moduleType = getAutheticationModuleConfiguration();
+        CredentialModuleAuthentication moduleType = getAuthenticationModuleConfiguration();
         String credentialName = moduleType.getCredentialName();
 
         if (credentialName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("EmailNonceModuleAuthentication " + moduleType.getIdentifier() + " haven't define name of credential");
+            LOGGER.error("EmailNonceModuleAuthentication " + moduleType.getModuleIdentifier() + " haven't define name of credential");
             throw new RestartResponseException(PageEmailNonce.class);
         }
 
         NonceCredentialsPolicyType credentialByName = null;
 
         for (NonceCredentialsPolicyType credential : securityPolicy.getCredentials().getNonce()) {
-            if (credentialName != null && credentialName.equals(credential.getName())) {
+            if (credentialName.equals(credential.getName())) {
                 credentialByName = credential;
             }
         }
@@ -281,55 +231,19 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
         return (MidpointForm) get(ID_MAIN_FORM);
     }
 
-    protected DynamicFormPanel getDynamicForm(){
+    protected DynamicFormPanel<UserType> getDynamicForm(){
         return (DynamicFormPanel) getMainForm().get(createComponentPath(ID_DYNAMIC_LAYOUT, ID_DYNAMIC_FORM));
     }
 
     private RequiredTextField<String> getEmail(){
+        //noinspection unchecked
         return (RequiredTextField<String>) getMainForm().get(createComponentPath(ID_STATIC_LAYOUT, ID_EMAIL));
-    }
-
-    @Override
-    protected void onConfigure() {
-        super.onConfigure();
-
-        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = req.getContainerRequest();
-        HttpSession httpSession = httpReq.getSession();
-
-        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (ex == null) {
-            return;
-        }
-
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
-
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
-        }
-
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-//        if (AuthUtil.getPrincipalUser() != null) {
-//            MidPointApplication app = getMidpointApplication();
-//            throw new RestartResponseException(app.getHomePage());
-//        }
     }
 
     private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
         return runPrivileged(new Producer<>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public OperationResult run() {
@@ -377,8 +291,9 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return new LoadableModel<String>() {
-            private static final long serialVersionUID = 1L;
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected String load() {
                 return createStringResource(submited ? "PageEmailNonce.checkYourMail" : "PageEmailNonce.identification").getString();
@@ -388,8 +303,9 @@ public class PageEmailNonce extends PageAuthenticationBase<MailNonceAuthenticati
 
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
-        return new LoadableModel<String>() {
-            private static final long serialVersionUID = 1L;
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected String load() {
                 return createStringResource(submited ? "PageForgotPassword.form.submited.message"

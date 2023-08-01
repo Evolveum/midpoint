@@ -11,10 +11,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form method="post"  wicket:id="mainForm" class="form-horizontal">
+    <form method="post"  wicket:id="form" class="form-horizontal">
         <div wicket:id="csrfField"/>
         <input type="hidden" wicket:id="archetypeOid"/>
-        <input type="hidden" wicket:id="allowUndefinedArchetype"/>
         <div class="d-flex flex-wrap gap-3 justify-content-center" wicket:id="archetypeSelectionPanel">
             <wicket:container wicket:id="archetypes">
                 <div class="card mb-0 simple-tile selectable" wicket:id="archetype"/>
@@ -24,10 +23,6 @@
             <input type="submit" class="btn btn-primary login-panel-control" wicket:message="value:PageBase.button.send" />
         </div>
     </form>
-    <a class="text-center login-panel-control mt-2" style="display: inline-block;" wicket:id="back">
-        <i class="fas fa-arrow-left mr-2"></i>
-        <wicket:message key="PageEmailNonce.backButtonLabel"/>
-    </a>
 </wicket:extend>
 
 </body>

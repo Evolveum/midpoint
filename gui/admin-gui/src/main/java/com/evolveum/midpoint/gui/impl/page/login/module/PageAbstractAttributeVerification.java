@@ -5,18 +5,17 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
+import java.io.Serial;
 import java.util.List;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -26,39 +25,36 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.login.PageAbstractAuthenticationModule;
 import com.evolveum.midpoint.gui.impl.page.login.dto.VerificationAttributeDto;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public abstract class PageAbstractAttributeVerification<AM extends AbstractAuthenticationModuleType> extends PageAuthenticationBase<AM> {
-    private static final long serialVersionUID = 1L;
+public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthentication> extends PageAbstractAuthenticationModule<MA> {
+    @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE_NAME = "attributeName";
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
-    private static final String ID_BACK_BUTTON = "back";
-    private static final String ID_CSRF_FIELD = "csrfField";
-
 
     private LoadableModel<List<VerificationAttributeDto>> attributePathModel;
-    private LoadableModel<UserType> userModel;
-    private IModel<String> attrValuesModel = Model.of();
+    private final IModel<String> attrValuesModel = Model.of();
 
     public PageAbstractAttributeVerification() {
+        super();
+        initModels();
     }
 
     protected void initModels() {
         attributePathModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<VerificationAttributeDto> load() {
@@ -70,27 +66,18 @@ public abstract class PageAbstractAttributeVerification<AM extends AbstractAuthe
     protected abstract List<VerificationAttributeDto> loadAttrbuteVerificationDtoList();
 
     @Override
-    protected void initCustomLayout() {
-        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
-        add(form);
-
-        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        form.add(csrfField);
-
+    protected void initModuleLayout(MidpointForm form) {
         HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
         verified.setOutputMarkupId(true);
         form.add(verified);
 
         initAttributesLayout(form);
-
-        initButtons(form);
     }
 
     private void initAttributesLayout(MidpointForm<?> form) {
         ListView<VerificationAttributeDto> attributesPanel = new ListView<>(ID_ATTRIBUTES, attributePathModel) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<VerificationAttributeDto> item) {
@@ -117,24 +104,16 @@ public abstract class PageAbstractAttributeVerification<AM extends AbstractAuthe
         if (attribute == null) {
             return "";
         }
-        ItemPathType path = attribute.getItemPath();
+        ItemPath path = attribute.getItemPath();
         if (path == null) {
             return "";
         }
-        ItemDefinition<?> def = new UserType().asPrismObject().getDefinition().findItemDefinition(path.getItemPath());
+        ItemDefinition<?> def = new UserType().asPrismObject().getDefinition().findItemDefinition(path);
         return WebComponentUtil.getItemDefinitionDisplayNameOrName(def);
     }
 
-    private void initButtons(MidpointForm form) {
-        form.add(createBackButton(ID_BACK_BUTTON));
-    }
-
     private Component getVerifiedField() {
-        return  get(ID_MAIN_FORM).get(ID_ATTRIBUTE_VALUES);
-    }
-
-    protected MidpointForm<?> getForm() {
-        return (MidpointForm<?>) get(ID_MAIN_FORM);
+        return  getForm().get(ID_ATTRIBUTE_VALUES);
     }
 
     private String generateAttributeValuesString() {

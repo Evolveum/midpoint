@@ -10,7 +10,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <form method="post" class="form-horizontal" wicket:id="mainForm">
+    <form method="post" class="form-horizontal" wicket:id="form">
         <div wicket:id="csrfField"/>
         <input type="hidden" wicket:id="attributeValues"/>
         <div class="d-flex flex-column my-2 justify-content-between">
@@ -19,10 +19,6 @@
         </div>
         <div class="mt-2">
             <input type="submit" class="btn btn-primary login-panel-control" wicket:message="value:PageBase.button.send" />
-            <a class="text-center login-panel-control mt-2" style="display: inline-block;" wicket:id="back">
-                <i class="fas fa-arrow-left mr-2"></i>
-                <wicket:message key="PageEmailNonce.backButtonLabel"/>
-            </a>
         </div>
     </form>
 </wicket:extend>

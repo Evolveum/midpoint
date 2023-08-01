@@ -4,12 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -24,20 +26,16 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.ArchetypeSelectionModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.gui.impl.page.login.PageAbstractAuthenticationModule;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -45,105 +43,60 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ARCHETYPE_SELECTION)
-public class PageArchetypeSelection extends PageAuthenticationBase<ArchetypeSelectionModuleType> {
+public class PageArchetypeSelection extends PageAbstractAuthenticationModule<ArchetypeSelectionModuleAuthentication> {
 
-    private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(PageArchetypeSelection.class);
+    @Serial private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageArchetypeSelection.class.getName() + ".";
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
     public static final String UNDEFINED_OID = DOT_CLASS + "undefined";
 
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_BACK_BUTTON = "back";
     private static final String ID_ARCHETYPE_SELECTION_PANEL = "archetypeSelectionPanel";
-    private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_ARCHETYPES_PANEL = "archetypes";
     private static final String ID_ARCHETYPE_PANEL = "archetype";
     private static final String ID_ARCHETYPE_OID = "archetypeOid";
-    private static final String ID_ALLOW_UNDEFINED_ARCHETYPE = "allowUndefinedArchetype";
 
-    private IModel<String> archetypeOidModel = Model.of();
-    private boolean allowUndefinedArchetype;
+    private final IModel<String> archetypeOidModel = Model.of();
 
-    private LoadableDetachableModel<ArchetypeSelectionModuleType> archetypeSelectionModuleModel;
+    private LoadableDetachableModel<ArchetypeSelectionModuleAuthentication> archetypeSelectionModuleModel;
 
     public PageArchetypeSelection() {
         super();
+        initModels();
     }
 
     @Override
-    protected ObjectQuery createStaticFormQuery() {
-        String username = "";
-        return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
-                .eqPoly(username).matchingNorm().build();
+    protected void onInitialize() {
+        super.onInitialize();
     }
 
-    @Override
-    protected DynamicFormPanel<UserType> getDynamicForm() {
-        return null;
-    }
-
-    @Override
-    protected String getModuleTypeName() {
-        return AuthenticationModuleNameConstants.ARCHETYPE_SELECTION;
-    }
-
-    @Override
-    protected List<ArchetypeSelectionModuleType> getAuthetcationModules(AuthenticationModulesType modules) {
-        return modules.getArchetypeSelection();
-    }
-
-    @Override
     protected void initModels() {
         archetypeSelectionModuleModel = new LoadableDetachableModel<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected ArchetypeSelectionModuleType load() {
-                return getAutheticationModuleConfiguration();
+            protected ArchetypeSelectionModuleAuthentication load() {
+                return getAuthenticationModuleConfiguration();
             }
         };
-        allowUndefinedArchetype = loadAllowUndefinedArchetypeConfig();
-    }
-
-    private boolean loadAllowUndefinedArchetypeConfig() {
-        var securityPolicy = resolveSecurityPolicy(null);
-        var archetypeSelectionModule = ConfigurationLoadUtil.loadArchetypeSelectionModuleForLoginRecovery(
-                PageArchetypeSelection.this, securityPolicy);
-        var allowUndefinedArchetype = Boolean.TRUE.equals(archetypeSelectionModule.isAllowUndefinedArchetype());
-        return allowUndefinedArchetype;
     }
 
     @Override
-    protected void initCustomLayout() {
-        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
-        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
-        add(form);
-
-        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        form.add(csrfField);
-
+    protected void initModuleLayout(MidpointForm form) {
         HiddenField<String> archetypeOidField = new HiddenField<>(ID_ARCHETYPE_OID, archetypeOidModel);
         archetypeOidField.setOutputMarkupId(true);
         form.add(archetypeOidField);
 
-        HiddenField<Boolean> allowUndefinedArchetypeField =
-                new HiddenField<>(ID_ALLOW_UNDEFINED_ARCHETYPE, Model.of(allowUndefinedArchetype));
-        allowUndefinedArchetypeField.setOutputMarkupId(true);
-        form.add(allowUndefinedArchetypeField);
-
         initArchetypeSelectionPanel(form);
+    }
 
-        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
-            private static final long serialVersionUID = 1L;
+    @Override
+    protected IModel<String> getLoginPanelTitleModel() {
+        return createStringResource("PageArchetypeSelection.title");
+    }
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed();
-            }
-        };
-        backButton.setOutputMarkupId(true);
-        add(backButton);
+    @Override
+    protected IModel<String> getLoginPanelDescriptionModel() {
+        return createStringResource("PageArchetypeSelection.title.description");
     }
 
     private void initArchetypeSelectionPanel(MidpointForm<?> form) {
@@ -153,7 +106,7 @@ public class PageArchetypeSelection extends PageAuthenticationBase<ArchetypeSele
 
         ListView<Tile<ArchetypeType>> archetypeListPanel = new ListView<>(ID_ARCHETYPES_PANEL, loadTilesModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<Tile<ArchetypeType>> item) {
@@ -166,21 +119,22 @@ public class PageArchetypeSelection extends PageAuthenticationBase<ArchetypeSele
     private LoadableModel<List<Tile<ArchetypeType>>> loadTilesModel() {
         return new LoadableModel<>(false) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<Tile<ArchetypeType>> load() {
                 List<Tile<ArchetypeType>> tiles = new ArrayList<>();
-                var archetypeSelectionType = archetypeSelectionModuleModel.getObject().getArchetypeSelection();
+                ArchetypeSelectionModuleAuthentication moduleAuthentication = archetypeSelectionModuleModel.getObject();
+                var archetypeSelectionType = moduleAuthentication.getArchetypeSelection();
                 if (archetypeSelectionType == null) {
                     return tiles;
                 }
                 List<ObjectReferenceType> archetypeRefs = archetypeSelectionType.getArchetypeRef();
                 List<ArchetypeType> archetypes = resolveArchetypeObjects(archetypeRefs);
-                archetypes.forEach(archetype -> {
-                    tiles.add(createTile(archetype));
-                });
-                if (allowUndefinedArchetype) {
+                tiles = archetypes.stream()
+                                .map(archetype -> createTile(archetype))
+                                        .collect(Collectors.toList());
+                if (moduleAuthentication.isAllowUndefined()) {
                     var undefinedArchetypeTile = createUndefinedArchetypeTile();
                     tiles.add(undefinedArchetypeTile);
                 }
@@ -234,7 +188,7 @@ public class PageArchetypeSelection extends PageAuthenticationBase<ArchetypeSele
 
     private Component createTilePanel(IModel<Tile<ArchetypeType>> tileModel) {
         var tilePanel = new TilePanel<>(ID_ARCHETYPE_PANEL, tileModel) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onClick(AjaxRequestTarget target) {
@@ -258,9 +212,6 @@ public class PageArchetypeSelection extends PageAuthenticationBase<ArchetypeSele
     private IModel<String> getActiveClassModel(Tile<ArchetypeType> tile) {
         var isArchetypeSelected = tile.getValue().getOid().equals(archetypeOidModel.getObject());
         return isArchetypeSelected ? Model.of("active") : Model.of();
-    }
-    private MidpointForm<?> getForm() {
-        return (MidpointForm<?>) get(ID_MAIN_FORM);
     }
 
     private WebMarkupContainer getArchetypesContainer() {

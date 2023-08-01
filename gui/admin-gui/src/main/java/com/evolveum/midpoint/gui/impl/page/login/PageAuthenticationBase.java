@@ -6,22 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
@@ -29,6 +17,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -45,26 +37,28 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public abstract class PageAuthenticationBase<AM extends AbstractAuthenticationModuleType> extends AbstractPageLogin {
+public abstract class PageAuthenticationBase<MA extends ModuleAuthentication> extends PageAbstractAuthenticationModule<MA> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageAuthenticationBase.class.getName() + ".";
-    private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
-
     protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAuthenticationBase.class);
 
-    protected static final String ARCHETYPE_OID_PARAMETER = "archetype";
     protected static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
     protected static final String ID_DYNAMIC_FORM = "dynamicForm";
 
     private ObjectReferenceType formRef;
 
     public PageAuthenticationBase() {
+        super();
     }
 
     private void initFormRef() {
@@ -88,23 +82,6 @@ public abstract class PageAuthenticationBase<AM extends AbstractAuthenticationMo
         }
 
         return securityPolicy;
-    }
-
-    protected SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
-        return runPrivileged((Producer<SecurityPolicyType>) () -> {
-
-            Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-            task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-            OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
-
-            try {
-                return getModelInteractionService().getSecurityPolicy(user, task, result);
-            } catch (CommonException e) {
-                LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
-                return null;
-            }
-
-        });
     }
 
     public ObjectReferenceType getFormRef() {
@@ -150,15 +127,6 @@ public abstract class PageAuthenticationBase<AM extends AbstractAuthenticationMo
             }
         }
         return getFormRef() != null;
-    }
-
-    protected AjaxButton createBackButton(String id){
-        return new AjaxButton(id) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed();
-            }
-        };
     }
 
     protected UserType searchUser() {
@@ -240,10 +208,10 @@ public abstract class PageAuthenticationBase<AM extends AbstractAuthenticationMo
 
     protected abstract DynamicFormPanel<UserType> getDynamicForm();
 
+    //TODO
     protected String getUrlProcessingLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        if (authentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null
                     && getModuleTypeName().equals(moduleAuthentication.getModuleTypeName())){
@@ -258,51 +226,5 @@ public abstract class PageAuthenticationBase<AM extends AbstractAuthenticationMo
     }
 
     protected  abstract String getModuleTypeName();
-
-    protected AM getAutheticationModuleConfiguration() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication)) {
-            getSession().error(getString("No midPoint authentication is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-        if (moduleAuthentication == null
-                || !getModuleTypeName().equals(moduleAuthentication.getModuleTypeName())) {
-            getSession().error(getString("No authentication module is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
-            getSession().error(getString("No module identifier is defined"));
-            throw new RestartResponseException(PageError.class);
-        }
-        AM module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
-        if (module == null) {
-            getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-
-        return module;
-    }
-
-    protected abstract List<AM> getAuthetcationModules(AuthenticationModulesType modules);
-
-    private AM getModuleByIdentifier(String moduleIdentifier) {
-        if (StringUtils.isEmpty(moduleIdentifier)) {
-            return null;
-        }
-
-        //TODO security policy defined for archetype? e.g. not null user but empty focus with archetype. but wouldn't it be hack?
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
-        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
-            getSession().error(getString("Security policy not found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        return getAuthetcationModules(securityPolicy.getAuthentication().getModules())
-                .stream()
-                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
-                .findFirst()
-                .orElse(null);
-    }
 
 }

@@ -4,9 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
-import java.io.Serializable;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.RemoteModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -33,8 +34,8 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 /**
  * @author skublik
  */
-public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPageLogin implements Serializable {
-    private static final long serialVersionUID = 1L;
+public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPageLogin {
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_PROVIDERS = "providers";
     private static final String ID_PROVIDER = "provider";
@@ -98,8 +99,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
     private List<IdentityProvider> getProviders() {
         List<IdentityProvider> providers = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+        if (authentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication instanceof RemoteModuleAuthentication) {
                 providers = ((RemoteModuleAuthentication) moduleAuthentication).getProviders();
@@ -122,7 +122,4 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
 
     protected abstract String getErrorKeyEmptyProviders();
 
-    @Override
-    protected void confirmAuthentication() {
-    }
 }

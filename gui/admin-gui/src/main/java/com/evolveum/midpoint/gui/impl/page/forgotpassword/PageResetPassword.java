@@ -6,23 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.page.forgotpassword;
 
-import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
+import java.io.Serial;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -31,13 +29,15 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.apache.wicket.markup.html.pages.RedirectPage;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
+/**
+ * Automatically redirected after successful authentication when password reset requested.
+ */
 
 @PageDescriptor(
         urls = {
@@ -50,8 +50,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL) })
 public class PageResetPassword extends AbstractPageLogin {
 
-    private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(PageResetPassword.class);
+    @Serial private static final long serialVersionUID = 1L;
 
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CHANGE_PASSWORD_PANEL = "changePasswordPanel";
@@ -59,7 +58,12 @@ public class PageResetPassword extends AbstractPageLogin {
     private static final String ID_BACK_BUTTON = "back";
 
     public PageResetPassword() {
-        // TODO Auto-generated constructor stub
+        super();
+    }
+
+    @Override
+    protected boolean isBackButtonVisible() {
+        return true;
     }
 
     @Override
@@ -68,8 +72,8 @@ public class PageResetPassword extends AbstractPageLogin {
         form.setOutputMarkupId(true);
         add(form);
 
-        ChangePasswordPanel changePasswordPanel = new ChangePasswordPanel(ID_CHANGE_PASSWORD_PANEL, new LoadableDetachableModel<FocusType>() {
-            private static final long serialVersionUID = 1L;
+        ChangePasswordPanel<? extends FocusType> changePasswordPanel = new ChangePasswordPanel<>(ID_CHANGE_PASSWORD_PANEL, new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected FocusType load() {
@@ -130,7 +134,7 @@ public class PageResetPassword extends AbstractPageLogin {
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -145,10 +149,6 @@ public class PageResetPassword extends AbstractPageLogin {
     @Override
     public Task createSimpleTask(String operation) {
         return createAnonymousTask(operation);
-    }
-
-    @Override
-    protected void confirmAuthentication() {
     }
 
     @Override
