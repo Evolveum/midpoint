@@ -124,6 +124,16 @@
                 </formSpecification>
             </objectForm>
         </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <action id="4">
+                    <identifier>action1</identifier>
+                </action>
+                <action id="5">
+                    <identifier>action2</identifier>
+                </action>
+            </objectCollectionView>
+        </objectCollectionViews>
         <accessRequest>
             <roleCatalog>
                 <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
