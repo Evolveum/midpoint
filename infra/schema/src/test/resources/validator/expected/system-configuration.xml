@@ -115,6 +115,15 @@
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>OrgType</type>
+                <formSpecification>
+                    <title>Transform</title>
+                    <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
         <accessRequest>
             <roleCatalog>
                 <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>

@@ -117,6 +117,15 @@
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>OrgType</type>
+                <formSpecification>
+                    <title>Transform</title>
+                    <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
     </adminGuiConfiguration>
 
     <defaultObjectPolicyConfiguration id="2">
