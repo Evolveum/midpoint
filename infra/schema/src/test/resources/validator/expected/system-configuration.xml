@@ -68,6 +68,9 @@
                     <scopeConfiguration>
                         <defaultValue>oneLevel</defaultValue>
                     </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>UserType</defaultValue>
+                    </objectTypeConfiguration>
                 </searchBoxConfiguration>
             </objectCollectionView>
             <objectCollectionView id="6">
@@ -75,6 +78,9 @@
                     <scopeConfiguration>
                         <defaultValue>subtree</defaultValue>
                     </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>OrgType</defaultValue>
+                    </objectTypeConfiguration>
                 </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>

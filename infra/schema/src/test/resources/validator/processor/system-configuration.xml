@@ -66,14 +66,19 @@
             <objectCollectionView id="3">
                 <searchBoxConfiguration>
                     <defaultScope>oneLevel</defaultScope>
+                    <defaultObjectType>UserType</defaultObjectType>
                 </searchBoxConfiguration>
             </objectCollectionView>
             <objectCollectionView id="6">
                 <searchBoxConfiguration>
                     <defaultScope>oneLevel</defaultScope>
+                    <defaultObjectType>RoleType</defaultObjectType>
                     <scopeConfiguration>
                         <defaultValue>subtree</defaultValue>
                     </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>OrgType</defaultValue>
+                    </objectTypeConfiguration>
                 </searchBoxConfiguration>
             </objectCollectionView>
         </objectCollectionViews>
