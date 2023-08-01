@@ -165,7 +165,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(12);
+            Assertions.assertThat(result.getItems()).hasSize(22);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
@@ -196,7 +196,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test50SecurityPolicy() throws Exception {
         testUpgradeValidator("security-policy.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(3);
+                    .hasSize(4);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
@@ -206,7 +206,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test60TaskLivesync() throws Exception {
         testUpgradeValidator("task-livesync.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(2);
+                    .hasSize(3);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
@@ -226,7 +226,17 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test80TaskRecomputation() throws Exception {
         testUpgradeValidator("task-recomputation.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(7);
+                    .hasSize(9);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
+    @Test
+    public void test100TaskNonIterative() throws Exception {
+        testUpgradeValidator("task-non-iterative.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });

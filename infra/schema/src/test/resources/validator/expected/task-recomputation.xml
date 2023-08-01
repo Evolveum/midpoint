@@ -45,6 +45,9 @@
                 <interval>11</interval>
             </profiling>
         </reporting>
+        <execution>
+            <mode>dryRun</mode>
+        </execution>
     </activity>
 
     <policyRule>

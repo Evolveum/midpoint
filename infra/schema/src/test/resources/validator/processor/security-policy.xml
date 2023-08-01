@@ -30,4 +30,7 @@
             </module>
         </sequence>
     </authentication>
+    <credentialsReset>
+        <name>sample-name</name>
+    </credentialsReset>
 </securityPolicy>

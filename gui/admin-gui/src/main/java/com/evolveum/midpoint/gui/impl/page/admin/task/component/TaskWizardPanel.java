@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -25,6 +27,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.Model;
 
 public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsModel> {
 
@@ -66,7 +71,26 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.setTaskStateBeforeSave(
+                        getDetailsModel().getObjectWrapper(), false, getPageBase(), target);
                 getHelper().onSaveObjectPerformed(target);
+            }
+
+            @Override
+            protected void initCustomButtons(RepeatingView customButtons) {
+                AjaxIconButton saveAndRun = new AjaxIconButton(
+                        customButtons.newChildId(),
+                        Model.of("mr-1 fa fa-save"),
+                        getPageBase().createStringResource("PageBase.button.saveAndRun")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        WebComponentUtil.setTaskStateBeforeSave(
+                                getDetailsModel().getObjectWrapper(), true, getPageBase(), target);
+                        getHelper().onSaveObjectPerformed(target);
+                    }
+                };
+                saveAndRun.showTitleAsLabel(true);
+                customButtons.add(saveAndRun);
             }
         });
 

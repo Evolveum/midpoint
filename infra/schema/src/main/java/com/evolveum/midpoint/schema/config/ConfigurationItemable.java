@@ -23,4 +23,6 @@ interface ConfigurationItemable<T extends Serializable> {
     @NotNull ConfigurationItemOrigin origin();
 
     <X extends ConfigurationItem<T>> @NotNull X as(@NotNull Class<X> clazz);
+
+    @NotNull String fullDescription();
 }

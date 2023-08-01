@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="8c32a639-97dc-4fed-83a4-3f496c5cb0df">
+    <name>role-with-service-mapping-privileged</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <privileges>
+                        <runPrivileged>true</runPrivileged>
+                    </privileges>
+                    <script>
+                        <code><![CDATA[
+                            import com.evolveum.midpoint.authentication.api.util.AuthUtil
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType
+
+                            if (midpoint.isEvaluateNew()) {
+                                // just to check the auditing records
+                                midpoint.addObject(
+                                        new ServiceType()
+                                                .name(System.currentTimeMillis() + ":" + (int) (Math.random() * 1000000)))
+                            }
+
+                            def service = midpoint.searchObjectByName(ServiceType, 'one')?.name?.orig
+                            def principalName = AuthUtil.principalObjectRequired.name.orig
+                            def actorName = actor.name.orig
+                            "$description: s:$service p:$principalName a:$actorName"
+                        ]]></code>
+                    </script>
+                </expression>
+                <target>
+                    <path>costCenter</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

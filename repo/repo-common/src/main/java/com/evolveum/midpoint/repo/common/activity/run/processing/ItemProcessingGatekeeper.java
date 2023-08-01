@@ -385,15 +385,13 @@ class ItemProcessingGatekeeper<I> {
 
         LOGGER.debug("Follow-up action: {}", followUpAction);
 
-        switch (followUpAction) {
-            case CONTINUE:
-                return true;
-            case STOP:
+        return switch (followUpAction) {
+            case CONTINUE -> true;
+            case STOP -> {
                 activityRun.getErrorState().setStoppingException(exception);
-                return false;
-            default:
-                throw new AssertionError(followUpAction);
-        }
+                yield false;
+            }
+        };
     }
 
     private Operation recordIterativeOperationStart() {

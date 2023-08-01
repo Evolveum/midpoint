@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
@@ -83,7 +84,11 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                         MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
                         decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
 
-                        MidPointPrincipal principal = securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
+                        MidPointPrincipal principal =
+                                // TODO get operation result from the caller
+                                securityContextManager.getUserProfileService().getPrincipal(
+                                        authorizedUser,
+                                        new OperationResult(MidPointPrincipalManager.OPERATION_GET_PRINCIPAL));
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
                     } catch (SystemException | SchemaException | CommunicationException | ConfigurationException

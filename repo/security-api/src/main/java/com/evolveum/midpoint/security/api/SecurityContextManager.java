@@ -6,17 +6,21 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.io.Serializable;
 
 /**
  * Manager of security context. Used for storing authentication into
@@ -59,27 +63,46 @@ public interface SecurityContextManager {
 
     void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal);
 
-    void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    /** Calls {@link MidPointPrincipalManager} to create a principal from provided focus object and sets it up. */
+    void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException;
 
-    <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    /** Runs the provided code (within {@link ResultAwareProducer}) as a specific user and/or with elevated privileges. */
+    <T> T runAs(
+            @NotNull ResultAwareProducer<T> producer,
+            @Nullable PrismObject<? extends FocusType> newPrincipalObject,
+            boolean privileged,
+            @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException;
 
-    /**
-     * Convenience method to deal with producers that can throw CommonException.
-     */
-    default <T> T runAsChecked(CheckedProducer<T> producer, PrismObject<UserType> user) throws CommonException {
-        return MiscUtil.runChecked((p) -> runAs(p, user), producer);
+    /** Convenience method to deal with producers that can throw any {@link CommonException}. */
+    default <T> T runAsChecked(
+            ResultAwareCheckedProducer<T> producer,
+            PrismObject<? extends UserType> newPrincipalObject,
+            OperationResult result) throws CommonException {
+        try {
+            return runAs(lResult -> {
+                try {
+                    return producer.get(lResult);
+                } catch (CommonException e) {
+                    throw new TunnelException(e);
+                }
+            }, newPrincipalObject, false, result);
+        } catch (TunnelException te) {
+            MiscUtil.unwrapTunnelledException(te);
+            throw new NotHereAssertionError();
+        }
     }
 
-    <T> T runPrivileged(Producer<T> producer);
+    /** Runs the provided code (within {@link Producer}) with elevated privileges. */
+    <T> T runPrivileged(@NotNull Producer<T> producer);
 
-    /**
-     * Convenience method to deal with producers that can throw CommonException.
-     */
+    /** Convenience method to deal with producers that can throw {@link CommonException}. */
     default <T> T runPrivilegedChecked(CheckedProducer<T> producer) throws CommonException {
         return MiscUtil.runChecked(this::runPrivileged, producer);
     }
-
-    // runPrivileged method is in SecurityEnforcer. It needs to be there because it works with authorizations.
 
     MidPointPrincipalManager getUserProfileService();
 
@@ -96,4 +119,19 @@ public interface SecurityContextManager {
      */
     @Nullable
     HttpConnectionInformation getStoredConnectionInformation();
+
+    /** Producer of a value that is {@link Serializable} and operates under given {@link OperationResult}. */
+    @FunctionalInterface
+    interface ResultAwareProducer<T> extends Serializable {
+        T get(@NotNull OperationResult result)
+                throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+                ExpressionEvaluationException;
+    }
+
+    /** A {@link ResultAwareProducer} that can throw any {@link CommonException}. */
+    @FunctionalInterface
+    interface ResultAwareCheckedProducer<T> extends Serializable {
+        T get(@NotNull OperationResult result)
+                throws CommonException;
+    }
 }

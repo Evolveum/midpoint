@@ -23,7 +23,7 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         when();
 
-        Boolean result = (Boolean) executeTest(
+        MainResult<Boolean> result = executeTest(
                 list -> {
                     boolean found = list.stream().anyMatch(
                             s -> s.contains("There are zero nodes in cluster to validate current midPoint version"));
@@ -35,7 +35,11 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         then();
 
-        Assertions.assertThat(result)
+        Boolean shouldContinue = result.result();
+        Assertions.assertThat(result.exitCode())
+                .isZero()
+                .withFailMessage("Upgrade pre-check - error code should be zero.");
+        Assertions.assertThat(shouldContinue)
                 .isTrue()
                 .withFailMessage("Upgrade pre-check - should continue (true).");
     }
@@ -54,7 +58,7 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         when();
 
-        Boolean result = (Boolean) executeTest(
+        MainResult<Boolean> result = executeTest(
                 list -> {
                     boolean found = list.stream().anyMatch(
                             s -> s.contains("There are zero nodes in cluster to validate current midPoint version"));
@@ -66,7 +70,11 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         then();
 
-        Assertions.assertThat(result)
+        Boolean shouldContinue = result.result();
+        Assertions.assertThat(result.exitCode())
+                .isZero()
+                .withFailMessage("Upgrade pre-check - error code should be zero.");
+        Assertions.assertThat(shouldContinue)
                 .isFalse()
                 .withFailMessage("Upgrade pre-check - DB schema version doesn't match.");
     }

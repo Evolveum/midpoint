@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<functionLibrary
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="ce5dd72f-8606-49e2-9e1d-d9e6d6806fb8">
+    <name>privileged</name>
+    <function>
+        <name>standard</name>
+        <documentation>Calls the business logic without any elevation of privileges.</documentation>
+        <parameter>
+            <name>label</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <function>
+            <!--<libraryRef oid="ce5dd72f-8606-49e2-9e1d-d9e6d6806fb8"/> &lt;!&ndash; TODO is this implicit? &ndash;&gt;-->
+            <name>internal</name>
+            <parameter>
+                <name>label</name> <!-- TODO -->
+            </parameter>
+        </function>
+    </function>
+    <function>
+        <name>internal</name>
+        <documentation>
+            The "business logic" that should run in privileged mode. Extracted to avoid duplication.
+            Not to be called from the outside.
+        </documentation>
+        <parameter>
+            <name>label</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <script>
+            <code>
+                import com.evolveum.midpoint.authentication.api.util.AuthUtil
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType
+
+                def service = midpoint.searchObjectByName(ServiceType, 'one')?.name?.orig
+                def principalName = AuthUtil.principalObjectRequired.name.orig
+                def actorName = actor.name.orig
+                "$label: s:$service p:$principalName a:$actorName"
+            </code>
+        </script>
+    </function>
+</functionLibrary>

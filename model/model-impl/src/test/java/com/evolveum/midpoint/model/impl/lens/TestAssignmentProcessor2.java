@@ -1339,7 +1339,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private static boolean recording() {
-        return recording && ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew();
+        return recording && ScriptExpressionEvaluationContext.getThreadLocalRequired().isEvaluateNew();
     }
 
     @SuppressWarnings("UnusedReturnValue")

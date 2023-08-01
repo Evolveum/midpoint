@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
@@ -57,6 +58,7 @@ public class AssociationsWizardPanel extends AbstractWizardPanel<ResourceObjectT
                 valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showChoiceFragment(target, createTablePanel());
             }
         };

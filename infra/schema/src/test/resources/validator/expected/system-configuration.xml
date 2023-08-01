@@ -115,6 +115,65 @@
         <userDashboardLink>
             <targetUrl>https://google.com</targetUrl>
         </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>OrgType</type>
+                <formSpecification>
+                    <title>Transform</title>
+                    <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <action id="4">
+                    <identifier>action1</identifier>
+                </action>
+                <action id="5">
+                    <identifier>action2</identifier>
+                </action>
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>oneLevel</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>UserType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="7">
+                            <display>
+                                <label>sample1</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView id="6">
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>subtree</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>OrgType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="8">
+                            <display>
+                                <label>sample3</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+        </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage id="10">
+                <type>UserType</type>
+                <container id="9">
+                    <identifier>123</identifier>
+                </container>
+            </objectDetailsPage>
+        </objectDetails>
         <accessRequest>
             <roleCatalog>
                 <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>

@@ -8,11 +8,12 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareProducer;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import jakarta.xml.bind.JAXBElement;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,15 +48,15 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 /**
  * "Compiled" form of {@link ExpressionType} bean.
  *
- * Instantiated through {@link ExpressionFactory#makeExpression(ExpressionType, ItemDefinition,
+ * Instantiated through {@link ExpressionFactory#makeExpression(ExpressionConfigItem, ItemDefinition,
  * ExpressionProfile, String, Task, OperationResult)}.
  *
  * Main responsibilities:
  *
- * . parsing expression beans (with the help of respective {@link ExpressionEvaluatorFactory})
+ * . parsing expression beans (with the help of {@link ExpressionConfigItem} and respective {@link ExpressionEvaluatorFactory})
  * . invoking the expression evaluator with the following pre/post processing:
  * .. processing inner variables;
- * .. privilege switching (`runAs`, `runPrivileged`);
+ * .. privilege switching (`runAsRef`, `runPrivileged`);
  * .. expression profile checking;
  * .. logfile tracing (but currently NOT trace file tracing);
  *
@@ -63,8 +64,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
  */
 public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
 
-    /** The "source code" for the expression. May be null for default (currently `asIs`) case. */
-    @Nullable private final ExpressionType expressionBean;
+    /** The "source code" for the expression in the form of a config item. May be null for default (currently `asIs`) case. */
+    @Nullable private final ExpressionConfigItem expressionCI;
 
     /** Definition of the output item. Usually optional but may be required for some evaluators. */
     @Nullable private final D outputDefinition;
@@ -83,7 +84,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
     private Expression(
-            @Nullable ExpressionType expressionBean,
+            @Nullable ExpressionConfigItem expressionCI,
             @Nullable D outputDefinition,
             @Nullable ExpressionProfile expressionProfile,
             @NotNull ExpressionEvaluator<V> evaluator,
@@ -92,7 +93,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
 
         Validate.notNull(objectResolver, "null objectResolver");
 
-        this.expressionBean = expressionBean;
+        this.expressionCI = expressionCI;
         this.outputDefinition = outputDefinition;
         this.expressionProfile = expressionProfile;
         this.evaluator = evaluator;
@@ -103,14 +104,15 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
 
     /** The only creation method. To be used through {@link ExpressionFactory} only. */
     static <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> create(
-            @Nullable ExpressionType expressionBean,
+            @Nullable ExpressionConfigItem expressionCI,
             @Nullable D outputDefinition,
             @Nullable ExpressionProfile expressionProfile,
             @NotNull ExpressionFactory factory,
             String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 
-        List<JAXBElement<?>> evaluatorElements = expressionBean != null ? expressionBean.getExpressionEvaluator() : List.of();
+        List<JAXBElement<?>> evaluatorElements =
+                expressionCI != null ? expressionCI.value().getExpressionEvaluator() : List.of();
 
         ExpressionEvaluatorFactory evaluatorFactory;
         if (evaluatorElements.isEmpty()) {
@@ -126,7 +128,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         }
 
         return new Expression<>(
-                expressionBean,
+                expressionCI,
                 outputDefinition,
                 expressionProfile,
                 evaluatorFactory.createEvaluator(
@@ -137,6 +139,10 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
                         contextDescription, task, result),
                 factory.getObjectResolver(),
                 factory.getSecurityContextManager());
+    }
+
+    public @Nullable D getOutputDefinition() {
+        return outputDefinition;
     }
 
     public @Nullable PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
@@ -158,32 +164,46 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             contextWithProcessedVariables.setVariables(processedVariables);
             PrismValueDeltaSetTriple<V> outputTriple;
 
-            ObjectReferenceType runAsRef = expressionBean != null ? expressionBean.getRunAsRef() : null;
+            var privileges = expressionCI != null ? expressionCI.getPrivileges() : null;
 
-            if (runAsRef == null) {
+            if (privileges == null) {
 
                 outputTriple = runExpressionEvaluator(contextWithProcessedVariables, result);
 
             } else {
 
-                // TODO generalize to FocusType
-                UserType userType = objectResolver.resolve(runAsRef, UserType.class, null,
-                        "runAs in " + context.getContextDescription(), context.getTask(), result);
+                PrismObject<? extends FocusType> runAsFocus;
 
-                LOGGER.trace("Running {} as {} ({})", context.getContextDescription(), userType, runAsRef);
+                ObjectReferenceType runAsRef = privileges.getRunAsRef();
+                if (runAsRef != null) {
+                    runAsFocus = objectResolver.resolve(
+                                    runAsRef, FocusType.class, null,
+                                    "runAs in " + context.getContextDescription(),
+                                    context.getTask(), result)
+                            .asPrismObject();
+                } else {
+                    runAsFocus = null;
+                }
+
+                LOGGER.trace("Running {} as {} ({})", context.getContextDescription(), runAsFocus, runAsRef);
 
                 try {
                     assert securityContextManager != null; // low-level tests do not execute this code
-                    outputTriple = securityContextManager.runAs(() -> {
+                    ResultAwareProducer<PrismValueDeltaSetTriple<V>> producer = (lResult) -> {
                         try {
-                            return runExpressionEvaluator(contextWithProcessedVariables, result);
-                        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
-                                | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                            return runExpressionEvaluator(contextWithProcessedVariables, lResult);
+                        } catch (ObjectNotFoundException e) {
                             throw new TunnelException(e);
                         }
-                    }, userType.asPrismObject());
+                    };
+                    boolean runPrivileged = Boolean.TRUE.equals(privileges.isRunPrivileged());
+                    outputTriple = securityContextManager.runAs(producer, runAsFocus, runPrivileged, result);
                 } catch (TunnelException te) {
-                    return unwrapTunnelException(te);
+                    if (te.getCause() instanceof ObjectNotFoundException objectNotFoundException) {
+                        throw objectNotFoundException;
+                    } else {
+                        throw te;
+                    }
                 }
             }
 
@@ -194,37 +214,6 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             traceFailure(context, processedVariables, e);
             throw e;
         }
-    }
-
-    private PrismValueDeltaSetTriple<V> unwrapTunnelException(TunnelException te)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        Throwable e = te.getCause();
-        if (e instanceof RuntimeException) {
-            throw (RuntimeException) e;
-        }
-        if (e instanceof Error) {
-            throw (Error) e;
-        }
-        if (e instanceof SchemaException) {
-            throw (SchemaException) e;
-        }
-        if (e instanceof ExpressionEvaluationException) {
-            throw (ExpressionEvaluationException) e;
-        }
-        if (e instanceof ObjectNotFoundException) {
-            throw (ObjectNotFoundException) e;
-        }
-        if (e instanceof CommunicationException) {
-            throw (CommunicationException) e;
-        }
-        if (e instanceof ConfigurationException) {
-            throw (ConfigurationException) e;
-        }
-        if (e instanceof SecurityViolationException) {
-            throw (SecurityViolationException) e;
-        }
-        throw te;
     }
 
     private @Nullable PrismValueDeltaSetTriple<V> runExpressionEvaluator(
@@ -270,7 +259,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     }
 
     private boolean isAllowEmptyValues() {
-        return expressionBean != null && BooleanUtils.isTrue(expressionBean.isAllowEmptyValues());
+        return expressionCI != null && expressionCI.isAllowEmptyValues();
     }
 
     private void checkOutputTripleConsistence(PrismValueDeltaSetTriple<V> outputTriple) {
@@ -328,7 +317,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     }
 
     private boolean isExplicitlyTraced() {
-        return expressionBean != null && Boolean.TRUE.equals(expressionBean.isTrace());
+        return expressionCI != null && expressionCI.isTrace();
     }
 
     private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, VariablesMap processedVariables) {
@@ -351,6 +340,10 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         if (context.getExpressionProfile() != null) {
             sb.append("\nExpression profile: ").append(context.getExpressionProfile().getIdentifier());
         }
+        var origin = expressionCI != null ? expressionCI.origin() : null;
+        if (origin != null) {
+            sb.append("\nOrigin: ").append(origin);
+        }
         sb.append("\nEvaluators: ");
         sb.append(shortDebugDump());
     }
@@ -363,7 +356,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             VariablesMap variables, String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        if (expressionBean == null) {
+        if (expressionCI == null) {
             return variables; // no expression, no need to deal with variables
         }
 
@@ -372,7 +365,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         ExpressionUtil.addActorVariableIfNeeded(newVariables, securityContextManager);
 
         // Inner variables
-        for (ExpressionVariableDefinitionType variableDefBean : expressionBean.getVariable()) {
+        for (ExpressionVariableDefinitionType variableDefBean : expressionCI.value().getVariable()) {
 
             String varName =
                     configNonNull(variableDefBean.getName(), "no variable name in expression in %s", contextDescription)
@@ -436,7 +429,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
 
     @Override
     public String toString() {
-        return "Expression(expressionType=" + expressionBean + ", outputDefinition=" + outputDefinition
+        return "Expression(config=" + expressionCI + ", outputDefinition=" + outputDefinition
                 + ": " + shortDebugDump() + ")";
     }
 

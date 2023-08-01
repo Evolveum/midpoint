@@ -56,15 +56,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
         setOutputMarkupId(true);
         showTitleAsLabel(true);
 
-        add(AttributeAppender.append("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return taskOidForReloaded != null ? "disabled" : "";
-            }
-        }));
+        add(AttributeAppender.append("class", (IModel<String>) () -> taskOidForReloaded != null ? "disabled" : ""));
 
         if (taskOidForReloaded != null) {
             add(reloadedBehaviour);
