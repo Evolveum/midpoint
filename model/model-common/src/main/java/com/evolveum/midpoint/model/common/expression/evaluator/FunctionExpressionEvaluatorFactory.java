@@ -37,9 +37,11 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
 
     private static final QName ELEMENT_NAME = new ObjectFactory().createFunction(new FunctionExpressionEvaluatorType()).getName();
 
-    private final Protector protector;
+    @NotNull private final Protector protector;
 
-    public FunctionExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector) {
+    public FunctionExpressionEvaluatorFactory(
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull Protector protector) {
         super(expressionFactory);
         this.protector = protector;
     }
@@ -63,6 +65,6 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
         FunctionExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBeanRequired(evaluatorElements, FunctionExpressionEvaluatorType.class, contextDescription);
 
-        return new FunctionExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, getObjectResolver());
+        return new FunctionExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector);
     }
 }

@@ -32,10 +32,9 @@
     </bean>
 
     <bean id="basicFunctionLibrary"
-            class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
-        <property name="variableName" value="basic"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"/>
-        <property name="genericFunctions" ref="basicFunctionObject"/>
+            class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding">
+        <constructor-arg name="variableName" value="basic"/>
+        <constructor-arg name="implementation" ref="basicFunctionObject"/>
     </bean>
 
     <bean id="logFunctionObject"
@@ -43,10 +42,9 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
 
-    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
-        <property name="variableName" value="log"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-3"/>
-        <property name="genericFunctions" ref="logFunctionObject"/>
+    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding">
+        <constructor-arg name="variableName" value="log"/>
+        <constructor-arg name="implementation" ref="logFunctionObject"/>
     </bean>
 
     <bean id="javascriptScriptEvaluator"
@@ -82,8 +80,7 @@
     <bean id="scriptExpressionFactory"
             class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory">
         <constructor-arg name="prismContext" ref="prismContext"/>
-        <constructor-arg name="repositoryService" ref="repositoryService"/>
-        <constructor-arg name="standardFunctionLibraries">
+        <constructor-arg name="builtInLibraryBindings">
             <list>
                 <ref bean="basicFunctionLibrary"/>
                 <ref bean="logFunctionLibrary"/>
@@ -98,7 +95,6 @@
                 <ref bean="velocityScriptEvaluator"/>
             </list>
         </constructor-arg>
-        <constructor-arg name="cacheRegistry" ref="cacheRegistry"/>
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
@@ -164,9 +160,8 @@
     </bean>
 
     <bean id="midpointFunctionLibrary"
-            class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
-        <property name="variableName" value="midpoint"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
-        <property name="genericFunctions" ref="midpointFunctionsImpl"/>
+            class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding">
+        <constructor-arg name="variableName" value="midpoint"/>
+        <constructor-arg name="implementation" ref="midpointFunctionsImpl"/>
     </bean>
 </beans>

@@ -141,6 +141,10 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
                 factory.getSecurityContextManager());
     }
 
+    public @Nullable D getOutputDefinition() {
+        return outputDefinition;
+    }
+
     public @Nullable PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {

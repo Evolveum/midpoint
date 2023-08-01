@@ -26,7 +26,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -78,8 +78,8 @@ public class TestScriptCaching extends AbstractUnitTest
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
         Clock clock = new Clock();
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionfactory.registerEvaluator(evaluator);
@@ -171,7 +171,7 @@ public class TestScriptCaching extends AbstractUnitTest
                 expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));
+        expression.setFunctionLibraryBindings(new ArrayList<>(scriptExpressionfactory.getBuiltInLibraryBindings()));
         return expression;
     }
 
