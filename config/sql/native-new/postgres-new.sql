@@ -1308,6 +1308,31 @@ CREATE INDEX m_task_ext_idx ON m_task USING gin(ext);
 CREATE INDEX m_task_fullTextInfo_idx ON m_task USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_task_createTimestamp_idx ON m_task (createTimestamp);
 CREATE INDEX m_task_modifyTimestamp_idx ON m_task (modifyTimestamp);
+
+CREATE TABLE m_task_affects_resource_objects (
+     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+     containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_RESOURCE_OBJECTS') STORED
+         CHECK (containerType = 'AFFECTED_RESOURCE_OBJECTS'),
+     objectClassId INTEGER REFERENCES m_uri(id),
+     resourceRefTargetOid UUID,
+     resourceRefTargetType ObjectType,
+     resourceRefRelationId INTEGER REFERENCES m_uri(id),
+     intent TEXT,
+     kind ShadowKindType,
+     PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
+CREATE TABLE m_task_affects_objects (
+     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+     containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_OBJECTS') STORED
+         CHECK (containerType = 'AFFECTED_OBJECTS'),
+     type ObjectType,
+     archetypeRefTargetOid UUID,
+     archetypeRefTargetType ObjectType,
+     archetypeRefRelationId INTEGER REFERENCES m_uri(id),
+     PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
 -- endregion
 
 -- region cases
@@ -2087,4 +2112,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(15, $$ SELECT 1 $$, true);
+call apply_change(17, $$ SELECT 1 $$, true);
