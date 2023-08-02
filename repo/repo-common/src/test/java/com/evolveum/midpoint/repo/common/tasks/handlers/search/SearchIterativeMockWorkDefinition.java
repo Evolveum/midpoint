@@ -82,7 +82,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     }
 
     @Override
-    public ObjectSetType getObjectSetSpecification() {
+    public @NotNull ObjectSetType getObjectSetSpecification() {
         return objectSet;
     }
 }

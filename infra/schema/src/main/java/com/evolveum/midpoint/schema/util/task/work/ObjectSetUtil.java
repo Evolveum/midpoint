@@ -45,7 +45,7 @@ public class ObjectSetUtil {
         }
     }
 
-    public static @NotNull ObjectSetType fromConfiguration(ObjectSetType configured) {
+    public static @NotNull ObjectSetType emptyIfNull(ObjectSetType configured) {
         return configured != null ? configured : new ObjectSetType();
     }
 

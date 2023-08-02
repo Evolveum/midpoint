@@ -22,7 +22,7 @@ import javax.xml.datatype.Duration;
 
 public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-    private final ObjectSetType tasks;
+    @NotNull private final ObjectSetType tasks;
     private final Duration minReconciliationInterval;
     private final Duration maxReconciliationInterval;
     private final boolean skipInitialReconciliation;
@@ -30,7 +30,7 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
     AutoScalingWorkDefinition(@NotNull WorkDefinitionBean source) {
         var typedDefinition = (ActivityAutoScalingWorkDefinitionType) source.getBean();
 
-        tasks = ObjectSetUtil.fromConfiguration(typedDefinition.getTasks());
+        tasks = ObjectSetUtil.emptyIfNull(typedDefinition.getTasks());
         ObjectSetUtil.assumeObjectType(tasks, TaskType.COMPLEX_TYPE);
 
         minReconciliationInterval = typedDefinition.getMinReconciliationInterval();
@@ -39,7 +39,7 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
     }
 
     @Override
-    public ObjectSetType getObjectSetSpecification() {
+    public @NotNull ObjectSetType getObjectSetSpecification() {
         return tasks;
     }
 

@@ -9,15 +9,20 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class RepositoryObjectSetSpecificationImpl implements ObjectSetSpecification {
 
-    private final ObjectSetType objectSetBean;
+    @NotNull private final ObjectSetType objectSetBean;
 
-    RepositoryObjectSetSpecificationImpl(ObjectSetType objectSetBean) {
+    RepositoryObjectSetSpecificationImpl(@NotNull ObjectSetType objectSetBean) {
         this.objectSetBean = objectSetBean;
     }
 
@@ -36,6 +41,18 @@ public class RepositoryObjectSetSpecificationImpl implements ObjectSetSpecificat
 
     public Boolean isUseRepositoryDirectly() {
         return objectSetBean.isUseRepositoryDirectly();
+    }
+
+    public @Nullable String getArchetypeOid() throws ConfigurationException {
+        ObjectReferenceType archetypeRef = objectSetBean.getArchetypeRef();
+        if (archetypeRef == null) {
+            return null;
+        }
+        String oid = archetypeRef.getOid();
+        if (oid == null) {
+            throw new ConfigurationException("Archetype reference without OID: " + archetypeRef);
+        }
+        return oid;
     }
 
     @Override

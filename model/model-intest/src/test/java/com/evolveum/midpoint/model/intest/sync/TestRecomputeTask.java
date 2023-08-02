@@ -11,6 +11,9 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.List;
+
+import com.evolveum.midpoint.test.*;
+
 import jakarta.xml.bind.JAXBElement;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,9 +37,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -67,6 +67,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     private static final TestResource<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION =
             new TestResource<>(TEST_DIR, "archetype-task-recomputation.xml", "77615e4c-b82e-4b3a-b265-5487a6ac016b");
 
+    private static final TestObject<ArchetypeType> ARCHETYPE_EMPLOYEE = TestObject.file(
+            TEST_DIR, "archetype-employee.xml", "e3a9a6b9-17f6-4239-b935-6f88a655b9d7");
+
+    private static final TestTask TASK_USER_RECOMPUTE_EMPLOYEES = new TestTask(
+            TEST_DIR, "task-user-recompute-employees.xml", "fb1b8d77-d2a6-4bc3-b771-ba2a4159dae7");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -78,6 +84,10 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         }
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        initTestObjects(initTask, initResult,
+                ARCHETYPE_EMPLOYEE,
+                TASK_USER_RECOMPUTE_EMPLOYEES);
     }
 
     @Test
@@ -457,5 +467,32 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertHasOrgs(userGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
 
         assertUsers(7);
+    }
+
+    @Test
+    public void test140RecomputeEmployees() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("an employee exists");
+        UserType user = new UserType()
+                .name(getTestNameShort())
+                .assignment(ARCHETYPE_EMPLOYEE.assignmentTo());
+        addObject(user, task, result);
+
+        try {
+            when("recomputing employees");
+            TASK_USER_RECOMPUTE_EMPLOYEES.rerun(result);
+
+            then("only the employee is recomputed");
+            TASK_USER_RECOMPUTE_EMPLOYEES.assertAfter()
+                    .display()
+                    .assertProgress(1)
+                    .rootActivityState()
+                    .itemProcessingStatistics()
+                    .assertLastSuccessObjectName(user.getName().getOrig());
+        } finally {
+            deleteObject(UserType.class, user.getOid());
+        }
     }
 }
