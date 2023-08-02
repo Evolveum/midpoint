@@ -327,7 +327,7 @@ $aa$);
 call apply_change(16, $aa$
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'AFFECTED_RESOURCE_OBJECTS' AFTER 'ACCESS_CERTIFICATION_WORK_ITEM';
 ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'AFFECTED_OBJECTS' AFTER 'AFFECTED_RESOURCE_OBJECTS';
-$aa)
+$aa$);
 
 -- Task Affected Indexing (tables)
 
@@ -356,7 +356,7 @@ CREATE TABLE m_task_affected_objects (
      PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
-$aa$)
+$aa$);
 
 
 -- Resource/super/resourceRef Indexing (tables)
