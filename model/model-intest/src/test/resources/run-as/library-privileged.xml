@@ -19,7 +19,7 @@
         </parameter>
         <returnType>xsd:string</returnType>
         <function>
-            <!--<libraryRef oid="ce5dd72f-8606-49e2-9e1d-d9e6d6806fb8"/> &lt;!&ndash; TODO is this implicit? &ndash;&gt;-->
+            <libraryRef oid="ce5dd72f-8606-49e2-9e1d-d9e6d6806fb8"/> <!-- TODO this could be made implicit -->
             <name>internal</name>
             <parameter>
                 <name>label</name> <!-- TODO -->
