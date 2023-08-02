@@ -25,10 +25,9 @@ public abstract class AbstractCredentialProvider<T extends AbstractAuthenticatio
     public abstract Class<? extends CredentialPolicyType> getTypeOfCredential();
 
     public boolean supports(Class<?> authenticationClass, Authentication authentication) {
-        if (!(authentication instanceof MidpointAuthentication)) {
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
             return supports(authenticationClass);
         }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
         if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;

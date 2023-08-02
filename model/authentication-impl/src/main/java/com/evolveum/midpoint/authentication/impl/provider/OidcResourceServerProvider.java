@@ -50,8 +50,7 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
             AuthenticationChannel channel, Class focusType) throws AuthenticationException {
         Authentication token;
-        if (authentication instanceof BearerTokenAuthenticationToken) {
-            BearerTokenAuthenticationToken oidcAuthenticationToken = (BearerTokenAuthenticationToken) authentication;
+        if (authentication instanceof BearerTokenAuthenticationToken oidcAuthenticationToken) {
             Authentication authenticationToken;
             try {
                 authenticationToken = oidcProvider.authenticate(oidcAuthenticationToken);

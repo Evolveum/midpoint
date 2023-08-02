@@ -69,11 +69,9 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             Authentication token = internalAuthentication(processingAuthentication, authRequirements.requireAssignment,
                     authRequirements.channel, authRequirements.focusType);
 
-            if (actualAuthentication instanceof MidpointAuthentication) {
-                MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+            if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
                 ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
-                if (token.getPrincipal() instanceof MidPointPrincipal) {
-                    MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+                if (token.getPrincipal() instanceof MidPointPrincipal principal) {
                     token = createNewAuthenticationToken(token,
                             mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
                 } else {
@@ -96,8 +94,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     }
 
     private boolean isAnonymous(Authentication originalAuthentication) {
-        if (originalAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) originalAuthentication;
+        if (originalAuthentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
             return moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken;
         }
@@ -106,40 +103,30 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     private Authentication initAuthRequirements(Authentication processingAuthentication, Authentication originalAuthentication,
             Authentication actualAuthentication, AuthenticationRequirements authRequirements) {
-        if (originalAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) originalAuthentication;
+        if (originalAuthentication instanceof MidpointAuthentication mpAuthentication) {
+            initAuthRequirements(mpAuthentication, authRequirements);
             ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-            if (moduleAuthentication.getFocusType() != null) {
-                authRequirements.focusType = PrismContext.get().getSchemaRegistry()
-                        .determineCompileTimeClass(moduleAuthentication.getFocusType());
-            }
-            authRequirements.requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
-            authRequirements.channel = mpAuthentication.getAuthenticationChannel();
             return moduleAuthentication.getAuthentication();
-        } else if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
-            ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-            if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
-                authRequirements.focusType = PrismContext.get().getSchemaRegistry()
-                        .determineCompileTimeClass(moduleAuthentication.getFocusType());
-            }
-            authRequirements.requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
-            authRequirements.channel = mpAuthentication.getAuthenticationChannel();
+        } else if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
+            initAuthRequirements(mpAuthentication, authRequirements);
         }
         return processingAuthentication;
     }
 
+    private void initAuthRequirements(MidpointAuthentication mpAuthentication, AuthenticationRequirements authRequirements) {
+        ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+        if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
+            authRequirements.focusType = PrismContext.get().getSchemaRegistry()
+                    .determineCompileTimeClass(moduleAuthentication.getFocusType());
+        }
+        authRequirements.requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
+        authRequirements.channel = mpAuthentication.getAuthenticationChannel();
+    }
+
     protected AuthenticationRequirements initAuthRequirements(Authentication actualAuthentication) {
         AuthenticationRequirements authRequirements = new AuthenticationRequirements();
-        if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
-            ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-            if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
-                authRequirements.focusType = PrismContext.get().getSchemaRegistry()
-                        .determineCompileTimeClass(moduleAuthentication.getFocusType());
-            }
-            authRequirements.requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
-            authRequirements.channel = mpAuthentication.getAuthenticationChannel();
+        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
+            initAuthRequirements(mpAuthentication, authRequirements);
         }
         return authRequirements;
     }
@@ -164,7 +151,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return moduleAuthentication;
     }
 
-    protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel, Authentication authentication) {
+    protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel) {
         ConnectionEnvironment connEnv;
         if (channel != null) {
             connEnv = ConnectionEnvironment.create(channel.getChannelId());
@@ -173,8 +160,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         }
 
         Authentication processingAuthentication = SecurityUtil.getAuthentication();
-        if (processingAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) processingAuthentication;
+        if (processingAuthentication instanceof MidpointAuthentication mpAuthentication) {
             connEnv.setSessionIdOverride(mpAuthentication.getSessionId());
             connEnv.setSequenceIdentifier(mpAuthentication.getSequenceIdentifier());
             connEnv.setModuleIdentifier(mpAuthentication.getProcessingModuleAuthenticationIdentifier());
@@ -190,10 +176,9 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities);
 
     public boolean supports(Class<?> authenticationClass, Authentication authentication) {
-        if (!(authentication instanceof MidpointAuthentication)) {
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
             return supports(authenticationClass);
         }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
         if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
@@ -245,8 +230,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     protected ConnectionEnvironment createConnectEnvironment(String channel) {
         ConnectionEnvironment env = ConnectionEnvironment.create(channel);
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
             if (mpAuthentication.getSessionId() != null) {
                 env.setSessionIdOverride(((MidpointAuthentication) actualAuthentication).getSessionId());
             }

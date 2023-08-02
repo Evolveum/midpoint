@@ -95,9 +95,4 @@ public class ArchetypeSelectionAuthenticationProvider extends MidPointAbstractAu
         return ArchetypeSelectionAuthenticationToken.class.equals(authentication);
     }
 
-//    @Override
-//    public Class<? extends CredentialPolicyType> getTypeOfCredential() {
-//        return null; //todo
-//    }
-
 }

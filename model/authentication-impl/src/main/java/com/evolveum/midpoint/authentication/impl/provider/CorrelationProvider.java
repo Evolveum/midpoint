@@ -74,7 +74,7 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
             return authentication;
         }
 
-        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
 
         try {
             Authentication token = null;

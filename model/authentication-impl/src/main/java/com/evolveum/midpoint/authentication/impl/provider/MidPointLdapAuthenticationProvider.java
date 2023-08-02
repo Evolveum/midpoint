@@ -109,7 +109,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
                     mpDirContextAdapter.setChannel(authRequirements.channel);
                     mpDirContextAdapter.setRequireAssignment(authRequirements.requireAssignment);
-                    mpDirContextAdapter.setConnectionEnvironment(createEnvironment(authRequirements.channel, authentication));
+                    mpDirContextAdapter.setConnectionEnvironment(createEnvironment(authRequirements.channel));
 
                     return mpDirContextAdapter;
                 }

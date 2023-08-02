@@ -59,7 +59,7 @@ public class FocusIdentificationProvider extends MidPointAbstractAuthenticationP
             return authentication;
         }
 
-        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
 
         try {
             Authentication token;
