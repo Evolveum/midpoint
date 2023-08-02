@@ -23,9 +23,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.authentication.api.PasswordAuthenticationContext;
-import com.evolveum.midpoint.authentication.api.PreAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;

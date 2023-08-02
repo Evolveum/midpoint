@@ -15,7 +15,7 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -46,7 +46,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;

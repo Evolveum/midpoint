@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.provider;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CredentialModuleAuthenticationImpl;
@@ -14,7 +14,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.Credentia
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.evolveum.midpoint.authentication.api.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**

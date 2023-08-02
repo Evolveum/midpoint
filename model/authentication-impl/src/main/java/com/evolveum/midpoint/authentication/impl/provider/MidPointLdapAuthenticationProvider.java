@@ -18,7 +18,6 @@ import com.evolveum.midpoint.authentication.impl.ldap.LdapDirContextAdapter;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.LdapAuthenticationToken;
 import com.evolveum.midpoint.authentication.impl.module.authentication.LdapModuleAuthentication;
 
@@ -37,7 +36,6 @@ import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;

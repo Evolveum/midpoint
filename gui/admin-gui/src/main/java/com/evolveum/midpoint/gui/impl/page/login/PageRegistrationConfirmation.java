@@ -24,7 +24,7 @@ import org.springframework.security.core.AuthenticationException;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.authentication.api.NonceAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

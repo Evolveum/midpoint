@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerificationEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
-import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerificationAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.AttributeVerificationAuthenticationContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
