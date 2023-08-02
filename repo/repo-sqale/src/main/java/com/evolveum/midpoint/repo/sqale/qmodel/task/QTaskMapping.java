@@ -100,13 +100,13 @@ public class QTaskMapping
         addNestedMapping(F_SCHEDULE, ScheduleType.class)
                 .addItemMapping(ScheduleType.F_RECURRENCE, enumMapper(q -> q.recurrence));
 
-        addNestedMapping(F_AFFECTS, TaskAffectedType.class)
+        addNestedMapping(F_AFFECTED_OBJECTS, TaskAffectedObjectsType.class)
                 .addContainerTableMapping(
-                        TaskAffectedType.F_RESOURCE_OBJECTS,
+                        TaskAffectedObjectsType.F_RESOURCE_OBJECTS,
                         QAffectedResourceObjectsMapping.init(repositoryContext),
                         joinOn((t, ro) -> t.oid.eq(ro.ownerOid)))
                 .addContainerTableMapping(
-                        TaskAffectedType.F_OBJECTS,
+                        TaskAffectedObjectsType.F_OBJECTS,
                         QAffectedObjectsMapping.init(repositoryContext),
                         joinOn((t, ro) -> t.oid.eq(ro.ownerOid)));
     }
@@ -223,7 +223,7 @@ public class QTaskMapping
     public void storeRelatedEntities(@NotNull MTask row, @NotNull TaskType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
-        var affects = schemaObject.getAffects();
+        var affects = schemaObject.getAffectedObjects();
         if (affects != null) {
             for (var resObject : affects.getResourceObjects()) {
                 QAffectedResourceObjectsMapping.get().insert(resObject, row, jdbcSession);

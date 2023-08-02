@@ -13,12 +13,10 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectSetType;
 
 import com.querydsl.core.types.dsl.EnumPath;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType.F_TYPE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectSetType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType.*;
 
-public class QAffectedObjectsMapping extends QContainerMapping<TaskAffectedObjectSetType, QAffectedObjects, MAffectedObjects, MTask> {
+public class QAffectedObjectsMapping extends QContainerMapping<BasicObjectSetType, QAffectedObjects, MAffectedObjects, MTask> {
 
     public static final String DEFAULT_ALIAS_NAME = "tao";
 
@@ -44,7 +42,7 @@ public class QAffectedObjectsMapping extends QContainerMapping<TaskAffectedObjec
     }
 
     protected QAffectedObjectsMapping(@NotNull SqaleRepoContext repositoryContext) {
-        super(QAffectedObjects.TABLE_NAME, DEFAULT_ALIAS_NAME, TaskAffectedObjectSetType.class, QAffectedObjects.class, repositoryContext);
+        super(QAffectedObjects.TABLE_NAME, DEFAULT_ALIAS_NAME, BasicObjectSetType.class, QAffectedObjects.class, repositoryContext);
 
         Function<QAffectedObjects, EnumPath<MObjectType>> objectTypePath = q -> q.type;
         addItemMapping(F_TYPE, new SqaleItemSqlMapper<>(
@@ -81,7 +79,7 @@ public class QAffectedObjectsMapping extends QContainerMapping<TaskAffectedObjec
     }
 
     @Override
-    public MAffectedObjects insert(TaskAffectedObjectSetType object, MTask ownerRow, JdbcSession jdbcSession) throws SchemaException {
+    public MAffectedObjects insert(BasicObjectSetType object, MTask ownerRow, JdbcSession jdbcSession) throws SchemaException {
         var row = initRowObject(object, ownerRow);
         setReference(object.getArchetypeRef(),
                 o -> row.archetypeRefTargetOid = o ,

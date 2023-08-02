@@ -1309,7 +1309,7 @@ CREATE INDEX m_task_fullTextInfo_idx ON m_task USING gin(fullTextInfo gin_trgm_o
 CREATE INDEX m_task_createTimestamp_idx ON m_task (createTimestamp);
 CREATE INDEX m_task_modifyTimestamp_idx ON m_task (modifyTimestamp);
 
-CREATE TABLE m_task_affects_resource_objects (
+CREATE TABLE m_task_affected_resource_objects (
      ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
      containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_RESOURCE_OBJECTS') STORED
          CHECK (containerType = 'AFFECTED_RESOURCE_OBJECTS'),
@@ -1322,7 +1322,7 @@ CREATE TABLE m_task_affects_resource_objects (
      PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
-CREATE TABLE m_task_affects_objects (
+CREATE TABLE m_task_affected_objects (
      ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
      containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_OBJECTS') STORED
          CHECK (containerType = 'AFFECTED_OBJECTS'),

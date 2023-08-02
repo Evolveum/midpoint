@@ -20,7 +20,7 @@ import java.sql.Types;
 
 public class QAffectedObjects extends QContainer<MAffectedObjects, MTask> {
 
-    public static final String TABLE_NAME = "m_task_affects_objects";
+    public static final String TABLE_NAME = "m_task_affected_objects";
 
     public static final ColumnMetadata OBJECT_TYPE =
             ColumnMetadata.named("type").ofType(Types.OTHER).notNull();

@@ -198,8 +198,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         task1Oid = repositoryService.addObject(
                 new TaskType().name("task-1")
                         .executionState(TaskExecutionStateType.RUNNABLE)
-                        .affects(new TaskAffectedType()
-                                .objects(new TaskAffectedObjectSetType()
+                        .affectedObjects(new TaskAffectedObjectsType()
+                                .objects(new BasicObjectSetType()
                                         .type(UserType.COMPLEX_TYPE)
                                         .archetypeRef(archetypeOid, ArchetypeType.COMPLEX_TYPE)
                                 )
@@ -211,7 +211,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .executionState(TaskExecutionStateType.CLOSED)
                         .schedule(new ScheduleType()
                                 .recurrence(TaskRecurrenceType.RECURRING))
-                        .affects(new TaskAffectedType()
+                        .affectedObjects(new TaskAffectedObjectsType()
                                 .resourceObjects(new BasicResourceObjectSetType()
                                         .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                                         .kind(ShadowKindType.ACCOUNT)
@@ -1266,14 +1266,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test360TasksWhichAffectsResourceObjects() throws SchemaException {
         searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
                 TaskType.class,
-                f -> f.exists(TaskType.F_AFFECTS, TaskAffectedType.F_RESOURCE_OBJECTS)
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_RESOURCE_OBJECTS)
                         .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
                 , task2Oid);
 
-
         searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
                 TaskType.class,
-                f -> f.exists(TaskType.F_AFFECTS, TaskAffectedType.F_RESOURCE_OBJECTS)
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_RESOURCE_OBJECTS)
                         .block()
                             .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
                             .and()
@@ -1289,23 +1288,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test361TasksWhichAffectsUsersWithArchetype() throws SchemaException {
         searchObjectTest( "matching exists filter for affects/objects, which references only type",
                 TaskType.class,
-                f -> f.exists(TaskType.F_AFFECTS, TaskAffectedType.F_OBJECTS)
-                        .item(TaskAffectedObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_OBJECTS)
+                        .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
                 , task1Oid);
 
         searchObjectTest( "equal filter for affects/objects/type, which references only type",
                 TaskType.class,
-                f -> f.item(TaskType.F_AFFECTS, TaskAffectedType.F_OBJECTS, TaskAffectedObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                f -> f.item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
                 , task1Oid);
 
 
         searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
                 TaskType.class,
-                f -> f.exists(TaskType.F_AFFECTS, TaskAffectedType.F_OBJECTS)
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_OBJECTS)
                         .block()
-                        .item(TaskAffectedObjectSetType.F_ARCHETYPE_REF).ref(archetypeOid)
+                        .item(BasicObjectSetType.F_ARCHETYPE_REF).ref(archetypeOid)
                         .and()
-                        .item(TaskAffectedObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                        .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
                         .endBlock()
                 , task1Oid);
 

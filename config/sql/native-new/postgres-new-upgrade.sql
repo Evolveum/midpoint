@@ -332,7 +332,7 @@ $aa)
 -- Task Affected Indexing (tables)
 
 call apply_change(17, $aa$
-CREATE TABLE m_task_affects_resource_objects (
+CREATE TABLE m_task_affected_resource_objects (
      ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
      containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_RESOURCE_OBJECTS') STORED
          CHECK (containerType = 'AFFECTED_RESOURCE_OBJECTS'),
@@ -345,7 +345,7 @@ CREATE TABLE m_task_affects_resource_objects (
      PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
-CREATE TABLE m_task_affects_objects (
+CREATE TABLE m_task_affected_objects (
      ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
      containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_OBJECTS') STORED
          CHECK (containerType = 'AFFECTED_OBJECTS'),
@@ -356,7 +356,7 @@ CREATE TABLE m_task_affects_objects (
      PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
-$aa)
+$aa$)
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
