@@ -4,12 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.api.context;
+package com.evolveum.midpoint.authentication.api;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -27,13 +28,17 @@ public abstract class AbstractAuthenticationContext {
 
     private final List<ObjectReferenceType> requireAssignments;
 
-    private boolean supportActivationByChannel = true;
+    private final boolean supportActivationByChannel;
 
     public AbstractAuthenticationContext(
-            String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment) {
+            String username,
+            Class<? extends FocusType> principalType,
+            List<ObjectReferenceType> requireAssignment,
+            AuthenticationChannel channel) {
         this.username = username;
         this.requireAssignments = requireAssignment;
         this.principalType = principalType;
+        this.supportActivationByChannel = channel == null || channel.isSupportActivationByChannel();
     }
 
     public String getUsername() {
@@ -42,10 +47,6 @@ public abstract class AbstractAuthenticationContext {
 
     public Class<? extends FocusType> getPrincipalType() {
         return principalType;
-    }
-
-    public void setSupportActivationByChannel(boolean supportActivationByChannel) {
-        this.supportActivationByChannel = supportActivationByChannel;
     }
 
     public boolean isSupportActivationByChannel() {

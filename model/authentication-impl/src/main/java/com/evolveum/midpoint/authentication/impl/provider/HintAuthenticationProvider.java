@@ -7,11 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.HintAuthenticationToken;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -25,14 +21,9 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 import java.util.List;
 
-public class HintAuthenticationProvider extends MidPointAbstractAuthenticationProvider<PasswordAuthenticationContext> {
+public class HintAuthenticationProvider extends MidpointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(HintAuthenticationProvider.class);
-
-    @Override
-    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-        return null;
-    }
 
     @Override
     public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
@@ -40,20 +31,11 @@ public class HintAuthenticationProvider extends MidPointAbstractAuthenticationPr
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
-
-        try {
-            return new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials());
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
-            throw e;
-        }
+        //TODO do we want to do something else here?
+        return new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials());
     }
 
     @Override
@@ -69,10 +51,5 @@ public class HintAuthenticationProvider extends MidPointAbstractAuthenticationPr
     public boolean supports(Class<?> authentication) {
         return HintAuthenticationToken.class.equals(authentication);
     }
-
-//    @Override
-//    public Class<? extends CredentialPolicyType> getTypeOfCredential() {
-//        return null; //todo
-//    }
 
 }

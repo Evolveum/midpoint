@@ -9,9 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
-import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -28,6 +25,7 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;

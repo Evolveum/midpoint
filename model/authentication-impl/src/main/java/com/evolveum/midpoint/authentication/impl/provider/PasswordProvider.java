@@ -24,9 +24,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.PasswordAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,8 +42,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordProvider.class);
 
-    @Autowired
-    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    @Autowired private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
     @Override
     protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
@@ -63,43 +61,39 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
+
         String enteredUsername = getEnteredUsername(authentication);
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        try {
-            Authentication token;
-            if (authentication instanceof UsernamePasswordAuthenticationToken) {
-                String enteredPassword = (String) authentication.getCredentials();
+        Authentication token;
+        if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            String enteredPassword = (String) authentication.getCredentials();
 
-                PasswordAuthenticationContext authContext = new PasswordAuthenticationContext(enteredUsername, enteredPassword, focusType, requireAssignment);
-                if (channel != null) {
-                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
-                }
-                token = getEvaluator().authenticate(connEnv, authContext);
-            } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                token = getEvaluator().authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, focusType, requireAssignment));
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
-
-            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
-            return token;
-
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
-            throw e;
+            PasswordAuthenticationContext authContext = new PasswordAuthenticationContext(
+                    enteredUsername,
+                    enteredPassword,
+                    focusType,
+                    requireAssignment,
+                    channel);
+            token = getEvaluator().authenticate(connEnv, authContext);
+        } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
+            token = getEvaluator().authenticateUserPreAuthenticated(connEnv, new
+                    PreAuthenticationContext(enteredUsername, focusType, requireAssignment, channel));
+        } else {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+
+        LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+                authentication.getClass().getSimpleName(), principal.getAuthorities());
+        return token;
+
     }
 
     @Override

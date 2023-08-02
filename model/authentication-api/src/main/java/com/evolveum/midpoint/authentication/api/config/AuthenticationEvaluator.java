@@ -12,7 +12,7 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.AbstractAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 

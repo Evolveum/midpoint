@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.api.context;
+package com.evolveum.midpoint.authentication.api;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +37,11 @@ public class FocusIdentificationAuthenticationContext extends AbstractAuthentica
     private String username;
 
     public FocusIdentificationAuthenticationContext(
-            Map<ItemPath, String> values, Class<? extends FocusType> principalType, List<ModuleItemConfigurationType> config, List<ObjectReferenceType> requireAssignment) {
-        super(null, principalType, requireAssignment);
+            Map<ItemPath, String> values,
+            Class<? extends FocusType> principalType,
+            List<ModuleItemConfigurationType> config,
+            AuthenticationChannel channel) {
+        super(null, principalType, null, channel);
         this.values = values;
         this.config = config;
     }

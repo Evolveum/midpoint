@@ -11,25 +11,22 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -47,42 +44,43 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  * @author skublik
  */
-public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractAuthenticationContext>
-        implements AuthenticationProvider {
+public abstract class AbstractAuthenticationProvider implements AuthenticationProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointAbstractAuthenticationProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractAuthenticationProvider.class);
 
-    protected abstract AuthenticationEvaluator<T> getEvaluator();
 
+    /**
+     * originalAuthentication - usually in form of a token created by a filter,
+     * but in case of anonymous filter, it will be MidpointAuthentication with AnonymousAuthenticationToken
+     * wrapped in a processing module authentication
+     */
     @Override
     public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
+        if (isAnonymous(originalAuthentication)) {
+            return originalAuthentication; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
+        }
 
         AuthenticationRequirements authRequirements = new AuthenticationRequirements();
         try {
-            Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-            Authentication processingAuthentication = originalAuthentication;
-            if (isAnonymous(originalAuthentication)) {
-                return originalAuthentication; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
-            }
-            processingAuthentication = initAuthRequirements(processingAuthentication, originalAuthentication, actualAuthentication,
+
+            MidpointAuthentication actualAuthentication = AuthUtil.getMidpointAuthentication();
+
+            Authentication processingAuthentication = initAuthRequirements(
+                    originalAuthentication,
+                    actualAuthentication,
                     authRequirements);
+
+             //TOOD maybe change to mpAuthentication? or make public class for requirements?
             Authentication token = internalAuthentication(processingAuthentication, authRequirements.requireAssignment,
                     authRequirements.channel, authRequirements.focusType);
 
-            if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
-                ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
-                if (token.getPrincipal() instanceof MidPointPrincipal principal) {
-                    token = createNewAuthenticationToken(token,
-                            mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
-                } else {
-                    token = createNewAuthenticationToken(token, token.getAuthorities());
-                }
-                writeAuthentication(processingAuthentication, mpAuthentication, moduleAuthentication, token);
+            token = createNewAuthenticationToken(token, actualAuthentication.resolveAuthorities(token));
 
-                return mpAuthentication;
-            }
+            writeAuthentication(processingAuthentication, actualAuthentication, token);
+//            actualAuthentication.recordAuthenticationToken(token);
 
-            return token;
+            return actualAuthentication;
+
         } catch (AuthenticationException e) {
             LOGGER.debug("Authentication error: {}", e.getMessage(), e);
             throw e;
@@ -95,26 +93,27 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     private boolean isAnonymous(Authentication originalAuthentication) {
         if (originalAuthentication instanceof MidpointAuthentication mpAuthentication) {
-            ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
             return moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken;
         }
         return false;
     }
 
-    private Authentication initAuthRequirements(Authentication processingAuthentication, Authentication originalAuthentication,
-            Authentication actualAuthentication, AuthenticationRequirements authRequirements) {
+    private Authentication initAuthRequirements(Authentication originalAuthentication,
+            MidpointAuthentication actualAuthentication, AuthenticationRequirements authRequirements) {
+        //TODO can originalAuthentication be of type MidpointAuthentication?
         if (originalAuthentication instanceof MidpointAuthentication mpAuthentication) {
             initAuthRequirements(mpAuthentication, authRequirements);
-            ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
             return moduleAuthentication.getAuthentication();
-        } else if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
-            initAuthRequirements(mpAuthentication, authRequirements);
+        } else {
+            initAuthRequirements(actualAuthentication, authRequirements);
         }
-        return processingAuthentication;
+        return originalAuthentication;
     }
 
     private void initAuthRequirements(MidpointAuthentication mpAuthentication, AuthenticationRequirements authRequirements) {
-        ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
         if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
             authRequirements.focusType = PrismContext.get().getSchemaRegistry()
                     .determineCompileTimeClass(moduleAuthentication.getFocusType());
@@ -131,25 +130,17 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return authRequirements;
     }
 
-    protected void writeAuthentication(
-            Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
-            ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
+    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, Authentication token) {
+
         Object principal = token.getPrincipal();
         if (principal instanceof MidPointPrincipal) {
             mpAuthentication.setPrincipal(principal);
         }
 
-        moduleAuthentication.setAuthentication(token);
+        mpAuthentication.setToken(token);
     }
 
-    protected ModuleAuthentication getProcessingModule(MidpointAuthentication mpAuthentication) {
-        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-        if (moduleAuthentication == null) {
-            LOGGER.debug("Couldn't find processing module authentication {}", mpAuthentication);    //todo temporary decision for mid-8727
-            throw new AuthenticationServiceException("web.security.auth.module.null");
-        }
-        return moduleAuthentication;
-    }
+
 
     protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel) {
         ConnectionEnvironment connEnv;
@@ -175,11 +166,13 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     protected abstract Authentication createNewAuthenticationToken(
             Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities);
 
-    public boolean supports(Class<?> authenticationClass, Authentication authentication) {
+    public boolean supports(Authentication authentication) {
+        Class<? extends Authentication> authenticationClass = authentication.getClass();
         if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
             return supports(authenticationClass);
         }
-        ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
         if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
         }
@@ -193,7 +186,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((getEvaluator() == null) ? 0 : getEvaluator().hashCode());
+//        result = prime * result + ((getEvaluator() == null) ? 0 : getEvaluator().hashCode());
         return result;
     }
 

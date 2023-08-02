@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.ldap.AuditedAuthenticationException;
 import com.evolveum.midpoint.authentication.impl.ldap.LdapDirContextAdapter;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenticationProvider {
+public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointLdapAuthenticationProvider.class);
 
@@ -89,9 +90,8 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             UsernamePasswordAuthenticationToken authentication, DirContextOperations originalDirContextOperations) {
         if (originalDirContextOperations instanceof DirContextAdapter) {
             Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-            if (actualAuthentication instanceof MidpointAuthentication) {
-                MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
-                ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
+            if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
+                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
                 if (moduleAuthentication instanceof LdapModuleAuthentication){
                     //HACK because of NP in DirContextAdapter(DirContextAdapter master)
                     if (!originalDirContextOperations.isUpdateMode()) {
@@ -158,15 +158,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     }
 
     @Override
-    protected AuthenticationEvaluator getEvaluator() {
-        return null;
-    }
-
-    @Override
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
+    protected Authentication doAuthenticate(Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType) throws AuthenticationException {
 
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'",
@@ -308,9 +300,8 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     private Class<? extends FocusType> getFocusType() {
         Class<? extends FocusType> focusType = UserType.class;
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
-            ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
+        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
             if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
                 focusType = PrismContext.get().getSchemaRegistry().determineCompileTimeClass(moduleAuthentication.getFocusType());
             }

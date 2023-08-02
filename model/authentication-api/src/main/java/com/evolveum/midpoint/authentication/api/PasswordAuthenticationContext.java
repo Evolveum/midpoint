@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.api.context;
+package com.evolveum.midpoint.authentication.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -20,12 +20,14 @@ public class PasswordAuthenticationContext extends AbstractAuthenticationContext
     }
 
     public PasswordAuthenticationContext(String username, String password, Class<? extends FocusType> principalType) {
-        this(username,password, principalType, null);
+        this(username,password, principalType, null, null);
     }
 
     public PasswordAuthenticationContext(String username, String password,
-            Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignments) {
-        super(username, principalType, requireAssignments);
+            Class<? extends FocusType> principalType,
+            List<ObjectReferenceType> requireAssignments,
+            AuthenticationChannel channel) {
+        super(username, principalType, requireAssignments, channel);
         this.password = password;
     }
 

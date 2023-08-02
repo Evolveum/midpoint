@@ -579,6 +579,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 changeLogoutToNewSequence(mpAuthentication, httpRequest);
                 this.sequence = mpAuthentication.getSequence();
             }
+
         }
 
         public void initializeAuthenticationChannel(AuthChannelRegistryImpl authChannelRegistry) {

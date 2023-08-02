@@ -30,8 +30,8 @@ import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecord
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.PreAuthenticationContext;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -192,7 +192,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throws AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
 
-        PreAuthenticationContext preAuthenticationContext = new PreAuthenticationContext(username, FocusType.class, null);
+        PreAuthenticationContext preAuthenticationContext = new PreAuthenticationContext(username, FocusType.class);
         MidPointPrincipal principal = getAndCheckPrincipal(connEnv, (T) preAuthenticationContext, true);
 
         FocusType focusType = principal.getFocus();

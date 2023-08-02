@@ -24,7 +24,7 @@ import org.springframework.security.core.AuthenticationException;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -123,8 +123,11 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
         try {
             ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-            return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username, UserType.class,
-                    nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
+            return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(
+                    username,
+                    UserType.class,
+                    nonce,
+                    getSelfRegistrationConfiguration().getNoncePolicy()));
         } catch (AuthenticationException ex) {
             getSession().error(getString(ex.getMessage()));
             result.recordFatalError(getString("PageRegistrationConfirmation.message.failedValidUser.fatalError"), ex);

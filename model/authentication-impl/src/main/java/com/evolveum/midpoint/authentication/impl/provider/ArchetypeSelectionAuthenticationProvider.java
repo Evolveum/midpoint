@@ -7,12 +7,9 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.ArchetypeSelectionAuthenticationToken;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -23,54 +20,34 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
 import java.util.List;
 
-public class ArchetypeSelectionAuthenticationProvider extends MidPointAbstractAuthenticationProvider<PasswordAuthenticationContext> {
+public class ArchetypeSelectionAuthenticationProvider extends MidpointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionAuthenticationProvider.class);
 
     @Override
-    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-        return null;
-    }
+    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel, Class<? extends FocusType> focusType) {
 
-    @Override
-    public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
-        return super.authenticate(originalAuthentication);
-    }
-
-    @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
-            AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
-
-        try {
-            if (authentication instanceof ArchetypeSelectionAuthenticationToken) {
-                //todo process the case when no archetype oid is defined
-                var archetypeOid = ((ArchetypeSelectionAuthenticationToken) authentication).getArchetypeOid();
-                var allowUndefinedArchetype = ((ArchetypeSelectionAuthenticationToken) authentication).isAllowUndefinedArchetype();
-                if (StringUtils.isEmpty(archetypeOid) && !allowUndefinedArchetype) {
-                    LOGGER.debug("No details provided: {}", authentication);
-                    throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
-                }
-                authentication.setAuthenticated(true);
-                saveArchetypeToMidpointAuthentication(archetypeOid);
-                return authentication;
-
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
+        if (authentication instanceof ArchetypeSelectionAuthenticationToken) {
+            //todo process the case when no archetype oid is defined
+            var archetypeOid = ((ArchetypeSelectionAuthenticationToken) authentication).getArchetypeOid();
+            var allowUndefinedArchetype = ((ArchetypeSelectionAuthenticationToken) authentication).isAllowUndefinedArchetype();
+            if (StringUtils.isEmpty(archetypeOid) && !allowUndefinedArchetype) {
+                LOGGER.debug("No details provided: {}", authentication);
+                throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
             }
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
-            throw e;
+            authentication.setAuthenticated(true);
+            saveArchetypeToMidpointAuthentication(archetypeOid);
+            return authentication;
+
+        } else {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
     }
 

@@ -6,21 +6,24 @@
  */
 package com.evolveum.midpoint.authentication.impl.provider;
 
+import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CredentialModuleAuthenticationImpl;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.AbstractAuthenticationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**
  * @author skublik
  */
 
-public abstract class AbstractCredentialProvider<T extends AbstractAuthenticationContext> extends MidPointAbstractAuthenticationProvider<T> {
+public abstract class AbstractCredentialProvider<T extends AbstractAuthenticationContext> extends MidpointAbstractAuthenticationProvider {
+
+    protected abstract AuthenticationEvaluator<T> getEvaluator();
 
     public abstract Class<? extends CredentialPolicyType> getTypeOfCredential();
 
@@ -28,7 +31,7 @@ public abstract class AbstractCredentialProvider<T extends AbstractAuthenticatio
         if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
             return supports(authenticationClass);
         }
-        ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
         if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
         }

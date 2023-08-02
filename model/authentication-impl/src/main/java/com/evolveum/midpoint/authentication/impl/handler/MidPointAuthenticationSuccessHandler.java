@@ -92,7 +92,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication();
                     HttpSession session = request.getSession(false);
                     if (session != null) {
-                        request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", mpAuthentication.getAuthenticationExceptionIfExsits());
+                        request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", mpAuthentication.getAuthenticationExceptionIfExists());
                     }
 
                     getRedirectStrategy().sendRedirect(request, response, urlSuffix);

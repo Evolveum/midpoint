@@ -25,8 +25,8 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.PasswordAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -73,10 +73,7 @@ public class MidpointPrincipalContextMapper implements UserDetailsContextMapper 
         AuthenticationChannel channel = ((LdapDirContextAdapter) ctx).getChannel();
         ConnectionEnvironment connEnv = ((LdapDirContextAdapter) ctx).getConnectionEnvironment();
 
-        PreAuthenticationContext authContext = new PreAuthenticationContext(userNameEffective, focusType, requireAssignment);
-        if (channel != null) {
-            authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
-        }
+        PreAuthenticationContext authContext = new PreAuthenticationContext(userNameEffective, focusType, requireAssignment, channel);
 
         try {
             PreAuthenticatedAuthenticationToken token = authenticationEvaluator.authenticateUserPreAuthenticated(

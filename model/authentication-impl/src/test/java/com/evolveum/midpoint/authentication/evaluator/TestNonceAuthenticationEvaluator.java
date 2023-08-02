@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.evaluator;
 
+import com.evolveum.midpoint.authentication.api.NonceAuthenticationContext;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,7 +39,7 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
     @Override
     public NonceAuthenticationContext getAuthenticationContext(
             String username, String value, List<ObjectReferenceType> requiredAssignments) {
-        return new NonceAuthenticationContext(username, UserType.class, value, null, requiredAssignments);
+        return new NonceAuthenticationContext(username, UserType.class, value, null, requiredAssignments, null);
     }
 
     @Override

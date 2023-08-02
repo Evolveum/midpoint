@@ -12,18 +12,13 @@ import java.util.List;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.evaluator.NodeAuthenticationEvaluatorImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.ClusterAuthenticationToken;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -31,50 +26,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 
-public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
+public class ClusterProvider extends MidpointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusterProvider.class);
 
-    @Autowired
-    private NodeAuthenticationEvaluatorImpl nodeAuthenticator;
+    @Autowired private NodeAuthenticationEvaluatorImpl nodeAuthenticator;
 
-    @Override
-    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-        return null;
-    }
-
-    @Override
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
-                                                    AuthenticationChannel channel, Class focusTyp) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
-        String enteredUsername = (String) authentication.getPrincipal();
-        LOGGER.trace("Authenticating username '{}'", enteredUsername);
-        try {
-            Authentication token;
-            if (authentication instanceof ClusterAuthenticationToken) {
-                String enteredPassword = (String) authentication.getCredentials();
-                if (!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "node authentication")) {
-                    throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
-                } else {
-                    token = SecurityContextHolder.getContext().getAuthentication();
-                }
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
-
-            LOGGER.debug("Node '{}' authenticated}", authentication.getPrincipal());
-            token.setAuthenticated(true);
-            return token;
-
-        } catch (AuthenticationException e) {
-            // This is something that the administrator should know about. Hence not DEBUG but INFO.
-            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
-            throw e;
-        }
-    }
 
     @Override
     protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection newAuthorities) {
@@ -85,10 +42,12 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
         }
     }
 
-    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthenticationImpl moduleAuthentication, Authentication token) {
+    //TODO changed to recordAuthentication on midPointAuthentication
+    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, Authentication token) {
         mpAuthentication.setPrincipal(token.getPrincipal());
         mpAuthentication.setCredential(token.getCredentials());
-        moduleAuthentication.setAuthentication(token);
+        mpAuthentication.setToken(token);
+
     }
 
     @Override
@@ -107,5 +66,28 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
     @Override
     public boolean equals(Object obj) {
         return super.equals(obj);
+    }
+
+    @Override
+    protected Authentication doAuthenticate(Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType) {
+        String enteredUsername = (String) authentication.getPrincipal();
+        LOGGER.trace("Authenticating username '{}'", enteredUsername);
+
+        Authentication token;
+        if (authentication instanceof ClusterAuthenticationToken) {
+            String enteredPassword = (String) authentication.getCredentials();
+            if (!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "node authentication")) {
+                throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
+            } else {
+                token = SecurityContextHolder.getContext().getAuthentication();
+            }
+        } else {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
+        }
+
+        LOGGER.debug("Node '{}' authenticated}", authentication.getPrincipal());
+        token.setAuthenticated(true);
+        return token;
     }
 }

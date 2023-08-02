@@ -52,8 +52,11 @@ public class LdapModuleFactory extends AbstractModuleFactory<
 
     @Override
     protected LdapWebSecurityConfigurer createModuleConfigurer(LdapAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
-        return new LdapWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
-                objectPostProcessor, request,
+        return new LdapWebSecurityConfigurer(moduleType,
+                sequenceSuffix,
+                authenticationChannel,
+                objectPostProcessor,
+                request,
                 getProvider(moduleType));
     }
 

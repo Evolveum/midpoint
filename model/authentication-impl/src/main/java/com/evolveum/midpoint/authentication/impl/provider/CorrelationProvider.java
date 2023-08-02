@@ -7,19 +7,15 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CorrelationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.CorrelationVerificationToken;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.*;
@@ -41,24 +37,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<PasswordAuthenticationContext> {
+public class CorrelationProvider extends MidpointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationProvider.class);
 
-    @Autowired
-    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-
-    @Override
-    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-        return passwordAuthenticationEvaluator;
-    }
-
-    //TODO move to the evaluator?
-    protected CorrelatorFactoryRegistry correlatorFactoryRegistry;
 
     @Autowired protected CorrelationService correlationService;
     @Autowired private TaskManager taskManager;
-    @Autowired private SecurityContextManager securityContextManager;
+
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
 
@@ -68,53 +54,41 @@ public class CorrelationProvider extends MidPointAbstractAuthenticationProvider<
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    public Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
 
-        ConnectionEnvironment connEnv = createEnvironment(channel);
-
-        try {
-            Authentication token = null;
-            if (authentication instanceof CorrelationVerificationToken correlationVerificationToken) {
-                try {
-                    ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
-                    if (!(moduleAuthentication instanceof CorrelationModuleAuthenticationImpl correlationModuleAuthentication)) {
-                        LOGGER.error("Correlation module authentication is not set");
-                        throw new AuthenticationServiceException("web.security.provider.unavailable");
-                    }
-
-                    CompleteCorrelationResult correlationResult = correlate(correlationVerificationToken,
-                            determineArchetypeOid(),
-                            correlationModuleAuthentication.getCandidateOids(),
-                            focusType);
-                    ObjectType owner = correlationResult.getOwner();
-
-                    //TODO save result and find a way how to use it when next correlators run
-
-                    if (owner != null) {
-                        return createAuthenticationToken(owner, focusType);
-                    }
-
-                    CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
-                    correlationModuleAuthentication.addCandidateOwners(ownersMap);
-
-                    return authentication;
-                } catch (Exception e) {
-                    LOGGER.error("Cannot correlate user, {}", e.getMessage(), e);
+        if (authentication instanceof CorrelationVerificationToken correlationVerificationToken) {
+            try {
+                ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
+                if (!(moduleAuthentication instanceof CorrelationModuleAuthenticationImpl correlationModuleAuthentication)) {
+                    LOGGER.error("Correlation module authentication is not set");
                     throw new AuthenticationServiceException("web.security.provider.unavailable");
                 }
 
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
+                CompleteCorrelationResult correlationResult = correlate(correlationVerificationToken,
+                        determineArchetypeOid(),
+                        correlationModuleAuthentication.getCandidateOids(),
+                        focusType);
+                ObjectType owner = correlationResult.getOwner();
+
+                if (owner != null) {
+                    return createAuthenticationToken(owner, focusType);
+                }
+
+                CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
+                correlationModuleAuthentication.addCandidateOwners(ownersMap);
+
+                return authentication;
+            } catch (Exception e) {
+                LOGGER.error("Cannot correlate user, {}", e.getMessage(), e);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", authentication, e.getMessage());
-            throw e;
+
+        } else {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
     }
 
     private String determineArchetypeOid() {

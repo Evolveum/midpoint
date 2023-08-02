@@ -33,8 +33,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,41 +71,32 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     }
 
     @Override
-    protected Authentication internalAuthentication(
+    protected Authentication doAuthenticate(
             Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
+
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
-        try {
-            Authentication token;
-            if (authentication instanceof MailNonceAuthenticationToken) {
-                String nonce = (String) authentication.getCredentials();
-                NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
-                        focusType, nonce, getNoncePolicy(enteredUsername), requireAssignment);
-                if (channel != null) {
-                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
-                }
-                token = getEvaluator().authenticate(connEnv, authContext);
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
 
-            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
-            return token;
-
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
-            throw e;
+        Authentication token;
+        if (authentication instanceof MailNonceAuthenticationToken) {
+            String nonce = (String) authentication.getCredentials();
+            NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
+                    focusType, nonce, getNoncePolicy(enteredUsername), requireAssignment, channel);
+            token = getEvaluator().authenticate(connEnv, authContext);
+        } else {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+
+        LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+                authentication.getClass().getSimpleName(), principal.getAuthorities());
+        return token;
+
     }
 
     private NonceCredentialsPolicyType getNoncePolicy(String username) {

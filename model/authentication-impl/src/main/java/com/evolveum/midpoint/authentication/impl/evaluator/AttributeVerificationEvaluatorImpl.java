@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.evaluator;
 
-import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;

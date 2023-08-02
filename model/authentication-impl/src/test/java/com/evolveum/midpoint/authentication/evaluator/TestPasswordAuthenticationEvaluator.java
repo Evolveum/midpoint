@@ -8,12 +8,12 @@ package com.evolveum.midpoint.authentication.evaluator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.PasswordAuthenticationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,7 +38,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
     @Override
     public PasswordAuthenticationContext getAuthenticationContext(
             String username, String value, List<ObjectReferenceType> requiredAssignments) {
-        return new PasswordAuthenticationContext(username, value, UserType.class, requiredAssignments);
+        return new PasswordAuthenticationContext(username, value, UserType.class, requiredAssignments, null);
     }
 
     @Override
