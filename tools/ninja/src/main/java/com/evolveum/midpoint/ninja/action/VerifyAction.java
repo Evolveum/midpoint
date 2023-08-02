@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
@@ -68,6 +69,14 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         log.info(
                 "Verification finished, {} critical, {} necessary, {} optional issues found",
                 result.getCriticalCount(), result.getNecessaryCount(), result.getOptionalCount());
+
+        if (options.getOutput() != null) {
+            log.info("Verification report saved to '{}'", options.getOutput().getPath());
+
+            if (Objects.equals(VerifyOptions.ReportStyle.CSV, options.getReportStyle())) {
+                log.info("XML dump with delta for each item saved to '{}'", options.getOutput().getPath() + VerificationReporter.DELTA_FILE_NAME_SUFFIX);
+            }
+        }
 
         return result;
     }
