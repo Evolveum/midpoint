@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HintAuthenticationModuleType;
 
 @Component
-public class HintAuthenticationModuleFactoryImpl extends AbstractModuleFactory<
+public class HintAuthenticationModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         HintModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>,
         HintAuthenticationModuleType,

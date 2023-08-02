@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationA
  * @author skublik
  */
 @Component
-public class FocusIdentificationModuleFactoryImpl extends AbstractModuleFactory<
+public class FocusIdentificationModuleFactory extends AbstractModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         FocusIdentificationModuleWebSecurityConfigurer,
         FocusIdentificationAuthenticationModuleType,

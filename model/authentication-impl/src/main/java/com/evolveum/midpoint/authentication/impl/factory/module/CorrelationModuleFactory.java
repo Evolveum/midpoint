@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationAuthentic
  * @author skublik
  */
 @Component
-public class CorrelationModuleFactoryImpl extends AbstractModuleFactory
+public class CorrelationModuleFactory extends AbstractModuleFactory
         <LoginFormModuleWebSecurityConfiguration,
                 CorrelationModuleWebSecurityConfigurer,
                 CorrelationAuthenticationModuleType,

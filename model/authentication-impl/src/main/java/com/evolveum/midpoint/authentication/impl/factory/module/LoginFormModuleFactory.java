@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @Component
-public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory<
+public class LoginFormModuleFactory extends AbstractCredentialModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         LoginFormModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, LoginFormAuthenticationModuleType>,
         LoginFormAuthenticationModuleType,
