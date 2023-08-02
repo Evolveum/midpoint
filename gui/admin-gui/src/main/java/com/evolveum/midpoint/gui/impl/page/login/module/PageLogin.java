@@ -29,14 +29,11 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
-/**
- * @author mserbak
- * @author lskublik
- */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/login", matchUrlForSecurity = "/login")
 }, permitAll = true, loginPage = true)
-public class PageLogin extends PageAbstractAuthenticationModule<CredentialModuleAuthentication> {
+//TODO ModuleAuthentication because it might be either credentials or ldap module authentication
+public class PageLogin extends PageAbstractAuthenticationModule<ModuleAuthentication> {
     @Serial private static final long serialVersionUID = 1L;
     private static final String ID_USERNAME = "username";
 
