@@ -20,6 +20,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates expression evaluators from their definitions (evaluator elements) and parts of the context
@@ -36,16 +38,19 @@ public interface ExpressionEvaluatorFactory {
 
     /**
      * Creates an evaluator.
-     * @param evaluatorElements Definition of the evaluator. All elements must be of the same type.
+     *
+     * @param evaluatorElements Definition of the evaluator. May be empty. If it's not, all elements must be of the same type.
      * @param outputDefinition Definition of output values.
      * @param expressionProfile Expression profile to be used during evaluation.
-     * @param expressionFactory TODO - why?
+     * @param expressionFactory Necessary for ScriptExpressionEvaluator.
      */
     <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 }

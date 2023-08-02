@@ -8,6 +8,10 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
@@ -19,6 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
@@ -59,8 +64,15 @@ public class ExpressionFactory implements Cache {
     private ExpressionEvaluatorFactory defaultEvaluatorFactory;
     private ObjectResolver objectResolver;
 
+    // Used by Spring
     public ExpressionFactory(SecurityContextManager securityContextManager, LocalizationService localizationService) {
         this.securityContextManager = securityContextManager;
+        this.localizationService = localizationService;
+    }
+
+    @VisibleForTesting
+    public ExpressionFactory(LocalizationService localizationService) {
+        this.securityContextManager = null;
         this.localizationService = localizationService;
     }
 
@@ -82,23 +94,57 @@ public class ExpressionFactory implements Cache {
         return localizationService;
     }
 
-    public SecurityContextManager getSecurityContextManager() {
-        return securityContextManager;
+    public @Nullable SecurityContextManager getSecurityContextManager() {
+        return securityContextManager; // may be null in low-level tests
     }
 
+    /**
+     * Temporary method, until migrated to {@link #makeExpression(ExpressionConfigItem, ItemDefinition,
+     * ExpressionProfile, String, Task, OperationResult)}.
+     *
+     * The use of {@link ConfigurationItemOrigin#undetermined()} seems dangerous but in fact it isn't such a big deal,
+     * as it is *not* used for expression profile determination.
+     */
+    @Deprecated // use the variant with config item instead
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
-            ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile,
-            String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition, expressionProfile);
+            @Nullable ExpressionType expressionBean,
+            D outputDefinition,
+            ExpressionProfile expressionProfile,
+            String shortDesc,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+        return makeExpression(
+                expressionBean != null ? // This is temporary, see the javadoc
+                        ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undetermined()) :
+                        null,
+                outputDefinition, expressionProfile, shortDesc, task, result
+        );
+    }
+
+    /**
+     * Note that the expression profile is provided here explicitly. The origin of `expressionCI` is not used for that purpose.
+     * (Only for easy access to configuration properties and error reporting.)
+     */
+    public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
+            @Nullable ExpressionConfigItem expressionCI,
+            D outputDefinition,
+            ExpressionProfile expressionProfile,
+            String shortDesc,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+        ExpressionIdentifier eid = new ExpressionIdentifier(expressionCI, outputDefinition, expressionProfile);
         try {
             //noinspection unchecked
             return (Expression<V, D>) cache.computeIfAbsent(eid, expressionIdentifier ->
-                    createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result));
+                    createExpression(expressionCI, outputDefinition, expressionProfile, shortDesc, task, result));
         } catch (TunnelException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {
                 throw (SchemaException) cause;
+            } else if (cause instanceof ConfigurationException) {
+                throw (ConfigurationException) cause;
             } else if (cause instanceof ObjectNotFoundException) {
                 throw (ObjectNotFoundException) cause;
             } else if (cause instanceof SecurityViolationException) {
@@ -114,20 +160,24 @@ public class ExpressionFactory implements Cache {
     public <T> Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> makePropertyExpression(
             ExpressionType expressionType, QName outputPropertyName,
             ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         //noinspection unchecked
         PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
         return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
     }
 
-    @NotNull
-    private <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createExpression(ExpressionType expressionType,
-            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result) {
+    private @NotNull <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createExpression(
+            @Nullable ExpressionConfigItem expressionCI,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull String shortDesc,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         try {
-            Expression<V, D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
-            expression.parse(this, shortDesc, task, result);
-            return expression;
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException e) {
+            return Expression.create(
+                    expressionCI, outputDefinition, expressionProfile,
+                    this, shortDesc, task, result);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException e) {
             throw new TunnelException(e);
         }
     }
@@ -148,16 +198,26 @@ public class ExpressionFactory implements Cache {
         this.defaultEvaluatorFactory = defaultEvaluatorFactory;
     }
 
+    public @NotNull PrismContext getPrismContext() {
+        return prismContext;
+    }
+
+    public @NotNull ObjectResolver getObjectResolver() {
+        return Objects.requireNonNull(objectResolver, "no object resolver");
+    }
+
     static class ExpressionIdentifier {
-        private final ExpressionType expressionBean;
+        @Nullable private final ExpressionType expressionBean;
         private final ItemDefinition<?> outputDefinition;
-        private final String expressionProfileIdentifier;
+        private final String expressionProfileIdentifier; // nullable but eventually non-null
         private final int hashCode;
 
-        private ExpressionIdentifier(ExpressionType expressionBean, ItemDefinition<?> outputDefinition,
+        private ExpressionIdentifier(
+                ExpressionConfigItem expressionCI,
+                ItemDefinition<?> outputDefinition,
                 ExpressionProfile expressionProfile) {
 
-            this.expressionBean = expressionBean != null ? expressionBean.clone() : null;
+            this.expressionBean = expressionCI != null ? expressionCI.value().clone() : null;
             this.outputDefinition = cloneDefinitionIfNeeded(outputDefinition);
             this.expressionProfileIdentifier = expressionProfile != null ? expressionProfile.getIdentifier() : null;
 
@@ -189,13 +249,12 @@ public class ExpressionFactory implements Cache {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ExpressionIdentifier)) {
+            if (!(o instanceof ExpressionIdentifier that)) {
                 return false;
             }
-            ExpressionIdentifier that = (ExpressionIdentifier) o;
-            return Objects.equals(expressionBean, that.expressionBean) &&
-                    Objects.equals(outputDefinition, that.outputDefinition) &&
-                    Objects.equals(expressionProfileIdentifier, that.expressionProfileIdentifier);
+            return Objects.equals(expressionBean, that.expressionBean)
+                    && Objects.equals(outputDefinition, that.outputDefinition)
+                    && Objects.equals(expressionProfileIdentifier, that.expressionProfileIdentifier);
         }
 
         @Override

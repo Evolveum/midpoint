@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,7 +19,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -90,9 +90,17 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
 
     private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new AttributeInboundStepPanel(getAssignmentHolderModel(), valueModel) {
+        steps.add(new InboundMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
+                showTableFragment(target, MappingDirection.INBOUND);
+            }
+        });
+        steps.add(new InboundMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showTableFragment(target, MappingDirection.INBOUND);
             }
         });
@@ -109,9 +117,17 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new AttributeOutboundStepPanel<>(getAssignmentHolderModel(), valueModel) {
+        steps.add(new OutboundMappingMainConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
+                showTableFragment(target, MappingDirection.OUTBOUND);
+            }
+        });
+        steps.add(new OutboundMappingOptionalConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showTableFragment(target, MappingDirection.OUTBOUND);
             }
         });
@@ -124,6 +140,7 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
         steps.add(new MainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showAttributeOverrides(target, selectedTable);
             }
         });
@@ -131,6 +148,7 @@ public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObj
         steps.add(new LimitationsStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showAttributeOverrides(target, selectedTable);
             }
         });

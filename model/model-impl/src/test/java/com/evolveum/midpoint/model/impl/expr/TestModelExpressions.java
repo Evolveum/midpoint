@@ -25,7 +25,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +50,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -81,15 +80,12 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     private static final ItemName STRING_VALUE = new ItemName(NS_PIRACY, "stringValue");
     private static final ItemName INT_VALUE = new ItemName(NS_PIRACY, "intValue");
 
-    @Autowired
-    private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ExpressionFactory expressionFactory;
 
-    @Autowired
-    private TaskManager taskManager;
-
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(TEST_DIR, "orgstruct.xml");
-    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY = new TestResource<>(TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
+            TestObject.file(TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -130,7 +126,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetManagersOids() throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         String shortTestName = getTestNameShort();
 
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
@@ -147,7 +144,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         List<PrismPropertyValue<String>> scriptOutputs =
-                evaluate(scriptExpression, variables, false, shortTestName, null, result);
+                evaluate(scriptExpression, variables, false, shortTestName, task, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -174,7 +171,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + testName + ".xml");
-        PrismPropertyDefinition<Boolean> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
+        PrismPropertyDefinition<Boolean> outputDefinition =
+                getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
                 MiscSchemaUtil.getExpressionProfile(), expressionFactory, testName, result);
 
@@ -183,7 +181,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
                 ExpressionConstants.VAR_VALUE, "Scumm Bar Chef", String.class);
 
         // WHEN
-        List<PrismPropertyValue<Boolean>> scriptOutputs = evaluate(scriptExpression, variables, false, testName, null, result);
+        List<PrismPropertyValue<Boolean>> scriptOutputs =
+                evaluate(scriptExpression, variables, false, testName, task, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -377,7 +376,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         when();
-        List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, shortTestName, null, result);
+        List<PrismPropertyValue<String>> scriptOutputs =
+                evaluate(scriptExpression, variables, false, shortTestName, task, result);
 
         // THEN
         then();
@@ -399,12 +399,10 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> List<PrismPropertyValue<T>> evaluate(ScriptExpression scriptExpression, VariablesMap variables, boolean useNew,
+    private <T> List<PrismPropertyValue<T>> evaluate(
+            ScriptExpression scriptExpression, VariablesMap variables, boolean useNew,
             String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (task == null) {
-            task = taskManager.createTaskInstance();
-        }
         try {
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ModelExpressionEnvironment<>(task, result));
 

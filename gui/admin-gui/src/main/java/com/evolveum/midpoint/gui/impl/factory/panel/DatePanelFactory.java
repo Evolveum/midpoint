@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -40,7 +42,7 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
     }
 

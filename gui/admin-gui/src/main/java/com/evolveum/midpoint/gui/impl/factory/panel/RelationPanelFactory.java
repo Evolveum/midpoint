@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -38,7 +40,7 @@ public class RelationPanelFactory extends AbstractInputGuiComponentFactory<QName
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         ItemPath relationRefPath = ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_RELATIONS, RelationsDefinitionType.F_RELATION, RelationDefinitionType.F_REF);
         return relationRefPath.equivalent(wrapper.getPath().removeIds());
     }

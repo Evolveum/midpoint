@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="3f2b893c-8732-4549-9f79-73ad2472cc4f">
+
+    <name>archetype</name>
+
+    <archetypePolicy>
+        <propertyConstraint id="1">
+            <path>name</path>
+            <visibility>visible</visibility>
+        </propertyConstraint>
+        <propertyConstraint id="2">
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+            <oidBound>true</oidBound>
+        </propertyConstraint>
+        <itemConstraint id="3">
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </archetypePolicy>
+</archetype>

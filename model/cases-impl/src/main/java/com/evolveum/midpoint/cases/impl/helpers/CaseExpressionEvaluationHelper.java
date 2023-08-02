@@ -80,7 +80,8 @@ public class CaseExpressionEvaluationHelper {
         if (multiValued) {
             resultDef.setMaxOccurs(-1);
         }
-        Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
+        Expression<?,?> expression = expressionFactory.makeExpression(
+                expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
         context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(additionalConvertor);
@@ -112,7 +113,7 @@ public class CaseExpressionEvaluationHelper {
         return MiscUtil.getSingleValue(values, false, contextDescription);
     }
 
-    public String evaluateStringExpression(ExpressionType expressionType, VariablesMap VariablesMap,
+    String evaluateStringExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         Collection<String> values = evaluateExpression(expressionType, VariablesMap, contextDescription,

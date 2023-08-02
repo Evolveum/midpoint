@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="885bc0b4-2493-4658-a523-8a3f7eeb770b">
+    <name>restricted-auto-filter-expression</name>
+    <documentation>
+        Auto-assigned role that contains an expression in a filter.
+    </documentation>
+    <assignment>
+        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+    </assignment>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <selector>
+                <type>UserType</type>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    // the script will not be evaluated (for now), so this will not explode - but will not
+                                    // assign anything, as there are no unnamed users
+                                    throw new IllegalStateException()
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

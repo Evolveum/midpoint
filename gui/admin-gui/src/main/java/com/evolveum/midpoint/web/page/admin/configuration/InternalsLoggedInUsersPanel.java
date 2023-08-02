@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.component.data.provider.LoggedInUsersProvider;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -47,7 +50,6 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     private static final String ID_TABLE = "table";
 
     private static final String DOT_CLASS = InternalsLoggedInUsersPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_LOGGED_IN_PRINCIPALS = DOT_CLASS + "loadLoggedInPrincipals";
     private static final String OPERATION_TERMINATE_SESSIONS = DOT_CLASS + "terminateSessions";
 
     public InternalsLoggedInUsersPanel(String id) {
@@ -89,24 +91,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
 
             @Override
             protected ISelectableDataProvider<SelectableBean<F>> createProvider() {
-                LoadableModel<List<UserSessionManagementType>> principals = new LoadableModel<List<UserSessionManagementType>>(true) {
-
-                    @Override
-                    protected List<UserSessionManagementType> load() {
-                        return loadLoggedInPrincipals();
-                    }
-                };
-
-                return new SelectableListDataProvider<>(InternalsLoggedInUsersPanel.this, principals) {
-
-                    @Override
-                    protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {
-                        SelectableBeanImpl<F> user = new SelectableBeanImpl<>(Model.of((F) principal.getFocus()));
-                        user.setActiveSessions(principal.getActiveSessions());
-                        user.setNodes(principal.getNode());
-                        return user;
-                    }
-                };
+                return new LoggedInUsersProvider<>(InternalsLoggedInUsersPanel.this);
             }
 
             @Override
@@ -126,12 +111,6 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
         };
 
         add(table);
-    }
-
-    private List<UserSessionManagementType> loadLoggedInPrincipals() {
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGED_IN_PRINCIPALS);
-        OperationResult result = task.getResult();
-        return getPageBase().getModelInteractionService().getLoggedInPrincipals(task, result);
     }
 
     private List<IColumn<SelectableBean<F>, String>> initColumns() {

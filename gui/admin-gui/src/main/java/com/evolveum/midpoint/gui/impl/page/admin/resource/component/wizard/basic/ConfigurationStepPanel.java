@@ -41,4 +41,9 @@ public class ConfigurationStepPanel extends AbstractConfigurationStepPanel {
     protected String getPanelType() {
         return PANEL_TYPE;
     }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }

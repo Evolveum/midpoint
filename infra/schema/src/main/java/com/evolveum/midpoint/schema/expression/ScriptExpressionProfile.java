@@ -8,69 +8,75 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 
 /**
- * @author semancik
+ * Specifies limitations (via {@link #permissionProfile}) on execution of a script expression in given {@link #language}.
  *
+ * @author semancik
  */
+@SuppressWarnings("ClassCanBeRecord")
 public class ScriptExpressionProfile implements Serializable {
 
-    private final String language;
-    private AccessDecision decision;
-    private Boolean typeChecking;
-    private ExpressionPermissionProfile permissionProfile;
+    /** Language (specified by URI) to which this profile applies. E.g. Groovy, Velocity, ... */
+    @NotNull private final String language;
 
-    public ScriptExpressionProfile(String language) {
-        super();
+    /** Decision to be used if #permissionProfile does not provide its own. */
+    @NotNull private final AccessDecision defaultDecision;
+
+    /**
+     * Should we apply strict type checking when evaluating the script? It is a prerequisite for using permission profiles,
+     * i.e. if turned off, the execution will NOT start with permission profile set.
+     *
+     * TODO currently used only for Groovy.
+     */
+    private final boolean typeChecking;
+
+    /** Details about what packages, classes and methods are allowed to be used in the script. */
+    @Nullable private final ExpressionPermissionProfile permissionProfile;
+
+    public ScriptExpressionProfile(
+            @NotNull String language,
+            @NotNull AccessDecision defaultDecision,
+            boolean typeChecking,
+            @Nullable ExpressionPermissionProfile permissionProfile) {
         this.language = language;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public AccessDecision getDecision() {
-        return decision;
-    }
-
-    public void setDecision(AccessDecision decision) {
-        this.decision = decision;
-    }
-
-    public Boolean isTypeChecking() {
-        return typeChecking;
-    }
-
-    public void setTypeChecking(Boolean typeChecking) {
+        this.defaultDecision = defaultDecision;
         this.typeChecking = typeChecking;
-    }
-
-    public ExpressionPermissionProfile getPermissionProfile() {
-        return permissionProfile;
-    }
-
-    public void setPermissionProfile(ExpressionPermissionProfile permissionProfile) {
         this.permissionProfile = permissionProfile;
     }
 
-    public boolean hasRestrictions() {
-        if (permissionProfile == null) {
-            return false;
-        }
-        return permissionProfile.hasRestrictions();
+    public @NotNull String getLanguage() {
+        return language;
     }
 
-    public AccessDecision decideClassAccess(String className, String methodName) {
+    public @NotNull AccessDecision getDefaultDecision() {
+        return defaultDecision;
+    }
+
+    public boolean isTypeChecking() {
+        return typeChecking;
+    }
+
+    public @Nullable ExpressionPermissionProfile getPermissionProfile() {
+        return permissionProfile;
+    }
+
+    public boolean hasRestrictions() {
+        return permissionProfile != null && permissionProfile.hasRestrictions();
+    }
+
+    public @NotNull AccessDecision decideClassAccess(String className, String methodName) {
         if (permissionProfile == null) {
-            return decision;
+            return defaultDecision;
         }
         AccessDecision permissionDecision = permissionProfile.decideClassAccess(className, methodName);
-        if (permissionDecision == null || permissionDecision == AccessDecision.DEFAULT) {
-            return decision;
+        if (permissionDecision == AccessDecision.DEFAULT) {
+            return defaultDecision;
         }
         return permissionDecision;
     }
-
-
 }

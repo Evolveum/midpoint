@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentity
 import java.util.Objects;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -66,9 +68,8 @@ public class QFocusIdentityMapping<OR extends MFocus>
                         q -> q.sourceResourceRefTargetOid,
                         null,
                         null,
-                        QFocusMapping::getFocusMapping);
+                        QResourceMapping::get);
     }
-
     @Override
     protected QFocusIdentity<OR> newAliasInstance(String alias) {
         return new QFocusIdentity<>(alias);

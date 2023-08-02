@@ -78,16 +78,16 @@ public class AssignmentPathVariables implements Serializable {
     }
 
     public PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
-        if (magicAssignment != null && magicAssignment.getDefinition() != null) {
+        if (magicAssignment != null) {
             return magicAssignment.getDefinition();
         }
-        if (immediateAssignment != null && immediateAssignment.getDefinition() != null) {
+        if (immediateAssignment != null) {
             return immediateAssignment.getDefinition();
         }
-        if (thisAssignment != null && thisAssignment.getDefinition() != null) {
+        if (thisAssignment != null) {
             return thisAssignment.getDefinition();
         }
-        if (focusAssignment != null && focusAssignment.getDefinition() != null) {
+        if (focusAssignment != null) {
             return focusAssignment.getDefinition();
         }
         return null;

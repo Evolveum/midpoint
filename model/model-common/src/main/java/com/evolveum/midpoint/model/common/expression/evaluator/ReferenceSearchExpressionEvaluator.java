@@ -20,7 +20,6 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -45,9 +44,8 @@ public class ReferenceSearchExpressionEvaluator
             PrismReferenceDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, objectResolver, securityContextManager, localizationService);
+        super(elementName, expressionEvaluatorType, outputDefinition, protector, objectResolver, localizationService);
     }
 
     @Override

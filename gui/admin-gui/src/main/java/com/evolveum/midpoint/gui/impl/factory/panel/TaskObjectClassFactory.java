@@ -6,24 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import java.io.Serializable;
 import jakarta.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.task.api.Task;
 
 @Component
 public class TaskObjectClassFactory extends AbstractObjectClassFactory {
@@ -34,7 +26,7 @@ public class TaskObjectClassFactory extends AbstractObjectClassFactory {
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         PrismObjectWrapper<?> objectWrapper = wrapper.findObjectWrapper();
         if (objectWrapper == null) {
             return false;

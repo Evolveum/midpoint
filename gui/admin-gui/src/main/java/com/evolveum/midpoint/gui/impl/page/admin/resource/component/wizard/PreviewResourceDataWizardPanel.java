@@ -6,22 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +25,7 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
 
     private static final String PANEL_TYPE = "resourceUncategorized";
     private static final String ID_TABLE = "table";
+    private static final String ID_FORM = "form";
 
     public PreviewResourceDataWizardPanel(String id, ResourceDetailsModel model) {
         super(id, model);
@@ -47,72 +41,46 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
     protected void onBeforeRender() {
         super.onBeforeRender();
 
-        getTable().setShowAsCard(false);
+        getTable().getTable().setShowAsCard(false);
     }
 
     private void initLayout() {
-        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
+
+        MidpointForm form = new MidpointForm(ID_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+
+        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
+                ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
+            @Override
+            protected VisibleEnableBehaviour getTitleVisibleBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
 
             @Override
-            protected boolean isRepoSearch() {
+            protected boolean isShadowDetailsEnabled() {
                 return false;
             }
 
             @Override
-            protected boolean isResourceSearch() {
-                return true;
-            }
-
-            @Override
-            protected boolean isTaskButtonsContainerVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isTopTableButtonsVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isSourceChoiceVisible() {
-                return false;
-            }
-
-            @Override
-            protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
-                provider.setTaskConsumer((SerializableConsumer<Task>)task -> {
-                    String lifecycleState = getObjectDetailsModels().getObjectType().getLifecycleState();
-                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)) {
-                        task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
-                    }
-                });
-            }
-
-            @Override
-            protected boolean isReclassifyButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+            protected boolean isEnabledInlineMenu() {
                 return false;
             }
         };
         table.setOutputMarkupId(true);
-
-        add(table);
+        form.add(table);
     }
 
-    public BoxedTablePanel getTable() {
+    public ShadowTablePanel getTable() {
         ResourceUncategorizedPanel panel =
-                (ResourceUncategorizedPanel) get(ID_TABLE);
+                (ResourceUncategorizedPanel) get(createComponentPath(ID_FORM, ID_TABLE));
         if (panel == null) {
             return null;
         }
-        return panel.getTable();
+        return panel.getShadowTable();
     }
 
-    ContainerPanelConfigurationType getConfiguration(){
+    private ContainerPanelConfigurationType getConfiguration(){
         return WebComponentUtil.getContainerConfiguration(
                 getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 PANEL_TYPE);
@@ -137,4 +105,5 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-8";
     }
+
 }

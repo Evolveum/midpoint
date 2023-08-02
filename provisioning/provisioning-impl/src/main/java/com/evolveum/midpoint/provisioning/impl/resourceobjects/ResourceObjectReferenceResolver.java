@@ -135,7 +135,7 @@ class ResourceObjectReferenceResolver {
         VariablesMap variables = new VariablesMap();
         ObjectQuery evaluatedRefQuery =
                 ExpressionUtil.evaluateQueryExpressions(
-                        refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
+                        refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
                         desc, ctx.getTask(), result);
         ObjectFilter baseFilter =
                 ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName);

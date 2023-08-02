@@ -102,7 +102,7 @@ public class ImportFromResourceLauncher {
         try {
             // @formatter:off
             task.setRootActivityDefinition(
-                    new ActivityDefinitionType(PrismContext.get())
+                    new ActivityDefinitionType()
                             .beginWork()
                                 .beginImport()
                                     .beginResourceObjects()

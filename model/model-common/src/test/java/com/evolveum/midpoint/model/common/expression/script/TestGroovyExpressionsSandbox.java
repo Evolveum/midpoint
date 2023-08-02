@@ -10,7 +10,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
-import org.testng.annotations.Ignore;
+import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -23,15 +23,12 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
  */
 public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
-
     @Override
-    protected ScriptExpressionProfile getScriptExpressionProfile(String language) {
-        ScriptExpressionProfile profile = new ScriptExpressionProfile(language);
+    protected ScriptExpressionProfile createScriptExpressionProfile(@NotNull String language) {
 
-        profile.setTypeChecking(true);
-
-        ExpressionPermissionProfile permissionProfile = new ExpressionPermissionProfile(this.getClass().getSimpleName());
-        profile.setPermissionProfile(permissionProfile);
+        ExpressionPermissionProfile permissionProfile =
+                ExpressionPermissionProfile.open(
+                        this.getClass().getSimpleName(), AccessDecision.ALLOW);
 
         permissionProfile.addClassAccessRule(Poison.class, AccessDecision.ALLOW);
         permissionProfile.addClassAccessRule(Poison.class, "smell", AccessDecision.DENY);
@@ -43,9 +40,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         permissionProfile.addClassAccessRule(List.class, AccessDecision.ALLOW);
         permissionProfile.addClassAccessRule(List.class, "execute", AccessDecision.DENY);
 
-        permissionProfile.setDecision(AccessDecision.ALLOW);
-
-        return profile;
+        return new ScriptExpressionProfile(language, AccessDecision.DEFAULT, true, permissionProfile);
     }
 
     /**

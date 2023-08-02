@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,14 @@ public abstract class TemplateChoicePanel extends WizardChoicePanel<CompiledObje
 
     public TemplateChoicePanel(String id) {
         super(id, null);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        if (isSelectable()) {
+            setOutputMarkupId(true);
+        }
     }
 
     protected abstract Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews();
@@ -85,10 +94,19 @@ public abstract class TemplateChoicePanel extends WizardChoicePanel<CompiledObje
 
             @Override
             protected void onClick(AjaxRequestTarget target) {
-                Tile<CompiledObjectCollectionView> tile = tileModel.getObject();
-                onTemplateChosePerformed(tile.getValue(), target);
+                Tile<CompiledObjectCollectionView> selectedTile = tileModel.getObject();
+                if (isSelectable()) {
+                    getTilesModel().getObject().forEach(tile -> tile.setSelected(false));
+                    selectedTile.setSelected(true);
+                    target.add(TemplateChoicePanel.this);
+                }
+                onTemplateChosePerformed(selectedTile.getValue(), target);
             }
         };
+    }
+
+    protected boolean isSelectable() {
+        return false;
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {

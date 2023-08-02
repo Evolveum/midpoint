@@ -10,10 +10,10 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -123,9 +123,17 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new ConstructionOutboundBasicStepPanel<>(getAssignmentHolderModel(), rowModel) {
+        steps.add(new ConstructionOutboundMainStepPanel<>(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
+                showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
+            }
+        });
+        steps.add(new ConstructionOutboundOptionalStepPanel(getAssignmentHolderModel(), rowModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });

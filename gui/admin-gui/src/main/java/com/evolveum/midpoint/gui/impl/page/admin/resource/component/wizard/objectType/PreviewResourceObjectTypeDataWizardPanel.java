@@ -6,22 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceContentPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
@@ -36,6 +30,9 @@ import javax.xml.namespace.QName;
  */
 public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
+    private static final String PANEL_TYPE = "resourceUncategorized";
+
+    private static final String ID_FORM = "form";
     private static final String ID_TABLE = "table";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectType;
@@ -52,7 +49,7 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
     protected void onBeforeRender() {
         super.onBeforeRender();
 
-        getTable().setShowAsCard(false);
+        getTable().getTable().setShowAsCard(false);
     }
 
     @Override
@@ -62,87 +59,49 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
     }
 
     private void initLayout() {
-        ResourceContentPanel table = new ResourceContentPanel(
-                ID_TABLE,
-                resourceObjectType.getObject().getRealValue().getKind(),
-                getAssignmentHolderDetailsModel(),
-                null,
-                false) {
+        MidpointForm form = new MidpointForm(ID_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+
+        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
+                ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
+            @Override
+            protected VisibleEnableBehaviour getTitleVisibleBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
 
             @Override
-            protected boolean isIntentAndObjectClassPanelVisible() {
+            protected boolean isShadowDetailsEnabled() {
                 return false;
             }
 
             @Override
-            protected String getIntent() {
-                return resourceObjectType.getObject().getRealValue().getIntent();
-            }
-
-            @Override
-            protected QName getObjectClassFromSearch() {
-                QName objectClass = null;
-                ResourceObjectTypeDefinitionType objectType = resourceObjectType.getObject().getRealValue();
-                if (objectType.getDelineation() != null) {
-                    objectClass = objectType.getDelineation().getObjectClass();
-                }
-                if (objectClass == null) {
-                    objectClass = objectType.getObjectClass();
-                }
-
-                return objectClass;
-            }
-
-            @Override
-            protected boolean isTopTableButtonsVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isSourceChoiceVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isTaskButtonsContainerVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isResourceSearch() {
-                return true;
-            }
-
-            @Override
-            protected boolean isRepoSearch() {
-                return false;
-            }
-
-            @Override
-            protected void customizeProvider(SelectableBeanObjectDataProvider<ShadowType> provider) {
-                provider.setTaskConsumer((SerializableConsumer<Task>)task -> {
-                    String lifecycleState = resourceObjectType.getObject().getRealValue().getLifecycleState();
-                    if (StringUtils.isEmpty(lifecycleState)) {
-                        lifecycleState = getObjectDetailsModels().getObjectType().getLifecycleState();
+            protected QName getDefaultObjectClass() {
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = getResourceObjectType().getObject();
+                if (objectType != null) {
+                    ResourceObjectTypeDefinitionType objectTypeBean = objectType.getRealValue();
+                    if (objectTypeBean != null) {
+                        if (objectTypeBean.getDelineation() != null && objectTypeBean.getDelineation().getObjectClass() != null) {
+                            return objectTypeBean.getDelineation().getObjectClass();
+                        }
                     }
-                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)) {
-                        task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
-                    }
-                });
+                }
+                return super.getDefaultObjectClass();
             }
 
             @Override
-            protected boolean isReclassifyButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+            protected boolean isEnabledInlineMenu() {
                 return false;
             }
         };
         table.setOutputMarkupId(true);
-        add(table);
+        form.add(table);
+    }
+
+    private ContainerPanelConfigurationType getConfiguration(){
+        return WebComponentUtil.getContainerConfiguration(
+                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
+                PANEL_TYPE);
     }
 
 
@@ -165,12 +124,17 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.text");
     }
 
-    public BoxedTablePanel getTable() {
-        ResourceContentPanel panel =
-                (ResourceContentPanel) get(ID_TABLE);
+    @Override
+    protected String getCssForWidthOfFeedbackPanel() {
+        return "col-8";
+    }
+
+    public ShadowTablePanel getTable() {
+        ResourceUncategorizedPanel panel =
+                (ResourceUncategorizedPanel) get(createComponentPath(ID_FORM, ID_TABLE));
         if (panel == null) {
             return null;
         }
-        return panel.getTable();
+        return panel.getShadowTable();
     }
 }

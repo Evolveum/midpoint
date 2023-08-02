@@ -30,9 +30,8 @@ class ValueResolutionContext extends ResolutionContext {
         this.contextDescription = contextDescription;
     }
 
-    @Override
-    <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext) {
-        PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+    <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple() {
+        PrismValueDeltaSetTriple<V> outputTriple = PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
         //noinspection unchecked
         outputTriple.addToZeroSet((V) CloneUtil.clone(value));
         return outputTriple;

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+//Do not use, use ResourceObjectsPanel or ResourceUncategorizedPanel instead
+@Deprecated(forRemoval = true)
 public class ResourceContentResourcePanel extends ResourceContentPanel {
     private static final long serialVersionUID = 1L;
 

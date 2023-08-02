@@ -11,28 +11,29 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
- * @author semancik
+ * TODO should we move this to test code?
  *
+ * @author semancik
  */
 public class FunctionLibraryUtil {
 
-    public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext, Protector protector, Clock clock) {
-        FunctionLibrary lib = new FunctionLibrary();
-        lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_BASIC_VARIABLE_NAME);
-        lib.setNamespace(MidPointConstants.NS_FUNC_BASIC);
-        BasicExpressionFunctions func = new BasicExpressionFunctions(prismContext, protector, clock);
-        lib.setGenericFunctions(func);
-        return lib;
+    /** Note: In production, the this function library is created by Spring as `basicFunctionLibrary` bean. */
+    @VisibleForTesting
+    public static FunctionLibraryBinding createBasicFunctionLibraryBinding(
+            PrismContext prismContext, Protector protector, Clock clock) {
+        return new FunctionLibraryBinding(
+                MidPointConstants.FUNCTION_LIBRARY_BASIC_VARIABLE_NAME,
+                new BasicExpressionFunctions(prismContext, protector, clock));
     }
 
-    public static FunctionLibrary createLogFunctionLibrary(PrismContext prismContext) {
-        FunctionLibrary lib = new FunctionLibrary();
-        lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_LOG_VARIABLE_NAME);
-        lib.setNamespace(MidPointConstants.NS_FUNC_LOG);
-        LogExpressionFunctions func = new LogExpressionFunctions(prismContext);
-        lib.setGenericFunctions(func);
-        return lib;
+    /** Note: In production, the this function library is created by Spring as `logFunctionLibrary` bean. */
+    @VisibleForTesting
+    public static FunctionLibraryBinding createLogFunctionLibraryBinding(PrismContext prismContext) {
+        return new FunctionLibraryBinding(
+                MidPointConstants.FUNCTION_LIBRARY_LOG_VARIABLE_NAME,
+                new LogExpressionFunctions(prismContext));
     }
-
 }

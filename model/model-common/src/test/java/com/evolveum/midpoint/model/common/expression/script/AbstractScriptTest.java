@@ -14,8 +14,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
@@ -26,7 +28,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
@@ -84,8 +86,8 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
         Clock clock = new Clock();
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
@@ -314,32 +316,35 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     private ScriptExpression createScriptExpression(
             ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
-        String language = expressionType.getLanguage();
+        String language = Objects.requireNonNull(expressionType.getLanguage());
         ScriptExpression expression = new ScriptExpression(
-                scriptExpressionfactory.getEvaluators().get(language), expressionType);
+                scriptExpressionfactory.getEvaluatorSimple(language), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));
-        ScriptExpressionProfile scriptExpressionProfile = getScriptExpressionProfile(language);
+        expression.setFunctionLibraryBindings(new ArrayList<>(scriptExpressionfactory.getBuiltInLibraryBindings()));
+        ScriptExpressionProfile scriptExpressionProfile = createScriptExpressionProfile(language);
         expression.setScriptExpressionProfile(scriptExpressionProfile);
-        expression.setExpressionProfile(getExpressionProfile(scriptExpressionProfile));
+        expression.setExpressionProfile(createExpressionProfile(scriptExpressionProfile));
         return expression;
     }
 
-    protected ExpressionProfile getExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    private ExpressionProfile createExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
         if (scriptExpressionProfile == null) {
             return null;
         }
-        ExpressionProfile expressionProfile = new ExpressionProfile(this.getClass().getSimpleName());
-        expressionProfile.setDecision(AccessDecision.DENY);
-        ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
-        expressionProfile.add(evaluatorProfile);
-        evaluatorProfile.setDecision(AccessDecision.DENY);
-        evaluatorProfile.add(scriptExpressionProfile);
-        return expressionProfile;
+        ExpressionEvaluatorProfile evaluatorProfile =
+                new ExpressionEvaluatorProfile(
+                        ScriptExpressionEvaluatorFactory.ELEMENT_NAME,
+                        AccessDecision.DENY,
+                        List.of(scriptExpressionProfile));
+
+        return new ExpressionProfile(
+                this.getClass().getSimpleName(),
+                AccessDecision.DENY,
+                List.of(evaluatorProfile));
     }
 
-    protected ScriptExpressionProfile getScriptExpressionProfile(String language) {
+    protected ScriptExpressionProfile createScriptExpressionProfile(@NotNull String language) {
         return null;
     }
 

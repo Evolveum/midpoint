@@ -171,10 +171,10 @@ public class TypedValue<T> implements ShortDumpable {
                 return typeClass;
             }
         } else {
-            Class determinedClass;
+            Class<?> determinedClass;
             if (definition instanceof PrismReferenceDefinition) {
                 // Stock prism reference would return ObjectReferenceType from prism schema.
-                // But we have exteded type for this.
+                // But we have extended type for this.
                 // TODO: how to make this more elegant?
                 determinedClass = ObjectReferenceType.class;
             } else {
@@ -183,7 +183,8 @@ public class TypedValue<T> implements ShortDumpable {
             if (determinedClass == null) {
                 throw new SchemaException("Cannot determine class from definition "+definition);
             }
-            return determinedClass;
+            //noinspection unchecked
+            return (Class<T>) determinedClass;
         }
     }
 

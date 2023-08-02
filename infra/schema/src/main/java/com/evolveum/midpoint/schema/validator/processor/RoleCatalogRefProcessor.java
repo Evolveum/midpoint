@@ -18,13 +18,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleCatalogType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-// todo tests
 @SuppressWarnings("unused")
 public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemConfigurationType>, ProcessorMixin {
 
     @Override
     public UpgradePhase getPhase() {
-        // todo before in 4.7.* but after in 4.4.*
         return UpgradePhase.BEFORE;
     }
 
@@ -40,7 +38,7 @@ public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemCon
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchesTypeAndHasPathItem(object, path, SystemConfigurationType.class,
+        return matchObjectTypeAndPathTemplate(object, path, SystemConfigurationType.class,
                 ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ROLE_CATALOG_REF));
     }
 
@@ -57,6 +55,9 @@ public class RoleCatalogRefProcessor implements UpgradeObjectProcessor<SystemCon
         roleCatalog.setRoleCatalogRef(roleCatalogRef);
 
         roleManagement.setRoleCatalogRef(null);
+        if (roleManagement.asPrismContainerValue().isEmpty()) {
+            system.setRoleManagement(null);
+        }
 
         return true;
     }

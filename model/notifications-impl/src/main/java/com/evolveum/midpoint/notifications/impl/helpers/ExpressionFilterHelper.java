@@ -35,8 +35,12 @@ public class ExpressionFilterHelper extends BaseNotificationHelper {
         boolean retval = true;
 
         for (ExpressionType expressionType : eventHandlerConfig.getExpressionFilter()) {
-            if (!expressionHelper.evaluateBooleanExpressionChecked(expressionType,
-                    expressionHelper.getDefaultVariables(event, result), "event filter expression", task, result)) {
+            if (!expressionHelper.evaluateBooleanExpressionChecked(
+                    expressionType,
+                    expressionHelper.getDefaultVariables(event, result),
+                    "event filter expression",
+                    task,
+                    result)) {
                 retval = false;
                 break;
             }

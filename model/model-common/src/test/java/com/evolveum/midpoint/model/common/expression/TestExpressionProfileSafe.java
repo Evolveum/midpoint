@@ -38,7 +38,7 @@ public class TestExpressionProfileSafe extends TestExpression {
         ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
         VariablesMap variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
+        var expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
 
         when();
         evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
@@ -58,7 +58,7 @@ public class TestExpressionProfileSafe extends TestExpression {
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
         VariablesMap variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
+        var expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
 
         when();
         evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
@@ -79,7 +79,7 @@ public class TestExpressionProfileSafe extends TestExpression {
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_JAVASCRIPT_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
         VariablesMap variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
+        var expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
 
         when();
         evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);

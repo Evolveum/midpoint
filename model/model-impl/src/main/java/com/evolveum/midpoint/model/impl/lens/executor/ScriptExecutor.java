@@ -97,7 +97,7 @@ class ScriptExecutor<O extends ObjectType> {
             return;
         }
 
-        OperationProvisioningScriptsType resourceScripts = projCtx.getResource().getScripts();
+        OperationProvisioningScriptsType resourceScripts = projCtx.getResourceRequired().getScripts();
         if (resourceScripts == null) {
             return;
         }
@@ -113,7 +113,7 @@ class ScriptExecutor<O extends ObjectType> {
         PrismObject<O> focus = getFocus(context);
         PrismObject<ShadowType> shadow = getShadow(projCtx, order);
         ProjectionContextKey key = projCtx.getKey();
-        ResourceType resource = projCtx.getResource();
+        ResourceType resource = projCtx.getResourceRequired();
 
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 focus, shadow, resource.asPrismObject(), context.getSystemConfiguration(), projCtx);

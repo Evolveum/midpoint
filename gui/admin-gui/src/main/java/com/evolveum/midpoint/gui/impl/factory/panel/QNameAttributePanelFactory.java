@@ -22,8 +22,6 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -51,7 +49,7 @@ import java.util.stream.Collectors;
 public class QNameAttributePanelFactory extends DropDownChoicePanelFactory implements Serializable{
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return (ResourceObjectAssociationType.F_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())

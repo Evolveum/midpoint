@@ -7,25 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.util.Collection;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -37,7 +30,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -71,7 +63,7 @@ public interface AccessRequestMixin {
             variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);
 
             return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
-                    page.getExpressionFactory(), ctx, "group selection search filter template", task, result);
+                    page.getExpressionFactory(), "group selection search filter template", task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
             LoggingUtils.logUnexpectedException(LOGGER,
@@ -81,43 +73,10 @@ public interface AccessRequestMixin {
         return defaultFilterFunction.apply(text);
     }
 
-    default String getDisplayNameFromExpression(String contextDesc, ExpressionType expressionType, PrismObject<?> object, BasePanel<?> panel) {
-        ModelServiceLocator locator = panel.getPageBase();
+    default String getDefaultUserDisplayName(PrismObject<UserType> o) {
+        String name = WebComponentUtil.getOrigStringFromPoly(o.getName());
+        String fullName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getFullName());
 
-        Task task = panel.getPageBase().getPageTask();
-        OperationResult result = task.getResult();
-
-        try {
-            ExpressionFactory factory = locator.getExpressionFactory();
-            PrismContext ctx = object.getPrismContext();
-            PrismPropertyDefinition<String> outputDefinition = ctx.definitionFactory().createPropertyDefinition(
-                    ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
-
-            Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                    factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
-
-            VariablesMap variables = new VariablesMap();
-            variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
-
-            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
-            context.setExpressionFactory(factory);
-            PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
-            if (outputTriple == null) {
-                return null;
-            }
-            Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
-            if (outputValues.isEmpty()) {
-                return null;
-            }
-            if (outputValues.size() > 1) {
-                return null;
-            }
-            return outputValues.iterator().next().getRealValue();
-        } catch (Exception ex) {
-            result.recordFatalError(ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate expression for group selection and user display name", ex);
-        }
-
-        return null;
+        return StringUtils.isNotEmpty(fullName) ? fullName + " (" + name + ")" : name;
     }
 }

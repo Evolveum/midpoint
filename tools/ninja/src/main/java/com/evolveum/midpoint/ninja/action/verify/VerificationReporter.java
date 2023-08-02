@@ -1,30 +1,34 @@
 package com.evolveum.midpoint.ninja.action.verify;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import com.evolveum.midpoint.ninja.action.VerifyResult;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.*;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.VerifyOptions;
+import com.evolveum.midpoint.ninja.action.VerifyResult;
+import com.evolveum.midpoint.ninja.impl.Log;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class VerificationReporter {
+
+    public static final String DELTA_FILE_NAME_SUFFIX = ".delta.xml";
 
     public static final List<String> REPORT_HEADER = List.of(
             "Oid",
@@ -37,8 +41,14 @@ public class VerificationReporter {
             "Phase",
             "Priority",
             "Type",
-            "Skip upgrade [yes/no]"
+            "Upgrade description",
+            "Skip upgrade [yes/no] Default: no"
     );
+
+    private static final int COLUMN_INDEX_OID = 0;
+    private static final int COLUMN_INDEX_PATH = 4;
+    private static final int COLUMN_INDEX_IDENTIFIER = 6;
+    private static final int COLUMN_INDEX_SKIP_UPGRADE = REPORT_HEADER.size() - 1;
 
     public static final CSVFormat CSV_FORMAT;
 
@@ -50,18 +60,45 @@ public class VerificationReporter {
 
     private final PrismContext prismContext;
 
+    private final Charset charset;
+
+    private final Log log;
+
     private ObjectUpgradeValidator validator;
 
-    private VerifyResult result = new VerifyResult();
+    private final VerifyResult result = new VerifyResult();
 
-    public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext) {
+    private boolean createDeltaFile;
+
+    private Writer deltaWriter;
+
+    public VerificationReporter(@NotNull VerifyOptions options, @NotNull PrismContext prismContext, @NotNull Charset charset, @NotNull Log log) {
         this.options = options;
         this.prismContext = prismContext;
-
-        init();
+        this.charset = charset;
+        this.log = log;
     }
 
-    private void init() {
+    public void setCreateDeltaFile(boolean createDeltaFile) {
+        this.createDeltaFile = createDeltaFile;
+    }
+
+    public void destroy() {
+        if (deltaWriter != null) {
+            try {
+                deltaWriter.write("</deltas>\n");
+            } catch (IOException ex) {
+                throw new NinjaException("Couldn't finish file for XML deltas", ex);
+            }
+            IOUtils.closeQuietly(deltaWriter);
+        }
+    }
+
+    public void init() {
+        if (createDeltaFile) {
+            initDeltaXmlFile();
+        }
+
         validator = new ObjectUpgradeValidator(prismContext);
 
         validator.setWarnPlannedRemovalVersion(options.getPlannedRemovalVersion());
@@ -88,6 +125,35 @@ public class VerificationReporter {
                         throw new IllegalArgumentException("Unknown category " + category);
                 }
             }
+        }
+    }
+
+    private void initDeltaXmlFile() {
+        if (options.getOutput() == null || !VerifyOptions.ReportStyle.CSV.equals(options.getReportStyle())) {
+            return;
+        }
+
+        final File deltaFile = new File(options.getOutput() + DELTA_FILE_NAME_SUFFIX);
+
+        try {
+            if (deltaFile.exists()) {
+                if (options.isOverwrite()) {
+                    deltaFile.delete();
+                } else {
+                    throw new NinjaException("Export file for XML delta '" + deltaFile.getPath() + "' already exists");
+                }
+            }
+
+            deltaFile.createNewFile();
+
+            deltaWriter = new FileWriter(deltaFile, charset);
+            deltaWriter.write(
+                    "<deltas "
+                            + "xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/api-types-3\" "
+                            + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                            + "xsi:type=\"ObjectDeltaListType\">\n");
+        } catch (IOException ex) {
+            throw new NinjaException("Couldn't create file for XML deltas " + deltaFile.getPath(), ex);
         }
     }
 
@@ -122,7 +188,7 @@ public class VerificationReporter {
                 .build();
     }
 
-    public <T extends Objectable> void verify(Writer writer, PrismObject<T> object) throws IOException {
+    public <T extends Objectable> UpgradeValidationResult verify(Writer writer, PrismObject<T> object) throws Exception {
         UpgradeValidationResult result = validator.validate((PrismObject) object);
 
         for (UpgradeValidationItem item : result.getItems()) {
@@ -143,6 +209,42 @@ public class VerificationReporter {
             default:
                 throw new IllegalArgumentException("Unknown report style " + options.getReportStyle());
         }
+
+        if (createDeltaFile) {
+            writeDeltaXml(result);
+        }
+
+        return result;
+    }
+
+    private void writeDeltaXml(UpgradeValidationResult result) {
+        for (UpgradeValidationItem item : result.getItems()) {
+            if (item.getDelta() == null) {
+                continue;
+            }
+
+            if (deltaWriter != null) {
+                try {
+                    deltaWriter.write(DeltaConvertor.serializeDelta(
+                            (ObjectDelta) item.getDelta(), DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
+                } catch (SchemaException | IOException ex) {
+                    log.error("Couldn't write object delta to XML file", ex);
+                }
+            }
+        }
+    }
+
+    public static String getItemPathFromRecord(CSVRecord record) {
+        if (record == null || record.size() != REPORT_HEADER.size()) {
+            return "";
+        }
+
+        String path = record.get(COLUMN_INDEX_PATH);
+        if (StringUtils.isBlank(path)) {
+            return "";
+        }
+
+        return path.trim();
     }
 
     public static String getIdentifierFromRecord(CSVRecord record) {
@@ -150,7 +252,7 @@ public class VerificationReporter {
             return null;
         }
 
-        return record.get(6);
+        return record.get(COLUMN_INDEX_IDENTIFIER);
     }
 
     public static UUID getUuidFromRecord(CSVRecord record) {
@@ -158,8 +260,8 @@ public class VerificationReporter {
             return null;
         }
 
-        String uuid = record.get(0);
-        return StringUtils.isNotEmpty(uuid) ? UUID.fromString(uuid) : null;
+        String oid = record.get(COLUMN_INDEX_OID);
+        return StringUtils.isNotEmpty(oid) ? UUID.fromString(oid) : null;
     }
 
     public static boolean skipUpgradeForRecord(CSVRecord record) {
@@ -167,7 +269,7 @@ public class VerificationReporter {
             return true;
         }
 
-        String value = record.get(REPORT_HEADER.size() - 1);
+        String value = record.get(COLUMN_INDEX_SKIP_UPGRADE);
 
         return value.equalsIgnoreCase("true")
                 || value.equalsIgnoreCase("yes")
@@ -195,6 +297,7 @@ public class VerificationReporter {
         UpgradePhase phase = item.getPhase();
         UpgradePriority priority = item.getPriority();
         UpgradeType type = item.getType();
+        String upgradeDescription = item.getDescription();
 
         // this array has to match {@link VerifyConsumerWorker#REPORT_HEADER}
         return Arrays.asList(object.getOid(),
@@ -207,33 +310,60 @@ public class VerificationReporter {
                 phase != null ? phase.name() : null,
                 priority != null ? priority.name() : null,
                 type != null ? type.name() : null,
+                upgradeDescription,
                 null    // todo last column should have YES (skip upgrade for all non-auto changes by default)
         );
     }
 
-    private void writeValidationItem(Writer writer, PrismObject<?> object, UpgradeValidationItem validationItem) throws IOException {
-        if (validationItem.getItem().getStatus() != null) {
-            writer.append(validationItem.getItem().getStatus().toString());
-            writer.append(" ");
+    private void writeValidationItem(Writer writer, PrismObject<?> object, UpgradeValidationItem item) throws IOException {
+        ValidationItem validationItem = item.getItem();
+
+        List<Object> items = new ArrayList<>();
+
+        if (validationItem.getStatus() != null) {
+            items.add(validationItem.getStatus());
         } else {
             writer.append("INFO ");
         }
-        writer.append(object.toString());
-        writer.append(" ");
-        if (validationItem.getItem().getItemPath() != null) {
-            writer.append(validationItem.getItem().getItemPath().toString());
-            writer.append(" ");
+
+        UpgradePriority priority = item.getPriority();
+        if (priority != null) {
+            items.add(priority);
         }
-        writeMessage(writer, validationItem.getItem().getMessage());
-        writer.append("\n");
+
+        items.add(getObjectDisplayName(object));
+
+        if (validationItem.getItemPath() != null) {
+            items.add(validationItem.getItemPath());
+        }
+
+        String msg = writeMessage(validationItem.getMessage());
+        if (msg != null) {
+            items.add(msg);
+        }
+
+        writer.write(StringUtils.join(items, " "));
+        writer.write("\n");
     }
 
-    private void writeMessage(Writer writer, LocalizableMessage message) throws IOException {
+    private String getObjectDisplayName(PrismObject<?> object) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(object.getName());
+        sb.append(" (");
+        sb.append(object.getOid());
+        sb.append(", ");
+        sb.append(object.getCompileTimeClass().getSimpleName());
+        sb.append(")");
+
+        return sb.toString();
+    }
+
+    private String writeMessage(LocalizableMessage message) {
         if (message == null) {
-            return;
+            return null;
         }
         // TODO: localization?
-        writer.append(message.getFallbackMessage());
+        return message.getFallbackMessage();
     }
 
     public VerifyResult getResult() {

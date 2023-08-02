@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!--
+    This context is just used in tests to inject test beans into ninja context initialized before
+    action is executed (internally by ninja).
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+        default-lazy-init="false">
+
+    <bean id="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory"/>
+
+</beans>

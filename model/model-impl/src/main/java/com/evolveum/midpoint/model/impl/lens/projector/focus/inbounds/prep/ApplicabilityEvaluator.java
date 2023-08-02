@@ -87,14 +87,10 @@ class ApplicabilityEvaluator {
             }
         } else if (use != null) {
             // The "use" information is definite, if present. Default phases nor correlation usage are not taken into account.
-            switch (currentPhase) {
-                case BEFORE_CORRELATION:
-                    return use == CORRELATION || use == ALL;
-                case CLOCKWORK:
-                    return use == DATA_TRANSFER || use == ALL;
-                default:
-                    throw new AssertionError(currentPhase);
-            }
+            return switch (currentPhase) {
+                case BEFORE_CORRELATION -> use == CORRELATION || use == ALL;
+                case CLOCKWORK -> use == SYNCHRONIZATION || use == ALL;
+            };
         }
 
         if (defaultPhases.contains(currentPhase)) {

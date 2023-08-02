@@ -78,12 +78,11 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         FocusType focus = getUserByOid(oid, clazz, result);
-        return getPrincipal(focus.asPrismObject());
+        return getPrincipal(focus.asPrismObject(), result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException {
-        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result) throws SchemaException {
         return getPrincipal(focus, null, result);
     }
 
@@ -96,7 +95,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
 
-        MidPointPrincipal principal = new MidPointPrincipal(focus.asObjectable());
+        MidPointPrincipal principal = MidPointPrincipal.create(focus.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
     }
@@ -144,10 +143,6 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         OperationResult result = new OperationResult(MidPointPrincipalManagerMock.class.getName() + ".addAuthorizations");
 
         principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, result));
-
-//        if (systemConfiguration != null) {
-//            principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
-//        }
 
         principal.addAuthorization(
                 new Authorization(

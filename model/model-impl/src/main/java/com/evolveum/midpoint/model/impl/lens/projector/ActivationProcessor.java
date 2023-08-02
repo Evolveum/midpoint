@@ -15,7 +15,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSe
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DelayedDeleteEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DisableInsteadDeleteEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DisableInsteadOfDeleteEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PreProvisionEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PredefinedActivationMappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -33,8 +33,10 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -87,7 +89,7 @@ public class ActivationProcessor implements ProjectorProcessor {
      * depends on the order
      */
     private static final Collection<Class<? extends PredefinedActivationMappingEvaluator>> PREDEFINED_EVALUATORS =
-            List.of(PreProvisionEvaluator.class, DelayedDeleteEvaluator.class, DisableInsteadDeleteEvaluator.class);
+            List.of(PreProvisionEvaluator.class, DelayedDeleteEvaluator.class, DisableInsteadOfDeleteEvaluator.class);
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
@@ -590,8 +592,13 @@ public class ActivationProcessor implements ProjectorProcessor {
             return legal;
         }
 
-        MappingEvaluatorParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params = new MappingEvaluatorParams<>();
-        params.setMappingTypes(outbound);
+        MappingEvaluatorParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params =
+                new MappingEvaluatorParams<>();
+
+        // FIXME Undetermined because of resource/object type inheritance
+        var originProvider = OriginProvider.undetermined();
+
+        params.setMappingBeans(ConfigurationItem.ofList(outbound, originProvider));
         params.setMappingDesc("outbound existence mapping in projection " + projCtxDesc);
         params.setNow(now);
         params.setAPrioriTargetObject(projCtx.getObjectOld());
@@ -825,8 +832,8 @@ public class ActivationProcessor implements ProjectorProcessor {
             LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
             return;
         }
-        List<MappingType> outboundMappingTypes = bidirectionalMappingType.getOutbound();
-        if (outboundMappingTypes == null || outboundMappingTypes.isEmpty()) {
+        List<MappingType> outboundMappingBeans = bidirectionalMappingType.getOutbound();
+        if (outboundMappingBeans == null || outboundMappingBeans.isEmpty()) {
             LOGGER.trace("No outbound definition in '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
             return;
         }
@@ -849,8 +856,11 @@ public class ActivationProcessor implements ProjectorProcessor {
                     return builder;
                 };
 
+        // FIXME Undetermined because of resource/object type inheritance
+        var originProvider = OriginProvider.undetermined();
+
         MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
-        params.setMappingTypes(outboundMappingTypes);
+        params.setMappingBeans(ConfigurationItem.ofList(outboundMappingBeans, originProvider));
         params.setMappingDesc(desc + " in projection " + projCtxDesc);
         params.setNow(now);
         params.setInitializer(internalInitializer);

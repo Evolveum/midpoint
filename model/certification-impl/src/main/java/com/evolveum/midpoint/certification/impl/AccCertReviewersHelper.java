@@ -52,8 +52,8 @@ public class AccCertReviewersHelper {
     @Autowired private RelationRegistry relationRegistry;
 
     AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage);
-        return stageDef.getReviewerSpecification();
+        return CertCampaignTypeUtil.findStageDefinition(campaign, stage)
+                .getReviewerSpecification();
     }
 
     List<ObjectReferenceType> getReviewersForCase(
@@ -278,10 +278,7 @@ public class AccCertReviewersHelper {
         if (objectRef.getType() != null) {
             //noinspection unchecked
             objectTypeClass = (Class<? extends ObjectType>)
-                    prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectRef.getType());
-            if (objectTypeClass == null) {
-                throw new SchemaException("No object class found for " + objectRef.getType());
-            }
+                    prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectRef.getType());
         } else {
             objectTypeClass = defaultObjectTypeClass;
         }

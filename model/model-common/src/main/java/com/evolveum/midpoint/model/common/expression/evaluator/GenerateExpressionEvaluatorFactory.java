@@ -23,6 +23,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is NOT autowired evaluator.
@@ -52,15 +54,18 @@ public class GenerateExpressionEvaluatorFactory extends AbstractObjectResolvable
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result)
-                    throws SchemaException {
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException {
 
         GenerateExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
                 GenerateExpressionEvaluatorType.class, contextDescription);
+
         return new GenerateExpressionEvaluator<>(
                 ELEMENT_NAME, evaluatorBean, outputDefinition, protector, getObjectResolver(), valuePolicyProcessor);
     }

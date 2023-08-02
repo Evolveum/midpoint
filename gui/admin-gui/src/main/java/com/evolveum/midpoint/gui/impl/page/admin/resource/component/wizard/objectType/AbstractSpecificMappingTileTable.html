@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:enclosure child="tilesContainer">
+        <div class="d-flex flex-column flex-grow-1">
+            <div wicket:id="header"/>
+            <div class="row justify-content-center m-0 px-2 py-2" wicket:id="tilesContainer"/>
+            <div class="card-footer d-flex" wicket:id="footerContainer">
+                <div class="d-flex">
+                    <div wicket:id="buttonToolbar"/>
+                </div>
+                <div class="ml-auto align-self-end" wicket:id="tilesPaging"/>
+            </div>
+        </div>
+    </wicket:enclosure>
+
+    <div wicket:id="table"/>
+
+    <wicket:fragment wicket:id="headerFragment">
+        <div class="d-flex">
+            <wicket:enclosure child="viewToggle">
+                <div class="mr-auto pr-4">
+                    <div wicket:id="viewToggle"/>
+                </div>
+            </wicket:enclosure>
+            <div class="ml-auto" wicket:id="panelHeader"/>
+        </div>
+    </wicket:fragment>
+    <wicket:fragment wicket:id="tilesFragment">
+
+        <div wicket:id="tiles" style="min-height: 250px;">
+            <div wicket:id="tile"/>
+        </div>
+
+        <div wicket:id="addRuleContainer" class="row p-0 col-12 bg-light d-flex flex-column">
+            <span class="pt-5 pb-3 m-auto"><wicket:message key="AbstractSpecificMappingTileTable.noActivationRules"/></span>
+            <button class="btn btn-primary mb-5 mx-auto" wicket:id="addButton" />
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

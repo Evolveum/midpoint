@@ -14,6 +14,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.internals.TestingPaths;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -40,7 +43,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  *
  * @author Radovan Semancik
  */
-public class SmartAssignmentCollection<F extends AssignmentHolderType> implements Iterable<SmartAssignmentElement>, DebugDumpable {
+public class SmartAssignmentCollection<F extends AssignmentHolderType>
+        implements Iterable<SmartAssignmentElement>, DebugDumpable {
 
     /**
      * Collection of SmartAssignmentElements (assignment value + origin), indexed by assignment value.
@@ -57,10 +61,11 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
      *
      * Origin freeze is needed if "replace" delta is present, because we have to set final values for "isNew" origin flags.
      */
-    public void collectAndFreeze(PrismObject<F> objectCurrent, PrismObject<F> objectOld,
+    public void collectAndFreeze(
+            PrismObject<F> objectCurrent, PrismObject<F> objectOld,
+            @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider,
             ContainerDelta<AssignmentType> currentAssignmentDelta,
-            Collection<AssignmentType> virtualAssignments,
-            PrismContext prismContext) throws SchemaException {
+            Collection<ConfigurationItem<AssignmentType>> virtualAssignments) throws SchemaException {
 
         PrismContainer<AssignmentType> assignmentContainerOld = getAssignmentContainer(objectOld);
         PrismContainer<AssignmentType> assignmentContainerCurrent = getAssignmentContainer(objectCurrent);
@@ -71,28 +76,38 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
             idMap = new HashMap<>(initialCapacity);
         }
 
-        collectAssignments(assignmentContainerCurrent, Mode.CURRENT);
-        collectAssignments(assignmentContainerOld, Mode.OLD);
+        if (objectCurrent != null) {
+            // These assignments reside physically in their object. Hence "embedded".
+            collectAssignments(assignmentContainerCurrent, Mode.CURRENT, OriginProvider.embedded());
+        }
+        if (objectOld != null) {
+            // These assignments reside physically in their object. Hence "embedded".
+            collectAssignments(assignmentContainerOld, Mode.OLD, OriginProvider.embedded());
+        }
 
         // TODO what if assignment is both virtual and in delta? It will have virtual flag set to true... MID-6404
         collectVirtualAssignments(virtualAssignments);
 
-        collectDeltaValues(assignmentContainerCurrent, currentAssignmentDelta, prismContext);
+        collectDeltaValues(assignmentContainerCurrent, currentAssignmentDelta, deltaItemOriginProvider);
 
         freezeOrigins();
     }
 
-    private void collectDeltaValues(PrismContainer<AssignmentType> assignmentContainerCurrent, ContainerDelta<AssignmentType> currentAssignmentDelta, PrismContext prismContext) throws SchemaException {
+    private void collectDeltaValues(
+            PrismContainer<AssignmentType> assignmentContainerCurrent,
+            ContainerDelta<AssignmentType> currentAssignmentDelta,
+            @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider)
+            throws SchemaException {
         if (currentAssignmentDelta != null) {
             if (currentAssignmentDelta.isReplace()) {
                 allValues().forEach(v -> v.getOrigin().setNew(false));
                 PrismContainer<AssignmentType> assignmentContainerNew =
-                        computeAssignmentContainerNew(assignmentContainerCurrent, currentAssignmentDelta, prismContext);
-                collectAssignments(assignmentContainerNew, Mode.NEW);
+                        computeAssignmentContainerNew(assignmentContainerCurrent, currentAssignmentDelta);
+                collectAssignments(assignmentContainerNew, Mode.NEW, deltaItemOriginProvider);
             } else {
                 // For performance reasons it is better to process only changes than to process
                 // the whole new assignment set (that can have hundreds of assignments)
-                collectAssignmentsFromAddDeleteDelta(currentAssignmentDelta);
+                collectAssignmentsFromAddDeleteDelta(currentAssignmentDelta, deltaItemOriginProvider);
             }
         }
     }
@@ -103,11 +118,12 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
     }
 
     @NotNull
-    private PrismContainer<AssignmentType> computeAssignmentContainerNew(PrismContainer<AssignmentType> currentContainer,
-            ContainerDelta<AssignmentType> delta, PrismContext prismContext) throws SchemaException {
+    private PrismContainer<AssignmentType> computeAssignmentContainerNew(
+            PrismContainer<AssignmentType> currentContainer,
+            ContainerDelta<AssignmentType> delta) throws SchemaException {
         PrismContainer<AssignmentType> newContainer;
         if (currentContainer == null) {
-            newContainer = prismContext.getSchemaRegistry()
+            newContainer = PrismContext.get().getSchemaRegistry()
                     .findContainerDefinitionByCompileTimeClass(AssignmentType.class).instantiate();
         } else {
             newContainer = currentContainer.clone();
@@ -116,31 +132,47 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
         return newContainer;
     }
 
-    private void collectAssignments(PrismContainer<AssignmentType> assignmentContainer, Mode mode) throws SchemaException {
+    private void collectAssignments(
+            @Nullable PrismContainer<AssignmentType> assignmentContainer,
+            @NotNull Mode mode,
+            @NotNull OriginProvider<? super AssignmentType> originProvider)
+            throws SchemaException {
         if (assignmentContainer != null) {
             for (PrismContainerValue<AssignmentType> assignmentCVal : assignmentContainer.getValues()) {
-                collectAssignment(assignmentCVal, mode, false, null, false);
+                collectAssignment(
+                        assignmentCVal, mode, false, null, false,
+                        originProvider.origin(assignmentCVal.asContainerable()));
             }
         }
     }
 
-    private void collectVirtualAssignments(Collection<AssignmentType> forcedAssignments) throws SchemaException {
-        for (AssignmentType assignment : emptyIfNull(forcedAssignments)) {
+    private void collectVirtualAssignments(Collection<ConfigurationItem<AssignmentType>> forcedAssignments)
+            throws SchemaException {
+        for (ConfigurationItem<AssignmentType> assignment : emptyIfNull(forcedAssignments)) {
             //noinspection unchecked
-            collectAssignment(assignment.asPrismContainerValue(), Mode.CURRENT, true, null, false);
+            collectAssignment(
+                    assignment.value().asPrismContainerValue(),
+                    Mode.CURRENT, true, null, false, assignment.origin());
         }
     }
 
-    private void collectAssignmentsFromAddDeleteDelta(ContainerDelta<AssignmentType> assignmentDelta) throws SchemaException {
-        collectAssignmentsFromDeltaSet(assignmentDelta.getValuesToAdd(), AddDeleteReplace.ADD);
-        collectAssignmentsFromDeltaSet(assignmentDelta.getValuesToDelete(), AddDeleteReplace.DELETE);
+    private void collectAssignmentsFromAddDeleteDelta(
+            @NotNull ContainerDelta<AssignmentType> assignmentDelta,
+            @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider)
+            throws SchemaException {
+        collectAssignmentsFromDeltaSet(assignmentDelta.getValuesToAdd(), AddDeleteReplace.ADD, deltaItemOriginProvider);
+        collectAssignmentsFromDeltaSet(assignmentDelta.getValuesToDelete(), AddDeleteReplace.DELETE, deltaItemOriginProvider);
     }
 
-    private void collectAssignmentsFromDeltaSet(Collection<PrismContainerValue<AssignmentType>> assignments,
-            AddDeleteReplace deltaSet) throws SchemaException {
+    private void collectAssignmentsFromDeltaSet(
+            Collection<PrismContainerValue<AssignmentType>> assignments,
+            AddDeleteReplace deltaSet,
+            @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider) throws SchemaException {
         for (PrismContainerValue<AssignmentType> assignmentCVal: emptyIfNull(assignments)) {
             boolean doNotCreateNew = deltaSet == AddDeleteReplace.DELETE;
-            collectAssignment(assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, deltaSet, doNotCreateNew);
+            collectAssignment(
+                    assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, deltaSet, doNotCreateNew,
+                    deltaItemOriginProvider.origin(assignmentCVal.asContainerable()));
         }
     }
 
@@ -150,8 +182,10 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
      *
      * This also means that delete delta assignments must be processed last.
      */
-    private void collectAssignment(PrismContainerValue<AssignmentType> assignmentCVal, Mode mode, boolean virtual,
-            AddDeleteReplace deltaSet, boolean doNotCreateNew) throws SchemaException {
+    private void collectAssignment(
+            PrismContainerValue<AssignmentType> assignmentCVal,
+            Mode mode, boolean virtual, AddDeleteReplace deltaSet, boolean doNotCreateNew,
+            @NotNull ConfigurationItemOrigin origin) throws SchemaException {
 
         @NotNull SmartAssignmentElement element;
 
@@ -176,15 +210,16 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
                 // Deleting non-existing assignment.
                 return;
             } else {
-                element = put(assignmentCVal, virtual);
+                element = put(assignmentCVal, virtual, origin);
             }
         }
 
         element.updateOrigin(mode, deltaSet);
     }
 
-    private SmartAssignmentElement put(PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
-        SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal, virtual);
+    private SmartAssignmentElement put(
+            PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual, @NotNull ConfigurationItemOrigin origin) {
+        SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal, virtual, origin);
         aMap.put(element.getKey(), element);
         if (assignmentCVal.getId() != null) {
             idMap.put(assignmentCVal.getId(), element);
@@ -202,8 +237,8 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
         }
     }
 
-    private int computeInitialCapacity(PrismContainer<AssignmentType> assignmentContainerCurrent,
-            ContainerDelta<AssignmentType> assignmentDelta, Collection<AssignmentType> forcedAssignments) {
+    private int computeInitialCapacity(
+            PrismContainer<?> assignmentContainerCurrent, ContainerDelta<?> assignmentDelta, Collection<?> forcedAssignments) {
         return (assignmentContainerCurrent != null ? assignmentContainerCurrent.size() : 0)
                 + (assignmentDelta != null ? assignmentDelta.size() : 0)
                 + (forcedAssignments != null ? forcedAssignments.size() : 0);

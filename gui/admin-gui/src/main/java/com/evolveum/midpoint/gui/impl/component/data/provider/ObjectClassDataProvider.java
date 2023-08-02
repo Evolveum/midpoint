@@ -51,8 +51,4 @@ public class ObjectClassDataProvider extends SelectableListDataProvider<Selectab
         return filter;
     }
 
-    @Override
-    public long size() {
-        return super.size();
-    }
 }

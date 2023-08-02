@@ -220,7 +220,6 @@ public class TestPerformance extends AbstractEmptyInternalModelTest {
         }
 
         Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         String label = autzLabel + "/" + definitionUpdateOption;
 

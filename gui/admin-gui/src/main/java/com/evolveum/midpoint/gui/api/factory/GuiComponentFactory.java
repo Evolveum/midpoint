@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.factory;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 
@@ -14,7 +16,7 @@ import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 
 public interface GuiComponentFactory<T extends ItemPanelContext<?, ?>> {
 
-    <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper);
+    <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper);
 
     Component createPanel(T panelCtx);
 

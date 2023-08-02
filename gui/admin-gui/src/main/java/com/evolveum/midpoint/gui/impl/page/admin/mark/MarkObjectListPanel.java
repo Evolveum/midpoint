@@ -27,7 +27,7 @@ public class MarkObjectListPanel extends MainObjectListPanel<MarkType> {
     private static final long serialVersionUID = 1L;
 
     public MarkObjectListPanel(String id) {
-        super(id, MarkType.class, null, null);
+        super(id, MarkType.class, null);
     }
 
     @Override

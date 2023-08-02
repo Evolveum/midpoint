@@ -1,0 +1,218 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="3947d3b1-b6e8-46ec-b382-1bde67da6f07">
+
+    <name>system-configuration</name>
+
+
+    <messageTransportConfiguration>
+        <file>
+            <name>f1</name>
+            <file>a.csv</file>
+            <redirectToFile>redirect.csv</redirectToFile>
+            <debug>true</debug>
+            <whiteList>asdf</whiteList>
+            <blackList>jklo</blackList>
+            <recipientFilterExpression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </recipientFilterExpression>
+        </file>
+        <mail>
+            <name>m2</name>
+            <defaultFrom>example@example.com</defaultFrom>
+            <server>
+                <host>localhost</host>
+            </server>
+        </mail>
+        <sms>
+            <name>s1</name>
+            <gateway>
+                <urlExpression>
+                    <script>
+                        <code>
+                            return 'one.example'
+                        </code>
+                    </script>
+                </urlExpression>
+            </gateway>
+        </sms>
+        <sms>
+            <name>s2</name>
+            <redirectToFile>redirected.log</redirectToFile>
+            <blackList>blacklisted@example.com</blackList>
+            <debug>true</debug>
+            <logToFile>log.log</logToFile>
+            <recipientFilterExpression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </recipientFilterExpression>
+            <whiteList>whitelisted@example.com</whiteList>
+            <gateway>
+                <method>get</method>
+                <urlExpression>
+                    <script>
+                        <code>
+                            return 'example.com'
+                        </code>
+                    </script>
+                </urlExpression>
+                <username>user</username>
+                <password>pass</password>
+            </gateway>
+        </sms>
+        <customTransport>
+            <name>custom1</name>
+            <redirectToFile>notification-redirected.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+        <customTransport>
+            <name>custom2</name>
+            <redirectToFile>notification-redirected2.log</redirectToFile>
+            <expression>
+                <script>
+                    <code>
+                        return null
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+    </messageTransportConfiguration>
+
+    <notificationConfiguration>
+        <handler>
+            <simpleUserNotifier>
+                <transport>custom1</transport>
+            </simpleUserNotifier>
+        </handler>
+    </notificationConfiguration>
+
+    <roleManagement>
+        <defaultAssignmentConstraints>
+            <allowSameTarget>true</allowSameTarget>
+            <allowSameRelation>true</allowSameRelation>
+        </defaultAssignmentConstraints>
+    </roleManagement>
+
+    <adminGuiConfiguration>
+        <userDashboardLink>
+            <targetUrl>https://google.com</targetUrl>
+        </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>OrgType</type>
+                <formSpecification>
+                    <title>Transform</title>
+                    <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <action id="4">
+                    <identifier>action1</identifier>
+                </action>
+                <action id="5">
+                    <identifier>action2</identifier>
+                </action>
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>oneLevel</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>UserType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="7">
+                            <display>
+                                <label>sample1</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView id="6">
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>subtree</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>OrgType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="8">
+                            <display>
+                                <label>sample3</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+        </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage id="10">
+                <type>UserType</type>
+                <container id="9">
+                    <identifier>123</identifier>
+                </container>
+            </objectDetailsPage>
+        </objectDetails>
+        <accessRequest>
+            <roleCatalog>
+                <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>
+                <collection>
+                    <identifier>allRoles</identifier>
+                    <default>true</default>
+                    <collectionIdentifier>allRoles</collectionIdentifier>
+                </collection>
+                <collection>
+                    <identifier>myCustomCollection</identifier>
+                    <collectionIdentifier>myCustomCollection</collectionIdentifier>
+                </collection>
+            </roleCatalog>
+        </accessRequest>
+    </adminGuiConfiguration>
+
+    <defaultObjectPolicyConfiguration id="2">
+        <itemConstraint>
+            <path>name</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>givenName</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>familyName</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+    </defaultObjectPolicyConfiguration>
+
+    <cleanupPolicy>
+        <simpleOperationExecutions>
+            <maxAge>P1D</maxAge>
+            <maxRecords>10</maxRecords>
+        </simpleOperationExecutions>
+        <complexOperationExecutions>
+            <maxAge>P1D</maxAge>
+            <maxRecords>10</maxRecords>
+        </complexOperationExecutions>
+    </cleanupPolicy>
+</systemConfiguration>

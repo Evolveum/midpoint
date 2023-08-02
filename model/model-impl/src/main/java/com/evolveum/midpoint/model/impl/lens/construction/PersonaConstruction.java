@@ -57,15 +57,8 @@ public class PersonaConstruction<AH extends AssignmentHolderType>
         }
         DebugUtil.debugDumpWithLabelLn(sb, "valid", isValid(), indent + 1);
         sb.append("\n");
-        if (constructionBean != null && constructionBean.getDescription() != null) {
-            sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "description", indent + 1);
-            sb.append(" ").append(constructionBean.getDescription());
-        }
-        if (assignmentPath != null) {
-            sb.append("\n");
-            sb.append(assignmentPath.debugDump(indent + 1));
-        }
+        debugDumpConstructionDescription(sb, indent);
+        debugDumpAssignmentPath(sb, indent);
         return sb.toString();
 
     }

@@ -70,6 +70,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author katkav
  * @author semancik
  */
+//Do not use, use ResourceObjectsPanel or ResourceUncategorizedPanel instead
+@Deprecated(forRemoval = true)
 public abstract class ResourceContentPanel extends BasePanel<PrismObject<ResourceType>> {
     private static final long serialVersionUID = 1L;
 
@@ -201,12 +203,12 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
         if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
             switch (kind) {
-                case ACCOUNT:
-                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
-                case GENERIC:
-                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
-                case ENTITLEMENT:
-                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
+//                case ACCOUNT:
+//                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
+//                case GENERIC:
+//                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+//                case ENTITLEMENT:
+//                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
 
                 default:
                     return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
@@ -234,7 +236,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         add(totals);
         initShadowStatistics(totals);
 
-        ShadowTablePanel shadowListPanel = new ShadowTablePanel(ID_TABLE, createSearchOptions(), getPanelConfiguration()) {
+        ShadowTablePanel shadowListPanel = new ShadowTablePanel(ID_TABLE, getPanelConfiguration()) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -248,7 +250,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
             @Override
             protected ISelectableDataProvider createProvider() {
-                SelectableBeanObjectDataProvider<ShadowType> provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null);
+                SelectableBeanObjectDataProvider<ShadowType> provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null,
+                        createSearchOptions());
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);

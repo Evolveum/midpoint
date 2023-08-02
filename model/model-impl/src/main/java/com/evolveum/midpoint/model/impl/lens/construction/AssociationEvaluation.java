@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
@@ -25,14 +26,21 @@ import java.util.stream.Collectors;
 class AssociationEvaluation<AH extends AssignmentHolderType>
         extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>, ResourceAssociationDefinition> {
 
-    AssociationEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ResourceAssociationDefinition associationDefinition, MappingType mappingBean,
-            OriginType originType, MappingKindType mappingKind) {
-        super(constructionEvaluation, associationDefinition.getName(),
+    AssociationEvaluation(
+            ConstructionEvaluation<AH, ?> constructionEvaluation,
+            ResourceAssociationDefinition associationDefinition,
+            ConfigurationItem<MappingType> mappingBeanWithOrigin,
+            OriginType originType,
+            MappingKindType mappingKind) {
+        super(
+                constructionEvaluation,
+                associationDefinition.getName(),
                 ShadowType.F_ASSOCIATION.append(associationDefinition.getName()),
                 associationDefinition,
                 constructionEvaluation.construction.getAssociationContainerDefinition(),
-                mappingBean, originType, mappingKind);
+                mappingBeanWithOrigin,
+                originType,
+                mappingKind);
     }
 
     @Override

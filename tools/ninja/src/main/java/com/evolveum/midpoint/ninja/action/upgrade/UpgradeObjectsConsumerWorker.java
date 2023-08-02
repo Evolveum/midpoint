@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -19,12 +22,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWorker<UpgradeObjectsOptions, T> {
 
-    private final Map<UUID, Set<String>> skipUpgradeForOids;
+    private final Map<UUID, Set<SkipUpgradeItem>> skipUpgradeForOids;
 
     private final Log log;
 
     public UpgradeObjectsConsumerWorker(
-            Map<UUID, Set<String>> skipUpgradeForOids, NinjaContext context, UpgradeObjectsOptions options,
+            Map<UUID, Set<SkipUpgradeItem>> skipUpgradeForOids, NinjaContext context, UpgradeObjectsOptions options,
             BlockingQueue<T> queue, OperationStatus operation) {
 
         super(context, options, queue, operation);
@@ -65,24 +68,11 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
         }
     }
 
-    private void processObject(RepositoryService repository, T object) {
+    private void processObject(RepositoryService repository, T object) throws Exception {
         PrismObject prismObject = object.asPrismObject();
 
-        // todo skip upgrade for specific objects based on CSV report
-        Set<String> identifiers = skipUpgradeForOids.get(UUID.fromString(object.getOid()));
-        if (identifiers == null) {
-            identifiers = new HashSet<>();
-        }
-
-//        if (skipUpgradeForOids.contains(object.getOid())) {
-//            log.info(ConsoleFormat.formatInfoMessageWithParameter(
-//                    "Skipping object: ", prismObject.getBusinessDisplayName() + "(" + object.getOid() + ")"));
-//            return;
-//        }
-//
-
         PrismObject cloned = prismObject.clone();
-        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context);
+        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeForOids);
         boolean changed = executor.execute(cloned);
         if (!changed) {
             return;
@@ -90,17 +80,21 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
         OperationResult opResult = new OperationResult("Modify object");
         try {
-            ObjectDelta<?> delta = cloned.diff(prismObject);
+            ObjectDelta<?> delta = prismObject.diff(cloned);
             Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
             RepoModifyOptions opts = modifications.isEmpty() ? RepoModifyOptions.createForceReindex() : new RepoModifyOptions();
 
             repository.modifyObject(object.getClass(), object.getOid(), delta.getModifications(), opts, opResult);
         } catch (Exception ex) {
-            log.error("Couldn't modify object");
+            log.error("Couldn't modify object {} ({})", ex, object.getName(), object.getOid());
         } finally {
             opResult.computeStatusIfUnknown();
 
-            // todo if not success, print?
+            if (!opResult.isSuccess()) {
+                log.error(
+                        "Modification of '{} ({})' didn't finished with success\n{}",
+                        object.getName(), object.getOid(), opResult.debugDumpLazily());
+            }
         }
     }
 }

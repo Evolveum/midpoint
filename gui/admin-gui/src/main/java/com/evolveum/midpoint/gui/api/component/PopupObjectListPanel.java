@@ -56,7 +56,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     public PopupObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
                                 boolean multiselect) {
-        super(id, defaultType, options);
+        super(id, defaultType);
         this.multiselect = multiselect;
     }
 

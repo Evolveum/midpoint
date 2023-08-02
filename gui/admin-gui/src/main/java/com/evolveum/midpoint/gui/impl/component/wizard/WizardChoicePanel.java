@@ -24,6 +24,8 @@ public abstract class WizardChoicePanel<T extends Serializable, AHD extends Assi
     private static final String ID_LIST = "list";
     private static final String ID_TILE = "tile";
 
+    private LoadableModel<List<Tile<T>>> tilesModel;
+
     public WizardChoicePanel(String id, AHD resourceModel) {
         super(id, resourceModel);
     }
@@ -31,13 +33,14 @@ public abstract class WizardChoicePanel<T extends Serializable, AHD extends Assi
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        tilesModel = loadTilesModel();
         initLayout();
     }
 
     protected abstract LoadableModel<List<Tile<T>>> loadTilesModel();
 
     private void initLayout() {
-        ListView<Tile<T>> list = new ListView<>(ID_LIST, loadTilesModel()) {
+        ListView<Tile<T>> list = new ListView<>(ID_LIST, tilesModel) {
 
             @Override
             protected void populateItem(ListItem<Tile<T>> item) {
@@ -48,4 +51,14 @@ public abstract class WizardChoicePanel<T extends Serializable, AHD extends Assi
     }
 
     protected abstract Component createTilePanel(String id, IModel<Tile<T>> tileModel);
+
+    public LoadableModel<List<Tile<T>>> getTilesModel() {
+        return tilesModel;
+    }
+
+    @Override
+    protected void onDetach() {
+        super.onDetach();
+        tilesModel.detach();
+    }
 }

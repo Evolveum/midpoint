@@ -9,24 +9,10 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
-public class VirtualAssignmentSpecification<R extends AbstractRoleType> {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-    private ObjectFilter filter;
-    private Class<R> type;
-
-    public ObjectFilter getFilter() {
-        return filter;
-    }
-
-    public Class<R> getType() {
-        return type;
-    }
-
-    public void setFilter(ObjectFilter filter) {
-        this.filter = filter;
-    }
-
-    public void setType(Class<R> type) {
-        this.type = type;
-    }
+public record VirtualAssignmentSpecification<R extends AbstractRoleType>(
+        @NotNull Class<R> type,
+        @Nullable ObjectFilter filter) {
 }

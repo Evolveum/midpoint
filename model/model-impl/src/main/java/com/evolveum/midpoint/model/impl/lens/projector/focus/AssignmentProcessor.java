@@ -13,17 +13,11 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
-
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -31,7 +25,6 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -48,10 +41,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -60,11 +51,12 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -101,24 +93,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class)
 public class AssignmentProcessor implements ProjectorProcessor {
 
-    @Autowired
-    @Qualifier("modelObjectResolver")
-    private ObjectResolver objectResolver;
-
     @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
-    @Autowired private MappingFactory mappingFactory;
-    @Autowired private MappingEvaluator mappingEvaluator;
-    @Autowired private ActivationComputer activationComputer;
     @Autowired private ConstructionProcessor constructionProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
-    @Autowired private ContextLoader contextLoader;
     @Autowired private ModelBeans beans;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
+    private static final String OP_PROCESS_ASSIGNMENTS = AssignmentProcessor.class.getName() + ".processAssignments";
     private static final String OP_EVALUATE_FOCUS_MAPPINGS = AssignmentProcessor.class.getName() + ".evaluateFocusMappings";
     private static final String OP_PROCESS_PROJECTIONS = AssignmentProcessor.class.getName() + ".processProjections";
     private static final String OP_DISTRIBUTE_CONSTRUCTIONS = AssignmentProcessor.class.getName() + ".distributeConstructions";
@@ -127,19 +112,21 @@ public class AssignmentProcessor implements ProjectorProcessor {
      * Processing all the assignments.
      */
     @ProcessorMethod
-    public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignments(LensContext<O> context, XMLGregorianCalendar now,
-            Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignments(
+            LensContext<O> context, XMLGregorianCalendar now,
+            Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         assert context.hasFocusOfType(AssignmentHolderType.class);
 
-        OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignments");
+        OperationResult result = parentResult.createSubresult(OP_PROCESS_ASSIGNMENTS);
         try {
             try {
                 //noinspection unchecked
                 processAssignmentsInternal((LensContext<AH>) context, now, task, result);
             } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
                     CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
-                result.recordFatalError(e);
+                result.recordException(e);
                 throw e;
             }
 
@@ -162,7 +149,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             result.recordEnd();
             result.cleanup();
         } catch (Throwable t) { // shouldn't occur -- just in case
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         }
     }
@@ -289,7 +276,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <AH extends AssignmentHolderType> void evaluateFocusMappings(LensContext<AH> context, XMLGregorianCalendar now,
+    private <AH extends AssignmentHolderType> void evaluateFocusMappings(
+            LensContext<AH> context, XMLGregorianCalendar now,
             LensFocusContext<AH> focusContext,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException,
@@ -313,7 +301,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 if (triple == null) {
                     return null;
                 }
-                DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition<?>>> rv = prismContext.deltaFactory().createDeltaSetTriple();
                 AssignedFocusMappingEvaluationRequest request = (AssignedFocusMappingEvaluationRequest) abstractRequest;
                 //noinspection unchecked
                 EvaluatedAssignmentImpl<AH> evaluatedAssignment = (EvaluatedAssignmentImpl<AH>) request.getEvaluatedAssignment();
@@ -343,17 +330,13 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     throw new IllegalStateException("Evaluated assignment is present in more than one plus/minus/zero sets "
                             + "of the triple: " + presence + ". Assignment = " + evaluatedAssignment + ", triple = " + triple);
                 }
+                DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition<?>>> rv =
+                        prismContext.deltaFactory().createDeltaSetTriple();
                 if (resultingMode != null) {
                     switch (resultingMode) {
-                        case PLUS:
-                            rv.addAllToPlusSet(triple.getNonNegativeValues()); // MID-6403
-                            break;
-                        case MINUS:
-                            rv.addAllToMinusSet(triple.getNonPositiveValues()); // MID-6403
-                            break;
-                        case ZERO:
-                            rv = triple;
-                            break;
+                        case PLUS -> rv.addAllToPlusSet(triple.getNonNegativeValues()); // MID-6403
+                        case MINUS -> rv.addAllToMinusSet(triple.getNonPositiveValues()); // MID-6403
+                        case ZERO -> rv = triple;
                     }
                 }
                 return rv;
@@ -872,23 +855,22 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     parentOrgRefDelta.validateValues(
                             (plusMinusZero, val) -> {
                                 switch (plusMinusZero) {
-                                    case PLUS:
-                                    case ZERO:
+                                    case PLUS, ZERO -> {
                                         if (!PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
                                             throw new TunnelException(
                                                     new PolicyViolationException(
                                                             "Attempt to add parentOrgRef " + val.getOid()
                                                                     + ", but it is not allowed by assignments"));
                                         }
-                                        break;
-                                    case MINUS:
+                                    }
+                                    case MINUS -> {
                                         if (PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
                                             throw new TunnelException(
                                                     new PolicyViolationException(
                                                             "Attempt to delete parentOrgRef " + val.getOid()
                                                                     + ", but it is mandated by assignments"));
                                         }
-                                        break;
+                                    }
                                 }
                             }, parentOrgRefCurrentValues);
 
@@ -1294,6 +1276,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <AH extends AssignmentHolderType> AssignmentTripleEvaluator<AH> createAssignmentTripleEvaluator(
             LensContext<AH> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 
+        assert context.hasFocusContext();
         return new AssignmentTripleEvaluator.Builder<AH>()
                 .context(context)
                 .assignmentEvaluator(createAssignmentEvaluator(context, now))

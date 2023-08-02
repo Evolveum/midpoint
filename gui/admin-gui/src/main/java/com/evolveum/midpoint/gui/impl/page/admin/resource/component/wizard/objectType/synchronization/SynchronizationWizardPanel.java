@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -53,7 +54,7 @@ public class SynchronizationWizardPanel extends AbstractWizardPanel<ResourceObje
         steps.add(new ReactionMainSettingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
+                showTable(target, valueModel);
             }
         });
 
@@ -62,17 +63,22 @@ public class SynchronizationWizardPanel extends AbstractWizardPanel<ResourceObje
                 PrismContainerWrapperModel.fromContainerValueWrapper(valueModel, SynchronizationReactionType.F_ACTIONS)) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
+                showTable(target, valueModel);
             }
         });
 
         steps.add(new ReactionOptionalSettingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
+                showTable(target, valueModel);
             }
         });
 
         return steps;
+    }
+
+    private void showTable(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<SynchronizationReactionType>> valueModel) {
+        WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
+        showChoiceFragment(target, createTablePanel());
     }
 }

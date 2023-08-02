@@ -3,14 +3,14 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 import java.io.File;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
-public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
+public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, ActionResult<Void>> {
 
     @Override
     public String getOperationName() {
@@ -18,7 +18,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
     }
 
     @Override
-    public Void execute() throws Exception {
+    public ActionResult<Void> execute() throws Exception {
         File tempDirectory = options.getTempDirectory() != null ?
                 options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
 
@@ -30,12 +30,12 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
             PreUpgradeCheckAction preUpgradeCheckAction = new PreUpgradeCheckAction();
             preUpgradeCheckAction.init(context, preUpgradeCheckOptions);
-            boolean shouldContinue = executeAction(preUpgradeCheckAction);
-            if (shouldContinue) {
+            ActionResult<Boolean> shouldContinue = executeAction(preUpgradeCheckAction);
+            if (shouldContinue.result()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade check succeeded.").reset().toString());
             } else {
                 log.error(Ansi.ansi().fgRed().a("Pre-upgrade check failed.").reset().toString());
-                return null;
+                return new ActionResult<>(null, shouldContinue.exitCode());
             }
         } else {
             log.info("Pre-upgrade checks skipped.");
@@ -45,7 +45,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         if (!options.isSkipVerification()) {
             VerifyOptions verifyOptions = new VerifyOptions();
             verifyOptions.setMultiThread(options.getVerificationThreads());
-            verifyOptions.setContinueVerificationOnError(options.isContinueVerificationOnError());
+            verifyOptions.setStopOnCriticalError(options.isStopOnCriticalError());
 
             VerifyAction verifyAction = new VerifyAction();
             verifyAction.init(context, verifyOptions);
@@ -64,6 +64,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         DownloadDistributionOptions downloadOpts = new DownloadDistributionOptions();
         downloadOpts.setTempDirectory(tempDirectory);
         downloadOpts.setDistributionArchive(options.getDistributionArchive());
+        downloadOpts.setDistributionVersion(options.getDistributionVersion());
 
         DownloadDistributionAction downloadAction = new DownloadDistributionAction();
         downloadAction.init(context, downloadOpts);

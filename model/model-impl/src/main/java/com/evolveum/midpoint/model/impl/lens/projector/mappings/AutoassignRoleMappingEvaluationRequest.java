@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.config.AutoAssignMappingConfigItem;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,9 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- *
- */
 public class AutoassignRoleMappingEvaluationRequest
         extends FocalMappingEvaluationRequest<AutoassignMappingType, AbstractRoleType> {
 
@@ -33,8 +32,10 @@ public class AutoassignRoleMappingEvaluationRequest
     private PrismContainerDefinition<AssignmentType> assignmentDef;
     private AssignmentType assignment;
 
-    public AutoassignRoleMappingEvaluationRequest(@NotNull AutoassignMappingType mapping, @NotNull AbstractRoleType role) {
-        super(mapping, MappingKindType.AUTO_ASSIGN, role);
+    public AutoassignRoleMappingEvaluationRequest(
+            @NotNull AutoAssignMappingConfigItem mapping,
+            @NotNull AbstractRoleType role) {
+        super(mapping.value(), mapping.origin(), MappingKindType.AUTO_ASSIGN, role);
     }
 
     @Override
@@ -56,10 +57,9 @@ public class AutoassignRoleMappingEvaluationRequest
         }
         assignment.targetRef(originObject.getOid(), originObject.asPrismObject().getDefinition().getTypeName(), relation);
 
-        Source<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> source =
-                new Source<>(assignmentContainer, null, assignmentContainer, FocusType.F_ASSIGNMENT, assignmentDef);
         //noinspection unchecked
-        return (Source<V, D>) source;
+        return (Source<V, D>) new Source<>(
+                assignmentContainer, null, assignmentContainer, ExpressionConstants.VAR_ASSIGNMENT_QNAME, assignmentDef);
     }
 
     @Override
@@ -92,6 +92,6 @@ public class AutoassignRoleMappingEvaluationRequest
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("autoassign mapping ");
-        sb.append("'").append(getMappingInfo()).append("' in ").append(originObject);
+        sb.append("'").append(getMappingInfo()).append("' ").append(mappingOrigin.fullDescription());
     }
 }

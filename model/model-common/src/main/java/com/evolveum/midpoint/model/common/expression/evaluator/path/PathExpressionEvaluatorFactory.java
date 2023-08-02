@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is NOT autowired evaluator factory.
@@ -50,17 +52,20 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition,
-            ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result) throws SchemaException {
+            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            @Nullable D outputDefinition,
+            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionFactory expressionFactory,
+            @NotNull String contextDescription,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
 
         ItemPathType path = Objects.requireNonNull(
                 getSingleEvaluatorBean(evaluatorElements, ItemPathType.class, contextDescription),
                 () -> "missing path specification in " + contextDescription);
+
         return new PathExpressionEvaluator<>(ELEMENT_NAME, path, outputDefinition, protector);
     }
 }

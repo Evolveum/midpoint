@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="28676177-5884-4625-805d-bae552932666">
+
+    <name>security policy</name>
+
+    <authentication>
+        <modules>
+            <saml2 id="1">
+                <identifier>deprecated items</identifier>
+            </saml2>
+        </modules>
+        <sequence id="2">
+            <identifier>sequencename</identifier>
+            <module id="3">
+                <identifier>deprecated items</identifier>
+            </module>
+            <module id="4">
+                <identifier>unchanged</identifier>
+            </module>
+        </sequence>
+    </authentication>
+    <credentialsReset>
+        <identifier>sample-name</identifier>
+    </credentialsReset>
+</securityPolicy>

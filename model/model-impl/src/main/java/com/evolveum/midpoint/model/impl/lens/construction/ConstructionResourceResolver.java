@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
+import java.util.Collection;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -21,16 +28,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 /**
  * Resolves construction resource reference.
@@ -55,7 +56,6 @@ class ConstructionResourceResolver {
         }
         ObjectReferenceType resourceRef = construction.constructionBean.getResourceRef();
         if (resourceRef != null) {
-            //noinspection unchecked
             PrismObject<ResourceType> resourceFromRef = resourceRef.asReferenceValue().getObject();
             if (resourceFromRef != null) {
                 return new ResolvedConstructionResource(resourceFromRef.asObjectable());
@@ -117,16 +117,22 @@ class ConstructionResourceResolver {
                 .getDefaultVariablesMap(
                         construction.getFocusOdoAbsolute().getNewObject().asObjectable(),
                         null, null, null);
-        ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables, PrismContext.get());
+        ModelImplUtils.addAssignmentPathVariables(construction.getAssignmentPathVariables(), variables);
         LOGGER.debug("Expression variables for filter evaluation: {}", variables);
 
         assert construction.constructionBean != null;
+        assert construction.constructionConfigItem != null; // TODO use CI for resourceRef and the filter here
         ObjectFilter origFilter = PrismContext.get().getQueryConverter()
-                .parseFilter(construction.constructionBean.getResourceRef().getFilter(),
-                ResourceType.class);
+                .parseFilter(construction.constructionBean.getResourceRef().getFilter(), ResourceType.class);
         LOGGER.debug("Orig filter {}", origFilter);
-        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
-                construction.expressionProfile, ModelBeans.get().commonBeans.expressionFactory, PrismContext.get(),
+        // TODO skip determination of expression profile if there is no expression in the filter
+        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
+                origFilter, variables,
+                ModelBeans.get().archetypeManager.determineExpressionProfile(
+                        construction.constructionConfigItem.originFor(
+                                ConstructionType.F_RESOURCE_REF.append(ObjectReferenceType.F_FILTER)),
+                        result),
+                ModelBeans.get().expressionFactory,
                 " evaluating resource filter expression ", task, result);
         LOGGER.debug("evaluatedFilter filter {}", evaluatedFilter);
 

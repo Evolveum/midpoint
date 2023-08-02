@@ -13,11 +13,13 @@ import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 
 import java.util.HashMap;
@@ -30,6 +32,12 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
+    /**
+     * Are we pre-authorized for dangerous operations like Groovy script execution? See
+     * {@link ScriptingExpressionEvaluator#evaluateExpressionPrivileged(ExecuteScriptType, VariablesMap, Task, OperationResult)}.
+     *
+     * TEMPORARY. To be replaced.
+     */
     private final boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;

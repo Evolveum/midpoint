@@ -25,7 +25,8 @@ public class ApprovalSchemaHelper {
         }
     }
 
-    public void prepareStage(ApprovalStageDefinitionType stageDef, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
+    public void prepareStage(
+            ApprovalStageDefinitionType stageDef, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         try {
             // resolves filters in approvers
             List<ObjectReferenceType> resolvedApprovers = new ArrayList<>();

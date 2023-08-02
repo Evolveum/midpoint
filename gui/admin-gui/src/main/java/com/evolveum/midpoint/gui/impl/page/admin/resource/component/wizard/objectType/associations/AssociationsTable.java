@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.data.column.ToggleSimulationModeColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.SimulationModeColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -95,7 +95,7 @@ public abstract class AssociationsTable extends AbstractResourceWizardTable<Reso
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()));
 
-        columns.add(new ToggleSimulationModeColumn<>(getContainerModel(), getPageBase()));
+        columns.add(new SimulationModeColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }

@@ -7,19 +7,26 @@ import java.util.List;
 import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
+
+import jakarta.xml.bind.JAXBElement;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -383,25 +390,17 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
         Fragment fragment = new Fragment(id, ID_FOOTER_FRAGMENT, ConstructionGroupStepPanel.this);
-        AjaxLink button = new AjaxLink<>(ID_SEARCH_ON_RESOURCE_BUTTON) {
+
+        ReloadableButton reloadButton = new ReloadableButton(ID_SEARCH_ON_RESOURCE_BUTTON, getPageBase()) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AssociationSearchItemWrapper associationWrapper =
                         (AssociationSearchItemWrapper) getTable().getSearchModel().getObject().getItems().stream()
-                        .filter(wrapper -> wrapper instanceof AssociationSearchItemWrapper).findFirst().orElse(null);
+                                .filter(wrapper -> wrapper instanceof AssociationSearchItemWrapper).findFirst().orElse(null);
 
                 if (associationWrapper != null) {
-                    ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
-                            .filter(associationWrapper.createFilter(ShadowType.class, getPageBase(), null)).build();
-                    OperationResult result = new OperationResult("Search shadows on Resource");
-                    WebModelServiceUtils.searchObjects(ShadowType.class, query, result, getPageBase());
-                    if (result.isError()) {
-                        getPageBase().showResult(result);
-                        target.add(getFeedback());
-                    } else {
-                        getTable().refresh(target);
-                    }
+                    super.onClick(target);
                 } else {
                     getPageBase().error(
                             getPageBase().createStringResource(
@@ -409,9 +408,45 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                     target.add(getFeedback());
                 }
             }
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                getTable().refresh(target);
+            }
+
+            @Override
+            protected ActivityDefinitionType createActivityDefinition() throws SchemaException {
+                AssociationSearchItemWrapper associationWrapper =
+                        (AssociationSearchItemWrapper) getTable().getSearchModel().getObject().getItems().stream()
+                                .filter(wrapper -> wrapper instanceof AssociationSearchItemWrapper).findFirst().orElse(null);
+
+                ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
+                        .filter(associationWrapper.createFilter(ShadowType.class, getPageBase(), null)).build();
+
+                SelectExpressionType selectAction = new SelectExpressionType()
+                        .path(new ItemPathType(ItemPath.create(ShadowType.F_NAME)));
+                ExecuteScriptType script = new ExecuteScriptType()
+                        .scriptingExpression(
+                                new JAXBElement<>(
+                                        SchemaConstantsGenerated.SC_SELECT,
+                                        SelectExpressionType.class,
+                                        selectAction));
+                return ActivityDefinitionBuilder.create(new IterativeScriptingWorkDefinitionType()
+                                .objects(new ObjectSetType()
+                                        .type(ShadowType.COMPLEX_TYPE)
+                                        .query(PrismContext.get().getQueryConverter()
+                                                .createQueryType(query)))
+                                .scriptExecutionRequest(script))
+                        .build();
+            }
+
+            @Override
+            protected String getTaskName() {
+                return "Search shadows on Resource";
+            }
         };
-        button.add(new VisibleEnableBehaviour(() -> true, () -> !nonExistAssociations()));
-        fragment.add(button);
+        reloadButton.add(new VisibleEnableBehaviour(() -> true, () -> !nonExistAssociations()));
+        fragment.add(reloadButton);
         return fragment;
     }
 }

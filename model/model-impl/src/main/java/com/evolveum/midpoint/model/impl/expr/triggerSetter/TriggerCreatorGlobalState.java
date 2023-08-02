@@ -103,7 +103,7 @@ public class TriggerCreatorGlobalState implements Cache {
     @Override
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.singleton(
-                new SingleCacheStateInformationType(prismContext)
+                new SingleCacheStateInformationType()
                         .name(TriggerCreatorGlobalState.class.getName())
                         .size(state.size())
         );

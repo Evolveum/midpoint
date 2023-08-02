@@ -76,11 +76,11 @@ public class PageTasks extends PageAdmin {
     public PageTasks(ObjectQuery predefinedQuery, PageParameters params) {
         super(params);
 
-        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, createOperationOptions()) {
+        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE) {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
-                return createSelectableBeanObjectDataProvider(() -> getTaskQuery(predefinedQuery), null);
+                return createSelectableBeanObjectDataProvider(() -> getTaskQuery(predefinedQuery), null, createOperationOptions());
             }
 
             @Override

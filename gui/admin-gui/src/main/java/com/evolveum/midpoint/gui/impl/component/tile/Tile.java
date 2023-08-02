@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -83,4 +84,5 @@ public class Tile<T extends Serializable> implements Comparable<Tile>, Serializa
     public int compareTo(@NotNull Tile o) {
         return this.title.compareTo(o.getTitle());
     }
+
 }

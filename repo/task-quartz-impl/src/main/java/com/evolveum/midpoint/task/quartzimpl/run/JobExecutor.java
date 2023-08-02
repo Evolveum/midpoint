@@ -168,7 +168,7 @@ public class JobExecutor implements InterruptableJob {
         try {
             // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
             beans.securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
-            beans.securityContextManager.setupPreAuthenticatedSecurityContext(taskOwner);
+            beans.securityContextManager.setupPreAuthenticatedSecurityContext(taskOwner, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             suspendFlawedTaskRecordingResult(result);

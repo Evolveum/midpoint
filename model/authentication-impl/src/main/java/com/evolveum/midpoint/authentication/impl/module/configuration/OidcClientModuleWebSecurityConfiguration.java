@@ -75,7 +75,7 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
             try {
                 builder = ClientRegistrations.fromOidcIssuerLocation(openIdProvider.getIssuerUri());
             } catch (Exception e) {
-                LOGGER.debug("Couldn't create oidc client builder by issuer uri.");
+                LOGGER.debug("Couldn't create oidc client builder by issuer uri: " + openIdProvider.getIssuerUri(), e);
             }
 
             Assert.hasText(client.getRegistrationId(), "registrationId cannot be empty");
@@ -108,7 +108,7 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
                     String clientSecret = protector.decryptString(client.getClientSecret());
                     builder.clientSecret(clientSecret);
                 } catch (EncryptionException e) {
-                    LOGGER.error("Couldn't obtain clear string for client secret");
+                    LOGGER.error("Couldn't obtain clear string for client secret", e);
                 }
             }
 

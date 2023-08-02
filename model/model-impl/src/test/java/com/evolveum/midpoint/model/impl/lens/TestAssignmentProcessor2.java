@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -20,6 +22,8 @@ import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
@@ -547,13 +551,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         //noinspection unchecked,rawtypes
         ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
-                new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(jackGuybrushAssignment),
+                new ItemDeltaItem<>(
+                        LensUtil.createAssignmentSingleValueContainer(jackGuybrushAssignment),
                         jackGuybrushAssignment.asPrismContainerValue().getDefinition());
 
         // WHEN
         when();
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator
-                .evaluate(assignmentIdi, PlusMinusZero.ZERO, false, jack.asObjectable(), jack.toString(), AssignmentOrigin.createInObject(), task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
+                assignmentEvaluator.evaluate(
+                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        jack.asObjectable(), jack.toString(), AssignmentOrigin.inObject(embedded(jackGuybrushAssignment)),
+                        task, result);
 
         // THEN
         then();
@@ -1331,7 +1339,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private static boolean recording() {
-        return recording && ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew();
+        return recording && ScriptExpressionEvaluationContext.getThreadLocalRequired().isEvaluateNew();
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -1856,23 +1864,23 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
      * "Go back N" inducements in the presence of various relations.
      * Each target has a note about expected evaluation order ("a", "ab", "abc", ...).
      *
-     * abde/A6 ----[I]----+
-     * |            |
-     * (e)           |
-     * |            V
-     * abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
-     * |            | |                              |
-     * (c)           |(d)                             |
-     * |            V |                              |
-     * A2/ab ....... A4/ab                            |
-     * |                                             |
-     * (b)                                            |
-     * |                                             |
-     * A1/a <.........same evaluation order......... A8/a
-     * ^
-     * (a)
-     * |
-     * jack
+     *                  abde/A6 ----[I]----+
+     *                        |            |
+     *                       (e)           |
+     *                        |            V
+     *   abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
+     *        |            | |                              |
+     *       (c)           |(d)                             |
+     *        |            V |                              |
+     *       A2/ab ....... A4/ab                            |
+     *        |                                             |
+     *       (b)                                            |
+     *        |                                             |
+     *       A1/a <.........same evaluation order......... A8/a
+     *        ^
+     *       (a)
+     *        |
+     *      jack
      */
 
     @Test(enabled = FIFTH_PART)

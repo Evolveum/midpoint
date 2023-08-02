@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.Collection;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -17,25 +17,33 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * @author semancik
+ * The whole evaluation of a script: {@link ScriptExpressionEvaluatorType} compiled into {@link ScriptExpression} and evaluated.
  *
+ * The "context" can be understood just like e.g. `LensContext` - the whole operation, including the script itself.
+ *
+ * @see ScriptEvaluator#evaluate(ScriptExpressionEvaluationContext)
+ *
+ * @author semancik
  */
 public class ScriptExpressionEvaluationContext {
 
     private static final ThreadLocal<ScriptExpressionEvaluationContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
-    private ScriptExpressionEvaluatorType expressionType;
+    private ScriptExpressionEvaluatorType scriptBean;
     private VariablesMap variables;
-    private ItemDefinition outputDefinition;
+    private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ScriptExpressionReturnTypeType suggestedReturnType;
     private ObjectResolver objectResolver;
-    private Collection<FunctionLibrary> functions;
+    private Collection<FunctionLibraryBinding> functionLibraryBindings;
     private ExpressionProfile expressionProfile;
     private ScriptExpressionProfile scriptExpressionProfile;
 
@@ -48,12 +56,12 @@ public class ScriptExpressionEvaluationContext {
 
     private ScriptEvaluationTraceType trace;
 
-    public ScriptExpressionEvaluatorType getExpressionType() {
-        return expressionType;
+    ScriptExpressionEvaluatorType getScriptBean() {
+        return scriptBean;
     }
 
-    public void setExpressionType(ScriptExpressionEvaluatorType expressionType) {
-        this.expressionType = expressionType;
+    public void setScriptBean(ScriptExpressionEvaluatorType scriptBean) {
+        this.scriptBean = scriptBean;
     }
 
     public VariablesMap getVariables() {
@@ -64,11 +72,11 @@ public class ScriptExpressionEvaluationContext {
         this.variables = variables;
     }
 
-    public ItemDefinition getOutputDefinition() {
+    public ItemDefinition<?> getOutputDefinition() {
         return outputDefinition;
     }
 
-    public void setOutputDefinition(ItemDefinition outputDefinition) {
+    public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
         this.outputDefinition = outputDefinition;
     }
 
@@ -96,12 +104,12 @@ public class ScriptExpressionEvaluationContext {
         this.objectResolver = objectResolver;
     }
 
-    public Collection<FunctionLibrary> getFunctions() {
-        return functions;
+    public Collection<FunctionLibraryBinding> getFunctionLibraryBindings() {
+        return functionLibraryBindings;
     }
 
-    public void setFunctions(Collection<FunctionLibrary> functions) {
-        this.functions = functions;
+    public void setFunctionLibraryBindings(Collection<FunctionLibraryBinding> functionLibraryBindings) {
+        this.functionLibraryBindings = functionLibraryBindings;
     }
 
     public ExpressionProfile getExpressionProfile() {
@@ -174,6 +182,24 @@ public class ScriptExpressionEvaluationContext {
 
     public static ScriptExpressionEvaluationContext getThreadLocal() {
         return THREAD_LOCAL_CONTEXT.get();
+    }
+
+    public static @NotNull ScriptExpressionEvaluationContext getThreadLocalRequired() {
+        return MiscUtil.stateNonNull(
+                THREAD_LOCAL_CONTEXT.get(),
+                "No ScriptExpressionEvaluationContext for current thread found");
+    }
+
+    public static @NotNull Task getTaskRequired() {
+        return MiscUtil.stateNonNull(
+                getThreadLocalRequired().getTask(),
+                "No task in ScriptExpressionEvaluationContext for the current thread found");
+    }
+
+    public static @NotNull OperationResult getOperationResultRequired() {
+        return MiscUtil.stateNonNull(
+                getThreadLocalRequired().getResult(),
+                "No operation result in ScriptExpressionEvaluationContext for the current thread found");
     }
 
     public ScriptEvaluationTraceType getTrace() {

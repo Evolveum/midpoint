@@ -57,7 +57,8 @@ public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatte
         return formatComment(event.getInitiatorRef(), event.getOutput(), null, event, task, result);
     }
 
-    private String formatComment(ObjectReferenceType performerRef, AbstractWorkItemOutputType output, AbstractWorkItemType workItem,
+    private String formatComment(
+            ObjectReferenceType performerRef, AbstractWorkItemOutputType output, AbstractWorkItemType workItem,
             WorkItemCompletionEventType event, Task task, OperationResult result) {
         if (formatting == null || formatting.getCondition() == null && formatting.getValue() == null) {
             return output.getComment();

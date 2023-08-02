@@ -150,7 +150,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
         //TODO QName defines a relation value which will be used for new member creation
         MainObjectListPanel<AH> childrenListPanel = new MainObjectListPanel<>(
-                ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getSearchOptions(), getPanelConfiguration()) {
+                ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getPanelConfiguration()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -202,13 +202,21 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
-                SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
+                var options = getPageBase().getOperationOptionsBuilder()
+                        .distinct()
+                        .raw()
+                        .resolveNames()
+                        .build();
+
+                SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(
+                        () -> getCustomizedQuery(getSearchModel().getObject()),
+                        null,
+                        options);
                 provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(ShadowMarkPanel.this.getModelObject()));
-                var options = GetOperationOptions.createRaw();
-                options.setResolveNames(true);
-                provider.setOptions(SelectorOptions.createCollection(options));
+
                 return provider;
             }
+
 
             @Override
             public void refreshTable(AjaxRequestTarget target) {
@@ -733,11 +741,6 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
             return memberSearchItems.getRelationValue();
         }
         return null;
-    }
-
-
-    protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
-        return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
     }
 
     protected MemberPanelStorage getMemberPanelStorage() {

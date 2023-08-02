@@ -7,15 +7,14 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.evolveum.midpoint.ninja.action.upgrade.ConsoleProgressListener;
-import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
-import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.upgrade.ConsoleProgressListener;
+import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
+import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
 import com.evolveum.midpoint.ninja.impl.Log;
 
 public class DownloadDistributionAction extends Action<DownloadDistributionOptions, DownloadDistributionResult> {
@@ -33,12 +32,15 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
 
         File distributionZipFile = options.getDistributionArchive();
         if (distributionZipFile == null || !distributionZipFile.exists()) {
-            String version = UpgradeConstants.SUPPORTED_VERSION_TARGET;
+            String version = options.getDistributionVersion();
+            if (version == null) {
+                throw new IllegalStateException("No version to upgrade to.");
+            }
             log.info("Downloading version: {}", version);
 
             DistributionManager manager = new DistributionManager(tempDirectory);
             ProgressListener listener = new ConsoleProgressListener(context.out);
-
+            // todo handle if distribution doesn't exist (http 404)
             distributionZipFile = manager.downloadDistribution(version, listener);
         } else {
             log.info("Distribution zip already downloaded.");
@@ -96,6 +98,12 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
                 FileUtils.moveToDirectory(file, distribution, false);
             }
             zipRootDirectory.delete();
+        }
+
+        if (options.getDistributionDirectory() != null) {
+            File distributionDirectory = options.getDistributionDirectory();
+
+            return distribution.renameTo(distributionDirectory) ? distributionDirectory : distribution;
         }
 
         return distribution;

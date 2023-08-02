@@ -7,21 +7,14 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -50,7 +43,7 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
     private static final long serialVersionUID = 1L;
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName())
                 && (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,

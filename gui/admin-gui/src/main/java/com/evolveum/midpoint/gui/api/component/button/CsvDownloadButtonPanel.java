@@ -43,17 +43,22 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
     private static final String ID_EXPORT_DATA = "exportData";
 
-    private final boolean canCountBeforeExporting;
+//    private final boolean canCountBeforeExporting;
     List<Integer> exportableColumnsIndex = new ArrayList<>();
 
-    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
-        super(id);
-        this.canCountBeforeExporting = canCountBeforeExporting;
+//    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
+//        super(id);
+//        this.canCountBeforeExporting = canCountBeforeExporting;
+//    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
     public CsvDownloadButtonPanel(String id) {
-        this(id, true);
+        super(id);
     }
 
     private static final long serialVersionUID = 1L;
@@ -140,13 +145,13 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 if (exportSizeLimit < 0) {
                     askForSizeLimitConfirmation = false;
                 } else {
-                    if (canCountBeforeExporting) {
+//                    if (canCountBeforeExporting) {
                         IDataProvider<?> dataProvider = getDataTable().getDataProvider();
                         long size = dataProvider.size();
                         askForSizeLimitConfirmation = size > exportSizeLimit;
-                    } else {
-                        askForSizeLimitConfirmation = true;     // size is unknown
-                    }
+//                    } else {
+//                        askForSizeLimitConfirmation = true;     // size is unknown
+//                    }
                 }
                 Long useExportSizeLimit = null;
                 if (askForSizeLimitConfirmation) {

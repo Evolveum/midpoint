@@ -1841,3 +1841,19 @@ th.debug-list-buttons {
     background-color: $dark;
   }
 }
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-yiq($value);
+
+  .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
+      color: $value;
+      background-color: mix(#ffffff00, $value, 85%);
+      border-color: $value;
+
+      option {
+        background: $white;
+        color: $dark;
+      }
+    }
+
+}

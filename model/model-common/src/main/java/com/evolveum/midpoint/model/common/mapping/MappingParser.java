@@ -161,17 +161,13 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         if (sourceObject != null) {
             if (sourceObject instanceof ItemDeltaItem<?, ?>) {
                 //noinspection unchecked
-                itemOld = ((ItemDeltaItem<IV, ID>) sourceObject).getItemOld();
-                //noinspection unchecked
-                delta = ((ItemDeltaItem<IV, ID>) sourceObject).getDelta();
-                //noinspection unchecked
-                itemNew = ((ItemDeltaItem<IV, ID>) sourceObject).getItemNew();
-                //noinspection unchecked
-                residualPath = ((ItemDeltaItem<IV, ID>) sourceObject).getResidualPath();
-                //noinspection unchecked
-                resolvePath = ((ItemDeltaItem<IV, ID>) sourceObject).getResolvePath();
-                //noinspection unchecked
-                subItemDeltas = ((ItemDeltaItem<IV, ID>) sourceObject).getSubItemDeltas();
+                ItemDeltaItem<IV, ID> sourceIdi = (ItemDeltaItem<IV, ID>) sourceObject;
+                itemOld = sourceIdi.getItemOld();
+                delta = sourceIdi.getDelta();
+                itemNew = sourceIdi.getItemNew();
+                residualPath = sourceIdi.getResidualPath();
+                resolvePath = sourceIdi.getResolvePath();
+                subItemDeltas = sourceIdi.getSubItemDeltas();
             } else if (sourceObject instanceof Item<?, ?>) {
                 //noinspection unchecked
                 itemOld = (Item<IV, ID>) sourceObject;
@@ -180,6 +176,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
             } else {
                 throw new IllegalStateException("Unknown resolve result " + sourceObject);
             }
+            // TODO what about ObjectDeltaObject? Can this happen?
         }
 
         checkItemCompleteness(itemOld, path, "old");
@@ -191,23 +188,28 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         ValueSetDefinitionType domainSetType = sourceDefinition.getSet();
         if (domainSetType != null) {
             ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(
-                    domainSetType, sourceItemDefinition, m.valueMetadataDefinition,
-                    m.expressionProfile, ModelCommonBeans.get().expressionFactory, variableName, null,
-                    "domain of " + variableName, "domain of " + variableName + " in " + m.getMappingContextDescription(),
-                    m.getTask(), result);
+                    domainSetType,
+                    sourceItemDefinition,
+                    m.valueMetadataDefinition,
+                    m.expressionProfile,
+                    ModelCommonBeans.get().expressionFactory,
+                    variableName,
+                    null,
+                    "domain of " + variableName,
+                    "domain of " + variableName + " in " + m.getMappingContextDescription(),
+                    m.getTask(),
+                    result);
             setDef.init();
             setDef.setAdditionalVariables(m.variables);
             try {
 
                 if (itemOld != null) {
-                    //noinspection unchecked
                     itemOld = itemOld.clone();
                     itemOld.filterValues(setDef::containsTunnel);
                     itemOld.filterYields(setDef::containsYieldTunnel);
                 }
 
                 if (itemNew != null) {
-                    //noinspection unchecked
                     itemNew = itemNew.clone();
                     itemNew.filterValues(setDef::containsTunnel);
                     itemNew.filterYields(setDef::containsYieldTunnel);
@@ -224,11 +226,10 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
             }
         }
 
-        Source<IV, ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, sourceItemDefinition);
-        source.setResidualPath(residualPath);
-        source.setResolvePath(resolvePath);
-        source.setSubItemDeltas(subItemDeltas);
-        return source;
+        return new Source<>(
+                itemOld, delta, itemNew, sourceItemDefinition,
+                resolvePath, residualPath, subItemDeltas,
+                sourceQName);
     }
 
     private <ID extends ItemDefinition<?>, IV extends PrismValue> void checkItemCompleteness(

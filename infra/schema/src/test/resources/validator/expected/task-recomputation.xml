@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        oid="7f1e6c57-31e7-4fe9-b986-0018f44e82b2">
+
+    <name>recomputation</name>
+
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+            </recomputation>
+        </work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <boundary>
+                        <position>1</position>
+                        <characters>a</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>\0-\1\a-\c</characters>
+                    </boundary>
+                    <boundary>
+                        <position>3</position>
+                        <characters>01abc</characters>
+                    </boundary>
+                </stringSegmentation>
+            </buckets>
+        </distribution>
+        <reporting>
+            <tracing id="1">
+                <interval>10</interval>
+            </tracing>
+            <profiling>
+                <interval>11</interval>
+            </profiling>
+        </reporting>
+        <execution>
+            <mode>dryRun</mode>
+        </execution>
+    </activity>
+
+    <policyRule>
+        <policyConstraints>
+            <name>sample</name>
+        </policyConstraints>
+    </policyRule>
+
+    <schedule>
+        <recurrence>recurring</recurrence>
+    </schedule>
+</task>

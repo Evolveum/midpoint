@@ -49,13 +49,13 @@ public class NotificationExpressionHelper {
     @Autowired private SystemObjectCache systemObjectCache;
 
     // shortDesc = what is to be evaluated e.g. "event filter expression"
-    public boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, VariablesMap variablesMap,
+    boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, VariablesMap variablesMap,
             String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
         try {
             return evaluateBooleanExpression(expressionType, variablesMap, shortDesc, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             failReason = e;
         }
 
@@ -64,7 +64,7 @@ public class NotificationExpressionHelper {
         throw new SystemException(failReason);
     }
 
-    public boolean evaluateBooleanExpression(
+    private boolean evaluateBooleanExpression(
             ExpressionType expressionType, VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 

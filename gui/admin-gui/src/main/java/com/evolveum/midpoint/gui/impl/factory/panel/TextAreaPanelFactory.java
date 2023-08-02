@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -29,7 +31,7 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractInputG
     }
 
     @Override
-    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return FocusType.F_DESCRIPTION.equals(wrapper.getItemName());
     }
 
